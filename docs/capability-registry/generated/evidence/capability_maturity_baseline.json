@@ -1,0 +1,1388 @@
+{
+  "capabilities": [
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-001",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Decision evidence"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-002",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Decision candidate"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-003",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Human approval"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-004",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Execution request"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-005",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Dispatch authorization"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-006",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Execution receipt"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-007",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Outcome recording"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-008",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Learning attribution"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-009",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Model calibration"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "DEC-010",
+      "declared_maturity": 3,
+      "domain": "decision",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Model lifecycle and activation"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "FM-001",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Tenant and organization management"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "FM-002",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Farm registry"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "FM-003",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Field registry and boundaries"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "FM-004",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Season lifecycle"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "FM-005",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Crop and cultivar catalog"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "FM-006",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Farm economics"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "FM-007",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Inventory and procurement"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "FM-008",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "ERP integration"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "GIS-001",
+      "declared_maturity": 3,
+      "domain": "gis",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Field geometry validation"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "GIS-002",
+      "declared_maturity": 3,
+      "domain": "gis",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Map layers"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "GIS-003",
+      "declared_maturity": 3,
+      "domain": "gis",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Terrain and DEM"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "GIS-004",
+      "declared_maturity": 3,
+      "domain": "gis",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Spatial analytics"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "INT-001",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Public API and SDK"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "INT-002",
+      "declared_maturity": 3,
+      "domain": "farm_management",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Event bus integration"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "INT-003",
+      "declared_maturity": 3,
+      "domain": "irrigation",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "IoT and sensors"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "documentation_only"
+      ],
+      "capability_id": "INT-004",
+      "declared_maturity": 1,
+      "domain": "precision",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "External machinery integrations"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-001",
+      "declared_maturity": 3,
+      "domain": "irrigation",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Water source registry"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-002",
+      "declared_maturity": 3,
+      "domain": "irrigation",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Water quality samples"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-003",
+      "declared_maturity": 0,
+      "domain": "irrigation",
+      "maturity_alignment": "evidence_above_declared",
+      "maturity_delta": 1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Field water-source binding"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-004",
+      "declared_maturity": 3,
+      "domain": "irrigation",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Water balance"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-005",
+      "declared_maturity": 3,
+      "domain": "irrigation",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Irrigation recommendation"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-006",
+      "declared_maturity": 3,
+      "domain": "irrigation",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Irrigation scheduling"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-007",
+      "declared_maturity": 3,
+      "domain": "irrigation",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Pump and valve control"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-008",
+      "declared_maturity": 3,
+      "domain": "irrigation",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Execution verification"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-009",
+      "declared_maturity": 2,
+      "domain": "irrigation",
+      "maturity_alignment": "evidence_above_declared",
+      "maturity_delta": 1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Water suitability multi-hazard"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "IRR-010",
+      "declared_maturity": 2,
+      "domain": "irrigation",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Leaching and drainage safety"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "OPS-001",
+      "declared_maturity": 3,
+      "domain": "operations",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Task management"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "OPS-002",
+      "declared_maturity": 3,
+      "domain": "operations",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Work orders"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "OPS-003",
+      "declared_maturity": 3,
+      "domain": "operations",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Scouting"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "OPS-004",
+      "declared_maturity": 3,
+      "domain": "operations",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Field forms"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "OPS-005",
+      "declared_maturity": 3,
+      "domain": "operations",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Offline mobile"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "OPS-006",
+      "declared_maturity": 3,
+      "domain": "operations",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Equipment registry"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "OPS-007",
+      "declared_maturity": 3,
+      "domain": "operations",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Maintenance"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "documentation_only"
+      ],
+      "capability_id": "OPS-008",
+      "declared_maturity": 3,
+      "domain": "operations",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Workforce and worker identity"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "PA-001",
+      "declared_maturity": 3,
+      "domain": "precision",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Management zones"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "PA-002",
+      "declared_maturity": 3,
+      "domain": "precision",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Variable rate prescription"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "PA-003",
+      "declared_maturity": 0,
+      "domain": "precision",
+      "maturity_alignment": "evidence_above_declared",
+      "maturity_delta": 1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Yield map ingestion"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "PA-004",
+      "declared_maturity": 2,
+      "domain": "precision",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "As-applied data"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "PA-005",
+      "declared_maturity": 1,
+      "domain": "precision",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Machine telemetry"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-001",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Satellite scene search"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-002",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "True color imagery"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-003",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "NDVI"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-004",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "NDMI"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-005",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Cloud screening"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-006",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Historical imagery timeline"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-007",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Change detection"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-008",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Stress zones"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SAT-009",
+      "declared_maturity": 3,
+      "domain": "satellite",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "COG persistence and tiling"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SEC-001",
+      "declared_maturity": 3,
+      "domain": "security",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Tenant RLS"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SEC-002",
+      "declared_maturity": 3,
+      "domain": "security",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Signed tenant assertion"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SEC-003",
+      "declared_maturity": 3,
+      "domain": "security",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Worker identity binding"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SEC-004",
+      "declared_maturity": 3,
+      "domain": "security",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "MFA"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SEC-005",
+      "declared_maturity": 3,
+      "domain": "security",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Audit logging"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SEC-006",
+      "declared_maturity": 3,
+      "domain": "security",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Service token guard"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SEC-007",
+      "declared_maturity": 3,
+      "domain": "security",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Decision SoR DB ownership"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SEC-008",
+      "declared_maturity": 3,
+      "domain": "security",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Secrets and production fail-closed"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SOIL-001",
+      "declared_maturity": 3,
+      "domain": "soil",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Soil profile"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SOIL-002",
+      "declared_maturity": 3,
+      "domain": "soil",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Soil sampling"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SOIL-003",
+      "declared_maturity": 3,
+      "domain": "soil",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Laboratory results"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SOIL-004",
+      "declared_maturity": 3,
+      "domain": "soil",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "pH EC SOM nutrients"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "SOIL-005",
+      "declared_maturity": 3,
+      "domain": "soil",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Soil water properties"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-001",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Current weather"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-002",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Weather forecast"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-003",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Weather history"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-004",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "ET0"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-005",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "VPD"
+    },
+    {
+      "assessed_maturity": 3,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-006",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "GDD"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-007",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Frost and heat risk"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-008",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Operation windows"
+    },
+    {
+      "assessed_maturity": 2,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-009",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Disease weather models"
+    },
+    {
+      "assessed_maturity": 1,
+      "assessment_reasons": [
+        "repository_implementation_present",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
+      ],
+      "capability_id": "WX-010",
+      "declared_maturity": 3,
+      "domain": "weather",
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "title": "Weather provenance and quality"
+    }
+  ],
+  "policy": "evidence-derived-fail-closed",
+  "schema_version": "1.0",
+  "summary": {
+    "aligned": 26,
+    "average_assessed_maturity": 2.0,
+    "capability_count": 81,
+    "declared_above_evidence": 52,
+    "evidence_above_declared": 3,
+    "production_certified": 0,
+    "runtime_verified": 0
+  }
+}

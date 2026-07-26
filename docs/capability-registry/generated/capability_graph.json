@@ -1,0 +1,902 @@
+{
+  "nodes": [
+    {
+      "id": "DEC-001",
+      "domain": "decision",
+      "title": "Decision evidence",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-002",
+      "domain": "decision",
+      "title": "Decision candidate",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-003",
+      "domain": "decision",
+      "title": "Human approval",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-004",
+      "domain": "decision",
+      "title": "Execution request",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-005",
+      "domain": "decision",
+      "title": "Dispatch authorization",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-006",
+      "domain": "decision",
+      "title": "Execution receipt",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-007",
+      "domain": "decision",
+      "title": "Outcome recording",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-008",
+      "domain": "decision",
+      "title": "Learning attribution",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-009",
+      "domain": "decision",
+      "title": "Model calibration",
+      "maturity": 3
+    },
+    {
+      "id": "DEC-010",
+      "domain": "decision",
+      "title": "Model lifecycle and activation",
+      "maturity": 3
+    },
+    {
+      "id": "FM-001",
+      "domain": "farm_management",
+      "title": "Tenant and organization management",
+      "maturity": 3
+    },
+    {
+      "id": "FM-002",
+      "domain": "farm_management",
+      "title": "Farm registry",
+      "maturity": 3
+    },
+    {
+      "id": "FM-003",
+      "domain": "farm_management",
+      "title": "Field registry and boundaries",
+      "maturity": 3
+    },
+    {
+      "id": "FM-004",
+      "domain": "farm_management",
+      "title": "Season lifecycle",
+      "maturity": 3
+    },
+    {
+      "id": "FM-005",
+      "domain": "farm_management",
+      "title": "Crop and cultivar catalog",
+      "maturity": 3
+    },
+    {
+      "id": "FM-006",
+      "domain": "farm_management",
+      "title": "Farm economics",
+      "maturity": 3
+    },
+    {
+      "id": "FM-007",
+      "domain": "farm_management",
+      "title": "Inventory and procurement",
+      "maturity": 3
+    },
+    {
+      "id": "FM-008",
+      "domain": "farm_management",
+      "title": "ERP integration",
+      "maturity": 3
+    },
+    {
+      "id": "GIS-001",
+      "domain": "gis",
+      "title": "Field geometry validation",
+      "maturity": 3
+    },
+    {
+      "id": "GIS-002",
+      "domain": "gis",
+      "title": "Map layers",
+      "maturity": 3
+    },
+    {
+      "id": "GIS-003",
+      "domain": "gis",
+      "title": "Terrain and DEM",
+      "maturity": 3
+    },
+    {
+      "id": "GIS-004",
+      "domain": "gis",
+      "title": "Spatial analytics",
+      "maturity": 3
+    },
+    {
+      "id": "INT-001",
+      "domain": "farm_management",
+      "title": "Public API and SDK",
+      "maturity": 3
+    },
+    {
+      "id": "INT-002",
+      "domain": "farm_management",
+      "title": "Event bus integration",
+      "maturity": 3
+    },
+    {
+      "id": "INT-003",
+      "domain": "irrigation",
+      "title": "IoT and sensors",
+      "maturity": 3
+    },
+    {
+      "id": "INT-004",
+      "domain": "precision",
+      "title": "External machinery integrations",
+      "maturity": 1
+    },
+    {
+      "id": "IRR-001",
+      "domain": "irrigation",
+      "title": "Water source registry",
+      "maturity": 3
+    },
+    {
+      "id": "IRR-002",
+      "domain": "irrigation",
+      "title": "Water quality samples",
+      "maturity": 3
+    },
+    {
+      "id": "IRR-003",
+      "domain": "irrigation",
+      "title": "Field water-source binding",
+      "maturity": 0
+    },
+    {
+      "id": "IRR-004",
+      "domain": "irrigation",
+      "title": "Water balance",
+      "maturity": 3
+    },
+    {
+      "id": "IRR-005",
+      "domain": "irrigation",
+      "title": "Irrigation recommendation",
+      "maturity": 3
+    },
+    {
+      "id": "IRR-006",
+      "domain": "irrigation",
+      "title": "Irrigation scheduling",
+      "maturity": 3
+    },
+    {
+      "id": "IRR-007",
+      "domain": "irrigation",
+      "title": "Pump and valve control",
+      "maturity": 3
+    },
+    {
+      "id": "IRR-008",
+      "domain": "irrigation",
+      "title": "Execution verification",
+      "maturity": 3
+    },
+    {
+      "id": "IRR-009",
+      "domain": "irrigation",
+      "title": "Water suitability multi-hazard",
+      "maturity": 2
+    },
+    {
+      "id": "IRR-010",
+      "domain": "irrigation",
+      "title": "Leaching and drainage safety",
+      "maturity": 2
+    },
+    {
+      "id": "OPS-001",
+      "domain": "operations",
+      "title": "Task management",
+      "maturity": 3
+    },
+    {
+      "id": "OPS-002",
+      "domain": "operations",
+      "title": "Work orders",
+      "maturity": 3
+    },
+    {
+      "id": "OPS-003",
+      "domain": "operations",
+      "title": "Scouting",
+      "maturity": 3
+    },
+    {
+      "id": "OPS-004",
+      "domain": "operations",
+      "title": "Field forms",
+      "maturity": 3
+    },
+    {
+      "id": "OPS-005",
+      "domain": "operations",
+      "title": "Offline mobile",
+      "maturity": 3
+    },
+    {
+      "id": "OPS-006",
+      "domain": "operations",
+      "title": "Equipment registry",
+      "maturity": 3
+    },
+    {
+      "id": "OPS-007",
+      "domain": "operations",
+      "title": "Maintenance",
+      "maturity": 3
+    },
+    {
+      "id": "OPS-008",
+      "domain": "operations",
+      "title": "Workforce and worker identity",
+      "maturity": 3
+    },
+    {
+      "id": "PA-001",
+      "domain": "precision",
+      "title": "Management zones",
+      "maturity": 3
+    },
+    {
+      "id": "PA-002",
+      "domain": "precision",
+      "title": "Variable rate prescription",
+      "maturity": 3
+    },
+    {
+      "id": "PA-003",
+      "domain": "precision",
+      "title": "Yield map ingestion",
+      "maturity": 0
+    },
+    {
+      "id": "PA-004",
+      "domain": "precision",
+      "title": "As-applied data",
+      "maturity": 2
+    },
+    {
+      "id": "PA-005",
+      "domain": "precision",
+      "title": "Machine telemetry",
+      "maturity": 1
+    },
+    {
+      "id": "SAT-001",
+      "domain": "satellite",
+      "title": "Satellite scene search",
+      "maturity": 3
+    },
+    {
+      "id": "SAT-002",
+      "domain": "satellite",
+      "title": "True color imagery",
+      "maturity": 3
+    },
+    {
+      "id": "SAT-003",
+      "domain": "satellite",
+      "title": "NDVI",
+      "maturity": 3
+    },
+    {
+      "id": "SAT-004",
+      "domain": "satellite",
+      "title": "NDMI",
+      "maturity": 3
+    },
+    {
+      "id": "SAT-005",
+      "domain": "satellite",
+      "title": "Cloud screening",
+      "maturity": 3
+    },
+    {
+      "id": "SAT-006",
+      "domain": "satellite",
+      "title": "Historical imagery timeline",
+      "maturity": 3
+    },
+    {
+      "id": "SAT-007",
+      "domain": "satellite",
+      "title": "Change detection",
+      "maturity": 3
+    },
+    {
+      "id": "SAT-008",
+      "domain": "satellite",
+      "title": "Stress zones",
+      "maturity": 3
+    },
+    {
+      "id": "SAT-009",
+      "domain": "satellite",
+      "title": "COG persistence and tiling",
+      "maturity": 3
+    },
+    {
+      "id": "SEC-001",
+      "domain": "security",
+      "title": "Tenant RLS",
+      "maturity": 3
+    },
+    {
+      "id": "SEC-002",
+      "domain": "security",
+      "title": "Signed tenant assertion",
+      "maturity": 3
+    },
+    {
+      "id": "SEC-003",
+      "domain": "security",
+      "title": "Worker identity binding",
+      "maturity": 3
+    },
+    {
+      "id": "SEC-004",
+      "domain": "security",
+      "title": "MFA",
+      "maturity": 3
+    },
+    {
+      "id": "SEC-005",
+      "domain": "security",
+      "title": "Audit logging",
+      "maturity": 3
+    },
+    {
+      "id": "SEC-006",
+      "domain": "security",
+      "title": "Service token guard",
+      "maturity": 3
+    },
+    {
+      "id": "SEC-007",
+      "domain": "security",
+      "title": "Decision SoR DB ownership",
+      "maturity": 3
+    },
+    {
+      "id": "SEC-008",
+      "domain": "security",
+      "title": "Secrets and production fail-closed",
+      "maturity": 3
+    },
+    {
+      "id": "SOIL-001",
+      "domain": "soil",
+      "title": "Soil profile",
+      "maturity": 3
+    },
+    {
+      "id": "SOIL-002",
+      "domain": "soil",
+      "title": "Soil sampling",
+      "maturity": 3
+    },
+    {
+      "id": "SOIL-003",
+      "domain": "soil",
+      "title": "Laboratory results",
+      "maturity": 3
+    },
+    {
+      "id": "SOIL-004",
+      "domain": "soil",
+      "title": "pH EC SOM nutrients",
+      "maturity": 3
+    },
+    {
+      "id": "SOIL-005",
+      "domain": "soil",
+      "title": "Soil water properties",
+      "maturity": 3
+    },
+    {
+      "id": "WX-001",
+      "domain": "weather",
+      "title": "Current weather",
+      "maturity": 3
+    },
+    {
+      "id": "WX-002",
+      "domain": "weather",
+      "title": "Weather forecast",
+      "maturity": 3
+    },
+    {
+      "id": "WX-003",
+      "domain": "weather",
+      "title": "Weather history",
+      "maturity": 3
+    },
+    {
+      "id": "WX-004",
+      "domain": "weather",
+      "title": "ET0",
+      "maturity": 3
+    },
+    {
+      "id": "WX-005",
+      "domain": "weather",
+      "title": "VPD",
+      "maturity": 3
+    },
+    {
+      "id": "WX-006",
+      "domain": "weather",
+      "title": "GDD",
+      "maturity": 3
+    },
+    {
+      "id": "WX-007",
+      "domain": "weather",
+      "title": "Frost and heat risk",
+      "maturity": 3
+    },
+    {
+      "id": "WX-008",
+      "domain": "weather",
+      "title": "Operation windows",
+      "maturity": 3
+    },
+    {
+      "id": "WX-009",
+      "domain": "weather",
+      "title": "Disease weather models",
+      "maturity": 3
+    },
+    {
+      "id": "WX-010",
+      "domain": "weather",
+      "title": "Weather provenance and quality",
+      "maturity": 3
+    }
+  ],
+  "edges": [
+    {
+      "from": "FM-002",
+      "to": "FM-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-003",
+      "to": "FM-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-005",
+      "to": "FM-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-002",
+      "to": "FM-006",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-004",
+      "to": "FM-006",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-006",
+      "to": "FM-008",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-003",
+      "to": "GIS-001",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-003",
+      "to": "GIS-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "GIS-002",
+      "to": "GIS-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "GIS-001",
+      "to": "GIS-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "GIS-002",
+      "to": "GIS-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-005",
+      "to": "SAT-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-005",
+      "to": "SAT-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-006",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-009",
+      "to": "SAT-006",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-003",
+      "to": "SAT-007",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-006",
+      "to": "SAT-007",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-003",
+      "to": "SAT-008",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-004",
+      "to": "SAT-008",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-009",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-001",
+      "to": "WX-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-001",
+      "to": "WX-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-001",
+      "to": "WX-006",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-006",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-002",
+      "to": "WX-007",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-002",
+      "to": "WX-008",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-002",
+      "to": "WX-009",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-003",
+      "to": "SOIL-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "SOIL-002",
+      "to": "SOIL-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "SOIL-003",
+      "to": "SOIL-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "SOIL-001",
+      "to": "SOIL-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "SOIL-004",
+      "to": "SOIL-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-001",
+      "to": "IRR-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-003",
+      "to": "IRR-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-001",
+      "to": "IRR-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-003",
+      "to": "IRR-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "SOIL-005",
+      "to": "IRR-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "WX-004",
+      "to": "IRR-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-004",
+      "to": "IRR-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-005",
+      "to": "IRR-006",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-006",
+      "to": "IRR-007",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-005",
+      "to": "IRR-007",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-007",
+      "to": "IRR-008",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-006",
+      "to": "IRR-008",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-002",
+      "to": "IRR-009",
+      "type": "depends_on"
+    },
+    {
+      "from": "SOIL-004",
+      "to": "IRR-009",
+      "type": "depends_on"
+    },
+    {
+      "from": "IRR-009",
+      "to": "IRR-010",
+      "type": "depends_on"
+    },
+    {
+      "from": "SOIL-005",
+      "to": "IRR-010",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-003",
+      "to": "PA-001",
+      "type": "depends_on"
+    },
+    {
+      "from": "SAT-004",
+      "to": "PA-001",
+      "type": "depends_on"
+    },
+    {
+      "from": "GIS-004",
+      "to": "PA-001",
+      "type": "depends_on"
+    },
+    {
+      "from": "PA-001",
+      "to": "PA-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-003",
+      "to": "PA-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "PA-002",
+      "to": "PA-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "OPS-006",
+      "to": "PA-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "PA-005",
+      "to": "INT-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "OPS-001",
+      "to": "OPS-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-003",
+      "to": "OPS-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "FM-003",
+      "to": "OPS-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "OPS-003",
+      "to": "OPS-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "OPS-004",
+      "to": "OPS-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "OPS-006",
+      "to": "OPS-007",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-001",
+      "to": "DEC-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-002",
+      "to": "DEC-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-003",
+      "to": "DEC-004",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-004",
+      "to": "DEC-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-005",
+      "to": "DEC-006",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-006",
+      "to": "DEC-007",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-007",
+      "to": "DEC-008",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-008",
+      "to": "DEC-009",
+      "type": "depends_on"
+    },
+    {
+      "from": "DEC-009",
+      "to": "DEC-010",
+      "type": "depends_on"
+    },
+    {
+      "from": "SEC-001",
+      "to": "SEC-002",
+      "type": "depends_on"
+    },
+    {
+      "from": "SEC-006",
+      "to": "SEC-003",
+      "type": "depends_on"
+    },
+    {
+      "from": "SEC-001",
+      "to": "SEC-007",
+      "type": "depends_on"
+    }
+  ]
+}

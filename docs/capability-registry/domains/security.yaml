@@ -1,0 +1,576 @@
+schema_version: 1.0.0
+domain:
+  id: D10
+  key: security
+  title: Security
+  capability_prefix: SEC
+  accepted_prefixes:
+  - SEC
+capabilities:
+- id: SEC-001
+  title:
+    en: Tenant RLS
+    ar: ''
+  domain: security
+  owner: field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/field-management-service/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - scripts_v9/test_tenant_isolation.sql
+  - services/raster-service/test_process_date_tenant_isolation.py
+  - tests/security/test_fii_chemical_chain_rls_gate.py
+  - tests/security/test_fii_rls_role_gate.py
+  - tests/security/test_fii_rls_write_policy_gate.py
+  - tests/security/test_phase22_rls_with_check_backfill.py
+  - tests/security/test_phase23_rls_preserve_using.py
+  - tests_v9/test_auth_rls_and_routing.py
+  - tests_v9/test_compose_rls_bypass_guard.py
+  - tests_v9/test_fii_rls_write_fail_closed_postgres.py
+  - tests_v9/test_notification_tenant_isolation.py
+  - tests_v9/test_rls_fk_isolated_tables.py
+  - tests_v9/test_rls_isolation.py
+  - tests_v9/test_rls_isolation_negative.py
+  - tests_v9/test_rls_role_hardening_v66.py
+  - tests_v9/test_rls_tenant_coverage.py
+  - tests_v9/test_rls_write_isolation_integration.py
+  - tests_v9/test_v197_external_submissions_rls_live.py
+  - tests_v9/test_v9_odoo_rls_hardening_static.py
+  - tests_v9/test_weather_automation_rls.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v122_rls_with_check_session_unification.sql
+  - type: repository
+    path: migrations/v123_rls_with_check_preserve_using.sql
+  - type: repository
+    path: migrations/v192_fii_rls_write_fail_closed.sql
+  - type: repository
+    path: migrations/v194_fii_chemical_chain_rls_fail_closed.sql
+  - type: repository
+    path: migrations/v206_rls_final_hardening.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=20, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SEC-002
+  title:
+    en: Signed tenant assertion
+    ar: ''
+  domain: security
+  owner: field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - SEC-001
+  services:
+  - services/field-management-service/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - tests_v9/test_service_tenant_assertion.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/field-management-service/main.py
+  - type: repository
+    path: services/field-management-service/tests/test_field_management_service_contract.py
+  - type: repository
+    path: tests_v9/test_worker_assertion_interop.py
+  - type: repository
+    path: shared/security/service_tenant_assertion.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SEC-003
+  title:
+    en: Worker identity binding
+    ar: ''
+  domain: security
+  owner: auth
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - SEC-006
+  services:
+  - services/auth/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_worker_identity_binding.py
+  runtime:
+    metrics:
+    - metric:sahool_auth_logins_total@services/auth/main.py:261
+    - metric:sahool_auth_register_total@services/auth/main.py:262
+    - metric:sahool_auth_resets_total@services/auth/main.py:263
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/decision-service/tests/test_worker_identity_binding.py
+  - type: repository
+    path: tests_v9/test_worker_assertion_interop.py
+  - type: repository
+    path: sahool-brain/hot.md
+    line_start: 1
+    line_end: 1
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SEC-004
+  title:
+    en: MFA
+    ar: ''
+  domain: security
+  owner: auth
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/auth/main.py
+  apis:
+  - POST /auth/mfa/activate @ services/auth/routers/mfa.py:66
+  - POST /auth/mfa/disable @ services/auth/routers/mfa.py:136
+  - POST /auth/mfa/setup @ services/auth/routers/mfa.py:19
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/screens/mfa_setup_screen.dart
+  tests:
+  - tests_v9/test_auth_admin_stepup_mfa.py
+  - tests_v9/test_auth_mfa_enforcement.py
+  - tests_v9/test_fields_put_and_mfa_api_contract_20260626.py
+  - tests_v9/test_mfa_crypto_v29_5.py
+  - tests_v9/test_mfa_hardening_integration_v29_5.py
+  - tests_v9/test_mfa_migration_contract_guard.py
+  - tests_v9/test_mfa_totp_antireplay_v141.py
+  runtime:
+    metrics:
+    - metric:sahool_auth_logins_total@services/auth/main.py:261
+    - metric:sahool_auth_register_total@services/auth/main.py:262
+    - metric:sahool_auth_resets_total@services/auth/main.py:263
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v128_mfa_hardening.sql
+  - type: repository
+    path: migrations/v129_mfa_hardening_followup.sql
+  - type: repository
+    path: migrations/v141_mfa_totp_antireplay.sql
+  - type: repository
+    path: migrations/v21_mfa.sql
+  - type: repository
+    path: services/auth/mfa_crypto.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=7, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SEC-005
+  title:
+    en: Audit logging
+    ar: ''
+  domain: security
+  owner: auth
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/auth/main.py
+  apis:
+  - GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178
+  - GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19
+  - GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:617
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_calibration_audit_endpoint.py
+  - services/sahool-platform/tests/test_tenant_audit.py
+  - tests/architecture/test_execution_dependency_audit.py
+  - tests_v9/test_ai_approval_audit_v55.py
+  - tests_v9/test_ai_provider_native_multiround_audit_v58.py
+  - tests_v9/test_calibration_audit_events.py
+  - tests_v9/test_calibration_audit_migration.py
+  - tests_v9/test_compose_security_audit.py
+  - tests_v9/test_persistence_truth_audit_v30_7.py
+  - tests_v9/test_pip_audit_resolution_guard.py
+  - tests_v9/test_tenant_query_audit.py
+  - tests_v9/test_v87_audit_tenant.py
+  runtime:
+    metrics:
+    - metric:sahool_auth_logins_total@services/auth/main.py:261
+    - metric:sahool_auth_register_total@services/auth/main.py:262
+    - metric:sahool_auth_resets_total@services/auth/main.py:263
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v126_agent_tool_audit.sql
+  - type: repository
+    path: migrations/v84_calibration_audit.sql
+  - type: repository
+    path: migrations/v85_nl_gis_audit.sql
+  - type: repository
+    path: migrations/v87_audit_log_tenant.sql
+  - type: repository
+    path: services/sahool-platform/api/routers/security_audit.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=12, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SEC-006
+  title:
+    en: Service token guard
+    ar: ''
+  domain: security
+  owner: auth
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/auth/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart
+  - services/decision-service/tests/test_service_token_guard.py
+  - tests_v9/test_sensing_adapter_service_token.py
+  - tests_v9/test_service_token_constant_time.py
+  runtime:
+    metrics:
+    - metric:sahool_auth_logins_total@services/auth/main.py:261
+    - metric:sahool_auth_register_total@services/auth/main.py:262
+    - metric:sahool_auth_resets_total@services/auth/main.py:263
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/api/service_token_auth.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=4, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SEC-007
+  title:
+    en: Decision SoR DB ownership
+    ar: ''
+  domain: security
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - SEC-001
+  services:
+  - services/decision-service/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_decision_sor_db_privilege_cutover.py
+  - services/decision-service/tests/test_decision_sor_role_certify_pg.py
+  - services/sahool-platform/tests/test_decision_sor_write_guard.py
+  - services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py
+  - services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py
+  - services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py
+  - services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py
+  - services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py
+  - tests_v9/test_decision_sor_platform_revoke_static.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/decision-service/platform_sor_revoke.py
+  - type: repository
+    path: services/decision-service/decision_sor_role_certify.py
+  - type: repository
+    path: services/decision-service/tests/test_decision_sor_db_privilege_cutover.py
+  - type: repository
+    path: docs/runbooks/DECISION_SERVICE_SOR_CUTOVER_RUNBOOK.md
+    line_start: 149
+    line_end: 173
+  - type: repository
+    path: services/decision-service/migrations/001_decision_sor.sql
+  - type: repository
+    path: services/sahool-platform/api/decision_sor_mode.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=9, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SEC-008
+  title:
+    en: Secrets and production fail-closed
+    ar: ''
+  domain: security
+  owner: auth
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/auth/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py
+  - services/raster-service/test_production_truth_fail_closed.py
+  - services/weather-service/tests/test_operation_fail_closed.py
+  - tests_v9/test_critical_event_fail_closed.py
+  - tests_v9/test_erp_bridge_fail_closed.py
+  - tests_v9/test_fii_rls_write_fail_closed_postgres.py
+  - tests_v9/test_secret_enforcement_guard_v21.py
+  - tests_v9/test_secret_guard.py
+  - tests_v9/test_services_rs256_production_guard.py
+  - tests_v9/test_tile_mask_fail_closed_v29_8.py
+  runtime:
+    metrics:
+    - metric:sahool_auth_logins_total@services/auth/main.py:261
+    - metric:sahool_auth_register_total@services/auth/main.py:262
+    - metric:sahool_auth_resets_total@services/auth/main.py:263
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v182_decision_content_lineage_and_secret_hardening.sql
+  - type: repository
+    path: migrations/v192_fii_rls_write_fail_closed.sql
+  - type: repository
+    path: migrations/v194_fii_chemical_chain_rls_fail_closed.sql
+  - type: repository
+    path: shared/security/secret_guard.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=10, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

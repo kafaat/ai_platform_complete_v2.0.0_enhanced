@@ -1,0 +1,24 @@
+﻿capability_id,capability,domain,SAHOOL,SAHOOL_verdict,SAHOOL_confidence,FieldView,CropX,GeoPard,Cropwise,EOSDA,OneSoil,Farmonaut,best_evidenced_competitor_score,SAHOOL_gap_to_best
+FM-001,Farm and field registry,farm_management,4,PROVISIONAL,low,,,,,,,,,
+GIS-003,Field boundaries and geospatial editing,gis,4,PROVISIONAL,low,,,,,,,,,
+SAT-001,Satellite crop monitoring,satellite,4,PROVISIONAL,low,4,4,4,4,5,5,4,5,1
+SAT-004,Historical imagery timeline,satellite,4,PROVISIONAL,low,,,,,,,,,
+WX-001,Weather state and forecast,weather,3,PROVISIONAL,low,3,4,,3,4,3,3,4,1
+WX-004,ET0 and crop-water analytics,weather,4,PROVISIONAL,low,,5,,,2,,2,5,1
+SOIL-002,Soil sampling and analysis,soil,4,PROVISIONAL,low,,5,4,4,,4,,5,1
+IRR-002,Water-source registry,irrigation,4,PROVISIONAL,low,,,,,,,,,
+IRR-003,Field-to-water-source binding,irrigation,0,CONFIRMED_MISSING,high,,,,,,,,,
+IRR-007,Irrigation scheduling and recommendation,irrigation,4,PROVISIONAL,low,,5,,,,,,5,1
+IRR-009,Water suitability multi-hazard,irrigation,2,PARTIAL,high,,,,,,,,,
+PA-001,Management/productivity zones,precision,4,PROVISIONAL,low,4,,5,5,3,5,,5,1
+PA-002,VRA prescriptions and export,precision,4,PROVISIONAL,low,5,,5,5,,5,,5,1
+PA-003,Yield-map ingestion and analytics,precision,0,CONFIRMED_MISSING,high,5,,5,4,,5,,5,5
+PA-004,General as-applied reconciliation,precision,2,PARTIAL,high,5,,5,4,,,,5,3
+PA-005,Machine telemetry ingestion,precision,1,PARTIAL,high,5,,,5,,4,,5,4
+OPS-002,Offline scouting and field forms,operations,3,PROVISIONAL,low,4,,,5,4,5,,5,2
+OPS-004,Equipment and operations tracking,operations,4,PROVISIONAL,low,5,,,5,,,,5,1
+DEC-002,Approval and governed decision workflow,decision,4,PROVISIONAL,low,,,,,,,,,
+DEC-006,Execution receipt and outcome learning,decision,4,PROVISIONAL,low,,,,,,,,,
+SEC-001,Tenant isolation and RLS,security,4,PROVISIONAL,low,,,,,,,,,
+SEC-003,Worker identity binding,security,3,PARTIAL,high,,,,,,,,,
+INT-001,ERP/accounting integration,integration,4,PROVISIONAL,low,,,,,,,,,

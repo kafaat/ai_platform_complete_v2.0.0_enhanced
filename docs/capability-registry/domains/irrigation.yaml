@@ -1,0 +1,768 @@
+schema_version: 1.0.0
+domain:
+  id: D6
+  key: irrigation
+  title: Irrigation Intelligence
+  capability_prefix: IRR
+  accepted_prefixes:
+  - IRR
+  - INT
+capabilities:
+- id: IRR-001
+  title:
+    en: Water source registry
+    ar: ''
+  domain: irrigation
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/sahool-platform/api/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_canonical_well_capability.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v170_water_source_well_digital_twin.sql
+  - type: repository
+    path: services/sahool-platform/api/canonical_well_capability.py
+  - type: repository
+    path: services/sahool-platform/examples/tenant_data/tenants_001-aljawf-142ha/well_specs.yaml
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-002
+  title:
+    en: Water quality samples
+    ar: ''
+  domain: irrigation
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - IRR-001
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - POST /v1/soil/irrigation-water/samples @ services/soil-service/routers/p1_products.py:128
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-003
+  title:
+    en: Field water-source binding
+    ar: ''
+  domain: irrigation
+  owner: sahool-platform
+  lifecycle: planned
+  maturity: 0
+  evidence_level: 0
+  status: missing_confirmed
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - FM-003
+  - IRR-001
+  services:
+  - services/sahool-platform/api/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - tests_v9/test_h51_field_source_binding_pg.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: sahool-brain/gaps/registry.md
+    line_start: 26
+    line_end: 26
+  - type: repository
+    path: sahool-brain/log.md
+    line_start: 3808
+    line_end: 3808
+  - type: repository
+    path: sahool-brain/hot.md
+    line_start: 5
+    line_end: 5
+  - type: repository
+    path: services/sahool-platform/api/irrigation_source_binding.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-004
+  title:
+    en: Water balance
+    ar: ''
+  domain: irrigation
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - IRR-003
+  - SOIL-005
+  - WX-004
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - POST /api/v1/water-balance @ services/sahool-platform/api/routers/water_balance.py:66
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_irrigation_depletion_trigger.py
+  - services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py
+  - services/sahool-platform/tests/test_water_balance.py
+  - tests_v9/test_h5_water_balance_auto.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/api/routers/water_balance.py
+  - type: repository
+    path: services/sahool-platform/api/water_balance.py
+  - type: repository
+    path: services/sahool-platform/api/water_balance_models.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=4, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: 5
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-005
+  title:
+    en: Irrigation recommendation
+    ar: ''
+  domain: irrigation
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - IRR-004
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:190
+  - GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:424
+  - GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2568
+  - POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:245
+  - POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:500
+  - POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:320
+  - POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:169
+  - POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:328
+  - POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2897
+  - POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303
+  - POST /v1/recommendation-outcomes @ services/decision-service/main.py:941
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py
+  - services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py
+  - services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py
+  - services/sahool-platform/tests/test_recommendation_bridge.py
+  - services/sahool-platform/tests/test_recommendation_engine.py
+  - services/sahool-platform/tests/test_recommendation_log.py
+  - services/sahool-platform/tests/test_recommendation_registry.py
+  - services/sahool-platform/tests/test_recommendation_replay.py
+  - services/sahool-platform/tests/test_work_order_from_recommendation.py
+  - tests_v9/test_irrigation_recommendation_policy.py
+  - tests_v9/test_recommendation_enriched_passthrough.py
+  - tests_v9/test_v152_recommendation_feedback_deprecation_static.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/api/v1/recommendations/outcomes
+    - receipt:api:POST_/v1/recommendation-outcomes
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v152_deprecate_recommendation_feedback.sql
+  - type: repository
+    path: migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql
+  - type: repository
+    path: migrations/v49_zone_key_recommendation_outcomes.sql
+  - type: repository
+    path: migrations/v_ai_recommendation_runtime.sql
+  - type: repository
+    path: services/ai_agronomist/recommendation_events.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=12, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: 5
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-006
+  title:
+    en: Irrigation scheduling
+    ar: ''
+  domain: irrigation
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - IRR-005
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:357
+  - POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:236
+  - POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:45
+  - POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2722
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - tests_v9/test_irrigation_schedule_conflict_v29_5_op.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-007
+  title:
+    en: Pump and valve control
+    ar: ''
+  domain: irrigation
+  owner: actuator-service+sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - IRR-006
+  - DEC-005
+  services:
+  - services/actuator-service/main.py
+  - services/sahool-platform/api/main.py
+  apis:
+  - GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178
+  - GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31
+  - GET /commands @ services/actuator-service/routers/commands.py:70
+  - GET /health @ services/actuator-service/routers/health.py:20
+  - GET /healthz @ services/actuator-service/routers/health.py:20
+  - GET /idempotency/metrics @ services/actuator-service/routers/metrics.py:18
+  - GET /readyz @ services/actuator-service/routers/health.py:32
+  - POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100
+  - POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:179
+  - POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:831
+  - POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:868
+  - POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:900
+  - POST /api/v1/portfolio/command @ services/sahool-platform/api/routers/portfolio_command.py:70
+  - POST /command @ services/actuator-service/routers/commands.py:25
+  - POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2171
+  - POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2212
+  - POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2258
+  - POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2295
+  - POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2331
+  - POST /verify-loop @ services/sahool-platform/api/phase9_autonomous_farm_os.py:207
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/actuator-service/test_actuator_router_decomposition_guard.py
+  - services/actuator-service/test_actuator_safety.py
+  - services/actuator-service/test_dedup_compensation.py
+  - services/actuator-service/test_dispatch_bridge.py
+  - services/sahool-platform/tests/test_actuator_command.py
+  - services/sahool-platform/tests/test_command_dispatcher.py
+  - tests_v9/actuator_route_source.py
+  - tests_v9/test_actuator_idempotency.py
+  - tests_v9/test_actuator_mode.py
+  - tests_v9/test_command_dispatch_race_v65.py
+  - tests_v9/test_command_store_behavior_v66.py
+  - tests_v9/test_firmware_valve_safety.py
+  - tests_v9/test_helm_migration_command_valid_20260705.py
+  - tests_v9/test_portfolio_command_shape.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/api/v1/learning/activation-commands/{activation_command_id}/receipt
+    - receipt:api:POST_/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command
+    - receipt:api:POST_/v1/learning/activation-commands/{activation_command_id}/receipt
+    - receipt:api:POST_/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command
+    - receipt:api:POST_/v1/learning/rollback-commands/{rollback_command_id}/receipt
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v10_command_store_lifecycle.sql
+  - type: repository
+    path: migrations/v171_pump_hydraulic_network_capability.sql
+  - type: repository
+    path: migrations/v81_actuator_command_dedup.sql
+  - type: repository
+    path: services/actuator-service/actuator_runtime.py
+  - type: repository
+    path: services/actuator-service/main.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=2, apis=20, tests=14, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-008
+  title:
+    en: Execution verification
+    ar: ''
+  domain: irrigation
+  owner: decision-service+sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: low
+  production_certified: false
+  dependencies:
+  - IRR-007
+  - DEC-006
+  services:
+  - services/decision-service/main.py
+  - services/sahool-platform/api/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=2, apis=0, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-009
+  title:
+    en: Water suitability multi-hazard
+    ar: ''
+  domain: irrigation
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 2
+  evidence_level: 2
+  status: analytical_partial
+  confidence: high
+  production_certified: false
+  dependencies:
+  - IRR-002
+  - SOIL-004
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - GET /api/v1/crop-cards/variety/{variety_id}/salinity-suitability @ services/sahool-platform/api/routers/crop_cards.py:83
+  - GET /v1/fields/{field_id}/soil/salinity-assessment @ services/soil-service/routers/p2_products.py:160
+  - POST /api/v1/salinity/assess @ services/sahool-platform/api/routers/salinity.py:30
+  - POST /salinity/calibrate @ services/raster-service/routers/analysis.py:175
+  - POST /salinity/classify @ services/raster-service/routers/analysis.py:168
+  - POST /sar/rvi @ services/raster-service/routers/analysis.py:111
+  - POST /v1/fields/{field_id}/soil/salinity-assessment @ services/soil-service/routers/p2_products.py:107
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_fao56_dual_kc_salinity_validation.py
+  - services/sahool-platform/tests/test_h5_salinity_ecw_binding.py
+  - services/sahool-platform/tests/test_salinity_capability_contract.py
+  - tests_v9/test_canonical_salinity.py
+  - tests_v9/test_h5_api_salinity.py
+  - tests_v9/test_irrigation_salinity_ks.py
+  - tests_v9/test_recommendations_salinity_feed.py
+  - tests_v9/test_salinity_decision.py
+  - tests_v9/test_sar_rvi.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: sahool-brain/gaps/registry.md
+    line_start: 27
+    line_end: 27
+  - type: repository
+    path: tests_v9/test_new_modules.py
+    line_start: 39
+    line_end: 54
+  - type: repository
+    path: services/sahool-platform/core/irrigation_water_analysis.py
+  - type: repository
+    path: services/raster-service/salinity_calibration.py
+  - type: repository
+    path: services/raster-service/sar_rvi.py
+  - type: repository
+    path: services/sahool-platform/api/routers/salinity.py
+  - type: repository
+    path: services/sahool-platform/api/salinity_management.py
+  - type: repository
+    path: services/sahool-platform/core/salinity_capability.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=7, tests=9, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: IRR-010
+  title:
+    en: Leaching and drainage safety
+    ar: ''
+  domain: irrigation
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 2
+  evidence_level: 2
+  status: analytical_partial
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - IRR-009
+  - SOIL-005
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - GET /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:180
+  - POST /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:94
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: INT-003
+  title:
+    en: IoT and sensors
+    ar: ''
+  domain: irrigation
+  owner: actuator-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/actuator-service/main.py
+  apis:
+  - POST /iot/dispatch/preview @ services/sahool-platform/api/phase9_autonomous_farm_os.py:217
+  - POST /iot/dispatch/simulate @ services/sahool-platform/api/phase9_autonomous_farm_os.py:230
+  - POST /iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_sensor_intake.py
+  - tests/runtime/test_phase9_iot_execution_runtime.py
+  - tests_v9/test_iot_devices.py
+  - tests_v9/test_mqtt_anonymous_off_guard.py
+  - tests_v9/test_sensor_confidence_shape.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v109_phase9_iot_execution_adapters.sql
+  - type: repository
+    path: migrations/v24_iot_devices.sql
+  - type: repository
+    path: services/sahool-platform/api/sensor_confidence.py
+  - type: repository
+    path: services/sahool-platform/core/sensor_intake.py
+  - type: repository
+    path: services/sahool-platform/sensor_health.yaml
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=5, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: 5
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

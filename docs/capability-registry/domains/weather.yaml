@@ -1,0 +1,602 @@
+schema_version: 1.0.0
+domain:
+  id: D4
+  key: weather
+  title: Weather Intelligence
+  capability_prefix: WX
+  accepted_prefixes:
+  - WX
+capabilities:
+- id: WX-001
+  title:
+    en: Current weather
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: operational_evidence
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/weather-service/main.py
+  apis:
+  - GET /api/v1/weather/current @ services/sahool-platform/api/routers/weather.py:2062
+  - GET /v1/weather/current @ services/weather-service/main.py:29
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: WX-002
+  title:
+    en: Weather forecast
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - WX-010
+  services:
+  - services/weather-service/main.py
+  apis:
+  - GET /api/v1/weather/forecast @ services/sahool-platform/api/routers/weather.py:2068
+  - GET /v1/weather/forecast @ services/weather-service/main.py:30
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: 4
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: 3
+      evidence: unverified_external_benchmark
+- id: WX-003
+  title:
+    en: Weather history
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: operational_evidence
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - WX-010
+  services:
+  - services/weather-service/main.py
+  apis:
+  - GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:202
+  - GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:171
+  - GET /v1/weather/historical @ services/weather-service/main.py:31
+  - POST /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:95
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v209_historical_weather_sor.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: WX-004
+  title:
+    en: ET0
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - WX-001
+  - WX-010
+  services:
+  - services/weather-service/main.py
+  apis:
+  - POST /v1/weather/agro/et0 @ services/weather-service/main.py:38
+  - POST /v1/weather/agro/et0/series @ services/weather-service/main.py:39
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_season_et0_injection.py
+  - services/sahool-platform/tests/test_weather_et0_client.py
+  - services/weather-service/tests/test_et0.py
+  - services/weather-service/tests/test_et0_agro_product.py
+  - services/weather-service/tests/test_et0_series.py
+  - tests_v9/test_mcp_weather_et0_engine_delegation.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/weather-service/et0.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=6, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: WX-005
+  title:
+    en: VPD
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - WX-001
+  - WX-010
+  services:
+  - services/weather-service/main.py
+  apis:
+  - POST /v1/weather/agro/vpd @ services/weather-service/main.py:42
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/weather-service/tests/test_vpd.py
+  - services/weather-service/tests/test_vpd_agro_product.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/weather-service/vapor_pressure.py
+  - type: repository
+    path: services/weather-service/vpd.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=2, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: WX-006
+  title:
+    en: GDD
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - WX-001
+  - WX-010
+  services:
+  - services/weather-service/main.py
+  apis:
+  - POST /api/v1/gdd/track @ services/sahool-platform/api/routers/gdd.py:45
+  - POST /v1/weather/agro/gdd @ services/weather-service/main.py:41
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py
+  - services/sahool-platform/tests/test_gdd_phenology.py
+  - services/sahool-platform/tests/test_gdd_shadow.py
+  - services/sahool-platform/tests/test_gdd_track_delegation.py
+  - services/sahool-platform/tests/test_gdd_tracker.py
+  - services/sahool-platform/tests/test_season_gdd_injection.py
+  - services/sahool-platform/tests/test_weather_gdd_client.py
+  - services/weather-service/tests/test_gdd.py
+  - services/weather-service/tests/test_gdd_agro_product.py
+  - services/weather-service/tests/test_gdd_view.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/api/gdd_shadow.py
+  - type: repository
+    path: services/sahool-platform/api/gdd_tracker.py
+  - type: repository
+    path: services/sahool-platform/api/routers/gdd.py
+  - type: repository
+    path: services/sahool-platform/core/gdd_phenology.py
+  - type: repository
+    path: services/weather-service/gdd.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=10, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: WX-007
+  title:
+    en: Frost and heat risk
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: low
+  production_certified: false
+  dependencies:
+  - WX-002
+  services:
+  - services/weather-service/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: WX-008
+  title:
+    en: Operation windows
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - WX-002
+  services:
+  - services/weather-service/main.py
+  apis:
+  - GET /api/v1/fields/{field_id}/weather/operation-windows @ services/sahool-platform/api/routers/field_workspace_weather.py:171
+  - GET /api/v1/weather/operation-window @ services/sahool-platform/api/routers/weather.py:2495
+  - GET /v1/weather/operation-window @ services/weather-service/main.py:32
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: WX-009
+  title:
+    en: Disease weather models
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - WX-002
+  services:
+  - services/weather-service/main.py
+  apis:
+  - GET /api/v1/crop-cards/variety/{variety_id}/disease-watch @ services/sahool-platform/api/routers/crop_cards.py:113
+  - GET /api/v1/fields/{field_id}/weather/disease-risk @ services/sahool-platform/api/routers/field_workspace_weather.py:279
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_weather_engine_disease_window_layers.py
+  - tests_v9/test_disease_field_state_feed.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/api/disease_diagnosis.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=2, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: 4
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: WX-010
+  title:
+    en: Weather provenance and quality
+    ar: ''
+  domain: weather
+  owner: weather-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/weather-service/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/raster-service/test_indicator_grid_provenance_static.py
+  - services/weather-service/tests/test_canonical_weather_state.py
+  - tests_v9/test_field_state_recompute_provenance_v57_5.py
+  - tests_v9/test_irrx1_authoritative_provenance_lock.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v132_field_state_recompute_provenance.sql
+  - type: repository
+    path: migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql
+  - type: repository
+    path: services/raster-service/raster_provenance.py
+  - type: repository
+    path: services/sahool-platform/core/provenance.py
+  - type: repository
+    path: services/sahool-platform/docs/INFORMATION_PROVENANCE.md
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=4, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

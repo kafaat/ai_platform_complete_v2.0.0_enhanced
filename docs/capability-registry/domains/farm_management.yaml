@@ -1,0 +1,960 @@
+schema_version: 1.0.0
+domain:
+  id: D1
+  key: farm_management
+  title: Farm Management
+  capability_prefix: FM
+  accepted_prefixes:
+  - FM
+  - INT
+capabilities:
+- id: FM-001
+  title:
+    en: Tenant and organization management
+    ar: ''
+  domain: farm_management
+  owner: auth+field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/auth/main.py
+  - services/field-management-service/main.py
+  apis:
+  - DELETE /auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:195
+  - GET /analytics/{tenant_id} @ services/mcp_servers/market_server.py:691
+  - GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:91
+  - GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29
+  - GET /auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
+  - GET /auth/invitations @ services/auth/routers/invitations.py:84
+  - GET /auth/me @ services/auth/routers/session.py:211
+  - GET /auth/users @ services/auth/routers/users.py:22
+  - GET /auth/verify @ services/auth/routers/email_verify.py:97
+  - GET /auth/verify/status @ services/auth/routers/email_verify.py:107
+  - GET /health @ services/auth/routers/ops.py:27
+  - GET /healthz @ services/auth/routers/ops.py:27
+  - GET /metrics @ services/auth/routers/ops.py:21
+  - GET /readyz @ services/auth/routers/ops.py:32
+  - PATCH /auth/users/{user_id}/deactivate @ services/auth/routers/users.py:73
+  - PATCH /auth/users/{user_id}/role @ services/auth/routers/users.py:31
+  - POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:47
+  - POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:104
+  - POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:132
+  - POST /auth/change-password @ services/auth/routers/registration.py:74
+  - POST /auth/invitations @ services/auth/routers/invitations.py:25
+  - POST /auth/invitations/accept @ services/auth/routers/invitations.py:115
+  - POST /auth/login @ services/auth/routers/session.py:24
+  - POST /auth/logout @ services/auth/routers/session.py:167
+  - POST /auth/mfa/activate @ services/auth/routers/mfa.py:66
+  - POST /auth/mfa/disable @ services/auth/routers/mfa.py:136
+  - POST /auth/mfa/setup @ services/auth/routers/mfa.py:19
+  - POST /auth/password-reset/confirm @ services/auth/routers/password_reset.py:41
+  - POST /auth/password-reset/request @ services/auth/routers/password_reset.py:21
+  - POST /auth/refresh @ services/auth/routers/session.py:125
+  - POST /auth/register @ services/auth/routers/registration.py:19
+  - POST /auth/tenants @ services/auth/routers/tenants.py:40
+  - POST /auth/verify/confirm @ services/auth/routers/email_verify.py:55
+  - POST /auth/verify/request @ services/auth/routers/email_verify.py:22
+  - POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2579
+  ui_consumers:
+  - frontend/src/services/api/auth.ts
+  mobile_consumers:
+  - mobile/sahool_app/lib/services/auth_service.dart
+  tests:
+  - mobile/sahool_app/test/auth_service_test.dart
+  - scripts_v9/test_tenant_isolation.sql
+  - services/auth/tests/__init__.py
+  - services/auth/tests/test_router_decomposition_guard.py
+  - services/raster-service/test_process_date_tenant_isolation.py
+  - services/raster-service/test_tenant_guc_session_scope_guard.py
+  - services/raster-service/test_tenant_propagation.py
+  - services/raster-service/test_tile_tenant_query.py
+  - services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py
+  - services/sahool-platform/tests/test_route_auth_matrix_guard.py
+  - services/sahool-platform/tests/test_tenant_audit.py
+  - services/sahool-platform/tests/test_tenant_config.py
+  - tests_v9/auth_route_source.py
+  - tests_v9/test_auth_acquire_admin_context_guard.py
+  - tests_v9/test_auth_admin_stepup_mfa.py
+  - tests_v9/test_auth_e2e.py
+  - tests_v9/test_auth_main_decomposition_guard.py
+  - tests_v9/test_auth_mfa_enforcement.py
+  - tests_v9/test_auth_rls_and_routing.py
+  - tests_v9/test_auth_rs256_production.py
+  - tests_v9/test_auth_service.py
+  - tests_v9/test_auth_session_revocation.py
+  - tests_v9/test_auth_signup_owner.py
+  - tests_v9/test_decision_consistency_auth.py
+  - tests_v9/test_dev_gateway_raster_tile_auth_guard.py
+  runtime:
+    metrics:
+    - metric:sahool_auth_logins_total@services/auth/main.py:261
+    - metric:sahool_auth_register_total@services/auth/main.py:262
+    - metric:sahool_auth_resets_total@services/auth/main.py:263
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v124_tenant_ai_policies.sql
+  - type: repository
+    path: migrations/v125_tenant_ai_capabilities.sql
+  - type: repository
+    path: migrations/v87_audit_log_tenant.sql
+  - type: repository
+    path: migrations/v9_auth_improvements.sql
+  - type: repository
+    path: migrations/v9_rls_tenant_isolation.down.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=2, apis=35, tests=25, ui=1,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: FM-002
+  title:
+    en: Farm registry
+    ar: ''
+  domain: farm_management
+  owner: field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/field-management-service/main.py
+  apis:
+  - GET /api/v1/farm-book/balances @ services/sahool-platform/api/routers/simple_farm_book.py:487
+  - GET /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:418
+  - GET /api/v1/farm-book/export @ services/sahool-platform/api/routers/simple_farm_book.py:508
+  - GET /api/v1/farm-book/monthly @ services/sahool-platform/api/routers/simple_farm_book.py:451
+  - GET /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:162
+  - GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:609
+  - GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:1003
+  - GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:792
+  - GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912
+  - GET /api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:354
+  - GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:757
+  - GET /api/v1/farm-ledger/summary @ services/sahool-platform/api/routers/farm_operations_ledger.py:402
+  - GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:729
+  - GET /api/v1/farms @ services/sahool-platform/api/routers/farms.py:105
+  - GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:140
+  - GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179
+  - GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:41
+  - POST /agent/optimize @ services/supervisor-agent/routers/agent.py:89
+  - POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:247
+  - POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:130
+  - POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:864
+  - POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:528
+  - POST /api/v1/farm-ledger/operations @ services/sahool-platform/api/routers/farm_operations_ledger.py:211
+  - POST /api/v1/farm-ledger/revenues @ services/sahool-platform/api/routers/farm_operations_ledger.py:637
+  - POST /api/v1/farms @ services/sahool-platform/api/routers/farms.py:36
+  - POST /cycle @ services/sahool-platform/api/phase9_autonomous_farm_os.py:148
+  - POST /events/from-plan @ services/sahool-platform/api/phase9_autonomous_farm_os.py:196
+  - POST /events/replay @ services/sahool-platform/api/phase9_autonomous_farm_os.py:202
+  - POST /experiments/assign @ services/sahool-platform/api/phase9_autonomous_farm_os.py:189
+  - POST /iot/dispatch/preview @ services/sahool-platform/api/phase9_autonomous_farm_os.py:217
+  - POST /iot/dispatch/simulate @ services/sahool-platform/api/phase9_autonomous_farm_os.py:230
+  - POST /iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251
+  - POST /models/register @ services/sahool-platform/api/phase9_autonomous_farm_os.py:175
+  - POST /plan @ services/sahool-platform/api/phase9_autonomous_farm_os.py:112
+  - POST /verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:134
+  - POST /verify-loop @ services/sahool-platform/api/phase9_autonomous_farm_os.py:207
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/screens/farms_screen.dart
+  tests:
+  - services/sahool-platform/tests/test_farm_closed_loop.py
+  - services/sahool-platform/tests/test_farm_costing.py
+  - services/sahool-platform/tests/test_farm_full_season_forensic.py
+  - services/sahool-platform/tests/test_farm_ledger.py
+  - services/sahool-platform/tests/test_farm_memory.py
+  - services/sahool-platform/tests/test_farm_operations_ledger.py
+  - services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py
+  - services/sahool-platform/tests/test_simple_farm_book.py
+  - shared/test_autonomous_farm_os_phase9.py
+  - tests_v9/test_farm_memory.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v100_farm_operations_ledger.sql
+  - type: repository
+    path: migrations/v101_farm_budget_costing.sql
+  - type: repository
+    path: migrations/v102_farm_closed_loop.sql
+  - type: repository
+    path: migrations/v118_phase9_autonomous_farm_os.sql
+  - type: repository
+    path: migrations/v19_farms.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=36, tests=10, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: 3
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: 4
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: 3
+      evidence: unverified_external_benchmark
+- id: FM-003
+  title:
+    en: Field registry and boundaries
+    ar: ''
+  domain: farm_management
+  owner: field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - FM-002
+  services:
+  - services/field-management-service/main.py
+  apis:
+  - ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:183
+  - DELETE /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1703
+  - DELETE /locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:628
+  - GET / @ services/field-management-service/main.py:225
+  - GET /api/v1/admin/break-glass/{token}/fields @ services/sahool-platform/api/routers/break_glass.py:318
+  - GET /api/v1/agro/kc-timeseries/{field_id} @ services/sahool-platform/api/routers/kc_timeseries.py:140
+  - GET /api/v1/agro/kc-timeseries/{field_id}/compare @ services/sahool-platform/api/routers/kc_timeseries.py:156
+  - GET /api/v1/analytics/costs/by-field @ services/sahool-platform/api/routers/analytics.py:57
+  - GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:71
+  - GET /api/v1/evidence-graph/analytics @ services/sahool-platform/api/routers/field_intelligence.py:605
+  - GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:140
+  - GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179
+  - GET /api/v1/field-intelligence/analyze/jobs/{job_id} @ services/sahool-platform/api/routers/field_intelligence.py:516
+  - GET /api/v1/field/operational-state @ services/sahool-platform/api/routers/field_single.py:23
+  - GET /api/v1/field/{field_id}/lineage @ services/sahool-platform/api/routers/decision_record.py:628
+  - GET /api/v1/fields @ services/sahool-platform/api/routers/fields.py:571
+  - GET /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1065
+  - GET /api/v1/fields/{field_id}/activities @ services/sahool-platform/api/routers/fields.py:3029
+  - GET /api/v1/fields/{field_id}/agronomic-replay @ services/sahool-platform/api/routers/agronomic_replay.py:58
+  - GET /api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:702
+  - GET /api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4018
+  - GET /api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:41
+  - GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265
+  - GET /api/v1/fields/{field_id}/data-completeness @ services/sahool-platform/api/routers/field_completeness.py:56
+  - GET /api/v1/fields/{field_id}/decision-confidence @ services/sahool-platform/api/routers/decision_confidence.py:74
+  - GET /api/v1/fields/{field_id}/drawing-features @ services/sahool-platform/api/routers/drawing_features.py:413
+  - GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539
+  - GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638
+  - GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571
+  - GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1558
+  - GET /api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3715
+  - GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1031
+  - GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:77
+  - GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3058
+  - GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396
+  - GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159
+  - GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:250
+  - GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:294
+  - GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:117
+  - GET /api/v1/fields/{field_id}/readiness @ services/sahool-platform/api/routers/field_readiness.py:56
+  ui_consumers:
+  - frontend/e2e/field-context-flows.spec.ts
+  - frontend/e2e/fixtures/fields.ts
+  - frontend/src/lib/fields.fieldview.test.ts
+  - frontend/src/lib/fields.test.ts
+  - frontend/src/lib/fields.ts
+  mobile_consumers:
+  - mobile/sahool_app/lib/features/field_forms/contract/condition_v1.dart
+  - mobile/sahool_app/lib/features/field_forms/contract/form_schema.dart
+  - mobile/sahool_app/lib/features/field_forms/data/draft_store.dart
+  - mobile/sahool_app/lib/features/field_forms/data/field_forms_api.dart
+  - mobile/sahool_app/lib/features/field_forms/data/field_forms_coordinator.dart
+  - mobile/sahool_app/lib/features/field_forms/data/form_package_store.dart
+  - mobile/sahool_app/lib/features/field_forms/data/submission_queue.dart
+  - mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart
+  - mobile/sahool_app/lib/features/field_forms/presentation/field_widget_registry.dart
+  - mobile/sahool_app/lib/features/field_forms/presentation/schema_form_renderer.dart
+  - mobile/sahool_app/lib/models/canonical_field_geometry.dart
+  - mobile/sahool_app/lib/screens/field_create_wizard.dart
+  - mobile/sahool_app/lib/screens/field_workspace_screen.dart
+  - mobile/sahool_app/lib/screens/fields_screen.dart
+  - mobile/sahool_app/lib/widgets/offline_field_map.dart
+  tests:
+  - docs/testing/FIELD_WORKSPACE_PRODUCTION_CLOSURE.md
+  - mobile/sahool_app/test/field_forms/condition_corpus_data.dart
+  - mobile/sahool_app/test/field_forms/condition_v1_test.dart
+  - mobile/sahool_app/test/field_forms/draft_store_test.dart
+  - mobile/sahool_app/test/field_forms/field_forms_api_test.dart
+  - mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart
+  - mobile/sahool_app/test/field_forms/no_coercion_test.dart
+  - mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart
+  - mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart
+  - mobile/sahool_app/test/field_forms/submission_queue_test.dart
+  - services/ai_agronomist/test_ai_field_memory_v49.py
+  - services/decision-service/tests/test_wx11_6_registry_activation_boundary.py
+  - services/field-management-service/tests/test_field_management_pg_isolation_integration.py
+  - services/field-management-service/tests/test_field_management_service_contract.py
+  - services/field-segmentation/test_exg_preprocess.py
+  - services/field-segmentation/test_segmentation.py
+  - services/indicators-service/tests/test_indicators_service_honest_boundary.py
+  - services/raster-service/test_field_terrain.py
+  - services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py
+  - services/raster-service/test_raster_assets_text_field_id.py
+  - services/sahool-platform/tests/test_boundary_confidence.py
+  - services/sahool-platform/tests/test_field_aggregate.py
+  - services/sahool-platform/tests/test_field_aggregate_ports.py
+  - services/sahool-platform/tests/test_field_ai_context_v45_static.py
+  - services/sahool-platform/tests/test_field_boundary_contracts.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v103_fields_planting_date.sql
+  - type: repository
+    path: migrations/v104_fields_create_contract.sql
+  - type: repository
+    path: migrations/v132_field_state_recompute_provenance.sql
+  - type: repository
+    path: migrations/v134_fields_geometry_integrity.sql
+  - type: repository
+    path: migrations/v139_field_geometry_history_append_only.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=5,
+    mobile=15. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: FM-004
+  title:
+    en: Season lifecycle
+    ar: ''
+  domain: farm_management
+  owner: field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - FM-003
+  - FM-005
+  services:
+  - services/field-management-service/main.py
+  apis:
+  - GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:609
+  - GET /api/v1/farm-ledger/economic-state/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:1003
+  - GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:792
+  - GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912
+  - GET /api/v1/farm-ledger/profitability/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:757
+  - GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:729
+  - GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:219
+  - GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:512
+  - GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:253
+  - GET /auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
+  - GET /imagery/search/season @ services/raster-service/routers/imagery_search.py:43
+  - GET /internal/seasons @ services/scout-ingest-service/season_api.py:478
+  - GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668
+  - GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368
+  - PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2328
+  - PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264
+  - POST /api/v1/agro/season-comparison @ services/sahool-platform/api/routers/agro_intelligence.py:206
+  - POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:528
+  - POST /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/routers/fields.py:2094
+  - POST /api/v1/seasons/{season_id}/simulate @ services/sahool-platform/api/routers/seasons.py:132
+  - POST /internal/seasons @ services/scout-ingest-service/season_api.py:205
+  - POST /internal/seasons/{season_id}/accept @ services/scout-ingest-service/season_api.py:406
+  - POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624
+  - POST /internal/seasons/{season_id}/events @ services/scout-ingest-service/season_api.py:522
+  - POST /internal/seasons/{season_id}/harvest @ services/scout-ingest-service/season_api.py:583
+  - POST /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:306
+  ui_consumers:
+  - frontend/src/services/api/season.ts
+  mobile_consumers: []
+  tests:
+  - scripts/simulation/test_export_season_runs_for_golden.py
+  - services/sahool-platform/tests/test_farm_full_season_forensic.py
+  - services/sahool-platform/tests/test_field_season_projection.py
+  - services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py
+  - services/sahool-platform/tests/test_historical_season_context.py
+  - services/sahool-platform/tests/test_season_calendar_guard.py
+  - services/sahool-platform/tests/test_season_comparison.py
+  - services/sahool-platform/tests/test_season_et0_injection.py
+  - services/sahool-platform/tests/test_season_gdd_injection.py
+  - services/sahool-platform/tests/test_season_integrity.py
+  - services/sahool-platform/tests/test_season_lifecycle.py
+  - services/sahool-platform/tests/test_season_phenology.py
+  - services/sahool-platform/tests/test_season_simulation.py
+  - services/sahool-platform/tests/test_season_stage_risk.py
+  - services/scout-ingest-service/tests/test_season_live.py
+  - tests_v9/test_fii_prescription_season_context_guard.py
+  - tests_v9/test_historical_season_bridge_static.py
+  - tests_v9/test_season_api_static.py
+  - tests_v9/test_season_edge_attestation.py
+  - tests_v9/test_season_edge_sign_endpoint_static.py
+  - tests_v9/test_season_gateway_nginx_static.py
+  - tests_v9/test_season_lifecycle_behavior_v66.py
+  - tests_v9/test_season_logbook_content_safety.py
+  - tests_v9/test_season_simulation_behavior_v66.py
+  - tests_v9/test_season_workspace.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:test:services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v193_prescriptions_season_context_expand.sql
+  - type: repository
+    path: migrations/v201_season_records.sql
+  - type: repository
+    path: migrations/v202_season_draft_key.sql
+  - type: repository
+    path: migrations/v203_season_sowing_in_observed_range.sql
+  - type: repository
+    path: migrations/v207_historical_season_simulation_bridge.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=1,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: FM-005
+  title:
+    en: Crop and cultivar catalog
+    ar: ''
+  domain: farm_management
+  owner: UNASSIGNED
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services: []
+  apis:
+  - GET /api/v1/crop-cards @ services/sahool-platform/api/routers/crop_cards.py:33
+  - GET /api/v1/crop-cards/crop/{crop_id} @ services/sahool-platform/api/routers/crop_cards.py:58
+  - GET /api/v1/crop-cards/variety/{variety_id} @ services/sahool-platform/api/routers/crop_cards.py:70
+  - GET /api/v1/crop-cards/variety/{variety_id}/disease-watch @ services/sahool-platform/api/routers/crop_cards.py:113
+  - GET /api/v1/crop-cards/variety/{variety_id}/expected-harvest @ services/sahool-platform/api/routers/crop_cards.py:96
+  - GET /api/v1/crop-cards/variety/{variety_id}/salinity-suitability @ services/sahool-platform/api/routers/crop_cards.py:83
+  - GET /api/v1/crops/drought-resilience @ services/sahool-platform/api/routers/crops.py:26
+  - GET /api/v1/crops/{crop_id}/operations-calendar @ services/sahool-platform/api/routers/crop_operations.py:24
+  - GET /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3474
+  - GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:104
+  - GET /api/v1/ipm/crop-pests @ services/sahool-platform/api/routers/ipm.py:37
+  - GET /api/v1/market/crop-classification-readiness @ services/sahool-platform/api/routers/market.py:101
+  - GET /api/v1/market/crop-gap @ services/sahool-platform/api/routers/market.py:30
+  - GET /api/v1/propagation/crop @ services/sahool-platform/api/routers/propagation.py:42
+  - GET /api/v1/varieties/food-grains/{variety_id} @ services/sahool-platform/api/routers/varieties.py:47
+  - GET /api/v1/wofost/crop-types @ services/sahool-platform/api/routers/wofost.py:27
+  - POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:154
+  - POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:189
+  - POST /api/v1/crop-suitability @ services/sahool-platform/api/routers/crop_suitability.py:31
+  - POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:300
+  - POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:459
+  - POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:352
+  - POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:585
+  - POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3432
+  - POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:263
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py
+  - services/sahool-platform/tests/test_crop_cards.py
+  - services/sahool-platform/tests/test_crop_classification_readiness.py
+  - services/sahool-platform/tests/test_crop_confidence_contract.py
+  - services/sahool-platform/tests/test_crop_cycle.py
+  - services/sahool-platform/tests/test_crop_decision_bridge.py
+  - services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py
+  - services/sahool-platform/tests/test_crop_decision_endpoint.py
+  - services/sahool-platform/tests/test_crop_inference.py
+  - services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py
+  - services/sahool-platform/tests/test_crop_intelligence_engine.py
+  - services/sahool-platform/tests/test_crop_intelligence_phase3.py
+  - services/sahool-platform/tests/test_crop_intelligence_phase4.py
+  - services/sahool-platform/tests/test_crop_intelligence_phase5.py
+  - services/sahool-platform/tests/test_crop_intelligence_spectral_state.py
+  - services/sahool-platform/tests/test_crop_introduction.py
+  - services/sahool-platform/tests/test_crop_market_gap.py
+  - services/sahool-platform/tests/test_crop_operations.py
+  - services/sahool-platform/tests/test_crop_portfolio.py
+  - services/sahool-platform/tests/test_crop_risk.py
+  - services/sahool-platform/tests/test_crop_rotation.py
+  - services/sahool-platform/tests/test_crop_rotation_intelligence.py
+  - services/sahool-platform/tests/test_crop_stress_facades_guard.py
+  - services/sahool-platform/tests/test_crop_stress_ingestion.py
+  - services/sahool-platform/tests/test_crop_stress_memory_service.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v153_crop_stress_memory_store.sql
+  - type: repository
+    path: migrations/v76_crop_kc_timeseries.sql
+  - type: repository
+    path: services/agriai-engine/sim_crop_registry.py
+  - type: repository
+    path: services/sahool-platform/api/crop_cycle.py
+  - type: repository
+    path: services/sahool-platform/api/crop_decision_bridge.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=25, tests=25, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: FM-006
+  title:
+    en: Farm economics
+    ar: ''
+  domain: farm_management
+  owner: UNASSIGNED
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - FM-002
+  - FM-004
+  services: []
+  apis:
+  - GET /api/v1/decision/economics @ services/sahool-platform/api/routers/decision_impact.py:142
+  - GET /api/v1/economics/break-even @ services/sahool-platform/api/routers/economics.py:46
+  - GET /api/v1/economics/cost-categories @ services/sahool-platform/api/routers/economics.py:26
+  - GET /api/v1/farm-ledger/budgets/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:609
+  - GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:729
+  - GET /api/v1/orchard/economics @ services/sahool-platform/api/routers/orchard.py:30
+  - GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:88
+  - GET /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:194
+  - POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:585
+  - POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32
+  - POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:528
+  - POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624
+  - POST /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:134
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_cost_governance.py
+  - services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py
+  - services/sahool-platform/tests/test_profit_aware_decision_endpoint.py
+  - tests_v9/test_cost_analytics.py
+  - tests_v9/test_tool_loop_budget_v58_2c.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v101_farm_budget_costing.sql
+  - type: repository
+    path: services/agriai-engine/profit_planner.py
+  - type: repository
+    path: services/sahool-platform/api/cost_governance.py
+  - type: repository
+    path: services/sahool-platform/api/farm_economics.py
+  - type: repository
+    path: services/sahool-platform/api/routers/economics.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=13, tests=5, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: FM-007
+  title:
+    en: Inventory and procurement
+    ar: ''
+  domain: farm_management
+  owner: UNASSIGNED
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services: []
+  apis:
+  - GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912
+  - GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:184
+  - GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:90
+  - GET /procurement/{order_id} @ services/mcp_servers/market_server.py:655
+  - POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:40
+  - POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:121
+  - POST /procurement @ services/mcp_servers/market_server.py:649
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/screens/inventory_screen.dart
+  tests:
+  - services/sahool-platform/tests/test_data_inventory.py
+  - tests_v9/test_inventory_equipment.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v22_inventory.sql
+  - type: repository
+    path: services/sahool-platform/api/inventory_models.py
+  - type: repository
+    path: services/sahool-platform/api/routers/inventory.py
+  - type: repository
+    path: services/sahool-platform/core/data_inventory.py
+  - type: repository
+    path: services/sahool-platform/core/data_inventory.yaml
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=7, tests=2, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: FM-008
+  title:
+    en: ERP integration
+    ar: ''
+  domain: farm_management
+  owner: erp-bridge
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - FM-006
+  services:
+  - services/odoo-bridge/main.py
+  apis:
+  - GET /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:285
+  - GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:792
+  - GET /config @ services/odoo-bridge/routers/catalog.py:33
+  - GET /erp/provider @ services/odoo-bridge/routers/catalog.py:17
+  - GET /health @ services/odoo-bridge/routers/health.py:31
+  - GET /healthz @ services/odoo-bridge/routers/health.py:31
+  - GET /logs @ services/odoo-bridge/routers/catalog.py:50
+  - GET /products @ services/odoo-bridge/routers/catalog.py:71
+  - GET /readyz @ services/odoo-bridge/routers/health.py:41
+  - GET /readyz/capabilities @ services/odoo-bridge/routers/health.py:76
+  - GET /suppliers @ services/odoo-bridge/routers/catalog.py:78
+  - POST /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:221
+  - POST /sync @ services/odoo-bridge/routers/sync.py:78
+  - POST /webhook/odoo @ services/odoo-bridge/routers/webhooks.py:21
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/odoo-bridge/test_erp_readiness_granular.py
+  - services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py
+  - tests_v9/test_compose_odoo_db_separation.py
+  - tests_v9/test_erp_bridge_alias_contract.py
+  - tests_v9/test_erp_bridge_fail_closed.py
+  - tests_v9/test_erp_bridge_healthcheck_guard.py
+  - tests_v9/test_odoo_bridge_tenant_honesty.py
+  - tests_v9/test_v9_odoo_rls_hardening_static.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v210_erp_reconciliation_ledger.sql
+  - type: repository
+    path: migrations/v9_odoo_bridge.sql
+  - type: repository
+    path: services/odoo-bridge/erp_provider.py
+  - type: repository
+    path: services/odoo-bridge/erp_runtime.py
+  - type: repository
+    path: services/odoo-bridge/main.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=14, tests=8, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: INT-001
+  title:
+    en: Public API and SDK
+    ar: ''
+  domain: farm_management
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - GET /sdk/manifest @ services/sahool-platform/api/phase12_marketplace_ecosystem.py:185
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: INT-002
+  title:
+    en: Event bus integration
+    ar: ''
+  domain: farm_management
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/sahool-platform/api/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - tests_v9/test_event_bus_invariants.py
+  - tests_v9/test_h2_nats_publishers_flag.py
+  - tests_v9/test_nats_publisher_coverage.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/api/event_bus.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=3, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

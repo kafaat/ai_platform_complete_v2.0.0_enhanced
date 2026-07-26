@@ -1,0 +1,377 @@
+schema_version: 1.0.0
+domain:
+  id: D7
+  key: precision
+  title: Precision Agriculture
+  capability_prefix: PA
+  accepted_prefixes:
+  - PA
+  - INT
+capabilities:
+- id: PA-001
+  title:
+    en: Management zones
+    ar: ''
+  domain: precision
+  owner: vegetation-analysis-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - SAT-003
+  - SAT-004
+  - GIS-004
+  services:
+  - services/vegetation-analysis-service/main.py
+  apis:
+  - POST /api/v1/fields/{field_id}/productivity-zones @ services/sahool-platform/api/routers/productivity.py:65
+  - POST /management-zones/summary @ services/sahool-platform/api/routers/gis_cloud_native.py:352
+  - POST /phase6/management-zones/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:691
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_productivity_zones_ai_brief.py
+  - tests_v9/test_management_zone_count_v60_2.py
+  - tests_v9/test_productivity_zones_clustering_v60_1.py
+  - tests_v9/test_productivity_zones_multiindex_v60_3.py
+  - tests_v9/test_productivity_zones_v60.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/ai_agronomist/management_zone_count.py
+  - type: repository
+    path: services/ai_agronomist/productivity_zones.py
+  - type: repository
+    path: services/ai_agronomist/productivity_zones_clustering.py
+  - type: repository
+    path: services/raster-service/management_zones.py
+  - type: repository
+    path: services/sahool-platform/core/productivity_zones.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=5, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: 5
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: 4
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: PA-002
+  title:
+    en: Variable rate prescription
+    ar: ''
+  domain: precision
+  owner: vegetation-analysis-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - PA-001
+  services:
+  - services/vegetation-analysis-service/main.py
+  apis:
+  - GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:294
+  - POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:133
+  - POST /phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707
+  - POST /prescription/export-preview @ services/ai_agronomist/main.py:288
+  - POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - tests_v9/test_canonical_vri_prescription.py
+  - tests_v9/test_fii_prescription_season_context_guard.py
+  - tests_v9/test_prescription_export_adapters_v62_1.py
+  - tests_v9/test_prescription_shapefile.py
+  - tests_v9/test_vra_prescription_engine_v62.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v180_governed_vri_prescription.sql
+  - type: repository
+    path: services/ai_agronomist/prescription_export_adapters.py
+  - type: repository
+    path: services/ai_agronomist/vra_prescription_engine.py
+  - type: repository
+    path: services/sahool-platform/api/canonical_vri_prescription.py
+  - type: repository
+    path: services/sahool-platform/api/prescription_shapefile.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=5, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: 5
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: 5
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: 4
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: PA-003
+  title:
+    en: Yield map ingestion
+    ar: ''
+  domain: precision
+  owner: UNASSIGNED
+  lifecycle: planned
+  maturity: 0
+  evidence_level: 0
+  status: missing_confirmed
+  confidence: low
+  production_certified: false
+  dependencies:
+  - FM-003
+  services: []
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=0, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: 5
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: 4
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: PA-004
+  title:
+    en: As-applied data
+    ar: ''
+  domain: precision
+  owner: UNASSIGNED
+  lifecycle: active
+  maturity: 2
+  evidence_level: 2
+  status: irrigation_specific_partial
+  confidence: low
+  production_certified: false
+  dependencies:
+  - PA-002
+  services: []
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - tests_v9/test_canonical_as_applied_irrigation.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v178_canonical_as_applied_irrigation_truth.sql
+  - type: repository
+    path: migrations/v188_irrx1_verified_manual_as_applied_ledger_bridge.sql
+  - type: repository
+    path: services/sahool-platform/api/canonical_as_applied_irrigation.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=0, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: 4
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: 5
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: PA-005
+  title:
+    en: Machine telemetry
+    ar: ''
+  domain: precision
+  owner: UNASSIGNED
+  lifecycle: active
+  maturity: 1
+  evidence_level: 1
+  status: documentation_or_scaffold
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - OPS-006
+  services: []
+  apis:
+  - GET /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:167
+  - POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:123
+  - POST /iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_soil_telemetry.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/core/isoxml_vrt.py
+  - type: repository
+    path: services/sahool-platform/docs/SOURCE_DOCUMENTATION.md
+  - type: repository
+    path: services/sahool-platform/api/soil_telemetry.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=3, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: 5
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: INT-004
+  title:
+    en: External machinery integrations
+    ar: ''
+  domain: precision
+  owner: UNASSIGNED
+  lifecycle: active
+  maturity: 1
+  evidence_level: 1
+  status: documentation_or_scaffold
+  confidence: low
+  production_certified: false
+  dependencies:
+  - PA-005
+  services: []
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/core/isoxml_vrt.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=0, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

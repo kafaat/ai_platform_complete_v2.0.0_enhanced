@@ -1,0 +1,374 @@
+schema_version: 1.0.0
+domain:
+  id: D2
+  key: gis
+  title: GIS
+  capability_prefix: GIS
+  accepted_prefixes:
+  - GIS
+capabilities:
+- id: GIS-001
+  title:
+    en: Field geometry validation
+    ar: ''
+  domain: gis
+  owner: field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - FM-003
+  services:
+  - services/field-management-service/main.py
+  apis:
+  - DELETE /locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:628
+  - GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:71
+  - GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265
+  - GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1558
+  - GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:579
+  - GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2368
+  - PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36
+  - POST /ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:342
+  - POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:460
+  - POST /api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:244
+  - POST /api/v1/fields/validate-geometry @ services/sahool-platform/api/routers/fields.py:3560
+  - POST /api/v1/fields/{field_id}/boundary/clean @ services/sahool-platform/api/routers/boundaries.py:181
+  - POST /api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:79
+  - POST /api/v1/fields/{field_id}/geometry/revert/{revision} @ services/sahool-platform/api/routers/fields.py:1605
+  - POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:729
+  - POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:777
+  - POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633
+  - POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684
+  - POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523
+  - POST /locks @ services/sahool-platform/api/routers/gis_cloud_native.py:592
+  - POST /phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:672
+  - POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:695
+  - POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2171
+  - POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2212
+  - POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2258
+  - POST /v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2439
+  - POST /v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2400
+  - POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2121
+  - POST /v1/learning/monitoring-snapshots @ services/decision-service/main.py:2476
+  - POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2769
+  - POST /v1/learning/retraining-requests @ services/decision-service/main.py:2512
+  - POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2674
+  - POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2295
+  - POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2331
+  - POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2633
+  - POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2722
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/models/canonical_field_geometry.dart
+  tests:
+  - services/decision-service/tests/test_wx11_6_registry_activation_boundary.py
+  - services/indicators-service/tests/test_indicators_service_honest_boundary.py
+  - services/sahool-platform/tests/test_agri_polygon_area.py
+  - services/sahool-platform/tests/test_boundary_confidence.py
+  - services/sahool-platform/tests/test_drift_geometry.py
+  - services/sahool-platform/tests/test_field_boundary_contracts.py
+  - services/sahool-platform/tests/test_field_boundary_graph.py
+  - services/sahool-platform/tests/test_field_boundary_pipeline.py
+  - services/sahool-platform/tests/test_p1_raster_boundary_guard.py
+  - services/sahool-platform/tests/test_p1_weather_boundary_guard.py
+  - services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py
+  - services/sahool-platform/tests/test_spatial_geometry_integrity.py
+  - services/sahool-platform/tests/test_wind_geometry.py
+  - services/vegetation-analysis-service/test_platform_field_catalog_boundary.py
+  - services/vegetation-analysis-service/test_raster_bundle_boundary.py
+  - tests_v9/test_canonical_boundary.py
+  - tests_v9/test_canonical_field_geometry_contract.py
+  - tests_v9/test_decision_review_boundary_guard.py
+  - tests_v9/test_field_boundary_adapters_v59_1.py
+  - tests_v9/test_field_boundary_ai_v59.py
+  - tests_v9/test_field_boundary_backends_v59_5.py
+  - tests_v9/test_field_geometry_history_append_only_v39_5.py
+  - tests_v9/test_field_geometry_save_guard_20260703.py
+  - tests_v9/test_fields_geometry_integrity_v39_5.py
+  - tests_v9/test_gis_multipolygon_geometry_versioning.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/api/v1/execution-requests/{execution_request_id}/verify-outcome
+    - receipt:api:POST_/api/v1/outcomes/{outcome_id}/learning-attribution
+    - receipt:api:POST_/v1/learning/activation-commands/{activation_command_id}/receipt
+    - receipt:api:POST_/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command
+    - receipt:api:POST_/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan
+    - receipt:api:POST_/v1/learning/activation-receipts/{activation_receipt_id}/verification
+    - receipt:api:POST_/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt
+    - receipt:api:POST_/v1/learning/rollback-commands/{rollback_command_id}/receipt
+    - receipt:api:POST_/v1/learning/rollout-plans/{rollout_plan_id}/receipt
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v134_fields_geometry_integrity.sql
+  - type: repository
+    path: migrations/v139_field_geometry_history_append_only.sql
+  - type: repository
+    path: migrations/v30_fields_geometry.sql
+  - type: repository
+    path: migrations/v58_field_boundary_quality.sql
+  - type: repository
+    path: migrations/v59_boundary_topology_fn.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=36, tests=25, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: GIS-002
+  title:
+    en: Map layers
+    ar: ''
+  domain: gis
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - FM-003
+  services:
+  - services/raster-service/main.py
+  apis:
+  - GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:87
+  - GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47
+  - GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2085
+  - GET /info/{layer_id} @ services/raster-service/routers/observability.py:213
+  - GET /layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37
+  - GET /tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23
+  - POST /phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707
+  - POST /phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:728
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/widgets/offline_field_map.dart
+  tests:
+  - services/gis-workflow-service/tests/test_map_layout.py
+  - services/gis-workflow-service/tests/test_publication_map_render.py
+  - services/raster-service/test_raster_map_deep_hardening_static.py
+  - services/sahool-platform/tests/test_map_layer.py
+  - services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py
+  - services/sahool-platform/tests/test_weather_engine_agronomic_risk_layers.py
+  - services/sahool-platform/tests/test_weather_engine_disease_window_layers.py
+  - tests_v9/test_a6_print_map.py
+  - tests_v9/test_evidence_map_shape.py
+  - tests_v9/test_layer_evict_v30_9.py
+  - tests_v9/test_soil_layer_v31_7.py
+  - tests_v9/test_terrain_layers_v31_6.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/gis-workflow-service/map_layout.py
+  - type: repository
+    path: services/gis-workflow-service/publication_map.py
+  - type: repository
+    path: services/gis-workflow-service/svg_print_map.py
+  - type: repository
+    path: services/raster-service/layer_cache_events.py
+  - type: repository
+    path: services/raster-service/layer_lookup.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=8, tests=12, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: GIS-003
+  title:
+    en: Terrain and DEM
+    ar: ''
+  domain: gis
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - GIS-002
+  services:
+  - services/raster-service/main.py
+  apis:
+  - GET /api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1090
+  - GET /imagery/dem @ services/raster-service/routers/imagery_search.py:186
+  - GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73
+  - GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156
+  - GET /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:146
+  - GET /v1/fields/{field_id}/terrain @ services/raster-service/routers/fields.py:1549
+  - GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:87
+  - GET /v1/terrain/status @ services/raster-service/routers/terrain_tiles.py:45
+  - GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:101
+  - POST /terrain/slope @ services/raster-service/routers/analysis.py:135
+  - POST /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:69
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/raster-service/test_field_terrain.py
+  - services/raster-service/test_terrain_render.py
+  - services/sahool-platform/tests/test_dem_enrichment.py
+  - tests_v9/test_dem_quality_and_registry_v63_6.py
+  - tests_v9/test_field_terrain_foundation_v31_2.py
+  - tests_v9/test_terrain_layers_v31_6.py
+  - tests_v9/test_terrain_soil_compose_provisioning.py
+  - tests_v9/test_terrain_source_resolver.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/raster-service/dem_quality.py
+  - type: repository
+    path: services/raster-service/routers/terrain_tiles.py
+  - type: repository
+    path: services/raster-service/terrain_analysis.py
+  - type: repository
+    path: services/raster-service/terrain_render.py
+  - type: repository
+    path: services/raster-service/terrain_source_registry.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=8, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: GIS-004
+  title:
+    en: Spatial analytics
+    ar: ''
+  domain: gis
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - GIS-001
+  - GIS-002
+  services:
+  - services/raster-service/main.py
+  apis:
+  - GET /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:141
+  - POST /v1/fields/{field_id}/soil/soilgrids-spatial @ services/soil-service/routers/p1_products.py:35
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_spatial_geometry_integrity.py
+  - tests_v9/test_geospatial.py
+  - tests_v9/test_spatial_e2e_smoke.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v13_geospatial_core.sql
+  - type: repository
+    path: migrations/v162_soil_p2_spatial_products.sql
+  - type: repository
+    path: migrations/v96_spatial_geometry_integrity.sql
+  - type: repository
+    path: services/sahool-platform/api/geospatial_integrity.py
+  - type: repository
+    path: services/sahool-platform/api/spatial_sync.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=3, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: 5
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
