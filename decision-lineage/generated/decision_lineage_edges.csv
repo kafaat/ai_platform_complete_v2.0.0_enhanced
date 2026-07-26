@@ -1,0 +1,10 @@
+id,source,target,relation,static_supported,shared_evidence_count,runtime_verified
+edge:evidence:candidate,stage:evidence,stage:candidate,candidate_from_evidence,true,100,false
+edge:candidate:decision,stage:candidate,stage:decision,decision_from_candidate,true,89,false
+edge:decision:review,stage:decision,stage:review,review_of_decision,true,53,false
+edge:review:plan,stage:review,stage:plan,plan_from_review,true,19,false
+edge:plan:authorization,stage:plan,stage:authorization,authorization_for_plan,true,23,false
+edge:authorization:request,stage:authorization,stage:request,request_from_authorization,true,17,false
+edge:request:receipt,stage:request,stage:receipt,receipt_for_request,true,14,false
+edge:receipt:outcome,stage:receipt,stage:outcome,outcome_from_receipt,true,7,false
+edge:outcome:learning,stage:outcome,stage:learning,learning_from_outcome,true,22,false
