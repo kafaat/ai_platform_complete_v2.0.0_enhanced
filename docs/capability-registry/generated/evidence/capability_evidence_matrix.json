@@ -832,7 +832,6 @@
         "tests_v9/test_erp_bridge_fail_closed.py",
         "tests_v9/test_erp_bridge_healthcheck_guard.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
-        "tests_v9/test_platform_catalog_gate.py",
         "tests_v9/test_remaining_closure_20260702.py"
       ]
     },
@@ -1999,9 +1998,10 @@
       "unit_test_paths": []
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -2011,11 +2011,11 @@
       "declared_maturity": 0,
       "domain": "precision",
       "evidence": {
-        "api": false,
-        "backend": false,
-        "database": false,
+        "api": true,
+        "backend": true,
+        "database": true,
         "documentation": true,
-        "events": false,
+        "events": true,
         "integration_tests": false,
         "mobile": false,
         "production": false,
@@ -2024,16 +2024,19 @@
         "unit_tests": true,
         "web": false
       },
-      "evidence_score": 2,
+      "evidence_score": 6,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "evidence_above_declared",
-      "maturity_delta": 1,
+      "maturity_delta": 2,
       "production_certified": false,
       "runtime_verified": false,
       "title": "Yield map ingestion",
       "unit_test_paths": [
-        "tests/architecture/test_capability_traceability.py"
+        "services/sahool-platform/tests/test_yield_map_ingestion.py",
+        "tests/architecture/test_capability_traceability.py",
+        "tests_v9/test_platform_catalog_gate.py",
+        "tests_v9/test_v215_yield_map_ingestion_static.py"
       ]
     },
     {
@@ -3780,7 +3783,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 26,
-    "average_assessed_maturity": 2.01,
+    "average_assessed_maturity": 2.02,
     "capability_count": 81,
     "declared_above_evidence": 52,
     "evidence_above_declared": 3,

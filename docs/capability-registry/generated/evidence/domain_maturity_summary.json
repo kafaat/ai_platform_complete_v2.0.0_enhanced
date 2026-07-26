@@ -86,15 +86,15 @@
       "runtime_verified": 0
     },
     {
-      "average_assessed_maturity": 1.17,
+      "average_assessed_maturity": 1.33,
       "average_declared_maturity": 1.67,
       "capability_count": 6,
       "declared_above_evidence": 3,
       "domain": "precision",
       "maturity_distribution": {
         "0": 0,
-        "1": 5,
-        "2": 1,
+        "1": 4,
+        "2": 2,
         "3": 0,
         "4": 0,
         "5": 0

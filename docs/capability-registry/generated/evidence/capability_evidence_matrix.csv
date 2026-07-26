@@ -45,7 +45,7 @@ OPS-007,Maintenance,operations,3,2,declared_above_evidence,6,True,True,True,True
 OPS-008,Workforce and worker identity,operations,3,1,declared_above_evidence,2,True,False,False,False,False,False,False,False,False,True,False,False
 PA-001,Management zones,precision,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
 PA-002,Variable rate prescription,precision,3,1,declared_above_evidence,3,True,True,True,False,False,False,False,False,False,False,False,False
-PA-003,Yield map ingestion,precision,0,1,evidence_above_declared,2,True,False,False,False,False,False,False,True,False,False,False,False
+PA-003,Yield map ingestion,precision,0,2,evidence_above_declared,6,True,True,True,True,True,False,False,True,False,False,False,False
 PA-004,As-applied data,precision,2,1,declared_above_evidence,5,True,True,False,True,True,False,False,True,False,False,False,False
 PA-005,Machine telemetry,precision,1,1,aligned,3,True,True,True,False,False,False,False,False,False,False,False,False
 SAT-001,Satellite scene search,satellite,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False

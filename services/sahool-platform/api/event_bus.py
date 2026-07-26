@@ -252,6 +252,7 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
 
     # Supply-chain traceability (farm-to-market) — v65
     HARVEST_LOT_CREATED = "harvest.lot.created"
+    YIELD_MAP_INGESTED = "yield_map.ingested"
     CUSTODY_EVENT_RECORDED = "harvest.custody.recorded"
 
 

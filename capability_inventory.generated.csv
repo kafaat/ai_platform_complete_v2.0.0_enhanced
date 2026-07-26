@@ -472,6 +472,8 @@ sahool-platform.fields.field_id.wind,mixed,sahool-platform,GET /api/v1/fields/{f
 sahool-platform.fields.field_id.workspace,query,sahool-platform,GET /api/v1/fields/{field_id}/workspace,frontend,route,False
 sahool-platform.fields.field_id.yield-estimate,command,sahool-platform,POST /api/v1/fields/{field_id}/yield-estimate,frontend,route,False
 sahool-platform.fields.field_id.yield-interval,command,sahool-platform,POST /api/v1/fields/{field_id}/yield-interval,frontend,route,False
+sahool-platform.fields.field_id.yield-map-records,query,sahool-platform,GET /api/v1/fields/{field_id}/yield-map-records,frontend,route,False
+sahool-platform.fields.field_id.yield-maps,mixed,sahool-platform,GET /api/v1/fields/{field_id}/yield-maps/ingestions|POST /api/v1/fields/{field_id}/yield-maps/ingestions,frontend,route,False
 sahool-platform.fields.field_id.zone-sampling-plan,command,sahool-platform,POST /api/v1/fields/{field_id}/zone-sampling-plan,frontend,route,False
 sahool-platform.fields.field_id.zones,command,sahool-platform,POST /api/v1/fields/{field_id}/zones,frontend,route,False
 sahool-platform.fields.import,command,sahool-platform,POST /api/v1/fields/import,frontend,route,False

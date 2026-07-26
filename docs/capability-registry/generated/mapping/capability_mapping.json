@@ -11,19 +11,19 @@
     "capabilities_total": 81,
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
-    "capabilities_multidimensional": 46,
-    "files_scanned": 4744,
+    "capabilities_multidimensional": 47,
+    "files_scanned": 4750,
     "files_by_kind": {
-      "backend": 1180,
-      "database": 264,
+      "backend": 1182,
+      "database": 265,
       "governance": 55,
       "mobile": 51,
-      "other": 1215,
-      "tests": 1533,
+      "other": 1216,
+      "tests": 1535,
       "web": 446
     },
     "unmapped_artifacts": 1966,
-    "ambiguous_artifacts": 401
+    "ambiguous_artifacts": 399
   },
   "capabilities": [
     {
@@ -821,14 +821,6 @@
           ]
         },
         {
-          "path": "config/endpoint_ui_coverage_waivers.json",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
           "path": "docs/architecture/platform_python_module_baseline.json",
           "score": 12,
           "signals": [
@@ -906,7 +898,7 @@
         "mobile": 0,
         "tests": 15,
         "governance": 0,
-        "other_evidence": 13
+        "other_evidence": 12
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -1396,14 +1388,6 @@
           ]
         },
         {
-          "path": "config/endpoint_ui_coverage_waivers.json",
-          "score": 10,
-          "signals": [
-            "content:Dispatch authorization",
-            "content:dispatch authorization"
-          ]
-        },
-        {
           "path": "docs/audits/WATER_AUTO_ACTUATOR_TIMELINE_FORENSIC_REVIEW_20260712.md",
           "score": 8,
           "signals": [
@@ -1425,7 +1409,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 3
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -2324,15 +2308,6 @@
           ]
         },
         {
-          "path": "config/endpoint_ui_coverage_waivers.json",
-          "score": 9,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution",
-            "content:outcome attribution"
-          ]
-        },
-        {
           "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
           "score": 8,
           "signals": [
@@ -2362,7 +2337,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 1,
-        "other_evidence": 7
+        "other_evidence": 6
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -8717,10 +8692,6 @@
         {
           "value": "workflow_transitions @ migrations/v9_odoo_bridge.sql:17",
           "score": 15
-        },
-        {
-          "value": "IF @ tests_v9/test_platform_catalog_gate.py:89",
-          "score": 12
         }
       ],
       "events": [
@@ -8772,14 +8743,6 @@
           "score": 13,
           "signals": [
             "path:odoo bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
-          "path": "tests_v9/test_platform_catalog_gate.py",
-          "score": 12,
-          "signals": [
-            "content:erp bridge",
             "content:odoo bridge"
           ]
         },
@@ -8890,11 +8853,11 @@
       "evidence_counts": {
         "backend": 10,
         "routes": 24,
-        "database": 6,
+        "database": 5,
         "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 8,
+        "tests": 7,
         "governance": 0,
         "other_evidence": 10
       },
@@ -12885,14 +12848,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/main.py",
-          "score": 12,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
           "path": "services/sahool-platform/core/districts/central_highlands.yaml",
           "score": 12,
           "signals": [
@@ -13026,10 +12981,6 @@
         },
         {
           "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase1.py:32",
-          "score": 12
-        },
-        {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:76",
           "score": 12
         },
         {
@@ -13658,10 +13609,10 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 10,
+        "backend": 9,
         "routes": 7,
         "database": 7,
-        "events": 46,
+        "events": 45,
         "web": 22,
         "mobile": 1,
         "tests": 18,
@@ -15049,13 +15000,145 @@
       "capability_id": "PA-003",
       "domain": "precision",
       "title": "Yield map ingestion",
-      "backend": [],
-      "routes": [],
-      "database": [],
-      "events": [],
+      "backend": [
+        {
+          "path": "services/sahool-platform/api/routers/yield_map_ingestion.py",
+          "score": 48,
+          "signals": [
+            "path:Yield map ingestion",
+            "content:Yield map ingestion",
+            "path:yield map",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/yield_map_ingestion.py",
+          "score": 45,
+          "signals": [
+            "path:Yield map ingestion",
+            "content:Yield map ingestion",
+            "path:yield map",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/main.py",
+          "score": 23,
+          "signals": [
+            "content:yield map",
+            "explicit_id"
+          ]
+        }
+      ],
+      "routes": [
+        {
+          "value": "/api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:287",
+          "score": 48
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:250",
+          "score": 48
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:78",
+          "score": 48
+        }
+      ],
+      "database": [
+        {
+          "path": "migrations/v215_yield_map_ingestion.sql",
+          "score": 48,
+          "signals": [
+            "path:Yield map ingestion",
+            "content:Yield map ingestion",
+            "path:yield map",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
+          "value": "yield_map_ingestions @ migrations/v215_yield_map_ingestion.sql:77",
+          "score": 48
+        },
+        {
+          "value": "yield_map_ingestions @ migrations/v215_yield_map_ingestion.sql:78",
+          "score": 48
+        },
+        {
+          "value": "yield_map_ingestions @ migrations/v215_yield_map_ingestion.sql:9",
+          "score": 48
+        },
+        {
+          "value": "yield_map_ingestions @ tests_v9/test_v215_yield_map_ingestion_static.py:17",
+          "score": 48
+        },
+        {
+          "value": "yield_map_records @ migrations/v215_yield_map_ingestion.sql:43",
+          "score": 48
+        },
+        {
+          "value": "yield_map_records @ migrations/v215_yield_map_ingestion.sql:79",
+          "score": 48
+        },
+        {
+          "value": "yield_map_records @ migrations/v215_yield_map_ingestion.sql:80",
+          "score": 48
+        },
+        {
+          "value": "yield_map_records @ tests_v9/test_v215_yield_map_ingestion_static.py:18",
+          "score": 48
+        },
+        {
+          "value": "IF @ tests_v9/test_platform_catalog_gate.py:89",
+          "score": 26
+        }
+      ],
+      "events": [
+        {
+          "value": "api.routers.yield_map_ingestion._assert_field_in_tenant @ services/sahool-platform/tests/test_yield_map_ingestion.py:354",
+          "score": 48
+        },
+        {
+          "value": "sahool.api @ services/sahool-platform/api/main.py:76",
+          "score": 23
+        }
+      ],
       "web": [],
       "mobile": [],
       "tests": [
+        {
+          "path": "services/sahool-platform/tests/test_yield_map_ingestion.py",
+          "score": 48,
+          "signals": [
+            "path:Yield map ingestion",
+            "content:Yield map ingestion",
+            "path:yield map",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "tests_v9/test_v215_yield_map_ingestion_static.py",
+          "score": 48,
+          "signals": [
+            "path:Yield map ingestion",
+            "content:Yield map ingestion",
+            "path:yield map",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "tests_v9/test_platform_catalog_gate.py",
+          "score": 26,
+          "signals": [
+            "content:Yield map ingestion",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
         {
           "path": "tests/architecture/test_capability_traceability.py",
           "score": 20,
@@ -15065,24 +15148,45 @@
         }
       ],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "docs/capability-registry/release/baselines/003_d52a6b6_pa003_yield_map_ingestion.json",
+          "score": 44,
+          "signals": [
+            "path:Yield map ingestion",
+            "content:Yield map ingestion",
+            "path:yield map",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "config/endpoint_ui_coverage_waivers.json",
+          "score": 31,
+          "signals": [
+            "content:Yield map ingestion",
+            "content:yield map",
+            "explicit_id"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 0,
-        "routes": 0,
-        "database": 0,
-        "events": 0,
+        "backend": 3,
+        "routes": 3,
+        "database": 10,
+        "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 4,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 2
       },
       "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 5
     },
     {
       "capability_id": "PA-004",
@@ -17008,14 +17112,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/main.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "services/sahool-platform/api/nl_gis_intent.py",
           "score": 12,
           "signals": [
@@ -17577,6 +17673,14 @@
         },
         {
           "path": "services/ai_agronomist/tool_governance.py",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "services/gis-workflow-service/bulletin_render.py",
           "score": 8,
           "signals": [
             "content:NDVI",
@@ -29382,14 +29486,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/main.py",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
           "path": "services/sahool-platform/api/phase_runtime_workers.py",
           "score": 12,
           "signals": [
@@ -30140,10 +30236,6 @@
         },
         {
           "value": "sahool.ai.model @ frontend/src/sections/ChatbotPage.tsx:99",
-          "score": 12
-        },
-        {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:76",
           "score": 12
         },
         {
@@ -31123,10 +31215,10 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 61,
+        "backend": 60,
         "routes": 51,
         "database": 0,
-        "events": 78,
+        "events": 77,
         "web": 19,
         "mobile": 0,
         "tests": 58,
@@ -31616,14 +31708,6 @@
         },
         {
           "path": "services/sahool-platform/api/field_season_projection.py",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/api/main.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -32430,10 +32514,6 @@
           "score": 12
         },
         {
-          "value": "sahool.api @ services/sahool-platform/api/main.py:76",
-          "score": 12
-        },
-        {
           "value": "weather_advice.py @ tests_v9/test_advice_facade_contract.py:19",
           "score": 12
         },
@@ -33085,10 +33165,10 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 80,
+        "backend": 79,
         "routes": 25,
         "database": 26,
-        "events": 22,
+        "events": 21,
         "web": 15,
         "mobile": 0,
         "tests": 38,
@@ -41828,37 +41908,6 @@
       ]
     },
     {
-      "path": "config/endpoint_ui_coverage_waivers.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "DEC-004",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
-          "capability_id": "DEC-005",
-          "score": 10,
-          "signals": [
-            "content:Dispatch authorization",
-            "content:dispatch authorization"
-          ]
-        },
-        {
-          "capability_id": "DEC-008",
-          "score": 9,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution",
-            "content:outcome attribution"
-          ]
-        }
-      ]
-    },
-    {
       "path": "config/indicators_registry.json",
       "kind": "other",
       "candidates": [
@@ -47317,44 +47366,6 @@
           "signals": [
             "content:Irrigation recommendation",
             "content:irrigation recommendation"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/sahool-platform/api/main.py",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "OPS-003",
-          "score": 12,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
           ]
         }
       ]

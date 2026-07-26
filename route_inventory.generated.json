@@ -7481,6 +7481,30 @@
   },
   {
     "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/yield_map_ingestion.py",
+    "line": 83,
+    "method": "POST",
+    "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
+    "function": "ingest_yield_map"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/yield_map_ingestion.py",
+    "line": 254,
+    "method": "GET",
+    "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
+    "function": "list_yield_map_ingestions"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/yield_map_ingestion.py",
+    "line": 288,
+    "method": "GET",
+    "path": "/api/v1/fields/{field_id}/yield-map-records",
+    "function": "query_yield_map_records"
+  },
+  {
+    "service": "sahool-platform",
     "file": "services/sahool-platform/tests/test_correlation_middleware.py",
     "line": 18,
     "method": "GET",

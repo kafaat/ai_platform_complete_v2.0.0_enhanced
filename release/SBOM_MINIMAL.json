@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e51a7fdbdfb3e42e1bbfb7628b945381df1c86f5bc831a520e51225a307aeaff"
+          "content": "ed1bd130341f2e16eb0e1914376bdf155bf50a34f4f74d6662595d152e50fb1c"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6575,7 +6575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fa3f8f90816bedf8c4a6f134579dade070a695b3db7a9e1bb1388c396b74221c"
+          "content": "405a9fc0a133a70e03929043c799400e63e90cb5f33603d7c155c6d4b2943cbe"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7869,6 +7869,16 @@
         }
       ],
       "name": "migrations/v214_field_irrigation_source_assignments.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6d7dbd5f11678d92fbb56b047056128d8da25f7a0fa169dee96fdcb79fe7b28d"
+        }
+      ],
+      "name": "migrations/v215_yield_map_ingestion.sql",
       "type": "file"
     },
     {
@@ -15265,7 +15275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b80b3800455901cd06fc0bbe0e3a03927619d1efbabcac83f7ab27caa87c5e51"
+          "content": "ef9a2ae6099003b6c3c415f7ae1c3b4227078a373d0595f29a1465e9d136bdc0"
         }
       ],
       "name": "services/sahool-platform/api/event_bus.py",
@@ -16185,7 +16195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9acdf1aee74762304ee6370a706af0d0ce70b5385b36b39728ddf2386afd9e8d"
+          "content": "e4dc5b7c72deecac898fb4e9895cdde32f5beb56022d81ef66ae0348fb31e428"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -18205,6 +18215,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dfa3e13d5f5d2dc94fa5f44eca97666d8871deae8ae29ac46de9e11f7a1d648a"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/yield_map_ingestion.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c7a6bd83941243019e1748ec3186d9c9aa1ed0f0f6486d5e34d910d0ae296ef3"
         }
       ],
@@ -18739,6 +18759,16 @@
         }
       ],
       "name": "services/sahool-platform/api/yield_heuristics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a219fe07d1f780a07e279d2a32e26f31b94587e5ae45e389567f0681e1ce6af"
+        }
+      ],
+      "name": "services/sahool-platform/api/yield_map_ingestion.py",
       "type": "file"
     },
     {
@@ -26679,6 +26709,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_yield_interval_service.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "276852a17047189ea09afd2b4e6934887bf50b2b0983f7c07d47fd21cf336b5d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_yield_map_ingestion.py",
       "type": "file"
     },
     {

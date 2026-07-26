@@ -429,37 +429,6 @@
     ]
   },
   {
-    "path": "config/endpoint_ui_coverage_waivers.json",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "DEC-004",
-        "score": 12,
-        "signals": [
-          "content:Execution request",
-          "content:execution request"
-        ]
-      },
-      {
-        "capability_id": "DEC-005",
-        "score": 10,
-        "signals": [
-          "content:Dispatch authorization",
-          "content:dispatch authorization"
-        ]
-      },
-      {
-        "capability_id": "DEC-008",
-        "score": 9,
-        "signals": [
-          "content:Learning attribution",
-          "content:learning attribution",
-          "content:outcome attribution"
-        ]
-      }
-    ]
-  },
-  {
     "path": "config/indicators_registry.json",
     "kind": "other",
     "candidates": [
@@ -5918,44 +5887,6 @@
         "signals": [
           "content:Irrigation recommendation",
           "content:irrigation recommendation"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/sahool-platform/api/main.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "WX-006",
-        "score": 12,
-        "signals": [
-          "content:GDD",
-          "content:gdd"
-        ]
-      },
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 12,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "OPS-003",
-        "score": 12,
-        "signals": [
-          "content:Scouting",
-          "content:scouting"
         ]
       }
     ]
