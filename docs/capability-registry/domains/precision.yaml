@@ -327,20 +327,23 @@ capabilities:
     en: External machinery integrations
     ar: ''
   domain: precision
-  owner: UNASSIGNED
+  owner: sahool-platform
   lifecycle: active
-  maturity: 1
-  evidence_level: 1
-  status: documentation_or_scaffold
-  confidence: low
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
   production_certified: false
   dependencies:
   - PA-005
-  services: []
-  apis: []
+  services:
+  - services/sahool-platform/api/machinery_export.py
+  apis:
+  - GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:294
   ui_consumers: []
   mobile_consumers: []
-  tests: []
+  tests:
+  - services/sahool-platform/tests/test_machinery_export.py
   runtime:
     metrics: []
     traces: []
@@ -348,9 +351,18 @@ capabilities:
     audit_events: []
   evidence:
   - type: repository
+    path: services/sahool-platform/api/machinery_export.py
+  - type: repository
+    path: services/sahool-platform/api/routers/prescriptions.py
+  - type: repository
     path: services/sahool-platform/core/isoxml_vrt.py
-  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=0, tests=0, ui=0,
-    mobile=0. Runtime and production certification remain manual evidence gates.'
+  - type: repository
+    path: services/sahool-platform/tests/test_machinery_export.py
+  rationale: 'Live consumer wired: the export endpoint (format=isoxml) turns a saved manual VRT prescription
+    + an operator-supplied controller profile into a real ISO11783 TaskData artifact via core/isoxml_vrt,
+    fail-closed on an incomplete/incompatible machine or mixed/unsupported units. Behavioral tests cover the
+    export and every rejection path. Scope boundary (honest): it produces the machine-uploadable file at the
+    platform edge; it does not drive a physical controller — runtime/production remain unverified manual gates.'
   business_goal: To be completed by the domain owner; repository evidence remains authoritative.
   priority: unassessed
   business_value: unassessed

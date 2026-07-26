@@ -5,10 +5,10 @@
 - Capabilities: **81**
 - Mapped: **76**
 - Unmapped: **5**
-- Multi-dimensional mappings: **47**
-- Files scanned: **4704**
+- Multi-dimensional mappings: **48**
+- Files scanned: **4706**
 - Ambiguous artifacts queued: **387**
-- Unmapped artifacts queued: **1937**
+- Unmapped artifacts queued: **1936**
 
 ## Capability coverage
 
@@ -39,7 +39,7 @@
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 5 | 15 | 2 | 58 | 0 | 0 | 7 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| INT-004 | precision | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| INT-004 | precision | 2 | 3 | 0 | 1 | 0 | 0 | 1 | 4 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 0 | 4 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 1 | 3 |

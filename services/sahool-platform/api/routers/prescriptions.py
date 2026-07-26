@@ -33,6 +33,7 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
 from pydantic import BaseModel, Field
 
+from api.machinery_export import MachineryExportError, build_prescription_isoxml
 from api.main import (
     _DB_POOL,
     Permission,
@@ -294,18 +295,28 @@ async def list_prescriptions(
 async def export_prescription(
     field_id: str = Path(..., description="معرّف الحقل"),
     prescription_id: str = Path(..., description="معرّف الوصفة"),
-    fmt: str = Query("shapefile", alias="format", description="الصيغة (المتاح: shapefile)"),
+    fmt: str = Query("shapefile", alias="format", description="الصيغة (shapefile | isoxml)"),
+    vendor: str | None = Query(None, description="ISOXML: مورّد المُتحكِّم (مطلوب لـisoxml)"),
+    controller: str | None = Query(None, description="ISOXML: عائلة المُتحكِّم"),
+    task_controller_version: str | None = Query(None, description="ISOXML: إصدار Task Controller"),
+    supported_units: str | None = Query(None, description="ISOXML: وحدات المُتحكِّم (مفصولة بفواصل)"),
+    crop: str | None = Query(None, description="ISOXML: المحصول (وصفيّ)"),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """يصدّر الوصفة كـ**Shapefile** (ZIP: .shp/.shx/.dbf/.prj) للمُتحكِّمات الزراعيّة (اقتباس CultiWise).
+    """يصدّر الوصفة المحفوظة لأجهزة التنفيذ.
 
-    صدق: Shapefile فقط هنا (GeoJSON/CSV يُنتَجان في الواجهة؛ **ISOXML مؤجَّل كـTODO موثَّق** — لا
-    يُنتَج بعد ⇒ 422). معزول بالمستأجِر (RLS)؛ حقل/وصفة خارج المستأجِر ⇒ 404؛ القاعدة معطّلة ⇒ 503.
+    - ``format=shapefile`` ⇒ ZIP (.shp/.shx/.dbf/.prj) — اقتباس CultiWise.
+    - ``format=isoxml`` ⇒ **ISOXML TaskData** حقيقيّ (INT-004): يُبنى من مناطق
+      الوصفة المحفوظة + ملفّ قدرات المُتحكِّم المُمرَّر. **يفشل مُغلَقاً** عند ملفّ
+      مُتحكِّم ناقص/غير متوافق أو وحدات مختلطة/غير مدعومة ⇒ 422 (لا TaskData جزئيّ).
+      لا يقود جهازاً فعليّاً — يُنتِج الملفّ القابل للرفع فقط.
+
+    معزول بالمستأجِر (RLS)؛ حقل/وصفة خارج المستأجِر ⇒ 404؛ القاعدة معطّلة ⇒ 503.
     """
-    if fmt != "shapefile":
+    if fmt not in ("shapefile", "isoxml"):
         raise HTTPException(
             status_code=422,
-            detail="صيغة غير مدعومة (المتاح: shapefile؛ ISOXML قيد التطوير — TODO موثَّق)",
+            detail="صيغة غير مدعومة (المتاح: shapefile | isoxml)",
         )
     if _DB_POOL is None:
         raise HTTPException(status_code=503, detail="القاعدة غير مفعّلة (DATABASE_URL)")
@@ -349,6 +360,29 @@ async def export_prescription(
             row["prescription_id"] if hasattr(row, "__getitem__") else "?",
         )
     rx = _row_to_prescription(row)
+    if fmt == "isoxml":
+        # INT-004: build a real ISOXML TaskData from the saved zones + the operator
+        # controller profile. Fail-closed (422) on incomplete/incompatible machine
+        # or mixed/unsupported units — never a partial file.
+        try:
+            xml = build_prescription_isoxml(
+                rx,
+                {
+                    "vendor": vendor,
+                    "controller": controller,
+                    "task_controller_version": task_controller_version,
+                    "supported_units": supported_units,
+                },
+                approved_recommendation_id=prescription_id,
+                crop=crop or "",
+            )
+        except MachineryExportError as e:
+            raise HTTPException(status_code=422, detail=f"تعذّر بناء ISOXML: {e}") from e
+        return Response(
+            content=xml,
+            media_type="application/xml",
+            headers={"Content-Disposition": 'attachment; filename="TASKDATA.xml"'},
+        )
     try:
         data = build_shapefile_zip(rx["name"], rx["product_type"], rx["zones"])
     except ValueError as e:

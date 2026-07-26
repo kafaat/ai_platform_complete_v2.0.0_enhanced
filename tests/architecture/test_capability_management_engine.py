@@ -22,9 +22,12 @@ def test_management_outputs_are_complete_and_fail_closed():
     assert len(matrix) == 81 and dashboard["capabilities_total"] == 81
     assert dashboard["mapped"] + dashboard["adjudicated"] + dashboard["unmapped"] == 81
     assert dashboard["accounted_for"] == dashboard["mapped"] + dashboard["adjudicated"]
-    # Current honest state: 80 mapped + 1 genuine gap (INT-004 declares no evidence).
-    assert dashboard["mapped"] == 80 and dashboard["unmapped"] == 1
-    assert dashboard["unmapped_capabilities"] == ["INT-004"]
+    # Current honest state: 81/81 mapped. INT-004 now has a real live consumer
+    # (api/machinery_export.py + the format=isoxml export endpoint + behavioral
+    # tests), so it is legitimately evidence-mapped — closed by implementation,
+    # not by inflating the number. No capability is an unmapped gap.
+    assert dashboard["mapped"] == 81 and dashboard["unmapped"] == 0
+    assert dashboard["unmapped_capabilities"] == []
     assert dashboard["runtime_verified"] == 0 and dashboard["production_certified"] == 0
     assert len(graph["nodes"]) == 81
     assert all(
@@ -56,17 +59,40 @@ def test_registry_declared_existing_evidence_is_credited():
             assert row["coverage_dimensions"][dim] is True, f"{cid}:{dim}"
 
 
-def test_real_scaffold_is_not_promoted_by_registry_presence_alone():
-    # INT-004 ("External machinery integrations") is a genuine gap: its ISOXML/VRT
-    # modules are static export groundwork with no live adapter/consumer, and it
-    # declares no service/route/db/event/web/mobile/test evidence. Neither a registry
-    # title nor a catch-all other_evidence token mention may promote it to mapped.
+def test_scaffold_with_no_specific_evidence_is_not_promoted():
+    # Invariant (kept synthetic now that INT-004 is genuinely implemented): a
+    # capability that declares NO specific-dimension evidence — and whose only
+    # scanner hit is the catch-all other_evidence bucket (a bare capability-ID
+    # mention) — must NOT be promoted to mapped. Registry presence or a title
+    # alone never counts as implementation.
     m = load("cm4", "scripts/ci/capability_management_engine.py")
-    objs = [m.load_json(p) for p in (m.REG, m.MAPPING, m.EVIDENCE, m.PARITY, m.INVEST)]
-    matrix, _, _ = m.generate_payload(*objs)
-    int004 = {r["id"]: r for r in matrix}["INT-004"]
-    assert int004["coverage_dimension_count"] == 0
-    assert int004["mapped"] is False
+    reg = {
+        "capabilities": [
+            {
+                "id": "ZZ-999",
+                "title": {"en": "Pure scaffold"},
+                "domain": "precision",
+                "owner": "UNASSIGNED",
+                "maturity": 1,
+                "evidence_level": 1,
+                "dependencies": [],
+                "services": [],
+                "apis": [],
+                "tests": [],
+                "ui_consumers": [],
+                "mobile_consumers": [],
+            }
+        ]
+    }
+    mapping = {
+        "capabilities": [{"capability_id": "ZZ-999", "other_evidence": [{"value": "ZZ-999"}]}]
+    }
+    empty = {"capabilities": []}
+    matrix, _, dashboard = m.generate_payload(reg, mapping, empty, empty, empty)
+    row = {r["id"]: r for r in matrix}["ZZ-999"]
+    assert row["coverage_dimension_count"] == 0
+    assert row["mapped"] is False
+    assert dashboard["unmapped_capabilities"] == ["ZZ-999"]
 
 
 def test_declared_evidence_paths_are_reconciled_fail_closed():

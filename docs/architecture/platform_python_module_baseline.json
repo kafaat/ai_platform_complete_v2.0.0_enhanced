@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 665,
+  "baseline_python_module_count": 666,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -167,6 +167,7 @@
     "api/learning_summary.py",
     "api/lexicographic_irrigation_mpc.py",
     "api/lexicographic_mpc_bridge.py",
+    "api/machinery_export.py",
     "api/main.py",
     "api/manual_converter.py",
     "api/master_data_models.py",
@@ -694,5 +695,6 @@
   "programmatic_closure_s3_s11_farmbook_note": "658: +4 platform modules for the programmatic-closure increment — S3 historical-weather SoR and S11 ERP-reconciliation ledger (core/operational_truth.py + api/routers/operational_truth.py) and the simple farmer book BFF over the existing Farm Ledger (core/simple_farm_book.py + api/routers/simple_farm_book.py). Tenant-bound, append-only, fail-closed; no new service.",
   "decision_center_slice1_confidence_note": "660: +2 platform modules from the agri-intelligence audit closures — api/agronomic_context_composer.py (DECISION-CENTER Slice 1: pure server-side atomic Agronomic Context assembler that feeds decision-service's existing compose_agronomic_context PIT gate; no fabrication, flag-gated AGRONOMIC_CONTEXT_COMPOSE_ENABLED) and core/crop_intelligence/confidence.py (audit P0-4: composed confidence contract with an honest ceiling, additive to the existing confidence string). Both pure/boundary-respecting; no new route, no new service. 658->660.",
   "h51_binding_note": "api/irrigation_source_binding.py (H5.1): pure server-authoritative field↔water-source binding resolver + decision-grade sample policy; owns the resolver SQL so the route and the real-PG cert test share one implementation (v214).",
-  "pa003_yield_map_ingestion_note": "api/yield_map_ingestion.py + api/routers/yield_map_ingestion.py (PA-003): field-scoped yield-map ingestion — idempotent append-only provenance (yield_map_ingestions) + PostGIS point records (yield_map_records) under FORCE-RLS; service owns the ingestion SQL so the router and the static contract test share one implementation; emits the critical YIELD_MAP_INGESTED domain event via the platform fail-closed outbox (v215). Baseline raised 663->665."
+  "pa003_yield_map_ingestion_note": "api/yield_map_ingestion.py + api/routers/yield_map_ingestion.py (PA-003): field-scoped yield-map ingestion — idempotent append-only provenance (yield_map_ingestions) + PostGIS point records (yield_map_records) under FORCE-RLS; service owns the ingestion SQL so the router and the static contract test share one implementation; emits the critical YIELD_MAP_INGESTED domain event via the platform fail-closed outbox (v215). Baseline raised 663->665.",
+  "int004_machinery_export_note": "api/machinery_export.py (INT-004): live external-machinery integration — turns a saved manual VRT prescription + operator controller profile into a real ISO11783 TaskData artifact via core/isoxml_vrt, fail-closed on incomplete/incompatible machine; wired into the format=isoxml export endpoint. Baseline raised 665->666."
 }

@@ -16195,6 +16195,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8738ed3a930d86c1b28018a8171b976a6db4cecc2c05fbbf6e770a85d5d173f7"
+        }
+      ],
+      "name": "services/sahool-platform/api/machinery_export.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e4dc5b7c72deecac898fb4e9895cdde32f5beb56022d81ef66ae0348fb31e428"
         }
       ],
@@ -17775,7 +17785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d96ffce9163efd76b1546206e77eabf8d73f60d88bfc74b065bc23093b211127"
+          "content": "7369fcf987d9926285cae6063e021c080fb2f29406a88f95fc223c0bb2338f32"
         }
       ],
       "name": "services/sahool-platform/api/routers/prescriptions.py",
@@ -24779,6 +24789,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_loop_referential_integrity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1a7d3f6979bb87bbd0e7c1e8e5927903d3b0bad76b8bd9a623bb057193701c6f"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_machinery_export.py",
       "type": "file"
     },
     {

@@ -11,18 +11,18 @@
     "capabilities_total": 81,
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
-    "capabilities_multidimensional": 47,
-    "files_scanned": 4704,
+    "capabilities_multidimensional": 48,
+    "files_scanned": 4706,
     "files_by_kind": {
-      "backend": 1182,
+      "backend": 1183,
       "database": 265,
       "governance": 55,
       "mobile": 51,
       "other": 1202,
-      "tests": 1503,
+      "tests": 1504,
       "web": 446
     },
-    "unmapped_artifacts": 1937,
+    "unmapped_artifacts": 1936,
     "ambiguous_artifacts": 387
   },
   "capabilities": [
@@ -11255,13 +11255,55 @@
       "capability_id": "INT-004",
       "domain": "precision",
       "title": "External machinery integrations",
-      "backend": [],
-      "routes": [],
+      "backend": [
+        {
+          "path": "services/sahool-platform/api/machinery_export.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/routers/prescriptions.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ],
+      "routes": [
+        {
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:133",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:250",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:294",
+          "score": 20
+        }
+      ],
       "database": [],
-      "events": [],
+      "events": [
+        {
+          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:384",
+          "score": 20
+        }
+      ],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "services/sahool-platform/tests/test_machinery_export.py",
+          "score": 24,
+          "signals": [
+            "content:john deere",
+            "explicit_id"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -11277,18 +11319,18 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 0,
-        "routes": 0,
+        "backend": 2,
+        "routes": 3,
         "database": 0,
-        "events": 0,
+        "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 1
       },
       "mapped": true,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 4
     },
     {
       "capability_id": "IRR-001",
@@ -37054,10 +37096,6 @@
     },
     {
       "path": "services/sahool-platform/api/routers/practices.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/routers/prescriptions.py",
       "kind": "backend"
     },
     {

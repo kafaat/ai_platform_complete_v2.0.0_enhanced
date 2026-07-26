@@ -1,21 +1,19 @@
 {
   "schema_version": "1.0.0",
   "capabilities_total": 81,
-  "mapped": 80,
+  "mapped": 81,
   "adjudicated": 0,
-  "unmapped": 1,
-  "accounted_for": 80,
-  "unmapped_capabilities": [
-    "INT-004"
-  ],
-  "mapping_coverage_pct": 98.77,
+  "unmapped": 0,
+  "accounted_for": 81,
+  "unmapped_capabilities": [],
+  "mapping_coverage_pct": 100.0,
   "runtime_verified": 0,
   "production_certified": 0,
   "maturity_distribution": {
     "0": 2,
-    "1": 2,
+    "1": 1,
     "2": 3,
-    "3": 74
+    "3": 75
   },
   "parity_distribution": {
     "Behind": 9,
@@ -81,9 +79,9 @@
     {
       "domain": "precision",
       "capabilities": 6,
-      "mapped": 5,
-      "average_maturity": 1.67,
-      "average_evidence": 1.67,
+      "mapped": 6,
+      "average_maturity": 2.0,
+      "average_evidence": 2.0,
       "runtime_verified": 0,
       "production_certified": 0,
       "unassessed_parity": 0
