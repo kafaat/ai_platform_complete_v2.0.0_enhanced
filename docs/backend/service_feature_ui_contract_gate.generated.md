@@ -234,7 +234,7 @@ reopen trigger: `SIM-GOLDEN-01 certification plus eligible real-season data`
 classification: `internal`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 100 match(es)
+- internal-consumer: 101 match(es)
   - `services/supervisor-agent/advisory_skill.py:9` ← `MCP`
   - `services/supervisor-agent/circuit_breaker.py:2` ← `MCP`
   - `services/supervisor-agent/crop_model_skill.py:10` ← `MCP`
