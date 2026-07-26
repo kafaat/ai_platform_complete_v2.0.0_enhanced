@@ -503819,58 +503819,7 @@
   ],
   "duplicate_function_groups": [
     {
-      "fingerprint": "00dc80fd51c01661",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/api/canonical_as_applied_irrigation.py",
-          "symbol": "_finite",
-          "line": 42,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/canonical_well_capability.py",
-          "symbol": "_number",
-          "line": 54,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "00df9412533ea0ec",
-      "occurrences": [
-        {
-          "file": "services/ai_agronomist/tool_executor.py",
-          "symbol": "_redact",
-          "line": 91,
-          "owner": "ai-agronomist"
-        },
-        {
-          "file": "services/ai_agronomist/approval.py",
-          "symbol": "_redact",
-          "line": 37,
-          "owner": "ai-agronomist"
-        }
-      ]
-    },
-    {
-      "fingerprint": "1b393c046c04c1b3",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_weather_engine_v19_prometheus_cache_admin.py",
-          "symbol": "_sample",
-          "line": 10,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_weather_tile_engine_v10.py",
-          "symbol": "_sample",
-          "line": 14,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "269b85d37e195923",
+      "fingerprint": "01e55555d0073910",
       "occurrences": [
         {
           "file": "services/decision-service/tests/test_activation_evidence_contract.py",
@@ -503887,7 +503836,105 @@
       ]
     },
     {
-      "fingerprint": "2706dd61339afe06",
+      "fingerprint": "0791c0d18167f804",
+      "occurrences": [
+        {
+          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
+          "symbol": "test_every_router_module_included",
+          "line": 45,
+          "owner": "odoo-bridge"
+        },
+        {
+          "file": "services/raster-service/test_raster_router_decomposition_guard.py",
+          "symbol": "test_every_router_module_included",
+          "line": 46,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
+          "symbol": "test_every_router_module_included",
+          "line": 49,
+          "owner": "supervisor-agent"
+        },
+        {
+          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+          "symbol": "test_every_router_module_included",
+          "line": 45,
+          "owner": "vegetation-analysis-service"
+        },
+        {
+          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
+          "symbol": "test_every_router_module_included",
+          "line": 45,
+          "owner": "video-processor"
+        }
+      ]
+    },
+    {
+      "fingerprint": "10b234ebb823fb73",
+      "occurrences": [
+        {
+          "file": "services/ai_agronomist/soil_sampling_planner.py",
+          "symbol": "_class_for_zone",
+          "line": 58,
+          "owner": "ai-agronomist"
+        },
+        {
+          "file": "services/ai_agronomist/vra_prescription_engine.py",
+          "symbol": "_zone_class",
+          "line": 73,
+          "owner": "ai-agronomist"
+        }
+      ]
+    },
+    {
+      "fingerprint": "1652c685e5ed27fa",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/tests/test_field_state.py",
+          "symbol": "_db",
+          "line": 10,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_gaps_v91.py",
+          "symbol": "_db",
+          "line": 11,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_improvements_v91.py",
+          "symbol": "_db",
+          "line": 13,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_security_v91.py",
+          "symbol": "_db",
+          "line": 11,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "18a46eb263382a99",
+      "occurrences": [
+        {
+          "file": "services/raster-service/worker_heartbeat.py",
+          "symbol": "mark_poll",
+          "line": 85,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/sahool-platform/api/worker_heartbeat.py",
+          "symbol": "mark_poll",
+          "line": 82,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "27213e0b8be4077c",
       "occurrences": [
         {
           "file": "services/sahool-platform/api/canonical_vri_prescription.py",
@@ -503910,140 +503957,25 @@
       ]
     },
     {
-      "fingerprint": "2e238855cd34b5bb",
+      "fingerprint": "2cab8792318c3811",
       "occurrences": [
         {
-          "file": "services/soil-service/routers/p3_products.py",
-          "symbol": "_scope",
-          "line": 41,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/soil-service/routers/p2_products.py",
-          "symbol": "_scope",
-          "line": 36,
-          "owner": "soil-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "304f827086942b27",
-      "occurrences": [
-        {
-          "file": "services/knowledge-graph/tests/test_knowledge_graph_static_route_smoke.py",
-          "symbol": "test_service_has_declared_fastapi_routes",
+          "file": "services/sahool-platform/tests/test_weather_engine_v19_prometheus_cache_admin.py",
+          "symbol": "_sample",
           "line": 10,
-          "owner": "knowledge-graph"
-        },
-        {
-          "file": "services/rag-retrieval/tests/test_rag_retrieval_static_route_smoke.py",
-          "symbol": "test_service_has_declared_fastapi_routes",
-          "line": 10,
-          "owner": "rag-retrieval"
-        },
-        {
-          "file": "services/indicators-service/tests/test_indicators_service_static_route_smoke.py",
-          "symbol": "test_service_has_declared_fastapi_routes",
-          "line": 10,
-          "owner": "indicators-service"
-        },
-        {
-          "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
-          "symbol": "test_service_has_declared_fastapi_routes",
-          "line": 10,
-          "owner": "agriai-engine"
-        },
-        {
-          "file": "services/mcp_servers/tests/test_mcp_servers_static_route_smoke.py",
-          "symbol": "test_service_has_declared_fastapi_routes",
-          "line": 10,
-          "owner": "mcp-servers"
-        }
-      ]
-    },
-    {
-      "fingerprint": "31943628afb7968b",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
-          "symbol": "_load_simple_yaml_tables",
-          "line": 77,
           "owner": "sahool-platform"
         },
         {
-          "file": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
-          "symbol": "_load_simple_yaml_tables",
-          "line": 16,
+          "file": "services/sahool-platform/tests/test_weather_tile_engine_v10.py",
+          "symbol": "_sample",
+          "line": 14,
           "owner": "sahool-platform"
         }
       ]
     },
     {
-      "fingerprint": "38a7f4fecdb244ec",
+      "fingerprint": "2ed8e51be38a65b6",
       "occurrences": [
-        {
-          "file": "services/sahool-platform/api/season_lifecycle.py",
-          "symbol": "__init__",
-          "line": 36,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/core/engines/soil_lab_workflow.py",
-          "symbol": "__init__",
-          "line": 54,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "38fac26497b54c91",
-      "occurrences": [
-        {
-          "file": "services/ai_agronomist/vra_prescription_engine.py",
-          "symbol": "_zone_class",
-          "line": 73,
-          "owner": "ai-agronomist"
-        },
-        {
-          "file": "services/ai_agronomist/soil_sampling_planner.py",
-          "symbol": "_class_for_zone",
-          "line": 58,
-          "owner": "ai-agronomist"
-        }
-      ]
-    },
-    {
-      "fingerprint": "39520454ba04d116",
-      "occurrences": [
-        {
-          "file": "services/raster-service/test_cloud_mask_strategies.py",
-          "symbol": "test_strategy_factory_dispatches_by_source_format",
-          "line": 29,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/raster-service/test_raster_validated_product.py",
-          "symbol": "test_source_strategy_selection_is_explicit",
-          "line": 77,
-          "owner": "raster-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "3dd5aa4326908e6c",
-      "occurrences": [
-        {
-          "file": "services/soil-service/router_registry.py",
-          "symbol": "_include_flat",
-          "line": 42,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/video-processor/router_registry.py",
-          "symbol": "_include_flat",
-          "line": 42,
-          "owner": "video-processor"
-        },
         {
           "file": "services/auth/router_registry.py",
           "symbol": "_include_flat",
@@ -504051,10 +503983,10 @@
           "owner": "auth"
         },
         {
-          "file": "services/vegetation-analysis-service/router_registry.py",
+          "file": "services/guardrails-engine/router_registry.py",
           "symbol": "_include_flat",
           "line": 42,
-          "owner": "vegetation-analysis-service"
+          "owner": "guardrails-engine"
         },
         {
           "file": "services/odoo-bridge/router_registry.py",
@@ -504069,10 +504001,10 @@
           "owner": "raster-service"
         },
         {
-          "file": "services/guardrails-engine/router_registry.py",
+          "file": "services/soil-service/router_registry.py",
           "symbol": "_include_flat",
           "line": 42,
-          "owner": "guardrails-engine"
+          "owner": "soil-service"
         },
         {
           "file": "services/supervisor-agent/router_registry.py",
@@ -504085,374 +504017,23 @@
           "symbol": "_include_flat",
           "line": 42,
           "owner": "tts-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "414bdbb9751faa0d",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/core/crop_intelligence/engine.py",
-          "symbol": "_finite_non_negative",
-          "line": 19,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/core/crop_intelligence/crop_water.py",
-          "symbol": "_finite_non_negative",
-          "line": 10,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "418dd134c75a4198",
-      "occurrences": [
-        {
-          "file": "services/raster-service/worker_heartbeat.py",
-          "symbol": "evaluate_heartbeat",
-          "line": 40,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/sahool-platform/api/worker_heartbeat.py",
-          "symbol": "evaluate_heartbeat",
-          "line": 37,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "56d0386734b32837",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/api/controller_edge_adapter.py",
-          "symbol": "_utc",
-          "line": 38,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/irrigation_commissioning_certification.py",
-          "symbol": "_utc",
-          "line": 53,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "5a845cb4f426a713",
-      "occurrences": [
-        {
-          "file": "services/raster-service/worker_heartbeat.py",
-          "symbol": "mark_poll",
-          "line": 85,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/sahool-platform/api/worker_heartbeat.py",
-          "symbol": "mark_poll",
-          "line": 82,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "5eadbbed142afa2e",
-      "occurrences": [
-        {
-          "file": "services/agriai-engine/wofost_adapter.py",
-          "symbol": "_num",
-          "line": 100,
-          "owner": "agriai-engine"
-        },
-        {
-          "file": "services/agriai-engine/profit_planner.py",
-          "symbol": "_num",
-          "line": 19,
-          "owner": "agriai-engine"
-        }
-      ]
-    },
-    {
-      "fingerprint": "603e0b55867bb10d",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
-          "symbol": "_client",
-          "line": 11,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
-          "symbol": "client",
-          "line": 11,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
-          "symbol": "_client",
-          "line": 11,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
-          "symbol": "client",
-          "line": 11,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "6b7bddb925e9b990",
-      "occurrences": [
-        {
-          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
-          "symbol": "test_route_count_floor",
-          "line": 102,
-          "owner": "video-processor"
-        },
-        {
-          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
-          "symbol": "test_route_count_floor",
-          "line": 102,
-          "owner": "vegetation-analysis-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "6d67eb8d03d4b516",
-      "occurrences": [
-        {
-          "file": "services/actuator-service/test_actuator_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 46,
-          "owner": "actuator-service"
-        },
-        {
-          "file": "services/soil-service/test_soil_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 47,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 39,
-          "owner": "video-processor"
-        },
-        {
-          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 39,
-          "owner": "vegetation-analysis-service"
-        },
-        {
-          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 39,
-          "owner": "odoo-bridge"
-        },
-        {
-          "file": "services/raster-service/test_raster_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 40,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 50,
-          "owner": "guardrails-engine"
-        },
-        {
-          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 43,
-          "owner": "supervisor-agent"
-        },
-        {
-          "file": "services/tts-service/test_tts_router_decomposition_guard.py",
-          "symbol": "test_main_imports_and_builds_app",
-          "line": 41,
-          "owner": "tts-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "7105b4bae8a6c92c",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_crop_intelligence_engine.py",
-          "symbol": "test_does_not_fabricate_biomass_or_yield",
-          "line": 33,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_crop_intelligence_phase3.py",
-          "symbol": "test_no_biomass_or_yield_fabrication_in_v3",
-          "line": 108,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "79c4e44c5402a756",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
-          "symbol": "_load_module",
-          "line": 22,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py",
-          "symbol": "_load_module",
-          "line": 19,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "7a18605ca524ba04",
-      "occurrences": [
-        {
-          "file": "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
-          "symbol": "_client",
-          "line": 36,
-          "owner": "decision-service"
-        },
-        {
-          "file": "services/decision-service/tests/test_wx10_7_decision_review.py",
-          "symbol": "_client",
-          "line": 267,
-          "owner": "decision-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "7af9ac732fab3cbb",
-      "occurrences": [
-        {
-          "file": "services/weather-service/et0.py",
-          "symbol": "_finite",
-          "line": 107,
-          "owner": "weather-service"
-        },
-        {
-          "file": "services/weather-service/gdd.py",
-          "symbol": "_finite",
-          "line": 49,
-          "owner": "weather-service"
-        },
-        {
-          "file": "services/weather-service/canonical_weather_state.py",
-          "symbol": "_finite",
-          "line": 67,
-          "owner": "weather-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "7e8b0636abbc95bd",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
-          "symbol": "_current_platform_routes",
-          "line": 54,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
-          "symbol": "_current_platform_routes",
-          "line": 50,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "7fe1126431c35111",
-      "occurrences": [
-        {
-          "file": "services/raster-service/worker_heartbeat.py",
-          "symbol": "_cli_check",
-          "line": 128,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/sahool-platform/api/worker_heartbeat.py",
-          "symbol": "_cli_check",
-          "line": 125,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "857d341ac91e610b",
-      "occurrences": [
-        {
-          "file": "services/actuator-service/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "actuator-service"
-        },
-        {
-          "file": "services/soil-service/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/video-processor/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "video-processor"
-        },
-        {
-          "file": "services/auth/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "auth"
         },
         {
           "file": "services/vegetation-analysis-service/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
+          "symbol": "_include_flat",
+          "line": 42,
           "owner": "vegetation-analysis-service"
         },
         {
-          "file": "services/odoo-bridge/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "odoo-bridge"
-        },
-        {
-          "file": "services/raster-service/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/guardrails-engine/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "guardrails-engine"
-        },
-        {
-          "file": "services/supervisor-agent/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "supervisor-agent"
-        },
-        {
-          "file": "services/tts-service/router_registry.py",
-          "symbol": "register_routers",
-          "line": 18,
-          "owner": "tts-service"
+          "file": "services/video-processor/router_registry.py",
+          "symbol": "_include_flat",
+          "line": 42,
+          "owner": "video-processor"
         }
       ]
     },
     {
-      "fingerprint": "85e033f2a695499c",
+      "fingerprint": "32d2f14c2fac8b6a",
       "occurrences": [
         {
           "file": "services/sahool-platform/core/field_intelligence_card.py",
@@ -504469,81 +504050,7 @@
       ]
     },
     {
-      "fingerprint": "86cc59da6a5b54fc",
-      "occurrences": [
-        {
-          "file": "services/sam2-inference/sam2_runtime.py",
-          "symbol": "_require_service_token",
-          "line": 91,
-          "owner": "sam2-inference"
-        },
-        {
-          "file": "services/field-segmentation/main.py",
-          "symbol": "_require_service_token",
-          "line": 75,
-          "owner": "field-segmentation"
-        }
-      ]
-    },
-    {
-      "fingerprint": "8932397d8cd062c4",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/api/sharing.py",
-          "symbol": "__init__",
-          "line": 100,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/data_lineage.py",
-          "symbol": "__init__",
-          "line": 171,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/event_bus.py",
-          "symbol": "__init__",
-          "line": 289,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "93be55b4b87abbf2",
-      "occurrences": [
-        {
-          "file": "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
-          "symbol": "_enable",
-          "line": 113,
-          "owner": "decision-service"
-        },
-        {
-          "file": "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
-          "symbol": "_enable",
-          "line": 115,
-          "owner": "decision-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "950be0609045232d",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/core/farm_closed_loop.py",
-          "symbol": "_non_negative",
-          "line": 99,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/core/farm_costing.py",
-          "symbol": "_non_negative",
-          "line": 158,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "952c25d8ae321d4d",
+      "fingerprint": "342931e6449b397f",
       "occurrences": [
         {
           "file": "services/actuator-service/actuator_runtime.py",
@@ -504560,596 +504067,72 @@
       ]
     },
     {
-      "fingerprint": "a2f9f7386f96c620",
+      "fingerprint": "3634c7c73fa8d02f",
       "occurrences": [
         {
-          "file": "services/sahool-platform/core/weather_sources.py",
-          "symbol": "_num",
-          "line": 254,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/core/weather_sources.py",
-          "symbol": "_num",
-          "line": 291,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "a37364d8d551e4f6",
-      "occurrences": [
-        {
-          "file": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
-          "symbol": "test_route_count_floor",
-          "line": 76,
-          "owner": "guardrails-engine"
-        },
-        {
-          "file": "services/tts-service/test_tts_router_decomposition_guard.py",
-          "symbol": "test_route_count_floor",
-          "line": 108,
-          "owner": "tts-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "a40b96b5251f36aa",
-      "occurrences": [
-        {
-          "file": "services/soil-service/routers/p1_products.py",
-          "symbol": "tenant",
-          "line": 23,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/soil-service/routers/p5_certification.py",
-          "symbol": "_tenant",
-          "line": 17,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/soil-service/routers/p4_workflow.py",
-          "symbol": "_tenant",
-          "line": 15,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/soil-service/routers/p3_products.py",
-          "symbol": "_tenant",
-          "line": 30,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/soil-service/routers/p2_products.py",
-          "symbol": "_tenant",
-          "line": 25,
-          "owner": "soil-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "ac66dd3b4393e31b",
-      "occurrences": [
-        {
-          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
-          "symbol": "test_no_orphan_router_module",
-          "line": 108,
-          "owner": "video-processor"
-        },
-        {
-          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
-          "symbol": "test_no_orphan_router_module",
-          "line": 108,
-          "owner": "vegetation-analysis-service"
-        },
-        {
-          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
-          "symbol": "test_no_orphan_router_module",
-          "line": 92,
-          "owner": "odoo-bridge"
-        },
-        {
-          "file": "services/raster-service/test_raster_router_decomposition_guard.py",
-          "symbol": "test_no_orphan_router_module",
-          "line": 111,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
-          "symbol": "test_no_orphan_router_module",
-          "line": 87,
-          "owner": "supervisor-agent"
-        }
-      ]
-    },
-    {
-      "fingerprint": "af0fa057ff7366d9",
-      "occurrences": [
-        {
-          "file": "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
-          "symbol": "_store_evidence",
-          "line": 69,
-          "owner": "decision-service"
-        },
-        {
-          "file": "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
-          "symbol": "_store_evidence",
-          "line": 69,
-          "owner": "decision-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "b8d801394dbf4f3d",
-      "occurrences": [
-        {
-          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
-          "symbol": "test_route_count_floor",
-          "line": 128,
-          "owner": "odoo-bridge"
-        },
-        {
-          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
-          "symbol": "test_route_count_floor",
-          "line": 122,
-          "owner": "supervisor-agent"
-        }
-      ]
-    },
-    {
-      "fingerprint": "baa6814768fbaf1a",
-      "occurrences": [
-        {
-          "file": "services/actuator-service/test_actuator_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 65,
+          "file": "services/actuator-service/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
           "owner": "actuator-service"
         },
         {
-          "file": "services/soil-service/test_soil_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 70,
-          "owner": "soil-service"
+          "file": "services/auth/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
+          "owner": "auth"
         },
         {
-          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 63,
-          "owner": "video-processor"
-        },
-        {
-          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 63,
-          "owner": "vegetation-analysis-service"
-        },
-        {
-          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 63,
-          "owner": "odoo-bridge"
-        },
-        {
-          "file": "services/raster-service/test_raster_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 64,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 56,
+          "file": "services/guardrails-engine/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
           "owner": "guardrails-engine"
         },
         {
-          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 67,
-          "owner": "supervisor-agent"
-        },
-        {
-          "file": "services/tts-service/test_tts_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 65,
-          "owner": "tts-service"
-        },
-        {
-          "file": "services/auth/tests/test_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 84,
-          "owner": "auth"
-        }
-      ]
-    },
-    {
-      "fingerprint": "be832a5993c4c8b6",
-      "occurrences": [
-        {
-          "file": "services/gis-workflow-service/map_layout.py",
-          "symbol": "_num",
-          "line": 29,
-          "owner": "gis-workflow-service"
-        },
-        {
-          "file": "services/gis-workflow-service/self_checks.py",
-          "symbol": "_num",
-          "line": 27,
-          "owner": "gis-workflow-service"
-        },
-        {
-          "file": "services/sahool-platform/core/wind_geometry.py",
-          "symbol": "_num",
-          "line": 47,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/core/drift_geometry.py",
-          "symbol": "_num",
-          "line": 27,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "c426e46b262d6007",
-      "occurrences": [
-        {
-          "file": "services/raster-service/worker_heartbeat.py",
-          "symbol": "mark_error",
-          "line": 92,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/sahool-platform/api/worker_heartbeat.py",
-          "symbol": "mark_error",
-          "line": 89,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "c6570633d45c255b",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/api/controller_edge_adapter.py",
-          "symbol": "_finite",
-          "line": 48,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/canonical_hydraulic_capability.py",
-          "symbol": "_finite",
-          "line": 29,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-          "symbol": "_num",
-          "line": 21,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
-          "symbol": "_num",
-          "line": 28,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-          "symbol": "_number",
-          "line": 29,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
-          "symbol": "_num",
-          "line": 27,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
-          "symbol": "_num",
-          "line": 22,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "cf4d15a6153b42a9",
-      "occurrences": [
-        {
-          "file": "services/mcp_servers/wofost_server.py",
-          "symbol": "_handle_sigterm",
-          "line": 295,
-          "owner": "mcp-servers"
-        },
-        {
-          "file": "services/mcp_servers/sentinel_hub_server.py",
-          "symbol": "_handle_sigterm",
-          "line": 499,
-          "owner": "mcp-servers"
-        },
-        {
-          "file": "services/mcp_servers/weather_server.py",
-          "symbol": "_handle_sigterm",
-          "line": 347,
-          "owner": "mcp-servers"
-        }
-      ]
-    },
-    {
-      "fingerprint": "d2d43e0a8e8c7dfa",
-      "occurrences": [
-        {
-          "file": "services/ai_agronomist/runtime_evidence.py",
-          "symbol": "_num",
-          "line": 14,
-          "owner": "ai-agronomist"
-        },
-        {
-          "file": "services/raster-service/raster_indicator_product.py",
-          "symbol": "_maybe_float",
-          "line": 97,
-          "owner": "raster-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "dce437f2a9c84f46",
-      "occurrences": [
-        {
-          "file": "services/soil-service/routers/p5_certification.py",
-          "symbol": "_ctx",
-          "line": 24,
-          "owner": "soil-service"
-        },
-        {
-          "file": "services/soil-service/routers/p4_workflow.py",
-          "symbol": "_ctx",
-          "line": 22,
-          "owner": "soil-service"
-        }
-      ]
-    },
-    {
-      "fingerprint": "dfa39738f5923c2f",
-      "occurrences": [
-        {
-          "file": "services/auth/main.py",
-          "symbol": "strong_password",
-          "line": 471,
-          "owner": "auth"
-        },
-        {
-          "file": "services/auth/main.py",
-          "symbol": "strong_password",
-          "line": 533,
-          "owner": "auth"
-        }
-      ]
-    },
-    {
-      "fingerprint": "e1fe2d0b489ce09b",
-      "occurrences": [
-        {
-          "file": "services/mcp_servers/wofost_server.py",
-          "symbol": "call_tool",
-          "line": 114,
-          "owner": "mcp-servers"
-        },
-        {
-          "file": "services/mcp_servers/weather_server.py",
-          "symbol": "call_tool",
-          "line": 148,
-          "owner": "mcp-servers"
-        }
-      ]
-    },
-    {
-      "fingerprint": "e27975739701a0f9",
-      "occurrences": [
-        {
-          "file": "services/raster-service/worker_heartbeat.py",
-          "symbol": "__init__",
-          "line": 73,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/sahool-platform/api/worker_heartbeat.py",
-          "symbol": "__init__",
-          "line": 70,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "eae9c0003b60fda1",
-      "occurrences": [
-        {
-          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
-          "symbol": "test_every_router_module_included",
-          "line": 45,
-          "owner": "video-processor"
-        },
-        {
-          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
-          "symbol": "test_every_router_module_included",
-          "line": 45,
-          "owner": "vegetation-analysis-service"
-        },
-        {
-          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
-          "symbol": "test_every_router_module_included",
-          "line": 45,
+          "file": "services/odoo-bridge/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
           "owner": "odoo-bridge"
         },
         {
-          "file": "services/raster-service/test_raster_router_decomposition_guard.py",
-          "symbol": "test_every_router_module_included",
-          "line": 46,
+          "file": "services/raster-service/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
           "owner": "raster-service"
         },
         {
-          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
-          "symbol": "test_every_router_module_included",
-          "line": 49,
-          "owner": "supervisor-agent"
-        }
-      ]
-    },
-    {
-      "fingerprint": "ed773018ef66be5a",
-      "occurrences": [
-        {
-          "file": "services/soil-service/test_soil_router_decomposition_guard.py",
-          "symbol": "test_register_routers_wired_in_main",
-          "line": 84,
+          "file": "services/soil-service/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
           "owner": "soil-service"
         },
         {
-          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
-          "symbol": "test_register_routers_wired_in_main",
-          "line": 77,
-          "owner": "video-processor"
-        },
-        {
-          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
-          "symbol": "test_register_routers_wired_in_main",
-          "line": 77,
-          "owner": "vegetation-analysis-service"
-        },
-        {
-          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
-          "symbol": "test_register_routers_wired_in_main",
-          "line": 77,
-          "owner": "odoo-bridge"
-        },
-        {
-          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
-          "symbol": "test_register_routers_wired_in_main",
-          "line": 81,
+          "file": "services/supervisor-agent/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
           "owner": "supervisor-agent"
         },
         {
-          "file": "services/tts-service/test_tts_router_decomposition_guard.py",
-          "symbol": "test_register_routers_wired_in_main",
-          "line": 79,
+          "file": "services/tts-service/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
           "owner": "tts-service"
+        },
+        {
+          "file": "services/vegetation-analysis-service/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
+          "owner": "vegetation-analysis-service"
+        },
+        {
+          "file": "services/video-processor/router_registry.py",
+          "symbol": "register_routers",
+          "line": 18,
+          "owner": "video-processor"
         }
       ]
     },
     {
-      "fingerprint": "f1e1271e3f909a63",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_gaps_v91.py",
-          "symbol": "_db",
-          "line": 11,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_field_state.py",
-          "symbol": "_db",
-          "line": 10,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_security_v91.py",
-          "symbol": "_db",
-          "line": 11,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_improvements_v91.py",
-          "symbol": "_db",
-          "line": 13,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "f26a05bd1757b54d",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
-          "symbol": "_decorator_route",
-          "line": 20,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
-          "symbol": "_decorator_route",
-          "line": 16,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-          "symbol": "_decorator_route",
-          "line": 13,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "f306a49f4261c512",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/tests/test_crop_decision_endpoint.py",
-          "symbol": "_fake_gdd",
-          "line": 27,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_decision_lineage_endpoints.py",
-          "symbol": "_fake_gdd",
-          "line": 34,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/tests/test_profit_aware_decision_endpoint.py",
-          "symbol": "_fake_gdd",
-          "line": 28,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "f70d34d6e4ff21fa",
-      "occurrences": [
-        {
-          "file": "services/raster-service/worker_heartbeat.py",
-          "symbol": "main",
-          "line": 135,
-          "owner": "raster-service"
-        },
-        {
-          "file": "services/sahool-platform/api/worker_heartbeat.py",
-          "symbol": "main",
-          "line": 132,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "fd80e2f511b59f7d",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
-          "symbol": "_hour",
-          "line": 35,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
-          "symbol": "_parse_time",
-          "line": 38,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "fe044b4dd7d94d9c",
+      "fingerprint": "38f3e26a90604c6a",
       "occurrences": [
         {
           "file": "services/sahool-platform/tests/test_crop_decision_endpoint.py",
@@ -505167,6 +504150,1023 @@
           "file": "services/sahool-platform/tests/test_profit_aware_decision_endpoint.py",
           "symbol": "_patch_engine_gdd",
           "line": 25,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "3bdaa4de02900ca1",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/core/farm_closed_loop.py",
+          "symbol": "_non_negative",
+          "line": 99,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/core/farm_costing.py",
+          "symbol": "_non_negative",
+          "line": 158,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "3fa331af9f9461ea",
+      "occurrences": [
+        {
+          "file": "services/actuator-service/test_actuator_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 46,
+          "owner": "actuator-service"
+        },
+        {
+          "file": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 50,
+          "owner": "guardrails-engine"
+        },
+        {
+          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 39,
+          "owner": "odoo-bridge"
+        },
+        {
+          "file": "services/raster-service/test_raster_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 40,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/soil-service/test_soil_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 47,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 43,
+          "owner": "supervisor-agent"
+        },
+        {
+          "file": "services/tts-service/test_tts_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 41,
+          "owner": "tts-service"
+        },
+        {
+          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 39,
+          "owner": "vegetation-analysis-service"
+        },
+        {
+          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
+          "symbol": "test_main_imports_and_builds_app",
+          "line": 39,
+          "owner": "video-processor"
+        }
+      ]
+    },
+    {
+      "fingerprint": "406980d4b6534c4a",
+      "occurrences": [
+        {
+          "file": "services/ai_agronomist/approval.py",
+          "symbol": "_redact",
+          "line": 37,
+          "owner": "ai-agronomist"
+        },
+        {
+          "file": "services/ai_agronomist/tool_executor.py",
+          "symbol": "_redact",
+          "line": 91,
+          "owner": "ai-agronomist"
+        }
+      ]
+    },
+    {
+      "fingerprint": "40b9faafbad5a23d",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
+          "symbol": "_load_module",
+          "line": 22,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py",
+          "symbol": "_load_module",
+          "line": 19,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "451e12ae0877302a",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
+          "symbol": "_num",
+          "line": 27,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/canonical_hydraulic_capability.py",
+          "symbol": "_finite",
+          "line": 29,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+          "symbol": "_number",
+          "line": 29,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
+          "symbol": "_num",
+          "line": 22,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+          "symbol": "_num",
+          "line": 21,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/controller_edge_adapter.py",
+          "symbol": "_finite",
+          "line": 48,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+          "symbol": "_num",
+          "line": 28,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "49b18910194fee42",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/core/weather_sources.py",
+          "symbol": "_num",
+          "line": 254,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/core/weather_sources.py",
+          "symbol": "_num",
+          "line": 291,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "4cb77c1b81129bbe",
+      "occurrences": [
+        {
+          "file": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
+          "symbol": "test_route_count_floor",
+          "line": 76,
+          "owner": "guardrails-engine"
+        },
+        {
+          "file": "services/tts-service/test_tts_router_decomposition_guard.py",
+          "symbol": "test_route_count_floor",
+          "line": 108,
+          "owner": "tts-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "4d3489c6804536ee",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/api/controller_edge_adapter.py",
+          "symbol": "_utc",
+          "line": 38,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/irrigation_commissioning_certification.py",
+          "symbol": "_utc",
+          "line": 53,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "558f76feaf3a04fa",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/api/data_lineage.py",
+          "symbol": "__init__",
+          "line": 171,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/event_bus.py",
+          "symbol": "__init__",
+          "line": 289,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/sharing.py",
+          "symbol": "__init__",
+          "line": 100,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "5c83798b883cda7e",
+      "occurrences": [
+        {
+          "file": "services/agriai-engine/profit_planner.py",
+          "symbol": "_num",
+          "line": 19,
+          "owner": "agriai-engine"
+        },
+        {
+          "file": "services/agriai-engine/wofost_adapter.py",
+          "symbol": "_num",
+          "line": 100,
+          "owner": "agriai-engine"
+        }
+      ]
+    },
+    {
+      "fingerprint": "62a08c439a5d8220",
+      "occurrences": [
+        {
+          "file": "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
+          "symbol": "_client",
+          "line": 36,
+          "owner": "decision-service"
+        },
+        {
+          "file": "services/decision-service/tests/test_wx10_7_decision_review.py",
+          "symbol": "_client",
+          "line": 267,
+          "owner": "decision-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "69e415224b4d3b71",
+      "occurrences": [
+        {
+          "file": "services/gis-workflow-service/map_layout.py",
+          "symbol": "_num",
+          "line": 29,
+          "owner": "gis-workflow-service"
+        },
+        {
+          "file": "services/gis-workflow-service/self_checks.py",
+          "symbol": "_num",
+          "line": 27,
+          "owner": "gis-workflow-service"
+        },
+        {
+          "file": "services/sahool-platform/core/drift_geometry.py",
+          "symbol": "_num",
+          "line": 27,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/core/wind_geometry.py",
+          "symbol": "_num",
+          "line": 47,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "6a2cef3bc2a2519d",
+      "occurrences": [
+        {
+          "file": "services/auth/main.py",
+          "symbol": "strong_password",
+          "line": 471,
+          "owner": "auth"
+        },
+        {
+          "file": "services/auth/main.py",
+          "symbol": "strong_password",
+          "line": 533,
+          "owner": "auth"
+        }
+      ]
+    },
+    {
+      "fingerprint": "6dcb6ad9fc0cd5a9",
+      "occurrences": [
+        {
+          "file": "services/raster-service/test_cloud_mask_strategies.py",
+          "symbol": "test_strategy_factory_dispatches_by_source_format",
+          "line": 29,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/raster-service/test_raster_validated_product.py",
+          "symbol": "test_source_strategy_selection_is_explicit",
+          "line": 77,
+          "owner": "raster-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "6f642e211a717584",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/api/canonical_as_applied_irrigation.py",
+          "symbol": "_finite",
+          "line": 42,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/canonical_well_capability.py",
+          "symbol": "_number",
+          "line": 54,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "732840534ed80cbd",
+      "occurrences": [
+        {
+          "file": "services/soil-service/routers/p1_products.py",
+          "symbol": "tenant",
+          "line": 23,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/soil-service/routers/p2_products.py",
+          "symbol": "_tenant",
+          "line": 25,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/soil-service/routers/p3_products.py",
+          "symbol": "_tenant",
+          "line": 30,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/soil-service/routers/p4_workflow.py",
+          "symbol": "_tenant",
+          "line": 15,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/soil-service/routers/p5_certification.py",
+          "symbol": "_tenant",
+          "line": 17,
+          "owner": "soil-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "734027586cb4dbe9",
+      "occurrences": [
+        {
+          "file": "services/raster-service/worker_heartbeat.py",
+          "symbol": "main",
+          "line": 135,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/sahool-platform/api/worker_heartbeat.py",
+          "symbol": "main",
+          "line": 132,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "7644d918a15bde1e",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+          "symbol": "_client",
+          "line": 11,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
+          "symbol": "client",
+          "line": 11,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
+          "symbol": "client",
+          "line": 11,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
+          "symbol": "_client",
+          "line": 11,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "7753afc71b203ca1",
+      "occurrences": [
+        {
+          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+          "symbol": "test_route_count_floor",
+          "line": 102,
+          "owner": "vegetation-analysis-service"
+        },
+        {
+          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
+          "symbol": "test_route_count_floor",
+          "line": 102,
+          "owner": "video-processor"
+        }
+      ]
+    },
+    {
+      "fingerprint": "785941ed0757008e",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+          "symbol": "_decorator_route",
+          "line": 13,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
+          "symbol": "_decorator_route",
+          "line": 16,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
+          "symbol": "_decorator_route",
+          "line": 20,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "78b53236ba4d4e96",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/tests/test_crop_intelligence_engine.py",
+          "symbol": "test_does_not_fabricate_biomass_or_yield",
+          "line": 33,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_crop_intelligence_phase3.py",
+          "symbol": "test_no_biomass_or_yield_fabrication_in_v3",
+          "line": 108,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "78da89549056e9b8",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/tests/test_crop_decision_endpoint.py",
+          "symbol": "_fake_gdd",
+          "line": 27,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_decision_lineage_endpoints.py",
+          "symbol": "_fake_gdd",
+          "line": 34,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_profit_aware_decision_endpoint.py",
+          "symbol": "_fake_gdd",
+          "line": 28,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "81bddc48412d7a77",
+      "occurrences": [
+        {
+          "file": "services/raster-service/worker_heartbeat.py",
+          "symbol": "__init__",
+          "line": 73,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/sahool-platform/api/worker_heartbeat.py",
+          "symbol": "__init__",
+          "line": 70,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "828caff28d6627e7",
+      "occurrences": [
+        {
+          "file": "services/ai_agronomist/runtime_evidence.py",
+          "symbol": "_num",
+          "line": 14,
+          "owner": "ai-agronomist"
+        },
+        {
+          "file": "services/raster-service/raster_indicator_product.py",
+          "symbol": "_maybe_float",
+          "line": 97,
+          "owner": "raster-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "8c325bfd965af37d",
+      "occurrences": [
+        {
+          "file": "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
+          "symbol": "_store_evidence",
+          "line": 69,
+          "owner": "decision-service"
+        },
+        {
+          "file": "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
+          "symbol": "_store_evidence",
+          "line": 69,
+          "owner": "decision-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "8e9f69a9666a9587",
+      "occurrences": [
+        {
+          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
+          "symbol": "test_register_routers_wired_in_main",
+          "line": 77,
+          "owner": "odoo-bridge"
+        },
+        {
+          "file": "services/soil-service/test_soil_router_decomposition_guard.py",
+          "symbol": "test_register_routers_wired_in_main",
+          "line": 84,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
+          "symbol": "test_register_routers_wired_in_main",
+          "line": 81,
+          "owner": "supervisor-agent"
+        },
+        {
+          "file": "services/tts-service/test_tts_router_decomposition_guard.py",
+          "symbol": "test_register_routers_wired_in_main",
+          "line": 79,
+          "owner": "tts-service"
+        },
+        {
+          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+          "symbol": "test_register_routers_wired_in_main",
+          "line": 77,
+          "owner": "vegetation-analysis-service"
+        },
+        {
+          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
+          "symbol": "test_register_routers_wired_in_main",
+          "line": 77,
+          "owner": "video-processor"
+        }
+      ]
+    },
+    {
+      "fingerprint": "914184c711383573",
+      "occurrences": [
+        {
+          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
+          "symbol": "test_no_orphan_router_module",
+          "line": 92,
+          "owner": "odoo-bridge"
+        },
+        {
+          "file": "services/raster-service/test_raster_router_decomposition_guard.py",
+          "symbol": "test_no_orphan_router_module",
+          "line": 111,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
+          "symbol": "test_no_orphan_router_module",
+          "line": 87,
+          "owner": "supervisor-agent"
+        },
+        {
+          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+          "symbol": "test_no_orphan_router_module",
+          "line": 108,
+          "owner": "vegetation-analysis-service"
+        },
+        {
+          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
+          "symbol": "test_no_orphan_router_module",
+          "line": 108,
+          "owner": "video-processor"
+        }
+      ]
+    },
+    {
+      "fingerprint": "9160c907b799819a",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/api/season_lifecycle.py",
+          "symbol": "__init__",
+          "line": 36,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/core/engines/soil_lab_workflow.py",
+          "symbol": "__init__",
+          "line": 54,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "9975dc50917af5bc",
+      "occurrences": [
+        {
+          "file": "services/raster-service/worker_heartbeat.py",
+          "symbol": "mark_error",
+          "line": 92,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/sahool-platform/api/worker_heartbeat.py",
+          "symbol": "mark_error",
+          "line": 89,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "9cd96fdce320f870",
+      "occurrences": [
+        {
+          "file": "services/raster-service/worker_heartbeat.py",
+          "symbol": "_cli_check",
+          "line": 128,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/sahool-platform/api/worker_heartbeat.py",
+          "symbol": "_cli_check",
+          "line": 125,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "9e9d6bb7f5f44b29",
+      "occurrences": [
+        {
+          "file": "services/soil-service/routers/p4_workflow.py",
+          "symbol": "_ctx",
+          "line": 22,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/soil-service/routers/p5_certification.py",
+          "symbol": "_ctx",
+          "line": 24,
+          "owner": "soil-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "9fcb13bf88a96d6a",
+      "occurrences": [
+        {
+          "file": "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
+          "symbol": "_enable",
+          "line": 115,
+          "owner": "decision-service"
+        },
+        {
+          "file": "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
+          "symbol": "_enable",
+          "line": 113,
+          "owner": "decision-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "a49b7c49171c8b3e",
+      "occurrences": [
+        {
+          "file": "services/mcp_servers/weather_server.py",
+          "symbol": "call_tool",
+          "line": 148,
+          "owner": "mcp-servers"
+        },
+        {
+          "file": "services/mcp_servers/wofost_server.py",
+          "symbol": "call_tool",
+          "line": 114,
+          "owner": "mcp-servers"
+        }
+      ]
+    },
+    {
+      "fingerprint": "aa517cd1f9c74cf4",
+      "occurrences": [
+        {
+          "file": "services/mcp_servers/sentinel_hub_server.py",
+          "symbol": "_handle_sigterm",
+          "line": 499,
+          "owner": "mcp-servers"
+        },
+        {
+          "file": "services/mcp_servers/weather_server.py",
+          "symbol": "_handle_sigterm",
+          "line": 347,
+          "owner": "mcp-servers"
+        },
+        {
+          "file": "services/mcp_servers/wofost_server.py",
+          "symbol": "_handle_sigterm",
+          "line": 295,
+          "owner": "mcp-servers"
+        }
+      ]
+    },
+    {
+      "fingerprint": "c866b724521642d7",
+      "occurrences": [
+        {
+          "file": "services/field-segmentation/main.py",
+          "symbol": "_require_service_token",
+          "line": 75,
+          "owner": "field-segmentation"
+        },
+        {
+          "file": "services/sam2-inference/sam2_runtime.py",
+          "symbol": "_require_service_token",
+          "line": 91,
+          "owner": "sam2-inference"
+        }
+      ]
+    },
+    {
+      "fingerprint": "c92554a020167fed",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
+          "symbol": "_current_platform_routes",
+          "line": 50,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
+          "symbol": "_current_platform_routes",
+          "line": 54,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "daa44aded5a16e85",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+          "symbol": "_load_simple_yaml_tables",
+          "line": 16,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
+          "symbol": "_load_simple_yaml_tables",
+          "line": 77,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "dbaed230242c5876",
+      "occurrences": [
+        {
+          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
+          "symbol": "test_route_count_floor",
+          "line": 128,
+          "owner": "odoo-bridge"
+        },
+        {
+          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
+          "symbol": "test_route_count_floor",
+          "line": 122,
+          "owner": "supervisor-agent"
+        }
+      ]
+    },
+    {
+      "fingerprint": "dcc3c3072d9dd163",
+      "occurrences": [
+        {
+          "file": "services/raster-service/worker_heartbeat.py",
+          "symbol": "evaluate_heartbeat",
+          "line": 40,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/sahool-platform/api/worker_heartbeat.py",
+          "symbol": "evaluate_heartbeat",
+          "line": 37,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "e1c888386e3b4044",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
+          "symbol": "_parse_time",
+          "line": 38,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+          "symbol": "_hour",
+          "line": 35,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "e440ae0acc29ecbf",
+      "occurrences": [
+        {
+          "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+          "symbol": "test_service_has_declared_fastapi_routes",
+          "line": 10,
+          "owner": "agriai-engine"
+        },
+        {
+          "file": "services/indicators-service/tests/test_indicators_service_static_route_smoke.py",
+          "symbol": "test_service_has_declared_fastapi_routes",
+          "line": 10,
+          "owner": "indicators-service"
+        },
+        {
+          "file": "services/knowledge-graph/tests/test_knowledge_graph_static_route_smoke.py",
+          "symbol": "test_service_has_declared_fastapi_routes",
+          "line": 10,
+          "owner": "knowledge-graph"
+        },
+        {
+          "file": "services/mcp_servers/tests/test_mcp_servers_static_route_smoke.py",
+          "symbol": "test_service_has_declared_fastapi_routes",
+          "line": 10,
+          "owner": "mcp-servers"
+        },
+        {
+          "file": "services/rag-retrieval/tests/test_rag_retrieval_static_route_smoke.py",
+          "symbol": "test_service_has_declared_fastapi_routes",
+          "line": 10,
+          "owner": "rag-retrieval"
+        }
+      ]
+    },
+    {
+      "fingerprint": "ec6ce07a6383241b",
+      "occurrences": [
+        {
+          "file": "services/weather-service/canonical_weather_state.py",
+          "symbol": "_finite",
+          "line": 67,
+          "owner": "weather-service"
+        },
+        {
+          "file": "services/weather-service/et0.py",
+          "symbol": "_finite",
+          "line": 107,
+          "owner": "weather-service"
+        },
+        {
+          "file": "services/weather-service/gdd.py",
+          "symbol": "_finite",
+          "line": 49,
+          "owner": "weather-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "f095eaf2abced80f",
+      "occurrences": [
+        {
+          "file": "services/soil-service/routers/p2_products.py",
+          "symbol": "_scope",
+          "line": 36,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/soil-service/routers/p3_products.py",
+          "symbol": "_scope",
+          "line": 41,
+          "owner": "soil-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "f739ed3edf0fcd94",
+      "occurrences": [
+        {
+          "file": "services/actuator-service/test_actuator_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 65,
+          "owner": "actuator-service"
+        },
+        {
+          "file": "services/auth/tests/test_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 84,
+          "owner": "auth"
+        },
+        {
+          "file": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 56,
+          "owner": "guardrails-engine"
+        },
+        {
+          "file": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 63,
+          "owner": "odoo-bridge"
+        },
+        {
+          "file": "services/raster-service/test_raster_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 64,
+          "owner": "raster-service"
+        },
+        {
+          "file": "services/soil-service/test_soil_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 70,
+          "owner": "soil-service"
+        },
+        {
+          "file": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 67,
+          "owner": "supervisor-agent"
+        },
+        {
+          "file": "services/tts-service/test_tts_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 65,
+          "owner": "tts-service"
+        },
+        {
+          "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 63,
+          "owner": "vegetation-analysis-service"
+        },
+        {
+          "file": "services/video-processor/test_video_processor_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 63,
+          "owner": "video-processor"
+        }
+      ]
+    },
+    {
+      "fingerprint": "fe06a37b47b4bf18",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/core/crop_intelligence/crop_water.py",
+          "symbol": "_finite_non_negative",
+          "line": 10,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/core/crop_intelligence/engine.py",
+          "symbol": "_finite_non_negative",
+          "line": 19,
           "owner": "sahool-platform"
         }
       ]

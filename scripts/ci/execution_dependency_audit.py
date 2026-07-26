@@ -47,10 +47,11 @@ def rel(p: Path) -> str:
 
 
 def files():
+    # sorted(): rglob order is filesystem-dependent; sort for deterministic output.
     for base in SCAN:
         if not base.exists():
             continue
-        for p in base.rglob("*.py"):
+        for p in sorted(base.rglob("*.py")):
             if not any(part in SKIP for part in p.parts):
                 yield p
 
@@ -151,26 +152,51 @@ def symbol_index(parsed):
     return defs, refs, routes, imports, call_edges
 
 
+# Fields that exist only on some Python minor/patch versions (e.g. type_params was
+# added to FunctionDef in 3.12) or that ast.dump renders differently across patch
+# releases. Excluding them keeps the fingerprint identical across interpreters so the
+# --check drift gate is deterministic regardless of the runner's Python version.
+_VOLATILE_AST_FIELDS = {"type_params", "type_comment"}
+
+
+def _canonical(node) -> str:
+    """Interpreter-independent structural serialization of an AST fragment.
+
+    Uses only grammar-defined field names (via ast.iter_fields) and repr of scalars;
+    it never calls ast.dump, so its output does not depend on the Python version.
+    Positional attributes (lineno/col) are excluded by construction.
+    """
+    if isinstance(node, ast.AST):
+        fields = [
+            f"{name}={_canonical(value)}"
+            for name, value in ast.iter_fields(node)
+            if name not in _VOLATILE_AST_FIELDS
+        ]
+        return f"{type(node).__name__}({','.join(fields)})"
+    if isinstance(node, list):
+        return "[" + ",".join(_canonical(item) for item in node) + "]"
+    return repr(node)
+
+
 def duplicate_blocks(parsed):
     buckets = defaultdict(list)
     for p, tree in parsed.items():
         for n in ast.walk(tree):
             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and len(n.body) >= 3:
-                clone = ast.FunctionDef(
-                    name="_",
-                    args=n.args,
-                    body=n.body,
-                    decorator_list=[],
-                    returns=n.returns,
-                    type_comment=None,
-                )
-                dump = ast.dump(clone, include_attributes=False)
-                if len(dump) >= 300:
-                    h = hashlib.sha256(dump.encode()).hexdigest()[:16]
+                signature = _canonical([n.args, n.returns, n.body])
+                if len(signature) >= 300:
+                    h = hashlib.sha256(signature.encode()).hexdigest()[:16]
                     buckets[h].append(
                         {"file": rel(p), "symbol": n.name, "line": n.lineno, "owner": owner(p)}
                     )
-    return [{"fingerprint": h, "occurrences": v} for h, v in sorted(buckets.items()) if len(v) > 1]
+    return [
+        {
+            "fingerprint": h,
+            "occurrences": sorted(v, key=lambda o: (o["file"], o["line"], o["symbol"])),
+        }
+        for h, v in sorted(buckets.items())
+        if len(v) > 1
+    ]
 
 
 def generate():
