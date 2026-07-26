@@ -36,7 +36,11 @@ def test_static_adjudication_release_changes_only_reviewed_capabilities() -> Non
     assert adjudication_release["added_from_previous"] == []
     assert adjudication_release["removed_from_previous"] == []
     assert adjudication_release["modified_from_previous"] == [
-        "INT-004", "IRR-010", "OPS-001", "OPS-006", "OPS-008"
+        "INT-004",
+        "IRR-010",
+        "OPS-001",
+        "OPS-006",
+        "OPS-008",
     ]
     assert adjudication_release["human_adjudications_applied"] == 13
     assert adjudication_release["capabilities_mapped"] == 80
@@ -68,7 +72,9 @@ def test_release_history_outputs_have_no_drift() -> None:
 
 def test_pa003_is_mapped_only_by_traceable_implementation_evidence() -> None:
     mapping = json.loads(
-        (ROOT / "docs/capability-registry/generated/mapping/capability_mapping.json").read_text(encoding="utf-8")
+        (ROOT / "docs/capability-registry/generated/mapping/capability_mapping.json").read_text(
+            encoding="utf-8"
+        )
     )
     by_id = {row["capability_id"]: row for row in mapping["capabilities"]}
     pa003 = by_id["PA-003"]
