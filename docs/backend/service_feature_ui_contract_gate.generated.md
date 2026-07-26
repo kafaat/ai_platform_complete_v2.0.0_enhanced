@@ -14,7 +14,7 @@ wired: `True`
   - `frontend/src/App.tsx:53` ← `LoginPage`
   - `frontend/src/App.tsx:54` ← `SignupPage`
   - `frontend/src/components/fieldview/NdviUnavailableNotice.tsx:21` ← `refresh`
-  - `frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts:8` ← `refresh`
+  - `frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts:11` ← `refresh`
   - `frontend/src/hooks/TenantCacheIsolation.static.test.ts:40` ← `refresh`
 - gateway: 8 match(es)
   - `nginx/nginx.fixed.conf:51` ← `/auth/`
@@ -27,7 +27,7 @@ wired: `True`
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 206 match(es)
+- ui: 209 match(es)
   - `frontend/src/components/AddFieldWithMap.tsx:430` ← `/api/v1`
   - `frontend/src/components/AddFieldWithMap.tsx:2` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx:6` ← `AddFieldWithMap`
@@ -60,7 +60,7 @@ classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
 - ui: 97 match(es)
-  - `frontend/src/App.tsx:123` ← `FieldRanking`
+  - `frontend/src/App.tsx:122` ← `FieldRanking`
   - `frontend/src/components/NDVIGauge.tsx:1` ← `NDVI`
   - `frontend/src/components/approvals/DecisionEvidencePanel.tsx:29` ← `vegetation`
   - `frontend/src/components/ds/tokens.ts:10` ← `NDVI`
@@ -75,9 +75,9 @@ wired: `True`
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 30 match(es)
-  - `frontend/src/App.tsx:65` ← `HybridIndexPage`
-  - `frontend/src/App.tsx:145` ← `indicators`
+- ui: 32 match(es)
+  - `frontend/src/App.tsx:64` ← `HybridIndexPage`
+  - `frontend/src/App.tsx:144` ← `indicators`
   - `frontend/src/components/insights/MapIndicatorLegend.test.tsx:28` ← `indicators`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts:112` ← `indicators`
   - `frontend/src/config/endpoints.ts:57` ← `indicators`
@@ -97,12 +97,12 @@ wired: `True`
   - `frontend/src/components/maphub/weather/README.md:20` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherActionLifecycle.static.test.ts:6` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts:7` ← `WeatherTileLayer`
-- platform-proxy: 306 match(es)
+- platform-proxy: 311 match(es)
   - `services/sahool-platform/api/agronomic_consistency.py:146` ← `weather`
+  - `services/sahool-platform/api/agronomic_context_composer.py:32` ← `weather`
   - `services/sahool-platform/api/agronomic_replay.py:8` ← `weather`
   - `services/sahool-platform/api/alert_rules.py:9` ← `weather`
   - `services/sahool-platform/api/analytics_shapers.py:79` ← `weather`
-  - `services/sahool-platform/api/api_models.py:284` ← `weather`
 
 ### `soil-service` — pass
 classification: `ui`
@@ -114,12 +114,12 @@ wired: `True`
   - `frontend/src/components/AddFieldWithMap.tsx:410` ← `Soil`
   - `frontend/src/components/FieldDetailPanel.tsx:17` ← `soil`
   - `frontend/src/components/decision/DecisionDeepPanel.tsx:21` ← `soil`
-- platform-proxy: 282 match(es)
+- platform-proxy: 285 match(es)
   - `services/sahool-platform/README.md:36` ← `soil`
   - `services/sahool-platform/api/agronomic_consistency.py:74` ← `soil`
+  - `services/sahool-platform/api/agronomic_context_composer.py:32` ← `soil`
   - `services/sahool-platform/api/alert_rules.py:112` ← `soil`
   - `services/sahool-platform/api/analytics_shapers.py:79` ← `soil`
-  - `services/sahool-platform/api/api_models.py:242` ← `soil`
 
 ### `field-segmentation` — pass
 classification: `ui`
@@ -154,7 +154,7 @@ classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
 - ui: 18 match(es)
-  - `frontend/src/App.tsx:64` ← `ChatbotPage`
+  - `frontend/src/App.tsx:63` ← `ChatbotPage`
   - `frontend/src/hooks/fieldViewUiWide.static.test.ts:18` ← `ChatbotPage`
   - `frontend/src/hooks/useApi.ts:1982` ← `ai-agronomist`
   - `frontend/src/lib/approvalsConsole.test.ts:26` ← `ChatbotPage`
@@ -207,7 +207,7 @@ classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
 - ui: 105 match(es)
-  - `frontend/src/App.tsx:148` ← `approval`
+  - `frontend/src/App.tsx:147` ← `approval`
   - `frontend/src/components/AddFieldWithMap.tsx:32` ← `validate`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx:53` ← `validate`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx:18` ← `validate`
@@ -234,7 +234,7 @@ reopen trigger: `SIM-GOLDEN-01 certification plus eligible real-season data`
 classification: `internal`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 95 match(es)
+- internal-consumer: 100 match(es)
   - `services/supervisor-agent/advisory_skill.py:9` ← `MCP`
   - `services/supervisor-agent/circuit_breaker.py:2` ← `MCP`
   - `services/supervisor-agent/crop_model_skill.py:10` ← `MCP`
@@ -246,7 +246,7 @@ classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
 - ui: 195 match(es)
-  - `frontend/src/App.tsx:146` ← `irrigation`
+  - `frontend/src/App.tsx:145` ← `irrigation`
   - `frontend/src/components/AddFieldWithMap.tsx:119` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx:29` ← `irrigation`
   - `frontend/src/components/FieldDetailPanel.tsx:153` ← `irrigation`
@@ -255,16 +255,16 @@ wired: `True`
   - `services/actuator-service/actuator_runtime.py:161` ← `ACTUATOR_DISPATCH_ADAPTER_ID`
   - `services/actuator-service/actuator_runtime.py:289` ← `/v1/execution-requests/recovery`
   - `services/actuator-service/test_dispatch_bridge.py:174` ← `/v1/execution-requests/recovery`
-  - `services/decision-service/main.py:1672` ← `/v1/execution-requests/recovery`
-  - `services/decision-service/main.py:62` ← `list_inflight_execution_requests`
+  - `services/decision-service/main.py:1760` ← `/v1/execution-requests/recovery`
+  - `services/decision-service/main.py:63` ← `list_inflight_execution_requests`
 
 ### `edge-inference` — pass
 classification: `ui`
 wiring disposition: `consumed`
 wired: `True`
-- ui: 128 match(es)
-  - `frontend/src/App.tsx:146` ← `pest`
-  - `frontend/src/App.tsx:149` ← `yield`
+- ui: 129 match(es)
+  - `frontend/src/App.tsx:145` ← `pest`
+  - `frontend/src/App.tsx:148` ← `yield`
   - `frontend/src/components/AddSeasonWithStages.tsx:31` ← `yield`
   - `frontend/src/components/FieldDetailPanel.tsx:168` ← `yield`
   - `frontend/src/components/decision/DecisionDeepPanel.tsx:21` ← `pest`
@@ -359,15 +359,15 @@ wired: `True`
   - `services/raster-service/cloud_native_catalog.py:97` ← `tilejson`
   - `services/raster-service/main.py:48` ← `TITILER_URL`
   - `services/raster-service/raster_cdse_tile_runtime.py:209` ← `tilejson`
-  - `services/raster-service/raster_field_runtime.py:61` ← `TITILER_URL`
+  - `services/raster-service/raster_field_runtime.py:62` ← `TITILER_URL`
   - `services/raster-service/raster_job_orchestration.py:198` ← `tilejson`
 
 ### `qdrant-seed` — pass
 classification: `job`
 wiring disposition: `standalone-job`
 wired: `None`
-- job-contract: 20 match(es)
-  - `docker-compose.v9.yml:1692` ← `qdrant-seed`
+- job-contract: 21 match(es)
+  - `docker-compose.v9.yml:1708` ← `qdrant-seed`
   - `docker-compose.v9.yml:393` ← `QDRANT`
   - `docker-compose.fixed.yml:257` ← `qdrant-seed`
   - `docker-compose.fixed.yml:19` ← `QDRANT`
@@ -377,7 +377,7 @@ wired: `None`
 classification: `internal-sensitive`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 26 match(es)
+- internal-consumer: 28 match(es)
   - `services/sahool-platform/api/crop_decision_bridge.py:38` ← `decision_service_client`
   - `services/sahool-platform/api/decision_service_client.py:16` ← `DECISION_SERVICE_URL`
   - `services/sahool-platform/api/decision_service_client.py:16` ← `sahool-decision-service`
@@ -388,12 +388,12 @@ wired: `True`
 classification: `internal`
 wiring disposition: `consumed`
 wired: `True`
-- internal-consumer: 6 match(es)
-  - `services/model-registry-adapter/runtime.py:67` ← `DECISION_SERVICE_URL`
+- internal-consumer: 7 match(es)
+  - `services/model-registry-adapter/runtime.py:72` ← `DECISION_SERVICE_URL`
+  - `services/model-registry-adapter/runtime.py:69` ← `model-registry`
   - `services/model-registry-adapter/worker.py:15` ← `DECISION_SERVICE_URL`
   - `services/model-registry-adapter/tests/test_runtime_contract.py:32` ← `DECISION_SERVICE_URL`
   - `docker-compose.v9.yml:542` ← `DECISION_SERVICE_URL`
-  - `docker-compose.v9.yml:1392` ← `sahool-model-registry-worker`
 
 ### `gis-workflow-service` — pass
 classification: `batch-job-tool`
