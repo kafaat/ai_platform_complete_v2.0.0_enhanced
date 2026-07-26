@@ -4,6 +4,14 @@
 This scanner is intentionally conservative. It never upgrades maturity, runtime verification,
 or production certification. It maps static repository evidence only and emits review queues for
 unmapped/ambiguous artifacts.
+
+NOT AUTHORITATIVE. This is the raw scanner-candidate view. Its ``mapped`` reflects specific
+implementation-dimension evidence only (backend/routes/db/events/web/mobile/tests) — an honest
+LOWER BOUND. The AUTHORITATIVE mapped/unmapped state is the management matrix
+(``capability_management_engine.py`` → ``.../management/coverage_dashboard.json``), which also
+credits registry-declared on-disk evidence this scanner cannot attribute. Every scanner-mapped
+capability is a subset of the management-mapped set; ``governance``/``other_evidence`` buckets are
+reported but never promote a capability here (see the honesty invariant at the mapped= computation).
 """
 
 from __future__ import annotations
@@ -160,19 +168,56 @@ def load_registry() -> list[dict]:
     return data["capabilities"]
 
 
+def _manifest_files() -> list[str]:
+    """Paths listed in the SIGNED release manifest (``release/FILE_CHECKSUMS.sha256``),
+    parsed from its ``<sha256>␠␠<relative-path>`` lines. This is the fail-closed
+    offline allowlist — only signed files, never arbitrary untracked ones."""
+    manifest = ROOT / "release" / "FILE_CHECKSUMS.sha256"
+    if not manifest.exists():
+        return []
+    paths = []
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split(None, 1)  # "<sha256>  <path>"
+        if len(parts) == 2 and parts[1]:
+            paths.append(parts[1])
+    return paths
+
+
 def _tracked_files() -> list[str]:
     """git-tracked files only. Scanning the raw filesystem lets local, uncommitted
     artifacts (.claude/settings.local.json, frontend/test-results/*, editor caches)
     leak into the map — they exist on a developer machine but not on a clean CI
-    checkout, making the output non-reproducible. Tracked files ARE the repository."""
-    out = subprocess.run(
-        ["git", "ls-files", "-z"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    return [x for x in out.split("\0") if x]
+    checkout, making the output non-reproducible. Tracked files ARE the repository.
+
+    Offline/ZIP fallback (fail-closed): a source ZIP extracted for audit has no ``.git``,
+    so ``git ls-files`` fails. Rather than scan the raw filesystem (which would pull in
+    arbitrary untracked files), fall back to the SIGNED release manifest and scan only the
+    paths it lists — the manifest is the signed allowlist. If neither git nor the manifest
+    is available, fail closed (raise) instead of scanning untracked files. In CI (always a
+    git worktree) the git path is used, so committed outputs stay reproducible."""
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        files = [x for x in out.split("\0") if x]
+        if files:
+            return files
+    except (OSError, subprocess.CalledProcessError):
+        pass  # no git worktree (e.g. an extracted release ZIP) — try the signed manifest
+    manifest_files = _manifest_files()
+    if manifest_files:
+        return manifest_files
+    raise RuntimeError(
+        "no git worktree and no signed release manifest (release/FILE_CHECKSUMS.sha256); "
+        "refusing to scan the raw filesystem (fail-closed)"
+    )
 
 
 def iter_files() -> Iterable[Path]:
@@ -423,11 +468,21 @@ def build() -> dict:
                 "other_evidence",
             )
         }
-        rec["mapped"] = sum(rec["evidence_counts"].values()) > 0
+        # HONESTY INVARIANT (raw scanner): ``mapped`` is decided by the SPECIFIC
+        # implementation dimensions ONLY. ``governance`` and ``other_evidence`` are
+        # catch-all buckets — bare capability-ID mentions in narrative/self-reference
+        # or generated/governance files — and MUST NEVER promote a capability on their
+        # own; otherwise a stray ID mention would falsely map a pure scaffold. This
+        # matches the authoritative management engine's specific-dimension rule and
+        # makes raw-scanner ``mapped`` an honest LOWER BOUND (⊆ management ``mapped``).
+        # The management engine additionally credits registry-declared on-disk evidence
+        # the scanner cannot attribute, so it — not this raw artifact — is the sole
+        # authoritative mapped/unmapped state (see ``authoritative`` below).
         rec["coverage_dimensions"] = sum(
             bool(rec[k])
             for k in ("backend", "routes", "database", "events", "web", "mobile", "tests")
         )
+        rec["mapped"] = rec["coverage_dimensions"] > 0
         if rec["mapped"]:
             mapped += 1
         if rec["coverage_dimensions"] >= 4 and rec["tests"]:
@@ -436,6 +491,16 @@ def build() -> dict:
         "schema_version": "1.0.0",
         "generated_from": "repository_static_scan",
         "repository_root": ".",
+        # This raw scanner artifact is NOT the authoritative mapped/unmapped state. Its
+        # ``mapped`` is a specific-dimension LOWER BOUND (⊆ the management matrix). The
+        # sole authority is the management engine, which additionally reconciles
+        # registry-declared on-disk evidence the scanner cannot attribute. A downstream
+        # consumer must read the management dashboard for the canonical state, never this.
+        "authoritative": False,
+        "authoritative_mapped_state_source": (
+            "docs/capability-registry/generated/management/coverage_dashboard.json"
+        ),
+        "mapped_semantics": "scanner_specific_dimension_evidence_only__lower_bound_of_management",
         "constraints": {
             "runtime_claims": False,
             "production_certification": False,
@@ -501,9 +566,15 @@ def write_outputs(data: dict) -> None:
     )
     s = data["summary"]
     lines = [
-        "# Capability Mapping Baseline",
+        "# Capability Mapping — Raw Scanner Candidates (NOT authoritative)",
         "",
-        "> Static repository evidence only. This report does not assert runtime verification or production certification.",
+        "> Raw static repository scan only. `mapped` here means the scanner found specific",
+        "> implementation-dimension evidence (backend/routes/db/events/web/mobile/tests) — an honest",
+        "> LOWER BOUND. The AUTHORITATIVE mapped/unmapped state is the management matrix",
+        "> (`docs/capability-registry/generated/management/coverage_dashboard.json`), which also",
+        "> credits registry-declared on-disk evidence this scanner cannot attribute. `governance` and",
+        "> `other_evidence` are reported but never promote a capability. This report does not assert",
+        "> runtime verification or production certification.",
         "",
         f"- Capabilities: **{s['capabilities_total']}**",
         f"- Mapped: **{s['capabilities_mapped']}**",

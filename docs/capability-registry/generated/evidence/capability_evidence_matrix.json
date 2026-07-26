@@ -1150,7 +1150,7 @@
       "evidence": {
         "api": true,
         "backend": true,
-        "database": false,
+        "database": true,
         "documentation": true,
         "events": true,
         "integration_tests": false,
@@ -1161,7 +1161,7 @@
         "unit_tests": true,
         "web": false
       },
-      "evidence_score": 5,
+      "evidence_score": 6,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",

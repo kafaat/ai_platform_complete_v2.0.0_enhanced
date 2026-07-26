@@ -1,12 +1,18 @@
-# Capability Mapping Baseline
+# Capability Mapping — Raw Scanner Candidates (NOT authoritative)
 
-> Static repository evidence only. This report does not assert runtime verification or production certification.
+> Raw static repository scan only. `mapped` here means the scanner found specific
+> implementation-dimension evidence (backend/routes/db/events/web/mobile/tests) — an honest
+> LOWER BOUND. The AUTHORITATIVE mapped/unmapped state is the management matrix
+> (`docs/capability-registry/generated/management/coverage_dashboard.json`), which also
+> credits registry-declared on-disk evidence this scanner cannot attribute. `governance` and
+> `other_evidence` are reported but never promote a capability. This report does not assert
+> runtime verification or production certification.
 
 - Capabilities: **81**
-- Mapped: **76**
-- Unmapped: **5**
+- Mapped: **74**
+- Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4706**
+- Files scanned: **4707**
 - Ambiguous artifacts queued: **387**
 - Unmapped artifacts queued: **1936**
 
@@ -39,7 +45,7 @@
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 5 | 15 | 2 | 58 | 0 | 0 | 7 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| INT-004 | precision | 2 | 5 | 0 | 5 | 0 | 0 | 1 | 4 |
+| INT-004 | precision | 2 | 5 | 8 | 5 | 0 | 0 | 1 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 0 | 4 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 1 | 3 |

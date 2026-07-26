@@ -210,8 +210,10 @@ def generate_payload(reg, mapping, evidence, parity, investment):
         # ``mapped`` is decided by SPECIFIC, high-signal dimensions only. ``governance`` and
         # ``other_evidence`` are catch-all buckets that the token scanner fills from bare
         # capability-ID mentions (self-reference / narrative), so they are reported but never
-        # promote a capability on their own — a genuine scaffold (INT-004: no service/route/
-        # db/event/web/mobile/test) stays unmapped rather than being lifted by a stray mention.
+        # promote a capability on their own — a genuine scaffold (no service/route/db/event/
+        # web/mobile/test evidence) stays unmapped rather than being lifted by a stray mention.
+        # The raw capability_mapping_engine enforces the identical specific-dimension rule, so
+        # its ``mapped`` is a subset lower bound of this authoritative matrix.
         specific = ("backend", "routes", "database", "events", "web", "mobile", "tests")
         coverage_dimension_count = sum(dimensions[k] for k in specific)
         mapped = coverage_dimension_count > 0

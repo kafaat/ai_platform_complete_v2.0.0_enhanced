@@ -2,6 +2,9 @@
   "schema_version": "1.0.0",
   "generated_from": "repository_static_scan",
   "repository_root": ".",
+  "authoritative": false,
+  "authoritative_mapped_state_source": "docs/capability-registry/generated/management/coverage_dashboard.json",
+  "mapped_semantics": "scanner_specific_dimension_evidence_only__lower_bound_of_management",
   "constraints": {
     "runtime_claims": false,
     "production_certification": false,
@@ -9,13 +12,13 @@
   },
   "summary": {
     "capabilities_total": 81,
-    "capabilities_mapped": 76,
-    "capabilities_unmapped": 5,
+    "capabilities_mapped": 74,
+    "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4706,
+    "files_scanned": 4707,
     "files_by_kind": {
       "backend": 1183,
-      "database": 265,
+      "database": 266,
       "governance": 55,
       "mobile": 51,
       "other": 1202,
@@ -84,8 +87,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "DEC-002",
@@ -187,8 +190,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 3
+      "coverage_dimensions": 3,
+      "mapped": true
     },
     {
       "capability_id": "DEC-003",
@@ -244,8 +247,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "DEC-004",
@@ -883,8 +886,8 @@
         "governance": 0,
         "other_evidence": 11
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "DEC-005",
@@ -1394,8 +1397,8 @@
         "governance": 0,
         "other_evidence": 3
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "DEC-006",
@@ -1505,8 +1508,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 3
+      "coverage_dimensions": 3,
+      "mapped": true
     },
     {
       "capability_id": "DEC-007",
@@ -1704,8 +1707,8 @@
         "governance": 0,
         "other_evidence": 6
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "DEC-008",
@@ -2303,8 +2306,8 @@
         "governance": 1,
         "other_evidence": 5
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "DEC-009",
@@ -2371,8 +2374,8 @@
         "governance": 0,
         "other_evidence": 3
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "DEC-010",
@@ -3118,8 +3121,8 @@
         "governance": 1,
         "other_evidence": 7
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "FM-001",
@@ -3660,8 +3663,8 @@
         "governance": 0,
         "other_evidence": 8
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "FM-002",
@@ -5103,8 +5106,8 @@
         "governance": 0,
         "other_evidence": 12
       },
-      "mapped": true,
-      "coverage_dimensions": 7
+      "coverage_dimensions": 7,
+      "mapped": true
     },
     {
       "capability_id": "FM-003",
@@ -5935,8 +5938,8 @@
         "governance": 1,
         "other_evidence": 11
       },
-      "mapped": true,
-      "coverage_dimensions": 7
+      "coverage_dimensions": 7,
+      "mapped": true
     },
     {
       "capability_id": "FM-004",
@@ -7680,8 +7683,8 @@
         "governance": 0,
         "other_evidence": 15
       },
-      "mapped": true,
-      "coverage_dimensions": 7
+      "coverage_dimensions": 7,
+      "mapped": true
     },
     {
       "capability_id": "FM-005",
@@ -7873,8 +7876,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "FM-006",
@@ -7982,8 +7985,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "FM-007",
@@ -8371,8 +8374,8 @@
         "governance": 3,
         "other_evidence": 12
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "FM-008",
@@ -8751,8 +8754,8 @@
         "governance": 0,
         "other_evidence": 10
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "GIS-001",
@@ -8809,8 +8812,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "GIS-002",
@@ -8913,8 +8916,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "GIS-003",
@@ -10511,8 +10514,8 @@
         "governance": 0,
         "other_evidence": 31
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "GIS-004",
@@ -10578,8 +10581,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 3
+      "coverage_dimensions": 3,
+      "mapped": true
     },
     {
       "capability_id": "INT-001",
@@ -10649,8 +10652,8 @@
         "governance": 0,
         "other_evidence": 5
       },
-      "mapped": true,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 0,
+      "mapped": false
     },
     {
       "capability_id": "INT-002",
@@ -11208,8 +11211,8 @@
         "governance": 0,
         "other_evidence": 15
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "INT-003",
@@ -11248,8 +11251,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "INT-004",
@@ -11293,7 +11296,43 @@
           "score": 20
         }
       ],
-      "database": [],
+      "database": [
+        {
+          "value": "equipment @ migrations/v216_machinery_export.sql:29",
+          "score": 20
+        },
+        {
+          "value": "machine_control_profiles @ migrations/v216_machinery_export.sql:34",
+          "score": 20
+        },
+        {
+          "value": "machine_control_profiles @ migrations/v216_machinery_export.sql:88",
+          "score": 20
+        },
+        {
+          "value": "machine_control_profiles @ migrations/v216_machinery_export.sql:89",
+          "score": 20
+        },
+        {
+          "value": "machinery_export_artifacts @ migrations/v216_machinery_export.sql:56",
+          "score": 20
+        },
+        {
+          "value": "machinery_export_artifacts @ migrations/v216_machinery_export.sql:90",
+          "score": 20
+        },
+        {
+          "value": "machinery_export_artifacts @ migrations/v216_machinery_export.sql:91",
+          "score": 20
+        },
+        {
+          "path": "migrations/v216_machinery_export.sql",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ],
       "events": [
         {
           "value": "TASKDATA.XML @ services/sahool-platform/tests/test_machinery_export.py:129",
@@ -11329,15 +11368,7 @@
         }
       ],
       "governance": [],
-      "other_evidence": [
-        {
-          "path": "scripts/ci/capability_management_engine.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        }
-      ],
+      "other_evidence": [],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -11345,16 +11376,16 @@
       "evidence_counts": {
         "backend": 2,
         "routes": 5,
-        "database": 0,
+        "database": 8,
         "events": 5,
         "web": 0,
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "IRR-001",
@@ -11438,8 +11469,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "IRR-002",
@@ -11553,8 +11584,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "IRR-003",
@@ -11628,8 +11659,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 3
+      "coverage_dimensions": 3,
+      "mapped": true
     },
     {
       "capability_id": "IRR-004",
@@ -11847,8 +11878,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "IRR-005",
@@ -12026,8 +12057,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "IRR-006",
@@ -12075,8 +12106,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "IRR-007",
@@ -12106,8 +12137,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": false,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 0,
+      "mapped": false
     },
     {
       "capability_id": "IRR-008",
@@ -12219,8 +12250,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "IRR-009",
@@ -12436,8 +12467,8 @@
         "governance": 0,
         "other_evidence": 4
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "IRR-010",
@@ -12467,8 +12498,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": false,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 0,
+      "mapped": false
     },
     {
       "capability_id": "OPS-001",
@@ -12498,8 +12529,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": false,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 0,
+      "mapped": false
     },
     {
       "capability_id": "OPS-002",
@@ -12679,8 +12710,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "OPS-003",
@@ -13470,8 +13501,8 @@
         "governance": 0,
         "other_evidence": 11
       },
-      "mapped": true,
-      "coverage_dimensions": 7
+      "coverage_dimensions": 7,
+      "mapped": true
     },
     {
       "capability_id": "OPS-004",
@@ -14043,8 +14074,8 @@
         "governance": 1,
         "other_evidence": 4
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "OPS-005",
@@ -14207,8 +14238,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "OPS-006",
@@ -14238,8 +14269,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": false,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 0,
+      "mapped": false
     },
     {
       "capability_id": "OPS-007",
@@ -14326,8 +14357,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "OPS-008",
@@ -14357,8 +14388,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": false,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 0,
+      "mapped": false
     },
     {
       "capability_id": "PA-001",
@@ -14766,8 +14797,8 @@
         "governance": 0,
         "other_evidence": 7
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "PA-002",
@@ -14816,8 +14847,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "PA-003",
@@ -15017,8 +15048,8 @@
         "governance": 0,
         "other_evidence": 3
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "PA-004",
@@ -15173,8 +15204,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "PA-005",
@@ -15213,8 +15244,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "SAT-001",
@@ -16596,8 +16627,8 @@
         "governance": 0,
         "other_evidence": 32
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "SAT-002",
@@ -16689,8 +16720,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "SAT-003",
@@ -20366,8 +20397,8 @@
         "governance": 0,
         "other_evidence": 83
       },
-      "mapped": true,
-      "coverage_dimensions": 7
+      "coverage_dimensions": 7,
+      "mapped": true
     },
     {
       "capability_id": "SAT-004",
@@ -20876,8 +20907,8 @@
         "governance": 0,
         "other_evidence": 3
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "SAT-005",
@@ -21223,8 +21254,8 @@
         "governance": 0,
         "other_evidence": 8
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "SAT-006",
@@ -21284,8 +21315,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 3
+      "coverage_dimensions": 3,
+      "mapped": true
     },
     {
       "capability_id": "SAT-007",
@@ -21376,8 +21407,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 3
+      "coverage_dimensions": 3,
+      "mapped": true
     },
     {
       "capability_id": "SAT-008",
@@ -21537,8 +21568,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "SAT-009",
@@ -22343,8 +22374,8 @@
         "governance": 0,
         "other_evidence": 22
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "SEC-001",
@@ -24370,8 +24401,8 @@
         "governance": 0,
         "other_evidence": 67
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "SEC-002",
@@ -24427,8 +24458,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "SEC-003",
@@ -24497,8 +24528,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "SEC-004",
@@ -25238,8 +25269,8 @@
         "governance": 0,
         "other_evidence": 15
       },
-      "mapped": true,
-      "coverage_dimensions": 7
+      "coverage_dimensions": 7,
+      "mapped": true
     },
     {
       "capability_id": "SEC-005",
@@ -25299,8 +25330,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "SEC-006",
@@ -25465,8 +25496,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "SEC-007",
@@ -25874,8 +25905,8 @@
         "governance": 0,
         "other_evidence": 7
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "SEC-008",
@@ -25957,8 +25988,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "SOIL-001",
@@ -26814,8 +26845,8 @@
         "governance": 1,
         "other_evidence": 12
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "SOIL-002",
@@ -27500,8 +27531,8 @@
         "governance": 0,
         "other_evidence": 19
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "SOIL-003",
@@ -27609,8 +27640,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 2,
+      "mapped": true
     },
     {
       "capability_id": "SOIL-004",
@@ -27649,8 +27680,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "SOIL-005",
@@ -27747,8 +27778,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 3
+      "coverage_dimensions": 3,
+      "mapped": true
     },
     {
       "capability_id": "WX-001",
@@ -27795,8 +27826,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 0,
+      "mapped": false
     },
     {
       "capability_id": "WX-002",
@@ -28928,8 +28959,8 @@
         "governance": 0,
         "other_evidence": 17
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "WX-003",
@@ -29092,8 +29123,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "WX-004",
@@ -30908,8 +30939,8 @@
         "governance": 0,
         "other_evidence": 20
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "WX-005",
@@ -31262,8 +31293,8 @@
         "governance": 0,
         "other_evidence": 4
       },
-      "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 5,
+      "mapped": true
     },
     {
       "capability_id": "WX-006",
@@ -32832,8 +32863,8 @@
         "governance": 0,
         "other_evidence": 18
       },
-      "mapped": true,
-      "coverage_dimensions": 6
+      "coverage_dimensions": 6,
+      "mapped": true
     },
     {
       "capability_id": "WX-007",
@@ -32872,8 +32903,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 1,
+      "mapped": true
     },
     {
       "capability_id": "WX-008",
@@ -32986,8 +33017,8 @@
         "governance": 0,
         "other_evidence": 2
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "WX-009",
@@ -33195,8 +33226,8 @@
         "governance": 0,
         "other_evidence": 1
       },
-      "mapped": true,
-      "coverage_dimensions": 4
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "WX-010",
@@ -33253,8 +33284,8 @@
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 3
+      "coverage_dimensions": 3,
+      "mapped": true
     }
   ],
   "unmapped_artifacts": [

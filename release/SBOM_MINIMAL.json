@@ -7885,6 +7885,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cb03914407360e3686dcd7bc8033d5b7e01023baed9996e9e69c3471ce4508c3"
+        }
+      ],
+      "name": "migrations/v216_machinery_export.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7e6c8b11fe3dea705813fdec818b5d5c4b94a895e10fbeb7a083892dd3e883e3"
         }
       ],

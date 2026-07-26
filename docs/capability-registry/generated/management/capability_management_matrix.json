@@ -789,15 +789,15 @@
       "coverage_dimensions": {
         "backend": true,
         "routes": true,
-        "database": false,
+        "database": true,
         "events": true,
         "web": false,
         "mobile": false,
         "tests": true,
         "governance": false,
-        "other_evidence": true
+        "other_evidence": false
       },
-      "coverage_dimension_count": 4,
+      "coverage_dimension_count": 5,
       "dependency_count": 1,
       "dependent_count": 0,
       "runtime_verified": false,
