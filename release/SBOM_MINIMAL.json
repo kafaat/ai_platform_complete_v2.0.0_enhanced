@@ -7855,6 +7855,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "01e86d27dce3c85b27a607208d1de83974b13abdd92ad8b01f22230556f8e890"
+        }
+      ],
+      "name": "migrations/v214_field_irrigation_source_assignments.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7e6c8b11fe3dea705813fdec818b5d5c4b94a895e10fbeb7a083892dd3e883e3"
         }
       ],
@@ -16079,6 +16089,16 @@
         }
       ],
       "name": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ff330e0df70fa58b73f636e5f0f2269a7ce71c87cadfb5865ee7de2c106ad615"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_source_binding.py",
       "type": "file"
     },
     {
