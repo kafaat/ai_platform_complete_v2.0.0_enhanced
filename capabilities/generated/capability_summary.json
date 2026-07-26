@@ -26,7 +26,6 @@
   "production_certified": [],
   "orphan_capabilities": [
     "INT-004",
-    "PA-003",
     "PA-004"
   ]
 }

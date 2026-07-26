@@ -11273,22 +11273,46 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:133",
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:185",
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:250",
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:302",
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:294",
+          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id} @ services/sahool-platform/api/routers/prescriptions.py:593",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:346",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/machinery-export @ services/sahool-platform/api/routers/prescriptions.py:476",
           "score": 20
         }
       ],
       "database": [],
       "events": [
         {
-          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:384",
+          "value": "TASKDATA.XML @ services/sahool-platform/tests/test_machinery_export.py:129",
+          "score": 25
+        },
+        {
+          "value": "TASKDATA.XML @ services/sahool-platform/tests/test_machinery_export.py:130",
+          "score": 25
+        },
+        {
+          "value": "TASKDATA.XML @ services/sahool-platform/api/machinery_export.py:44",
+          "score": 20
+        },
+        {
+          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:453",
+          "score": 20
+        },
+        {
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:630",
           "score": 20
         }
       ],
@@ -11297,7 +11321,7 @@
       "tests": [
         {
           "path": "services/sahool-platform/tests/test_machinery_export.py",
-          "score": 24,
+          "score": 25,
           "signals": [
             "content:john deere",
             "explicit_id"
@@ -11320,9 +11344,9 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 2,
-        "routes": 3,
+        "routes": 5,
         "database": 0,
-        "events": 1,
+        "events": 5,
         "web": 0,
         "mobile": 0,
         "tests": 1,

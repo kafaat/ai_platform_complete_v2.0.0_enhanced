@@ -6298,7 +6298,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/prescriptions.py",
-    "line": 134,
+    "line": 186,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/prescriptions",
     "function": "create_prescription"
@@ -6306,7 +6306,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/prescriptions.py",
-    "line": 251,
+    "line": 303,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/prescriptions",
     "function": "list_prescriptions"
@@ -6314,10 +6314,26 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/prescriptions.py",
-    "line": 295,
+    "line": 347,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
     "function": "export_prescription"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/prescriptions.py",
+    "line": 477,
+    "method": "POST",
+    "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/machinery-export",
+    "function": "create_machinery_export"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/prescriptions.py",
+    "line": 597,
+    "method": "GET",
+    "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/machinery-export/{artifact_id}/download",
+    "function": "download_machinery_export"
   },
   {
     "service": "sahool-platform",

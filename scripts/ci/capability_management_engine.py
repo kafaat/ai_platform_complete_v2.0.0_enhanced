@@ -47,7 +47,8 @@ def load_yaml(path: Path) -> Any:
 # *declares* an on-disk file is genuinely covered even when the content-scanning
 # mapper heuristic did not attribute the file to it; crediting the declared
 # path is truthful (its existence is separately enforced by the traceability
-# gate). Pure scaffolds that declare nothing (e.g. INT-004) stay unmapped.
+# gate). Pure scaffolds that declare no specific-dimension evidence (only a
+# catch-all other_evidence bucket, e.g. the synthetic ZZ-999 test) stay unmapped.
 _REGISTRY_DIMENSION = {
     "services": "backend",
     "apis": "routes",

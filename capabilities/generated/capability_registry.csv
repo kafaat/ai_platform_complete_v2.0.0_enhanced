@@ -1,13 +1,13 @@
 id,title,domain,owner,lifecycle,maturity,evidence_level,status,confidence,production_certified,dependencies
-FM-001,Tenant and organization management,farm_management,auth+field-management-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
+FM-001,Tenant and organization management,farm_management,auth+field-management-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,
 FM-002,Farm registry,farm_management,field-management-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
 FM-003,Field registry and boundaries,farm_management,field-management-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,FM-002
-FM-004,Season lifecycle,farm_management,field-management-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,"FM-003,FM-005"
+FM-004,Season lifecycle,farm_management,field-management-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,"FM-003,FM-005"
 FM-005,Crop and cultivar catalog,farm_management,UNASSIGNED,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
 FM-006,Farm economics,farm_management,UNASSIGNED,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,"FM-002,FM-004"
 FM-007,Inventory and procurement,farm_management,UNASSIGNED,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
 FM-008,ERP integration,farm_management,erp-bridge,active,3,3,behavioral_test_linked_runtime_unverified,high,False,FM-006
-GIS-001,Field geometry validation,gis,field-management-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,FM-003
+GIS-001,Field geometry validation,gis,field-management-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,FM-003
 GIS-002,Map layers,gis,raster-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,FM-003
 GIS-003,Terrain and DEM,gis,raster-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,GIS-002
 GIS-004,Spatial analytics,gis,raster-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,"GIS-001,GIS-002"
@@ -39,15 +39,15 @@ IRR-001,Water source registry,irrigation,sahool-platform,active,3,3,behavioral_t
 IRR-002,Water quality samples,irrigation,sahool-platform,active,3,3,runtime_or_workflow_unverified,medium,False,IRR-001
 IRR-003,Field water-source binding,irrigation,sahool-platform,planned,0,0,missing_confirmed,medium,False,"FM-003,IRR-001"
 IRR-004,Water balance,irrigation,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,"IRR-003,SOIL-005,WX-004"
-IRR-005,Irrigation recommendation,irrigation,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,IRR-004
+IRR-005,Irrigation recommendation,irrigation,sahool-platform,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,IRR-004
 IRR-006,Irrigation scheduling,irrigation,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,IRR-005
-IRR-007,Pump and valve control,irrigation,actuator-service+sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,"IRR-006,DEC-005"
+IRR-007,Pump and valve control,irrigation,actuator-service+sahool-platform,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,"IRR-006,DEC-005"
 IRR-008,Execution verification,irrigation,decision-service+sahool-platform,active,3,3,runtime_or_workflow_unverified,low,False,"IRR-007,DEC-006"
 IRR-009,Water suitability multi-hazard,irrigation,sahool-platform,active,2,2,analytical_partial,high,False,"IRR-002,SOIL-004"
 IRR-010,Leaching and drainage safety,irrigation,sahool-platform,active,2,2,analytical_partial,medium,False,"IRR-009,SOIL-005"
 PA-001,Management zones,precision,vegetation-analysis-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,"SAT-003,SAT-004,GIS-004"
 PA-002,Variable rate prescription,precision,vegetation-analysis-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,PA-001
-PA-003,Yield map ingestion,precision,UNASSIGNED,planned,0,0,missing_confirmed,low,False,FM-003
+PA-003,Yield map ingestion,precision,UNASSIGNED,planned,0,0,missing_confirmed,medium,False,FM-003
 PA-004,As-applied data,precision,UNASSIGNED,active,2,2,irrigation_specific_partial,low,False,PA-002
 PA-005,Machine telemetry,precision,UNASSIGNED,active,1,1,documentation_or_scaffold,medium,False,OPS-006
 OPS-001,Task management,operations,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
@@ -57,25 +57,25 @@ OPS-004,Field forms,operations,field-management-service,active,3,3,behavioral_te
 OPS-005,Offline mobile,operations,UNASSIGNED,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,"OPS-003,OPS-004"
 OPS-006,Equipment registry,operations,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
 OPS-007,Maintenance,operations,sahool-platform,active,3,3,runtime_or_workflow_unverified,medium,False,OPS-006
-OPS-008,Workforce and worker identity,operations,auth,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
-DEC-001,Decision evidence,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
+OPS-008,Workforce and worker identity,operations,auth,active,3,3,repository_runtime_instrumentation_linked_production_unverified,medium,False,
+DEC-001,Decision evidence,decision,decision-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,
 DEC-002,Decision candidate,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-001
-DEC-003,Human approval,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-002
-DEC-004,Execution request,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-003
-DEC-005,Dispatch authorization,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-004
-DEC-006,Execution receipt,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-005
-DEC-007,Outcome recording,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-006
-DEC-008,Learning attribution,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-007
+DEC-003,Human approval,decision,decision-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,DEC-002
+DEC-004,Execution request,decision,decision-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,DEC-003
+DEC-005,Dispatch authorization,decision,decision-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,DEC-004
+DEC-006,Execution receipt,decision,decision-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,DEC-005
+DEC-007,Outcome recording,decision,decision-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,DEC-006
+DEC-008,Learning attribution,decision,decision-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,DEC-007
 DEC-009,Model calibration,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-008
-DEC-010,Model lifecycle and activation,decision,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,DEC-009
+DEC-010,Model lifecycle and activation,decision,decision-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,DEC-009
 SEC-001,Tenant RLS,security,field-management-service,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
 SEC-002,Signed tenant assertion,security,field-management-service,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,SEC-001
-SEC-003,Worker identity binding,security,auth,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,SEC-006
-SEC-004,MFA,security,auth,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
-SEC-005,Audit logging,security,auth,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
-SEC-006,Service token guard,security,auth,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
+SEC-003,Worker identity binding,security,auth,active,3,3,repository_runtime_instrumentation_linked_production_unverified,medium,False,SEC-006
+SEC-004,MFA,security,auth,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,
+SEC-005,Audit logging,security,auth,active,3,3,repository_runtime_instrumentation_linked_production_unverified,high,False,
+SEC-006,Service token guard,security,auth,active,3,3,repository_runtime_instrumentation_linked_production_unverified,medium,False,
 SEC-007,Decision SoR DB ownership,security,decision-service,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,SEC-001
-SEC-008,Secrets and production fail-closed,security,auth,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
+SEC-008,Secrets and production fail-closed,security,auth,active,3,3,repository_runtime_instrumentation_linked_production_unverified,medium,False,
 INT-001,Public API and SDK,farm_management,sahool-platform,active,3,3,runtime_or_workflow_unverified,medium,False,
 INT-002,Event bus integration,farm_management,sahool-platform,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
 INT-003,IoT and sensors,irrigation,actuator-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,

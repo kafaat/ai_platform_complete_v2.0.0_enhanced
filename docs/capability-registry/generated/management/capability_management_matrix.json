@@ -782,7 +782,7 @@
       "domain": "precision",
       "owner": "sahool-platform",
       "lifecycle": "active",
-      "status": "behavioral_test_linked_runtime_unverified",
+      "status": "machine_upload_artifact_persisted_delivery_unverified",
       "maturity": 3,
       "evidence_level": 3,
       "mapped": true,

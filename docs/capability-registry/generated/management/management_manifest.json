@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "inputs": {
-    "docs/capability-registry/generated/capability_registry.json": "5445c6fa9407c90384dc7cfe5bdd352196fe5c42ac0761c1341ed4a75b3645cb",
-    "docs/capability-registry/generated/mapping/capability_mapping.json": "491749329f1002acc4c70aa12e669c8444bd8902bac5ad73984e3192ba0327a9",
+    "docs/capability-registry/generated/capability_registry.json": "2040b768763031f9a5d7c8fb2bcd159fbc64a4dd5ae10878a05a4de42db7c075",
+    "docs/capability-registry/generated/mapping/capability_mapping.json": "dee1220adad807432b4db57e497cf04969457ed5577d1c3dc22b66490f8dfac8",
     "docs/capability-registry/generated/evidence/capability_evidence_matrix.json": "779e4642aff62467a7a83d16ce4f2e2e3c470127e5b21c38c2e54b1016b2429e",
     "docs/capability-registry/generated/benchmark/capability_parity_matrix.json": "021f3a071be8b2f25c29ee39e126e928049f5538998a209e81f73efe04703904",
     "docs/capability-registry/generated/benchmark/capability_investment_matrix.json": "bb15a8ccad4ad6ca6ccf794179c2a539599d7649e8d5b5c5b2efab3505e3e034",
@@ -15,8 +15,8 @@
     "CAPABILITY_HEAT_MAP.md": "346104225246be6701709158a45e94bda91cef63701d623ee474c9e4750dc029",
     "capability_knowledge_graph.dot": "0448a33db2c78973f7cb97b44e2a77fe68afe90abf724bc36622b098a1e4b04a",
     "capability_knowledge_graph.json": "ecd4a24e9be8cc778dc8871c4165c43ef7c827f36e706b9f961dabff0230d0c4",
-    "capability_management_matrix.csv": "46bb7c2f579053a3e6f3da2b258aa2340f1bf0a94e33d2f194ff50d3dfb18f2e",
-    "capability_management_matrix.json": "9a25a0b9d634b7114ae4d4329f2d0ffd0fee398fd7cdaf5ef0f5638ea8f49d29",
+    "capability_management_matrix.csv": "add351e43447c6f6e24a6db51591ae400cb1330133ade9be34a7cb739a429651",
+    "capability_management_matrix.json": "830f77878f2ff2e3f9542c432a6706336c2827de06858de42abd3fccf4a4d841",
     "coverage_dashboard.json": "250d9036f83e9ff4a1d945462bdd14af36dc5a5f906bb51d7ef6090f854fac37"
   }
 }

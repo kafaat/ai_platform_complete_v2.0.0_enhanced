@@ -786,9 +786,11 @@ sahool-platform,services/sahool-platform/api/routers/postharvest.py,34,GET,/api/
 sahool-platform,services/sahool-platform/api/routers/postharvest.py,40,GET,/api/v1/postharvest/best-practices,postharvest_practices_endpoint
 sahool-platform,services/sahool-platform/api/routers/practices.py,25,GET,/api/v1/practices/list,practices_list_endpoint
 sahool-platform,services/sahool-platform/api/routers/practices.py,31,GET,/api/v1/practices/guide,practices_guide_endpoint
-sahool-platform,services/sahool-platform/api/routers/prescriptions.py,134,POST,/api/v1/fields/{field_id}/prescriptions,create_prescription
-sahool-platform,services/sahool-platform/api/routers/prescriptions.py,251,GET,/api/v1/fields/{field_id}/prescriptions,list_prescriptions
-sahool-platform,services/sahool-platform/api/routers/prescriptions.py,295,GET,/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export,export_prescription
+sahool-platform,services/sahool-platform/api/routers/prescriptions.py,186,POST,/api/v1/fields/{field_id}/prescriptions,create_prescription
+sahool-platform,services/sahool-platform/api/routers/prescriptions.py,303,GET,/api/v1/fields/{field_id}/prescriptions,list_prescriptions
+sahool-platform,services/sahool-platform/api/routers/prescriptions.py,347,GET,/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export,export_prescription
+sahool-platform,services/sahool-platform/api/routers/prescriptions.py,477,POST,/api/v1/fields/{field_id}/prescriptions/{prescription_id}/machinery-export,create_machinery_export
+sahool-platform,services/sahool-platform/api/routers/prescriptions.py,597,GET,/api/v1/fields/{field_id}/prescriptions/{prescription_id}/machinery-export/{artifact_id}/download,download_machinery_export
 sahool-platform,services/sahool-platform/api/routers/productivity.py,65,POST,/api/v1/fields/{field_id}/productivity-zones,productivity_zones_endpoint
 sahool-platform,services/sahool-platform/api/routers/productivity.py,84,POST,/api/v1/fields/{field_id}/zone-sampling-plan,zone_sampling_plan_endpoint
 sahool-platform,services/sahool-platform/api/routers/productivity.py,107,POST,/api/v1/fields/{field_id}/daily-ai-brief,daily_ai_brief_endpoint

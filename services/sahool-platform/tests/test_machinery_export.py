@@ -5,6 +5,9 @@ incompatible/incomplete input fails closed (no partial TaskData)."""
 
 from __future__ import annotations
 
+import hashlib
+import io
+import zipfile
 from xml.etree.ElementTree import fromstring
 
 import pytest
@@ -14,6 +17,9 @@ pytestmark = pytest.mark.unit
 from api.machinery_export import (  # noqa: E402 — after pathed import in conftest
     MachineryExportError,
     build_prescription_isoxml,
+    generate_export_package,
+    package_taskdata,
+    resolve_persisted_profile,
 )
 
 _POLY = {"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}
@@ -92,3 +98,81 @@ def test_unsupported_product_type_fails_closed():
 def test_missing_approved_recommendation_id_fails_closed():
     with pytest.raises(MachineryExportError, match="approved recommendation"):
         build_prescription_isoxml(_rx(), _machine(), approved_recommendation_id="")
+
+
+# ── persisted-profile adapter (v216 machine_control_profiles row shape) ──────
+
+
+def _profile_row(active=True, supports_isoxml=True):
+    # mirrors a machine_control_profiles row; note controller_model (not controller).
+    return {
+        "profile_id": "P1",
+        "tenant_id": "11111111-1111-1111-1111-111111111111",
+        "equipment_id": "EQ1",
+        "vendor": "John Deere",
+        "controller_model": "Gen4",
+        "task_controller_version": "4",
+        "firmware_version": "1.2",
+        "unit_system": "metric",
+        "supported_units": ["kg/ha", "seeds/ha", "l/ha", "mm"],
+        "supports_isoxml": supports_isoxml,
+        "active": active,
+    }
+
+
+def test_generate_package_produces_deterministic_checksummed_artifact():
+    pkg = generate_export_package(_rx(), _profile_row(), approved_recommendation_id="rx-1")
+    # a real machine-uploadable ZIP carrying TASKDATA.XML
+    root = fromstring(pkg.taskdata_xml)  # noqa: S314 — first-party serializer
+    assert root.tag == "ISO11783_TaskData"
+    with zipfile.ZipFile(io.BytesIO(pkg.package_bytes)) as zf:
+        assert zf.namelist() == ["TASKDATA.XML"]
+        assert zf.read("TASKDATA.XML") == pkg.taskdata_xml
+    # checksum matches the packaged bytes and is a 64-char lowercase hex digest
+    assert pkg.package_sha256 == hashlib.sha256(pkg.package_bytes).hexdigest()
+    assert len(pkg.package_sha256) == 64 and pkg.package_sha256.islower()
+    assert pkg.zone_count == 2
+    # immutable snapshot freezes the resolved profile identity
+    assert pkg.profile_snapshot["profile_id"] == "P1"
+    assert pkg.profile_snapshot["controller_model"] == "Gen4"
+    assert pkg.profile_snapshot["supported_units"] == sorted(
+        pkg.profile_snapshot["supported_units"]
+    )
+
+
+def test_packaging_is_byte_reproducible():
+    # same inputs -> byte-identical package -> identical checksum (provenance).
+    a = generate_export_package(_rx(), _profile_row(), approved_recommendation_id="rx-1")
+    b = generate_export_package(_rx(), _profile_row(), approved_recommendation_id="rx-1")
+    assert a.package_bytes == b.package_bytes
+    assert a.package_sha256 == b.package_sha256
+
+
+def test_package_taskdata_is_deterministic_zip():
+    xml = b"<ISO11783_TaskData/>"
+    assert package_taskdata(xml) == package_taskdata(xml)
+
+
+def test_inactive_profile_fails_closed():
+    with pytest.raises(MachineryExportError, match="inactive"):
+        generate_export_package(
+            _rx(), _profile_row(active=False), approved_recommendation_id="rx-1"
+        )
+
+
+def test_profile_without_isoxml_support_fails_closed():
+    with pytest.raises(MachineryExportError, match="ISOXML"):
+        resolve_persisted_profile(_profile_row(supports_isoxml=False))
+
+
+def test_missing_profile_row_fails_closed():
+    # an RLS-scoped lookup miss (wrong tenant / no such id) surfaces as None.
+    with pytest.raises(MachineryExportError, match="not found or not authorized"):
+        generate_export_package(_rx(), None, approved_recommendation_id="rx-1")
+
+
+def test_persisted_incompatible_controller_units_fail_closed():
+    row = _profile_row()
+    row["supported_units"] = ["l/ha"]  # cannot carry the kg/ha prescription
+    with pytest.raises(MachineryExportError, match="unit"):
+        generate_export_package(_rx(), row, approved_recommendation_id="rx-1")

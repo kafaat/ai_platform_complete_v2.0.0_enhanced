@@ -6575,7 +6575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "405a9fc0a133a70e03929043c799400e63e90cb5f33603d7c155c6d4b2943cbe"
+          "content": "21dd0bcfe566626404a2cfc9a28e65e9eda071062a2da849212b236f2bd476fc"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -16195,7 +16195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8738ed3a930d86c1b28018a8171b976a6db4cecc2c05fbbf6e770a85d5d173f7"
+          "content": "ff2f264567185eb570ee518f2e45e25c1a054dfaae0d1b24b03a461ccc3010a9"
         }
       ],
       "name": "services/sahool-platform/api/machinery_export.py",
@@ -17785,7 +17785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7369fcf987d9926285cae6063e021c080fb2f29406a88f95fc223c0bb2338f32"
+          "content": "9a334b256abe44415fee0b450255b0d84b57e55431ddedd26995f2d9622ff81c"
         }
       ],
       "name": "services/sahool-platform/api/routers/prescriptions.py",
@@ -24795,7 +24795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a7d3f6979bb87bbd0e7c1e8e5927903d3b0bad76b8bd9a623bb057193701c6f"
+          "content": "e9413d8462b5c52df799181541dd9a642814be6cf8d2f5fe20f31b0293bc759b"
         }
       ],
       "name": "services/sahool-platform/tests/test_machinery_export.py",

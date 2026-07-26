@@ -331,15 +331,32 @@ capabilities:
   lifecycle: active
   maturity: 3
   evidence_level: 3
-  status: behavioral_test_linked_runtime_unverified
+  status: machine_upload_artifact_persisted_delivery_unverified
   confidence: high
   production_certified: false
+  # Honest closure semantics (per session decision): this closes only the ISOXML
+  # artifact adapter sub-item (INT-004A). Transport/consumption stays OPEN.
+  scope:
+    closed_sub_item: INT-004A
+    adapter_implemented: true
+    artifact_generation_verified: true
+    machine_upload_package_verified: true
+    device_delivery_verified: false
+    machine_consumption_verified: false
+    physical_execution_verified: false
+    runtime_verified: false
+    production_certified: false
+    open_sub_items:
+    - INT-004B device transport (CAN/ISOBUS upload to a controller) — not implemented
+    - INT-004C machine-consumption / execution confirmation — not implemented
   dependencies:
   - PA-005
   services:
   - services/sahool-platform/api/machinery_export.py
   apis:
-  - GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:294
+  - POST /api/v1/fields/{field_id}/prescriptions/{prescription_id}/machinery-export @ services/sahool-platform/api/routers/prescriptions.py:476
+  - GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/machinery-export/{artifact_id}/download @ services/sahool-platform/api/routers/prescriptions.py:593
+  - GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:346
   ui_consumers: []
   mobile_consumers: []
   tests:
@@ -358,11 +375,21 @@ capabilities:
     path: services/sahool-platform/core/isoxml_vrt.py
   - type: repository
     path: services/sahool-platform/tests/test_machinery_export.py
-  rationale: 'Live consumer wired: the export endpoint (format=isoxml) turns a saved manual VRT prescription
-    + an operator-supplied controller profile into a real ISO11783 TaskData artifact via core/isoxml_vrt,
-    fail-closed on an incomplete/incompatible machine or mixed/unsupported units. Behavioral tests cover the
-    export and every rejection path. Scope boundary (honest): it produces the machine-uploadable file at the
-    platform edge; it does not drive a physical controller — runtime/production remain unverified manual gates.'
+  - type: migration
+    path: migrations/v216_machinery_export.sql
+  rationale: 'Platform-side machinery-integration adapter (INT-004A). The canonical POST .../machinery-export
+    resolves a controller profile from the persisted machine_control_profiles system of record (v216, tenant-
+    scoped FORCE-RLS), validates the saved VRT prescription via the fail-closed ISOXMLTask contract, generates
+    ISO11783 TaskData, packages it deterministically into a machine-uploadable ISOXML ZIP, and persists an
+    append-only, immutable artifact (machinery_export_artifacts) carrying a SHA-256 checksum, package bytes,
+    and an IMMUTABLE snapshot of the resolved profile (a later profile edit cannot change an existing export).
+    A download endpoint returns the persisted package + checksum header. Missing/inactive/tenant-mismatched/
+    incompatible profiles fail closed; the inline query-param profile is a PLATFORM_MANAGE-gated dev path only.
+    Migration + RLS/immutability/fail-closed + end-to-end persist/download roundtrip are live-proven on PG16.
+    Honest boundary: this produces and persists the machine-uploadable artifact at the platform edge only. It
+    does NOT connect to a controller, transmit over CAN/ISOBUS, or claim a machine consumed/executed the task
+    — device delivery (INT-004B) and machine consumption (INT-004C) remain OPEN and unverified. maturity/
+    evidence stay at 3 and production_certified false accordingly.'
   business_goal: To be completed by the domain owner; repository evidence remains authoritative.
   priority: unassessed
   business_value: unassessed

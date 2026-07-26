@@ -221,6 +221,7 @@
       "v213_backfill_runs_single_scene.sql",
       "v214_field_irrigation_source_assignments.sql",
       "v215_yield_map_ingestion.sql",
+      "v216_machinery_export.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -993,6 +994,20 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v216_machinery_export.sql",
+      "table": "machine_control_profiles"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v216_machinery_export.sql",
+      "table": "machinery_export_artifacts"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "management_zone_sets_tenant_isolation",
       "source": "v115_precision_agriculture_phase6.sql",
       "table": "management_zone_sets"
@@ -1518,17 +1533,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 221,
+    "manifest_entries": 222,
     "manifest_missing_count": 0,
-    "policies": 184,
+    "policies": 186,
     "production_certified": false,
-    "rls_enabled": 197,
-    "rls_forced": 178,
+    "rls_enabled": 199,
+    "rls_forced": 180,
     "runtime_verified": false,
-    "sql_files": 223,
-    "tables": 322,
+    "sql_files": 224,
+    "tables": 324,
     "tenant_rls_gaps": 133,
-    "tenant_tables": 302,
+    "tenant_tables": 304,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -4660,6 +4675,38 @@
       "rls_enabled": true,
       "rls_forced": true,
       "table": "lineage_link",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/sahool-platform/api/routers/prescriptions.py"
+      ],
+      "code_writers": [],
+      "created_in": "v216_machinery_export.sql",
+      "has_tenant_id": true,
+      "manifest_position": 220,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "machine_control_profiles",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/sahool-platform/api/routers/prescriptions.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/routers/prescriptions.py"
+      ],
+      "created_in": "v216_machinery_export.sql",
+      "has_tenant_id": true,
+      "manifest_position": 220,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "machinery_export_artifacts",
       "tenant_rls_gap": false,
       "write_policy_with_check": true
     },
