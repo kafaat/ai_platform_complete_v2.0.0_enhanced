@@ -38,6 +38,7 @@ jobs:
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
       MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
       MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+      PATH3_ATTESTATION_KEY: ${{ secrets.PATH3_ATTESTATION_KEY }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
@@ -88,6 +89,7 @@ jobs:
           retention-days: 30
           path: |
             runtime-verification/evidence/*.json
+            runtime-verification/attestations/*.json
             runtime-verification/generated/runtime_evidence_ledger.json
             runtime-verification/generated/runtime_certification_summary.json
             runtime-verification/generated/compose_runtime_targets.json
