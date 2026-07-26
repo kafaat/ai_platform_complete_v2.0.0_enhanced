@@ -1,0 +1,33 @@
+{
+  "checks": {
+    "all_probeable_services_have_target_records": true,
+    "all_target_records_resolved": true,
+    "mcp_fanout_is_complete": true,
+    "model_registry_adapter_profile_is_explicit": true,
+    "no_production_truth_claimed": true,
+    "no_runtime_truth_claimed": true,
+    "resolver_remains_fail_closed": true,
+    "target_plan_hash_matches": true
+  },
+  "closed": true,
+  "closure_sha256": "236ca409fc625c20925b3c9a3e62a2241ed72f2b4b2a286c93ea3206a3db6b53",
+  "fanout_targets": {
+    "mcp_servers": 4
+  },
+  "missing_services": [],
+  "planned_services": 27,
+  "production_certified_services": 0,
+  "required_profiles": {
+    "model-registry-adapter": [
+      "model-lifecycle"
+    ],
+    "sam2-inference": [
+      "gpu"
+    ]
+  },
+  "resolved_services": 27,
+  "runtime_verified_services": 0,
+  "schema_version": 1,
+  "status": "READY_FOR_LIVE_EXECUTION",
+  "unresolved_services": []
+}

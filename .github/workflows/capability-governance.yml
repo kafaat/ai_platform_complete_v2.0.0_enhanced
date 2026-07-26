@@ -41,6 +41,12 @@ jobs:
         run: python scripts/ci/migration_graph_guard.py --check
       - name: Validate runtime verification harness plan
         run: python scripts/ci/runtime_verification_harness.py --check
+      - name: Validate runtime evidence ingestion (fail-closed)
+        run: python scripts/ci/runtime_evidence_ingestion.py --check
+      - name: Validate runtime certification gate (fail-closed)
+        run: python scripts/ci/runtime_certification_gate.py --check
+      - name: Validate PATH-2 integration runtime governance closure
+        run: python scripts/ci/integration_runtime_governance_closure.py --check
       - name: Validate capability registry
         run: python scripts/ci/capability_registry_guard.py --check
       - name: Validate capability linkage runtime evidence
@@ -63,4 +69,7 @@ jobs:
             tests/architecture/test_gateway_reachability_guard.py \
             tests/architecture/test_database_contract_graph.py \
             tests/architecture/test_runtime_verification_harness.py \
+            tests/architecture/test_runtime_evidence_ingestion.py \
+            tests/architecture/test_runtime_certification_gate.py \
+            tests/architecture/test_integration_runtime_governance_closure.py \
             tests/architecture/test_static_governance_closure.py

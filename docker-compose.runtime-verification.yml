@@ -1,0 +1,8 @@
+services:
+  runtime-verifier:
+    image: python:3.12-alpine
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    entrypoint: ["python", "scripts/ci/runtime_probe_batch.py"]
+    profiles: ["runtime-verification"]
