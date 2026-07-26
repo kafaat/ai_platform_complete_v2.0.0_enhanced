@@ -1,0 +1,111 @@
+schema_version: 1.0.0
+registry_name: SAHOOL Capability Registry
+source_of_truth: docs/capability-registry/domains/*.yaml
+domains:
+- id: D1
+  key: farm_management
+  title: Farm Management
+  capability_prefix: FM
+  file: domains/farm_management.yaml
+  accepted_prefixes:
+  - FM
+  - INT
+- id: D2
+  key: gis
+  title: GIS
+  capability_prefix: GIS
+  file: domains/gis.yaml
+  accepted_prefixes:
+  - GIS
+- id: D3
+  key: satellite
+  title: Satellite Intelligence
+  capability_prefix: SAT
+  file: domains/satellite.yaml
+  accepted_prefixes:
+  - SAT
+- id: D4
+  key: weather
+  title: Weather Intelligence
+  capability_prefix: WX
+  file: domains/weather.yaml
+  accepted_prefixes:
+  - WX
+- id: D5
+  key: soil
+  title: Soil Intelligence
+  capability_prefix: SOIL
+  file: domains/soil.yaml
+  accepted_prefixes:
+  - SOIL
+- id: D6
+  key: irrigation
+  title: Irrigation Intelligence
+  capability_prefix: IRR
+  file: domains/irrigation.yaml
+  accepted_prefixes:
+  - IRR
+  - INT
+- id: D7
+  key: precision
+  title: Precision Agriculture
+  capability_prefix: PA
+  file: domains/precision.yaml
+  accepted_prefixes:
+  - PA
+  - INT
+- id: D8
+  key: operations
+  title: Operations
+  capability_prefix: OPS
+  file: domains/operations.yaml
+  accepted_prefixes:
+  - OPS
+- id: D9
+  key: decision
+  title: Decision Intelligence
+  capability_prefix: DEC
+  file: domains/decision.yaml
+  accepted_prefixes:
+  - DEC
+- id: D10
+  key: security
+  title: Security
+  capability_prefix: SEC
+  file: domains/security.yaml
+  accepted_prefixes:
+  - SEC
+maturity_model:
+  0: missing
+  1: informational
+  2: analytical
+  3: operational
+  4: closed_workflow
+  5: closed_loop
+controlled_vocabularies:
+  priority:
+  - critical
+  - high
+  - medium
+  - low
+  - unassessed
+  business_value:
+  - critical
+  - high
+  - medium
+  - low
+  - unassessed
+  investment_strategy:
+  - build
+  - integrate
+  - partner
+  - ignore
+  - unassessed
+  parity_classification:
+  - leader
+  - parity
+  - behind
+  - missing
+  - differentiator
+  - emerging_differentiator
+  - unassessed

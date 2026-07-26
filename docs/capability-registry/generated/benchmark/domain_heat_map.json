@@ -1,0 +1,163 @@
+{
+  "domains": [
+    {
+      "average_sahool_maturity": 2.5,
+      "benchmark_coverage_pct": 0.0,
+      "benchmarked_count": 0,
+      "capability_count": 10,
+      "domain": "decision",
+      "parity_counts": {
+        "Behind": 0,
+        "Leader": 0,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 10
+      }
+    },
+    {
+      "average_sahool_maturity": 2.2,
+      "benchmark_coverage_pct": 10.0,
+      "benchmarked_count": 1,
+      "capability_count": 10,
+      "domain": "farm_management",
+      "parity_counts": {
+        "Behind": 1,
+        "Leader": 0,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 9
+      }
+    },
+    {
+      "average_sahool_maturity": 1.75,
+      "benchmark_coverage_pct": 0.0,
+      "benchmarked_count": 0,
+      "capability_count": 4,
+      "domain": "gis",
+      "parity_counts": {
+        "Behind": 0,
+        "Leader": 0,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 4
+      }
+    },
+    {
+      "average_sahool_maturity": 1.73,
+      "benchmark_coverage_pct": 9.1,
+      "benchmarked_count": 1,
+      "capability_count": 11,
+      "domain": "irrigation",
+      "parity_counts": {
+        "Behind": 0,
+        "Leader": 1,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 10
+      }
+    },
+    {
+      "average_sahool_maturity": 1.88,
+      "benchmark_coverage_pct": 25.0,
+      "benchmarked_count": 2,
+      "capability_count": 8,
+      "domain": "operations",
+      "parity_counts": {
+        "Behind": 2,
+        "Leader": 0,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 6
+      }
+    },
+    {
+      "average_sahool_maturity": 1.17,
+      "benchmark_coverage_pct": 100.0,
+      "benchmarked_count": 6,
+      "capability_count": 6,
+      "domain": "precision",
+      "parity_counts": {
+        "Behind": 3,
+        "Leader": 0,
+        "Missing": 1,
+        "Parity": 2,
+        "Unassessed": 0
+      }
+    },
+    {
+      "average_sahool_maturity": 2.44,
+      "benchmark_coverage_pct": 11.1,
+      "benchmarked_count": 1,
+      "capability_count": 9,
+      "domain": "satellite",
+      "parity_counts": {
+        "Behind": 0,
+        "Leader": 1,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 8
+      }
+    },
+    {
+      "average_sahool_maturity": 1.88,
+      "benchmark_coverage_pct": 0.0,
+      "benchmarked_count": 0,
+      "capability_count": 8,
+      "domain": "security",
+      "parity_counts": {
+        "Behind": 0,
+        "Leader": 0,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 8
+      }
+    },
+    {
+      "average_sahool_maturity": 1.8,
+      "benchmark_coverage_pct": 40.0,
+      "benchmarked_count": 2,
+      "capability_count": 5,
+      "domain": "soil",
+      "parity_counts": {
+        "Behind": 1,
+        "Leader": 1,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 3
+      }
+    },
+    {
+      "average_sahool_maturity": 2.1,
+      "benchmark_coverage_pct": 20.0,
+      "benchmarked_count": 2,
+      "capability_count": 10,
+      "domain": "weather",
+      "parity_counts": {
+        "Behind": 2,
+        "Leader": 0,
+        "Missing": 0,
+        "Parity": 0,
+        "Unassessed": 8
+      }
+    }
+  ],
+  "schema_version": "2.0.0",
+  "summary": {
+    "adjacent_evidence_rows_excluded_from_scores": 1,
+    "approved_capability_assignments": 10,
+    "capabilities": 81,
+    "classifications": {
+      "Behind": 9,
+      "Leader": 3,
+      "Missing": 1,
+      "Parity": 2,
+      "Unassessed": 66
+    },
+    "decision_records": 7,
+    "direct_evidence_rows": 28,
+    "evidence_linked_benchmarks": 15,
+    "production_certified": 0,
+    "runtime_verified": 0,
+    "unassessed": 66
+  }
+}

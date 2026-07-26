@@ -1,0 +1,770 @@
+schema_version: 1.0.0
+domain:
+  id: D3
+  key: satellite
+  title: Satellite Intelligence
+  capability_prefix: SAT
+  accepted_prefixes:
+  - SAT
+capabilities:
+- id: SAT-001
+  title:
+    en: Satellite scene search
+    ar: ''
+  domain: satellite
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/raster-service/main.py
+  apis:
+  - GET /imagery/best @ services/raster-service/routers/imagery_search.py:65
+  - GET /scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:262
+  - GET /scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:245
+  - GET /stac @ services/raster-service/routers/stac.py:17
+  - GET /stac @ services/sahool-platform/api/routers/gis_cloud_native.py:179
+  - GET /stac/collections @ services/raster-service/routers/stac.py:25
+  - GET /stac/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:200
+  - GET /stac/collections/{collection_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:497
+  - GET /stac/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:186
+  - GET /stac/queryables @ services/sahool-platform/api/routers/gis_cloud_native.py:193
+  - GET /stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:476
+  - GET /v1/activation/satellite_cdse @ services/decision-service/main.py:1689
+  - GET /v1/activation/satellite_cdse/probe @ services/decision-service/main.py:1705
+  - GET /v1/activation/satellite_cdse/source @ services/decision-service/main.py:1696
+  - GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:117
+  - GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:167
+  - GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:42
+  - POST /stac/mosaicjson @ services/raster-service/routers/stac.py:33
+  - POST /stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:215
+  - POST /v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1629
+  - POST /v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1642
+  - POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1676
+  - POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1661
+  - POST /v1/fields/{field_id}/process-cdse @ services/raster-service/routers/fields.py:776
+  - POST /v1/fields/{field_id}/process-from-stac @ services/raster-service/routers/fields.py:141
+  - POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/screens/satellite_screen.dart
+  tests:
+  - services/decision-service/tests/test_satellite_cdse_activation_endpoints.py
+  - services/decision-service/tests/test_satellite_cdse_activation_gate.py
+  - services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py
+  - services/raster-service/test_backfill_scene_policy.py
+  - services/raster-service/test_cdse_date_normalization.py
+  - services/raster-service/test_cdse_poly_contract.py
+  - services/raster-service/test_cdse_process_rate_limit.py
+  - services/raster-service/test_cdse_tilejson_availability.py
+  - services/raster-service/test_single_scene_concurrent_pg.py
+  - services/raster-service/test_stac_vrt.py
+  - tests_v9/test_backfill_scene_job_threadpool_v30_3.py
+  - tests_v9/test_catalog_bridge_registry_stac_v30_1.py
+  - tests_v9/test_cdse_and_storage_failclosed_v29_8.py
+  - tests_v9/test_cdse_catalog_hardening_20260626.py
+  - tests_v9/test_cdse_evalscript.py
+  - tests_v9/test_cdse_latest_window_singleflight_guard.py
+  - tests_v9/test_cdse_process_throttle_retry_guard.py
+  - tests_v9/test_deferred_satellite_integration_v30_4.py
+  - tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py
+  - tests_v9/test_historical_search_cdse_v30_8.py
+  - tests_v9/test_imagery_single_scene_process.py
+  - tests_v9/test_normalized_scene_wiring_v63_2.py
+  - tests_v9/test_raster_scene_model_v63.py
+  - tests_v9/test_stac_singleflight_v30_5.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v213_backfill_runs_single_scene.sql
+  - type: repository
+    path: services/decision-service/migrations/029_satellite_cdse_activation_gate.sql
+  - type: repository
+    path: services/decision-service/satellite_cdse_activation_gate.py
+  - type: repository
+    path: services/raster-service/cdse_client.py
+  - type: repository
+    path: services/raster-service/cdse_singleflight.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=24, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SAT-002
+  title:
+    en: True color imagery
+    ar: ''
+  domain: satellite
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - SAT-001
+  services:
+  - services/raster-service/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/raster-service/test_truecolor_render.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SAT-003
+  title:
+    en: NDVI
+    ar: ''
+  domain: satellite
+  owner: raster-service+vegetation-analysis-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - SAT-001
+  - SAT-005
+  services:
+  - services/raster-service/main.py
+  - services/vegetation-analysis-service/main.py
+  apis:
+  - GET /v1/ndvi/current/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:91
+  - POST /api/v1/confidence/ndvi @ services/sahool-platform/api/routers/confidence.py:35
+  - POST /api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:35
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_ndvi_analysis.py
+  - tests_v9/test_etc_dual_fresh_ndvi.py
+  - tests_v9/test_field_state_ndvi_enrichment.py
+  - tests_v9/test_kc_from_ndvi.py
+  - tests_v9/test_kc_ndvi.py
+  - tests_v9/test_ndvi_evidence_policy.py
+  - tests_v9/test_ndvi_repoint_raster_service.py
+  - tests_v9/test_ndvi_threshold_gating.py
+  - tests_v9/test_pack_ndvi_grid_plumbing_v62_3c.py
+  - tests_v9/test_vegetation_raster_ndvi.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v54_imagery_ndvi_value.sql
+  - type: repository
+    path: services/sahool-platform/api/routers/ndvi_analysis.py
+  - type: repository
+    path: services/sahool-platform/core/ndvi_analysis.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=2, apis=3, tests=10, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: 3
+      evidence: unverified_external_benchmark
+    cropx:
+      score: 3
+      evidence: unverified_external_benchmark
+    geopard:
+      score: 4
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: 4
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: 4
+      evidence: unverified_external_benchmark
+- id: SAT-004
+  title:
+    en: NDMI
+    ar: ''
+  domain: satellite
+  owner: raster-service+vegetation-analysis-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: low
+  production_certified: false
+  dependencies:
+  - SAT-001
+  - SAT-005
+  services:
+  - services/raster-service/main.py
+  - services/vegetation-analysis-service/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=2, apis=0, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SAT-005
+  title:
+    en: Cloud screening
+    ar: ''
+  domain: satellite
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - SAT-001
+  services:
+  - services/raster-service/main.py
+  apis:
+  - DELETE /locks/{field_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:628
+  - GET /mosaicjson @ services/sahool-platform/api/routers/gis_cloud_native.py:513
+  - GET /ogc @ services/sahool-platform/api/routers/gis_cloud_native.py:295
+  - GET /ogc/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:309
+  - GET /ogc/collections/fields/items @ services/sahool-platform/api/routers/gis_cloud_native.py:316
+  - GET /ogc/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:302
+  - GET /rasters/{raster_id}/tilejson.json @ services/sahool-platform/api/routers/gis_cloud_native.py:532
+  - GET /scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:262
+  - GET /scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:245
+  - GET /stac @ services/sahool-platform/api/routers/gis_cloud_native.py:179
+  - GET /stac/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:200
+  - GET /stac/collections/{collection_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:497
+  - GET /stac/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:186
+  - GET /stac/queryables @ services/sahool-platform/api/routers/gis_cloud_native.py:193
+  - GET /stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:476
+  - GET /tile-cache-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:279
+  - POST /ai-boundary/plan @ services/sahool-platform/api/routers/gis_cloud_native.py:342
+  - POST /cog-registry @ services/sahool-platform/api/routers/gis_cloud_native.py:420
+  - POST /editing-sessions @ services/sahool-platform/api/routers/gis_cloud_native.py:557
+  - POST /editing-sessions/undo-redo @ services/sahool-platform/api/routers/gis_cloud_native.py:360
+  - POST /geoparquet/export @ services/sahool-platform/api/routers/gis_cloud_native.py:646
+  - POST /locks @ services/sahool-platform/api/routers/gis_cloud_native.py:592
+  - POST /management-zones/summary @ services/sahool-platform/api/routers/gis_cloud_native.py:352
+  - POST /phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:672
+  - POST /phase6/digital-twin/snapshot @ services/sahool-platform/api/routers/gis_cloud_native.py:740
+  - POST /phase6/management-zones/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:691
+  - POST /phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707
+  - POST /phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:728
+  - POST /phase6/yield-stability @ services/sahool-platform/api/routers/gis_cloud_native.py:720
+  - POST /stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:215
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/raster-service/test_cloud_mask_strategies.py
+  - services/raster-service/test_cloud_masking.py
+  - services/raster-service/test_cloud_native_catalog.py
+  - shared/gis/test_cloud_native_gis.py
+  - shared/gis/test_cloud_native_runtime.py
+  - tests_v9/test_field_intelligence_cloud.py
+  - tests_v9/test_imagery_aoi_cloud_contract.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v114_cloud_native_gis_best_practices.sql
+  - type: repository
+    path: services/raster-service/cloud_native_catalog.py
+  - type: repository
+    path: services/raster-service/raster_cloud_mask_strategies.py
+  - type: repository
+    path: services/sahool-platform/api/routers/gis_cloud_native.py
+  - type: repository
+    path: shared/gis/cloud_native_gis.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=30, tests=7, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SAT-006
+  title:
+    en: Historical imagery timeline
+    ar: ''
+  domain: satellite
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - SAT-001
+  - SAT-009
+  services:
+  - services/raster-service/main.py
+  apis:
+  - GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571
+  - GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1031
+  - GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:77
+  - GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32
+  - GET /api/v1/weather/historical @ services/sahool-platform/api/routers/weather.py:2074
+  - GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:202
+  - GET /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:171
+  - GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:117
+  - GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:608
+  - GET /v1/fields/{field_id}/observation-timeline @ services/indicators-service/main.py:196
+  - GET /v1/imagery/backfill/policy @ services/raster-service/routers/imagery.py:22
+  - GET /v1/weather/historical @ services/weather-service/main.py:31
+  - POST /api/v1/fields/{field_id}/imagery/backfill @ services/sahool-platform/api/routers/fields.py:959
+  - POST /api/v1/fields/{field_id}/timeline @ services/sahool-platform/api/routers/fields.py:3695
+  - POST /api/v1/weather/history/records @ services/sahool-platform/api/routers/operational_truth.py:95
+  - POST /v1/fields/{field_id}/imagery/backfill @ services/raster-service/routers/fields.py:226
+  ui_consumers:
+  - frontend/e2e/gis-tools-timeline-comparison.spec.ts
+  mobile_consumers: []
+  tests:
+  - services/indicators-service/tests/test_observation_timeline.py
+  - services/raster-service/test_backfill_incremental_retry_guard.py
+  - services/raster-service/test_backfill_scene_policy.py
+  - services/raster-service/test_backfill_worker_schema_drift_visibility.py
+  - services/raster-service/test_historical_backfill.py
+  - services/sahool-platform/tests/test_agronomic_replay_historical_sources.py
+  - services/sahool-platform/tests/test_historical_loader.py
+  - services/sahool-platform/tests/test_historical_onboarding.py
+  - services/sahool-platform/tests/test_historical_season_context.py
+  - services/sahool-platform/tests/test_weather_field_timeline_link.py
+  - tests/security/test_phase22_rls_with_check_backfill.py
+  - tests_v9/test_async_backfill_scaffold_v30_6.py
+  - tests_v9/test_backfill_incremental_retry_guard_v31_1.py
+  - tests_v9/test_backfill_scene_job_threadpool_v30_3.py
+  - tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py
+  - tests_v9/test_decision_review_backfill_verify.py
+  - tests_v9/test_historical_search_cdse_v30_8.py
+  - tests_v9/test_historical_season_bridge_static.py
+  - tests_v9/test_imagery_timeline_endpoint_v31_4.py
+  - tests_v9/test_unified_timeline.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v144_backfill_runs.sql
+  - type: repository
+    path: migrations/v146_backfill_runs_outcome_counters.sql
+  - type: repository
+    path: migrations/v147_backfill_runs_source_landsat_thermal.sql
+  - type: repository
+    path: migrations/v207_historical_season_simulation_bridge.sql
+  - type: repository
+    path: migrations/v209_historical_weather_sor.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=16, tests=20, ui=1,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: 4
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: 3
+      evidence: unverified_external_benchmark
+- id: SAT-007
+  title:
+    en: Change detection
+    ar: ''
+  domain: satellite
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - SAT-003
+  - SAT-006
+  services:
+  - services/raster-service/main.py
+  apis:
+  - GET /api/v1/rbac/preview-role-change @ services/sahool-platform/api/routers/rbac.py:54
+  - PATCH /auth/users/{user_id}/role @ services/auth/routers/users.py:31
+  - POST /auth/change-password @ services/auth/routers/registration.py:74
+  - POST /change/detect @ services/raster-service/routers/analysis.py:48
+  - POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1129
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/raster-service/test_change_detection_grid.py
+  - tests_v9/test_change_detection.py
+  - tests_v9/test_field_change_summary.py
+  - tests_v9/test_no_report_only_change_guard.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/raster-service/change_detection.py
+  - type: repository
+    path: shared/field_change_summary.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=4, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SAT-008
+  title:
+    en: Stress zones
+    ar: ''
+  domain: satellite
+  owner: vegetation-analysis-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - SAT-003
+  - SAT-004
+  services:
+  - services/vegetation-analysis-service/main.py
+  apis:
+  - GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3958
+  - GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:104
+  - GET /api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:69
+  - GET /v1/weather/thermal-stress @ services/weather-service/main.py:34
+  - POST /api/v1/water-sensitivity/stress-risk @ services/sahool-platform/api/routers/water_sensitivity.py:59
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_crop_stress_facades_guard.py
+  - services/sahool-platform/tests/test_crop_stress_ingestion.py
+  - services/sahool-platform/tests/test_crop_stress_memory_service.py
+  - services/sahool-platform/tests/test_crop_stress_store.py
+  - services/sahool-platform/tests/test_spectral_stress_bridge.py
+  - services/sahool-platform/tests/test_thermal_stress_facade_guard.py
+  - services/weather-service/tests/test_crop_stress_products.py
+  - services/weather-service/tests/test_thermal_stress.py
+  - tests_v9/test_canonical_water_stress.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v153_crop_stress_memory_store.sql
+  - type: repository
+    path: services/sahool-platform/api/canonical_water_stress.py
+  - type: repository
+    path: services/sahool-platform/api/crop_stress_ingestion.py
+  - type: repository
+    path: services/sahool-platform/api/crop_stress_memory_service.py
+  - type: repository
+    path: services/sahool-platform/api/crop_stress_store.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=9, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: 3
+      evidence: unverified_external_benchmark
+- id: SAT-009
+  title:
+    en: COG persistence and tiling
+    ar: ''
+  domain: satellite
+  owner: raster-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - SAT-001
+  services:
+  - services/raster-service/main.py
+  apis:
+  - GET /api/raster/{path:path} @ services/sahool-platform/api/routers/compat_gateway.py:114
+  - GET /api/v1/weather/operation-tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2431
+  - GET /api/v1/weather/tile-cache/backend @ services/sahool-platform/api/routers/weather.py:2263
+  - GET /api/v1/weather/tile-cache/stats @ services/sahool-platform/api/routers/weather.py:2277
+  - GET /api/v1/weather/tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2407
+  - GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2988
+  - GET /cog/validate @ services/raster-service/routers/analysis.py:153
+  - GET /gis/admin-boundaries @ services/raster-service/routers/fields.py:92
+  - GET /healthz @ services/raster-service/routers/observability.py:31
+  - GET /imagery/best @ services/raster-service/routers/imagery_search.py:65
+  - GET /imagery/dem @ services/raster-service/routers/imagery_search.py:186
+  - GET /imagery/search/landsat @ services/raster-service/routers/imagery_search.py:157
+  - GET /imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:157
+  - GET /imagery/search/radar @ services/raster-service/routers/imagery_search.py:132
+  - GET /imagery/search/recent @ services/raster-service/routers/imagery_search.py:24
+  - GET /imagery/search/season @ services/raster-service/routers/imagery_search.py:43
+  - GET /imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:24
+  - GET /indices @ services/raster-service/routers/observability.py:253
+  - GET /info/{layer_id} @ services/raster-service/routers/observability.py:213
+  - GET /jobs/{job_id} @ services/raster-service/routers/jobs.py:19
+  - GET /jobs/{job_id}/result @ services/raster-service/routers/jobs.py:37
+  - GET /layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37
+  - GET /metrics @ services/raster-service/routers/observability.py:36
+  - GET /offline/packs @ services/raster-service/routers/storage.py:87
+  - GET /offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115
+  - GET /rasters/{raster_id}/tilejson.json @ services/sahool-platform/api/routers/gis_cloud_native.py:532
+  - GET /readyz @ services/raster-service/routers/observability.py:171
+  - GET /stac @ services/raster-service/routers/stac.py:17
+  - GET /stac/collections @ services/raster-service/routers/stac.py:25
+  - GET /storage/stats @ services/raster-service/routers/storage.py:65
+  - GET /tile-cache-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:279
+  - GET /tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23
+  - GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73
+  - GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351
+  - GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:117
+  - GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:167
+  - GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:42
+  - GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156
+  - GET /v1/fields/{field_id}/imagery/backfill/{run_id} @ services/raster-service/routers/fields.py:608
+  - GET /v1/fields/{field_id}/indicator-grid @ services/raster-service/routers/fields.py:844
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/raster-service/test_available_dates_provider_datetime.py
+  - services/raster-service/test_backfill_incremental_retry_guard.py
+  - services/raster-service/test_backfill_scene_policy.py
+  - services/raster-service/test_backfill_worker_schema_drift_visibility.py
+  - services/raster-service/test_band_math_zones.py
+  - services/raster-service/test_batch_single_open_certification.py
+  - services/raster-service/test_batch_single_open_metrics.py
+  - services/raster-service/test_cdse_date_normalization.py
+  - services/raster-service/test_cdse_poly_contract.py
+  - services/raster-service/test_cdse_process_rate_limit.py
+  - services/raster-service/test_cdse_tilejson_availability.py
+  - services/raster-service/test_change_detection_grid.py
+  - services/raster-service/test_clip_grid.py
+  - services/raster-service/test_cloud_mask_strategies.py
+  - services/raster-service/test_cloud_masking.py
+  - services/raster-service/test_cloud_native_catalog.py
+  - services/raster-service/test_cog_writer_internal_mask.py
+  - services/raster-service/test_db_rehydrate.py
+  - services/raster-service/test_enterprise_imagery_best_practices.py
+  - services/raster-service/test_field_terrain.py
+  - services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py
+  - services/raster-service/test_historical_backfill.py
+  - services/raster-service/test_imagery_source_gate.py
+  - services/raster-service/test_imagery_source_gate_no_bypass_static.py
+  - services/raster-service/test_index_domains.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v142_raster_assets_dedup_traceability.sql
+  - type: repository
+    path: migrations/v143_raster_assets_lifecycle_lineage.sql
+  - type: repository
+    path: migrations/v145_raster_assets_product_dedup.sql
+  - type: repository
+    path: migrations/v154_raster_product_identity_batch_leases.sql
+  - type: repository
+    path: services/raster-service/backfill_scan_worker.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=40, tests=25, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

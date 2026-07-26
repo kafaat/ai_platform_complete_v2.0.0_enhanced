@@ -1,0 +1,24 @@
+legacy_capability_id,legacy_label,canonical_capability_id,canonical_title,mapping_status,note
+FM-001,Farm and field registry,FM-002,Farm registry,partial_decomposition,Farm portion only; field registry is separately represented by FM-003.
+GIS-003,Field boundaries and geospatial editing,FM-003,Field registry and boundaries,canonical_id_correction,Legacy GIS-003 collided with canonical Terrain and DEM.
+SAT-001,Satellite crop monitoring,SAT-003,NDVI,partial_decomposition,Monitoring evidence is not evidence for canonical scene search.
+SAT-004,Historical imagery timeline,SAT-006,Historical imagery timeline,canonical_id_correction,Canonical SAT-004 is NDMI.
+WX-001,Weather state and forecast,WX-002,Weather forecast,partial_decomposition,Forecast portion only; current weather is WX-001.
+WX-004,ET0 and crop-water analytics,WX-004,ET0,title_alignment,Direct ET0 capability.
+SOIL-002,Soil sampling and analysis,SOIL-002,Soil sampling,partial_decomposition,Sampling portion only.
+IRR-002,Water-source registry,IRR-001,Water source registry,canonical_id_correction,Canonical IRR-002 is water quality samples.
+IRR-003,Field-to-water-source binding,IRR-003,Field water-source binding,title_alignment,Direct mapping.
+IRR-007,Irrigation scheduling and recommendation,IRR-005,Irrigation recommendation,partial_decomposition,Canonical IRR-007 is pump and valve control.
+IRR-009,Water suitability multi-hazard,IRR-009,Water suitability multi-hazard,exact,Direct mapping.
+PA-001,Management/productivity zones,PA-001,Management zones,title_alignment,Direct mapping.
+PA-002,VRA prescriptions and export,PA-002,Variable rate prescription,title_alignment,Direct mapping.
+PA-003,Yield-map ingestion and analytics,PA-003,Yield map ingestion,title_alignment,Direct mapping.
+PA-004,General as-applied reconciliation,PA-004,As-applied data,title_alignment,Direct mapping.
+PA-005,Machine telemetry ingestion,PA-005,Machine telemetry,title_alignment,Direct mapping.
+OPS-002,Offline scouting and field forms,OPS-003,Scouting,partial_decomposition,Canonical OPS-002 is work orders; only scouting portion retained.
+OPS-004,Equipment and operations tracking,OPS-006,Equipment registry,partial_decomposition,Canonical OPS-004 is field forms.
+DEC-002,Approval and governed decision workflow,DEC-003,Human approval,partial_decomposition,Canonical DEC-002 is decision candidate.
+DEC-006,Execution receipt and outcome learning,DEC-006,Execution receipt,partial_decomposition,Receipt portion only; outcome and attribution are DEC-007/DEC-008.
+SEC-001,Tenant isolation and RLS,SEC-001,Tenant RLS,title_alignment,Direct mapping.
+SEC-003,Worker identity binding,SEC-003,Worker identity binding,exact,Direct mapping.
+INT-001,ERP/accounting integration,FM-008,ERP integration,canonical_id_correction,Canonical INT-001 is Public API and SDK.

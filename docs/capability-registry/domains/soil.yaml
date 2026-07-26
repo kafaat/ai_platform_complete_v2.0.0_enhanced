@@ -1,0 +1,311 @@
+schema_version: 1.0.0
+domain:
+  id: D5
+  key: soil
+  title: Soil Intelligence
+  capability_prefix: SOIL
+  accepted_prefixes:
+  - SOIL
+capabilities:
+- id: SOIL-001
+  title:
+    en: Soil profile
+    ar: ''
+  domain: soil
+  owner: soil-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/soil-service/main.py
+  apis:
+  - GET /soil/soilgrids @ services/soil-service/routers/soil_profile.py:58
+  - POST /soil/suitability @ services/soil-service/routers/soil_profile.py:47
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_soil_profile_context_gate.py
+  - services/soil-service/test_canonical_soil_profile.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/soil-service/routers/soil_profile.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=2, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SOIL-002
+  title:
+    en: Soil sampling
+    ar: ''
+  domain: soil
+  owner: soil-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - FM-003
+  services:
+  - services/soil-service/main.py
+  apis:
+  - GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396
+  - GET /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:160
+  - GET /api/v1/soil-sampling/depth @ services/sahool-platform/api/routers/soil_sampling.py:53
+  - GET /api/v1/soil-sampling/protocol @ services/sahool-platform/api/routers/soil_sampling.py:59
+  - GET /api/v1/soil-sampling/subsamples @ services/sahool-platform/api/routers/soil_sampling.py:47
+  - GET /v1/fields/{field_id}/soil/sampling-plan @ services/raster-service/routers/soil_tiles.py:193
+  - GET /v1/fields/{field_id}/soil/sampling-plans/current @ services/soil-service/routers/p1_products.py:154
+  - GET /v1/fields/{field_id}/soil/sampling-zones.geojson @ services/raster-service/routers/soil_tiles.py:166
+  - POST /api/v1/fields/{field_id}/zone-sampling-plan @ services/sahool-platform/api/routers/productivity.py:84
+  - POST /api/v1/lab/samples @ services/sahool-platform/api/routers/soil_sampling.py:169
+  - POST /api/v1/lab/samples/{sample_id}/transition @ services/sahool-platform/api/routers/soil_sampling.py:294
+  - POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:190
+  - POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:262
+  - POST /v1/fields/{field_id}/soil/sampling-plans @ services/soil-service/routers/p1_products.py:83
+  - POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - tests_v9/test_soil_sampling_planner_v61.py
+  - tests_v9/test_soil_sampling_strategies_v61_1.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/ai_agronomist/soil_sampling_planner.py
+  - type: repository
+    path: services/ai_agronomist/soil_sampling_strategies.py
+  - type: repository
+    path: services/sahool-platform/api/routers/soil_sampling.py
+  - type: repository
+    path: services/sahool-platform/api/soil_sampling_protocol.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=15, tests=2, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SOIL-003
+  title:
+    en: Laboratory results
+    ar: ''
+  domain: soil
+  owner: soil-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - SOIL-002
+  services:
+  - services/soil-service/main.py
+  apis:
+  - POST /api/v1/lab/soil-results @ services/sahool-platform/api/routers/soil_sampling.py:190
+  - POST /api/v1/lab/water-results @ services/sahool-platform/api/routers/soil_sampling.py:262
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SOIL-004
+  title:
+    en: pH EC SOM nutrients
+    ar: ''
+  domain: soil
+  owner: soil-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - SOIL-003
+  services:
+  - services/soil-service/main.py
+  apis:
+  - POST /api/v1/nutrients/4r-plan @ services/sahool-platform/api/routers/nutrients.py:31
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_nutrient_4r.py
+  - tests_v9/test_nutrient_uptake.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/api/nutrient_4r.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=2, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: SOIL-005
+  title:
+    en: Soil water properties
+    ar: ''
+  domain: soil
+  owner: soil-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - SOIL-001
+  - SOIL-004
+  services:
+  - services/soil-service/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - tests_v9/test_soil_water.py
+  - tests_v9/test_water_twin_dynamic_taw.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/api/soil_water.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=2, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: 5
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

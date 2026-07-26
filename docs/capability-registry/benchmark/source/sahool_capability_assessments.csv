@@ -1,0 +1,24 @@
+capability_id,canonical_title,domain,sahool_score,verdict,confidence,legacy_label,canonicalization_note
+FM-002,Farm registry,farm_management,4,PROVISIONAL,low,Farm and field registry,rebased_from_legacy_phase3
+FM-003,Field registry and boundaries,farm_management,4,PROVISIONAL,low,Field boundaries and geospatial editing,rebased_from_legacy_phase3
+SAT-003,NDVI,satellite,4,PROVISIONAL,low,Satellite crop monitoring,monitoring_component_only
+SAT-006,Historical imagery timeline,satellite,4,PROVISIONAL,low,Historical imagery timeline,canonical_id_correction
+WX-002,Weather forecast,weather,3,PROVISIONAL,low,Weather state and forecast,forecast_component_only
+WX-004,ET0,weather,4,PROVISIONAL,low,ET0 and crop-water analytics,canonical_title_alignment
+SOIL-002,Soil sampling,soil,4,PROVISIONAL,low,Soil sampling and analysis,sampling_component_only
+IRR-001,Water source registry,irrigation,4,PROVISIONAL,low,Water-source registry,canonical_id_correction
+IRR-003,Field water-source binding,irrigation,0,CONFIRMED_MISSING,high,Field-to-water-source binding,canonical_title_alignment
+IRR-005,Irrigation recommendation,irrigation,4,PROVISIONAL,low,Irrigation scheduling and recommendation,recommendation_component_only
+IRR-009,Water suitability multi-hazard,irrigation,2,PARTIAL,high,Water suitability multi-hazard,exact
+PA-001,Management zones,precision,4,PROVISIONAL,low,Management/productivity zones,canonical_title_alignment
+PA-002,Variable rate prescription,precision,4,PROVISIONAL,low,VRA prescriptions and export,canonical_title_alignment
+PA-003,Yield map ingestion,precision,0,CONFIRMED_MISSING,high,Yield-map ingestion and analytics,canonical_title_alignment
+PA-004,As-applied data,precision,2,PARTIAL,high,General as-applied reconciliation,canonical_title_alignment
+PA-005,Machine telemetry,precision,1,PARTIAL,high,Machine telemetry ingestion,canonical_title_alignment
+OPS-003,Scouting,operations,3,PROVISIONAL,low,Offline scouting and field forms,scouting_component_only
+OPS-006,Equipment registry,operations,4,PROVISIONAL,low,Equipment and operations tracking,equipment_component_only
+DEC-003,Human approval,decision,4,PROVISIONAL,low,Approval and governed decision workflow,approval_component_only
+DEC-006,Execution receipt,decision,4,PROVISIONAL,low,Execution receipt and outcome learning,receipt_component_only
+SEC-001,Tenant RLS,security,4,PROVISIONAL,low,Tenant isolation and RLS,canonical_title_alignment
+SEC-003,Worker identity binding,security,3,PARTIAL,high,Worker identity binding,exact
+FM-008,ERP integration,farm_management,4,PROVISIONAL,low,ERP/accounting integration,canonical_id_correction

@@ -1,0 +1,7870 @@
+[
+  {
+    "path": "agent-memory/TEST_FACTS.md",
+    "kind": "tests"
+  },
+  {
+    "path": "docs/audits/TEST_SUITE_INSTRUCTIONS.md",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/.github/workflows/structural-lint.yml",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/DOCKER.md",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/README.md",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/docker-compose.web.yml",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/e2e/accessibility-performance.spec.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/e2e/ai-model-picker.spec.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/e2e/app-smoke.spec.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/e2e/field-context-flows.spec.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/e2e/gis-tools-timeline-comparison.spec.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/e2e/maphub-webgl.spec.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/e2e/ui-chrome.visual.spec.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/e2e/weather-maphub-smoke.spec.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/package-lock.json",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/package.json",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/playwright.config.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/postcss.config.js",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/AddFieldWithMap.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/AddFieldWithMap.undoredo.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/AddFieldWithMap.workspace.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/AlertBanner.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/FieldDetailPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/FieldIndicatorMap.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/FieldSelector.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/KPICard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/SpeakButton.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/StateViews.featureDisabled.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/StateViews.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ThemeToggle.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ToastContainer.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/agrozones/AgroZonesPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/approvals/DecisionEvidencePanel.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/approvals/DecisionEvidencePanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/decision/DecisionDeepPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/decision/DecisionInsightPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/decision/RecommendationsLifecyclePanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/atoms.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/breadcrumb.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/cabin.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/charts.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/combobox.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/forms.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/forms.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/index.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/merge.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/modal.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/status.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/ds/status.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/table.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/table.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/tooltip.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldhealth/DateScrubber.grouping.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldsetup/FieldSetupWizard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldsetup/SoilTestStep.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldsetup/StepShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldsetup/steps.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldsetup/types.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/AgroAnalyticsCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/AgroCalculatorsCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/AgroKnowledgeCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/BoundaryReviewCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/ClimateRiskCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/CropKnowledgeCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/CropSafetyKnowledgeCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/DiagnosticsCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/DriftRiskCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/EvidenceGraphCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/EvidenceHistoryCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/FieldEconomicsCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/FieldHealthReportCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/FieldViewInsightStrip.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/FieldWaterBrainCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/HarvestTraceabilityCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/IrrigationDecisionCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/LearningEvidenceCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/LedgerEntryCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/MpcGovernanceCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/MpcGovernanceWiring.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldview/OperationsCenterCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/PlantingAdvisorCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/SoilGovernanceCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/SoilGovernanceWiring.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/fieldview/TraceabilityCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/WaterHarvestingCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/YemeniCalendarCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/fieldview/ZoneVraEntryCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/insights/ScaleLegend.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/AutoSegmentControl.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/DataFreshnessBadge.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/DataFreshnessBadge.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/DrawControl.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/DrawingTools.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/FieldBoundaryProposalPanel.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/FieldBoundaryProposalPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/FieldDetailDrawer.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/FieldSplitMergeTool.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/FieldSplitMergeTool.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/HubMapGL.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/HubMapTestBridge.guard.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/ImageryAcquisitionDate.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/ImageryDateWiring.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/InteractiveDrawLayer.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/MapImageryReflow.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/OperationalOverlay.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/OverlayMarkers.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/OverlayMarkers.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/SceneProvenanceCard.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/SceneProvenanceCard.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/VraPrescriptionPanel.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/VraPrescriptionPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawGeometry.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/DrawingOfflineSync.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/DrawingOfflineSync.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/DrawingProvider.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/PivotDesignerMapHub.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/PivotPersistence.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/ZoneDesigner.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/adapters/DrawingAdapter.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/adapters/DrawingEngineSelection.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/adapters/GeomanAdapter.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/adapters/LeafletDrawAdapter.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/adapters/LeafletGeomanAdapter.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/adapters/createDrawingAdapter.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/drawingEvents.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/drawingFeatureApi.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/drawingMeasurements.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/drawingTypes.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/drawingValidation.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/index.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/pivotDesigner.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/workflows/agriculturalDrawingWorkflows.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/workflows/index.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/drawing/zoneDesigner.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/indicatorTileUrl.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/README.md",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/WeatherActionLifecycle.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/WeatherGraticule.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/WeatherHoverReadout.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/WeatherLayerPanel.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/weather/weatherPreferences.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/product/AdvancedServiceState.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/product/DegradedState.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/sharing/SharingPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/shell/AppShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/shell/CommandPalette.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/shell/MobileTabBar.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/shell/NavGateParity.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/shell/NavRail.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/sql/SQLEditor.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/config/endpoints.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/config/endpoints.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/fieldViewUiWide.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/hooks/useAgroAnalytics.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useAgroZones.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useAuth.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/hooks/useClimateAnalogs.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useCropSafetyKnowledge.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useDecisionDeep.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useDistrictsWeather.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useDuckDB.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useEvidenceHistory.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useFeatureRegistry.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useFieldContext.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useFieldDriftRisk.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useFieldIntelligenceCard.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useFieldOptions.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useFieldWindPrevailing.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useGisTemporalOps.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useIndicatorRegistry.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/hooks/useIndicatorRegistry.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useIndicators.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useRecommendationsLifecycle.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useSelectedField.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/hooks/useSelectedField.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useTheme.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/hooks/useYemeniCalendars.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/adminRuntime.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/adminRuntime.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/agroCalculators.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/agroCalculators.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/agronomyConsistency.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/appSettings.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/appSettings.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/approvalsConsole.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/authStorage.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/authStorage.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/canonicalGeometry.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/canonicalGeometry.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/cropPropagation.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/cropPropagation.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/cropSafetyKnowledge.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/cropSafetyKnowledge.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/csv.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/csv.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/dates.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/dates.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/decisionDeep.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/decisionDeep.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/decisionInsight.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/decisionInsight.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/decisionRuntime.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/decisionRuntime.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/designSystemGovernance.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/designSystemGovernance.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/districtsWeather.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/driftZones.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/driftZones.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/enterpriseGisPhase7.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/enterpriseGisPhase7.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/evidenceGraph.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/evidenceHistory.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/evidenceHistory.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/featureFlags.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/featureFlags.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldActionLifecycle.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldActionLifecycle.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldAgroKnowledge.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldAgroKnowledge.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldBoundaryReview.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldBoundaryReview.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldClimateRisk.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldClimateRisk.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldDiagnostics.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldDiagnostics.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldEconomics.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldEconomics.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldGeometryOps.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldGeometryOps.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldGeometryTimeline.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldGeometryTimeline.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldHarvestTraceability.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldHarvestTraceability.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldHealthReport.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldHealthReport.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldMapView.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldMapView.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldObjectiveDeeperGaps2.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldObjectiveEngine.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldObjectiveHiddenGaps.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldOperations.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldTraceability.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldTraceability.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldViewActionDeck.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldViewDecisionScript.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldViewDecisionScript.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldViewGovernance.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldViewGovernance.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldWaterBrain.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldWaterBrain.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fieldZoneVra.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fieldZoneVra.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/fields.fieldview.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fields.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/fields.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/geo.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/geo.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/gisCatalog.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/gisTemporalOps.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/gisWorkbench.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/globalScaleRuntime.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/globalScaleRuntime.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/irrigationEngineering.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/irrigationEngineering.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/jwt.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/jwt.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/leaflet-draw-shim.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/leafletSetup.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/ledgerEntry.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/ledgerEntry.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/managerConsole.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/managerConsole.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/mapRegression.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/measureDrawWiring.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/paginated.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/paginated.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/permissions.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/plantingAdvisor.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/plantingAdvisor.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/platformCatalog.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/precisionAgriculture.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/precisionAgriculture.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/projectFile.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/realData.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/realData.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/recommendationsLifecycle.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/recommendationsLifecycle.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/reports.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/routeAliasResolution.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/routes.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/runtimeEndpointGovernance.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/runtimeEndpointGovernance.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/sceneFreshness.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/sceneFreshness.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/specialtyCrops.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/sqlHistory.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/sqlHistory.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/waterHarvesting.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/waterHarvesting.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/whatIfScenarios.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/windbreak.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/workspaceStorage.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/lib/yemeniCalendar.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/lib/yemeniCalendar.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/main.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/pages/AcceptInvitationPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/pages/SignupPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/AdminRuntimePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/AgronomicTimelinePage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/AgronomicTimelinePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/AlertSystemPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/ApprovalsConsolePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/CalibrationPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/CalibrationWorkbenchPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/CalibrationWorkbenchPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/ChatbotAiContextPack.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/ChatbotAiEvidenceTransparency.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/ChatbotHarnessTransparency.v55.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/ChatbotProviderToolApproval.v58.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/DecisionConfidencePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/DecisionRuntimePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/DecisionStudioPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/DecisionStudioPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/DeviceTwinPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/DeviceTwinPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/DevicesPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/DocumentsPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/EquipmentPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/EvidenceMapPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/EvidenceMapPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/ExecutionFeedbackPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/ExecutionFeedbackPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldIntelligencePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldTasksCabin.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceContextBanner.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceDataPanels.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceImageryPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceOperationsPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspacePriorityPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceRecommendationsPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceReportsPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceTabs.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceTasksPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceTimelinePanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/FieldWorkspaceWeatherPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/GisExpertPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/GisToolsPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/GovernancePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/HybridMonitor.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationEngineeringPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationEngineeringWiring.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationEngineeringWorkspace.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationManualOperationsPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationNetworkPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationNetworkPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationOpsPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/IrrigationWaterPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/LabSamplingPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/LearningDashboardPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/LineagePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/ManagerConsolePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/MapHubHistoricalTimeline.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/MapHubTwoDateCompare.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/MapHubTwoYearBackfill.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/MapHubTwoYearTimeline.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/MasterDataPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/NotificationSettingsPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/OperationCenterWallPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PestEscalationPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PortfolioCommandPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PortfolioCommandPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PortfolioPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PrescriptionBuilderPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PrescriptionBuilderPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/PushTokenReadOnly.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/RecommendationPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/ReportsPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/ReservoirBoosterNetworkCalculator.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/SQLWorkspacePage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/SatellitePageFieldGeometryRefresh.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/UnifiedCabin.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/WaterTwinPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/YieldAnalysisPage.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/YieldAnalysisPage.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/fieldWorkspaceAvailability.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/fieldWorkspaceCompletionContract.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/fieldWorkspaceContract.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/labSampleValidation.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/maphub/FieldContextStrip.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/FieldDrawerShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/FieldTimelineShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/MapCanvasBoundary.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/MapHubShell.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/MapHubToolToggle.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/PriorityQueuePanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/mapClutterControl.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/maphub/roleUiContract.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/sections/notificationChannelValidation.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/sections/reportsCsv.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/api/client.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/features.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/fieldImagery.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/fieldIrrigation.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/fieldTasks.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/fieldTimeline.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/fieldWeather.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/irrigationManualOperations.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/irrigationNetworkCalculator.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/api/remoteSensingWorkspace.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/apiFieldErrors.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/duckdb.readonly.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/duckdb.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/services/websocket.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/services/websocket.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/test/setup.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/test/setupWarningGuard.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/types/turf.d.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/vite-env.d.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/tailwind.config.js",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/test-results/.last-run.json",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/tsconfig.json",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/vite.config.ts",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/vitest.config.ts",
+    "kind": "web"
+  },
+  {
+    "path": "migrations/POSTGRES_SETUP.md",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v103_fields_planting_date.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v113_phase_runtime_workers_jobs.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v130_soil_lab_evidence_hardening.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v131_imagery_quality_metadata.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v132_field_state_recompute_provenance.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v134_fields_geometry_integrity.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v135_workflow_state_lease.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v138_offline_pending_ops_terminal.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v142_raster_assets_dedup_traceability.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v143_raster_assets_lifecycle_lineage.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v145_raster_assets_product_dedup.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v146_backfill_runs_outcome_counters.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v147_backfill_runs_source_landsat_thermal.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v151_learning_source_lineage.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v152_deprecate_recommendation_feedback.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v158_soil_projection_observability.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v167_mpc_content_digest_lineage.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v179_hourly_energy_aware_irrigation_mpc.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v17_workflow_state_full.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v180_governed_vri_prescription.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v181_irrigation_closed_loop_learning_production_certification.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v182_decision_content_lineage_and_secret_hardening.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v187_irrx1_manual_execution_lifecycle.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v189_irrx1_pcert_manual_execution_db_invariants.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v18_entity_ids_text.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v200_admin_boundaries.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v205_irrigation_reservation_runtime_hardening.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v213_backfill_runs_single_scene.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v28_settings.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v31_fields_manager.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v33_fields_extended.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v35_activities.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v36_alerts.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v37_fields_advanced.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v38_notif_channels.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v40_verification.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v41_fields_irrigation.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v43_fields_geom_index.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v46_lifecycle_event_sync.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v47_schema_integrity.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v55_field_state_agronomic.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v61_fields_row_version.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v63_events_seq_deterministic_order.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v67_dispatch_hardening.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v86_calibration_evidence_trigger.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v88_field_owner_function.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v91_workflow_compensation_failures.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v97_user_self_with_check.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v9_append_only_enforcement.down.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v9_append_only_enforcement.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v9_auth_improvements.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v9_automation_persistence.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v9_edge_occurred_at.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/v9_lifecycle_occurred_at.sql",
+    "kind": "database"
+  },
+  {
+    "path": "migrations/validate_migrations.py",
+    "kind": "database"
+  },
+  {
+    "path": "mobile/sahool_app/lib/bloc/dashboard_bloc.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/config/app_config.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/models/soil_workspace_model.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/permissions.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/advisor_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/devices_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/documents_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/equipment_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/irrigation_ops_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/master_data_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/onboarding_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/operations_hub_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/screens/profile_screen.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/services/auth_service.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/services/device_id_service.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/services/push_service.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/services/websocket_service.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/theme/app_theme.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/utils/ids.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/utils/jwt.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/widgets/form_kit.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/widgets/offline_field_map.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/lib/widgets/state_views.dart",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/pubspec.yaml",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test-results-smart/mobile-static-summary.json",
+    "kind": "mobile"
+  },
+  {
+    "path": "mobile/sahool_app/test/auth_service_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/ids_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/jwt_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "mobile/sahool_app/test/resilience_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "scripts/irr_f01/bootstrap.sql",
+    "kind": "database"
+  },
+  {
+    "path": "scripts/migrations/report_not_valid_constraint_violations.py",
+    "kind": "database"
+  },
+  {
+    "path": "scripts/migrations/validate_migration_manifest.py",
+    "kind": "database"
+  },
+  {
+    "path": "scripts/remote_sensing/test_rs10_technical_certification.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/actuator-service/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/actuator-service/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/actuator-service/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/actuator-service/routers/commands.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/actuator-service/routers/health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/actuator-service/routers/metrics.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/actuator-service/test_actuator_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/actuator-service/test_actuator_safety.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/actuator-service/test_dedup_compensation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/agriai-engine/aquacrop_adapter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/evidence_bundle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/field_history.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/profit_planner.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/replay.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/sim_crop_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/simulation_capability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/simulation_io.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/agriai-engine/tests/conftest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/agriai-engine/tests/test_production_readiness_truth.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/ai_agronomist/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/ab_testing.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/advisory_contract.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/agent_stores.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/ai_generation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/approval.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/chaos_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/circuit_breakers.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/compliance_validator.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/decision_contracts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/decision_metrics.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/fallback_strategies.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/feedback_repository.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/guardrail_events.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/guardrail_metrics.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/harness_transparency.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/human_review_repository.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/observation_context.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/policy_engine.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/policy_envelope.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/prescription_export_adapters.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/recommendation_events.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/recommendation_runtime_pipeline.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/retry_policies.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/runtime_guardrail_adapter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/runtime_metrics.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/runtime_tracing.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/ai_agronomist/tool_loop.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/otp.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/routers/email_verify.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/routers/invitations.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/routers/ops.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/routers/password_reset.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/routers/registration.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/auth/tests/__init__.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/auth/tests/test_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/activation_gate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/activation_gate_core.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/agronomic_context/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/agronomic_context/contracts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/backfill.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/cutover.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/migration_runner.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/migrations/002_decision_review.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/003_execution_plan.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/013_registry_adapter_receipt_rollback.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/014_wx11_closed_loop_completion.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/015_wx12_runtime_receipts.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/016_wx12_runtime_work_claims.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/017_wx12_runtime_schedules.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/018_ac1_agronomic_context.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/022_runtime_agronomic_cohort_lineage.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/023_runtime_terminal_agronomic_lineage.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/026_content_digest_lineage.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/028_irr_f01_reservation_activation_gate.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/migrations/030_activation_evidence_receipts.sql",
+    "kind": "database"
+  },
+  {
+    "path": "services/decision-service/outcome_reconcile.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/platform_sor_revoke.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/production_promotion.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/read_side_compare.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/rollback.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/staging_probe.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/tests/_model_chain.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/conftest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_activation_evidence_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_activation_gate_core_hardening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_agronomic_evidence_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_agronomic_learning_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_agronomic_model_lifecycle_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_agronomic_runtime_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_agronomic_runtime_terminal_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_outcome_reconcile.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_p4_decision_service_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx10_7_decision_review.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx10_8_review_queue.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx10_9_execution_plan.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx11_2_model_evaluation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/edge-inference/MODEL_PROVISIONING.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/download_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/models/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/models/errors.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/models/pest_detector.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/models/yield_estimator.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/models_manifest/edge_models.required.json",
+    "kind": "backend"
+  },
+  {
+    "path": "services/edge-inference/sync_service.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/field-segmentation/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/field-segmentation/exg_preprocess.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/field-segmentation/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/field-segmentation/test_exg_preprocess.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/field-segmentation/test_segmentation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/gis-workflow-service/README.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/gis-workflow-service/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/gis-workflow-service/load_admin_boundaries.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/gis-workflow-service/map_layout.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/gis-workflow-service/publication_map.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/gis-workflow-service/run_bundle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/gis-workflow-service/tests/__init__.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/gis-workflow-service/tests/test_no_external_sources.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/gis-workflow-service/tests/test_publication_map_render.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/gis-workflow-service/workflow_spec.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/diff_generator.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/human_in_loop.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/routers/health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/routers/validation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/guardrails-engine/tiers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/tiers/chemical_tier.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/tiers/economic_tier.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/guardrails-engine/tiers/environmental_tier.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/indicators-service/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/indicators-service/observation_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/indicators-service/observation_timeline.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/indicators-service/tests/test_indicators_service_static_route_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/indicators-service/tests/test_observation_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/knowledge-graph/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/knowledge-graph/tests/test_knowledge_graph_static_route_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/local-ai-rag/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/local-ai-rag/test_rag_offline_guards.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/mcp_servers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/mcp_servers/shared/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/mcp_servers/shared/oauth_middleware.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/mcp_servers/shared/streamable_http.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/mcp_servers/tests/test_mcp_servers_static_route_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/model-registry-adapter/adapter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/model-registry-adapter/service.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/model-registry-adapter/tests/test_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/model-registry-adapter/tests/test_runtime_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/model-registry-adapter/worker.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/model-registry-adapter/worker_assertion.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/qdrant-seed/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/qdrant-seed/aljawf_knowledge.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/qdrant-seed/seed.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/qdrant-seed/test_aljawf_knowledge.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/rag-retrieval/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/rag-retrieval/tests/test_rag_retrieval_static_route_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/cache_invalidation_worker.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/gis_boundaries_read.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/imagery_source_gate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/indicator_batch_claim.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/indicator_product_identity.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/job_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/layer_cache_events.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/object_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/quality_metrics.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_app_factory.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_app_lifecycle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_batch_job_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_batch_observability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_batch_runtime_leases.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_date_geo.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_indicator_product.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_lifecycle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_main_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_persistence_policy.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_processing_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_runtime_state.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_security_context.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/raster_validated_product.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/routers/jobs.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/routers/storage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/soil_render.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/test_available_dates_provider_datetime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_backfill_incremental_retry_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_band_math_zones.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_batch_single_open_certification.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_batch_single_open_metrics.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_imagery_source_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_indicator_grid_provenance_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_object_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_processing_context_wiring.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_assets_text_field_id.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_batch_observability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_batch_postgres_integration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_durable_identity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_error_sanitization_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_import_graph_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_persistence_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_quality_gate_wiring_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_reproject_nodata_mask_conflict.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_router_no_main_import_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_single_scene_concurrent_pg.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_soil_render.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_wapor_worldcereal.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/tile_cache_io.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/tile_cache_maint.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/tile_observability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/wapor_worldcereal.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/worker_heartbeat.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/remote-sensing-workspace-bff/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/README.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/adaptive_calibration.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/agro_climate_zones.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/ai_provider_config.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/alert_delivery.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/alert_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/alert_senders.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/aromatic_fodder_crops.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/boundary_confidence.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/boundary_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/calibration.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/calibration_ingest.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/canonical_boundary.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/canonical_hydraulic_capability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/chat_proxy_reference.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/chemical_safety.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/climate_analogs.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/coffee_advisor.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/command_dispatcher.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/command_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/confidence_gate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/connectors/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/connectors/metno_wind.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/connectors/nasa_power.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/controller_edge_adapter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/correlation_middleware.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/cost_governance.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/crop_cycle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/crop_introduction.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/crop_rotation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/crop_suitability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/data_lineage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/data_quality.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/decision_confidence.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/decision_engine.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/decision_explain.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/decision_explainer.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/decision_lineage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/device_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/device_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/document_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/economic_state.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/edge_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/equipment_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/event_catalog.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/event_upcasting.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/evidence_corroboration.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/evidence_map.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/evidence_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/execution_feedback.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/execution_lineage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/failure_modes.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/feasibility_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/feature_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_aggregate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_aggregate_ports.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_cameras.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_context.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_lifecycle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_portfolio.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_runtime_cohesion.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_sustainability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/field_type_catalog.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/fleet_health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/food_grain_varieties.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/food_grain_varieties_verified_v1.schema.json",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/geo_import.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/geo_zone_locator.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/gis_geometry_guard.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/gis_kernel.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/gis_phase7_enterprise.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/gis_phase8_global_scale.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/harvest_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/high_value_crops.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/ipm_advisor.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_activation_gate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_authoritative_reservation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_authoritative_resolver.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_capacity_reservation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_closed_loop_learning.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_commissioning_certification.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_commissioning_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_dispatch_relay.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_engineering_contracts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_logic.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_manual_execution.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_manual_ledger_bridge.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_method.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_network.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_path_query.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_policy.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_reservation_lifecycle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/irrigation_state_guard.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/learning_feedback.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/manual_converter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/master_data_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/niche_export_crops.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/nl_sql_validate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/nutrient_4r.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/onboarding.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/operations_summary.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/orchard_planner.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/outcome_measurement.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/phase10_continuous_learning.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/phase11_federated_agents.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/phase_runtime_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/pivot_geometry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/planting_calendar.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/portfolio_allocation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/portfolio_command.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/postharvest_advisor.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/prescription_shapefile.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/propagation_advisor.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/agricultural_proverbs.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/agro_zones.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/ai_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/alerts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/analytics.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/aromatic_crops.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/auth.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/automation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/calendars.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/calibration.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/cameras.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/capabilities.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/chemical_safety.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/climate_analogs.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/coffee.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/commands.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/compat_gateway.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/confidence_gate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/crop_cards.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/crop_operations.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/crop_suitability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/crops.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/cultural_calendar.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/data_readiness.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/decision.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/decision_dispatch.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/decision_explain.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/decision_impact.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/decision_policies.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/device_twin.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/devices.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/diagnose.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/districts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/documents.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/drawing_features.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/edge.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/escalation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/events.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/evidence.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/evidence_map.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/execution_feedback.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/execution_lineage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/failures.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/features.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/field_portfolio.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/field_twin.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/fodder_alternatives.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/geo.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/geo_locate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/gis_kernel.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/harvest_traceability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/high_value_crops.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/indices.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/internal_service.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/introduction.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/ipm.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/irrigation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/irrigation_method.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/irrigation_network.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/kc_timeseries.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/learning.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/lifecycle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/lineage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/market.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/master_data.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/me.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/niche_crops.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/nl_sql.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/notifications.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/nutrients.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/observations.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/onboarding.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/operations.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/orchard.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/outcome.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/pest_escalation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/planting.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/platform_health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/policy_learning.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/portfolio_command.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/postharvest.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/practices.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/prescriptions.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/propagation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/queue.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/rbac.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/readiness.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/regional_calendar.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/rotation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/security_audit.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/seed.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/settings.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/sharing.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/sync.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/tasks.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/trials.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/varieties.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/water_harvesting.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/water_sensitivity.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/water_twin.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/wofost.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/yield_analysis.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/routers/yield_interval.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/seed_and_practices.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/sensor_confidence.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/setting_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/sharing.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/soil_enrichment.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/soil_evidence_bridge.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/soil_hydraulic_client.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/soil_moisture_advisor.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/soil_telemetry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/soil_water.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/spatial_sync.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/sync_delta.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/trial_engine.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/trial_models.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/trial_randomization.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/trueup.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/unified_decision.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/walk_plan.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/walk_plan_pdf.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/water_efficiency.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/water_harvesting.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/water_twin.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/water_twin_seed.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/weather_alerts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/wofost_crop_params.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/worker_heartbeat.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/api/zone_sampling.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/activity_log.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/actuator_command.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/agri_tools/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/agri_tools/registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/agri_tools/tools/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/agri_tools/tools/fertilizer.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/agri_tools/tools/irrigation_volume.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/agri_tools/tools/pivot_coverage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/agri_tools/tools/polygon_area.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/agronomic_decision.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/ai_artifacts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/ai_policy_envelope.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/alert_delivery.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/anwa_calendar.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/api_adapter.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/automation_ledger.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/canonical_field_state_lock.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/chemical_lineage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/circuit_breaker.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/connectors/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/connectors/base.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/connectors/weather_openmeteo.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/conversation_tree.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/correlation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/loader.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/barley_bakkur.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/coffee_burai.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/coffee_dawairi.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/coffee_tuffahi.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/coffee_udaini.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/coffee_yemenia.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/common_bean_liena_24.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/common_bean_rajm_1.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/common_bean_yemen_1.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/date_palm_hamra.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/date_palm_mijraf.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/date_palm_serfaneh.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/date_palm_sokotri.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/faba_bean_dhafar_1.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/faba_bean_dhafar_2.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/faba_bean_shabam_1.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/fenugreek_kahlan_1.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/fenugreek_kahlan_2.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/fenugreek_kahlan_3.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/grape_asmi.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/grape_aswad.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/grape_razqi.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/lentil_dhamar_1.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/lentil_dhamar_2.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/maize_khumasi.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/maize_rubai.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/maize_thulathi.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/mango_badami.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/mango_taimoor.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/pea_amran_1.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/pea_yahsib_1.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/peanut_karz.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/qat_baladi.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/qat_shami.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/sorghum_ghurbah.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/sorghum_local_qairaa.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/wheat_aziz.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_cards/varieties/wheat_local_highland.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_inference.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_intelligence/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_intelligence/confidence.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_intelligence/roots.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_intelligence/stress_memory.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_operations.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_portfolio.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/crop_risk.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/cross_domain_optimization.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/daily_agronomist_full.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/daily_ai_brief.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/data_completeness.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/data_quality_guard.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/decision_dispatch.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/decision_firewall.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/decision_learning.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/decision_regression.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/dispatch_executor.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/dispatch_lifecycle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/dispatch_notification.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/districts/loader.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/drift_geometry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/economic_adaptation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/economic_intelligence.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/candidate_generator.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/crop_classification_readiness.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/crop_market_gap.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/deficit_irrigation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/drought_resilience.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/external_prior_blend.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/fertility.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/fuzzy.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/harvest_traceability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/human_escalation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/input_traceability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/ky_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/market_analyzer.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/pesticide.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/soil_lab_workflow.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/suitability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/supplemental_irrigation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/water_cost.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/engines/yield_interval.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/event_schema.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/evidence_graph_analytics.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/evidence_graph_normalize.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/execution_control_plane.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/execution_ledger_entry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/feature_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/feedback_closure.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/field_context_coordinator.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/field_digital_twin.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/field_event_sourcing.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/field_state_replay_bridge.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/field_trial_design.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/harvest_feedback.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/historical_loader.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/human_feedback_learning.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/hybrid_rag_retrieval.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/identity.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/impact_measurement.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/implementation_verification.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/jwt_denylist.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/kc_persistence.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/kc_to_fao56_bridge.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/kg_autoseed.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/kg_graphql_readonly.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/knowledge_graph/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/knowledge_levels.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/lab_sampling.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/learning/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/learning_activation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/learning_source_lineage.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/loop_referential_integrity.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/mcp/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/mcp/independent_servers.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/mcp_service_servers.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/mcp_tool_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/measurement.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/mlops_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/mlops_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/offline_first.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/operational_truth.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/outcome_reconciler.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/pest_escalation_flow.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/policy_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/practice_promotion.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/prescription_exports.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/prod_readiness.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/production_readiness_gate.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/provenance.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/rag/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/rag/production_qdrant.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/rbac_governance.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/recommendation_bridge.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/recommendation_ponytail.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/recommendation_replay.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/resumable_sse.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/resumable_stream.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/review_fork.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/sensor_intake.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/sla_monitor.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/soil_climate_sources.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/soil_feedback_proxy.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/soil_feedback_trend.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/soil_recommendations.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/spatial/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/spatial/field_bundle.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/spray_readiness.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/terroir_index.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/thresholds.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/time_series.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/vrt_manual_maps.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/weather_overlay.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/weather_signals.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/wind_geometry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/yield_interval_service.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/data/reference/aljawf_climate_summary.json",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/AB_TESTING_DESIGN_NOTE.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/ARCHITECTURE_ALTERNATIVES.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/COMPREHENSIVE_CORE_REVIEW.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/DOCUMENTATION_REVIEW_10_RESPONSE.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/DUAL_REVIEW_RESPONSE.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/FREETODO_ASSESSMENT.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/GAP_ANALYSIS_RESPONSE.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/INPUT_FACTORS_RESEARCH.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/KARPATHY_FRAMEWORK_ANALYSIS.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/LAYERED_ARCHITECTURE_GUIDE.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/OPERATIONAL_PATTERNS_ANALYSIS.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/REGIONAL_YEMEN_RESEARCH.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/REVIEW_FIXES_RESPONSE.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/SAUDI_RESEARCH.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/STRUCTURAL_ENFORCEMENT_RESPONSE.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/docs/architecture/remaining_gap_completion.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/fallback.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/knowledge/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/knowledge/conservative_rag.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/sensor_health.yaml",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/storage/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_activity_log.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_actuator_command.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_adapt_apply_loop.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_adapt_from_evidence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_admin_outbox_dlq_routes.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_agri_fertilizer.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_agri_irrigation_volume.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_agri_polygon_area.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_agri_tools_registry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_agronomic_replay_historical_sources.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ai_provider_config.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_alert_delivery.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_alert_thresholds_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_alerts_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_anwa_calendar.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_auto_persist_decisions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_automation_ledger.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_automation_run.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_automation_runs.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_backend_registry_v50_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_boundary_confidence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_calibration_audit_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_calibration_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_calibration_override_endpoints.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_candidate_generator.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_canonical_well_capability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_chat_proxy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_circuit_breaker.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_command_dispatcher.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_completeness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_connectors.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_context_firewall_and_streams.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_correlation_middleware.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_cost_governance.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_classification_readiness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_confidence_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_cycle.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_inference.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_introduction.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_market_gap.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_operations.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_portfolio.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_risk.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_rotation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_suitability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_water_sensitivity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_cross_domain_optimization.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_data_readiness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_db_role_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_approve_permission.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_dispatch.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_dispatch_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_explain_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_explainer.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_impact_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_interim_bridge.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_learning.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_playbook.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_policies_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_record_list.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_record_persistence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_decision_review_queue_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_deficit_irrigation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_device_registry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_dispatch_executor.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_dispatch_lifecycle.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_dispatch_notification.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_drawing_features_v39_postgis_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_drift_geometry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_drought_resilience.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_economic_intelligence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_emit_event_names.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_event_catalog.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_event_upcasting.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_evidence_graph.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_evidence_graph_analytics.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_evidence_graph_normalize.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_execution_control_plane.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_execution_ledger_entry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_execution_lineage_endpoints.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_external_prior_blend.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_feature_flag_navigation_alignment_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_feedback_closure.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_aggregate_ports.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_ai_context_v45_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_detail.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_geocode.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_intelligence_async_job_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_intelligence_json_snapshot_and_metrics_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_lifecycle.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_portfolio_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_state.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_state_replay_bridge.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_trial_design.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_twin_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_field_type_catalog.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_fii_chemical_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_fii_chemical_lineage_hardened.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_fii_chemical_lineage_p0_hardening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_fii_score_semantics.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_food_grain_varieties_catalog.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_gaps_v91.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_geo_import.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_gis_kernel_routes.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_gis_phase8_global_scale_api.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_gis_tile_math.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_governance_modules.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_guardrails.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_historical_loader.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_historical_onboarding.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_human_escalation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_identity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_imagery_sync_24h_cadence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_impact_measurement.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_improvements_v91.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_input_traceability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_engineering_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_method_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_state_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_irrigation_water_analysis.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_jwt_denylist.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_jwt_key_validation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_kc_persistence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_kc_to_fao56_bridge.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_lab_sampling.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_learn_from_harvest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_learning_dashboard_degraded_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_learning_source_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_learning_summary_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_learning_summary_reconciled_outcomes.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_loop_referential_integrity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_maestro_bridge.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_manual_converter.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_measurement.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_metno_wind_fallback.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_mutating_endpoints_authn_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_nasa_power_wind.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_notification_delivery_endpoints.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_notifications_ws_handshake.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_nutrient_4r.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_offline_first.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_openmeteo_circuit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_operational_truth_closure.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_operations_summary_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_outbox_backoff.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_outcome_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_outcome_reconciler.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p0_db_ownership_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p0_platform_module_growth_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p2_2_field_ai_context_raster_facade_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p2_3_field_intelligence_adapter_raster_facade_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p2_4_compat_gateway_raster_facade_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p3_4_weather_facade_neutral.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p4_6_decision_read_side_facade_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p5_service_registry_hardening_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_p6_gateway_split_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_pest_escalation_flow.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_pesticide.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phase11_runtime_api.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_phenology_router.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_pivot_update_drift.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_policy_registry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ponytail_guardrails.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_practice_promotion.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_prod_readiness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_production_readiness_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_readyz_db_probe.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_remaining_engines.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_remaining_gap_completion.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_report_builder.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_route_auth_matrix_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_runtime_routes_v66.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_scheduler_cluster_singleton.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_security_v91.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_sensor_intake.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_signal_age_naive_datetime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_soil_climate_sources.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_soil_enrichment.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_soil_feedback_proxy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_soil_feedback_trend.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_soil_lab_workflow.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_soil_recommendations.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_soil_telemetry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_spatial_geometry_integrity.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_spray_readiness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_supplemental_irrigation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_sync_delta.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_terroir_index.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui17_ui19_workspace_data_panels_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui21_ui23_workspace_operations_reports_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui3_api_module_split_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui3b_api_domain_modules_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui5_maphub_shell_preparation_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui7_maphub_controls_extraction_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui8_ui10_maphub_operating_surface_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_ui_product_rules_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_validate_observations.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_vegetative_days.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_alerts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_alerts_notify.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_agronomic_risk_layers.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v12_operation_plan.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v18_observability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v19_prometheus_cache_admin.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v20_readiness_selftest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v22_runtime_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v24_redis_ready_cache.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v25_interpolation_rate_redis.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v26_runtime_smoke_assets.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_engine_v28_soil_temperature_depth.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_field_timeline_link.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_overlay.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_signals.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_weather_wind_source_selftest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_wind_geometry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_workflow_definitions.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_workflow_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_yemeni_calendars.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_yield_interval_service.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tools_check_doc_consistency.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/validate_observations.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sam2-inference/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sam2-inference/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/scout-ingest-service/tests/test_projection_live.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/db_persist.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/evidence_adapters.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/modbus_decoder.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/p2_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/p3_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/p4_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/p5_certification.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/p6_certification.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/projection_observability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/routers/health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/routers/modbus.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/routers/p3_products.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/routers/p5_certification.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/routers/p6_certification.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/routers/readings.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/soil_science.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/soilgrids_client.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/soil-service/test_soil_cutover_readiness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_lab_supersession_adapter.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_p4_governance.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_p5_certification.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_p6_certification.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_projection_jobs.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_projection_observability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_supersession_current_pointer.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/soil-service/test_soil_validation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/supervisor-agent/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/advisory_skill.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/circuit_breaker.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/market_skill.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/mcp_client.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/routers/agent.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/routers/health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/skills/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/skills/advisory_skill.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/skills/market_skill.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/supervisor-agent/test_chaos_resilience.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/supervisor-agent/test_circuit_breaker.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/supervisor-agent/test_circuit_observability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/supervisor-agent/test_graceful_degradation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/tts-service/README.md",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/arabic_normalizer.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/providers.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/routers/health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/routers/tts.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/tts-service/test_tts_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/vegetation-analysis-service/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/anomaly_engine.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/anomaly_requests.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/anomaly_runtime.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/anomaly_store.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/baseline_engine.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/decision_bridge.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/diagnosis_engine.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/indicator_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/routers/baselines.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/routers/diagnoses.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/routers/health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_anomaly_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_diagnosis_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_rs_final_hardening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_rs_review_hardening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/video-processor/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/video-processor/router_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/video-processor/routers/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/video-processor/routers/health.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/video-processor/routers/streams.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/video-processor/stream_events.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/video-processor/stream_registry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/video-processor/test_video_processor_router_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/video-processor/zlmedia_client.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-polygon-worker/worker_health_probe.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-service/__init__.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-service/cache.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-service/chill_accumulation.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-service/lodging_risk.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-service/pollination_risk.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-service/raw_weather_processing.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/weather-service/tests/test_p3_tile_neutral_resilience.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/weather-service/tests/test_thermal_stress.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/weather-service/tests/test_weather_readyz_and_cache_backend.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/weather-service/tests/test_weather_redis_live_optional.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/weather-service/thermal_stress.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-signal-engine/src/main.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/weather-signal-engine/worker_health_probe.py",
+    "kind": "backend"
+  },
+  {
+    "path": "shared/enterprise_gis/test_phase7_enterprise.py",
+    "kind": "tests"
+  },
+  {
+    "path": "shared/enterprise_gis/test_phase8_global_scale.py",
+    "kind": "tests"
+  },
+  {
+    "path": "shared/test_federated_agent_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "shared/test_federated_agents_phase11.py",
+    "kind": "tests"
+  },
+  {
+    "path": "shared/test_field_runtime_cohesion.py",
+    "kind": "tests"
+  },
+  {
+    "path": "shared/test_marketplace_ecosystem_phase12.py",
+    "kind": "tests"
+  },
+  {
+    "path": "shared/test_marketplace_plugin_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/__init__.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_architecture_graph.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_capability_evidence_maturity_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_capability_mapping_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_capability_registry_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_capability_registry_v1.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_compose_runtime_target_resolver.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_database_contract_graph.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_decision_lineage_graph.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_duplicate_definition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_event_contract_graph.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_execution_dependency_audit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_gateway_reachability_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_integration_runtime_governance_closure.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_path3_attestation_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_path3_live_acceptance_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_path3_run_attestation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_path3_runtime_readiness_closure.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_phase21_legacy_quarantine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_phase21_source_of_truth.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_route_conflict_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_router_reachability_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_runtime_certification_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_runtime_contract_generator.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_runtime_environment_preflight.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_runtime_evidence_ingestion.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_runtime_probe_batch.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_runtime_verification_harness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/architecture/test_static_governance_closure.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/certification/test_phase21_certification_matrix.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/ci/test_phase16_ci_cd_gates.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/deploy/test_phase15_deployment_readiness_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/e2e_runtime/test_phase3_runtime_integration_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/fixtures/evidence_lab/wiremock/mappings/open_meteo_archive.json",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/fixtures/evidence_lab/wiremock/mappings/open_meteo_failure.json",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irr_f01_certification_ci_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irrigation_activation_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irrigation_activation_gate_no_bypass_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irrigation_capacity_reservation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irrigation_convergence_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irrigation_path_query.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irrigation_reservation_lifecycle_worker.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/irrigation/test_irrigation_v205_runtime_hardening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/migrations/test_phase19_migration_manifest_unification.py",
+    "kind": "database"
+  },
+  {
+    "path": "tests/observability/test_phase13_observability_assets.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/release/test_phase14_release_packaging_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/reliability/test_phase10_reliability_harness_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/runtime/test_phase17_runtime_bootstrap_doctor.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/runtime/test_phase18_urgent_runtime_fixes.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/runtime/test_phase20_worker_static_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/runtime/test_phase9_10_runtime_strengthening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/runtime/test_phase9_iot_execution_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/security/test_phase12_final_production_gates.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/security/test_phase4_security_observability_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/soak/test_phase21_soak_harness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_fields_create_contract_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_guardrail_mcp_enhancements.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_guardrail_metrics.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_guardrail_runtime_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_intelligence_governance_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_phase10.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_platform_db_compose_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_production_rag_kg_mcp.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_remaining_ai_runtime_phases.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_riv_generated_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/test_riv_p0_consumer_truth_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_a6_print_map.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_activation_signing_key_isolation_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_activity_type_drift.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_actuation_killswitch_v29_5_op.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_actuator_mode.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_adaptive_calibration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_advisor_source_tagging.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_advisor_tools_water_report_v67.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_agent_agronomy_hardening_v615.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_agent_stores_v58_2.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_agronomist_main_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_approval_endpoints_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_container_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_data_sharing_enforcement_v52.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_generation_gating.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_generation_status_label_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_harness_transparency_v55.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_model_registry_olmoearth_v69.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_observation_context_v55.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_orchestration_safety.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_provider_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_provider_native_tool_calling_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_tool_executor_v55.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_tool_registry_v55.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_alert_delivery.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_alert_events_emitted.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_alerts_derived_from_state.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_alerts_field_state_route.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_aljawf_seed_v31_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_api_versioning_policy_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_async_backfill_scaffold_v30_6.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_acquire_admin_context_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_e2e.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_main_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_rs256_production.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_service.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_session_revocation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_auth_signup_owner.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_backfill_incremental_retry_guard_v31_1.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_c4m1_mobile_push.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_calendars_today.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_calibration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_calibration_ingest.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_boundary.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_energy_microgrid_capability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_hydraulic_capability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_irrigation_capability_graph.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_irrigation_machine_capability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_command_dispatch_race_v65.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_command_store_behavior_v66.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_env_bypass_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_image_pinning_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_internal_ports_loopback_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_nginx_upstream_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_odoo_db_separation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_redis_health.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_security_audit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_container_fleet_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_container_hardening_ratchet_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_content_digest_lineage_column_v167.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_contract_capabilities_schema_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_controller_edge_adapter.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_cookbook.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_cors_origins_fallback.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_cors_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_cost_analytics.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_coverage_gates_ci_wiring.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_crs_service_shared.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_data_quality.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_db_integration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_db_role_guard_shared.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_db_wiring.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_confidence_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_consistency_auth.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_explain.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_governance.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_impact_integration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_lineage.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_policies_integration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_record_mandatory_persist.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_review_backfill_verify.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_review_boundary_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_service_deployment_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_service_url_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_defect_signatures.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_design_token_contrast_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_disease_field_state_feed.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_dispatch_events.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_dispatch_hardening_ledger_integration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_docker_build_matrix_verifier_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_dockerfile_pip_mirror_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_dockerfile_shared_copy_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_documents.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_earthdata_batch_import_v63_7.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_economic_state.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_end_to_end.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_endpoint_ui_coverage_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_entity_id_text.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_env_compose_drift_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_etc_dual_weather.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_event_replay_recovery_v66.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_event_schema.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_evidence_lab_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_evidence_map_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_evidence_persistence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_evidence_registry.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_execution_feedback_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_execution_lineage_pure.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_external_submission_contract_v1.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_feature_flags_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fertigation_ec.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_ai_context_hardening_v49_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_change_summary.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_conflict_payload.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_context_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_intelligence_endpoints.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_portfolio.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_state_full_aggregate_v31_3.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_state_recompute_provenance_v57_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_field_sustainability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fields_geometry_integrity_v39_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fields_merge_split_atomic.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fii_chemical_lineage_shared_module.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_firmware_valve_safety.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_frontend_ai_key_isolation_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_frontend_nginx_service_proxy_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gis_enforce.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gis_kernel_geojson.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gis_multipolygon_geometry_versioning.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gis_web_mercator_crs.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_guardrails.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_guardrails_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_harvest_traceability_v65.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_health_alias_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_health_readiness_schema_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_helm_migration_command_valid_20260705.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_imagery_quality_metadata_v57_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_imagery_single_scene_process.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_indicators_container_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_indicators_dashboard_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_indicators_frontend_manifest_sync.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ingest_dedup_resolution.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ingest_odk_adapter_and_handler.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ingest_projection.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_internal_field_state_channel.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_internal_graphql_security_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_iot_devices.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irr_f01_upgrade_gate_u1_pg.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_commissioning_certification.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_method.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_network_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_ops.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrigation_runs_v29_5_op.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrx1_2_manual_execution_lifecycle.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrx1_3_verified_manual_ledger_bridge.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrx1_6_operator_declared_volume_ui.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrx1_8_reservoir_booster_optional_pivot.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrx1_9_multi_system_irrigation_calculator.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_irrx1_authoritative_provenance_lock.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_jwt_algorithm_parity_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_jwt_audience_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_jwt_denylist_wired.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_layer_evict_v30_9.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_learning_feedback.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_learning_loop_e2e.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_learning_summary.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_manifest_completeness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mapbox_basemap_contract_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_market_resource_authz.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_master_data.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mcp_functional.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mcp_raster_status_relay_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_migration_id_namespace_separation_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_migration_psql_var_in_do_block_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_migration_runners_in_sync_20260705.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_migration_validator_cross_file_unique.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_modbus_decoder_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mutation_probe.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_new_modules.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_nginx_agent_health_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_nginx_edge_routing_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_nginx_weather_routing_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_nl_sql_validate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_no_merge_conflict_markers_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_no_report_only_change_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_normalized_scene_wiring_v63_2.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_not_valid_constraint_no_new_violations_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_notification_channel_selection.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_notification_subjects_prefix.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_nutrient_uptake.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ocsm_crosswalk_reference_only.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_offline_dispatch_field_update.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_offline_pending_ops_terminal_v19_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_offline_pending_queue.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_operations_summary_contract_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_operations_summary_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_otp.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_outcome_measurement.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_p1_main_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_p2_main_decomposition_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_p3_legacy_routes_and_indicator_ui.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_phase9_10_runtime_strengthening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_phase9_12_runtime_activation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_pip_audit_resolution_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_platform_rs256_production.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_portfolio_allocation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_portfolio_command_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_prescription_export_adapters_v62_1.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_prescription_shapefile.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_production_certification_checklist_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_production_evidence_pack_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_projection_determinism_v63.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_projection_worker_disabled_idle.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_provider_tool_schema_required_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_providers_status_endpoint_v63_4.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_qdrant_snapshot_manager.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_asset_date_binding.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_assets_dedup_traceability_v142.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_decomposition_wiring_v31_3.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_persist_observability_v30_2.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_pixel_processing_edge_cases.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_pixel_qa_indicator_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_quality_metrics_v62_3b.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_topographic_qa_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_validated_product_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raster_worker_heartbeat_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rate_limit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raw_data_processing_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_raw_weather_processing_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rbac_platform_enforcement.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_real_findings_closure_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_recommendation_enriched_passthrough.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_recommendations_field_state_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_recommendations_for_field.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_redis_mandatory_in_production.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_report_index_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_requirements_completeness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_requirements_pinning_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_root_depth.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_route_mount_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_route_residual_classification_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_runtime_container_deep_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_runtime_real_smoke_script.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sahool_inspector.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sam2_polygon_cleaning_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sam2_polygon_postprocessing_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sar_rvi.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_secret_enforcement_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_secret_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_security.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_segmentation_boundary_metadata_contract_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_segmentation_frontend_contract_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_segmentation_remaining_ui_live_gate_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sensor_confidence_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_service_consumer_closure_20260723.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_service_dockerfile_nonroot_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_service_endpoint_drift_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_service_feature_ui_contract_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_service_main_container_path_safety.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_services_functional.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_services_rs256_production_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_settings.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sim_golden.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_sim_pcse_flag_and_safety.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_simulation_capability_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_simulation_single_truth_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_smoke_e2e.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_soil_lab_evidence_hardening_v57_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_soil_lab_field_state_emit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_soil_lab_workflow_behavior_v66.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_soil_p4_multisource_e2e.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_soil_science_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_soil_water.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_source_registry_taxonomy_v63_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_spatial_e2e_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tasks_endpoints.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_telegram.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_telegram_bot.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_thresholds_unified.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tile_auth_cookie_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tls_policy.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_trueup_endpoint.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_tts_providers_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_unified_decision.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_unified_production_readiness_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_unified_timeline.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v05_certification_guards.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v12_modules.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v151_learning_source_lineage_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v152_recommendation_feedback_deprecation_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v200_admin_boundaries_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v203_sowing_range_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v9_feature_transfer_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_v9_gpu_enablement_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_vegetation_container_contract_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_vegetation_real_only_posture_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_video_processor_features_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_waiver_expiry_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_water_efficiency.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_water_ledger_identity_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_water_twin.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_water_twin_dynamic_taw.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_water_twin_seed.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_weather_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_weather_signal_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_worker_assertion_interop.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_worker_heartbeat_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_workflow_lease_v19_5.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_workflow_store.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_workflow_store_hardening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_workflow_store_isolation.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_wx10_9_execution_plan_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_wx11_closed_loop_completion_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_yield_field_state_feed.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_zone_sampling_behavior_v66.py",
+    "kind": "tests"
+  }
+]
