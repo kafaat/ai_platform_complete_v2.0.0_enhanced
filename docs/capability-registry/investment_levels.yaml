@@ -1,0 +1,3 @@
+schema_version: 1.0.0
+strategies: [build, integrate, partner, ignore, unassessed]
+required_inputs: [business_value, maturity, parity_classification, evidence_level]

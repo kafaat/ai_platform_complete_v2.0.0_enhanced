@@ -1,0 +1,9 @@
+schema_version: 1.0.0
+levels:
+  0: {name: Missing, minimum_evidence_level: 0}
+  1: {name: Informational, minimum_evidence_level: 1}
+  2: {name: Analytical, minimum_evidence_level: 2}
+  3: {name: Operational, minimum_evidence_level: 3}
+  4: {name: Closed Workflow, minimum_evidence_level: 4}
+  5: {name: Closed Loop, minimum_evidence_level: 5}
+regression_policy: block_without_explicit_waiver

@@ -1,0 +1,13 @@
+{
+  "inputs": {
+    "docs/capability-registry/release/baselines/001_d52a6b6_roadmap_pr_impact_corrected.json": "556f3346fec9966a6f5f7fdace63a5a4a991754bed5cf42efe29dc4e4e97e1d6",
+    "docs/capability-registry/release/baselines/002_d52a6b6_remaining_static_corrected.json": "7830ec59e70512235d966959195abc65ecf65266a296eae414a41a40ead6c7cf",
+    "docs/capability-registry/release/baselines/003_d52a6b6_pa003_yield_map_ingestion.json": "9b7e70d2a8228a7a3a290df1aacb177c577797ea59ed608c40fbeb5c3d9c9214"
+  },
+  "outputs": {
+    "CAPABILITY_RELEASE_HISTORY.md": "d9553bba180398ac8afc6c0350613b2d4e13a6c63f63821a88df3a9e780d9057",
+    "capability_release_history.csv": "95116916287ca369680e19f4368a1d9661b0d6e4c9b6cea8f0d5b5c2bea96043",
+    "capability_release_history.json": "569c9256ab98eaf34fbfbd78eceafbaf0ddb3195955d28f75355f09a9ac60ca8"
+  },
+  "schema_version": "1.0.0"
+}

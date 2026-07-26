@@ -183,6 +183,17 @@ def iter_files() -> Iterable[Path]:
             continue
         if any(part in SKIP_PARTS for part in rel.parts):
             continue
+        # Architecture/governance meta-tests validate the capability system itself and name
+        # capability IDs in assertions (e.g. "INT-004"), which the token scanner would credit
+        # as spurious tests/other_evidence hits — self-referential, not domain implementation.
+        if len(rel.parts) >= 2 and rel.parts[0] == "tests" and rel.parts[1] == "architecture":
+            continue
+        # Capability metadata (policies, adjudications, release baselines) enumerates every
+        # capability ID by construction; scanning it credits each capability against its own
+        # registry entry — self-referential, not domain implementation evidence. (The generated/
+        # subtree is already excluded below; this covers the hand-authored config beside it.)
+        if len(rel.parts) >= 2 and rel.parts[0] == "docs" and rel.parts[1] == "capability-registry":
+            continue
         # Generated inventories, release metadata and capability outputs are derived artifacts,
         # not independent implementation evidence. Scanning them creates self-referential
         # mapping → maturity → benchmark/release cycles and inflates routes/events from SBOMs.

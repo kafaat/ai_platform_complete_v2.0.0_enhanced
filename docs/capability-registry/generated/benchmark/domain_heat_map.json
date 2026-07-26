@@ -1,7 +1,7 @@
 {
   "domains": [
     {
-      "average_sahool_maturity": 2.5,
+      "average_sahool_maturity": 2.4,
       "benchmark_coverage_pct": 0.0,
       "benchmarked_count": 0,
       "capability_count": 10,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "average_sahool_maturity": 2.2,
+      "average_sahool_maturity": 2.1,
       "benchmark_coverage_pct": 10.0,
       "benchmarked_count": 1,
       "capability_count": 10,
@@ -43,7 +43,7 @@
       }
     },
     {
-      "average_sahool_maturity": 1.73,
+      "average_sahool_maturity": 1.64,
       "benchmark_coverage_pct": 9.1,
       "benchmarked_count": 1,
       "capability_count": 11,
@@ -127,7 +127,7 @@
       }
     },
     {
-      "average_sahool_maturity": 2.2,
+      "average_sahool_maturity": 2.1,
       "benchmark_coverage_pct": 20.0,
       "benchmarked_count": 2,
       "capability_count": 10,

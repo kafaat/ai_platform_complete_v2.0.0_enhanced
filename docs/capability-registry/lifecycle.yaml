@@ -1,0 +1,20 @@
+schema_version: 1.0.0
+states:
+  - draft
+  - planned
+  - implemented
+  - runtime_verified
+  - production_certified
+  - deprecated
+transitions:
+  draft: [planned, deprecated]
+  planned: [implemented, deprecated]
+  implemented: [runtime_verified, deprecated]
+  runtime_verified: [production_certified, implemented, deprecated]
+  production_certified: [runtime_verified, deprecated]
+  deprecated: []
+fail_closed_rules:
+  runtime_verified_requires_runtime_evidence: true
+  production_certified_requires_signed_attestation: true
+  production_certified_requires_maturity: 5
+  production_certified_requires_evidence_level: 5

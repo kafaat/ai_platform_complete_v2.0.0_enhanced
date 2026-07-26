@@ -1,0 +1,62 @@
+schema_version: 1.0.0
+policy:
+  purpose: "Human-reviewed static repository evidence links for scanner false negatives or ambiguous ownership."
+  runtime_claims: false
+  production_certification: false
+  automatic_maturity_upgrade: false
+  may_close_missing_confirmed: false
+capabilities:
+  INT-004:
+    rationale: "Repository evidence covers vendor-neutral machinery-format interoperability, not a live vendor-cloud connector."
+    evidence:
+      - path: services/sahool-platform/core/isoxml_vrt.py
+        kind: backend
+        note: "ISOXML/VRT machinery interoperability contract."
+      - path: services/sahool-platform/core/prescription_exports.py
+        kind: backend
+        note: "Fail-closed ISOXML export path requiring a capable machine profile."
+      - path: services/sahool-platform/tests/test_remaining_gap_completion.py
+        kind: tests
+        note: "Static tests exercise machinery-profile export behavior."
+  IRR-010:
+    rationale: "Leaching requirement and drainage eligibility are implemented inside the irrigation recommendation policy."
+    evidence:
+      - path: services/sahool-platform/api/irrigation_recommendation_policy.py
+        kind: backend
+        note: "Computes conditional salinity leaching and blocks unsafe drainage conditions."
+      - path: services/sahool-platform/core/engines/fao56.py
+        kind: backend
+        note: "FAO-56 leaching requirement kernel."
+      - path: services/sahool-platform/api/routers/irrigation_recommendation.py
+        kind: backend
+        note: "Exposes drainage inputs to the recommendation workflow."
+  OPS-001:
+    rationale: "Task management is implemented by the canonical task router and persistence surfaces."
+    evidence:
+      - path: services/sahool-platform/api/routers/tasks.py
+        kind: backend
+        note: "Task CRUD and workflow surface."
+  OPS-006:
+    rationale: "Equipment registry is implemented by canonical equipment models, router, and database migration."
+    evidence:
+      - path: services/sahool-platform/api/routers/equipment.py
+        kind: backend
+        note: "Equipment registry API."
+      - path: services/sahool-platform/api/equipment_models.py
+        kind: backend
+        note: "Equipment domain models."
+      - path: migrations/v23_equipment.sql
+        kind: database
+        note: "Equipment persistence contract."
+  OPS-008:
+    rationale: "Operational assignment evidence exists through task assignees and worker identity binding, without claiming a full HR system."
+    evidence:
+      - path: services/sahool-platform/api/routers/tasks.py
+        kind: backend
+        note: "Operational task assignee workflow."
+      - path: services/decision-service/tests/test_worker_identity_binding.py
+        kind: tests
+        note: "Worker identity and tenant binding behavior."
+      - path: services/decision-service/migrations/024_runtime_worker_tenants.sql
+        kind: database
+        note: "Runtime worker-to-tenant identity persistence."

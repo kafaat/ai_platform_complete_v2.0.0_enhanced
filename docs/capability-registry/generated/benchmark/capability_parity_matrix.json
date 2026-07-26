@@ -445,7 +445,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 1,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Model calibration"
@@ -1146,10 +1146,10 @@
         "OneSoil": []
       },
       "domain": "farm_management",
-      "gap_to_best": 1,
+      "gap_to_best": 2,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 1,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Public API and SDK"
@@ -1657,7 +1657,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 1,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Pump and valve control"
@@ -3696,7 +3696,7 @@
       "gap_to_best": null,
       "production_certified": false,
       "runtime_verified": false,
-      "sahool_score": 2,
+      "sahool_score": 1,
       "sahool_score_confidence": "repository_static",
       "sahool_score_source": "evidence_maturity_baseline",
       "title": "Current weather"

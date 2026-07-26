@@ -343,10 +343,9 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 1,
       "assessment_reasons": [
         "repository_implementation_present",
-        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -366,20 +365,18 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": true,
+        "unit_tests": false,
         "web": false
       },
-      "evidence_score": 4,
+      "evidence_score": 3,
       "integration_test_paths": [],
       "learning_linked": true,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_delta": -2,
       "production_certified": false,
       "runtime_verified": false,
       "title": "Model calibration",
-      "unit_test_paths": [
-        "tests/architecture/test_capability_traceability.py"
-      ]
+      "unit_test_paths": []
     },
     {
       "assessed_maturity": 3,
@@ -423,8 +420,7 @@
       "unit_test_paths": [
         "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
         "services/decision-service/tests/test_wx11_4_model_activation_request.py",
-        "services/decision-service/tests/test_wx11_5_model_activation_approval.py",
-        "tests/architecture/test_capability_traceability.py"
+        "services/decision-service/tests/test_wx11_5_model_activation_approval.py"
       ]
     },
     {
@@ -1019,10 +1015,9 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 1,
       "assessment_reasons": [
         "repository_implementation_present",
-        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -1042,20 +1037,18 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": true,
+        "unit_tests": false,
         "web": false
       },
-      "evidence_score": 3,
+      "evidence_score": 2,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_delta": -2,
       "production_certified": false,
       "runtime_verified": false,
       "title": "Public API and SDK",
-      "unit_test_paths": [
-        "tests/architecture/test_capability_parity_investment_engine.py"
-      ]
+      "unit_test_paths": []
     },
     {
       "assessed_maturity": 2,
@@ -1328,7 +1321,6 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_scenario_whatif.py",
         "services/sahool-platform/tests/test_water_balance.py",
-        "tests/architecture/test_pr_capability_impact_gate.py",
         "tests_v9/test_h5_api_salinity.py",
         "tests_v9/test_h5_water_balance_auto.py",
         "tests_v9/test_predictive_irrigation.py"
@@ -1374,7 +1366,6 @@
         "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",
         "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
-        "tests/architecture/test_capability_parity_investment_engine.py",
         "tests_v9/test_irrigation_recommendation_policy.py"
       ]
     },
@@ -1418,10 +1409,9 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 1,
       "assessment_reasons": [
         "repository_implementation_present",
-        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -1441,20 +1431,18 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": true,
-        "unit_tests": true,
+        "unit_tests": false,
         "web": false
       },
-      "evidence_score": 4,
+      "evidence_score": 3,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_delta": -2,
       "production_certified": false,
       "runtime_verified": false,
       "title": "Pump and valve control",
-      "unit_test_paths": [
-        "tests/architecture/test_capability_parity_investment_engine.py"
-      ]
+      "unit_test_paths": []
     },
     {
       "assessed_maturity": 1,
@@ -2035,7 +2023,6 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
-        "tests/architecture/test_capability_traceability.py",
         "tests_v9/test_platform_catalog_gate.py",
         "tests_v9/test_v215_yield_map_ingestion_static.py"
       ]
@@ -2075,7 +2062,6 @@
       "runtime_verified": false,
       "title": "As-applied data",
       "unit_test_paths": [
-        "tests/architecture/test_capability_traceability.py",
         "tests_v9/test_canonical_as_applied_irrigation.py"
       ]
     },
@@ -3258,10 +3244,9 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 1,
       "assessment_reasons": [
         "repository_implementation_present",
-        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -3281,21 +3266,18 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": true,
+        "unit_tests": false,
         "web": false
       },
-      "evidence_score": 3,
+      "evidence_score": 2,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_delta": -2,
       "production_certified": false,
       "runtime_verified": false,
       "title": "Current weather",
-      "unit_test_paths": [
-        "tests/architecture/test_capability_roadmap_linker.py",
-        "tests/architecture/test_pr_capability_impact_gate.py"
-      ]
+      "unit_test_paths": []
     },
     {
       "assessed_maturity": 3,
@@ -3348,7 +3330,6 @@
         "services/sahool-platform/tests/test_planting_window.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
-        "tests/architecture/test_pr_capability_impact_gate.py",
         "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_capabilities.py",
         "tests_v9/test_endpoint_auth_coverage.py",
@@ -3474,7 +3455,6 @@
         "services/weather-service/tests/test_et0_series.py",
         "services/weather-service/tests/test_hourly_etc_product.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
-        "tests/architecture/test_capability_parity_investment_engine.py",
         "tests/test_real_data.py",
         "tests_v9/test_canonical_water.py",
         "tests_v9/test_canonical_water_state_mpc.py",
@@ -3784,7 +3764,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 26,
-    "average_assessed_maturity": 2.02,
+    "average_assessed_maturity": 1.98,
     "capability_count": 81,
     "declared_above_evidence": 52,
     "evidence_above_declared": 3,

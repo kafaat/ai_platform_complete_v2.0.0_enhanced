@@ -12,18 +12,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4750,
+    "files_scanned": 4704,
     "files_by_kind": {
       "backend": 1182,
       "database": 265,
       "governance": 55,
       "mobile": 51,
-      "other": 1216,
-      "tests": 1535,
+      "other": 1202,
+      "tests": 1503,
       "web": 446
     },
-    "unmapped_artifacts": 1965,
-    "ambiguous_artifacts": 397
+    "unmapped_artifacts": 1937,
+    "ambiguous_artifacts": 387
   },
   "capabilities": [
     {
@@ -154,15 +154,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
-          "score": 30,
-          "signals": [
-            "content:Decision candidate",
-            "content:decision candidate",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "scripts/ci/decision_candidate_boundary_gate.py",
           "score": 28,
           "signals": [
@@ -194,7 +185,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 2
       },
       "mapped": true,
       "coverage_dimensions": 3
@@ -1647,16 +1638,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/decision.yaml",
-          "score": 33,
-          "signals": [
-            "content:Outcome recording",
-            "content:decision outcome",
-            "content:outcome record",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/architecture/DECISION_OUTCOME_LEARNING_BRIDGE_CONTRACT.md",
           "score": 18,
           "signals": [
@@ -1721,7 +1702,7 @@
         "mobile": 0,
         "tests": 2,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 6
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -2262,15 +2243,6 @@
       ],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/decision.yaml",
-          "score": 32,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "scripts/ci/learning_attribution_boundary_gate.py",
           "score": 31,
           "signals": [
@@ -2329,7 +2301,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 1,
-        "other_evidence": 6
+        "other_evidence": 5
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -2357,27 +2329,9 @@
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [
-        {
-          "path": "tests/architecture/test_capability_traceability.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        }
-      ],
+      "tests": [],
       "governance": [],
       "other_evidence": [
-        {
-          "path": "docs/capability-registry/domains/decision.yaml",
-          "score": 32,
-          "signals": [
-            "content:Model calibration",
-            "content:evaluation run",
-            "content:model calibration",
-            "explicit_id"
-          ]
-        },
         {
           "path": "scripts/ci/capability_evidence_maturity_engine.py",
           "score": 20,
@@ -2413,12 +2367,12 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 0,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 3
       },
       "mapped": true,
-      "coverage_dimensions": 2
+      "coverage_dimensions": 1
     },
     {
       "capability_id": "DEC-010",
@@ -3041,13 +2995,6 @@
       "mobile": [],
       "tests": [
         {
-          "path": "tests/architecture/test_capability_traceability.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
           "score": 14,
           "signals": [
@@ -3099,16 +3046,6 @@
         }
       ],
       "other_evidence": [
-        {
-          "path": "docs/capability-registry/domains/decision.yaml",
-          "score": 33,
-          "signals": [
-            "content:Model lifecycle and activation",
-            "content:model activation",
-            "content:model promotion",
-            "explicit_id"
-          ]
-        },
         {
           "path": "scripts/ci/capability_evidence_maturity_engine.py",
           "score": 20,
@@ -3177,9 +3114,9 @@
         "events": 8,
         "web": 0,
         "mobile": 0,
-        "tests": 6,
+        "tests": 5,
         "governance": 1,
-        "other_evidence": 8
+        "other_evidence": 7
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -5054,17 +4991,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/farm_management.yaml",
-          "score": 43,
-          "signals": [
-            "content:Farm registry",
-            "path:farm",
-            "content:farm",
-            "content:farms",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/FARM_ID_ROLLOUT.md",
           "score": 17,
           "signals": [
@@ -5175,7 +5101,7 @@
         "mobile": 2,
         "tests": 25,
         "governance": 0,
-        "other_evidence": 13
+        "other_evidence": 12
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -7623,16 +7549,6 @@
           ]
         },
         {
-          "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
-          "score": 32,
-          "signals": [
-            "content:Season lifecycle",
-            "content:season",
-            "content:season lifecycle",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/SEASON_UPDATE.md",
           "score": 20,
           "signals": [
@@ -7762,7 +7678,7 @@
         "mobile": 1,
         "tests": 33,
         "governance": 0,
-        "other_evidence": 16
+        "other_evidence": 15
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -10297,19 +10213,6 @@
           ]
         },
         {
-          "path": "docs/capability-registry/domains/gis.yaml",
-          "score": 45,
-          "signals": [
-            "content:Terrain and DEM",
-            "content:contour",
-            "content:dem",
-            "content:hillshade",
-            "content:slope",
-            "content:terrain",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "skills/sahool-gis/TERRAIN_DEM.md",
           "score": 37,
           "signals": [
@@ -10606,7 +10509,7 @@
         "mobile": 0,
         "tests": 34,
         "governance": 0,
-        "other_evidence": 32
+        "other_evidence": 31
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -10688,16 +10591,7 @@
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [
-        {
-          "path": "tests/architecture/test_capability_parity_investment_engine.py",
-          "score": 24,
-          "signals": [
-            "content:Public API and SDK",
-            "explicit_id"
-          ]
-        }
-      ],
+      "tests": [],
       "governance": [],
       "other_evidence": [
         {
@@ -10751,12 +10645,12 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 0,
         "governance": 0,
         "other_evidence": 5
       },
       "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 0
     },
     {
       "capability_id": "INT-002",
@@ -11369,7 +11263,15 @@
       "mobile": [],
       "tests": [],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "scripts/ci/capability_management_engine.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -11383,9 +11285,9 @@
         "mobile": 0,
         "tests": 0,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 1
       },
-      "mapped": false,
+      "mapped": true,
       "coverage_dimensions": 0
     },
     {
@@ -11644,18 +11546,7 @@
         }
       ],
       "governance": [],
-      "other_evidence": [
-        {
-          "path": "docs/capability-registry/domains/irrigation.yaml",
-          "score": 31,
-          "signals": [
-            "content:Field water-source binding",
-            "content:field water source",
-            "content:source binding",
-            "explicit_id"
-          ]
-        }
-      ],
+      "other_evidence": [],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -11669,7 +11560,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 0
       },
       "mapped": true,
       "coverage_dimensions": 3
@@ -11824,13 +11715,6 @@
           ]
         },
         {
-          "path": "tests/architecture/test_pr_capability_impact_gate.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "services/sahool-platform/tests/test_scenario_whatif.py",
           "score": 12,
           "signals": [
@@ -11866,15 +11750,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/irrigation.yaml",
-          "score": 32,
-          "signals": [
-            "content:Water balance",
-            "content:water balance",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/history/COMPETITIVE_ANALYSIS.md",
           "score": 10,
           "signals": [
@@ -11902,9 +11777,9 @@
         "events": 0,
         "web": 2,
         "mobile": 0,
-        "tests": 7,
+        "tests": 6,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 2
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -12009,15 +11884,6 @@
           ]
         },
         {
-          "path": "tests/architecture/test_capability_parity_investment_engine.py",
-          "score": 26,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "tests_v9/test_irrigation_recommendation_policy.py",
           "score": 22,
           "signals": [
@@ -12063,24 +11929,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/irrigation.yaml",
-          "score": 32,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation",
-            "explicit_id"
-          ]
-        },
-        {
-          "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
-          "score": 30,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/audits/COMPARATIVE_STUDY_PLAN_VS_REALITY_20260718.md",
           "score": 10,
           "signals": [
@@ -12108,9 +11956,9 @@
         "events": 4,
         "web": 3,
         "mobile": 0,
-        "tests": 7,
+        "tests": 6,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 2
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -12174,16 +12022,7 @@
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [
-        {
-          "path": "tests/architecture/test_capability_parity_investment_engine.py",
-          "score": 23,
-          "signals": [
-            "content:Pump and valve control",
-            "explicit_id"
-          ]
-        }
-      ],
+      "tests": [],
       "governance": [],
       "other_evidence": [],
       "ambiguous": [],
@@ -12197,12 +12036,12 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 0,
         "governance": 0,
         "other_evidence": 0
       },
-      "mapped": true,
-      "coverage_dimensions": 1
+      "mapped": false,
+      "coverage_dimensions": 0
     },
     {
       "capability_id": "IRR-008",
@@ -12484,16 +12323,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/irrigation.yaml",
-          "score": 32,
-          "signals": [
-            "content:Water suitability multi-hazard",
-            "content:salinity",
-            "content:water suitability",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/capabilities/SALINITY_CAPABILITY.md",
           "score": 14,
           "signals": [
@@ -12539,7 +12368,7 @@
         "mobile": 0,
         "tests": 8,
         "governance": 0,
-        "other_evidence": 5
+        "other_evidence": 4
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -12761,15 +12590,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/operations.yaml",
-          "score": 32,
-          "signals": [
-            "content:Work orders",
-            "content:work order",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "agent-memory/SCHEMA_FACTS.md",
           "score": 8,
           "signals": [
@@ -12791,7 +12611,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 1
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -13481,15 +13301,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/operations.yaml",
-          "score": 32,
-          "signals": [
-            "content:Scouting",
-            "content:scouting",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/history/COMPETITIVE_ANALYSIS.md",
           "score": 12,
           "signals": [
@@ -13591,7 +13402,7 @@
         "mobile": 1,
         "tests": 18,
         "governance": 0,
-        "other_evidence": 12
+        "other_evidence": 11
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -14117,15 +13928,6 @@
       ],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/operations.yaml",
-          "score": 32,
-          "signals": [
-            "content:Field forms",
-            "content:field form",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "FIELD_FORMS_REAL_INTEGRATION_REPORT_20260723.md",
           "score": 26,
           "signals": [
@@ -14173,7 +13975,7 @@
         "mobile": 12,
         "tests": 20,
         "governance": 1,
-        "other_evidence": 5
+        "other_evidence": 4
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -14825,16 +14627,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/precision.yaml",
-          "score": 38,
-          "signals": [
-            "content:Management zones",
-            "content:management zone",
-            "content:productivity zone",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/architecture/PLATFORM_EXTRACTION_MAP.md",
           "score": 16,
           "signals": [
@@ -14906,7 +14698,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 8
+        "other_evidence": 7
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -15112,28 +14904,10 @@
             "content:yield map",
             "explicit_id"
           ]
-        },
-        {
-          "path": "tests/architecture/test_capability_traceability.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
         }
       ],
       "governance": [],
       "other_evidence": [
-        {
-          "path": "docs/capability-registry/release/baselines/003_d52a6b6_pa003_yield_map_ingestion.json",
-          "score": 44,
-          "signals": [
-            "path:Yield map ingestion",
-            "content:Yield map ingestion",
-            "path:yield map",
-            "content:yield map",
-            "explicit_id"
-          ]
-        },
         {
           "path": "docs/architecture/platform_extraction_map.json",
           "score": 32,
@@ -15173,9 +14947,9 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 5,
+        "tests": 4,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 3
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -15291,13 +15065,6 @@
       "mobile": [],
       "tests": [
         {
-          "path": "tests/architecture/test_capability_traceability.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "tests_v9/test_canonical_as_applied_irrigation.py",
           "score": 14,
           "signals": [
@@ -15336,7 +15103,7 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 2
       },
@@ -16483,17 +16250,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/satellite.yaml",
-          "score": 38,
-          "signals": [
-            "content:Satellite scene search",
-            "content:cdse",
-            "content:satellite scene",
-            "content:stac",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/audits/CDSE_PROVIDER_INTEGRATION.md",
           "score": 21,
           "signals": [
@@ -16772,7 +16528,7 @@
         "mobile": 0,
         "tests": 39,
         "governance": 0,
-        "other_evidence": 33
+        "other_evidence": 32
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -22322,16 +22078,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/satellite.yaml",
-          "score": 35,
-          "signals": [
-            "content:COG persistence and tiling",
-            "content:cog",
-            "content:tilejson",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "TILEJSON_CACHE_INDEX_FIX_REPORT_20260626.md",
           "score": 17,
           "signals": [
@@ -22529,7 +22275,7 @@
         "mobile": 0,
         "tests": 21,
         "governance": 0,
-        "other_evidence": 23
+        "other_evidence": 22
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -23976,16 +23722,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/security.yaml",
-          "score": 34,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls",
-            "content:tenant isolation",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "scripts/ci/fii_rls_write_policy_gate.py",
           "score": 23,
           "signals": [
@@ -24566,7 +24302,7 @@
         "mobile": 0,
         "tests": 55,
         "governance": 0,
-        "other_evidence": 68
+        "other_evidence": 67
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -25290,16 +25026,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/security.yaml",
-          "score": 36,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:totp",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "scripts/ci/capability_linker.py",
           "score": 32,
           "signals": [
@@ -25444,7 +25170,7 @@
         "mobile": 4,
         "tests": 13,
         "governance": 0,
-        "other_evidence": 16
+        "other_evidence": 15
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -25491,18 +25217,7 @@
         }
       ],
       "governance": [],
-      "other_evidence": [
-        {
-          "path": "docs/capability-registry/domains/security.yaml",
-          "score": 33,
-          "signals": [
-            "content:Audit logging",
-            "content:audit event",
-            "content:audit log",
-            "explicit_id"
-          ]
-        }
-      ],
+      "other_evidence": [],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -25516,7 +25231,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 0
       },
       "mapped": true,
       "coverage_dimensions": 2
@@ -27546,16 +27261,6 @@
           ]
         },
         {
-          "path": "docs/capability-registry/domains/soil.yaml",
-          "score": 38,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/history/SOIL_SAMPLING_REVIEW.md",
           "score": 28,
           "signals": [
@@ -27727,7 +27432,7 @@
         "mobile": 0,
         "tests": 11,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 19
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -27989,24 +27694,7 @@
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [
-        {
-          "path": "tests/architecture/test_capability_roadmap_linker.py",
-          "score": 28,
-          "signals": [
-            "content:Current weather",
-            "content:current weather",
-            "explicit_id"
-          ]
-        },
-        {
-          "path": "tests/architecture/test_pr_capability_impact_gate.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        }
-      ],
+      "tests": [],
       "governance": [],
       "other_evidence": [
         {
@@ -28037,12 +27725,12 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 0,
         "governance": 0,
         "other_evidence": 2
       },
       "mapped": true,
-      "coverage_dimensions": 1
+      "coverage_dimensions": 0
     },
     {
       "capability_id": "WX-002",
@@ -28815,13 +28503,6 @@
       "mobile": [],
       "tests": [
         {
-          "path": "tests/architecture/test_pr_capability_impact_gate.py",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "tests_v9/test_capabilities.py",
           "score": 18,
           "signals": [
@@ -29013,16 +28694,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/weather.yaml",
-          "score": 35,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "scripts/ci/weather_service_real_contract_gate.py",
           "score": 18,
           "signals": [
@@ -29187,9 +28858,9 @@
         "events": 55,
         "web": 9,
         "mobile": 0,
-        "tests": 22,
+        "tests": 21,
         "governance": 0,
-        "other_evidence": 18
+        "other_evidence": 17
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -29323,16 +28994,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/weather.yaml",
-          "score": 35,
-          "signals": [
-            "content:Weather history",
-            "content:historical weather",
-            "content:weather history",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/architecture/weather_boundary_allowlist.json",
           "score": 16,
           "signals": [
@@ -29363,7 +29024,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 2
       },
       "mapped": true,
       "coverage_dimensions": 4
@@ -30593,15 +30254,6 @@
           ]
         },
         {
-          "path": "tests/architecture/test_capability_parity_investment_engine.py",
-          "score": 26,
-          "signals": [
-            "content:ET0",
-            "content:et0",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "services/sahool-platform/tests/test_weather_sources.py",
           "score": 15,
           "signals": [
@@ -31186,7 +30838,7 @@
         "events": 77,
         "web": 19,
         "mobile": 0,
-        "tests": 58,
+        "tests": 57,
         "governance": 0,
         "other_evidence": 20
       },
@@ -31494,15 +31146,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/weather.yaml",
-          "score": 32,
-          "signals": [
-            "content:VPD",
-            "content:vpd",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "scripts/ci/capability_mapping_engine.py",
           "score": 32,
           "signals": [
@@ -31551,7 +31194,7 @@
         "mobile": 0,
         "tests": 6,
         "governance": 0,
-        "other_evidence": 5
+        "other_evidence": 4
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -32963,15 +32606,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/capability-registry/domains/weather.yaml",
-          "score": 32,
-          "signals": [
-            "content:GDD",
-            "content:gdd",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -33130,7 +32764,7 @@
         "mobile": 0,
         "tests": 38,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 18
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -33537,18 +33171,7 @@
         }
       ],
       "governance": [],
-      "other_evidence": [
-        {
-          "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
-          "score": 30,
-          "signals": [
-            "content:Weather provenance and quality",
-            "content:canonical weather",
-            "content:weather provenance",
-            "explicit_id"
-          ]
-        }
-      ],
+      "other_evidence": [],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -33562,7 +33185,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 0
       },
       "mapped": true,
       "coverage_dimensions": 3
@@ -39878,118 +39501,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests/architecture/test_architecture_graph.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_capability_evidence_maturity_engine.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_capability_mapping_engine.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_capability_registry_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_capability_registry_v1.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_compose_runtime_target_resolver.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_database_contract_graph.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_decision_lineage_graph.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_duplicate_definition_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_event_contract_graph.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_execution_dependency_audit.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_gateway_reachability_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_integration_runtime_governance_closure.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_path3_attestation_policy.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_path3_live_acceptance_gate.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_path3_run_attestation.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_path3_runtime_readiness_closure.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_phase21_legacy_quarantine.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_phase21_source_of_truth.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_route_conflict_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_router_reachability_guard.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_runtime_certification_gate.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_runtime_contract_generator.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_runtime_environment_preflight.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_runtime_evidence_ingestion.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_runtime_probe_batch.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_runtime_verification_harness.py",
-      "kind": "tests"
-    },
-    {
-      "path": "tests/architecture/test_static_governance_closure.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests/certification/test_phase21_certification_matrix.py",
       "kind": "tests"
     },
@@ -42762,279 +42273,6 @@
           "signals": [
             "content:Dispatch authorization",
             "content:dispatch authorization"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/capability-registry/domains/decision.yaml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "DEC-010",
-          "score": 33,
-          "signals": [
-            "content:Model lifecycle and activation",
-            "content:model activation",
-            "content:model promotion",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "DEC-007",
-          "score": 33,
-          "signals": [
-            "content:Outcome recording",
-            "content:decision outcome",
-            "content:outcome record",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "DEC-009",
-          "score": 32,
-          "signals": [
-            "content:Model calibration",
-            "content:evaluation run",
-            "content:model calibration",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "DEC-008",
-          "score": 32,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution",
-            "explicit_id"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/capability-registry/domains/irrigation.yaml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "IRR-009",
-          "score": 32,
-          "signals": [
-            "content:Water suitability multi-hazard",
-            "content:salinity",
-            "content:water suitability",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-005",
-          "score": 32,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-004",
-          "score": 32,
-          "signals": [
-            "content:Water balance",
-            "content:water balance",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-003",
-          "score": 31,
-          "signals": [
-            "content:Field water-source binding",
-            "content:field water source",
-            "content:source binding",
-            "explicit_id"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/capability-registry/domains/operations.yaml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "OPS-004",
-          "score": 32,
-          "signals": [
-            "content:Field forms",
-            "content:field form",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "OPS-003",
-          "score": 32,
-          "signals": [
-            "content:Scouting",
-            "content:scouting",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "OPS-002",
-          "score": 32,
-          "signals": [
-            "content:Work orders",
-            "content:work order",
-            "explicit_id"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/capability-registry/domains/satellite.yaml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 38,
-          "signals": [
-            "content:Satellite scene search",
-            "content:cdse",
-            "content:satellite scene",
-            "content:stac",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 35,
-          "signals": [
-            "content:COG persistence and tiling",
-            "content:cog",
-            "content:tilejson",
-            "explicit_id"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/capability-registry/domains/security.yaml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-004",
-          "score": 36,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:totp",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 34,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls",
-            "content:tenant isolation",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "SEC-005",
-          "score": 33,
-          "signals": [
-            "content:Audit logging",
-            "content:audit event",
-            "content:audit log",
-            "explicit_id"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/capability-registry/domains/weather.yaml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-003",
-          "score": 35,
-          "signals": [
-            "content:Weather history",
-            "content:historical weather",
-            "content:weather history",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "WX-002",
-          "score": 35,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "WX-006",
-          "score": 32,
-          "signals": [
-            "content:GDD",
-            "content:gdd",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "WX-005",
-          "score": 32,
-          "signals": [
-            "content:VPD",
-            "content:vpd",
-            "explicit_id"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "FM-004",
-          "score": 32,
-          "signals": [
-            "content:Season lifecycle",
-            "content:season",
-            "content:season lifecycle",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "WX-010",
-          "score": 30,
-          "signals": [
-            "content:Weather provenance and quality",
-            "content:canonical weather",
-            "content:weather provenance",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-005",
-          "score": 30,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "DEC-002",
-          "score": 30,
-          "signals": [
-            "content:Decision candidate",
-            "content:decision candidate",
-            "explicit_id"
           ]
         }
       ]
@@ -50318,107 +49556,6 @@
           "signals": [
             "content:field boundary",
             "content:field workspace"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "tests/architecture/test_capability_parity_investment_engine.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "WX-004",
-          "score": 26,
-          "signals": [
-            "content:ET0",
-            "content:et0",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-005",
-          "score": 26,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "INT-001",
-          "score": 24,
-          "signals": [
-            "content:Public API and SDK",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-007",
-          "score": 23,
-          "signals": [
-            "content:Pump and valve control",
-            "explicit_id"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "tests/architecture/test_capability_traceability.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "PA-004",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "PA-003",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "DEC-010",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "DEC-009",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "tests/architecture/test_pr_capability_impact_gate.py",
-      "kind": "tests",
-      "candidates": [
-        {
-          "capability_id": "WX-002",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "WX-001",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "IRR-004",
-          "score": 20,
-          "signals": [
-            "explicit_id"
           ]
         }
       ]
