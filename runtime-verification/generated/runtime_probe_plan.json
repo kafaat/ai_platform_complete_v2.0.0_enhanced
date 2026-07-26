@@ -1,0 +1,1161 @@
+{
+  "fail_closed": true,
+  "plan_sha256": "a98fcdf2fe1791f4690c216f9e52edbc75e89d95cc64a1835f993cb432aed894",
+  "schema_version": "1.0",
+  "services": [
+    {
+      "base_url_env": "ACTUATOR_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/idempotency/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "actuator-service",
+      "source_service": "actuator-service"
+    },
+    {
+      "base_url_env": "AGRIAI_ENGINE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "agriai-engine",
+      "source_service": "agriai-engine"
+    },
+    {
+      "base_url_env": "AI_AGRONOMIST_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz/ai-provider"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "ready"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "ready_dates"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "ai_agronomist",
+      "source_service": "ai_agronomist"
+    },
+    {
+      "base_url_env": "AUTH_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "auth",
+      "source_service": "auth"
+    },
+    {
+      "base_url_env": "DECISION_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/livez"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz/"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "decision-service",
+      "source_service": "decision-service"
+    },
+    {
+      "base_url_env": "EDGE_INFERENCE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "edge-inference",
+      "source_service": "edge-inference"
+    },
+    {
+      "base_url_env": "ERP_BRIDGE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz/capabilities"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "erp-bridge",
+      "source_service": "odoo-bridge"
+    },
+    {
+      "base_url_env": "FIELD_MANAGEMENT_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "field-management-service",
+      "source_service": "field-management-service"
+    },
+    {
+      "base_url_env": "FIELD_SEGMENTATION_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "field-segmentation",
+      "source_service": "field-segmentation"
+    },
+    {
+      "base_url_env": "GIS_WORKFLOW_SERVICE_BASE_URL",
+      "probes": [],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "gis-workflow-service",
+      "source_service": "gis-workflow-service"
+    },
+    {
+      "base_url_env": "GUARDRAILS_ENGINE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "guardrails-engine",
+      "source_service": "guardrails-engine"
+    },
+    {
+      "base_url_env": "INDICATORS_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "indicators-service",
+      "source_service": "indicators-service"
+    },
+    {
+      "base_url_env": "KNOWLEDGE_GRAPH_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "knowledge-graph",
+      "source_service": "knowledge-graph"
+    },
+    {
+      "base_url_env": "LOCAL_AI_RAG_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "local-ai-rag",
+      "source_service": "local-ai-rag"
+    },
+    {
+      "base_url_env": "MCP_SERVERS_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "mcp_servers",
+      "source_service": "mcp_servers"
+    },
+    {
+      "base_url_env": "MODEL_REGISTRY_ADAPTER_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "model-registry-adapter",
+      "source_service": "model-registry-adapter"
+    },
+    {
+      "base_url_env": "QDRANT_SEED_BASE_URL",
+      "probes": [],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "qdrant-seed",
+      "source_service": "qdrant-seed"
+    },
+    {
+      "base_url_env": "RAG_RETRIEVAL_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "rag-retrieval",
+      "source_service": "rag-retrieval"
+    },
+    {
+      "base_url_env": "RASTER_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "raster-service",
+      "source_service": "raster-service"
+    },
+    {
+      "base_url_env": "RASTER_TILER_SERVICE_BASE_URL",
+      "probes": [],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "raster-tiler-service",
+      "source_service": "raster-tiler-service"
+    },
+    {
+      "base_url_env": "REMOTE_SENSING_WORKSPACE_BFF_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "remote-sensing-workspace-bff",
+      "source_service": "remote-sensing-workspace-bff"
+    },
+    {
+      "base_url_env": "SAHOOL_PLATFORM_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/api/agent/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/api/v1/devices/fleet-health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/api/v1/weather/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "state_of_health_percent"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/api/v1/weather/metrics.prom"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "metric_delta"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "metric_deltas"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/api/indicators/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/api/v1/weather/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/api/vegetation/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/api/weather/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "cog_ready"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "dispatch_ready"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "sahool-platform",
+      "source_service": "sahool-platform"
+    },
+    {
+      "base_url_env": "SAM2_INFERENCE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "sam2-inference",
+      "source_service": "sam2-inference"
+    },
+    {
+      "base_url_env": "SCOUT_INGEST_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "scout-ingest-service",
+      "source_service": "scout-ingest-service"
+    },
+    {
+      "base_url_env": "SOIL_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "oldest_ready_age_seconds"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "soil-service",
+      "source_service": "soil-service"
+    },
+    {
+      "base_url_env": "SUPERVISOR_AGENT_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz/deps"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "health_distribution"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "health_status"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "supervisor-agent",
+      "source_service": "supervisor-agent"
+    },
+    {
+      "base_url_env": "TTS_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "tts-service",
+      "source_service": "tts-service"
+    },
+    {
+      "base_url_env": "VEGETATION_ANALYSIS_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "health"
+        },
+        {
+          "kind": "metrics",
+          "method": "GET",
+          "path": "/metrics"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "ready"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "{main.RASTER_SERVICE_URL}/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "vegetation-analysis-service",
+      "source_service": "vegetation-analysis-service"
+    },
+    {
+      "base_url_env": "VIDEO_PROCESSOR_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "video-processor",
+      "source_service": "video-processor"
+    },
+    {
+      "base_url_env": "WEATHER_POLYGON_WORKER_BASE_URL",
+      "probes": [],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "weather-polygon-worker",
+      "source_service": "weather-polygon-worker"
+    },
+    {
+      "base_url_env": "WEATHER_SERVICE_BASE_URL",
+      "probes": [
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/health"
+        },
+        {
+          "kind": "health",
+          "method": "GET",
+          "path": "/healthz"
+        },
+        {
+          "kind": "readiness",
+          "method": "GET",
+          "path": "/readyz"
+        }
+      ],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "weather-service",
+      "source_service": "weather-service"
+    },
+    {
+      "base_url_env": "WEATHER_SIGNAL_ENGINE_BASE_URL",
+      "probes": [],
+      "production_certified": false,
+      "required_evidence_fields": [
+        "schema_version",
+        "service",
+        "tested_sha",
+        "environment_id",
+        "started_at",
+        "completed_at",
+        "probe_results",
+        "plan_sha256"
+      ],
+      "runtime_verified": false,
+      "service": "weather-signal-engine",
+      "source_service": "weather-signal-engine"
+    }
+  ],
+  "source_contract_sha256": "3668819fa01a4af387eac20d2dafb2a1bcb4398a20989f080e7c0a9bb7ab0b7f"
+}

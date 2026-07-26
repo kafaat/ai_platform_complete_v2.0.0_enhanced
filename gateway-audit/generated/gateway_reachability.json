@@ -1,0 +1,1357 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "nginx-static-gateway-reachability",
+  "runtime_verified": false,
+  "production_certified": false,
+  "compose_name_count": 210,
+  "config_count": 4,
+  "upstream_count": 51,
+  "proxied_location_count": 68,
+  "gateway_authenticated_location_count": 8,
+  "tenant_bound_location_count": 8,
+  "hard_configuration_errors": [],
+  "review_finding_count": 9,
+  "files": [
+    {
+      "file": "nginx/nginx.v9.conf",
+      "profile": "nginx.v9",
+      "upstreams": {
+        "auth_backend": [
+          {
+            "host": "sahool-auth",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "platform_backend": [
+          {
+            "host": "sahool-platform",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "indicators_backend": [
+          {
+            "host": "sahool-indicators-service",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "vegetation_backend": [
+          {
+            "host": "sahool-vegetation-analysis",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "weather_backend": [
+          {
+            "host": "sahool-weather-service",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "raster_backend": [
+          {
+            "host": "sahool-raster-service",
+            "port": 8001,
+            "compose_declared": true
+          }
+        ],
+        "supervisor_backend": [
+          {
+            "host": "sahool-supervisor-agent",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "guardrails_backend": [
+          {
+            "host": "sahool-guardrails-engine",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "rag_backend": [
+          {
+            "host": "sahool-rag-retrieval",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "kg_backend": [
+          {
+            "host": "sahool-knowledge-graph",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "ai_agronomist_backend": [
+          {
+            "host": "sahool-ai-agronomist",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "scout_ingest_backend": [
+          {
+            "host": "sahool-scout-ingest",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "notification_ws": [
+          {
+            "host": "sahool-notification-agent",
+            "port": 8123,
+            "compose_declared": true
+          }
+        ],
+        "frontend_backend": [
+          {
+            "host": "sahool-frontend",
+            "port": 8080,
+            "compose_declared": true
+          }
+        ],
+        "tts_backend": [
+          {
+            "host": "sahool-tts-service",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "video_backend": [
+          {
+            "host": "sahool-video-processor",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "agriai_backend": [
+          {
+            "host": "sahool-agriai-engine",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "remote_sensing_workspace_backend": [
+          {
+            "host": "sahool-remote-sensing-workspace-bff",
+            "port": 8185,
+            "compose_declared": true
+          }
+        ]
+      },
+      "locations": [
+        {
+          "selector": "/tts/",
+          "proxy_pass": "http://tts_backend",
+          "upstream": "tts_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 101,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "= /_auth_verify",
+          "proxy_pass": "http://auth_backend/auth/verify",
+          "upstream": "auth_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": true,
+          "sensitive": false,
+          "line": 105,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/auth/",
+          "proxy_pass": "http://auth_backend",
+          "upstream": "auth_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 119,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/v1/",
+          "proxy_pass": "http://platform_backend/api/v1/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 129,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "= /api/indicators/readyz",
+          "proxy_pass": "http://indicators_backend/readyz",
+          "upstream": "indicators_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 136,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "= /api/weather/readyz",
+          "proxy_pass": "http://weather_backend/readyz",
+          "upstream": "weather_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 138,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "= /api/vegetation/readyz",
+          "proxy_pass": "http://vegetation_backend/readyz",
+          "upstream": "vegetation_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 140,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/indicators/",
+          "proxy_pass": "http://platform_backend/api/v1/indicators/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 143,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/vegetation/",
+          "proxy_pass": "http://vegetation_backend/",
+          "upstream": "vegetation_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": true,
+          "internal": false,
+          "sensitive": true,
+          "line": 144,
+          "security_class": "authenticated_tenant_bound"
+        },
+        {
+          "selector": "/api/raster/",
+          "proxy_pass": "http://raster_backend/",
+          "upstream": "raster_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": true,
+          "internal": false,
+          "sensitive": true,
+          "line": 152,
+          "security_class": "authenticated_tenant_bound"
+        },
+        {
+          "selector": "/api/remote-sensing-workspace/",
+          "proxy_pass": "http://remote_sensing_workspace_backend/",
+          "upstream": "remote_sensing_workspace_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": true,
+          "internal": false,
+          "sensitive": false,
+          "line": 168,
+          "security_class": "authenticated_tenant_bound"
+        },
+        {
+          "selector": "/api/edge/",
+          "proxy_pass": "http://platform_backend/api/edge/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 175,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/weather/",
+          "proxy_pass": "http://platform_backend/api/v1/weather/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 181,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/soil/",
+          "proxy_pass": "http://platform_backend/api/soil/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 184,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/field-forms/",
+          "proxy_pass": "http://platform_backend/api/field-forms/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 189,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/segmentation/",
+          "proxy_pass": "http://platform_backend/api/segmentation/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 195,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "= /api/agent/health",
+          "proxy_pass": "http://supervisor_backend/health",
+          "upstream": "supervisor_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 200,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/agent/",
+          "proxy_pass": "http://supervisor_backend/agent/",
+          "upstream": "supervisor_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 206,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/guardrails/",
+          "proxy_pass": "http://guardrails_backend/",
+          "upstream": "guardrails_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 211,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/rag/",
+          "proxy_pass": "http://rag_backend/",
+          "upstream": "rag_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": true,
+          "internal": false,
+          "sensitive": true,
+          "line": 216,
+          "security_class": "authenticated_tenant_bound"
+        },
+        {
+          "selector": "/api/knowledge-graph/",
+          "proxy_pass": "http://kg_backend/",
+          "upstream": "kg_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": true,
+          "internal": false,
+          "sensitive": true,
+          "line": 221,
+          "security_class": "authenticated_tenant_bound"
+        },
+        {
+          "selector": "/api/ai-agronomist/",
+          "proxy_pass": "http://ai_agronomist_backend/",
+          "upstream": "ai_agronomist_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": true,
+          "internal": false,
+          "sensitive": true,
+          "line": 224,
+          "security_class": "authenticated_tenant_bound"
+        },
+        {
+          "selector": "= /_auth_edge_sign",
+          "proxy_pass": "http://auth_backend/auth/edge-sign",
+          "upstream": "auth_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": true,
+          "sensitive": false,
+          "line": 237,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "~ ^/api/v1/seasons/[^/]+/accept$",
+          "proxy_pass": "http://scout_ingest_backend$season_canonical_path",
+          "upstream": "scout_ingest_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": true,
+          "internal": false,
+          "sensitive": true,
+          "line": 246,
+          "security_class": "authenticated_tenant_bound"
+        },
+        {
+          "selector": "~ ^/api/v1/seasons",
+          "proxy_pass": "http://scout_ingest_backend$season_canonical_path$is_args$args",
+          "upstream": "scout_ingest_backend",
+          "upstream_defined": true,
+          "auth_request": true,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": true,
+          "internal": false,
+          "sensitive": true,
+          "line": 260,
+          "security_class": "authenticated_tenant_bound"
+        },
+        {
+          "selector": "/ws/",
+          "proxy_pass": "http://notification_ws/ws/",
+          "upstream": "notification_ws",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 277,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/metrics",
+          "proxy_pass": "http://indicators_backend/metrics",
+          "upstream": "indicators_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 281,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/video/",
+          "proxy_pass": "http://video_backend/",
+          "upstream": "video_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 285,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/agriai/",
+          "proxy_pass": "http://agriai_backend/",
+          "upstream": "agriai_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 290,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/",
+          "proxy_pass": "http://frontend_backend/",
+          "upstream": "frontend_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 299,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "@spa_fallback",
+          "proxy_pass": "http://frontend_backend",
+          "upstream": "frontend_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 303,
+          "security_class": "public_or_service_enforced"
+        }
+      ],
+      "missing_compose_hosts": [],
+      "review_findings": [
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "= /api/vegetation/readyz",
+          "line": 140,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        },
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "/api/soil/",
+          "line": 184,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        },
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "/api/field-forms/",
+          "line": 189,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        },
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "/api/segmentation/",
+          "line": 195,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        }
+      ]
+    },
+    {
+      "file": "nginx/nginx.unified.conf",
+      "profile": "nginx.unified",
+      "upstreams": {
+        "auth_backend": [
+          {
+            "host": "auth-service",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "supervisor_backend": [
+          {
+            "host": "supervisor-agent",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "sentinel_backend": [
+          {
+            "host": "sentinel-hub-mcp",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "weather_backend": [
+          {
+            "host": "weather-mcp",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "wofost_backend": [
+          {
+            "host": "wofost-mcp",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "market_backend": [
+          {
+            "host": "market-mcp",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "video_backend": [
+          {
+            "host": "video-processor",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "actuator_backend": [
+          {
+            "host": "actuator-service",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "edge_backend": [
+          {
+            "host": "edge-inference",
+            "port": 8100,
+            "compose_declared": true
+          }
+        ],
+        "fastbee_backend": [
+          {
+            "host": "fastbee",
+            "port": 8080,
+            "compose_declared": true
+          }
+        ],
+        "zlmedia_backend": [
+          {
+            "host": "zlmediakit",
+            "port": 8080,
+            "compose_declared": true
+          }
+        ],
+        "rag_backend": [
+          {
+            "host": "local-ai-rag",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "erp_bridge_backend": [
+          {
+            "host": "erp-bridge",
+            "port": 8126,
+            "compose_declared": true
+          }
+        ],
+        "agriai_backend": [
+          {
+            "host": "agriai-engine",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "frontend_backend": [
+          {
+            "host": "frontend",
+            "port": 80,
+            "compose_declared": true
+          }
+        ]
+      },
+      "locations": [
+        {
+          "selector": "/auth/",
+          "proxy_pass": "http://auth_backend/",
+          "upstream": "auth_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 62,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/agent/",
+          "proxy_pass": "http://supervisor_backend/",
+          "upstream": "supervisor_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 70,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/sentinel/",
+          "proxy_pass": "http://sentinel_backend/",
+          "upstream": "sentinel_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 74,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/weather/",
+          "proxy_pass": "http://weather_backend/",
+          "upstream": "weather_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 76,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/wofost/",
+          "proxy_pass": "http://wofost_backend/",
+          "upstream": "wofost_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 79,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/market/",
+          "proxy_pass": "http://market_backend/",
+          "upstream": "market_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 81,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/edge/",
+          "proxy_pass": "http://edge_backend/",
+          "upstream": "edge_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 83,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/video/",
+          "proxy_pass": "http://video_backend/",
+          "upstream": "video_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 91,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/actuator/",
+          "proxy_pass": "http://actuator_backend/",
+          "upstream": "actuator_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 99,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/rag/",
+          "proxy_pass": "http://rag_backend/",
+          "upstream": "rag_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 106,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/agriai/",
+          "proxy_pass": "http://agriai_backend/",
+          "upstream": "agriai_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 109,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/odoo/",
+          "proxy_pass": "http://erp_bridge_backend/",
+          "upstream": "erp_bridge_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 114,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/erp/",
+          "proxy_pass": "http://erp_bridge_backend/",
+          "upstream": "erp_bridge_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 120,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/fastbee/",
+          "proxy_pass": "http://fastbee_backend/",
+          "upstream": "fastbee_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 124,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/live/",
+          "proxy_pass": "http://zlmedia_backend/",
+          "upstream": "zlmedia_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 128,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/",
+          "proxy_pass": "http://frontend_backend/",
+          "upstream": "frontend_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 134,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "@spa_fallback",
+          "proxy_pass": "http://frontend_backend/index.html",
+          "upstream": "frontend_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 136,
+          "security_class": "public_or_service_enforced"
+        }
+      ],
+      "missing_compose_hosts": [],
+      "review_findings": [
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "/api/actuator/",
+          "line": 99,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        },
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "/api/rag/",
+          "line": 106,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        }
+      ]
+    },
+    {
+      "file": "nginx/nginx.light.conf",
+      "profile": "nginx.light",
+      "upstreams": {
+        "auth_backend": [
+          {
+            "host": "sahool-auth",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "supervisor_backend": [
+          {
+            "host": "sahool-supervisor",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "video_backend": [
+          {
+            "host": "sahool-video-processor",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "actuator_backend": [
+          {
+            "host": "sahool-actuator",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "edge_backend": [
+          {
+            "host": "sahool-edge",
+            "port": 8100,
+            "compose_declared": true
+          }
+        ],
+        "frontend_backend": [
+          {
+            "host": "sahool-frontend",
+            "port": 80,
+            "compose_declared": true
+          }
+        ],
+        "zlmedia_backend": [
+          {
+            "host": "sahool-zlmediakit",
+            "port": 8080,
+            "compose_declared": true
+          }
+        ]
+      },
+      "locations": [
+        {
+          "selector": "/auth/",
+          "proxy_pass": "http://auth_backend/",
+          "upstream": "auth_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 58,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/agent/",
+          "proxy_pass": "http://supervisor_backend/",
+          "upstream": "supervisor_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 62,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/video/",
+          "proxy_pass": "http://video_backend/",
+          "upstream": "video_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 66,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/actuator/",
+          "proxy_pass": "http://actuator_backend/",
+          "upstream": "actuator_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 71,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/edge/",
+          "proxy_pass": "http://edge_backend/",
+          "upstream": "edge_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 76,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/live/",
+          "proxy_pass": "http://zlmedia_backend/",
+          "upstream": "zlmedia_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 82,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/",
+          "proxy_pass": "http://frontend_backend/",
+          "upstream": "frontend_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 85,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "@spa_fallback",
+          "proxy_pass": "http://frontend_backend/index.html",
+          "upstream": "frontend_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 90,
+          "security_class": "public_or_service_enforced"
+        }
+      ],
+      "missing_compose_hosts": [],
+      "review_findings": [
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "/api/actuator/",
+          "line": 71,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        }
+      ]
+    },
+    {
+      "file": "nginx/nginx.fixed.conf",
+      "profile": "nginx.fixed",
+      "upstreams": {
+        "auth_backend": [
+          {
+            "host": "sahool-auth",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "supervisor_backend": [
+          {
+            "host": "sahool-supervisor-agent",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "guardrails_backend": [
+          {
+            "host": "sahool-guardrails-engine",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "vegetation_backend": [
+          {
+            "host": "sahool-vegetation-analysis",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "indicators_backend": [
+          {
+            "host": "sahool-indicators-service",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "weather_backend": [
+          {
+            "host": "sahool-weather-service",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "raster_backend": [
+          {
+            "host": "sahool-raster-service",
+            "port": 8001,
+            "compose_declared": true
+          }
+        ],
+        "market_backend": [
+          {
+            "host": "sahool-market-mcp",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ],
+        "notification_ws": [
+          {
+            "host": "sahool-notification-agent",
+            "port": 8123,
+            "compose_declared": true
+          }
+        ],
+        "frontend_backend": [
+          {
+            "host": "sahool-frontend",
+            "port": 8080,
+            "compose_declared": true
+          }
+        ],
+        "platform_backend": [
+          {
+            "host": "sahool-platform",
+            "port": 8000,
+            "compose_declared": true
+          }
+        ]
+      },
+      "locations": [
+        {
+          "selector": "/auth/",
+          "proxy_pass": "http://auth_backend",
+          "upstream": "auth_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 36,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "= /api/agent/health",
+          "proxy_pass": "http://supervisor_backend/health",
+          "upstream": "supervisor_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 38,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/agent/",
+          "proxy_pass": "http://supervisor_backend/agent/",
+          "upstream": "supervisor_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 39,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/guardrails/",
+          "proxy_pass": "http://guardrails_backend/",
+          "upstream": "guardrails_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 40,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/vegetation/",
+          "proxy_pass": "http://vegetation_backend/",
+          "upstream": "vegetation_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 41,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/raster/",
+          "proxy_pass": "http://raster_backend/",
+          "upstream": "raster_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": true,
+          "line": 41,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/indicators/",
+          "proxy_pass": "http://indicators_backend/api/v1/indicators/",
+          "upstream": "indicators_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 44,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/weather/",
+          "proxy_pass": "http://platform_backend/api/v1/weather/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 47,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/market/",
+          "proxy_pass": "http://market_backend/",
+          "upstream": "market_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 50,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/api/v1/",
+          "proxy_pass": "http://platform_backend/api/v1/",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 52,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/ws/",
+          "proxy_pass": "http://notification_ws/ws/",
+          "upstream": "notification_ws",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 53,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "/",
+          "proxy_pass": "http://frontend_backend/",
+          "upstream": "frontend_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": false,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 61,
+          "security_class": "public_or_service_enforced"
+        }
+      ],
+      "missing_compose_hosts": [],
+      "review_findings": [
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "/api/vegetation/",
+          "line": 41,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        },
+        {
+          "kind": "sensitive_route_without_gateway_auth",
+          "selector": "/api/raster/",
+          "line": 41,
+          "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
+        }
+      ]
+    }
+  ],
+  "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
+  "content_sha256": "7996c561de60e2e3af718758d048376abfb560f629155cbdc16aaffa62d5eca0"
+}

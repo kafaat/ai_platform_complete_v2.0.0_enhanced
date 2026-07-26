@@ -1,0 +1,154 @@
+# Database Contract Graph
+
+> Static repository evidence only; PostgreSQL was not started.
+
+## Summary
+
+- **manifest_entries**: 220
+- **sql_files**: 222
+- **manifest_missing_count**: 0
+- **unlisted_sql_count**: 0
+- **tables**: 320
+- **tenant_tables**: 300
+- **rls_enabled**: 195
+- **rls_forced**: 176
+- **tenant_rls_gaps**: 133
+- **policies**: 182
+- **runtime_verified**: False
+- **production_certified**: False
+
+## Tenant RLS review candidates
+
+- `activities` — enabled=False, forced=False, policies=0
+- `agent_queries` — enabled=False, forced=False, policies=0
+- `alerts` — enabled=False, forced=False, policies=0
+- `approval_workflows` — enabled=False, forced=False, policies=0
+- `automation_rules` — enabled=False, forced=False, policies=0
+- `canonical_controller_capabilities` — enabled=False, forced=False, policies=0
+- `canonical_energy_capabilities` — enabled=False, forced=False, policies=0
+- `canonical_hydraulic_capabilities` — enabled=False, forced=False, policies=0
+- `canonical_irrigation_capability_graphs` — enabled=False, forced=False, policies=0
+- `canonical_irrigation_machine_capabilities` — enabled=False, forced=False, policies=0
+- `canonical_sprinkler_runoff_capabilities` — enabled=False, forced=False, policies=0
+- `canonical_well_capabilities` — enabled=False, forced=False, policies=0
+- `commands` — enabled=True, forced=False, policies=1
+- `crop_rotations` — enabled=False, forced=False, policies=0
+- `crop_stages` — enabled=True, forced=False, policies=0
+- `decision_policies` — enabled=False, forced=False, policies=0
+- `device_commands_log` — enabled=False, forced=False, policies=0
+- `device_telemetry` — enabled=False, forced=False, policies=0
+- `dispatch_decisions` — enabled=False, forced=False, policies=0
+- `documents` — enabled=False, forced=False, policies=0
+- `drone_missions` — enabled=True, forced=False, policies=0
+- `edge_results` — enabled=False, forced=False, policies=0
+- `equipment` — enabled=False, forced=False, policies=0
+- `equipment_maintenance` — enabled=False, forced=False, policies=0
+- `events` — enabled=True, forced=False, policies=1
+- `execution_ledger` — enabled=False, forced=False, policies=0
+- `farms` — enabled=False, forced=False, policies=0
+- `field_boundaries` — enabled=True, forced=False, policies=0
+- `field_boundary_graph` — enabled=False, forced=False, policies=0
+- `field_indicators` — enabled=True, forced=False, policies=0
+- `field_lifecycle` — enabled=True, forced=False, policies=1
+- `field_state_snapshots` — enabled=False, forced=False, policies=0
+- `field_tasks` — enabled=False, forced=False, policies=0
+- `field_weather_overlay` — enabled=False, forced=False, policies=0
+- `fields` — enabled=False, forced=False, policies=0
+- `guardrails_log` — enabled=False, forced=False, policies=0
+- `hourly_energy_envelopes` — enabled=False, forced=False, policies=0
+- `hydraulic_capacity_evaluations` — enabled=False, forced=False, policies=0
+- `imagery_automation_fields` — enabled=False, forced=False, policies=0
+- `inventory_batches` — enabled=False, forced=False, policies=0
+- `inventory_items` — enabled=False, forced=False, policies=0
+- `iot_devices` — enabled=False, forced=False, policies=0
+- `irrigation_battery_systems` — enabled=False, forced=False, policies=0
+- `irrigation_capability_graph_edges` — enabled=False, forced=False, policies=0
+- `irrigation_capability_graph_nodes` — enabled=False, forced=False, policies=0
+- `irrigation_closed_loop_records` — enabled=False, forced=False, policies=0
+- `irrigation_commissioning_certificates_v2` — enabled=False, forced=False, policies=0
+- `irrigation_commissioning_certifications` — enabled=False, forced=False, policies=0
+- `irrigation_commissioning_evidence` — enabled=False, forced=False, policies=0
+- `irrigation_commissioning_tests_v2` — enabled=False, forced=False, policies=0
+- `irrigation_controller_command_requests` — enabled=False, forced=False, policies=0
+- `irrigation_controller_handshakes` — enabled=False, forced=False, policies=0
+- `irrigation_controller_telemetry` — enabled=False, forced=False, policies=0
+- `irrigation_controllers` — enabled=False, forced=False, policies=0
+- `irrigation_energy_loads` — enabled=False, forced=False, policies=0
+- `irrigation_energy_systems` — enabled=False, forced=False, policies=0
+- `irrigation_executability_gates` — enabled=False, forced=False, policies=0
+- `irrigation_execution_authorizations_v2` — enabled=False, forced=False, policies=0
+- `irrigation_generators` — enabled=False, forced=False, policies=0
+- `irrigation_grid_connections` — enabled=False, forced=False, policies=0
+- `irrigation_hybrid_inverters` — enabled=False, forced=False, policies=0
+- `irrigation_hydraulic_nodes` — enabled=False, forced=False, policies=0
+- `irrigation_hydraulic_segments` — enabled=False, forced=False, policies=0
+- `irrigation_learning_proposals` — enabled=False, forced=False, policies=0
+- `irrigation_machine_spans` — enabled=False, forced=False, policies=0
+- `irrigation_machines` — enabled=False, forced=False, policies=0
+- `irrigation_mainlines` — enabled=False, forced=False, policies=0
+- `irrigation_outcome_evidence` — enabled=False, forced=False, policies=0
+- `irrigation_production_certifications` — enabled=False, forced=False, policies=0
+- `irrigation_projects` — enabled=False, forced=False, policies=0
+- `irrigation_pump_curve_points` — enabled=False, forced=False, policies=0
+- `irrigation_pumps` — enabled=False, forced=False, policies=0
+- `irrigation_pv_arrays` — enabled=False, forced=False, policies=0
+- `irrigation_resource_reservation_events` — enabled=False, forced=False, policies=0
+- `irrigation_resource_reservations` — enabled=False, forced=False, policies=0
+- `irrigation_schedules` — enabled=False, forced=False, policies=0
+- `irrigation_sprinkler_packages` — enabled=False, forced=False, policies=0
+- `irrigation_sprinkler_zones` — enabled=False, forced=False, policies=0
+- `irrigation_valves` — enabled=False, forced=False, policies=0
+- `irrigation_water_allocations` — enabled=False, forced=False, policies=0
+- `irrigation_water_profiles` — enabled=False, forced=False, policies=0
+- `irrigation_water_quality_samples` — enabled=False, forced=False, policies=0
+- `irrigation_water_samples` — enabled=False, forced=False, policies=0
+- `irrigation_water_sources` — enabled=False, forced=False, policies=0
+- `irrigation_well_measurements` — enabled=False, forced=False, policies=0
+- `irrigation_well_pumping_tests` — enabled=False, forced=False, policies=0
+- `irrigation_wells` — enabled=False, forced=False, policies=0
+- `management_zones` — enabled=True, forced=False, policies=1
+- `market_sales_listings` — enabled=False, forced=False, policies=0
+- `master_data` — enabled=False, forced=False, policies=0
+- `ndvi_timeseries` — enabled=True, forced=False, policies=0
+- `notification_preferences` — enabled=True, forced=False, policies=1
+- `offline_synced_operations` — enabled=False, forced=False, policies=0
+- `processing_jobs` — enabled=True, forced=False, policies=0
+- `raster_assets` — enabled=True, forced=False, policies=1
+- `season_cost_items` — enabled=False, forced=False, policies=0
+- `season_crop` — enabled=False, forced=False, policies=0
+- `season_events` — enabled=False, forced=False, policies=0
+- `season_harvest` — enabled=False, forced=False, policies=0
+- `season_record_links` — enabled=False, forced=False, policies=0
+- `season_records` — enabled=False, forced=False, policies=0
+- `season_simulation_runs` — enabled=False, forced=False, policies=0
+- `seasons` — enabled=False, forced=False, policies=0
+- `settings` — enabled=False, forced=False, policies=0
+- `sharing_keys` — enabled=True, forced=False, policies=1
+- `soil_analog_products` — enabled=False, forced=False, policies=0
+- `soil_bare_composites` — enabled=False, forced=False, policies=0
+- `soil_drainage_assessments` — enabled=False, forced=False, policies=0
+- `soil_execution_records` — enabled=False, forced=False, policies=0
+- `soil_field_validations` — enabled=False, forced=False, policies=0
+- `soil_hydraulic_profiles` — enabled=False, forced=False, policies=0
+- `soil_learning_attributions` — enabled=False, forced=False, policies=0
+- `soil_learning_datasets` — enabled=False, forced=False, policies=0
+- `soil_outcome_records` — enabled=False, forced=False, policies=0
+- `soil_production_certifications` — enabled=False, forced=False, policies=0
+- `soil_readings` — enabled=True, forced=False, policies=0
+- `soil_reclamation_assessments` — enabled=False, forced=False, policies=0
+- `soil_reclamation_economics` — enabled=False, forced=False, policies=0
+- `soil_regional_calibrations` — enabled=False, forced=False, policies=0
+- `soil_salinity_products` — enabled=False, forced=False, policies=0
+- `soil_sampling_plans` — enabled=False, forced=False, policies=0
+- `soil_spatial_products` — enabled=False, forced=False, policies=0
+- `soil_terrain_products` — enabled=False, forced=False, policies=0
+- `soil_texture_products` — enabled=False, forced=False, policies=0
+- `soil_verification_records` — enabled=False, forced=False, policies=0
+- `soil_visual_observations` — enabled=False, forced=False, policies=0
+- `trueup_calibrations` — enabled=True, forced=False, policies=1
+- `users` — enabled=True, forced=False, policies=2
+- `weather_alerts` — enabled=False, forced=False, policies=0
+- `weather_observations` — enabled=True, forced=False, policies=0
+- `weather_signals` — enabled=False, forced=False, policies=0
+- `wofost_seasons` — enabled=True, forced=False, policies=0
+- `zonal_stats` — enabled=True, forced=False, policies=1
