@@ -25865,7 +25865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe4fe64e5bd86b5a17a9ad7db6facb476cf39881de50a0402b75c630de528ea0"
+          "content": "4ee1b9a53f07d03dd138422558887ecfeda0cd54df7aab3b350c059beb689d25"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",

@@ -1583,6 +1583,11 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v168_irrigation_engineering_foundation.sql"
+  field_irrigation_source_assignments:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v214_field_irrigation_source_assignments.sql"
   irrigation_well_measurements:
     owner: sahool-platform
     writers: [sahool-platform]
