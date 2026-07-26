@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -18,6 +19,23 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "execution-audit" / "generated" / "duplicate_definitions.json"
 SCAN = [ROOT / "services", ROOT / "sahool-platform", ROOT / "shared"]
 SKIP = {".git", ".venv", "venv", "node_modules", "dist", "build", "__pycache__", ".pytest_cache"}
+
+
+def _tracked_files() -> set[str]:
+    """git-tracked repo-relative paths. Scanning the raw filesystem (rglob) counts
+    transient/untracked ``*.py`` (editor scratch, tool output) that exist on a
+    developer machine but not on a clean CI checkout, making ``python_files_parsed``
+    — and therefore this generated file's hash — non-reproducible between local and
+    CI. Since ``--check`` rewrites the file, that drift surfaces in the downstream
+    static-governance manifest. Tracked files ARE the repository."""
+    out = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return {rel for rel in out.split("\0") if rel}
 
 
 @dataclass(frozen=True)
@@ -30,12 +48,16 @@ class Finding:
 
 
 def iter_files():
+    tracked = _tracked_files()
     for base in SCAN:
         if not base.exists():
             continue
         for path in base.rglob("*.py"):
-            if not any(part in SKIP for part in path.parts):
-                yield path
+            if any(part in SKIP for part in path.parts):
+                continue
+            if path.relative_to(ROOT).as_posix() not in tracked:
+                continue
+            yield path
 
 
 def decorator_name(node: ast.expr) -> str:

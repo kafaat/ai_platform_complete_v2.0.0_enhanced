@@ -12885,7 +12885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "55b8ec66360a29e7b9ef4f10f0428041feb367ebeeffb845a821af770c9f9eab"
+          "content": "90389aa50083839673477f809a6049c2445c0684013041b5421b4b4d25e2dcd1"
         }
       ],
       "name": "services/raster-service/cog_writer.py",
@@ -14189,6 +14189,16 @@
         }
       ],
       "name": "services/raster-service/test_reproject_nodata_mask_conflict.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "de8f16e48f8d0b028f07025ddfa48f0e419ccd11fde38d31b5222ddc978b61ab"
+        }
+      ],
+      "name": "services/raster-service/test_rgba_cog_photometric.py",
       "type": "file"
     },
     {

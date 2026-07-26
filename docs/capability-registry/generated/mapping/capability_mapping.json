@@ -12,14 +12,14 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 46,
-    "files_scanned": 4743,
+    "files_scanned": 4744,
     "files_by_kind": {
       "backend": 1180,
       "database": 264,
       "governance": 55,
       "mobile": 51,
       "other": 1215,
-      "tests": 1532,
+      "tests": 1533,
       "web": 446
     },
     "unmapped_artifacts": 1966,
@@ -22081,6 +22081,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_rgba_cog_photometric.py",
+          "score": 14,
+          "signals": [
+            "path:cog",
+            "content:cog"
+          ]
+        },
+        {
           "path": "tests_v9/test_frontend_tilejson_date_contract_guard.py",
           "score": 14,
           "signals": [
@@ -22423,7 +22431,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 20,
+        "tests": 21,
         "governance": 0,
         "other_evidence": 23
       },
