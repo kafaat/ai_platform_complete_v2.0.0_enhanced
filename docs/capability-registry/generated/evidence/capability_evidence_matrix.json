@@ -2630,6 +2630,7 @@
         "services/raster-service/test_db_rehydrate.py",
         "services/raster-service/test_p2_tile_observability_static.py",
         "services/raster-service/test_raster_map_deep_hardening_static.py",
+        "services/raster-service/test_rgba_cog_photometric.py",
         "services/raster-service/test_tiles.py",
         "shared/gis/test_cloud_native_runtime.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",

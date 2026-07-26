@@ -981,3 +981,7 @@ SHAs من `git log --oneline origin/main`.
 ### 2026-07-26 — تكامل roadmap linker + PR capability-impact gate (على main c1c5422)
 - **القرار (نمط المالك المستمرّ):** إضافة أداتَي roadmap→capability linkage و PR capability-impact declaration كطبقة حوكمة evidence-only فوق سجلّ القدرات، على main الطازج بعد دمج #658.
 - **السبب:** الأداتان fail-closed، لا ادّعاء تشغيل/إنتاج. أبقيتُ محرّكاتي (إصلاح المسح المُتعقَّب `50eac02`) ولم أعتمد نسخ المرفق d52a6b6. وصلتُ الخطوات في workflow الخاصّ بي حفاظاً على path3 + الأربعة محرّكات. ruff 0.15.8 نظيف. إعادة توليد كاملة على شجرتي (mapping files=4770 حتميّ). قيد جوهريّ: بوّابة الأثر تعامل تعديل الحوكمة-النواة كـgovernance_wide ⇒ وصف الـPR يحمل `Capability-Impact: ALL`. bundle 5087، `pytest -m unit` 3494.
+
+### 2026-07-26 — إصلاح PHOTOMETRIC لـtruecolor RGBA COG (على main be85939)
+- **القرار (تقرير المالك، نطاق «Fix + backfill note»):** تصريح `photometric=RGB`+`alpha=YES` وقت إنشاء COG في `write_rgba_cog`، مع اختبار سلوكيّ يثبت على ملفّ ناتج + حارس ساكن + رَنبوك إعادة معالجة انتقائيّة. لا bulk rewrite. لا توسيع لـblank-thumbnail.
+- **السبب:** الوسم الافتراضيّ MINISBLACK يكسر تفسير RGB لأيّ مستهلِك GDAL ويحذّر عند القراءة. التصريح وقت الإنشاء حتميّ عبر إصدارات GDAL (بعضها ينشر من colorinterp، بعضها لا — الإنتاج منها). صدق: القديم لا يتغيّر تلقائيّاً. bundle 5088، raster gate 277 نجح، الحوكمة نظيفة.
