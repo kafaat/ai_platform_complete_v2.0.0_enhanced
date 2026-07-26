@@ -27,12 +27,16 @@ jobs:
         run: python scripts/ci/duplicate_definition_guard.py --check
       - name: Validate router reachability inventory
         run: python scripts/ci/router_reachability_guard.py --check
+      - name: Validate route conflict inventory
+        run: python scripts/ci/route_conflict_guard.py --check
       - name: Validate event contract graph drift
         run: python scripts/ci/event_contract_graph.py --check
       - name: Validate capability registry
         run: python scripts/ci/capability_registry_guard.py --check
       - name: Validate capability linkage runtime evidence
         run: python scripts/ci/capability_runtime_evidence.py --check
+      - name: Validate PATH-1 static governance closure
+        run: python scripts/ci/static_governance_closure.py --check
       - name: Run capability governance + architecture-graph tests
         run: |
           python -m pytest -q \
@@ -44,4 +48,6 @@ jobs:
             tests/architecture/test_execution_dependency_audit.py \
             tests/architecture/test_duplicate_definition_guard.py \
             tests/architecture/test_router_reachability_guard.py \
-            tests/architecture/test_event_contract_graph.py
+            tests/architecture/test_route_conflict_guard.py \
+            tests/architecture/test_event_contract_graph.py \
+            tests/architecture/test_static_governance_closure.py
