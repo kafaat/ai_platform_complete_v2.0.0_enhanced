@@ -1,0 +1,235 @@
+{
+  "dynamic_contracts": [
+    {
+      "client_expr": "client",
+      "component": "actuator-service",
+      "durable": null,
+      "dynamic_expr": "topic",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "kind": "consumer",
+      "line": 1028,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "nc",
+      "component": "sahool-platform",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+      "kind": "consumer",
+      "line": 159,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "client",
+      "component": "actuator-service",
+      "durable": null,
+      "dynamic_expr": "topic",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "kind": "producer",
+      "line": 593,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "self.client",
+      "component": "ai_agronomist",
+      "durable": null,
+      "dynamic_expr": "event.subject()",
+      "file": "services/ai_agronomist/recommendation_events.py",
+      "kind": "producer",
+      "line": 61,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "self.event_publisher",
+      "component": "ai_agronomist",
+      "durable": null,
+      "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='created', payload={'intent': intent})",
+      "file": "services/ai_agronomist/recommendation_runtime_pipeline.py",
+      "kind": "producer",
+      "line": 78,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "self.event_publisher",
+      "component": "ai_agronomist",
+      "durable": null,
+      "dynamic_expr": "RecommendationEvent(tenant_id=tenant_id, field_id=field_id, recommendation_id=rec_id, event_type='review_required', payload={'review_id': review.review_id})",
+      "file": "services/ai_agronomist/recommendation_runtime_pipeline.py",
+      "kind": "producer",
+      "line": 110,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "self",
+      "component": "sahool-platform",
+      "durable": null,
+      "dynamic_expr": "row['nats_subject']",
+      "file": "services/sahool-platform/api/event_bus.py",
+      "kind": "producer",
+      "line": 642,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "_NATS_CONN",
+      "component": "sahool-platform",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "services/sahool-platform/api/main.py",
+      "kind": "producer",
+      "line": 564,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "nc",
+      "component": "sahool-platform",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "services/sahool-platform/api/phase_runtime_workers.py",
+      "kind": "producer",
+      "line": 66,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "self.publisher",
+      "component": "sahool-platform",
+      "durable": null,
+      "dynamic_expr": "GuardrailEvent('agent.guardrail', rule, intent.field_id, action.value, reason)",
+      "file": "services/sahool-platform/core/guardrails.py",
+      "kind": "producer",
+      "line": 327,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "js",
+      "component": "vegetation-analysis-service",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "services/vegetation-analysis-service/vegetation_runtime.py",
+      "kind": "producer",
+      "line": 546,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "client",
+      "component": "video-processor",
+      "durable": null,
+      "dynamic_expr": "topic",
+      "file": "services/video-processor/main.py",
+      "kind": "producer",
+      "line": 382,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "nc",
+      "component": "video-processor",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "services/video-processor/stream_events.py",
+      "kind": "producer",
+      "line": 132,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "client",
+      "component": "video-processor",
+      "durable": null,
+      "dynamic_expr": "topic",
+      "file": "services/video-processor/stream_events.py",
+      "kind": "producer",
+      "line": 157,
+      "queue": null,
+      "subject": null
+    },
+    {
+      "client_expr": "js",
+      "component": "shared",
+      "durable": null,
+      "dynamic_expr": "subject",
+      "file": "shared/helpers.py",
+      "kind": "producer",
+      "line": 319,
+      "queue": null,
+      "subject": null
+    }
+  ],
+  "limitations": [
+    "Dynamic subjects are review-only and excluded from missing producer/consumer findings.",
+    "Static presence does not prove stream provisioning, delivery, acknowledgement, or runtime reachability.",
+    "Producer-only and consumer-only subjects may be intentional external boundaries."
+  ],
+  "review": {
+    "consumer_only_subjects": [
+      "sahool.weather.forecast.updated"
+    ],
+    "cross_component_duplicate_durables": [],
+    "producer_only_subjects": [
+      "sahool.weather.field.overlay.completed"
+    ]
+  },
+  "schema_version": 1,
+  "scope": "static_literal_nats_jetstream_contracts",
+  "subjects": [
+    {
+      "consumers": [],
+      "producers": [
+        {
+          "client_expr": "js",
+          "component": "weather-polygon-worker",
+          "durable": null,
+          "dynamic_expr": null,
+          "file": "services/weather-polygon-worker/src/main.py",
+          "kind": "producer",
+          "line": 186,
+          "queue": null,
+          "subject": "sahool.weather.field.overlay.completed"
+        }
+      ],
+      "status": "producer_only",
+      "subject": "sahool.weather.field.overlay.completed"
+    },
+    {
+      "consumers": [
+        {
+          "client_expr": "js",
+          "component": "weather-polygon-worker",
+          "durable": "polygon-worker",
+          "dynamic_expr": null,
+          "file": "services/weather-polygon-worker/src/main.py",
+          "kind": "consumer",
+          "line": 165,
+          "queue": null,
+          "subject": "sahool.weather.forecast.updated"
+        }
+      ],
+      "producers": [],
+      "status": "consumer_only",
+      "subject": "sahool.weather.forecast.updated"
+    }
+  ],
+  "summary": {
+    "consumer_only_subjects": 1,
+    "cross_component_duplicate_durables": 0,
+    "dynamic_contracts": 15,
+    "files_scanned": 1147,
+    "matched_subjects": 0,
+    "producer_only_subjects": 1,
+    "production_certified": false,
+    "resolved_contracts": 2,
+    "runtime_verified": false,
+    "subjects": 2
+  }
+}

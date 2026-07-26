@@ -1,0 +1,3 @@
+subject,status,producer_count,consumer_count,producer_components,consumer_components
+sahool.weather.field.overlay.completed,producer_only,1,0,weather-polygon-worker,
+sahool.weather.forecast.updated,consumer_only,0,1,,weather-polygon-worker
