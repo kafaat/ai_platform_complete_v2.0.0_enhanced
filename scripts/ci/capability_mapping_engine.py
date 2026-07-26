@@ -506,7 +506,54 @@ def write_outputs(data: dict) -> None:
 
 def check_outputs(data: dict) -> bool:
     target = OUT / "capability_mapping.json"
-    return target.exists() and json.loads(target.read_text(encoding="utf-8")) == data
+    if not target.exists():
+        return False
+    committed = json.loads(target.read_text(encoding="utf-8"))
+    if committed == data:
+        return True
+    # Emit a targeted diff so drift is diagnosable in CI rather than opaque.
+    if committed.get("summary") != data.get("summary"):
+        print(
+            f"summary drift: committed={committed.get('summary')} fresh={data.get('summary')}",
+            file=sys.stderr,
+        )
+    cf = {c["capability_id"]: c for c in committed.get("capabilities", [])}
+    df = {c["capability_id"]: c for c in data.get("capabilities", [])}
+    for cid in sorted(set(cf) | set(df)):
+        a, b = cf.get(cid), df.get(cid)
+        if a != b:
+            for k in (
+                "backend",
+                "routes",
+                "database",
+                "events",
+                "web",
+                "mobile",
+                "tests",
+                "governance",
+                "other_evidence",
+            ):
+                if (a or {}).get(k) != (b or {}).get(k):
+                    print(
+                        f"drift {cid}.{k}: committed={(a or {}).get(k)} fresh={(b or {}).get(k)}",
+                        file=sys.stderr,
+                    )
+            break
+    if committed.get("unmapped_artifacts") != data.get("unmapped_artifacts"):
+        ca = {x["path"] for x in committed.get("unmapped_artifacts", [])}
+        da = {x["path"] for x in data.get("unmapped_artifacts", [])}
+        print(
+            f"unmapped drift: only-committed={sorted(ca - da)[:5]} only-fresh={sorted(da - ca)[:5]}",
+            file=sys.stderr,
+        )
+    if committed.get("ambiguous_artifacts") != data.get("ambiguous_artifacts"):
+        ca = {x["path"] for x in committed.get("ambiguous_artifacts", [])}
+        da = {x["path"] for x in data.get("ambiguous_artifacts", [])}
+        print(
+            f"ambiguous drift: only-committed={sorted(ca - da)[:5]} only-fresh={sorted(da - ca)[:5]}",
+            file=sys.stderr,
+        )
+    return False
 
 
 def main(argv=None) -> int:
