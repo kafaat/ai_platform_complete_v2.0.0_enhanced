@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -49,11 +50,32 @@ def load_json(path: Path) -> dict[str, Any]:
         return {}
 
 
+def _tracked_files() -> set[str]:
+    """git-tracked repo-relative paths. Scanning the raw filesystem (rglob) folds
+    in transient artifacts a CI runner may create under the generated roots
+    (``__pycache__``, ``.pyc``, partial writes from a concurrent step) that do not
+    exist on a clean checkout — making the manifest hash non-reproducible between
+    local and CI. Tracked files ARE the committed artifact set."""
+    out = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return {rel for rel in out.split("\0") if rel}
+
+
 def artifact_files() -> list[Path]:
+    tracked = _tracked_files()
     files: list[Path] = []
     for root in ARTIFACT_ROOTS:
         if root.exists():
-            files.extend(path for path in root.rglob("*") if path.is_file())
+            files.extend(
+                path
+                for path in root.rglob("*")
+                if path.is_file() and path.relative_to(ROOT).as_posix() in tracked
+            )
     return sorted(files, key=lambda path: path.relative_to(ROOT).as_posix())
 
 
@@ -236,6 +258,37 @@ def main() -> int:
         write_closure(payload)
     elif not validate_closure(payload):
         print("FAIL: static governance closure drift; run --generate")
+        # Name the exact drifted artifact so a CI-only drift is diagnosable rather
+        # than opaque (mirrors the capability-mapping drift diagnostic).
+        expected_summary = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+        if (
+            not SUMMARY_PATH.exists()
+            or SUMMARY_PATH.read_text(encoding="utf-8") != expected_summary
+        ):
+            print(" - drift: STATIC_GOVERNANCE_CLOSURE.json (payload/content_sha256)")
+        if not REPORT_PATH.exists() or REPORT_PATH.read_text(encoding="utf-8") != render_report(
+            payload
+        ):
+            print(" - drift: STATIC_GOVERNANCE_CLOSURE.md")
+        fresh_manifest = manifest_text()
+        if (
+            not MANIFEST_PATH.exists()
+            or MANIFEST_PATH.read_text(encoding="utf-8") != fresh_manifest
+        ):
+            committed_lines = (
+                MANIFEST_PATH.read_text(encoding="utf-8").splitlines()
+                if MANIFEST_PATH.exists()
+                else []
+            )
+            fresh_lines = fresh_manifest.splitlines()
+            committed_set = set(committed_lines)
+            fresh_set = set(fresh_lines)
+            only_committed = sorted(x.split("  ", 1)[-1] for x in committed_set - fresh_set)
+            only_fresh = sorted(x.split("  ", 1)[-1] for x in fresh_set - committed_set)
+            print(
+                " - drift: STATIC_GOVERNANCE_ARTIFACTS.sha256"
+                f" only-committed={only_committed[:8]} only-fresh={only_fresh[:8]}"
+            )
         return 1
     print(
         f"PATH-1 {payload['status']}: {sum(item['passed'] for item in checks)}/{len(checks)} closure checks passed"
