@@ -1905,3 +1905,13 @@ tables:
     writers: [decision-service]
     readers: []
     source: "services/decision-service/migrations/029_satellite_cdse_activation_gate.sql"
+  yield_map_ingestions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v215_yield_map_ingestion.sql"
+  yield_map_records:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v215_yield_map_ingestion.sql"

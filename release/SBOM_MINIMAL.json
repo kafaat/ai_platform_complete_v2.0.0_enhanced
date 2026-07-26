@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ed1bd130341f2e16eb0e1914376bdf155bf50a34f4f74d6662595d152e50fb1c"
+          "content": "6d0d1f944c5b16e3626da75cdb4af42e3faab322d4380d6f39692dbff59553d2"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -25175,7 +25175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "504cfcbfa7787229a3d9e595d55b091d25a95c714cef4f57dfd98cfccc0c5321"
+          "content": "0f3c84ec307bb69b1bb69f6655e14e26e1315449bdc1f1e12a375ca9e2e52840"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -25915,7 +25915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ee1b9a53f07d03dd138422558887ecfeda0cd54df7aab3b350c059beb689d25"
+          "content": "8b61645c50ac26ab3cb9e00cd71f27878b02f8297c0f8ebc6b597ccda79fff0b"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",

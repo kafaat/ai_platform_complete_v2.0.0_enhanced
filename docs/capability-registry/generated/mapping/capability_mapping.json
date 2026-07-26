@@ -22,8 +22,8 @@
       "tests": 1535,
       "web": 446
     },
-    "unmapped_artifacts": 1966,
-    "ambiguous_artifacts": 399
+    "unmapped_artifacts": 1965,
+    "ambiguous_artifacts": 397
   },
   "capabilities": [
     {
@@ -821,14 +821,6 @@
           ]
         },
         {
-          "path": "docs/architecture/platform_python_module_baseline.json",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
           "path": "scripts/ci/execution_delivery_receipt_boundary_gate.py",
           "score": 12,
           "signals": [
@@ -898,7 +890,7 @@
         "mobile": 0,
         "tests": 15,
         "governance": 0,
-        "other_evidence": 12
+        "other_evidence": 11
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -5929,15 +5921,6 @@
           ]
         },
         {
-          "path": "docs/architecture/platform_python_module_baseline.json",
-          "score": 14,
-          "signals": [
-            "content:field boundary",
-            "content:field geometry",
-            "content:field workspace"
-          ]
-        },
-        {
           "path": "docs/testing/FIELD_WORKSPACE_PRODUCTION_CLOSURE.md",
           "score": 14,
           "signals": [
@@ -6024,7 +6007,7 @@
         "mobile": 2,
         "tests": 11,
         "governance": 1,
-        "other_evidence": 12
+        "other_evidence": 11
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -7725,15 +7708,6 @@
           ]
         },
         {
-          "path": "docs/architecture/platform_python_module_baseline.json",
-          "score": 12,
-          "signals": [
-            "content:Season lifecycle",
-            "content:season",
-            "content:season lifecycle"
-          ]
-        },
-        {
           "path": "docs/audits/platform_agri_full_lifecycle_forensic_report.md",
           "score": 12,
           "signals": [
@@ -7788,7 +7762,7 @@
         "mobile": 1,
         "tests": 33,
         "governance": 0,
-        "other_evidence": 17
+        "other_evidence": 16
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -14861,15 +14835,6 @@
           ]
         },
         {
-          "path": "docs/architecture/platform_extraction_map.json",
-          "score": 18,
-          "signals": [
-            "content:Management zones",
-            "content:management zone",
-            "content:productivity zone"
-          ]
-        },
-        {
           "path": "docs/architecture/PLATFORM_EXTRACTION_MAP.md",
           "score": 16,
           "signals": [
@@ -14941,7 +14906,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 9
+        "other_evidence": 8
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -15131,6 +15096,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+          "score": 30,
+          "signals": [
+            "content:Yield map ingestion",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "tests_v9/test_platform_catalog_gate.py",
           "score": 26,
           "signals": [
@@ -15161,6 +15135,24 @@
           ]
         },
         {
+          "path": "docs/architecture/platform_extraction_map.json",
+          "score": 32,
+          "signals": [
+            "content:Yield map ingestion",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "docs/architecture/platform_python_module_baseline.json",
+          "score": 32,
+          "signals": [
+            "content:Yield map ingestion",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "config/endpoint_ui_coverage_waivers.json",
           "score": 31,
           "signals": [
@@ -15181,9 +15173,9 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 4,
+        "tests": 5,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 4
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -27574,15 +27566,6 @@
           ]
         },
         {
-          "path": "docs/architecture/platform_extraction_map.json",
-          "score": 18,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        },
-        {
           "path": "shared/ai/tool_schema.py",
           "score": 18,
           "signals": [
@@ -27744,7 +27727,7 @@
         "mobile": 0,
         "tests": 11,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 20
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -29040,15 +29023,6 @@
           ]
         },
         {
-          "path": "docs/architecture/platform_extraction_map.json",
-          "score": 18,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
           "path": "scripts/ci/weather_service_real_contract_gate.py",
           "score": 18,
           "signals": [
@@ -29215,7 +29189,7 @@
         "mobile": 0,
         "tests": 22,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 18
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -29359,15 +29333,6 @@
           ]
         },
         {
-          "path": "docs/architecture/platform_extraction_map.json",
-          "score": 18,
-          "signals": [
-            "content:Weather history",
-            "content:historical weather",
-            "content:weather history"
-          ]
-        },
-        {
           "path": "docs/architecture/weather_boundary_allowlist.json",
           "score": 16,
           "signals": [
@@ -29398,7 +29363,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 3
       },
       "mapped": true,
       "coverage_dimensions": 4
@@ -33040,14 +33005,6 @@
           ]
         },
         {
-          "path": "docs/architecture/platform_python_module_baseline.json",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
           "path": "docs/audits/CORE_DECISION_MD_REVIEW.md",
           "score": 12,
           "signals": [
@@ -33173,7 +33130,7 @@
         "mobile": 0,
         "tests": 38,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 19
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -39145,10 +39102,6 @@
       "kind": "tests"
     },
     {
-      "path": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "kind": "tests"
-    },
-    {
       "path": "services/sahool-platform/tests/test_p3_4_weather_facade_neutral.py",
       "kind": "tests"
     },
@@ -42477,88 +42430,6 @@
           "signals": [
             "content:erp bridge",
             "content:odoo bridge"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/platform_extraction_map.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-003",
-          "score": 18,
-          "signals": [
-            "content:Weather history",
-            "content:historical weather",
-            "content:weather history"
-          ]
-        },
-        {
-          "capability_id": "WX-002",
-          "score": 18,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
-          "capability_id": "SOIL-002",
-          "score": 18,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        },
-        {
-          "capability_id": "PA-001",
-          "score": 18,
-          "signals": [
-            "content:Management zones",
-            "content:management zone",
-            "content:productivity zone"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/platform_python_module_baseline.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "FM-003",
-          "score": 14,
-          "signals": [
-            "content:field boundary",
-            "content:field geometry",
-            "content:field workspace"
-          ]
-        },
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "FM-004",
-          "score": 12,
-          "signals": [
-            "content:Season lifecycle",
-            "content:season",
-            "content:season lifecycle"
-          ]
-        },
-        {
-          "capability_id": "DEC-004",
-          "score": 12,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
           ]
         }
       ]

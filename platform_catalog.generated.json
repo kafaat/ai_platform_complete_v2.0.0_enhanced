@@ -16830,6 +16830,8 @@
           "water_ledger",
           "wofost_seasons",
           "work_orders",
+          "yield_map_ingestions",
+          "yield_map_records",
           "yield_records",
           "yield_stability_maps"
         ]
@@ -17663,7 +17665,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "cc05fa4bd6461efa578b5c98e1e33ab762f88e11e09723cc134deb8909cd1be6",
+  "fingerprint": "5efef5aa38d0f5807e9089431bb051c73812e249d20d9b5253beca8bdf0c1808",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
