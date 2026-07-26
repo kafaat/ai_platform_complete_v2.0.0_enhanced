@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sahool.dev/schemas/capability-registry.schema.json",
+  "title": "SAHOOL Capability Registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "capabilities"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "generated_from": {
+      "type": "string"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/capability"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": [
+        "type",
+        "path"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "repository",
+            "runtime",
+            "production",
+            "external"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_end": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "capability": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "domain",
+        "owner",
+        "lifecycle",
+        "maturity",
+        "evidence_level",
+        "status",
+        "confidence",
+        "production_certified",
+        "dependencies",
+        "runtime",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]+-[0-9]{3}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 3
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 2
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 2
+        },
+        "lifecycle": {
+          "enum": [
+            "idea",
+            "planned",
+            "active",
+            "deprecated",
+            "archived"
+          ]
+        },
+        "maturity": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "evidence_level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "status": {
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "production_certified": {
+          "type": "boolean"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "apis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "ui_consumers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "mobile_consumers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "runtime": {
+          "type": "object",
+          "required": [
+            "metrics",
+            "traces",
+            "receipts",
+            "audit_events"
+          ],
+          "properties": {
+            "metrics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "traces": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "receipts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "audit_events": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "competitive": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
