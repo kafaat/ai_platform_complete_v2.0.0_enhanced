@@ -155,6 +155,16 @@ def validate(reg: dict, mapping: dict, evidence: dict, parity: dict, investment:
             c.get("maturity") != 5 or c.get("evidence_level") != 5
         ):
             errors.append(f"{c['id']}: invalid production certification")
+    # Fail-closed registry reconciliation: every registry-declared evidence pointer must
+    # resolve to a real file on disk. A stale/typo'd path is a hard error — never a silently
+    # dropped credit — so the mapper can neither invent nor lose declared evidence.
+    for c in caps:
+        for field in ("services", "apis", "tests", "ui_consumers", "mobile_consumers"):
+            for ptr in c.get(field, []) or []:
+                if isinstance(ptr, str) and not (ROOT / _pointer_path(ptr)).exists():
+                    errors.append(
+                        f"{c['id']}: declared {field} evidence missing on disk: {_pointer_path(ptr)}"
+                    )
     return errors
 
 

@@ -33,31 +33,55 @@ def test_management_outputs_are_complete_and_fail_closed():
 
 
 def test_registry_declared_existing_evidence_is_credited():
-    # The four capabilities the content-scanner missed but which declare real,
-    # on-disk services/APIs/tests must be credited (union of scanned ∪ declared).
+    # The capabilities the content-scanner under-credited but which declare real,
+    # on-disk evidence must be credited on their SPECIFIC dimensions (union of
+    # scanned ∪ registry-declared-and-existing), not merely flagged mapped.
     m = load("cm3", "scripts/ci/capability_management_engine.py")
     objs = [m.load_json(p) for p in (m.REG, m.MAPPING, m.EVIDENCE, m.PARITY, m.INVEST)]
     matrix, _, _ = m.generate_payload(*objs)
     by_id = {r["id"]: r for r in matrix}
-    for cid in ("IRR-010", "OPS-001", "OPS-006", "OPS-008", "PA-003"):
+    # cap -> dimensions that MUST be credited from its registry-declared, on-disk evidence.
+    expected = {
+        "IRR-010": ("backend", "routes"),
+        "OPS-001": ("backend", "routes", "tests", "mobile"),
+        "OPS-006": ("backend", "routes", "tests", "mobile"),
+        "OPS-008": ("backend", "tests"),
+        "PA-003": ("backend", "routes", "database", "tests"),
+    }
+    for cid, dims in expected.items():
         row = by_id[cid]
         assert row["mapped"] is True, cid
-        assert row["coverage_dimension_count"] > 0, cid
-    assert by_id["PA-003"]["coverage_dimensions"]["backend"] is True
-    assert by_id["PA-003"]["coverage_dimensions"]["routes"] is True
-    assert by_id["PA-003"]["coverage_dimensions"]["tests"] is True
+        assert row["coverage_dimension_count"] >= len(dims), cid
+        for dim in dims:
+            assert row["coverage_dimensions"][dim] is True, f"{cid}:{dim}"
 
 
 def test_real_scaffold_is_not_promoted_by_registry_presence_alone():
-    # INT-004 is a genuine gap: title/registry entry exists, but it declares no
-    # service, API, test, or executable evidence. Presence in the registry must NOT
-    # promote it to mapped.
+    # INT-004 ("External machinery integrations") is a genuine gap: its ISOXML/VRT
+    # modules are static export groundwork with no live adapter/consumer, and it
+    # declares no service/route/db/event/web/mobile/test evidence. Neither a registry
+    # title nor a catch-all other_evidence token mention may promote it to mapped.
     m = load("cm4", "scripts/ci/capability_management_engine.py")
     objs = [m.load_json(p) for p in (m.REG, m.MAPPING, m.EVIDENCE, m.PARITY, m.INVEST)]
     matrix, _, _ = m.generate_payload(*objs)
     int004 = {r["id"]: r for r in matrix}["INT-004"]
     assert int004["coverage_dimension_count"] == 0
     assert int004["mapped"] is False
+
+
+def test_declared_evidence_paths_are_reconciled_fail_closed():
+    # A registry-declared evidence pointer that does not resolve on disk is a HARD
+    # error, never a silently dropped credit — the mapper must not invent or lose
+    # evidence. Inject a phantom path and assert validate() rejects it.
+    m = load("cm5", "scripts/ci/capability_management_engine.py")
+    reg, mapping, evidence, parity, investment = (
+        m.load_json(p) for p in (m.REG, m.MAPPING, m.EVIDENCE, m.PARITY, m.INVEST)
+    )
+    assert m.validate(reg, mapping, evidence, parity, investment) == []
+    caps = reg["capabilities"] if isinstance(reg, dict) else reg
+    caps[0].setdefault("services", []).append("services/sahool-platform/does_not_exist_phantom.py")
+    errs = m.validate(reg, mapping, evidence, parity, investment)
+    assert any("missing on disk" in e for e in errs), errs
 
 
 def test_management_generated_json_has_no_drift():
