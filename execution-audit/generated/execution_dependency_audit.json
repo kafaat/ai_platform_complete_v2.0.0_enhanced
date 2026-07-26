@@ -504719,12 +504719,6 @@
           "owner": "video-processor"
         },
         {
-          "file": "services/auth/tests/test_router_decomposition_guard.py",
-          "symbol": "test_no_duplicate_route_registrations",
-          "line": 84,
-          "owner": "auth"
-        },
-        {
           "file": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
           "symbol": "test_no_duplicate_route_registrations",
           "line": 63,
@@ -504759,6 +504753,12 @@
           "symbol": "test_no_duplicate_route_registrations",
           "line": 65,
           "owner": "tts-service"
+        },
+        {
+          "file": "services/auth/tests/test_router_decomposition_guard.py",
+          "symbol": "test_no_duplicate_route_registrations",
+          "line": 84,
+          "owner": "auth"
         }
       ]
     },
@@ -505132,7 +505132,24 @@
       ]
     },
     {
-      "fingerprint": "fb147a923e924dda",
+      "fingerprint": "fd80e2f511b59f7d",
+      "occurrences": [
+        {
+          "file": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+          "symbol": "_hour",
+          "line": 35,
+          "owner": "sahool-platform"
+        },
+        {
+          "file": "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
+          "symbol": "_parse_time",
+          "line": 38,
+          "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "fe044b4dd7d94d9c",
       "occurrences": [
         {
           "file": "services/sahool-platform/tests/test_crop_decision_endpoint.py",
@@ -505150,23 +505167,6 @@
           "file": "services/sahool-platform/tests/test_profit_aware_decision_endpoint.py",
           "symbol": "_patch_engine_gdd",
           "line": 25,
-          "owner": "sahool-platform"
-        }
-      ]
-    },
-    {
-      "fingerprint": "fd80e2f511b59f7d",
-      "occurrences": [
-        {
-          "file": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
-          "symbol": "_hour",
-          "line": 35,
-          "owner": "sahool-platform"
-        },
-        {
-          "file": "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
-          "symbol": "_parse_time",
-          "line": 38,
           "owner": "sahool-platform"
         }
       ]
