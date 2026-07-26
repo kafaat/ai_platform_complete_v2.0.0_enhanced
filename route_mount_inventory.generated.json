@@ -316,7 +316,7 @@
     "service": "sahool-platform",
     "has_fastapi": true,
     "direct_routes": 0,
-    "router_routes": 573,
+    "router_routes": 571,
     "delegates_to_router_registry": true,
     "delegates_to_app_factory": false,
     "delegates_to_runtime_module": false,

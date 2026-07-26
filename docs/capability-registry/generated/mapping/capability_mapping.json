@@ -11276,23 +11276,15 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:185",
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:176",
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:302",
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:293",
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id} @ services/sahool-platform/api/routers/prescriptions.py:593",
-          "score": 20
-        },
-        {
-          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:346",
-          "score": 20
-        },
-        {
-          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/machinery-export @ services/sahool-platform/api/routers/prescriptions.py:476",
+          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:337",
           "score": 20
         }
       ],
@@ -11347,11 +11339,15 @@
           "score": 20
         },
         {
-          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:453",
+          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:543",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:630",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:398",
+          "score": 20
+        },
+        {
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:499",
           "score": 20
         }
       ],
@@ -11375,9 +11371,9 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 2,
-        "routes": 5,
+        "routes": 3,
         "database": 8,
-        "events": 5,
+        "events": 6,
         "web": 0,
         "mobile": 0,
         "tests": 1,

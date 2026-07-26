@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d0d1f944c5b16e3626da75cdb4af42e3faab322d4380d6f39692dbff59553d2"
+          "content": "ab5a37ba3e932c58616ce9c2f9a722bd53172f2bdc22416cc2a3e2148c04d717"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17795,7 +17795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a334b256abe44415fee0b450255b0d84b57e55431ddedd26995f2d9622ff81c"
+          "content": "abfe31a65f7d874ac449a688dc43666e53dc356b1a84b6da52efb0be4937819c"
         }
       ],
       "name": "services/sahool-platform/api/routers/prescriptions.py",
@@ -25945,7 +25945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b61645c50ac26ab3cb9e00cd71f27878b02f8297c0f8ebc6b597ccda79fff0b"
+          "content": "457c6ca97c970e0bf66a2f36931dbad6e3d51f1a1c8db0188c9ac3e487b2bcdf"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",

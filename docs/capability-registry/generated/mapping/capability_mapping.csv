@@ -24,7 +24,7 @@ GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
 INT-002,farm_management,Event bus integration,True,5,5,15,2,58,0,0,7,0
 INT-003,irrigation,IoT and sensors,True,1,0,0,0,0,0,0,1,0
-INT-004,precision,External machinery integrations,True,5,2,5,8,5,0,0,1,0
+INT-004,precision,External machinery integrations,True,5,2,3,8,6,0,0,1,0
 IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
 IRR-002,irrigation,Water quality samples,True,4,2,6,8,1,0,0,0,0
 IRR-003,irrigation,Field water-source binding,True,3,1,0,4,0,0,0,1,0

@@ -16782,6 +16782,8 @@
           "lab_samples",
           "lifecycle_temporal_rejections",
           "lineage_link",
+          "machine_control_profiles",
+          "machinery_export_artifacts",
           "market_sales_listings",
           "master_data",
           "mfa_audit_events",
@@ -17665,7 +17667,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "5efef5aa38d0f5807e9089431bb051c73812e249d20d9b5253beca8bdf0c1808",
+  "fingerprint": "fd139c0b1ab1802a3a7c1b6ce4b543acddb154fa3df5c68952aa54a4fe520637",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

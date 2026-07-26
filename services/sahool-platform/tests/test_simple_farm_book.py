@@ -153,13 +153,14 @@ def test_migration_is_append_only_rls_and_idempotent() -> None:
         for line in (root / "migrations/MANIFEST.txt").read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.lstrip().startswith("#")
     ]
-    # v213/v214/v215 are inserted before v206; the invariant is that v206 stays LAST.
-    assert entries[-6:] == [
+    # v213/v214/v215/v216 are inserted before v206; the invariant is that v206 stays LAST.
+    assert entries[-7:] == [
         "v211_simple_farm_book.sql",
         "v212_farm_book_one_reversal_index.sql",
         "v213_backfill_runs_single_scene.sql",
         "v214_field_irrigation_source_assignments.sql",
         "v215_yield_map_ingestion.sql",
+        "v216_machinery_export.sql",
         "v206_rls_final_hardening.sql",
     ]
 
