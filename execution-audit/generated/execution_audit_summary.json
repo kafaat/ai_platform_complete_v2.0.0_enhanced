@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "evidence_scope": "static_repository_only",
+  "runtime_verified": false,
+  "python_files_parsed": 1797,
+  "route_handlers": 1035,
+  "call_edges": 69830,
+  "dead_code_candidates": 610,
+  "duplicate_function_groups": 57,
+  "route_owners": 25,
+  "automatic_deletions": 0
+}
