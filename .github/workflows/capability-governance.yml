@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install test runner
-        run: pip install pytest==9.1.1
+        run: pip install pytest==9.1.1 PyYAML==6.0.2
       - name: Validate architecture graph drift
         run: python scripts/ci/architecture_graph.py --check
       - name: Validate runtime contract drift
