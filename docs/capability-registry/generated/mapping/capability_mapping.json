@@ -12,17 +12,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 46,
-    "files_scanned": 4767,
+    "files_scanned": 4765,
     "files_by_kind": {
       "backend": 1180,
       "database": 264,
       "governance": 55,
       "mobile": 51,
-      "other": 1240,
+      "other": 1239,
       "tests": 1530,
-      "web": 447
+      "web": 446
     },
-    "unmapped_artifacts": 1967,
+    "unmapped_artifacts": 1966,
     "ambiguous_artifacts": 407
   },
   "capabilities": [
@@ -20376,14 +20376,6 @@
           ]
         },
         {
-          "path": ".claude/settings.local.json",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "P2_RASTER_FACADE_CLEANUP_REPORT.md",
           "score": 8,
           "signals": [
@@ -20565,7 +20557,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 87
+        "other_evidence": 86
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -35510,10 +35502,6 @@
     },
     {
       "path": "frontend/tailwind.config.js",
-      "kind": "web"
-    },
-    {
-      "path": "frontend/test-results/.last-run.json",
       "kind": "web"
     },
     {

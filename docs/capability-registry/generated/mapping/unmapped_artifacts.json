@@ -1740,10 +1740,6 @@
     "kind": "web"
   },
   {
-    "path": "frontend/test-results/.last-run.json",
-    "kind": "web"
-  },
-  {
     "path": "frontend/tsconfig.json",
     "kind": "web"
   },

@@ -13,6 +13,7 @@ import csv
 import hashlib
 import json
 import re
+import subprocess
 import sys
 from collections import Counter
 from collections.abc import Iterable
@@ -154,11 +155,27 @@ def load_registry() -> list[dict]:
     return data["capabilities"]
 
 
+def _tracked_files() -> list[str]:
+    """git-tracked files only. Scanning the raw filesystem lets local, uncommitted
+    artifacts (.claude/settings.local.json, frontend/test-results/*, editor caches)
+    leak into the map — they exist on a developer machine but not on a clean CI
+    checkout, making the output non-reproducible. Tracked files ARE the repository."""
+    out = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return [x for x in out.split("\0") if x]
+
+
 def iter_files() -> Iterable[Path]:
-    for p in ROOT.rglob("*"):
-        if not p.is_file() or p.suffix.lower() not in TEXT_SUFFIXES:
+    for rel_str in _tracked_files():
+        rel = Path(rel_str)
+        p = ROOT / rel
+        if p.suffix.lower() not in TEXT_SUFFIXES or not p.is_file():
             continue
-        rel = p.relative_to(ROOT)
         if any(part in SKIP_PARTS for part in rel.parts):
             continue
         # Generated inventories, release metadata and capability outputs are derived artifacts,
@@ -511,48 +528,20 @@ def check_outputs(data: dict) -> bool:
     committed = json.loads(target.read_text(encoding="utf-8"))
     if committed == data:
         return True
-    # Emit a targeted diff so drift is diagnosable in CI rather than opaque.
+    # Emit a concise, targeted diff so drift is diagnosable in CI rather than opaque.
     if committed.get("summary") != data.get("summary"):
         print(
             f"summary drift: committed={committed.get('summary')} fresh={data.get('summary')}",
             file=sys.stderr,
         )
-    cf = {c["capability_id"]: c for c in committed.get("capabilities", [])}
-    df = {c["capability_id"]: c for c in data.get("capabilities", [])}
-    for cid in sorted(set(cf) | set(df)):
-        a, b = cf.get(cid), df.get(cid)
-        if a != b:
-            for k in (
-                "backend",
-                "routes",
-                "database",
-                "events",
-                "web",
-                "mobile",
-                "tests",
-                "governance",
-                "other_evidence",
-            ):
-                if (a or {}).get(k) != (b or {}).get(k):
-                    print(
-                        f"drift {cid}.{k}: committed={(a or {}).get(k)} fresh={(b or {}).get(k)}",
-                        file=sys.stderr,
-                    )
-            break
-    if committed.get("unmapped_artifacts") != data.get("unmapped_artifacts"):
-        ca = {x["path"] for x in committed.get("unmapped_artifacts", [])}
-        da = {x["path"] for x in data.get("unmapped_artifacts", [])}
-        print(
-            f"unmapped drift: only-committed={sorted(ca - da)[:5]} only-fresh={sorted(da - ca)[:5]}",
-            file=sys.stderr,
-        )
-    if committed.get("ambiguous_artifacts") != data.get("ambiguous_artifacts"):
-        ca = {x["path"] for x in committed.get("ambiguous_artifacts", [])}
-        da = {x["path"] for x in data.get("ambiguous_artifacts", [])}
-        print(
-            f"ambiguous drift: only-committed={sorted(ca - da)[:5]} only-fresh={sorted(da - ca)[:5]}",
-            file=sys.stderr,
-        )
+    for field in ("unmapped_artifacts", "ambiguous_artifacts"):
+        if committed.get(field) != data.get(field):
+            ca = {x["path"] for x in committed.get(field, [])}
+            da = {x["path"] for x in data.get(field, [])}
+            print(
+                f"{field} drift: only-committed={sorted(ca - da)[:5]} only-fresh={sorted(da - ca)[:5]}",
+                file=sys.stderr,
+            )
     return False
 
 
