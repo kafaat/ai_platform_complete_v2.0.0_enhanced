@@ -27,6 +27,8 @@ jobs:
         run: python scripts/ci/duplicate_definition_guard.py --check
       - name: Validate router reachability inventory
         run: python scripts/ci/router_reachability_guard.py --check
+      - name: Validate event contract graph drift
+        run: python scripts/ci/event_contract_graph.py --check
       - name: Validate capability registry
         run: python scripts/ci/capability_registry_guard.py --check
       - name: Validate capability linkage runtime evidence
@@ -41,4 +43,5 @@ jobs:
             tests/architecture/test_decision_lineage_graph.py \
             tests/architecture/test_execution_dependency_audit.py \
             tests/architecture/test_duplicate_definition_guard.py \
-            tests/architecture/test_router_reachability_guard.py
+            tests/architecture/test_router_reachability_guard.py \
+            tests/architecture/test_event_contract_graph.py
