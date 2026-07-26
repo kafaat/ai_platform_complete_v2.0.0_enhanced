@@ -261,3 +261,142 @@ def test_feed_enforces_worker_partition_end_to_end(monkeypatch):
     )
     assert stranger.status_code == 403
     assert stranger.json()["detail"]["code"] == "worker_tenant_unauthorized"
+
+
+def test_worker_assertion_identity_binding_enforced_at_endpoint(monkeypatch):
+    """HTTP+PG proof that WITH assertion enforcement ON the worker-identity binding gates the
+    REAL endpoints (not just the pure verifier): a worker pulls only its OWN feed with a valid
+    request-scoped assertion; claiming another worker's id, or an absent/forged assertion, is
+    403; and the identity + tenant-partition controls COMPOSE — a valid identity still cannot
+    cross into an unauthorized tenant. Complements test_feed_enforces_worker_partition_end_to_end
+    (which runs assertion-off, proving the partition alone)."""
+    import importlib.util
+
+    from fastapi.testclient import TestClient
+
+    from shared.security.service_tenant_assertion import create_tenant_assertion
+
+    key = "worker-endpoint-assertion-key-at-least-32-chars!!"
+    # Enforcement ON (key set); development so the replay store is a no-op without Redis (the
+    # replay/503 path is proven separately in test_worker_identity_binding.py). Verification runs.
+    monkeypatch.setenv("DECISION_SERVICE_SOR_ENABLED", "true")
+    monkeypatch.setenv("DECISION_WORKER_ASSERTION_KEY", key)
+    monkeypatch.setenv("SAHOOL_ENV", "development")
+    monkeypatch.delenv("DECISION_WORKER_ASSERTION_REDIS_URL", raising=False)
+
+    spec = importlib.util.spec_from_file_location("decision_wid_main", SERVICE_DIR / "main.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    client = TestClient(mod.app)
+
+    worker_a = "adapter-" + uuid4().hex[:8]
+    worker_b = "adapter-" + uuid4().hex[:8]
+    feed = "/v1/learning/runtime-work"
+
+    # Operator registers each worker to its own tenant (X-Registered-By; registration is not
+    # worker-authenticated — a worker cannot self-authorize its tenants).
+    for w, t in ((worker_a, TENANT_A), (worker_b, TENANT_B)):
+        reg = client.post(
+            f"/v1/learning/runtime-workers/{w}/tenants",
+            headers={"X-Registered-By": "ops"},
+            json={"tenant_id": t, "enabled": True, "idempotency_key": "reg_" + uuid4().hex},
+        )
+        assert reg.status_code == 200, reg.text
+
+    def sign(subject, *, request_id, method="GET", path=feed, k=key, key_id="current"):
+        return create_tenant_assertion(
+            k,
+            mod.WORKER_ASSERTION_SERVICE,
+            subject,
+            key_id=key_id,
+            method=method,
+            path=path,
+            request_id=request_id,
+        )
+
+    # 1) Worker A with a valid, request-scoped assertion pulls its OWN feed → 200.
+    ok = client.get(
+        feed,
+        params={"worker_id": worker_a, "limit": 5},
+        headers={
+            "X-Tenant-Id": TENANT_A,
+            "X-Request-Id": "r-a1",
+            "X-Worker-Assertion": sign(worker_a, request_id="r-a1"),
+        },
+    )
+    assert ok.status_code == 200, ok.text
+
+    # 2) Impersonation blocked: caller presents worker_id=B (to reach B's partition) but only
+    #    holds A's assertion (subject A ≠ presented B) → 403. Worker A cannot pull worker B's feed.
+    imp = client.get(
+        feed,
+        params={"worker_id": worker_b, "limit": 5},
+        headers={
+            "X-Tenant-Id": TENANT_B,
+            "X-Request-Id": "r-imp",
+            "X-Worker-Assertion": sign(worker_a, request_id="r-imp"),
+        },
+    )
+    assert imp.status_code == 403, imp.text
+    assert "worker assertion" in str(imp.json()["detail"]).lower()
+
+    # 3) Absent assertion while enforcement is ON → 403 (no header-only free pick).
+    absent = client.get(
+        feed,
+        params={"worker_id": worker_a, "limit": 5},
+        headers={"X-Tenant-Id": TENANT_A, "X-Request-Id": "r-abs"},
+    )
+    assert absent.status_code == 403, absent.text
+
+    # 4) Forged assertion (correct kid, wrong signing key) → 403.
+    forged = client.get(
+        feed,
+        params={"worker_id": worker_a, "limit": 5},
+        headers={
+            "X-Tenant-Id": TENANT_A,
+            "X-Request-Id": "r-fg",
+            "X-Worker-Assertion": sign(
+                worker_a, request_id="r-fg", k="a-different-worker-key-at-least-32-chars!"
+            ),
+        },
+    )
+    assert forged.status_code == 403, forged.text
+
+    # 5) Controls compose: a VALID identity for A still cannot cross into an unauthorized tenant —
+    #    the tenant partition is enforced independently → 403 worker_tenant_unauthorized.
+    cross = client.get(
+        feed,
+        params={"worker_id": worker_a, "limit": 5},
+        headers={
+            "X-Tenant-Id": TENANT_B,
+            "X-Request-Id": "r-x",
+            "X-Worker-Assertion": sign(worker_a, request_id="r-x"),
+        },
+    )
+    assert cross.status_code == 403, cross.text
+    assert cross.json()["detail"]["code"] == "worker_tenant_unauthorized"
+
+    # 6) Discovery is identity-bound too: A enumerates only ITS OWN partition with a path-bound
+    #    assertion (→ 200 [TENANT_A]); a caller cannot discover worker B's partition with A's
+    #    assertion → 403 (no cross-worker tenant enumeration).
+    disc_a = f"/v1/learning/runtime-workers/{worker_a}/tenants"
+    disc_ok = client.get(
+        disc_a,
+        headers={
+            "X-Request-Id": "r-d1",
+            "X-Worker-Assertion": sign(worker_a, path=disc_a, request_id="r-d1"),
+        },
+    )
+    assert disc_ok.status_code == 200, disc_ok.text
+    assert disc_ok.json()["tenants"] == [TENANT_A]
+
+    disc_b = f"/v1/learning/runtime-workers/{worker_b}/tenants"
+    disc_imp = client.get(
+        disc_b,
+        headers={
+            "X-Request-Id": "r-d2",
+            "X-Worker-Assertion": sign(worker_a, path=disc_a, request_id="r-d2"),
+        },
+    )
+    assert disc_imp.status_code == 403, disc_imp.text

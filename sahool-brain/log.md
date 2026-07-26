@@ -3840,3 +3840,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **منع التجاوز:** فشل القراءة ⇒ fail-closed؛ `water_source_id` عميل ≠ الربط النشِط ⇒ `water_source_binding_mismatch`؛ الحقل غير المربوط `enforced=false` (يُدار خادميّاً، غير قابل للتزوير).
 - **براهين:** درجات نقيّة + حارس ساكن معاد كتابته (Platform Unit Tests) + شهادة PG حقيقيّة `tests_v9/test_h51_field_source_binding_pg.py` (دور مقيَّد NOBYPASSRLS، `H51_CERTIFICATION_REQUIRED`) تُثبت الحلّ+فلتر الدرجة في SQL+النافذة/الحالة+عزل RLS — شُغّلت خضراء على PG16 محلّيّ + خطوة CI مخصّصة. `pytest -m unit` 3490، حزمة 4890، production_validation_gate أخضر.
 - **درس:** المُحلِّل يُستدعى دائماً الآن ⇒ اختبارا الجسر بلا DB انكسرا (يصيبان DB الغائب) ⇒ mock `_active_field_source_bindings→[]`. و`.hypothesis/` أُضيف لـgitignore (يُشغِّل تحذير BYPASSRLS في security_audit).
+
+## 2026-07-26 — WORKER-IDENTITY-BINDING: برهان endpoint-level على PG حقيقيّ (`ff3a11d`)
+- **الفجوة:** `test_feed_enforces_worker_partition_end_to_end` القائم يثبت قسمة worker→tenant عبر HTTP+PG لكن **بلا تفعيل الـassertion** (لا مفتاح) ⇒ لا يمسّ ربط هويّة X-Worker-Assertion (#646) على النقطة الفعليّة.
+- **البرهان الجديد:** `test_worker_assertion_identity_binding_enforced_at_endpoint` (assertion مُفعَّلة، PG+HTTP): (1) A بـassertion صالحة يسحب قسمته 200؛ (2) تقديم worker_id=B بـassertion A ⇒ 403 (انتحال محجوب — A لا يسحب feed B)؛ (3) غياب/تزوير (مفتاح خاطئ) ⇒ 403؛ (4) تركيب الضابطين: هويّة A صالحة لا تعبر لمستأجر غير مُفوَّض ⇒ 403 worker_tenant_unauthorized؛ (5) الاكتشاف مربوط بالهويّة (A لا يُعدّد قسمة B). ذاتيّ الاحتواء (monkeypatch لـSOR+المفتاح؛ dev فلا Redis/503). مُثبَّت في wx12_gate. شُغِّل أخضر على PG16 محلّيّ (decision migrations 001-030).
+- **صدق:** يبقى فقط PKI/SPIFFE لكلّ عامل (بنية تحتيّة). لا يُدَّعى «هويّة عامل مكتملة».
