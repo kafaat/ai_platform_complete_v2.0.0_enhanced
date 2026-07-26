@@ -457,10 +457,6 @@ def auth_token_missing_in_sor() -> bool:
     return require and sor_enabled() and not os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()
 
 
-def _is_production() -> bool:
-    return os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
-
-
 def service_auth_required() -> bool:
     return _is_production() or os.getenv("DECISION_REQUIRE_AUTH_TOKEN", "").strip().lower() in {
         "1",

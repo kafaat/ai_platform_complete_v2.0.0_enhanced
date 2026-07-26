@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""Detect duplicate Python definitions in the same lexical scope.
+
+This guard is deliberately scope-aware: methods with the same name in different
+classes are valid and must not be reported. Repeated ``@overload`` declarations
+are also permitted.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import json
+from dataclasses import asdict, dataclass
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+OUT = ROOT / "execution-audit" / "generated" / "duplicate_definitions.json"
+SCAN = [ROOT / "services", ROOT / "sahool-platform", ROOT / "shared"]
+SKIP = {".git", ".venv", "venv", "node_modules", "dist", "build", "__pycache__", ".pytest_cache"}
+
+
+@dataclass(frozen=True)
+class Finding:
+    file: str
+    scope: str
+    symbol: str
+    kind: str
+    lines: tuple[int, ...]
+
+
+def iter_files():
+    for base in SCAN:
+        if not base.exists():
+            continue
+        for path in base.rglob("*.py"):
+            if not any(part in SKIP for part in path.parts):
+                yield path
+
+
+def decorator_name(node: ast.expr) -> str:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    if isinstance(node, ast.Call):
+        return decorator_name(node.func)
+    return ""
+
+
+def is_overload(node: ast.AST) -> bool:
+    return isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(
+        decorator_name(d) == "overload" for d in node.decorator_list
+    )
+
+
+def scope_findings(path: Path, tree: ast.Module) -> list[Finding]:
+    findings: list[Finding] = []
+
+    def visit_body(body: list[ast.stmt], scope: str) -> None:
+        by_name: dict[str, list[ast.AST]] = {}
+        for node in body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                by_name.setdefault(node.name, []).append(node)
+
+        for name, nodes in by_name.items():
+            if len(nodes) < 2:
+                continue
+            # Multiple overload declarations are intentional. A concrete implementation
+            # plus overloads is also valid; more than one concrete definition is not.
+            concrete = [n for n in nodes if not is_overload(n)]
+            if len(concrete) <= 1:
+                continue
+            kinds = {"class" if isinstance(n, ast.ClassDef) else "function" for n in concrete}
+            findings.append(
+                Finding(
+                    file=str(path.relative_to(ROOT)),
+                    scope=scope,
+                    symbol=name,
+                    kind="/".join(sorted(kinds)),
+                    lines=tuple(n.lineno for n in concrete),
+                )
+            )
+
+        for node in body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                child_scope = f"{scope}.{node.name}" if scope else node.name
+                visit_body(node.body, child_scope)
+
+    visit_body(tree.body, "<module>")
+    return findings
+
+
+def generate() -> dict:
+    findings: list[Finding] = []
+    parsed = 0
+    parse_errors: list[str] = []
+    for path in iter_files():
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"))
+        except SyntaxError:
+            parse_errors.append(str(path.relative_to(ROOT)))
+            continue
+        parsed += 1
+        findings.extend(scope_findings(path, tree))
+
+    payload = {
+        "schema_version": 1,
+        "scope_semantics": "same_lexical_scope_only",
+        "python_files_parsed": parsed,
+        "parse_errors": sorted(parse_errors),
+        "duplicate_definitions": [
+            asdict(f) for f in sorted(findings, key=lambda x: (x.file, x.scope, x.symbol))
+        ],
+        "finding_count": len(findings),
+    }
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return payload
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument("--generate", action="store_true")
+    args = parser.parse_args()
+    payload = generate()
+    if args.check and payload["finding_count"]:
+        for finding in payload["duplicate_definitions"]:
+            print(f"{finding['file']}:{finding['lines']} {finding['scope']}.{finding['symbol']}")
+        raise SystemExit(f"duplicate definitions in same lexical scope: {payload['finding_count']}")
+    print(f"duplicate definition guard: PASS ({payload['python_files_parsed']} files)")
+
+
+if __name__ == "__main__":
+    main()

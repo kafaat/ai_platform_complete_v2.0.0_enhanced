@@ -1,0 +1,11 @@
+{
+  "stages": 10,
+  "relations": 9,
+  "stages_with_evidence": 10,
+  "static_supported_relations": 9,
+  "complete_static_chain": true,
+  "runtime_verified": false,
+  "production_certified": false,
+  "missing_stages": [],
+  "unsupported_relations": []
+}

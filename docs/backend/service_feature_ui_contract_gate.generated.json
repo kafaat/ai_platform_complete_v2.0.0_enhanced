@@ -59,7 +59,7 @@
               "root": "frontend/src",
               "path": "frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts",
               "pattern": "refresh",
-              "line": 8
+              "line": 11
             },
             {
               "root": "frontend/src",
@@ -282,7 +282,7 @@
               "line": 5
             }
           ],
-          "match_count": 206
+          "match_count": 209
         },
         {
           "kind": "gateway",
@@ -509,7 +509,7 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "FieldRanking",
-              "line": 123
+              "line": 122
             },
             {
               "root": "frontend/src",
@@ -656,13 +656,13 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "HybridIndexPage",
-              "line": 65
+              "line": 64
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "indicators",
-              "line": 145
+              "line": 144
             },
             {
               "root": "frontend/src",
@@ -725,7 +725,7 @@
               "line": 7
             }
           ],
-          "match_count": 30
+          "match_count": 32
         },
         {
           "kind": "gateway",
@@ -903,6 +903,12 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/agronomic_context_composer.py",
+              "pattern": "weather",
+              "line": 32
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/agronomic_replay.py",
               "pattern": "weather",
               "line": 8
@@ -960,15 +966,9 @@
               "path": "services/sahool-platform/api/cost_governance.py",
               "pattern": "weather",
               "line": 102
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/crop_decision_bridge.py",
-              "pattern": "weather",
-              "line": 59
             }
           ],
-          "match_count": 306
+          "match_count": 311
         }
       ]
     },
@@ -1107,6 +1107,12 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/agronomic_context_composer.py",
+              "pattern": "soil",
+              "line": 32
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/alert_rules.py",
               "pattern": "soil",
               "line": 112
@@ -1158,15 +1164,9 @@
               "path": "services/sahool-platform/api/crop_introduction.py",
               "pattern": "soil",
               "line": 41
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/data_quality.py",
-              "pattern": "soil",
-              "line": 17
             }
           ],
-          "match_count": 282
+          "match_count": 285
         }
       ]
     },
@@ -1399,25 +1399,25 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "SEGMENTATION_INFERENCE_URL",
-              "line": 2068
+              "line": 2084
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "SEGMENTATION_BACKEND",
-              "line": 2067
+              "line": 2083
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sam2",
-              "line": 2068
+              "line": 2084
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-sam2-inference",
-              "line": 2068
+              "line": 2084
             }
           ],
           "match_count": 33
@@ -1456,7 +1456,7 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "ChatbotPage",
-              "line": 64
+              "line": 63
             },
             {
               "root": "frontend/src",
@@ -1980,7 +1980,7 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "approval",
-              "line": 148
+              "line": 147
             },
             {
               "root": "frontend/src",
@@ -2306,7 +2306,7 @@
               "line": 112
             }
           ],
-          "match_count": 95
+          "match_count": 100
         }
       ]
     },
@@ -2344,7 +2344,7 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "irrigation",
-              "line": 146
+              "line": 145
             },
             {
               "root": "frontend/src",
@@ -2456,19 +2456,19 @@
               "root": "services/decision-service",
               "path": "services/decision-service/main.py",
               "pattern": "/v1/execution-requests/recovery",
-              "line": 1672
+              "line": 1760
             },
             {
               "root": "services/decision-service",
               "path": "services/decision-service/main.py",
               "pattern": "list_inflight_execution_requests",
-              "line": 62
+              "line": 63
             },
             {
               "root": "services/decision-service",
               "path": "services/decision-service/persistence.py",
               "pattern": "list_inflight_execution_requests",
-              "line": 1349
+              "line": 1380
             },
             {
               "root": "services/decision-service",
@@ -2515,13 +2515,13 @@
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "pest",
-              "line": 146
+              "line": 145
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
               "pattern": "yield",
-              "line": 149
+              "line": 148
             },
             {
               "root": "frontend/src",
@@ -2584,7 +2584,7 @@
               "line": 6
             }
           ],
-          "match_count": 128
+          "match_count": 129
         },
         {
           "kind": "platform-proxy",
@@ -3418,7 +3418,7 @@
               "root": "services/raster-service",
               "path": "services/raster-service/raster_field_runtime.py",
               "pattern": "TITILER_URL",
-              "line": 61
+              "line": 62
             },
             {
               "root": "services/raster-service",
@@ -3507,7 +3507,7 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "qdrant-seed",
-              "line": 1692
+              "line": 1708
             },
             {
               "root": "docker-compose.v9.yml",
@@ -3576,7 +3576,7 @@
               "line": 30
             }
           ],
-          "match_count": 20
+          "match_count": 21
         }
       ]
     },
@@ -3681,7 +3681,7 @@
               "line": 23
             }
           ],
-          "match_count": 26
+          "match_count": 28
         }
       ]
     },
@@ -3717,7 +3717,13 @@
               "root": "services/model-registry-adapter",
               "path": "services/model-registry-adapter/runtime.py",
               "pattern": "DECISION_SERVICE_URL",
-              "line": 67
+              "line": 72
+            },
+            {
+              "root": "services/model-registry-adapter",
+              "path": "services/model-registry-adapter/runtime.py",
+              "pattern": "model-registry",
+              "line": 69
             },
             {
               "root": "services/model-registry-adapter",
@@ -3741,16 +3747,16 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-model-registry-worker",
-              "line": 1392
+              "line": 1403
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "model-registry",
-              "line": 1389
+              "line": 1400
             }
           ],
-          "match_count": 6
+          "match_count": 7
         }
       ]
     },
