@@ -1,0 +1,29 @@
+name: Capability Governance
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+jobs:
+  capability-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install test runner
+        run: pip install pytest==9.1.1
+      - name: Validate architecture graph drift
+        run: python scripts/ci/architecture_graph.py --check
+      - name: Validate capability registry
+        run: python scripts/ci/capability_registry_guard.py --check
+      - name: Validate capability linkage runtime evidence
+        run: python scripts/ci/capability_runtime_evidence.py --check
+      - name: Run capability governance + architecture-graph tests
+        run: |
+          python -m pytest -q \
+            tests/architecture/test_capability_registry_guard.py \
+            tests/architecture/test_capability_traceability.py \
+            tests/architecture/test_architecture_graph.py

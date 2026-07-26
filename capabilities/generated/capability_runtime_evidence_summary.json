@@ -1,0 +1,14 @@
+{
+  "capabilities_total": 81,
+  "with_metrics": 7,
+  "with_traces": 0,
+  "with_receipts": 12,
+  "with_audit_events": 0,
+  "with_all_repository_runtime_surfaces": 0,
+  "production_certified": 0,
+  "surface_distribution": {
+    "0": 62,
+    "1": 19
+  },
+  "interpretation": "Pointers prove repository instrumentation only; they do not prove live telemetry or production operation."
+}
