@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
@@ -59,6 +61,26 @@ jobs:
         run: python scripts/ci/capability_evidence_maturity_engine.py --check
       - name: Validate capability parity and investment baseline
         run: python scripts/ci/capability_parity_investment_engine.py --check
+      - name: Validate roadmap-to-capability linkage
+        run: python scripts/ci/capability_roadmap_linker.py --check
+      - name: Validate capability impact index drift
+        run: python scripts/ci/pr_capability_impact_gate.py --check-index
+      - name: Enforce declared PR capability impact
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git cat-file -e "$BASE_SHA^{commit}" || git fetch --no-tags origin "$BASE_SHA"
+          git cat-file -e "$HEAD_SHA^{commit}" || git fetch --no-tags origin "pull/$PR_NUMBER/head"
+          printf '%s' "$PR_BODY" > /tmp/pr-body.txt
+          python scripts/ci/pr_capability_impact_gate.py \
+            --base "$BASE_SHA" \
+            --head "$HEAD_SHA" \
+            --pr-body-file /tmp/pr-body.txt \
+            --output /tmp/capability-impact.json
       - name: Validate PATH-1 static governance closure
         run: python scripts/ci/static_governance_closure.py --check
       - name: Run capability governance + architecture-graph tests
@@ -84,6 +106,8 @@ jobs:
             tests/architecture/test_capability_mapping_engine.py \
             tests/architecture/test_capability_evidence_maturity_engine.py \
             tests/architecture/test_capability_parity_investment_engine.py \
+            tests/architecture/test_capability_roadmap_linker.py \
+            tests/architecture/test_pr_capability_impact_gate.py \
             tests/architecture/test_path3_run_attestation.py \
             tests/architecture/test_path3_attestation_policy.py \
             tests/architecture/test_path3_live_acceptance_gate.py \

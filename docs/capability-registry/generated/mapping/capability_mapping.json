@@ -12,18 +12,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 46,
-    "files_scanned": 4765,
+    "files_scanned": 4770,
     "files_by_kind": {
       "backend": 1180,
       "database": 264,
       "governance": 55,
       "mobile": 51,
-      "other": 1239,
-      "tests": 1530,
+      "other": 1242,
+      "tests": 1532,
       "web": 446
     },
     "unmapped_artifacts": 1966,
-    "ambiguous_artifacts": 407
+    "ambiguous_artifacts": 409
   },
   "capabilities": [
     {
@@ -154,6 +154,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
+          "score": 30,
+          "signals": [
+            "content:Decision candidate",
+            "content:decision candidate",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/ci/decision_candidate_boundary_gate.py",
           "score": 28,
           "signals": [
@@ -185,7 +194,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "mapped": true,
       "coverage_dimensions": 3
@@ -7656,6 +7665,16 @@
           ]
         },
         {
+          "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
+          "score": 32,
+          "signals": [
+            "content:Season lifecycle",
+            "content:season",
+            "content:season lifecycle",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/SEASON_UPDATE.md",
           "score": 20,
           "signals": [
@@ -7810,7 +7829,7 @@
         "mobile": 1,
         "tests": 33,
         "governance": 0,
-        "other_evidence": 18
+        "other_evidence": 19
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -11683,7 +11702,7 @@
       "routes": [],
       "database": [
         {
-          "value": "IF @ sahool-brain/hot.md:61",
+          "value": "IF @ sahool-brain/hot.md:63",
           "score": 26
         },
         {
@@ -11912,6 +11931,13 @@
           ]
         },
         {
+          "path": "tests/architecture/test_pr_capability_impact_gate.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_scenario_whatif.py",
           "score": 12,
           "signals": [
@@ -11991,7 +12017,7 @@
         "events": 0,
         "web": 2,
         "mobile": 0,
-        "tests": 6,
+        "tests": 7,
         "governance": 0,
         "other_evidence": 4
       },
@@ -12161,6 +12187,15 @@
           ]
         },
         {
+          "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
+          "score": 30,
+          "signals": [
+            "content:Irrigation recommendation",
+            "content:irrigation recommendation",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/audits/COMPARATIVE_STUDY_PLAN_VS_REALITY_20260718.md",
           "score": 10,
           "signals": [
@@ -12190,7 +12225,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 4
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -28105,7 +28140,24 @@
       "events": [],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests/architecture/test_capability_roadmap_linker.py",
+          "score": 28,
+          "signals": [
+            "content:Current weather",
+            "content:current weather",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "tests/architecture/test_pr_capability_impact_gate.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -28136,12 +28188,12 @@
         "events": 0,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 2,
         "governance": 0,
         "other_evidence": 2
       },
       "mapped": true,
-      "coverage_dimensions": 0
+      "coverage_dimensions": 1
     },
     {
       "capability_id": "WX-002",
@@ -28914,6 +28966,13 @@
       "mobile": [],
       "tests": [
         {
+          "path": "tests/architecture/test_pr_capability_impact_gate.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "tests_v9/test_capabilities.py",
           "score": 18,
           "signals": [
@@ -29288,7 +29347,7 @@
         "events": 55,
         "web": 9,
         "mobile": 0,
-        "tests": 21,
+        "tests": 22,
         "governance": 0,
         "other_evidence": 19
       },
@@ -33743,7 +33802,18 @@
         }
       ],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
+          "score": 30,
+          "signals": [
+            "content:Weather provenance and quality",
+            "content:canonical weather",
+            "content:weather provenance",
+            "explicit_id"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -33757,7 +33827,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 1
       },
       "mapped": true,
       "coverage_dimensions": 3
@@ -43308,6 +43378,50 @@
       ]
     },
     {
+      "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "FM-004",
+          "score": 32,
+          "signals": [
+            "content:Season lifecycle",
+            "content:season",
+            "content:season lifecycle",
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "WX-010",
+          "score": 30,
+          "signals": [
+            "content:Weather provenance and quality",
+            "content:canonical weather",
+            "content:weather provenance",
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-005",
+          "score": 30,
+          "signals": [
+            "content:Irrigation recommendation",
+            "content:irrigation recommendation",
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "DEC-002",
+          "score": 30,
+          "signals": [
+            "content:Decision candidate",
+            "content:decision candidate",
+            "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
       "path": "docs/history/COMPETITIVE_ANALYSIS.md",
       "kind": "other",
       "candidates": [
@@ -50948,6 +51062,33 @@
         },
         {
           "capability_id": "DEC-009",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests/architecture/test_pr_capability_impact_gate.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-002",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "WX-001",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "IRR-004",
           "score": 20,
           "signals": [
             "explicit_id"

@@ -5,7 +5,7 @@
 ## Summary
 
 - Capabilities: **81**
-- Average assessed maturity: **2.0 / 5**
+- Average assessed maturity: **2.01 / 5**
 - Aligned: **26**
 - Declared above current evidence: **52**
 - Evidence above declared: **3**
@@ -25,7 +25,7 @@
 | satellite | 9 | 3.0 | 2.44 | 5 |
 | security | 8 | 3.0 | 1.88 | 5 |
 | soil | 5 | 3.0 | 1.8 | 4 |
-| weather | 10 | 3.0 | 2.1 | 6 |
+| weather | 10 | 3.0 | 2.2 | 6 |
 
 ## Policy
 
