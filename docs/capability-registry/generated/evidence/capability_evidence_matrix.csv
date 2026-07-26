@@ -52,7 +52,7 @@ SAT-001,Satellite scene search,satellite,3,3,aligned,9,True,True,True,True,True,
 SAT-002,True color imagery,satellite,3,2,declared_above_evidence,5,True,True,True,False,True,False,False,True,False,False,False,False
 SAT-003,NDVI,satellite,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
 SAT-004,NDMI,satellite,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
-SAT-005,Cloud screening,satellite,3,3,aligned,7,True,True,True,True,True,False,False,True,True,False,False,False
+SAT-005,Cloud screening,satellite,3,3,aligned,6,True,True,True,False,True,False,False,True,True,False,False,False
 SAT-006,Historical imagery timeline,satellite,3,2,declared_above_evidence,6,True,True,True,False,True,True,False,True,False,False,False,False
 SAT-007,Change detection,satellite,3,2,declared_above_evidence,4,True,True,True,False,False,False,False,True,False,False,False,False
 SAT-008,Stress zones,satellite,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False

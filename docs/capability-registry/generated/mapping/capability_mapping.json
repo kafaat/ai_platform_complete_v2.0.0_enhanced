@@ -12,18 +12,18 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 46,
-    "files_scanned": 4770,
+    "files_scanned": 4743,
     "files_by_kind": {
       "backend": 1180,
       "database": 264,
       "governance": 55,
       "mobile": 51,
-      "other": 1242,
+      "other": 1215,
       "tests": 1532,
       "web": 446
     },
     "unmapped_artifacts": 1966,
-    "ambiguous_artifacts": 409
+    "ambiguous_artifacts": 401
   },
   "capabilities": [
     {
@@ -7726,14 +7726,6 @@
           ]
         },
         {
-          "path": "sahool-brain/runbooks/season-record-entry.md",
-          "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
           "path": "scripts/e2e/season_gateway_live_gate.py",
           "score": 14,
           "signals": [
@@ -7752,14 +7744,6 @@
         {
           "path": "shared/security/season_logbook.py",
           "score": 14,
-          "signals": [
-            "path:season",
-            "content:season"
-          ]
-        },
-        {
-          "path": "sahool-brain/research/open_season_simulation_models_survey_20260720.md",
-          "score": 13,
           "signals": [
             "path:season",
             "content:season"
@@ -7829,7 +7813,7 @@
         "mobile": 1,
         "tests": 33,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 17
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -8475,14 +8459,6 @@
           ]
         },
         {
-          "path": "sahool-brain/reports/PLATFORM_INVENTORY.md",
-          "score": 13,
-          "signals": [
-            "path:inventory",
-            "content:inventory"
-          ]
-        },
-        {
           "path": "P1_MAIN_DECOMPOSITION_COMPLETE_REPORT_20260709.md",
           "score": 12,
           "signals": [
@@ -8528,7 +8504,7 @@
         "mobile": 1,
         "tests": 4,
         "governance": 3,
-        "other_evidence": 13
+        "other_evidence": 12
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -11370,14 +11346,6 @@
           ]
         },
         {
-          "path": "sahool-brain/architecture/service-map.md",
-          "score": 9,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "shared/helpers.py",
           "score": 9,
           "signals": [
@@ -11407,7 +11375,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 16
+        "other_evidence": 15
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -11702,10 +11670,6 @@
       "routes": [],
       "database": [
         {
-          "value": "IF @ sahool-brain/hot.md:63",
-          "score": 26
-        },
-        {
           "value": "field_irrigation_source_assignments @ migrations/v214_field_irrigation_source_assignments.sql:12",
           "score": 9
         },
@@ -11753,14 +11717,6 @@
             "content:source binding",
             "explicit_id"
           ]
-        },
-        {
-          "path": "sahool-brain/hot.md",
-          "score": 26,
-          "signals": [
-            "content:source binding",
-            "explicit_id"
-          ]
         }
       ],
       "ambiguous": [],
@@ -11770,13 +11726,13 @@
       "evidence_counts": {
         "backend": 1,
         "routes": 0,
-        "database": 5,
+        "database": 4,
         "events": 0,
         "web": 0,
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 1
       },
       "mapped": true,
       "coverage_dimensions": 3
@@ -11982,14 +11938,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/water-intelligence-direction.md",
-          "score": 12,
-          "signals": [
-            "content:Water balance",
-            "content:water balance"
-          ]
-        },
-        {
           "path": "docs/history/COMPETITIVE_ANALYSIS.md",
           "score": 10,
           "signals": [
@@ -12019,7 +11967,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 3
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -13657,14 +13605,6 @@
           ]
         },
         {
-          "path": "sahool-brain/reports/PLATFORM_INVENTORY.md",
-          "score": 12,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
           "path": "FIELDVIEW_SMART_DECK_PROFESSIONAL_INSPIRATION_20260704.md",
           "score": 10,
           "signals": [
@@ -13726,7 +13666,7 @@
         "mobile": 1,
         "tests": 18,
         "governance": 0,
-        "other_evidence": 13
+        "other_evidence": 12
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -16458,16 +16398,6 @@
           ]
         },
         {
-          "path": "sahool-brain/runbooks/full-stack-activation.md",
-          "score": 23,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "path:stac",
-            "content:stac"
-          ]
-        },
-        {
           "path": "docs/audits/CDSE_PROVIDER_INTEGRATION.md",
           "score": 21,
           "signals": [
@@ -16515,15 +16445,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/ledger.md",
-          "score": 17,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
           "path": "docs/architecture/LIVE_ACTIVATION_ENVIRONMENTS.md",
           "score": 16,
           "signals": [
@@ -16534,15 +16455,6 @@
         },
         {
           "path": "docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md",
-          "score": 16,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "sahool-brain/agronomy/data-inputs-catalog.md",
           "score": 16,
           "signals": [
             "content:cdse",
@@ -16583,15 +16495,6 @@
           ]
         },
         {
-          "path": "sahool-brain/gaps/registry.md",
-          "score": 13,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
           "path": "RASTER_MAIN_DECOMPOSITION_PHASE2_20260706.md",
           "score": 12,
           "signals": [
@@ -16613,23 +16516,6 @@
           "signals": [
             "content:cdse",
             "content:sentinel"
-          ]
-        },
-        {
-          "path": "sahool-brain/agronomy/data-providers.md",
-          "score": 12,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "sahool-brain/architecture/service-map.md",
-          "score": 12,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
           ]
         },
         {
@@ -16790,7 +16676,7 @@
         "mobile": 0,
         "tests": 39,
         "governance": 0,
-        "other_evidence": 39
+        "other_evidence": 33
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -16868,14 +16754,6 @@
             "path:truecolor",
             "content:truecolor"
           ]
-        },
-        {
-          "path": "sahool-brain/runbooks/historical-truecolor-remediation.md",
-          "score": 12,
-          "signals": [
-            "path:truecolor",
-            "content:truecolor"
-          ]
         }
       ],
       "ambiguous": [],
@@ -16891,7 +16769,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 2
       },
       "mapped": true,
       "coverage_dimensions": 4
@@ -20211,22 +20089,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/water-intelligence-direction.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "sahool-brain/reports/PLATFORM_INVENTORY.md",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "sahool_ai/research/decomposer.py",
           "score": 12,
           "signals": [
@@ -20523,14 +20385,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/field-intelligence-direction.md",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "sahool_ai/research/README.md",
           "score": 8,
           "signals": [
@@ -20592,7 +20446,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 86
+        "other_evidence": 83
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -21073,14 +20927,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/water-stress-d2.md",
-          "score": 12,
-          "signals": [
-            "content:NDMI",
-            "content:ndmi"
-          ]
-        },
-        {
           "path": "docs/FIELD_WORKSPACE.md",
           "score": 10,
           "signals": [
@@ -21110,7 +20956,7 @@
         "mobile": 0,
         "tests": 17,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 3
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -21287,12 +21133,7 @@
           "score": 10
         }
       ],
-      "database": [
-        {
-          "value": "external_submissions @ sahool-brain/log.md:3387",
-          "score": 21
-        }
-      ],
+      "database": [],
       "events": [
         {
           "value": "fields.py @ tests_v9/test_imagery_aoi_cloud_contract.py:24",
@@ -21382,16 +21223,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "sahool-brain/log.md",
-          "score": 21,
-          "signals": [
-            "content:aoi cloud",
-            "content:cloud mask",
-            "content:scene cloud",
-            "content:scl"
-          ]
-        },
-        {
           "path": "ENTERPRISE_IMAGERY_BEST_PRACTICES_IMPLEMENTATION_20260626.md",
           "score": 15,
           "signals": [
@@ -21466,16 +21297,16 @@
       "evidence_counts": {
         "backend": 8,
         "routes": 24,
-        "database": 1,
+        "database": 0,
         "events": 1,
         "web": 0,
         "mobile": 0,
         "tests": 9,
         "governance": 0,
-        "other_evidence": 9
+        "other_evidence": 8
       },
       "mapped": true,
-      "coverage_dimensions": 5
+      "coverage_dimensions": 4
     },
     {
       "capability_id": "SAT-006",
@@ -22500,15 +22331,6 @@
           ]
         },
         {
-          "path": "sahool-brain/reports/PLATFORM_INVENTORY.md",
-          "score": 11,
-          "signals": [
-            "content:cog",
-            "content:raster tile",
-            "content:tilejson"
-          ]
-        },
-        {
           "path": "PHASE10_RELIABILITY_LOAD_CHAOS_RECOVERY_REPORT_20260626.md",
           "score": 10,
           "signals": [
@@ -22603,7 +22425,7 @@
         "mobile": 0,
         "tests": 20,
         "governance": 0,
-        "other_evidence": 24
+        "other_evidence": 23
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -24154,16 +23976,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/ledger.md",
-          "score": 16,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation"
-          ]
-        },
-        {
           "path": "docs/specs/SCOUT-INGEST-01_B1.2b_ingress_odk_spec.md",
           "score": 15,
           "signals": [
@@ -24219,15 +24031,6 @@
           "score": 13,
           "signals": [
             "content:Tenant RLS",
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "sahool-brain/gaps/registry.md",
-          "score": 13,
-          "signals": [
             "content:rls",
             "content:row level security",
             "content:tenant isolation"
@@ -24659,7 +24462,7 @@
         "mobile": 0,
         "tests": 55,
         "governance": 0,
-        "other_evidence": 70
+        "other_evidence": 68
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -24756,14 +24559,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "sahool-brain/gaps/registry.md",
-          "score": 12,
-          "signals": [
-            "content:Worker identity binding",
-            "content:worker identity"
-          ]
-        },
-        {
           "path": "scripts/ci/wx12_runtime_multitenancy_gate.py",
           "score": 12,
           "signals": [
@@ -24794,7 +24589,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 2
       },
       "mapped": true,
       "coverage_dimensions": 2
@@ -25077,10 +24872,6 @@
         {
           "value": "users @ migrations/v21_mfa.sql:11",
           "score": 33
-        },
-        {
-          "value": "external_submissions @ sahool-brain/log.md:3387",
-          "score": 22
         },
         {
           "path": "scripts_v9/run_migrations.sql",
@@ -25416,16 +25207,6 @@
           ]
         },
         {
-          "path": "sahool-brain/log.md",
-          "score": 22,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:recovery code",
-            "content:totp"
-          ]
-        },
-        {
           "path": "AUTH_MAIN_DECOMPOSITION_P0_REPORT_20260709.md",
           "score": 19,
           "signals": [
@@ -25482,24 +25263,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/ledger.md",
-          "score": 15,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:recovery code"
-          ]
-        },
-        {
-          "path": "sahool-brain/gaps/registry.md",
-          "score": 15,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:recovery code"
-          ]
-        },
-        {
           "path": "CONTAINER_FLEET_REVIEW_AND_FIX_REPORT_20260709.md",
           "score": 12,
           "signals": [
@@ -25548,15 +25311,6 @@
           ]
         },
         {
-          "path": "sahool-brain/schema/migrations.md",
-          "score": 9,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:totp"
-          ]
-        },
-        {
           "path": "FIX_ALL_REPORTED_ISSUES_20260626.md",
           "score": 8,
           "signals": [
@@ -25580,13 +25334,13 @@
       "evidence_counts": {
         "backend": 7,
         "routes": 24,
-        "database": 24,
+        "database": 23,
         "events": 16,
         "web": 5,
         "mobile": 4,
         "tests": 13,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 16
       },
       "mapped": true,
       "coverage_dimensions": 7
@@ -31228,38 +30982,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "sahool-brain/decisions/engine-ownership.md",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "sahool-brain/decisions/strategy.md",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "sahool-brain/decisions/water-intelligence-direction.md",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
           "path": "scripts/ci/consumer_contract_gate.py",
           "score": 12,
           "signals": [
@@ -31401,7 +31123,7 @@
         "mobile": 0,
         "tests": 58,
         "governance": 0,
-        "other_evidence": 24
+        "other_evidence": 20
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -31727,24 +31449,8 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/engine-ownership.md",
-          "score": 12,
-          "signals": [
-            "content:VPD",
-            "content:vpd"
-          ]
-        },
-        {
           "path": "scripts/ci/consumer_contract_gate.py",
           "score": 12,
-          "signals": [
-            "content:VPD",
-            "content:vpd"
-          ]
-        },
-        {
-          "path": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
-          "score": 10,
           "signals": [
             "content:VPD",
             "content:vpd"
@@ -31780,7 +31486,7 @@
         "mobile": 0,
         "tests": 6,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 5
       },
       "mapped": true,
       "coverage_dimensions": 5
@@ -33286,22 +32992,6 @@
           ]
         },
         {
-          "path": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "path": "sahool-brain/decisions/engine-ownership.md",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
           "path": "scripts/ci/consumer_contract_gate.py",
           "score": 12,
           "signals": [
@@ -33395,7 +33085,7 @@
         "mobile": 0,
         "tests": 38,
         "governance": 0,
-        "other_evidence": 22
+        "other_evidence": 20
       },
       "mapped": true,
       "coverage_dimensions": 6
@@ -45726,259 +45416,6 @@
           "signals": [
             "content:farm",
             "content:farms"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "sahool-brain/architecture/service-map.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 12,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "INT-002",
-          "score": 9,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "capability_id": "WX-005",
-          "score": 10,
-          "signals": [
-            "content:VPD",
-            "content:vpd"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "sahool-brain/decisions/engine-ownership.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "WX-005",
-          "score": 12,
-          "signals": [
-            "content:VPD",
-            "content:vpd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "sahool-brain/decisions/ledger.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SAT-001",
-          "score": 17,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 16,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "capability_id": "SEC-004",
-          "score": 15,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:recovery code"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "sahool-brain/decisions/water-intelligence-direction.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "IRR-004",
-          "score": 12,
-          "signals": [
-            "content:Water balance",
-            "content:water balance"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "sahool-brain/gaps/registry.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-004",
-          "score": 15,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:recovery code"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 13,
-          "signals": [
-            "content:rls",
-            "content:row level security",
-            "content:tenant isolation"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 13,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "SEC-003",
-          "score": 12,
-          "signals": [
-            "content:Worker identity binding",
-            "content:worker identity"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "sahool-brain/log.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-004",
-          "score": 22,
-          "signals": [
-            "content:MFA",
-            "content:mfa",
-            "content:recovery code",
-            "content:totp"
-          ]
-        },
-        {
-          "capability_id": "SAT-005",
-          "score": 21,
-          "signals": [
-            "content:aoi cloud",
-            "content:cloud mask",
-            "content:scene cloud",
-            "content:scl"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "sahool-brain/reports/PLATFORM_INVENTORY.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "FM-007",
-          "score": 13,
-          "signals": [
-            "path:inventory",
-            "content:inventory"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "OPS-003",
-          "score": 12,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 11,
-          "signals": [
-            "content:cog",
-            "content:raster tile",
-            "content:tilejson"
           ]
         }
       ]
