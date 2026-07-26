@@ -15,10 +15,31 @@ import logging
 import os
 import re
 import uuid
+from datetime import date as _date
 
 logger = logging.getLogger("raster-service.db")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
+
+
+def _iso_date_or_none(value: object) -> _date | None:
+    """Coerce an ISO date string (or date) to ``datetime.date`` for asyncpg DATE binds.
+
+    asyncpg يطلب ``datetime.date`` لأيّ معامل/عمود من نوع DATE؛ تمرير نصّ خام إلى
+    مُعامل مُستنتَج كـ``date`` (مثل ``$3::date``) يُفشل الترميز بـ«'str' object has no
+    attribute 'toordinal'» ويُبتلَع كتحذير ⇒ لا صفوف. نطبّع هنا: نصّ ISO (أوّل 10
+    محارف) ⇒ ``date``؛ ``date`` كما هو؛ فارغ/None/غير صالح (بما فيه "latest") ⇒ None.
+    """
+    if value is None or value == "":
+        return None
+    if isinstance(value, _date):
+        return value
+    if isinstance(value, str):
+        try:
+            return _date.fromisoformat(value[:10])
+        except ValueError:
+            return None
+    return None
 
 
 def _parse_quality_flags(raw: object) -> list:
@@ -137,16 +158,9 @@ async def insert_raster_asset(
     # v105 (v4-audit): أعمدة الجودة كانت تُنشأ في المخطّط لكن لا تُكتب أبداً ⇒ ترتيب
     # fetch_latest_asset حسب quality_score كان بلا أثر (كلّها NULL). نملؤها الآن من stats.
     mask_sources_json = json.dumps(cloud_mask_sources) if cloud_mask_sources is not None else None
-    # FIX: asyncpg يطلب datetime.date لعمود DATE (تمرير نصّ ⇒ 'str' has no
-    # attribute 'toordinal'). نحوّل النصّ ISO إلى date؛ القيم غير الصالحة → None.
-    acq_date = acquisition_date
-    if isinstance(acq_date, str):
-        try:
-            from datetime import date as _date
-
-            acq_date = _date.fromisoformat(acq_date[:10]) if acq_date else None
-        except ValueError:
-            acq_date = None
+    # asyncpg يطلب datetime.date لعمود DATE (تمرير نصّ ⇒ 'str' has no attribute
+    # 'toordinal'). التطبيع المشترك عبر _iso_date_or_none (نفس المسار في fetch_latest_asset).
+    acq_date = _iso_date_or_none(acquisition_date)
 
     # v142/v145: idempotency على مستوى «المنتَج» لا مسار COG. ON CONFLICT على الفهرس
     # الفريد الجزئيّ (tenant/field/index/date/scene) — بلا cog_uri (v8-F6/v9-F8): مسار
@@ -766,7 +780,10 @@ async def fetch_latest_asset(
         ) s
     """
     try:
-        d = None if (date in (None, "", "latest")) else date
+        # asyncpg يستنتج نوع $3 كـdate من `$3::date` ⇒ يجب تمرير datetime.date لا نصّ
+        # (نصّ ⇒ 'str' object has no attribute 'toordinal' ⇒ يُبتلَع ⇒ لا صفوف لتاريخ
+        # تاريخيّ محدَّد ⇒ بلاطة شفّافة). 'latest'/فارغ ⇒ None (لا فلتر تاريخ ⇒ الأحدث).
+        d = None if (date in (None, "", "latest")) else _iso_date_or_none(date)
         await conn.execute(
             "SELECT set_config('app.current_tenant', $1, false)",
             str(tenant_id) if tenant_id else "",

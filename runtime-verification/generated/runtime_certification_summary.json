@@ -1,0 +1,728 @@
+{
+  "capabilities": [
+    {
+      "all_services_runtime_verified": false,
+      "id": "FM-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/auth/main.py",
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "FM-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "FM-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "FM-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "FM-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": []
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "FM-006",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": []
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "FM-007",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": []
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "FM-008",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/odoo-bridge/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "GIS-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "GIS-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "GIS-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "GIS-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py",
+        "services/vegetation-analysis-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py",
+        "services/vegetation-analysis-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-006",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-007",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-008",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/vegetation-analysis-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SAT-009",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/raster-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-006",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-007",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-008",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-009",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "WX-010",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/weather-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SOIL-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/soil-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SOIL-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/soil-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SOIL-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/soil-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SOIL-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/soil-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SOIL-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/soil-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-006",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-007",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/actuator-service/main.py",
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-008",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py",
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-009",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "IRR-010",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "PA-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/vegetation-analysis-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "PA-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/vegetation-analysis-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "PA-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": []
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "PA-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": []
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "PA-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": []
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "OPS-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "OPS-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "OPS-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "OPS-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "OPS-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": []
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "OPS-006",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "OPS-007",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "OPS-008",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/auth/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-006",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-007",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-008",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-009",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "DEC-010",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SEC-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SEC-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/field-management-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SEC-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/auth/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SEC-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/auth/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SEC-005",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/auth/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SEC-006",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/auth/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SEC-007",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/decision-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "SEC-008",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/auth/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "INT-001",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "INT-002",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/sahool-platform/api/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "INT-003",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": [
+        "services/actuator-service/main.py"
+      ]
+    },
+    {
+      "all_services_runtime_verified": false,
+      "id": "INT-004",
+      "production_certified_claim": false,
+      "runtime_verified_claim": false,
+      "services": []
+    }
+  ],
+  "capability_claim_violations": [],
+  "fail_closed": true,
+  "gate_passed": true,
+  "production_certified_services": [],
+  "runtime_verified_services": [],
+  "service_claim_violations": []
+}

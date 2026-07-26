@@ -1,0 +1,1139 @@
+{
+  "analysis_kind": "static_repository_evidence",
+  "cross_scope_candidate_count": 18,
+  "cross_scope_candidates": [
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/",
+      "registrations": [
+        {
+          "function": "root",
+          "line": 225,
+          "method": "GET",
+          "module": "services/field-management-service/main.py",
+          "path": "/",
+          "receiver": "app"
+        },
+        {
+          "function": "root",
+          "line": 155,
+          "method": "GET",
+          "module": "services/indicators-service/main.py",
+          "path": "/",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/capabilities",
+      "registrations": [
+        {
+          "function": "capabilities",
+          "line": 360,
+          "method": "GET",
+          "module": "services/edge-inference/main.py",
+          "path": "/capabilities",
+          "receiver": "app"
+        },
+        {
+          "function": "capabilities",
+          "line": 102,
+          "method": "GET",
+          "module": "services/indicators-service/main.py",
+          "path": "/capabilities",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/contract",
+      "registrations": [
+        {
+          "function": "contract",
+          "line": 553,
+          "method": "GET",
+          "module": "services/decision-service/main.py",
+          "path": "/contract",
+          "receiver": "app"
+        },
+        {
+          "function": "contract",
+          "line": 206,
+          "method": "GET",
+          "module": "services/field-management-service/main.py",
+          "path": "/contract",
+          "receiver": "app"
+        },
+        {
+          "function": "contract",
+          "line": 125,
+          "method": "GET",
+          "module": "services/indicators-service/main.py",
+          "path": "/contract",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/health",
+      "registrations": [
+        {
+          "function": "health",
+          "line": 20,
+          "method": "GET",
+          "module": "services/actuator-service/routers/health.py",
+          "path": "/health",
+          "receiver": "router"
+        },
+        {
+          "function": "legacy_health",
+          "line": 60,
+          "method": "GET",
+          "module": "services/agriai-engine/main.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "health",
+          "line": 27,
+          "method": "GET",
+          "module": "services/auth/routers/ops.py",
+          "path": "/health",
+          "receiver": "router"
+        },
+        {
+          "function": "legacy_health",
+          "line": 189,
+          "method": "GET",
+          "module": "services/field-management-service/main.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "legacy_health",
+          "line": 375,
+          "method": "GET",
+          "module": "services/field-segmentation/main.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 22,
+          "method": "GET",
+          "module": "services/guardrails-engine/routers/health.py",
+          "path": "/health",
+          "receiver": "router"
+        },
+        {
+          "function": "legacy_health",
+          "line": 68,
+          "method": "GET",
+          "module": "services/indicators-service/main.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "legacy_health",
+          "line": 500,
+          "method": "GET",
+          "module": "services/local-ai-rag/main.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "health",
+          "line": 698,
+          "method": "GET",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 487,
+          "method": "GET",
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 335,
+          "method": "GET",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 283,
+          "method": "GET",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 31,
+          "method": "GET",
+          "module": "services/odoo-bridge/routers/health.py",
+          "path": "/health",
+          "receiver": "router"
+        },
+        {
+          "function": "legacy_health",
+          "line": 110,
+          "method": "GET",
+          "module": "services/sam2-inference/main.py",
+          "path": "/health",
+          "receiver": "app"
+        },
+        {
+          "function": "health",
+          "line": 23,
+          "method": "GET",
+          "module": "services/soil-service/routers/health.py",
+          "path": "/health",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 21,
+          "method": "GET",
+          "module": "services/supervisor-agent/routers/health.py",
+          "path": "/health",
+          "receiver": "router"
+        },
+        {
+          "function": "health",
+          "line": 22,
+          "method": "GET",
+          "module": "services/tts-service/routers/health.py",
+          "path": "/health",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 21,
+          "method": "GET",
+          "module": "services/vegetation-analysis-service/routers/health.py",
+          "path": "/health",
+          "receiver": "router"
+        },
+        {
+          "function": "health",
+          "line": 20,
+          "method": "GET",
+          "module": "services/video-processor/routers/health.py",
+          "path": "/health",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/healthz",
+      "registrations": [
+        {
+          "function": "health",
+          "line": 20,
+          "method": "GET",
+          "module": "services/actuator-service/routers/health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 55,
+          "method": "GET",
+          "module": "services/agriai-engine/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 113,
+          "method": "GET",
+          "module": "services/ai_agronomist/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "health",
+          "line": 27,
+          "method": "GET",
+          "module": "services/auth/routers/ops.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 501,
+          "method": "GET",
+          "module": "services/decision-service/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "health_check",
+          "line": 168,
+          "method": "GET",
+          "module": "services/edge-inference/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 184,
+          "method": "GET",
+          "module": "services/field-management-service/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 370,
+          "method": "GET",
+          "module": "services/field-segmentation/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 22,
+          "method": "GET",
+          "module": "services/guardrails-engine/routers/health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 63,
+          "method": "GET",
+          "module": "services/indicators-service/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 89,
+          "method": "GET",
+          "module": "services/knowledge-graph/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 482,
+          "method": "GET",
+          "module": "services/local-ai-rag/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 122,
+          "method": "GET",
+          "module": "services/mcp_servers/generic_context_server.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "health",
+          "line": 698,
+          "method": "GET",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 487,
+          "method": "GET",
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 335,
+          "method": "GET",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 283,
+          "method": "GET",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 31,
+          "method": "GET",
+          "module": "services/odoo-bridge/routers/health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 55,
+          "method": "GET",
+          "module": "services/rag-retrieval/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 31,
+          "method": "GET",
+          "module": "services/raster-service/routers/observability.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 33,
+          "method": "GET",
+          "module": "services/remote-sensing-workspace-bff/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 21,
+          "method": "GET",
+          "module": "services/sahool-platform/api/routers/platform_health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 105,
+          "method": "GET",
+          "module": "services/sam2-inference/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "healthz",
+          "line": 178,
+          "method": "GET",
+          "module": "services/scout-ingest-service/main.py",
+          "path": "/healthz",
+          "receiver": "app"
+        },
+        {
+          "function": "health",
+          "line": 23,
+          "method": "GET",
+          "module": "services/soil-service/routers/health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 21,
+          "method": "GET",
+          "module": "services/supervisor-agent/routers/health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "health",
+          "line": 22,
+          "method": "GET",
+          "module": "services/tts-service/routers/health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "healthz",
+          "line": 21,
+          "method": "GET",
+          "module": "services/vegetation-analysis-service/routers/health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        },
+        {
+          "function": "health",
+          "line": 20,
+          "method": "GET",
+          "module": "services/video-processor/routers/health.py",
+          "path": "/healthz",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/mcp/v1/tools",
+      "registrations": [
+        {
+          "function": "list_tools",
+          "line": 134,
+          "method": "GET",
+          "module": "services/mcp_servers/generic_context_server.py",
+          "path": "/mcp/v1/tools",
+          "receiver": "app"
+        },
+        {
+          "function": "list_tools",
+          "line": 199,
+          "method": "GET",
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/mcp/v1/tools",
+          "receiver": "app"
+        },
+        {
+          "function": "list_tools",
+          "line": 85,
+          "method": "GET",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/mcp/v1/tools",
+          "receiver": "app"
+        },
+        {
+          "function": "list_tools",
+          "line": 51,
+          "method": "GET",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/mcp/v1/tools",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/metrics",
+      "registrations": [
+        {
+          "function": "metrics",
+          "line": 90,
+          "method": "GET",
+          "module": "services/agriai-engine/main.py",
+          "path": "/metrics",
+          "receiver": "app"
+        },
+        {
+          "function": "metrics",
+          "line": 304,
+          "method": "GET",
+          "module": "services/ai_agronomist/main.py",
+          "path": "/metrics",
+          "receiver": "app"
+        },
+        {
+          "function": "metrics",
+          "line": 21,
+          "method": "GET",
+          "module": "services/auth/routers/ops.py",
+          "path": "/metrics",
+          "receiver": "router"
+        },
+        {
+          "function": "metrics_endpoint",
+          "line": 46,
+          "method": "GET",
+          "module": "services/guardrails-engine/routers/health.py",
+          "path": "/metrics",
+          "receiver": "router"
+        },
+        {
+          "function": "metrics",
+          "line": 94,
+          "method": "GET",
+          "module": "services/knowledge-graph/main.py",
+          "path": "/metrics",
+          "receiver": "app"
+        },
+        {
+          "function": "metrics",
+          "line": 60,
+          "method": "GET",
+          "module": "services/rag-retrieval/main.py",
+          "path": "/metrics",
+          "receiver": "app"
+        },
+        {
+          "function": "metrics",
+          "line": 36,
+          "method": "GET",
+          "module": "services/raster-service/routers/observability.py",
+          "path": "/metrics",
+          "receiver": "router"
+        },
+        {
+          "function": "metrics",
+          "line": 28,
+          "method": "GET",
+          "module": "services/sahool-platform/api/routers/platform_health.py",
+          "path": "/metrics",
+          "receiver": "router"
+        },
+        {
+          "function": "metrics",
+          "line": 56,
+          "method": "GET",
+          "module": "services/soil-service/routers/health.py",
+          "path": "/metrics",
+          "receiver": "router"
+        },
+        {
+          "function": "metrics",
+          "line": 34,
+          "method": "GET",
+          "module": "services/supervisor-agent/routers/health.py",
+          "path": "/metrics",
+          "receiver": "router"
+        },
+        {
+          "function": "metrics",
+          "line": 43,
+          "method": "GET",
+          "module": "services/tts-service/routers/health.py",
+          "path": "/metrics",
+          "receiver": "router"
+        },
+        {
+          "function": "metrics",
+          "line": 58,
+          "method": "GET",
+          "module": "services/vegetation-analysis-service/routers/health.py",
+          "path": "/metrics",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/products",
+      "registrations": [
+        {
+          "function": "api_search_products",
+          "line": 632,
+          "method": "GET",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/products",
+          "receiver": "app"
+        },
+        {
+          "function": "list_erp_products",
+          "line": 71,
+          "method": "GET",
+          "module": "services/odoo-bridge/routers/catalog.py",
+          "path": "/products",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/readyz",
+      "registrations": [
+        {
+          "function": "readyz",
+          "line": 32,
+          "method": "GET",
+          "module": "services/actuator-service/routers/health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 65,
+          "method": "GET",
+          "module": "services/agriai-engine/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 323,
+          "method": "GET",
+          "module": "services/ai_agronomist/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 32,
+          "method": "GET",
+          "module": "services/auth/routers/ops.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 506,
+          "method": "GET",
+          "module": "services/decision-service/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 365,
+          "method": "GET",
+          "module": "services/edge-inference/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 194,
+          "method": "GET",
+          "module": "services/field-management-service/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 380,
+          "method": "GET",
+          "module": "services/field-segmentation/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 27,
+          "method": "GET",
+          "module": "services/guardrails-engine/routers/health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "ready",
+          "line": 73,
+          "method": "GET",
+          "module": "services/indicators-service/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 111,
+          "method": "GET",
+          "module": "services/knowledge-graph/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 505,
+          "method": "GET",
+          "module": "services/local-ai-rag/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 127,
+          "method": "GET",
+          "module": "services/mcp_servers/generic_context_server.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 715,
+          "method": "GET",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 492,
+          "method": "GET",
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 340,
+          "method": "GET",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 288,
+          "method": "GET",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 41,
+          "method": "GET",
+          "module": "services/odoo-bridge/routers/health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 73,
+          "method": "GET",
+          "module": "services/rag-retrieval/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 171,
+          "method": "GET",
+          "module": "services/raster-service/routers/observability.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 38,
+          "method": "GET",
+          "module": "services/remote-sensing-workspace-bff/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 49,
+          "method": "GET",
+          "module": "services/sahool-platform/api/routers/platform_health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 115,
+          "method": "GET",
+          "module": "services/sam2-inference/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 183,
+          "method": "GET",
+          "module": "services/scout-ingest-service/main.py",
+          "path": "/readyz",
+          "receiver": "app"
+        },
+        {
+          "function": "readyz",
+          "line": 28,
+          "method": "GET",
+          "module": "services/soil-service/routers/health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 26,
+          "method": "GET",
+          "module": "services/supervisor-agent/routers/health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 27,
+          "method": "GET",
+          "module": "services/tts-service/routers/health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 26,
+          "method": "GET",
+          "module": "services/vegetation-analysis-service/routers/health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        },
+        {
+          "function": "readyz",
+          "line": 29,
+          "method": "GET",
+          "module": "services/video-processor/routers/health.py",
+          "path": "/readyz",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/stac",
+      "registrations": [
+        {
+          "function": "stac_landing",
+          "line": 17,
+          "method": "GET",
+          "module": "services/raster-service/routers/stac.py",
+          "path": "/stac",
+          "receiver": "router"
+        },
+        {
+          "function": "stac_root",
+          "line": 179,
+          "method": "GET",
+          "module": "services/sahool-platform/api/routers/gis_cloud_native.py",
+          "path": "/stac",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/stac/collections",
+      "registrations": [
+        {
+          "function": "stac_collections",
+          "line": 25,
+          "method": "GET",
+          "module": "services/raster-service/routers/stac.py",
+          "path": "/stac/collections",
+          "receiver": "router"
+        },
+        {
+          "function": "list_stac_collections",
+          "line": 200,
+          "method": "GET",
+          "module": "services/sahool-platform/api/routers/gis_cloud_native.py",
+          "path": "/stac/collections",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/cycle",
+      "registrations": [
+        {
+          "function": "learning_cycle",
+          "line": 197,
+          "method": "POST",
+          "module": "services/sahool-platform/api/phase10_continuous_learning.py",
+          "path": "/cycle",
+          "receiver": "router"
+        },
+        {
+          "function": "cycle",
+          "line": 171,
+          "method": "POST",
+          "module": "services/sahool-platform/api/phase11_federated_agents.py",
+          "path": "/cycle",
+          "receiver": "router"
+        },
+        {
+          "function": "ecosystem_cycle",
+          "line": 239,
+          "method": "POST",
+          "module": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
+          "path": "/cycle",
+          "receiver": "router"
+        },
+        {
+          "function": "run_cycle",
+          "line": 148,
+          "method": "POST",
+          "module": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
+          "path": "/cycle",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/ingest",
+      "registrations": [
+        {
+          "function": "ingest_endpoint",
+          "line": 430,
+          "method": "POST",
+          "module": "services/local-ai-rag/main.py",
+          "path": "/ingest",
+          "receiver": "app"
+        },
+        {
+          "function": "ingest",
+          "line": 90,
+          "method": "POST",
+          "module": "services/rag-retrieval/main.py",
+          "path": "/ingest",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/mcp/v1/tools/call",
+      "registrations": [
+        {
+          "function": "call_tool",
+          "line": 151,
+          "method": "POST",
+          "module": "services/mcp_servers/generic_context_server.py",
+          "path": "/mcp/v1/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "mcp_tools_call",
+          "line": 578,
+          "method": "POST",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/mcp/v1/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 286,
+          "method": "POST",
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/mcp/v1/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 148,
+          "method": "POST",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/mcp/v1/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 114,
+          "method": "POST",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/mcp/v1/tools/call",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/models/register",
+      "registrations": [
+        {
+          "function": "model_register",
+          "line": 269,
+          "method": "POST",
+          "module": "services/sahool-platform/api/phase10_continuous_learning.py",
+          "path": "/models/register",
+          "receiver": "router"
+        },
+        {
+          "function": "register_model",
+          "line": 175,
+          "method": "POST",
+          "module": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
+          "path": "/models/register",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/plan",
+      "registrations": [
+        {
+          "function": "plan",
+          "line": 311,
+          "method": "POST",
+          "module": "services/agriai-engine/main.py",
+          "path": "/plan",
+          "receiver": "app"
+        },
+        {
+          "function": "create_execution_plan",
+          "line": 112,
+          "method": "POST",
+          "module": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
+          "path": "/plan",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/query",
+      "registrations": [
+        {
+          "function": "query",
+          "line": 360,
+          "method": "POST",
+          "module": "services/ai_agronomist/main.py",
+          "path": "/query",
+          "receiver": "app"
+        },
+        {
+          "function": "query_endpoint",
+          "line": 420,
+          "method": "POST",
+          "module": "services/local-ai-rag/main.py",
+          "path": "/query",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/recommend",
+      "registrations": [
+        {
+          "function": "recommend",
+          "line": 238,
+          "method": "POST",
+          "module": "services/agriai-engine/main.py",
+          "path": "/recommend",
+          "receiver": "app"
+        },
+        {
+          "function": "recommend",
+          "line": 393,
+          "method": "POST",
+          "module": "services/ai_agronomist/main.py",
+          "path": "/recommend",
+          "receiver": "app"
+        }
+      ]
+    }
+  ],
+  "hard_conflict_count": 0,
+  "hard_conflicts": [],
+  "production_certified": false,
+  "route_count": 1082,
+  "route_inventory_sha256": "dfc8b89b72c0423496c62cf98b75733f58bcd5f261fbadbecf305a429c3769ef",
+  "runtime_verified": false,
+  "schema_version": 1
+}

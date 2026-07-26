@@ -27,6 +27,9 @@ LEASE_SECONDS = int(os.getenv("SCOUT_INGEST_PROJECTION_LEASE_SECONDS", "120"))
 POLL_SECONDS = float(os.getenv("SCOUT_INGEST_PROJECTION_POLL_SECONDS", "5"))
 MAX_ATTEMPTS = int(os.getenv("SCOUT_INGEST_PROJECTION_MAX_ATTEMPTS", "6"))
 _ENABLED_TRUE = {"1", "true", "yes", "on"}
+# فترة الخمول حين تعطيل العامل: نبقى أحياءً (لا نخرج) كي لا يُنتِج خروج العمليّة
+# مع restart:unless-stopped + فحص liveness (pgrep) حلقة إعادة تشغيل. استهلاك مُهمَل.
+DISABLED_IDLE_SECONDS = float(os.getenv("SCOUT_INGEST_PROJECTION_DISABLED_IDLE_SECONDS", "3600"))
 
 
 def enabled() -> bool:
@@ -102,8 +105,13 @@ async def run_once(conn) -> dict[str, int]:
 
 async def loop() -> None:
     if not enabled():
-        logger.info("scout-ingest projection worker disabled (SCOUT_INGEST_PROJECTION_ENABLED)")
-        return
+        # لا نخرج: الخروج مع restart:unless-stopped + فحص liveness يُنتِج حلقة إعادة
+        # تشغيل (Finding 4). نبقى خاملين أحياءً (فحص pgrep أخضر) حتّى التفعيل.
+        logger.info(
+            "scout-ingest projection worker disabled (SCOUT_INGEST_PROJECTION_ENABLED); idling"
+        )
+        while True:
+            await asyncio.sleep(DISABLED_IDLE_SECONDS)
     logger.info("scout-ingest projection worker started (batch=%s poll=%ss)", BATCH, POLL_SECONDS)
     while True:
         conn = await _connect()
