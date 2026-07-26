@@ -153,6 +153,14 @@ def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -
         "crs": crs,
         "transform": transform,
     }
+    # صرّح PHOTOMETRIC=RGB على القرص (بدل الافتراضيّ MINISBLACK). بدونه: قناة لونيّة
+    # واحدة + عيّنة إضافيّة واحدة (ألفا) = 2 ≠ 4 عيّنات ⇒ GDAL يحذّر عند القراءة
+    # («Sum of Photometric … and ExtraSamples doesn't match SamplesPerPixel») ويعيد
+    # تعريف نطاقات RGB كـExtraSamples (فقدان تفسير اللون لأيّ مستهلِك GDAL). للنطاق
+    # الرابع: ALPHA=YES يوسمه ألفا غير مرتبطة (ExtraSamples=2) ⇒ 3+1=4 متّسق، لا تحذير.
+    profile["photometric"] = "RGB"
+    if bands >= 4:
+        profile["alpha"] = "YES"
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     with rasterio.open(output_path, "w", **profile) as dst:
         for i in range(bands):

@@ -1,0 +1,82 @@
+capability_id,title,domain,declared_maturity,assessed_maturity,alignment,evidence_score,documentation,backend,api,database,events,web,mobile,unit_tests,integration_tests,runtime_instrumentation,runtime_verified,production_certified
+DEC-001,Decision evidence,decision,3,2,declared_above_evidence,5,True,False,True,False,True,False,False,True,False,True,False,False
+DEC-002,Decision candidate,decision,3,3,aligned,6,True,True,True,False,True,False,False,True,True,False,False,False
+DEC-003,Human approval,decision,3,1,declared_above_evidence,4,True,True,True,False,False,False,False,False,False,True,False,False
+DEC-004,Execution request,decision,3,3,aligned,8,True,True,True,True,True,False,False,True,True,True,False,False
+DEC-005,Dispatch authorization,decision,3,3,aligned,8,True,True,True,True,True,False,False,True,True,True,False,False
+DEC-006,Execution receipt,decision,3,3,aligned,7,True,True,True,False,True,False,False,True,True,True,False,False
+DEC-007,Outcome recording,decision,3,3,aligned,9,True,True,True,True,True,True,False,True,True,True,False,False
+DEC-008,Learning attribution,decision,3,2,declared_above_evidence,7,True,True,True,True,True,False,False,True,False,True,False,False
+DEC-009,Model calibration,decision,3,2,declared_above_evidence,4,True,False,True,True,False,False,False,True,False,False,False,False
+DEC-010,Model lifecycle and activation,decision,3,3,aligned,8,True,True,True,True,True,False,False,True,True,True,False,False
+FM-001,Tenant and organization management,farm_management,3,2,declared_above_evidence,9,True,True,True,True,True,True,True,True,False,True,False,False
+FM-002,Farm registry,farm_management,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
+FM-003,Field registry and boundaries,farm_management,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
+FM-004,Season lifecycle,farm_management,3,2,declared_above_evidence,9,True,True,True,True,True,True,True,True,False,True,False,False
+FM-005,Crop and cultivar catalog,farm_management,3,2,declared_above_evidence,7,True,True,True,False,True,True,True,True,False,False,False,False
+FM-006,Farm economics,farm_management,3,1,declared_above_evidence,4,True,True,True,False,False,True,False,False,False,False,False,False
+FM-007,Inventory and procurement,farm_management,3,2,declared_above_evidence,7,True,True,True,True,False,True,True,True,False,False,False,False
+FM-008,ERP integration,farm_management,3,3,aligned,7,True,True,True,True,True,False,False,True,True,False,False,False
+GIS-001,Field geometry validation,gis,3,1,declared_above_evidence,6,True,False,True,True,False,True,True,False,False,True,False,False
+GIS-002,Map layers,gis,3,2,declared_above_evidence,6,True,True,True,False,False,True,True,True,False,False,False,False
+GIS-003,Terrain and DEM,gis,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
+GIS-004,Spatial analytics,gis,3,2,declared_above_evidence,5,True,True,True,True,False,False,False,True,False,False,False,False
+INT-001,Public API and SDK,farm_management,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
+INT-002,Event bus integration,farm_management,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
+INT-003,IoT and sensors,irrigation,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
+INT-004,External machinery integrations,precision,1,1,aligned,1,True,False,False,False,False,False,False,False,False,False,False,False
+IRR-001,Water source registry,irrigation,3,1,declared_above_evidence,3,True,False,False,True,False,False,False,True,False,False,False,False
+IRR-002,Water quality samples,irrigation,3,1,declared_above_evidence,5,True,True,True,True,True,False,False,False,False,False,False,False
+IRR-003,Field water-source binding,irrigation,0,1,evidence_above_declared,4,True,True,False,True,False,False,False,True,False,False,False,False
+IRR-004,Water balance,irrigation,3,3,aligned,7,True,True,True,True,False,True,False,True,True,False,False,False
+IRR-005,Irrigation recommendation,irrigation,3,2,declared_above_evidence,7,True,True,True,False,True,True,False,True,False,True,False,False
+IRR-006,Irrigation scheduling,irrigation,3,2,declared_above_evidence,4,True,False,True,False,True,False,False,True,False,False,False,False
+IRR-007,Pump and valve control,irrigation,3,2,declared_above_evidence,4,True,False,True,False,False,False,False,True,False,True,False,False
+IRR-008,Execution verification,irrigation,3,1,declared_above_evidence,2,True,False,False,True,False,False,False,False,False,False,False,False
+IRR-009,Water suitability multi-hazard,irrigation,2,3,evidence_above_declared,7,True,True,True,False,True,True,False,True,True,False,False,False
+IRR-010,Leaching and drainage safety,irrigation,2,1,declared_above_evidence,2,True,False,True,False,False,False,False,False,False,False,False,False
+OPS-001,Task management,operations,3,1,declared_above_evidence,3,True,False,True,False,False,False,True,False,False,False,False,False
+OPS-002,Work orders,operations,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
+OPS-003,Scouting,operations,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
+OPS-004,Field forms,operations,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
+OPS-005,Offline mobile,operations,3,2,declared_above_evidence,8,True,True,True,True,True,True,True,True,False,False,False,False
+OPS-006,Equipment registry,operations,3,1,declared_above_evidence,3,True,False,True,False,False,False,True,False,False,False,False,False
+OPS-007,Maintenance,operations,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
+OPS-008,Workforce and worker identity,operations,3,1,declared_above_evidence,2,True,False,False,False,False,False,False,False,False,True,False,False
+PA-001,Management zones,precision,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
+PA-002,Variable rate prescription,precision,3,1,declared_above_evidence,3,True,True,True,False,False,False,False,False,False,False,False,False
+PA-003,Yield map ingestion,precision,0,1,evidence_above_declared,2,True,False,False,False,False,False,False,True,False,False,False,False
+PA-004,As-applied data,precision,2,1,declared_above_evidence,5,True,True,False,True,True,False,False,True,False,False,False,False
+PA-005,Machine telemetry,precision,1,1,aligned,3,True,True,True,False,False,False,False,False,False,False,False,False
+SAT-001,Satellite scene search,satellite,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
+SAT-002,True color imagery,satellite,3,2,declared_above_evidence,5,True,True,True,False,True,False,False,True,False,False,False,False
+SAT-003,NDVI,satellite,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
+SAT-004,NDMI,satellite,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
+SAT-005,Cloud screening,satellite,3,3,aligned,6,True,True,True,False,True,False,False,True,True,False,False,False
+SAT-006,Historical imagery timeline,satellite,3,2,declared_above_evidence,6,True,True,True,False,True,True,False,True,False,False,False,False
+SAT-007,Change detection,satellite,3,2,declared_above_evidence,4,True,True,True,False,False,False,False,True,False,False,False,False
+SAT-008,Stress zones,satellite,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
+SAT-009,COG persistence and tiling,satellite,3,3,aligned,7,True,True,True,False,True,True,False,True,True,False,False,False
+SEC-001,Tenant RLS,security,3,3,aligned,7,True,True,True,True,True,False,False,True,True,False,False,False
+SEC-002,Signed tenant assertion,security,3,1,declared_above_evidence,2,True,False,False,False,False,False,False,True,False,False,False,False
+SEC-003,Worker identity binding,security,3,1,declared_above_evidence,4,True,True,False,False,False,False,False,True,False,True,False,False
+SEC-004,MFA,security,3,3,aligned,10,True,True,True,True,True,True,True,True,True,True,False,False
+SEC-005,Audit logging,security,3,2,declared_above_evidence,5,True,False,True,True,False,False,False,True,False,True,False,False
+SEC-006,Service token guard,security,3,3,aligned,7,True,True,True,False,True,False,False,True,True,True,False,False
+SEC-007,Decision SoR DB ownership,security,3,1,declared_above_evidence,5,True,True,False,True,True,False,False,True,False,False,False,False
+SEC-008,Secrets and production fail-closed,security,3,1,declared_above_evidence,4,True,False,False,False,True,False,False,True,False,True,False,False
+SOIL-001,Soil profile,soil,3,3,aligned,8,True,True,True,True,True,True,False,True,True,False,False,False
+SOIL-002,Soil sampling,soil,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
+SOIL-003,Laboratory results,soil,3,1,declared_above_evidence,4,True,True,True,True,False,False,False,False,False,False,False,False
+SOIL-004,pH EC SOM nutrients,soil,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
+SOIL-005,Soil water properties,soil,3,1,declared_above_evidence,4,True,True,False,False,True,False,False,True,False,False,False,False
+WX-001,Current weather,weather,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
+WX-002,Weather forecast,weather,3,3,aligned,8,True,True,True,True,True,True,False,True,True,False,False,False
+WX-003,Weather history,weather,3,3,aligned,6,True,True,True,True,False,False,False,True,True,False,False,False
+WX-004,ET0,weather,3,3,aligned,7,True,True,True,False,True,True,False,True,True,False,False,False
+WX-005,VPD,weather,3,2,declared_above_evidence,6,True,True,True,False,True,True,False,True,False,False,False,False
+WX-006,GDD,weather,3,3,aligned,8,True,True,True,True,True,True,False,True,True,False,False,False
+WX-007,Frost and heat risk,weather,3,1,declared_above_evidence,2,True,True,False,False,False,False,False,False,False,False,False,False
+WX-008,Operation windows,weather,3,2,declared_above_evidence,5,True,True,True,False,True,False,False,True,False,False,False,False
+WX-009,Disease weather models,weather,3,2,declared_above_evidence,5,True,True,True,False,False,True,False,True,False,False,False,False
+WX-010,Weather provenance and quality,weather,3,1,declared_above_evidence,4,True,True,False,False,True,False,False,True,False,False,False,False

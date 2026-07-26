@@ -1,0 +1,1214 @@
+{
+  "schema_version": "1.0.0",
+  "constraints": {
+    "curated_links_only": true,
+    "relationship_rationale_required": true,
+    "source_anchor_required": true,
+    "runtime_claims": false,
+    "production_certification": false
+  },
+  "summary": {
+    "roadmap_items": 7,
+    "linked_capabilities": 34,
+    "unlinked_capabilities": 47,
+    "relationship_links": 48,
+    "governance_only_items": 1,
+    "by_status": {
+      "implemented_static": 1,
+      "in_progress": 1,
+      "partial": 1,
+      "planned": 4
+    }
+  },
+  "roadmap_items": [
+    {
+      "roadmap_id": "CI-10",
+      "title": "Agricultural Knowledge Layer",
+      "status": "planned",
+      "source": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
+      "source_anchor": "### CI-10 — Agricultural Knowledge Layer",
+      "source_sha256": "32b76a1a639a60de74af3fb8efd8949292d3ed7e41c69bd89f3d3dc29f69ac7c",
+      "impact_scope": "linked_capabilities",
+      "capabilities": [
+        "FM-004",
+        "FM-005",
+        "IRR-005",
+        "IRR-009",
+        "OPS-001",
+        "SOIL-004",
+        "WX-009"
+      ],
+      "capability_links": [
+        {
+          "capability_id": "FM-004",
+          "relation": "phenology_knowledge",
+          "rationale": "Season lifecycle provides the current phenology substrate."
+        },
+        {
+          "capability_id": "FM-005",
+          "relation": "crop_knowledge",
+          "rationale": "Crop and cultivar catalog anchors crop knowledge."
+        },
+        {
+          "capability_id": "IRR-005",
+          "relation": "irrigation_knowledge",
+          "rationale": "Irrigation recommendation consumes irrigation knowledge."
+        },
+        {
+          "capability_id": "IRR-009",
+          "relation": "irrigation_knowledge",
+          "rationale": "Water suitability is a multi-hazard knowledge product."
+        },
+        {
+          "capability_id": "OPS-001",
+          "relation": "operations_knowledge",
+          "rationale": "Task management consumes operations knowledge."
+        },
+        {
+          "capability_id": "SOIL-004",
+          "relation": "nutrient_knowledge",
+          "rationale": "Soil chemistry and nutrients anchor nutrient knowledge."
+        },
+        {
+          "capability_id": "WX-009",
+          "relation": "disease_knowledge",
+          "rationale": "Disease weather models consume disease knowledge."
+        }
+      ],
+      "governance_scope": []
+    },
+    {
+      "roadmap_id": "CI-11",
+      "title": "Crop Learning Engine",
+      "status": "planned",
+      "source": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
+      "source_anchor": "### CI-11 — Crop Learning Engine",
+      "source_sha256": "32b76a1a639a60de74af3fb8efd8949292d3ed7e41c69bd89f3d3dc29f69ac7c",
+      "impact_scope": "linked_capabilities",
+      "capabilities": [
+        "DEC-002",
+        "DEC-003",
+        "DEC-004",
+        "DEC-005",
+        "DEC-006",
+        "DEC-007",
+        "DEC-008",
+        "DEC-009",
+        "DEC-010"
+      ],
+      "capability_links": [
+        {
+          "capability_id": "DEC-002",
+          "relation": "loop_stage",
+          "rationale": "Recommendation enters the loop as a decision candidate."
+        },
+        {
+          "capability_id": "DEC-003",
+          "relation": "loop_stage",
+          "rationale": "Decision approval is an explicit loop stage."
+        },
+        {
+          "capability_id": "DEC-004",
+          "relation": "loop_stage",
+          "rationale": "Execution request begins controlled execution."
+        },
+        {
+          "capability_id": "DEC-005",
+          "relation": "loop_stage",
+          "rationale": "Dispatch authorization gates execution."
+        },
+        {
+          "capability_id": "DEC-006",
+          "relation": "loop_stage",
+          "rationale": "Execution receipt records the performed action."
+        },
+        {
+          "capability_id": "DEC-007",
+          "relation": "loop_stage",
+          "rationale": "Outcome recording closes the operational loop."
+        },
+        {
+          "capability_id": "DEC-008",
+          "relation": "loop_stage",
+          "rationale": "Learning attribution links outcomes to recommendations."
+        },
+        {
+          "capability_id": "DEC-009",
+          "relation": "learning_output",
+          "rationale": "Calibration is a principal learning output."
+        },
+        {
+          "capability_id": "DEC-010",
+          "relation": "learning_output",
+          "rationale": "Model and policy activation apply learned changes safely."
+        }
+      ],
+      "governance_scope": []
+    },
+    {
+      "roadmap_id": "CI-7",
+      "title": "Canonical Inputs",
+      "status": "planned",
+      "source": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
+      "source_anchor": "### CI-7 — Canonical Inputs",
+      "source_sha256": "32b76a1a639a60de74af3fb8efd8949292d3ed7e41c69bd89f3d3dc29f69ac7c",
+      "impact_scope": "linked_capabilities",
+      "capabilities": [
+        "IRR-004",
+        "SAT-003",
+        "SAT-004",
+        "SAT-005",
+        "SAT-009",
+        "SOIL-001",
+        "SOIL-005",
+        "WX-010"
+      ],
+      "capability_links": [
+        {
+          "capability_id": "IRR-004",
+          "relation": "canonical_input",
+          "rationale": "Water balance is the current canonical water-state substrate."
+        },
+        {
+          "capability_id": "SAT-003",
+          "relation": "canonical_input",
+          "rationale": "NDVI is a principal canonical spectral product."
+        },
+        {
+          "capability_id": "SAT-004",
+          "relation": "canonical_input",
+          "rationale": "NDMI is a principal canonical spectral product."
+        },
+        {
+          "capability_id": "SAT-005",
+          "relation": "quality_gate",
+          "rationale": "Cloud screening governs spectral-state quality."
+        },
+        {
+          "capability_id": "SAT-009",
+          "relation": "persistence_substrate",
+          "rationale": "COG persistence and tiling provide the spectral-state storage substrate."
+        },
+        {
+          "capability_id": "SOIL-001",
+          "relation": "canonical_input",
+          "rationale": "Soil profile is a core canonical soil-state input."
+        },
+        {
+          "capability_id": "SOIL-005",
+          "relation": "canonical_input",
+          "rationale": "Soil water properties are a core canonical soil-state input."
+        },
+        {
+          "capability_id": "WX-010",
+          "relation": "canonical_input",
+          "rationale": "Represents the canonical weather state contract and provenance."
+        }
+      ],
+      "governance_scope": []
+    },
+    {
+      "roadmap_id": "CI-8",
+      "title": "CropRecommendationContext",
+      "status": "partial",
+      "source": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
+      "source_anchor": "### CI-8 — CropRecommendationContext",
+      "source_sha256": "32b76a1a639a60de74af3fb8efd8949292d3ed7e41c69bd89f3d3dc29f69ac7c",
+      "impact_scope": "linked_capabilities",
+      "capabilities": [
+        "DEC-001",
+        "DEC-002",
+        "FM-004",
+        "IRR-004",
+        "IRR-005",
+        "SAT-008",
+        "WX-010"
+      ],
+      "capability_links": [
+        {
+          "capability_id": "DEC-001",
+          "relation": "context_evidence",
+          "rationale": "The context must carry evidence and provenance."
+        },
+        {
+          "capability_id": "DEC-002",
+          "relation": "consuming_capability",
+          "rationale": "Decision candidate generation is the direct consumer."
+        },
+        {
+          "capability_id": "FM-004",
+          "relation": "context_input",
+          "rationale": "Season lifecycle is the current crop-state substrate."
+        },
+        {
+          "capability_id": "IRR-004",
+          "relation": "context_input",
+          "rationale": "Water balance supplies water state."
+        },
+        {
+          "capability_id": "IRR-005",
+          "relation": "recommendation_input",
+          "rationale": "Irrigation recommendation is an existing recommendation product."
+        },
+        {
+          "capability_id": "SAT-008",
+          "relation": "context_input",
+          "rationale": "Stress zones supply stress state."
+        },
+        {
+          "capability_id": "WX-010",
+          "relation": "context_input",
+          "rationale": "Weather provenance and quality represent weather state."
+        }
+      ],
+      "governance_scope": []
+    },
+    {
+      "roadmap_id": "CI-9",
+      "title": "Policy Engine",
+      "status": "planned",
+      "source": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
+      "source_anchor": "### CI-9 — Policy Engine",
+      "source_sha256": "32b76a1a639a60de74af3fb8efd8949292d3ed7e41c69bd89f3d3dc29f69ac7c",
+      "impact_scope": "linked_capabilities",
+      "capabilities": [
+        "DEC-002",
+        "DEC-003",
+        "DEC-010",
+        "FM-005",
+        "IRR-005",
+        "WX-008",
+        "WX-009"
+      ],
+      "capability_links": [
+        {
+          "capability_id": "DEC-002",
+          "relation": "policy_consumer",
+          "rationale": "Decision candidates consume evaluated policies."
+        },
+        {
+          "capability_id": "DEC-003",
+          "relation": "policy_control",
+          "rationale": "Human approval remains a policy-controlled boundary."
+        },
+        {
+          "capability_id": "DEC-010",
+          "relation": "policy_lifecycle",
+          "rationale": "Policy promotion and rollback require lifecycle controls."
+        },
+        {
+          "capability_id": "FM-005",
+          "relation": "crop_policy_input",
+          "rationale": "Crop and cultivar policy depends on the canonical catalog."
+        },
+        {
+          "capability_id": "IRR-005",
+          "relation": "water_policy_consumer",
+          "rationale": "Irrigation recommendations consume water policies."
+        },
+        {
+          "capability_id": "WX-008",
+          "relation": "weather_policy_consumer",
+          "rationale": "Operation windows are weather-policy products."
+        },
+        {
+          "capability_id": "WX-009",
+          "relation": "weather_policy_consumer",
+          "rationale": "Disease models consume weather and regional policies."
+        }
+      ],
+      "governance_scope": []
+    },
+    {
+      "roadmap_id": "WX-10",
+      "title": "CanonicalWeatherState",
+      "status": "in_progress",
+      "source": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
+      "source_anchor": "### WX-10 — CanonicalWeatherState",
+      "source_sha256": "32b76a1a639a60de74af3fb8efd8949292d3ed7e41c69bd89f3d3dc29f69ac7c",
+      "impact_scope": "linked_capabilities",
+      "capabilities": [
+        "WX-001",
+        "WX-002",
+        "WX-003",
+        "WX-004",
+        "WX-005",
+        "WX-006",
+        "WX-007",
+        "WX-008",
+        "WX-009",
+        "WX-010"
+      ],
+      "capability_links": [
+        {
+          "capability_id": "WX-001",
+          "relation": "contained_view",
+          "rationale": "Current weather becomes a view over the canonical state."
+        },
+        {
+          "capability_id": "WX-002",
+          "relation": "contained_view",
+          "rationale": "Forecast becomes a view over the canonical state."
+        },
+        {
+          "capability_id": "WX-003",
+          "relation": "contained_view",
+          "rationale": "History becomes a view over the canonical state."
+        },
+        {
+          "capability_id": "WX-004",
+          "relation": "derived_product",
+          "rationale": "ET0 is explicitly defined as a derived product."
+        },
+        {
+          "capability_id": "WX-005",
+          "relation": "derived_product",
+          "rationale": "VPD is explicitly defined as a derived product."
+        },
+        {
+          "capability_id": "WX-006",
+          "relation": "derived_product",
+          "rationale": "GDD is explicitly defined as a derived product."
+        },
+        {
+          "capability_id": "WX-007",
+          "relation": "derived_product",
+          "rationale": "Frost and heat risk are contained state products."
+        },
+        {
+          "capability_id": "WX-008",
+          "relation": "derived_product",
+          "rationale": "Operation windows are contained state products."
+        },
+        {
+          "capability_id": "WX-009",
+          "relation": "downstream_model",
+          "rationale": "Disease models consume canonical weather state."
+        },
+        {
+          "capability_id": "WX-010",
+          "relation": "governing_contract",
+          "rationale": "Provenance and quality are mandatory state-product fields."
+        }
+      ],
+      "governance_scope": []
+    },
+    {
+      "roadmap_id": "WX-11",
+      "title": "Agricultural Capability Registry",
+      "status": "implemented_static",
+      "source": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
+      "source_anchor": "### WX-11 — Agricultural Capability Registry",
+      "source_sha256": "32b76a1a639a60de74af3fb8efd8949292d3ed7e41c69bd89f3d3dc29f69ac7c",
+      "impact_scope": "all_capabilities",
+      "capabilities": [],
+      "capability_links": [],
+      "governance_scope": [
+        "docs/capability-registry/capability_index.yaml",
+        "docs/capability-registry/domains",
+        "docs/capability-registry/schema",
+        "scripts/ci/capability_evidence_maturity_engine.py",
+        "scripts/ci/capability_mapping_engine.py",
+        "scripts/ci/capability_parity_investment_engine.py",
+        "scripts/ci/capability_registry_v1.py",
+        "scripts/ci/capability_roadmap_linker.py",
+        "scripts/ci/pr_capability_impact_gate.py"
+      ]
+    }
+  ],
+  "capabilities": [
+    {
+      "capability_id": "DEC-001",
+      "domain": "decision",
+      "title": "Decision evidence",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-8",
+          "relation": "context_evidence"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-002",
+      "domain": "decision",
+      "title": "Decision candidate",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "loop_stage"
+        },
+        {
+          "roadmap_id": "CI-8",
+          "relation": "consuming_capability"
+        },
+        {
+          "roadmap_id": "CI-9",
+          "relation": "policy_consumer"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-003",
+      "domain": "decision",
+      "title": "Human approval",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "loop_stage"
+        },
+        {
+          "roadmap_id": "CI-9",
+          "relation": "policy_control"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-004",
+      "domain": "decision",
+      "title": "Execution request",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "loop_stage"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-005",
+      "domain": "decision",
+      "title": "Dispatch authorization",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "loop_stage"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-006",
+      "domain": "decision",
+      "title": "Execution receipt",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "loop_stage"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-007",
+      "domain": "decision",
+      "title": "Outcome recording",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "loop_stage"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-008",
+      "domain": "decision",
+      "title": "Learning attribution",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "loop_stage"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-009",
+      "domain": "decision",
+      "title": "Model calibration",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "learning_output"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "DEC-010",
+      "domain": "decision",
+      "title": "Model lifecycle and activation",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-11",
+          "relation": "learning_output"
+        },
+        {
+          "roadmap_id": "CI-9",
+          "relation": "policy_lifecycle"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "FM-001",
+      "domain": "farm_management",
+      "title": "Tenant and organization management",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "FM-002",
+      "domain": "farm_management",
+      "title": "Farm registry",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "FM-003",
+      "domain": "farm_management",
+      "title": "Field registry and boundaries",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "FM-004",
+      "domain": "farm_management",
+      "title": "Season lifecycle",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-10",
+          "relation": "phenology_knowledge"
+        },
+        {
+          "roadmap_id": "CI-8",
+          "relation": "context_input"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "FM-005",
+      "domain": "farm_management",
+      "title": "Crop and cultivar catalog",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-10",
+          "relation": "crop_knowledge"
+        },
+        {
+          "roadmap_id": "CI-9",
+          "relation": "crop_policy_input"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "FM-006",
+      "domain": "farm_management",
+      "title": "Farm economics",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "FM-007",
+      "domain": "farm_management",
+      "title": "Inventory and procurement",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "FM-008",
+      "domain": "farm_management",
+      "title": "ERP integration",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "GIS-001",
+      "domain": "gis",
+      "title": "Field geometry validation",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "GIS-002",
+      "domain": "gis",
+      "title": "Map layers",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "GIS-003",
+      "domain": "gis",
+      "title": "Terrain and DEM",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "GIS-004",
+      "domain": "gis",
+      "title": "Spatial analytics",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "INT-001",
+      "domain": "farm_management",
+      "title": "Public API and SDK",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "INT-002",
+      "domain": "farm_management",
+      "title": "Event bus integration",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "INT-003",
+      "domain": "irrigation",
+      "title": "IoT and sensors",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "INT-004",
+      "domain": "precision",
+      "title": "External machinery integrations",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "IRR-001",
+      "domain": "irrigation",
+      "title": "Water source registry",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "IRR-002",
+      "domain": "irrigation",
+      "title": "Water quality samples",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "IRR-003",
+      "domain": "irrigation",
+      "title": "Field water-source binding",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "IRR-004",
+      "domain": "irrigation",
+      "title": "Water balance",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-7",
+          "relation": "canonical_input"
+        },
+        {
+          "roadmap_id": "CI-8",
+          "relation": "context_input"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "IRR-005",
+      "domain": "irrigation",
+      "title": "Irrigation recommendation",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-10",
+          "relation": "irrigation_knowledge"
+        },
+        {
+          "roadmap_id": "CI-8",
+          "relation": "recommendation_input"
+        },
+        {
+          "roadmap_id": "CI-9",
+          "relation": "water_policy_consumer"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "IRR-006",
+      "domain": "irrigation",
+      "title": "Irrigation scheduling",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "IRR-007",
+      "domain": "irrigation",
+      "title": "Pump and valve control",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "IRR-008",
+      "domain": "irrigation",
+      "title": "Execution verification",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "IRR-009",
+      "domain": "irrigation",
+      "title": "Water suitability multi-hazard",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-10",
+          "relation": "irrigation_knowledge"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "IRR-010",
+      "domain": "irrigation",
+      "title": "Leaching and drainage safety",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "OPS-001",
+      "domain": "operations",
+      "title": "Task management",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-10",
+          "relation": "operations_knowledge"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "OPS-002",
+      "domain": "operations",
+      "title": "Work orders",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "OPS-003",
+      "domain": "operations",
+      "title": "Scouting",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "OPS-004",
+      "domain": "operations",
+      "title": "Field forms",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "OPS-005",
+      "domain": "operations",
+      "title": "Offline mobile",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "OPS-006",
+      "domain": "operations",
+      "title": "Equipment registry",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "OPS-007",
+      "domain": "operations",
+      "title": "Maintenance",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "OPS-008",
+      "domain": "operations",
+      "title": "Workforce and worker identity",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "PA-001",
+      "domain": "precision",
+      "title": "Management zones",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "PA-002",
+      "domain": "precision",
+      "title": "Variable rate prescription",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "PA-003",
+      "domain": "precision",
+      "title": "Yield map ingestion",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "PA-004",
+      "domain": "precision",
+      "title": "As-applied data",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "PA-005",
+      "domain": "precision",
+      "title": "Machine telemetry",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SAT-001",
+      "domain": "satellite",
+      "title": "Satellite scene search",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SAT-002",
+      "domain": "satellite",
+      "title": "True color imagery",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SAT-003",
+      "domain": "satellite",
+      "title": "NDVI",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-7",
+          "relation": "canonical_input"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "SAT-004",
+      "domain": "satellite",
+      "title": "NDMI",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-7",
+          "relation": "canonical_input"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "SAT-005",
+      "domain": "satellite",
+      "title": "Cloud screening",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-7",
+          "relation": "quality_gate"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "SAT-006",
+      "domain": "satellite",
+      "title": "Historical imagery timeline",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SAT-007",
+      "domain": "satellite",
+      "title": "Change detection",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SAT-008",
+      "domain": "satellite",
+      "title": "Stress zones",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-8",
+          "relation": "context_input"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "SAT-009",
+      "domain": "satellite",
+      "title": "COG persistence and tiling",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-7",
+          "relation": "persistence_substrate"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "SEC-001",
+      "domain": "security",
+      "title": "Tenant RLS",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SEC-002",
+      "domain": "security",
+      "title": "Signed tenant assertion",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SEC-003",
+      "domain": "security",
+      "title": "Worker identity binding",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SEC-004",
+      "domain": "security",
+      "title": "MFA",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SEC-005",
+      "domain": "security",
+      "title": "Audit logging",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SEC-006",
+      "domain": "security",
+      "title": "Service token guard",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SEC-007",
+      "domain": "security",
+      "title": "Decision SoR DB ownership",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SEC-008",
+      "domain": "security",
+      "title": "Secrets and production fail-closed",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SOIL-001",
+      "domain": "soil",
+      "title": "Soil profile",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-7",
+          "relation": "canonical_input"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "SOIL-002",
+      "domain": "soil",
+      "title": "Soil sampling",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SOIL-003",
+      "domain": "soil",
+      "title": "Laboratory results",
+      "roadmap_items": [],
+      "linked": false
+    },
+    {
+      "capability_id": "SOIL-004",
+      "domain": "soil",
+      "title": "pH EC SOM nutrients",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-10",
+          "relation": "nutrient_knowledge"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "SOIL-005",
+      "domain": "soil",
+      "title": "Soil water properties",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-7",
+          "relation": "canonical_input"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-001",
+      "domain": "weather",
+      "title": "Current weather",
+      "roadmap_items": [
+        {
+          "roadmap_id": "WX-10",
+          "relation": "contained_view"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-002",
+      "domain": "weather",
+      "title": "Weather forecast",
+      "roadmap_items": [
+        {
+          "roadmap_id": "WX-10",
+          "relation": "contained_view"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-003",
+      "domain": "weather",
+      "title": "Weather history",
+      "roadmap_items": [
+        {
+          "roadmap_id": "WX-10",
+          "relation": "contained_view"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-004",
+      "domain": "weather",
+      "title": "ET0",
+      "roadmap_items": [
+        {
+          "roadmap_id": "WX-10",
+          "relation": "derived_product"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-005",
+      "domain": "weather",
+      "title": "VPD",
+      "roadmap_items": [
+        {
+          "roadmap_id": "WX-10",
+          "relation": "derived_product"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-006",
+      "domain": "weather",
+      "title": "GDD",
+      "roadmap_items": [
+        {
+          "roadmap_id": "WX-10",
+          "relation": "derived_product"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-007",
+      "domain": "weather",
+      "title": "Frost and heat risk",
+      "roadmap_items": [
+        {
+          "roadmap_id": "WX-10",
+          "relation": "derived_product"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-008",
+      "domain": "weather",
+      "title": "Operation windows",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-9",
+          "relation": "weather_policy_consumer"
+        },
+        {
+          "roadmap_id": "WX-10",
+          "relation": "derived_product"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-009",
+      "domain": "weather",
+      "title": "Disease weather models",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-10",
+          "relation": "disease_knowledge"
+        },
+        {
+          "roadmap_id": "CI-9",
+          "relation": "weather_policy_consumer"
+        },
+        {
+          "roadmap_id": "WX-10",
+          "relation": "downstream_model"
+        }
+      ],
+      "linked": true
+    },
+    {
+      "capability_id": "WX-010",
+      "domain": "weather",
+      "title": "Weather provenance and quality",
+      "roadmap_items": [
+        {
+          "roadmap_id": "CI-7",
+          "relation": "canonical_input"
+        },
+        {
+          "roadmap_id": "CI-8",
+          "relation": "context_input"
+        },
+        {
+          "roadmap_id": "WX-10",
+          "relation": "governing_contract"
+        }
+      ],
+      "linked": true
+    }
+  ]
+}

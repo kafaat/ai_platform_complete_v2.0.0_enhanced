@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "capabilities_total": 81,
+  "domains_total": 10,
+  "registry_sha256": "915435655770b54e4055151e56fba63298555d8013321b6bb7bb4b704bab3dc5",
+  "by_domain": {
+    "decision": 10,
+    "farm_management": 10,
+    "gis": 4,
+    "irrigation": 11,
+    "operations": 8,
+    "precision": 6,
+    "satellite": 9,
+    "security": 8,
+    "soil": 5,
+    "weather": 10
+  },
+  "by_maturity": {
+    "0": 2,
+    "1": 2,
+    "2": 3,
+    "3": 74
+  },
+  "unassessed_priority": 81,
+  "unassessed_parity": 81,
+  "production_certified": 0
+}

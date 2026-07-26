@@ -1,0 +1,842 @@
+schema_version: 1.0.0
+domain:
+  id: D9
+  key: decision
+  title: Decision Intelligence
+  capability_prefix: DEC
+  accepted_prefixes:
+  - DEC
+capabilities:
+- id: DEC-001
+  title:
+    en: Decision evidence
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/decision-service/main.py
+  apis:
+  - GET /api/v1/calibration/{region}/evidence/persisted @ services/sahool-platform/api/routers/calibration.py:144
+  - GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:71
+  - GET /api/v1/evidence-graph/analytics @ services/sahool-platform/api/routers/field_intelligence.py:605
+  - GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:87
+  - GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539
+  - GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638
+  - GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571
+  - GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1092
+  - POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:247
+  - POST /api/v1/calibration/{region}/adapt-from-evidence/apply @ services/sahool-platform/api/routers/calibration.py:302
+  - POST /api/v1/calibration/{region}/evidence @ services/sahool-platform/api/routers/calibration.py:124
+  - POST /api/v1/cameras/snapshot-evidence @ services/sahool-platform/api/routers/cameras.py:58
+  - POST /api/v1/evidence/corroborate @ services/sahool-platform/api/routers/evidence.py:26
+  - POST /v1/activation/evidence-receipts @ services/decision-service/main.py:1394
+  - POST /v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1468
+  - POST /v1/evidence/vegetation-snapshots @ services/decision-service/main.py:590
+  - POST /v1/fields/{field_id}/soil/evidence @ services/soil-service/routers/canonical.py:126
+  - POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2769
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_activation_evidence_contract.py
+  - services/decision-service/tests/test_agronomic_evidence_contract.py
+  - services/decision-service/tests/test_decision_evidence_read.py
+  - services/sahool-platform/tests/test_adapt_from_evidence.py
+  - services/sahool-platform/tests/test_evidence_class.py
+  - services/sahool-platform/tests/test_evidence_graph.py
+  - services/sahool-platform/tests/test_evidence_graph_analytics.py
+  - services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py
+  - services/sahool-platform/tests/test_evidence_graph_normalize.py
+  - services/sahool-platform/tests/test_evidence_snapshot.py
+  - services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py
+  - services/soil-service/test_soil_evidence_adapters_and_policy.py
+  - services/vegetation-analysis-service/test_evidence_producer_contract.py
+  - tests/architecture/test_runtime_evidence_ingestion.py
+  - tests_v9/test_evidence_contract_v62_3.py
+  - tests_v9/test_evidence_graph_nodes_migration_v149.py
+  - tests_v9/test_evidence_lab_contract.py
+  - tests_v9/test_evidence_map_shape.py
+  - tests_v9/test_evidence_persistence.py
+  - tests_v9/test_evidence_registry.py
+  - tests_v9/test_evidence_snapshots_migration_v148.py
+  - tests_v9/test_ndvi_evidence_policy.py
+  - tests_v9/test_production_evidence_pack_guard.py
+  - tests_v9/test_runtime_evidence_wiring_v62_2.py
+  - tests_v9/test_soil_lab_evidence_hardening_v57_5.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/v1/activation/evidence-receipts
+    - receipt:api:POST_/v1/activation/evidence-receipts/{evidence_id}/revoke
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v127_evidence_context_hardening.sql
+  - type: repository
+    path: migrations/v130_soil_lab_evidence_hardening.sql
+  - type: repository
+    path: migrations/v148_field_evidence_snapshots.sql
+  - type: repository
+    path: migrations/v149_evidence_graph_nodes_edges.sql
+  - type: repository
+    path: migrations/v86_calibration_evidence_trigger.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=18, tests=25, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: 1
+      evidence: unverified_external_benchmark
+    cropx:
+      score: 2
+      evidence: unverified_external_benchmark
+    geopard:
+      score: 1
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-002
+  title:
+    en: Decision candidate
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-001
+  services:
+  - services/decision-service/main.py
+  apis:
+  - POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:352
+  - POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:107
+  - POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:709
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py
+  - services/sahool-platform/tests/test_candidate_generator.py
+  - services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/core/engines/candidate_generator.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=3, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-003
+  title:
+    en: Human approval
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-002
+  services:
+  - services/decision-service/main.py
+  apis:
+  - GET /api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:45
+  - GET /api/v1/decisions/{decision_id}/agronomic-evidence @ services/sahool-platform/api/routers/decision_review.py:71
+  - GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:579
+  - GET /v1/decisions/review-queue @ services/decision-service/main.py:673
+  - PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36
+  - POST /api/v1/decisions/{decision_id}/execution-plan @ services/sahool-platform/api/routers/decision_review.py:188
+  - POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:107
+  - POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:393
+  - POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:328
+  - POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:460
+  - POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:831
+  - POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:868
+  - POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:900
+  - POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:729
+  - POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:777
+  - POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633
+  - POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684
+  - POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523
+  - POST /approvals/approve @ services/ai_agronomist/main.py:146
+  - POST /approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:36
+  - POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:709
+  - POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2121
+  - POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_wx10_7_decision_review.py
+  - services/decision-service/tests/test_wx10_8_review_queue.py
+  - services/decision-service/tests/test_wx11_5_model_activation_approval.py
+  - services/sahool-platform/tests/test_decision_approve_permission.py
+  - services/sahool-platform/tests/test_decision_review_endpoint.py
+  - services/sahool-platform/tests/test_decision_review_queue_endpoint.py
+  - services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py
+  - services/sahool-platform/tests/test_review_fixes.py
+  - services/vegetation-analysis-service/test_rs_review_hardening.py
+  - tests_v9/test_ai_approval_audit_v55.py
+  - tests_v9/test_ai_approval_endpoints_v58.py
+  - tests_v9/test_decision_review_backfill_verify.py
+  - tests_v9/test_decision_review_boundary_guard.py
+  - tests_v9/test_security_review_fixes.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/api/v1/execution-requests/{execution_request_id}/verify-outcome
+    - receipt:api:POST_/api/v1/learning/activation-commands/{activation_command_id}/receipt
+    - receipt:api:POST_/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command
+    - receipt:api:POST_/api/v1/outcomes/{outcome_id}/learning-attribution
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v51_review_round2_fixes.sql
+  - type: repository
+    path: services/ai_agronomist/approval.py
+  - type: repository
+    path: services/ai_agronomist/human_review_repository.py
+  - type: repository
+    path: services/decision-service/migrations/002_decision_review.sql
+  - type: repository
+    path: services/decision-service/migrations/012_model_activation_approval_command.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=23, tests=14, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-004
+  title:
+    en: Execution request
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-003
+  services:
+  - services/decision-service/main.py
+  apis:
+  - GET /v1/execution-requests @ services/decision-service/main.py:1736
+  - GET /v1/execution-requests/recovery @ services/decision-service/main.py:1765
+  - POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:393
+  - POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:460
+  - POST /v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:1787
+  - POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:1819
+  - POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:67
+  - POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1865
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_execution_request_feed.py
+  - services/decision-service/tests/test_wx10_11_execution_request.py
+  - tests_v9/test_wx10_11_execution_request_contract.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/api/v1/execution-requests/{execution_request_id}/verify-outcome
+    - receipt:api:POST_/v1/execution-requests/{execution_request_id}/receipt
+    - receipt:api:POST_/v1/execution-requests/{execution_request_id}/remote-sensing-outcome
+    - receipt:api:POST_/v1/execution-requests/{execution_request_id}/verify-outcome
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/decision-service/migrations/005_execution_request.sql
+  - type: repository
+    path: services/sahool-platform/api/irrigation_execution_request_port.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=8, tests=3, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-005
+  title:
+    en: Dispatch authorization
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-004
+  services:
+  - services/decision-service/main.py
+  apis:
+  - GET /api/v1/decision/dispatch/decisions @ services/sahool-platform/api/routers/decision_dispatch.py:476
+  - GET /api/v1/decision/dispatch/queue @ services/sahool-platform/api/routers/decision_dispatch.py:508
+  - GET /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:660
+  - GET /v1/dispatch/decisions @ services/decision-service/main.py:901
+  - POST /api/v1/decision/dispatch/consume @ services/sahool-platform/api/routers/decision_dispatch.py:428
+  - POST /api/v1/decision/dispatch/evaluate @ services/sahool-platform/api/routers/decision_dispatch.py:195
+  - POST /api/v1/decision/dispatch/execute @ services/sahool-platform/api/routers/decision_dispatch.py:244
+  - POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:564
+  - POST /api/v1/decision/unified @ services/sahool-platform/api/routers/decision_dispatch.py:126
+  - POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:393
+  - POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/sahool-platform/api/routers/decision_review.py:328
+  - POST /iot/dispatch/preview @ services/sahool-platform/api/phase9_autonomous_farm_os.py:217
+  - POST /iot/dispatch/simulate @ services/sahool-platform/api/phase9_autonomous_farm_os.py:230
+  - POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1205
+  - POST /v1/dispatch/decisions @ services/decision-service/main.py:842
+  - POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1137
+  - POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2674
+  - POST /v1/reservation-dispatch-intents @ services/decision-service/main.py:1264
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/actuator-service/test_dispatch_bridge.py
+  - services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py
+  - services/decision-service/tests/test_wx10_10_dispatch_authorization.py
+  - services/sahool-platform/tests/test_decision_dispatch.py
+  - services/sahool-platform/tests/test_decision_dispatch_endpoint.py
+  - services/sahool-platform/tests/test_dispatch_executor.py
+  - services/sahool-platform/tests/test_dispatch_lifecycle.py
+  - services/sahool-platform/tests/test_dispatch_notification.py
+  - tests/irrigation/test_gate_b_dispatch_relay_and_contract.py
+  - tests/irrigation/test_gate_b_dispatch_relay_worker.py
+  - tests_v9/test_command_dispatch_race_v65.py
+  - tests_v9/test_dispatch_decisions_integration.py
+  - tests_v9/test_dispatch_events.py
+  - tests_v9/test_dispatch_hardening_ledger_integration.py
+  - tests_v9/test_offline_dispatch_field_update.py
+  - tests_v9/test_wx10_10_dispatch_authorization_contract.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v66_dispatch_decisions.sql
+  - type: repository
+    path: migrations/v67_dispatch_hardening.sql
+  - type: repository
+    path: services/decision-service/migrations/004_dispatch_authorization.sql
+  - type: repository
+    path: services/decision-service/migrations/027_reservation_dispatch_inbox.sql
+  - type: repository
+    path: services/sahool-platform/api/irrigation_dispatch_relay.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=18, tests=16, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-006
+  title:
+    en: Execution receipt
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-005
+  services:
+  - services/decision-service/main.py
+  apis:
+  - POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:1819
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py
+  - tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/v1/execution-requests/{execution_request_id}/receipt
+    - receipt:test:services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py
+    - receipt:test:tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/decision-service/migrations/006_execution_delivery_receipt.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=2, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-007
+  title:
+    en: Outcome recording
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-006
+  services:
+  - services/decision-service/main.py
+  apis:
+  - POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:564
+  - POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:460
+  - POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:43
+  - POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:430
+  - POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523
+  - POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:328
+  - POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:67
+  - POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1865
+  - POST /v1/fields/{field_id}/soil/outcomes @ services/soil-service/routers/p4_workflow.py:95
+  - POST /v1/outcomes/record @ services/decision-service/main.py:915
+  - POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1923
+  - POST /v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:88
+  - POST /v1/recommendation-outcomes @ services/decision-service/main.py:941
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_outcome_reconcile.py
+  - services/decision-service/tests/test_wx10_12_execution_outcome.py
+  - services/sahool-platform/tests/test_outcome_endpoint.py
+  - services/sahool-platform/tests/test_outcome_reconciler.py
+  - services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py
+  - tests_v9/test_outcome_measurement.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/api/v1/execution-requests/{execution_request_id}/verify-outcome
+    - receipt:api:POST_/api/v1/outcome/measure
+    - receipt:api:POST_/api/v1/outcome/record
+    - receipt:api:POST_/api/v1/outcomes/{outcome_id}/learning-attribution
+    - receipt:api:POST_/api/v1/recommendations/outcomes
+    - receipt:api:POST_/v1/execution-requests/{execution_request_id}/remote-sensing-outcome
+    - receipt:api:POST_/v1/execution-requests/{execution_request_id}/verify-outcome
+    - receipt:api:POST_/v1/fields/{field_id}/soil/outcomes
+    - receipt:api:POST_/v1/outcomes/record
+    - receipt:api:POST_/v1/outcomes/{outcome_id}/learning-attribution
+    - receipt:api:POST_/v1/outcomes/{outcome_id}/remote-sensing-attribution
+    - receipt:api:POST_/v1/recommendation-outcomes
+    - receipt:test:services/decision-service/tests/test_outcome_reconcile.py
+    - receipt:test:services/decision-service/tests/test_wx10_12_execution_outcome.py
+    - receipt:test:services/sahool-platform/tests/test_outcome_endpoint.py
+    - receipt:test:services/sahool-platform/tests/test_outcome_reconciler.py
+    - receipt:test:services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py
+    - receipt:test:tests_v9/test_outcome_measurement.py
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v146_backfill_runs_outcome_counters.sql
+  - type: repository
+    path: migrations/v79_outcome_record.sql
+  - type: repository
+    path: services/decision-service/migrations/007_execution_outcome_verification.sql
+  - type: repository
+    path: services/decision-service/outcome_reconcile.py
+  - type: repository
+    path: services/sahool-platform/api/outcome_measurement.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=6, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-008
+  title:
+    en: Learning attribution
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-007
+  services:
+  - services/decision-service/main.py
+  apis:
+  - POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523
+  - POST /v1/fields/{field_id}/soil/learning-attributions @ services/soil-service/routers/p4_workflow.py:114
+  - POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1923
+  - POST /v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:88
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_wx10_13_learning_attribution.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/api/v1/outcomes/{outcome_id}/learning-attribution
+    - receipt:api:POST_/v1/outcomes/{outcome_id}/learning-attribution
+    - receipt:api:POST_/v1/outcomes/{outcome_id}/remote-sensing-attribution
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/decision-service/migrations/008_learning_attribution.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-009
+  title:
+    en: Model calibration
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-008
+  services:
+  - services/decision-service/main.py
+  apis:
+  - DELETE /api/v1/calibration/{region}/override @ services/sahool-platform/api/routers/calibration.py:571
+  - GET /api/v1/calibration @ services/sahool-platform/api/routers/calibration.py:95
+  - GET /api/v1/calibration/overrides/all @ services/sahool-platform/api/routers/calibration.py:538
+  - GET /api/v1/calibration/{region} @ services/sahool-platform/api/routers/calibration.py:106
+  - GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:617
+  - GET /api/v1/calibration/{region}/evidence/persisted @ services/sahool-platform/api/routers/calibration.py:144
+  - GET /api/v1/calibration/{region}/resolved @ services/sahool-platform/api/routers/calibration.py:509
+  - GET /api/v1/learning/calibration-dataset @ services/sahool-platform/api/routers/decision_review.py:579
+  - GET /api/v1/learning/prediction-calibration @ services/sahool-platform/api/routers/learning.py:114
+  - GET /v1/learning/calibration-dataset @ services/decision-service/main.py:1957
+  - POST /api/v1/calibration/feedback @ services/sahool-platform/api/routers/calibration.py:196
+  - POST /api/v1/calibration/{region}/adapt @ services/sahool-platform/api/routers/calibration.py:214
+  - POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:247
+  - POST /api/v1/calibration/{region}/adapt-from-evidence/apply @ services/sahool-platform/api/routers/calibration.py:302
+  - POST /api/v1/calibration/{region}/evidence @ services/sahool-platform/api/routers/calibration.py:124
+  - POST /api/v1/calibration/{region}/override @ services/sahool-platform/api/routers/calibration.py:443
+  - POST /api/v1/calibration/{region}/propose-values @ services/sahool-platform/api/routers/calibration.py:420
+  - POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633
+  - POST /v1/learning/evaluation-runs @ services/decision-service/main.py:1992
+  - POST /v1/soil/calibrations/build @ services/soil-service/routers/p5_certification.py:58
+  - POST /v1/soil/calibrations/{calibration_id}/evaluate @ services/soil-service/routers/p5_certification.py:92
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_wx11_1_calibration_dataset.py
+  - services/sahool-platform/tests/test_calibration_audit_endpoint.py
+  - services/sahool-platform/tests/test_calibration_endpoint.py
+  - services/sahool-platform/tests/test_calibration_override_endpoints.py
+  - services/sahool-platform/tests/test_prediction_calibration.py
+  - tests_v9/test_adaptive_calibration.py
+  - tests_v9/test_calibration.py
+  - tests_v9/test_calibration_audit_events.py
+  - tests_v9/test_calibration_audit_migration.py
+  - tests_v9/test_calibration_ingest.py
+  - tests_v9/test_calibration_override.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v165_soil_p5_validation_calibration_certification.sql
+  - type: repository
+    path: migrations/v80_calibration_override.sql
+  - type: repository
+    path: migrations/v84_calibration_audit.sql
+  - type: repository
+    path: migrations/v86_calibration_evidence_trigger.sql
+  - type: repository
+    path: services/decision-service/migrations/009_model_evaluation_run.sql
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=21, tests=11, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: DEC-010
+  title:
+    en: Model lifecycle and activation
+    ar: ''
+  domain: decision
+  owner: decision-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - DEC-009
+  services:
+  - services/decision-service/main.py
+  apis:
+  - POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:900
+  - POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:729
+  - POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:777
+  - POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684
+  - POST /models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:162
+  - POST /models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:291
+  - POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2258
+  - POST /v1/learning/activation-requests @ services/decision-service/main.py:2078
+  - POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2042
+  - POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2295
+  - POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2331
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_wx11_3_model_promotion_decision.py
+  - services/decision-service/tests/test_wx11_4_model_activation_request.py
+  - services/decision-service/tests/test_wx11_5_model_activation_approval.py
+  - services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py
+  - services/sahool-platform/tests/test_practice_promotion.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts:
+    - receipt:api:POST_/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command
+    - receipt:api:POST_/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command
+    - receipt:api:POST_/v1/learning/rollback-commands/{rollback_command_id}/receipt
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/decision-service/migrations/010_model_promotion_decision.sql
+  - type: repository
+    path: services/decision-service/migrations/011_model_activation_request.sql
+  - type: repository
+    path: services/decision-service/migrations/012_model_activation_approval_command.sql
+  - type: repository
+    path: services/decision-service/migrations/013_registry_adapter_receipt_rollback.sql
+  - type: repository
+    path: services/decision-service/production_promotion.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=5, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: true
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

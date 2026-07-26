@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sahool.dev/schemas/capability-card-v1.json",
+  "title": "SAHOOL Capability Card v1",
+  "type": "object",
+  "required": ["id","title","domain","owner","maturity","evidence_level","status","priority","business_value","investment_strategy","parity_classification","dependencies","services","apis","ui_consumers","mobile_consumers","tests","runtime","production_certified"],
+  "properties": {
+    "id": {"type":"string","pattern":"^[A-Z]+-[0-9]{3}$"},
+    "title": {"type":"object","required":["en","ar"],"properties":{"en":{"type":"string","minLength":1},"ar":{"type":"string"}},"additionalProperties":false},
+    "domain": {"type":"string"},
+    "owner": {"type":"string","minLength":1},
+    "maturity": {"type":"integer","minimum":0,"maximum":5},
+    "evidence_level": {"type":"integer","minimum":0,"maximum":5},
+    "priority": {"enum":["critical","high","medium","low","unassessed"]},
+    "business_value": {"enum":["critical","high","medium","low","unassessed"]},
+    "investment_strategy": {"enum":["build","integrate","partner","ignore","unassessed"]},
+    "parity_classification": {"enum":["leader","parity","behind","missing","differentiator","emerging_differentiator","unassessed"]},
+    "dependencies": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "services": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "apis": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "ui_consumers": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "mobile_consumers": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "tests": {"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "production_certified": {"type":"boolean"}
+  },
+  "additionalProperties": true
+}

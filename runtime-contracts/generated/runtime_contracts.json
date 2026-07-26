@@ -1659,6 +1659,7 @@
           "services/raster-service/test_p2_tile_observability_static.py",
           "services/raster-service/test_raster_crs_window.py",
           "services/raster-service/test_reproject_nodata_mask_conflict.py",
+          "services/raster-service/test_rgba_cog_photometric.py",
           "services/raster-service/test_router_query_direct_call.py",
           "services/raster-service/test_single_scene_concurrent_pg.py",
           "services/raster-service/test_stac_vrt.py",

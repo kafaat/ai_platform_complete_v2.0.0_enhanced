@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1797,
+    "python_files_parsed": 1798,
     "route_handlers": 1035,
-    "call_edges": 69831,
+    "call_edges": 69881,
     "dead_code_candidates": 610,
     "duplicate_function_groups": 57,
     "route_owners": 25,
@@ -104717,140 +104717,140 @@
       "file": "services/raster-service/cog_writer.py",
       "source": "write_rgba_cog",
       "target": "dirname",
-      "line": 156
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "write_rgba_cog",
-      "target": "makedirs",
-      "line": 156
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "write_rgba_cog",
-      "target": "open",
-      "line": 157
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "write_rgba_cog",
-      "target": "range",
-      "line": 158
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "write_rgba_cog",
-      "target": "write",
-      "line": 159
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "write_rgba_cog",
-      "target": "append",
-      "line": 162
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "write_rgba_cog",
-      "target": "build_overviews",
       "line": 164
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cog_writer.py",
       "source": "write_rgba_cog",
-      "target": "update_tags",
+      "target": "makedirs",
+      "line": 164
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "write_rgba_cog",
+      "target": "open",
       "line": 165
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cog_writer.py",
       "source": "write_rgba_cog",
-      "target": "getsize",
+      "target": "range",
+      "line": 166
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "write_rgba_cog",
+      "target": "write",
       "line": 167
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cog_writer.py",
       "source": "write_rgba_cog",
-      "target": "round",
+      "target": "append",
+      "line": 170
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "write_rgba_cog",
+      "target": "build_overviews",
       "line": 172
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cog_writer.py",
       "source": "write_rgba_cog",
+      "target": "update_tags",
+      "line": 173
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "write_rgba_cog",
+      "target": "getsize",
+      "line": 175
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "write_rgba_cog",
+      "target": "round",
+      "line": 180
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "write_rgba_cog",
       "target": "validate_cog",
-      "line": 177
+      "line": 185
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cog_writer.py",
       "source": "validate_cog",
       "target": "exists",
-      "line": 187
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "validate_cog",
-      "target": "open",
-      "line": 189
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "validate_cog",
-      "target": "get",
-      "line": 190
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "validate_cog",
-      "target": "len",
-      "line": 191
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "validate_cog",
-      "target": "overviews",
-      "line": 191
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "validate_cog",
-      "target": "bool",
-      "line": 193
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cog_writer.py",
-      "source": "validate_cog",
-      "target": "overviews",
       "line": 195
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cog_writer.py",
       "source": "validate_cog",
+      "target": "open",
+      "line": 197
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "validate_cog",
       "target": "get",
-      "line": 196
+      "line": 198
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "validate_cog",
+      "target": "len",
+      "line": 199
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "validate_cog",
+      "target": "overviews",
+      "line": 199
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "validate_cog",
+      "target": "bool",
+      "line": 201
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "validate_cog",
+      "target": "overviews",
+      "line": 203
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cog_writer.py",
+      "source": "validate_cog",
+      "target": "get",
+      "line": 204
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cog_writer.py",
       "source": "validate_cog",
       "target": "str",
-      "line": 196
+      "line": 204
     },
     {
       "owner": "raster-service",
@@ -144695,6 +144695,356 @@
       "source": "test_render_masked_cog_emits_no_nodata_mask_conflict_warning",
       "target": "setLevel",
       "line": 120
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_photometric_tag",
+      "target": "Path",
+      "line": 47
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_photometric_tag",
+      "target": "read_bytes",
+      "line": 47
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_photometric_tag",
+      "target": "unpack",
+      "line": 51
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_photometric_tag",
+      "target": "unpack",
+      "line": 52
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_photometric_tag",
+      "target": "range",
+      "line": 53
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_photometric_tag",
+      "target": "unpack",
+      "line": 55
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_photometric_tag",
+      "target": "unpack",
+      "line": 57
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_rgba_array",
+      "target": "zeros",
+      "line": 63
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_transform",
+      "target": "from_origin",
+      "line": 73
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "StringIO",
+      "line": 79
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "StreamHandler",
+      "line": 80
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "setLevel",
+      "line": 81
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "getLogger",
+      "line": 82
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "addHandler",
+      "line": 84
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "setLevel",
+      "line": 85
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "open",
+      "line": 87
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "list",
+      "line": 90
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "read",
+      "line": 91
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "read",
+      "line": 92
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "removeHandler",
+      "line": 95
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "setLevel",
+      "line": 96
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "getvalue",
+      "line": 97
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "_open_capturing_gdal_warnings",
+      "target": "splitlines",
+      "line": 100
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "join",
+      "line": 109
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "mkdtemp",
+      "line": 109
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "_rgba_array",
+      "line": 110
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "_transform",
+      "line": 110
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "write_rgba_cog",
+      "line": 110
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "get",
+      "line": 111
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "get",
+      "line": 112
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "_photometric_tag",
+      "line": 115
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "_photometric_tag",
+      "line": 116
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "_open_capturing_gdal_warnings",
+      "line": 119
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "int",
+      "line": 133
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "int",
+      "line": 135
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "int",
+      "line": 137
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "range",
+      "line": 137
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_rgba_cog_declares_rgb_photometric_alpha_and_transparency",
+      "target": "tuple",
+      "line": 137
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "_rgba_array",
+      "line": 144
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "join",
+      "line": 145
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "mkdtemp",
+      "line": 145
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "_transform",
+      "line": 146
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "write_rgba_cog",
+      "line": 146
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "get",
+      "line": 147
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "get",
+      "line": 148
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "_photometric_tag",
+      "line": 149
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "_photometric_tag",
+      "line": 149
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_three_band_rgb_cog_declares_rgb_photometric",
+      "target": "_open_capturing_gdal_warnings",
+      "line": 151
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_source_sets_photometric_rgb_at_creation",
+      "target": "Path",
+      "line": 164
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_rgba_cog_photometric.py",
+      "source": "test_source_sets_photometric_rgb_at_creation",
+      "target": "read_text",
+      "line": 164
     },
     {
       "owner": "raster-service",

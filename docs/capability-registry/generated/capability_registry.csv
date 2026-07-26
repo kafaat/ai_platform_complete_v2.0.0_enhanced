@@ -1,0 +1,82 @@
+id,title_en,title_ar,domain,owner,maturity,evidence_level,priority,business_value,investment_strategy,parity_classification,status,production_certified
+DEC-001,Decision evidence,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-002,Decision candidate,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+DEC-003,Human approval,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-004,Execution request,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-005,Dispatch authorization,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-006,Execution receipt,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-007,Outcome recording,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-008,Learning attribution,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+DEC-009,Model calibration,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+DEC-010,Model lifecycle and activation,,decision,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+FM-001,Tenant and organization management,,farm_management,auth+field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+FM-002,Farm registry,,farm_management,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+FM-003,Field registry and boundaries,,farm_management,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+FM-004,Season lifecycle,,farm_management,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+FM-005,Crop and cultivar catalog,,farm_management,UNASSIGNED,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+FM-006,Farm economics,,farm_management,UNASSIGNED,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+FM-007,Inventory and procurement,,farm_management,UNASSIGNED,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+FM-008,ERP integration,,farm_management,erp-bridge,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+GIS-001,Field geometry validation,,gis,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+GIS-002,Map layers,,gis,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+GIS-003,Terrain and DEM,,gis,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+GIS-004,Spatial analytics,,gis,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+INT-001,Public API and SDK,,farm_management,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+INT-002,Event bus integration,,farm_management,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+INT-003,IoT and sensors,,irrigation,actuator-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+INT-004,External machinery integrations,,precision,UNASSIGNED,1,1,unassessed,unassessed,unassessed,unassessed,documentation_or_scaffold,False
+IRR-001,Water source registry,,irrigation,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+IRR-002,Water quality samples,,irrigation,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+IRR-003,Field water-source binding,,irrigation,sahool-platform,0,0,unassessed,unassessed,unassessed,unassessed,missing_confirmed,False
+IRR-004,Water balance,,irrigation,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+IRR-005,Irrigation recommendation,,irrigation,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+IRR-006,Irrigation scheduling,,irrigation,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+IRR-007,Pump and valve control,,irrigation,actuator-service+sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+IRR-008,Execution verification,,irrigation,decision-service+sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+IRR-009,Water suitability multi-hazard,,irrigation,sahool-platform,2,2,unassessed,unassessed,unassessed,unassessed,analytical_partial,False
+IRR-010,Leaching and drainage safety,,irrigation,sahool-platform,2,2,unassessed,unassessed,unassessed,unassessed,analytical_partial,False
+OPS-001,Task management,,operations,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+OPS-002,Work orders,,operations,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+OPS-003,Scouting,,operations,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+OPS-004,Field forms,,operations,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+OPS-005,Offline mobile,,operations,UNASSIGNED,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+OPS-006,Equipment registry,,operations,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+OPS-007,Maintenance,,operations,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+OPS-008,Workforce and worker identity,,operations,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+PA-001,Management zones,,precision,vegetation-analysis-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+PA-002,Variable rate prescription,,precision,vegetation-analysis-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+PA-003,Yield map ingestion,,precision,UNASSIGNED,0,0,unassessed,unassessed,unassessed,unassessed,missing_confirmed,False
+PA-004,As-applied data,,precision,UNASSIGNED,2,2,unassessed,unassessed,unassessed,unassessed,irrigation_specific_partial,False
+PA-005,Machine telemetry,,precision,UNASSIGNED,1,1,unassessed,unassessed,unassessed,unassessed,documentation_or_scaffold,False
+SAT-001,Satellite scene search,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-002,True color imagery,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-003,NDVI,,satellite,raster-service+vegetation-analysis-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-004,NDMI,,satellite,raster-service+vegetation-analysis-service,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+SAT-005,Cloud screening,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-006,Historical imagery timeline,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-007,Change detection,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-008,Stress zones,,satellite,vegetation-analysis-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SAT-009,COG persistence and tiling,,satellite,raster-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SEC-001,Tenant RLS,,security,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SEC-002,Signed tenant assertion,,security,field-management-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SEC-003,Worker identity binding,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+SEC-004,MFA,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+SEC-005,Audit logging,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+SEC-006,Service token guard,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+SEC-007,Decision SoR DB ownership,,security,decision-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SEC-008,Secrets and production fail-closed,,security,auth,3,3,unassessed,unassessed,unassessed,unassessed,repository_runtime_instrumentation_linked_production_unverified,False
+SOIL-001,Soil profile,,soil,soil-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SOIL-002,Soil sampling,,soil,soil-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SOIL-003,Laboratory results,,soil,soil-service,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+SOIL-004,pH EC SOM nutrients,,soil,soil-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+SOIL-005,Soil water properties,,soil,soil-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+WX-001,Current weather,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,operational_evidence,False
+WX-002,Weather forecast,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+WX-003,Weather history,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,operational_evidence,False
+WX-004,ET0,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+WX-005,VPD,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+WX-006,GDD,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+WX-007,Frost and heat risk,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+WX-008,Operation windows,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
+WX-009,Disease weather models,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
+WX-010,Weather provenance and quality,,weather,weather-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False

@@ -1,0 +1,4183 @@
+{
+  "capabilities": [
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Decision evidence"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Decision candidate"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-003",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Human approval"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Execution request"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-005",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Dispatch authorization"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-006",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Execution receipt"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-007",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Outcome recording"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-008",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Learning attribution"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-009",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Model calibration"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "DEC-010",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "decision",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Model lifecycle and activation"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "FM-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Tenant and organization management"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "FM-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Farm registry"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "FM-003",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Field registry and boundaries"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "FM-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Season lifecycle"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "FM-005",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Crop and cultivar catalog"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "FM-006",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Farm economics"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "FM-007",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Inventory and procurement"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "FM-008",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "ERP integration"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "GIS-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "gis",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Field geometry validation"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "GIS-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "gis",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Map layers"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "GIS-003",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "gis",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Terrain and DEM"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "GIS-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "gis",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Spatial analytics"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 3,
+      "capability_id": "INT-001",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "EV-FV-INT001"
+        ],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": "low",
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": 3,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "live_verified_2026-07-26"
+        ],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": 1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Public API and SDK"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "INT-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "farm_management",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Event bus integration"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "INT-003",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "IoT and sensors"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 4,
+      "capability_id": "INT-004",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": [
+          "EV-OS-INT004"
+        ]
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": "medium"
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": 4
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": [
+          "live_verified_2026-07-26"
+        ]
+      },
+      "domain": "precision",
+      "gap_to_best": 3,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "External machinery integrations"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Water source registry"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Water quality samples"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-003",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 0,
+      "sahool_score_confidence": "high",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Field water-source binding"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Water balance"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 3,
+      "capability_id": "IRR-005",
+      "classification": "Leader",
+      "competitor_evidence_refs": {
+        "CropX": [
+          "EV-CX-IRR005"
+        ],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": "medium",
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": 3,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [
+          "live_verified_2026-07-26"
+        ],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Irrigation recommendation"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-006",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Irrigation scheduling"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-007",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Pump and valve control"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-008",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Execution verification"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-009",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "high",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Water suitability multi-hazard"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "IRR-010",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "irrigation",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Leaching and drainage safety"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "OPS-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "operations",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Task management"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "OPS-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "operations",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Work orders"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 4,
+      "capability_id": "OPS-003",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [
+          "EV-CW-OPS003"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "EV-FV-OPS003"
+        ],
+        "GeoPard": [],
+        "OneSoil": [
+          "EV-OS-OPS003"
+        ]
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": "medium",
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": "medium",
+        "GeoPard": null,
+        "OneSoil": "medium"
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": 4,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": 3,
+        "GeoPard": null,
+        "OneSoil": 4
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [
+          "live_verified_2026-07-26"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "live_verified_2026-07-26"
+        ],
+        "GeoPard": [],
+        "OneSoil": [
+          "live_verified_2026-07-26"
+        ]
+      },
+      "domain": "operations",
+      "gap_to_best": 1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Scouting"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "OPS-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "operations",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Field forms"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 4,
+      "capability_id": "OPS-005",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [
+          "EV-CW-OPS005"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": "medium",
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": 4,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [
+          "live_verified_2026-07-26"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "operations",
+      "gap_to_best": 2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Offline mobile"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "OPS-006",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "operations",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Equipment registry"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "OPS-007",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "operations",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Maintenance"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "OPS-008",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "operations",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Workforce and worker identity"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 4,
+      "capability_id": "PA-001",
+      "classification": "Parity",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [
+          "EV-CW-PA001"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [
+          "EV-GP-PA001"
+        ],
+        "OneSoil": [
+          "EV-OS-PA001"
+        ]
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": "medium",
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": "medium",
+        "OneSoil": "medium"
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": 4,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": 4,
+        "OneSoil": 4
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [
+          "live_verified_2026-07-26"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [
+          "live_verified_2026-07-26"
+        ],
+        "OneSoil": [
+          "live_verified_2026-07-26"
+        ]
+      },
+      "domain": "precision",
+      "gap_to_best": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Management zones"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 4,
+      "capability_id": "PA-002",
+      "classification": "Parity",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [
+          "EV-CW-PA002"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "EV-FV-PA002"
+        ],
+        "GeoPard": [
+          "EV-GP-PA002"
+        ],
+        "OneSoil": [
+          "EV-OS-PA002A",
+          "EV-OS-PA002B"
+        ]
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": "medium",
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": "medium",
+        "GeoPard": "medium",
+        "OneSoil": "medium"
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": 4,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": 4,
+        "GeoPard": 4,
+        "OneSoil": 4
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [
+          "live_verified_2026-07-26"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "live_verified_2026-07-26"
+        ],
+        "GeoPard": [
+          "live_verified_2026-07-26"
+        ],
+        "OneSoil": [
+          "live_verified_2026-07-26"
+        ]
+      },
+      "domain": "precision",
+      "gap_to_best": 0,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Variable rate prescription"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 3,
+      "capability_id": "PA-003",
+      "classification": "Missing",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "EV-FV-PA003"
+        ],
+        "GeoPard": [
+          "EV-GP-PA003"
+        ],
+        "OneSoil": [
+          "EV-OS-PA003"
+        ]
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": "medium",
+        "GeoPard": "medium",
+        "OneSoil": "medium"
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": 3,
+        "GeoPard": 3,
+        "OneSoil": 3
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "live_verified_2026-07-26"
+        ],
+        "GeoPard": [
+          "live_verified_2026-07-26"
+        ],
+        "OneSoil": [
+          "live_verified_2026-07-26"
+        ]
+      },
+      "domain": "precision",
+      "gap_to_best": 3,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 0,
+      "sahool_score_confidence": "high",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Yield map ingestion"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 4,
+      "capability_id": "PA-004",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [
+          "EV-GP-PA004"
+        ],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": "medium",
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": 4,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [
+          "live_verified_2026-07-26"
+        ],
+        "OneSoil": []
+      },
+      "domain": "precision",
+      "gap_to_best": 2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "high",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "As-applied data"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 4,
+      "capability_id": "PA-005",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [
+          "EV-CW-PA005"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "EV-FV-PA005"
+        ],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": "medium",
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": "medium",
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": 4,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": 4,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [
+          "live_verified_2026-07-26"
+        ],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [
+          "live_verified_2026-07-26"
+        ],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "precision",
+      "gap_to_best": 3,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "high",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Machine telemetry"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SAT-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Satellite scene search"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SAT-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "True color imagery"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 3,
+      "capability_id": "SAT-003",
+      "classification": "Leader",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [
+          "EV-EOS-SAT003"
+        ],
+        "Farmonaut": [
+          "EV-FA-SAT003"
+        ],
+        "FieldView": [
+          "EV-FV-SAT003"
+        ],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": "medium",
+        "Farmonaut": "low",
+        "FieldView": "medium",
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": 3,
+        "Farmonaut": 3,
+        "FieldView": 3,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [
+          "live_verified_2026-07-26"
+        ],
+        "Farmonaut": [
+          "source_unreachable_2026-07-26"
+        ],
+        "FieldView": [
+          "live_verified_2026-07-26"
+        ],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "NDVI"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SAT-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "NDMI"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SAT-005",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Cloud screening"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SAT-006",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Historical imagery timeline"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SAT-007",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Change detection"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SAT-008",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Stress zones"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SAT-009",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "satellite",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "COG persistence and tiling"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SEC-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "security",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Tenant RLS"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SEC-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "security",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Signed tenant assertion"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SEC-003",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "security",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "high",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Worker identity binding"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SEC-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "security",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "MFA"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SEC-005",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "security",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Audit logging"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SEC-006",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "security",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Service token guard"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SEC-007",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "security",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Decision SoR DB ownership"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SEC-008",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "security",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Secrets and production fail-closed"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SOIL-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "soil",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Soil profile"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 3,
+      "capability_id": "SOIL-002",
+      "classification": "Leader",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": [
+          "EV-OS-SOIL002"
+        ]
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": "medium"
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": 3
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": [
+          "live_verified_2026-07-26"
+        ]
+      },
+      "domain": "soil",
+      "gap_to_best": -1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Soil sampling"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SOIL-003",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "soil",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Laboratory results"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "SOIL-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "soil",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "pH EC SOM nutrients"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 3,
+      "capability_id": "SOIL-005",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [
+          "EV-CX-SOIL005"
+        ],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": "medium",
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": 3,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [
+          "live_verified_2026-07-26"
+        ],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "soil",
+      "gap_to_best": 2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Soil water properties"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "WX-001",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Current weather"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "WX-002",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "Weather forecast"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "WX-003",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Weather history"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "WX-004",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 4,
+      "sahool_score_confidence": "low",
+      "sahool_score_source": "phase3_canonical_assessment",
+      "title": "ET0"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "WX-005",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "VPD"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "WX-006",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 3,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "GDD"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 3,
+      "capability_id": "WX-007",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [
+          "EV-EOS-WX007"
+        ],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": "low",
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": 3,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [
+          "live_verified_2026-07-26"
+        ],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": 2,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Frost and heat risk"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "WX-008",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Operation windows"
+    },
+    {
+      "benchmark_coverage": "evidence_linked_provisional",
+      "best_evidenced_competitor_score": 3,
+      "capability_id": "WX-009",
+      "classification": "Behind",
+      "competitor_evidence_refs": {
+        "CropX": [
+          "EV-CX-WX009"
+        ],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": "low",
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": 3,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [
+          "live_verified_2026-07-26"
+        ],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": 1,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 2,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Disease weather models"
+    },
+    {
+      "benchmark_coverage": "unassessed",
+      "best_evidenced_competitor_score": null,
+      "capability_id": "WX-010",
+      "classification": "Unassessed",
+      "competitor_evidence_refs": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "competitor_score_confidence": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_scores": {
+        "CropX": null,
+        "Cropwise": null,
+        "EOSDA": null,
+        "Farmonaut": null,
+        "FieldView": null,
+        "GeoPard": null,
+        "OneSoil": null
+      },
+      "competitor_verification_status": {
+        "CropX": [],
+        "Cropwise": [],
+        "EOSDA": [],
+        "Farmonaut": [],
+        "FieldView": [],
+        "GeoPard": [],
+        "OneSoil": []
+      },
+      "domain": "weather",
+      "gap_to_best": null,
+      "production_certified": false,
+      "runtime_verified": false,
+      "sahool_score": 1,
+      "sahool_score_confidence": "repository_static",
+      "sahool_score_source": "evidence_maturity_baseline",
+      "title": "Weather provenance and quality"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "scoring_model": "provisional_analyst_score_from_direct_official_evidence",
+  "summary": {
+    "adjacent_evidence_rows_excluded_from_scores": 1,
+    "approved_capability_assignments": 10,
+    "capabilities": 81,
+    "classifications": {
+      "Behind": 9,
+      "Leader": 3,
+      "Missing": 1,
+      "Parity": 2,
+      "Unassessed": 66
+    },
+    "decision_records": 7,
+    "direct_evidence_rows": 28,
+    "evidence_linked_benchmarks": 15,
+    "production_certified": 0,
+    "runtime_verified": 0,
+    "unassessed": 66
+  }
+}

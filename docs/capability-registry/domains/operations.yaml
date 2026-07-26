@@ -1,0 +1,571 @@
+schema_version: 1.0.0
+domain:
+  id: D8
+  key: operations
+  title: Operations
+  capability_prefix: OPS
+  accepted_prefixes:
+  - OPS
+capabilities:
+- id: OPS-001
+  title:
+    en: Task management
+    ar: ''
+  domain: operations
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - GET /api/v1/tasks @ services/sahool-platform/api/routers/tasks.py:37
+  - PATCH /api/v1/tasks/{task_id} @ services/sahool-platform/api/routers/tasks.py:87
+  - POST /api/v1/weather/tasks/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2796
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/screens/tasks_screen.dart
+  tests:
+  - tests_v9/test_tasks_endpoints.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: services/sahool-platform/api/routers/tasks.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=3, tests=1, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: 4
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: OPS-002
+  title:
+    en: Work orders
+    ar: ''
+  domain: operations
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - OPS-001
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/sahool-platform/tests/test_work_order.py
+  - services/sahool-platform/tests/test_work_order_from_recommendation.py
+  - tests_v9/test_work_order_persist_emit.py
+  - tests_v9/test_work_orders_migration.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v75_work_orders.sql
+  - type: repository
+    path: services/sahool-platform/core/work_order.py
+  - type: repository
+    path: services/sahool-platform/core/work_order_from_recommendation.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=4, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: OPS-003
+  title:
+    en: Scouting
+    ar: ''
+  domain: operations
+  owner: field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - FM-003
+  services:
+  - services/field-management-service/main.py
+  apis:
+  - GET /api/v1/scouting/pins @ services/sahool-platform/api/routers/scouting.py:78
+  - GET /api/v1/scouting/taxonomy @ services/sahool-platform/api/routers/scouting.py:114
+  - GET /healthz @ services/scout-ingest-service/main.py:178
+  - GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393
+  - GET /internal/scouting/external-observations @ services/scout-ingest-service/main.py:216
+  - GET /internal/seasons @ services/scout-ingest-service/season_api.py:478
+  - GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668
+  - GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368
+  - GET /readyz @ services/scout-ingest-service/main.py:183
+  - PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264
+  - POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361
+  - POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195
+  - POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230
+  - POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465
+  - POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278
+  - POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327
+  - POST /internal/ingest/submissions/kobo @ services/scout-ingest-service/main.py:344
+  - POST /internal/ingest/submissions/odk @ services/scout-ingest-service/main.py:335
+  - POST /internal/seasons @ services/scout-ingest-service/season_api.py:205
+  - POST /internal/seasons/{season_id}/accept @ services/scout-ingest-service/season_api.py:406
+  - POST /internal/seasons/{season_id}/costs @ services/scout-ingest-service/season_api.py:624
+  - POST /internal/seasons/{season_id}/events @ services/scout-ingest-service/season_api.py:522
+  - POST /internal/seasons/{season_id}/harvest @ services/scout-ingest-service/season_api.py:583
+  - POST /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:306
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/scout-ingest-service/tests/test_ingest_live.py
+  - services/scout-ingest-service/tests/test_projection_live.py
+  - services/scout-ingest-service/tests/test_season_live.py
+  - tests_v9/test_scout_ingest_service_ownership.py
+  - tests_v9/test_scouting_pins_persistence.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v94_scouting_pins.sql
+  - type: repository
+    path: services/sahool-platform/api/routers/scouting.py
+  - type: repository
+    path: services/sahool-platform/api/scouting_pins.py
+  - type: repository
+    path: services/scout-ingest-service/field_forms_api.py
+  - type: repository
+    path: services/scout-ingest-service/main.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=24, tests=5, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: 4
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: 4
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: OPS-004
+  title:
+    en: Field forms
+    ar: ''
+  domain: operations
+  owner: field-management-service
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies:
+  - FM-003
+  services:
+  - services/field-management-service/main.py
+  apis:
+  - ANY /api/field-forms/{path:path} @ services/sahool-platform/api/routers/service_proxy.py:183
+  - GET /internal/field-forms/download @ services/scout-ingest-service/field_forms_api.py:393
+  - POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361
+  - POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195
+  - POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230
+  - POST /internal/field-forms/submissions @ services/scout-ingest-service/field_forms_api.py:465
+  - POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278
+  - POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327
+  ui_consumers:
+  - frontend/src/components/ds/forms.test.tsx
+  - frontend/src/components/ds/forms.tsx
+  mobile_consumers:
+  - mobile/sahool_app/lib/features/field_forms/contract/condition_v1.dart
+  - mobile/sahool_app/lib/features/field_forms/contract/form_schema.dart
+  - mobile/sahool_app/lib/features/field_forms/data/draft_store.dart
+  - mobile/sahool_app/lib/features/field_forms/data/field_forms_api.dart
+  - mobile/sahool_app/lib/features/field_forms/data/field_forms_coordinator.dart
+  - mobile/sahool_app/lib/features/field_forms/data/form_package_store.dart
+  - mobile/sahool_app/lib/features/field_forms/data/submission_queue.dart
+  - mobile/sahool_app/lib/features/field_forms/presentation/field_form_screen.dart
+  - mobile/sahool_app/lib/features/field_forms/presentation/field_widget_registry.dart
+  - mobile/sahool_app/lib/features/field_forms/presentation/schema_form_renderer.dart
+  tests:
+  - mobile/sahool_app/test/field_forms/condition_corpus_data.dart
+  - mobile/sahool_app/test/field_forms/condition_v1_test.dart
+  - mobile/sahool_app/test/field_forms/draft_store_test.dart
+  - mobile/sahool_app/test/field_forms/field_forms_api_test.dart
+  - mobile/sahool_app/test/field_forms/field_forms_coordinator_test.dart
+  - mobile/sahool_app/test/field_forms/no_coercion_test.dart
+  - mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart
+  - mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart
+  - mobile/sahool_app/test/field_forms/submission_queue_test.dart
+  - tests_v9/test_field_forms_api_integration.py
+  - tests_v9/test_field_forms_api_static_p0.py
+  - tests_v9/test_field_forms_bff_proxy_static.py
+  - tests_v9/test_field_forms_condition_dsl.py
+  - tests_v9/test_field_forms_corpus_mirror_static.py
+  - tests_v9/test_field_forms_device_rotation_grace.py
+  - tests_v9/test_field_forms_mobile_runtime_wiring.py
+  - tests_v9/test_field_forms_schema.py
+  - tests_v9/test_field_forms_slice3_static.py
+  - tests_v9/test_field_forms_sync_binding_p02.py
+  - tests_v9/test_field_forms_sync_token.py
+  - tests_v9/test_v204_field_forms_static.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v204_field_forms.sql
+  - type: repository
+    path: services/scout-ingest-service/field_forms_api.py
+  - type: repository
+    path: shared/contracts/forms/__init__.py
+  - type: repository
+    path: shared/contracts/forms/condition_v1.py
+  - type: repository
+    path: shared/contracts/forms/schema_v1.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=8, tests=21, ui=2,
+    mobile=10. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: OPS-005
+  title:
+    en: Offline mobile
+    ar: ''
+  domain: operations
+  owner: UNASSIGNED
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - OPS-003
+  - OPS-004
+  services: []
+  apis:
+  - GET /offline/packs @ services/raster-service/routers/storage.py:87
+  - GET /offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115
+  - POST /feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:244
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/widgets/offline_field_map.dart
+  tests:
+  - services/local-ai-rag/test_rag_offline_guards.py
+  - services/sahool-platform/tests/test_offline_first.py
+  - tests/mobile/test_phase11_mobile_offline_sync_runtime.py
+  - tests_v9/run_offline_suite.py
+  - tests_v9/test_e2e_offline_flow.py
+  - tests_v9/test_offline_dispatch_field_update.py
+  - tests_v9/test_offline_first_behavior_v66.py
+  - tests_v9/test_offline_pending_ops_terminal_v19_5.py
+  - tests_v9/test_offline_pending_queue.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v112_mobile_offline_sync_runtime.sql
+  - type: repository
+    path: migrations/v138_offline_pending_ops_terminal.sql
+  - type: repository
+    path: migrations/v15_offline_synced_operations.sql
+  - type: repository
+    path: migrations/v92_offline_pending_ops.sql
+  - type: repository
+    path: services/sahool-platform/api/offline_pending_db.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=3, tests=9, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: 4
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: OPS-006
+  title:
+    en: Equipment registry
+    ar: ''
+  domain: operations
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: behavioral_test_linked_runtime_unverified
+  confidence: high
+  production_certified: false
+  dependencies: []
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - GET /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:93
+  - GET /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:179
+  - POST /api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:38
+  - POST /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:113
+  ui_consumers: []
+  mobile_consumers:
+  - mobile/sahool_app/lib/screens/equipment_screen.dart
+  tests:
+  - tests_v9/test_inventory_equipment.py
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence:
+  - type: repository
+    path: migrations/v23_equipment.sql
+  - type: repository
+    path: services/sahool-platform/api/equipment_models.py
+  - type: repository
+    path: services/sahool-platform/api/routers/equipment.py
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=4, tests=1, ui=0,
+    mobile=1. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: OPS-007
+  title:
+    en: Maintenance
+    ar: ''
+  domain: operations
+  owner: sahool-platform
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: runtime_or_workflow_unverified
+  confidence: medium
+  production_certified: false
+  dependencies:
+  - OPS-006
+  services:
+  - services/sahool-platform/api/main.py
+  apis:
+  - GET /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:179
+  - POST /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:113
+  ui_consumers: []
+  mobile_consumers: []
+  tests: []
+  runtime:
+    metrics: []
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=0, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark
+- id: OPS-008
+  title:
+    en: Workforce and worker identity
+    ar: ''
+  domain: operations
+  owner: auth
+  lifecycle: active
+  maturity: 3
+  evidence_level: 3
+  status: repository_runtime_instrumentation_linked_production_unverified
+  confidence: medium
+  production_certified: false
+  dependencies: []
+  services:
+  - services/auth/main.py
+  apis: []
+  ui_consumers: []
+  mobile_consumers: []
+  tests:
+  - services/decision-service/tests/test_worker_identity_binding.py
+  runtime:
+    metrics:
+    - metric:sahool_auth_logins_total@services/auth/main.py:261
+    - metric:sahool_auth_register_total@services/auth/main.py:262
+    - metric:sahool_auth_resets_total@services/auth/main.py:263
+    traces: []
+    receipts: []
+    audit_events: []
+  evidence: []
+  rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=1, ui=0,
+    mobile=0. Runtime and production certification remain manual evidence gates.'
+  business_goal: To be completed by the domain owner; repository evidence remains authoritative.
+  priority: unassessed
+  business_value: unassessed
+  investment_strategy: unassessed
+  parity_classification: unassessed
+  roadmap_refs: []
+  workflow_refs: []
+  decision_engine: false
+  competitors:
+    fieldview:
+      score: null
+      evidence: unverified_external_benchmark
+    cropx:
+      score: null
+      evidence: unverified_external_benchmark
+    geopard:
+      score: null
+      evidence: unverified_external_benchmark
+    cropwise:
+      score: null
+      evidence: unverified_external_benchmark
+    farmonaut:
+      score: null
+      evidence: unverified_external_benchmark

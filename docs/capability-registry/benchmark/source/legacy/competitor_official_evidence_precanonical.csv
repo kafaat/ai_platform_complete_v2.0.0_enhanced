@@ -1,0 +1,24 @@
+﻿platform,capability,score,evidence_class,finding,url
+FieldView,Machine data collection,5,Official product/pricing,"FieldView Drive collects, stores and transfers field data in real time.",https://climate.com/en-za/pricing.html
+FieldView,Yield analysis,5,Official product documentation,"Harvest data can be analyzed by field, soil and seed type.",https://climate.com/en-za/getting-started/fieldview-201-overview/put-your-data-to-work.html
+FieldView,Scouting and satellite imagery,4,Official product documentation,"Scouting maps, vegetation maps and true-color imagery are supported.",https://climate.com/en-ca/resources/getting-started/fieldview-201-overview/put-your-data-to-work.html
+FieldView,Variable-rate prescriptions,5,Official getting-started documentation,Supports variable-rate seed and fertility prescriptions.,https://climate.com/en-gb/getting-started.html
+FieldView,External API connectivity,4,Official pricing/product page,External API connectivity is offered in the paid plan.,https://climate.com/en-us/pricing.html
+CropX,Root-zone sensing,5,Official hardware page,"Soil moisture, soil temperature, weather, EC saturated paste and ETa inputs support agronomic recommendations.",https://cropx.com/cropx-system/hardware/
+CropX,Irrigation recommendations,5,Official product updates,Sensor data guides irrigation timing and amount.,https://cropx.com/product-updates/
+CropX,Disease agronomy,4,Official product updates,Advisory insights cover fungal disease crop protection.,https://cropx.com/product-updates/
+CropX,Actual evapotranspiration,5,Official product page,Field-level daily real-time ETa is measured and combined with soil water availability.,https://cropx.com/cropx-system/actualet/
+GeoPard,Management zones,5,Official product page,"Zones can be generated from satellite, topography, soil, sensors, yield and as-applied datasets.",https://geopard.tech/management-zones-vra-maps/
+GeoPard,VRA maps and machinery export,5,Official product/tutorial,VRA maps are machinery-compatible and fertilizer prescription maps can be exported.,https://docs.geopard.tech/geopard-tutorials/agronomy/variable-rate-fertilizer-maps
+GeoPard,Yield data,5,Official product page,Yield-data analytics are a named product capability.,https://geopard.tech/yield-data/
+GeoPard,As-applied data,5,Official product page,As-applied and as-planted data are supported as a product capability.,https://geopard.tech/as-applied-as-planted-data/
+Cropwise,Offline field operations,5,Official product page,Field changes can be tracked offline and synchronized in the operations workflow.,https://www.cropwise.com/operations
+Cropwise,Offline scouting,5,Official product page,"Offline georeferenced scouting supports photos, notes and voice recordings.",https://www.cropwise.com/us/protector
+Cropwise,Machinery telematics,5,Official regional product page,"Supports GPS tracking, irregularity alerts and fuel monitoring across machinery brands.",https://www.cropwise.com/united-kingdom/
+Cropwise,Productivity zones and prescriptions,5,Official regional product page,"Satellite, soil, yield and scouting data can be overlaid to build prescription maps.",https://www.cropwise.com/united-kingdom/
+EOSDA,Satellite crop monitoring,5,Official product page,"Provides crop-health monitoring, vegetation changes and soil-moisture monitoring.",https://eos.com/products/crop-monitoring/
+EOSDA,Weather and stress monitoring,4,Official product article,"Supports precipitation, temperature, cold stress and heat stress analysis.",https://eos.com/blog/crop-scouting-upgraded-with-a-new-farming-app/
+OneSoil,Field monitoring and scouting,5,Official platform page,"Mobile and web products share fields and data for monitoring, scouting and observations.",https://onesoil.ai/en/platform
+OneSoil,Productivity zones and VRA,5,Official platform page,"Supports productivity analysis, VRA maps, soil sampling and field trials.",https://onesoil.ai/en/platform
+OneSoil,Machinery integration and yield import,5,Official platform page,"Integrates with John Deere Operations Center, exports prescription formats and imports yield data.",https://onesoil.ai/fi/platform
+Farmonaut,Satellite monitoring,4,Official company content,"Offers NDVI-based crop, soil and moisture monitoring with alerts.",https://farmonaut.com/blogs/healthy-soil-crop-health-top-7-tips-for-2026
