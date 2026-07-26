@@ -1,0 +1,53 @@
+{
+  "complete_static_contracts": 2,
+  "live_runtime_verified": 0,
+  "lowest_completeness": [
+    {
+      "score_pct": 0.0,
+      "service": "gis-workflow-service"
+    },
+    {
+      "score_pct": 14.3,
+      "service": "raster-tiler-service"
+    },
+    {
+      "score_pct": 28.6,
+      "service": "qdrant-seed"
+    },
+    {
+      "score_pct": 42.9,
+      "service": "model-registry-adapter"
+    },
+    {
+      "score_pct": 42.9,
+      "service": "weather-polygon-worker"
+    },
+    {
+      "score_pct": 42.9,
+      "service": "weather-signal-engine"
+    },
+    {
+      "score_pct": 71.4,
+      "service": "decision-service"
+    },
+    {
+      "score_pct": 71.4,
+      "service": "edge-inference"
+    },
+    {
+      "score_pct": 71.4,
+      "service": "erp-bridge"
+    },
+    {
+      "score_pct": 71.4,
+      "service": "field-management-service"
+    }
+  ],
+  "schema_version": "1.0",
+  "services": 32,
+  "with_declared_configuration": 30,
+  "with_health": 27,
+  "with_metrics": 13,
+  "with_readiness": 26,
+  "with_tracing": 4
+}

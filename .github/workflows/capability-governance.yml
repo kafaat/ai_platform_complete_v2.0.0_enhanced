@@ -17,6 +17,10 @@ jobs:
         run: pip install pytest==9.1.1
       - name: Validate architecture graph drift
         run: python scripts/ci/architecture_graph.py --check
+      - name: Validate runtime contract drift
+        run: python scripts/ci/runtime_contract_generator.py --check
+      - name: Validate execution dependency audit drift
+        run: python scripts/ci/execution_dependency_audit.py --check
       - name: Validate capability registry
         run: python scripts/ci/capability_registry_guard.py --check
       - name: Validate capability linkage runtime evidence
@@ -26,4 +30,6 @@ jobs:
           python -m pytest -q \
             tests/architecture/test_capability_registry_guard.py \
             tests/architecture/test_capability_traceability.py \
-            tests/architecture/test_architecture_graph.py
+            tests/architecture/test_architecture_graph.py \
+            tests/architecture/test_runtime_contract_generator.py \
+            tests/architecture/test_execution_dependency_audit.py
