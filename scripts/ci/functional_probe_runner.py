@@ -28,6 +28,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 import sys
 import time
 import urllib.request
@@ -192,13 +193,31 @@ def run_probe(base_url: str, probe: dict[str, Any], timeout: float) -> dict[str,
     }
 
 
-def run_live(plan: dict[str, Any], base_url: str, environment_id: str, timeout: float) -> dict:
+def _head_sha() -> str:
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def run_live(
+    plan: dict[str, Any],
+    base_url: str,
+    environment_id: str,
+    timeout: float,
+    tested_sha: str,
+) -> dict:
     results = [run_probe(base_url, p, timeout) for p in plan["probes"]]
     started = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     return {
         "schema_version": SCHEMA_VERSION,
         "kind": "functional",
         "service": plan["service"],
+        # tested_sha binds the evidence to the exact code that was run — the runtime
+        # identity bridge refuses to propagate evidence whose sha does not match.
+        "tested_sha": tested_sha,
         "environment_id": environment_id,
         "base_url": base_url,
         "generated_at": started,
@@ -225,7 +244,9 @@ def cmd_check() -> int:
     return 0
 
 
-def cmd_run(service: str | None, base_url: str, environment_id: str, timeout: float) -> int:
+def cmd_run(
+    service: str | None, base_url: str, environment_id: str, timeout: float, tested_sha: str
+) -> int:
     plans = sorted(PLAN_DIR.glob("*.json")) if PLAN_DIR.exists() else []
     selected = [p for p in plans if service is None or _load(p)["service"] == service]
     if not selected:
@@ -242,7 +263,7 @@ def cmd_run(service: str | None, base_url: str, environment_id: str, timeout: fl
                 print("  - " + e, file=sys.stderr)
             rc = 1
             continue
-        evidence = run_live(plan, base_url, environment_id, timeout)
+        evidence = run_live(plan, base_url, environment_id, timeout, tested_sha)
         out = EVIDENCE_DIR / f"{plan['service']}-{environment_id}.json"
         out.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"{plan['service']}: {'ALL PASS' if evidence['all_passed'] else 'FAIL'} -> {out}")
@@ -264,10 +285,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--base-url", default="http://127.0.0.1:8000")
     p.add_argument("--environment-id", default="local")
     p.add_argument("--timeout", type=float, default=25.0)
+    p.add_argument("--tested-sha", default=None, help="sha under test (defaults to git HEAD)")
     a = p.parse_args(argv)
     if a.check:
         return cmd_check()
-    return cmd_run(a.service, a.base_url, a.environment_id, a.timeout)
+    return cmd_run(a.service, a.base_url, a.environment_id, a.timeout, a.tested_sha or _head_sha())
 
 
 if __name__ == "__main__":

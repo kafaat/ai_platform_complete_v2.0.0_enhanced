@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "note": "Governance-only bridge between the runtime evidence ledger (which keys services by NAME, e.g. 'weather-service') and the capability registry (which keys services by PATH, e.g. 'services/weather-service/main.py'). This file alone changes NOTHING: it neither sets runtime_verified nor is trusted to. Propagation to a capability is allowed only by a separate, evidence-gated step and only when valid Step-3 FUNCTIONAL evidence (bound to SHA + environment + time + probe kind) covers that capability's declared requirements. Matching is by explicit declared identity only — never by approximate name or substring. Everything is fail-closed.",
+  "service_identity": [
+    {
+      "ledger_service": "weather-service",
+      "capability_service_path": "services/weather-service/main.py",
+      "owner": "target-weather-system-of-record",
+      "cardinality": "one-to-one",
+      "functional_plan": "weather-service"
+    }
+  ],
+  "capability_functional_coverage": [
+    {
+      "capability": "WX-004",
+      "title": "ET0",
+      "ledger_service": "weather-service",
+      "requires_probes": ["agro-et0-fao56"]
+    },
+    {
+      "capability": "WX-006",
+      "title": "GDD",
+      "ledger_service": "weather-service",
+      "requires_probes": ["agro-gdd-accumulation"]
+    }
+  ],
+  "evidence_policy": {
+    "require_kind": "functional",
+    "reject_liveness_only": true,
+    "require_sha_match": true,
+    "require_environment": true,
+    "max_age_seconds": 2592000
+  }
+}

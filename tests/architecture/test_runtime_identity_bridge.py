@@ -1,0 +1,228 @@
+"""Guards for the runtime identity bridge — governance-only, evidence-gated, inert.
+
+These tests assert the bridge is fail-closed on every identity/evidence gap and that
+its mere existence flips nothing. They exercise: a valid committed bridge, unknown
+service, ambiguous mapping, conflicting duplicate, and — at the propagation layer —
+stale evidence, SHA mismatch, liveness-only evidence, and partial capability coverage.
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+BRIDGE = ROOT / "scripts/ci/runtime_identity_bridge.py"
+SHA = "a" * 40
+
+
+def _mod():
+    spec = importlib.util.spec_from_file_location("runtime_identity_bridge", BRIDGE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _valid_bridge():
+    return {
+        "schema_version": "1.0",
+        "service_identity": [
+            {
+                "ledger_service": "weather-service",
+                "capability_service_path": "services/weather-service/main.py",
+                "owner": "target-weather-system-of-record",
+                "cardinality": "one-to-one",
+                "functional_plan": "weather-service",
+            }
+        ],
+        "capability_functional_coverage": [
+            {
+                "capability": "WX-004",
+                "ledger_service": "weather-service",
+                "requires_probes": ["agro-et0-fao56"],
+            },
+            {
+                "capability": "WX-006",
+                "ledger_service": "weather-service",
+                "requires_probes": ["agro-gdd-accumulation"],
+            },
+        ],
+        "evidence_policy": {
+            "require_kind": "functional",
+            "reject_liveness_only": True,
+            "require_sha_match": True,
+            "require_environment": True,
+            "max_age_seconds": 2592000,
+        },
+    }
+
+
+def _patch_known(m, monkeypatch, services=("weather-service",)):
+    monkeypatch.setattr(m, "ledger_service_names", lambda: set(services))
+    monkeypatch.setattr(m, "registry_service_paths", lambda: {"services/weather-service/main.py"})
+    monkeypatch.setattr(
+        m,
+        "capability_service_paths",
+        lambda: {
+            "WX-004": {"services/weather-service/main.py"},
+            "WX-006": {"services/weather-service/main.py"},
+        },
+    )
+    monkeypatch.setattr(
+        m, "functional_plan_probe_ids", lambda name: {"agro-et0-fao56", "agro-gdd-accumulation"}
+    )
+
+
+def _evidence(probe_ids, *, kind="functional", tested_sha=SHA, env="staging", age_days=0):
+    ts = (datetime.now(UTC) - timedelta(days=age_days)).isoformat().replace("+00:00", "Z")
+    return {
+        "schema_version": "1.0",
+        "kind": kind,
+        "service": "weather-service",
+        "tested_sha": tested_sha,
+        "environment_id": env,
+        "generated_at": ts,
+        "probe_results": [{"probe_id": p, "status": "passed"} for p in probe_ids],
+    }
+
+
+# ── the real committed bridge is valid and check-mode passes ──────────────────
+
+
+def test_committed_bridge_is_valid():
+    m = _mod()
+    errors = m.validate_identity_map(json.loads(m.IDENTITY_MAP.read_text()))
+    assert errors == [], errors
+
+
+def test_check_mode_passes():
+    assert _mod().cmd_check() == 0
+
+
+# ── identity validation is fail-closed ───────────────────────────────────────
+
+
+def test_unknown_service_is_rejected(monkeypatch):
+    m = _mod()
+    _patch_known(m, monkeypatch, services=("other-service",))  # weather-service now unknown
+    errors = m.validate_identity_map(_valid_bridge())
+    assert any("unknown ledger_service" in e for e in errors), errors
+
+
+def test_ambiguous_mapping_rejected(monkeypatch):
+    m = _mod()
+    monkeypatch.setattr(m, "ledger_service_names", lambda: {"weather-service"})
+    monkeypatch.setattr(m, "registry_service_paths", lambda: {"a.py", "b.py"})
+    monkeypatch.setattr(m, "capability_service_paths", lambda: {})
+    monkeypatch.setattr(m, "functional_plan_probe_ids", lambda name: {"p"})
+    b = _valid_bridge()
+    b["service_identity"] = [
+        {
+            "ledger_service": "weather-service",
+            "capability_service_path": "a.py",
+            "cardinality": "one-to-one",
+            "functional_plan": "weather-service",
+        },
+        {
+            "ledger_service": "weather-service",
+            "capability_service_path": "b.py",
+            "cardinality": "one-to-one",
+            "functional_plan": "weather-service",
+        },
+    ]
+    assert any("ambiguous mapping" in e for e in m.validate_identity_map(b))
+
+
+def test_conflicting_duplicate_path_rejected(monkeypatch):
+    m = _mod()
+    monkeypatch.setattr(m, "ledger_service_names", lambda: {"svc-a", "svc-b"})
+    monkeypatch.setattr(m, "registry_service_paths", lambda: {"shared.py"})
+    monkeypatch.setattr(m, "capability_service_paths", lambda: {})
+    monkeypatch.setattr(m, "functional_plan_probe_ids", lambda name: {"p"})
+    b = _valid_bridge()
+    b["service_identity"] = [
+        {
+            "ledger_service": "svc-a",
+            "capability_service_path": "shared.py",
+            "cardinality": "one-to-one",
+            "functional_plan": "weather-service",
+        },
+        {
+            "ledger_service": "svc-b",
+            "capability_service_path": "shared.py",
+            "cardinality": "one-to-one",
+            "functional_plan": "weather-service",
+        },
+    ]
+    assert any("conflicting mapping" in e for e in m.validate_identity_map(b))
+
+
+# ── propagation is evidence-gated and fail-closed ────────────────────────────
+
+
+def test_no_evidence_stays_zero():
+    m = _mod()
+    ev = m.evaluate_propagation(_valid_bridge(), {}, SHA, datetime.now(UTC))
+    assert all(not e["would_set_runtime_verified"] for e in ev)
+    assert all(e["reason"] == "no_functional_evidence" for e in ev)
+
+
+def test_liveness_only_evidence_not_eligible():
+    m = _mod()
+    by = {"weather-service": [_evidence(["agro-et0-fao56"], kind="health")]}
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_valid_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert not ev["WX-004"]["would_set_runtime_verified"]
+    assert "functional" in ev["WX-004"]["reason"] or "liveness" in ev["WX-004"]["reason"]
+
+
+def test_sha_mismatch_evidence_not_eligible():
+    m = _mod()
+    by = {"weather-service": [_evidence(["agro-et0-fao56"], tested_sha="b" * 40)]}
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_valid_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert not ev["WX-004"]["would_set_runtime_verified"]
+    assert "sha_mismatch" in ev["WX-004"]["reason"]
+
+
+def test_stale_evidence_not_eligible():
+    m = _mod()
+    by = {"weather-service": [_evidence(["agro-et0-fao56"], age_days=60)]}
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_valid_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert not ev["WX-004"]["would_set_runtime_verified"]
+    assert "stale" in ev["WX-004"]["reason"]
+
+
+def test_partial_coverage_not_eligible():
+    m = _mod()
+    # valid evidence but only the et0 probe passed; WX-004 covered, WX-006 not.
+    by = {"weather-service": [_evidence(["agro-et0-fao56"])]}
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_valid_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert ev["WX-004"]["would_set_runtime_verified"] is True
+    assert ev["WX-006"]["would_set_runtime_verified"] is False
+    assert "partial_coverage" in ev["WX-006"]["reason"]
+
+
+def test_full_coverage_would_be_eligible_but_bridge_writes_nothing():
+    m = _mod()
+    by = {"weather-service": [_evidence(["agro-et0-fao56", "agro-gdd-accumulation"])]}
+    ev = m.evaluate_propagation(_valid_bridge(), by, SHA, datetime.now(UTC))
+    assert all(e["would_set_runtime_verified"] for e in ev)
+    # Inertness: evaluation is a pure computation. The committed registry is untouched —
+    # no capability is actually runtime_verified just because the bridge exists.
+    reg = json.loads(m.CAPABILITY_REGISTRY.read_text())
+    for cap in reg["capabilities"]:
+        if cap["id"] in ("WX-004", "WX-006"):
+            assert not cap.get("runtime_verified"), cap["id"]
