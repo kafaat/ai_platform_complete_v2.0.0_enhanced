@@ -50,20 +50,60 @@ def load_json(path: Path) -> dict[str, Any]:
         return {}
 
 
+def _manifest_files() -> set[str]:
+    """Return the signed release-manifest paths as an offline allowlist.
+
+    Extracted release archives do not contain ``.git``.  In that environment we
+    must not fall back to scanning the raw filesystem, because editor caches,
+    partial generated files, or other untracked content would make the closure
+    manifest non-reproducible.  The release checksum manifest is the only
+    accepted offline source of repository membership.
+    """
+    manifest = ROOT / "release" / "FILE_CHECKSUMS.sha256"
+    if not manifest.exists():
+        return set()
+
+    paths: set[str] = set()
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split(None, 1)
+        if len(parts) == 2 and parts[1]:
+            paths.add(parts[1])
+    return paths
+
+
 def _tracked_files() -> set[str]:
-    """git-tracked repo-relative paths. Scanning the raw filesystem (rglob) folds
-    in transient artifacts a CI runner may create under the generated roots
-    (``__pycache__``, ``.pyc``, partial writes from a concurrent step) that do not
-    exist on a clean checkout — making the manifest hash non-reproducible between
-    local and CI. Tracked files ARE the committed artifact set."""
-    out = subprocess.run(
-        ["git", "ls-files", "-z"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    return {rel for rel in out.split("\0") if rel}
+    """Return repository paths without ever scanning arbitrary untracked files.
+
+    A git worktree is authoritative in CI and development.  For an extracted,
+    signed release archive, use ``release/FILE_CHECKSUMS.sha256`` as a fail-closed
+    allowlist.  If neither source is available, abort instead of silently
+    widening the artifact set.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        tracked = {rel for rel in out.split("\0") if rel}
+        if tracked:
+            return tracked
+    except (OSError, subprocess.CalledProcessError):
+        pass
+
+    manifest_files = _manifest_files()
+    if manifest_files:
+        return manifest_files
+    raise RuntimeError(
+        "no git worktree and no signed release manifest "
+        "(release/FILE_CHECKSUMS.sha256); refusing to scan the raw filesystem "
+        "(fail-closed)"
+    )
 
 
 def artifact_files() -> list[Path]:
