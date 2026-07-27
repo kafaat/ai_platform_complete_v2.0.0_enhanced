@@ -36,3 +36,24 @@ def test_migration_change_is_substantive():
         "sahool-brain/gaps/registry.md",
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_architecture_test_change_is_substantive():
+    # Architecture tests live under tests/ (not tests_v9/). Adding a real test plus
+    # the regenerated mapping report must NOT be blocked as report-only.
+    result = _run(
+        "tests/architecture/test_runtime_identity_bridge.py",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_runtime_verification_spec_change_is_substantive():
+    # A functional probe plan / identity-bridge map is a behavioural governance spec,
+    # not a report; changing it alongside the regenerated bundle must be allowed.
+    result = _run(
+        "runtime-verification/functional_probes/sahool-platform.json",
+        "runtime-verification/service_identity_map.json",
+        "release/FILE_CHECKSUMS.sha256",
+    )
+    assert result.returncode == 0, result.stderr

@@ -30,9 +30,18 @@ SUBSTANTIVE_PREFIXES = (
     "bots/",
     "scripts/ci/",
     "tests_v9/",
+    # Architecture/guard tests live under tests/ (not tests_v9/). A test is exactly
+    # the "test" category this guard's own message invites; without this prefix a PR
+    # that adds real tests here + regenerates the bundle is wrongly blocked.
+    "tests/",
     ".github/workflows/",
     "docs/runbooks/",
     "certification/evidence/",
+    # runtime-verification/ holds functional probe PLANS and the identity-bridge map —
+    # behavioural governance specs (what gets verified, how evidence propagates), not
+    # reports. Changing them is substantive. (Live evidence under
+    # runtime-verification/functional_evidence/ is gitignored and never committed.)
+    "runtime-verification/",
     # SQL migrations are schema/data code — a migration-only fix (e.g. making a
     # DDL statement idempotent) is substantive, not a report. Without this, any
     # PR that only touches migrations/ + regenerates the release bundle would be
