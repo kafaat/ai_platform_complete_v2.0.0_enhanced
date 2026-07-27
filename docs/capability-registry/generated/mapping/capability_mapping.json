@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4707,
+    "files_scanned": 4709,
     "files_by_kind": {
       "backend": 1183,
       "database": 266,
       "governance": 55,
       "mobile": 51,
-      "other": 1202,
+      "other": 1204,
       "tests": 1504,
       "web": 446
     },
     "unmapped_artifacts": 1936,
-    "ambiguous_artifacts": 387
+    "ambiguous_artifacts": 388
   },
   "capabilities": [
     {
@@ -30792,6 +30792,14 @@
           ]
         },
         {
+          "path": "runtime-verification/functional_probes/weather-service.json",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
           "path": "scripts/ci/consumer_contract_gate.py",
           "score": 12,
           "signals": [
@@ -30933,7 +30941,7 @@
         "mobile": 0,
         "tests": 57,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 21
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -32804,6 +32812,14 @@
           ]
         },
         {
+          "path": "runtime-verification/functional_probes/weather-service.json",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "docs/history/DIGITAL_TWIN_PAPER_REVIEW.md",
           "score": 8,
           "signals": [
@@ -32857,7 +32873,7 @@
         "mobile": 0,
         "tests": 38,
         "governance": 0,
-        "other_evidence": 18
+        "other_evidence": 19
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -44671,6 +44687,28 @@
           "signals": [
             "content:farm",
             "content:farms"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "runtime-verification/functional_probes/weather-service.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-004",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        },
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
           ]
         }
       ]
