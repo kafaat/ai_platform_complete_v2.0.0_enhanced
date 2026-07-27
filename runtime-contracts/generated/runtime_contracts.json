@@ -2471,6 +2471,7 @@
           "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
           "services/sahool-platform/tests/test_p2_4_compat_gateway_raster_facade_guard.py",
           "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py",
+          "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
           "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
           "services/sahool-platform/tests/test_p3_weather_service_realization_guard.py",
           "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
