@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "498e8d2f56f77c09996fb2f87c6d6d68d2b14f634b074190cf450ff0f9bf2833"
+          "content": "8d91d28cfc61c80a50ee2542db6dc6c8f4bababba94b368b5c4f998e2c93fd0a"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17745,7 +17745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d053ba817fdf2796cfeaf54d753616060564c0a9fc85842d3677e41c68c299fe"
+          "content": "cf3ecc49b2c3fc754746816a901331b85ac9587055dc606934950c0243bd32fc"
         }
       ],
       "name": "services/sahool-platform/api/routers/platform_health.py",

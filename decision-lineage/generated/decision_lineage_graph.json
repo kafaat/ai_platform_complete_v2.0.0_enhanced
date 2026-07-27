@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 496,
+      "evidence_count": 499,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -423,6 +423,7 @@
         "services/scout-ingest-service/projection_worker.py",
         "services/scout-ingest-service/tests/test_projection_live.py",
         "services/soil-service/evidence_adapters.py",
+        "services/soil-service/main.py",
         "services/soil-service/p1_products.py",
         "services/soil-service/p2_products.py",
         "services/soil-service/p3_products.py",
@@ -473,6 +474,7 @@
         "services/weather-service/canonical_weather_state.py",
         "services/weather-service/chill_accumulation.py",
         "services/weather-service/lodging_risk.py",
+        "services/weather-service/main.py",
         "services/weather-service/pollination_risk.py",
         "services/weather-service/raw_weather_processing.py",
         "services/weather-service/tests/test_canonical_weather_state.py",
@@ -525,6 +527,7 @@
         "shared/field_change_summary.py",
         "shared/field_runtime_cohesion.py",
         "shared/governance/chemical_lineage.py",
+        "shared/runtime_identity.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "shared/test_federated_agent_runtime.py",
         "shared/test_field_runtime_cohesion.py"
@@ -2206,7 +2209,7 @@
         "services/sahool-platform/core/field_event_sourcing.py",
         "services/sahool-platform/core/field_intelligence_card.py"
       ],
-      "source_evidence_count": 496,
+      "source_evidence_count": 499,
       "target_evidence_count": 456,
       "static_supported": true,
       "runtime_verified": false
@@ -2557,5 +2560,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "cf3ae87ee640f5de98c0a026b8bed0d1f965a76d3cf93d3e4ae55a293f1cc809"
+  "content_sha256": "d56028bae9229d1a9348d024072f1f3d1eb2cd02c6502201605ae919da0de6c3"
 }

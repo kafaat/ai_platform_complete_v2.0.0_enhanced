@@ -12016,23 +12016,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.runtime-identity",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /runtime-identity"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.runtime.authority-envelope",
       "consumers": [
         "frontend"
@@ -17429,7 +17412,7 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 852,
+    "capabilities": 851,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
     "capabilities_idempotent": 46,
@@ -17440,7 +17423,7 @@
     "duplicate_groups_classified": 15,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1104,
+    "route_rows": 1103,
     "ui_waivers": 51,
     "unique_method_path": 990
   },
@@ -17694,7 +17677,6 @@
       "classification": "standard_observability",
       "classified": true,
       "components": [
-        "sahool-platform",
         "soil-service",
         "weather-service"
       ],
@@ -17733,7 +17715,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "6660e1aaad194fc37f76401a4112d3f901df7602cf33dc5e068b8336a7e14e59",
+  "fingerprint": "ab7bc1b4d166c6901acc1b1b4fe17ff31a3fee9f9f788f5aaed3ab1028feab60",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

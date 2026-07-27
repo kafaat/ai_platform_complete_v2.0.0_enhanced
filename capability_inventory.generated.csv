@@ -661,7 +661,6 @@ sahool-platform.retraining.plan,command,sahool-platform,POST /retraining/plan,fr
 sahool-platform.rotation.evaluate,query,sahool-platform,GET /api/v1/rotation/evaluate,frontend,route,False
 sahool-platform.rotation.principles,query,sahool-platform,GET /api/v1/rotation/principles,frontend,route,False
 sahool-platform.rotation.suggest,query,sahool-platform,GET /api/v1/rotation/suggest,frontend,route,False
-sahool-platform.runtime-identity,query,sahool-platform,GET /runtime-identity,frontend,route,False
 sahool-platform.runtime.authority-envelope,command,sahool-platform,POST /runtime/authority-envelope,frontend,route,False
 sahool-platform.runtime.event-envelope,command,sahool-platform,POST /runtime/event-envelope,frontend,route,False
 sahool-platform.runtime.reputation.update,command,sahool-platform,POST /runtime/reputation/update,frontend,route,False

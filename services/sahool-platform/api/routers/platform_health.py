@@ -17,16 +17,6 @@ from api import main
 router = APIRouter()
 
 
-# Runtime identity is read from a build-time generated, read-only image file.
-# Mutable runtime environment values are deliberately not trusted. Operational
-# endpoint (build/image identity) — same infrastructure class as /healthz.
-@router.get("/runtime-identity", include_in_schema=True)
-def runtime_evidence_identity():
-    from shared.runtime_identity import load_build_identity
-
-    return load_build_identity("sahool-platform")
-
-
 @router.get("/healthz")
 def healthz():
     """Liveness — no dependency; only process availability."""

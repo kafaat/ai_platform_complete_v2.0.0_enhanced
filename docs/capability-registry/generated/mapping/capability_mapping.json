@@ -27126,19 +27126,19 @@
           "score": 15
         },
         {
-          "value": "/internal/svc @ tests_v9/test_endpoint_auth_coverage.py:383",
+          "value": "/internal/svc @ tests_v9/test_endpoint_auth_coverage.py:382",
           "score": 10
         },
         {
-          "value": "/public/calc @ tests_v9/test_endpoint_auth_coverage.py:368",
+          "value": "/public/calc @ tests_v9/test_endpoint_auth_coverage.py:367",
           "score": 10
         },
         {
-          "value": "/secure/perm @ tests_v9/test_endpoint_auth_coverage.py:373",
+          "value": "/secure/perm @ tests_v9/test_endpoint_auth_coverage.py:372",
           "score": 10
         },
         {
-          "value": "/secure/user @ tests_v9/test_endpoint_auth_coverage.py:378",
+          "value": "/secure/user @ tests_v9/test_endpoint_auth_coverage.py:377",
           "score": 10
         },
         {
@@ -28251,19 +28251,19 @@
           "score": 9
         },
         {
-          "value": "/internal/svc @ tests_v9/test_endpoint_auth_coverage.py:383",
+          "value": "/internal/svc @ tests_v9/test_endpoint_auth_coverage.py:382",
           "score": 9
         },
         {
-          "value": "/public/calc @ tests_v9/test_endpoint_auth_coverage.py:368",
+          "value": "/public/calc @ tests_v9/test_endpoint_auth_coverage.py:367",
           "score": 9
         },
         {
-          "value": "/secure/perm @ tests_v9/test_endpoint_auth_coverage.py:373",
+          "value": "/secure/perm @ tests_v9/test_endpoint_auth_coverage.py:372",
           "score": 9
         },
         {
-          "value": "/secure/user @ tests_v9/test_endpoint_auth_coverage.py:378",
+          "value": "/secure/user @ tests_v9/test_endpoint_auth_coverage.py:377",
           "score": 9
         }
       ],
