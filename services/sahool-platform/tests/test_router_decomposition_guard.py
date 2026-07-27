@@ -28,9 +28,7 @@ MAIN = os.path.join(API, "main.py")
 ROUTERS_DIR = os.path.join(API, "routers")
 
 # نقاط البنية المسموح بقاؤها في main (ليست نطاق `/api/v1`).
-# `/runtime-identity` نقطة تشغيليّة تصف هويّة بناء/صورة الخدمة (git_sha/build_id/
-# image_digest) لربط أدلّة التحقّق التشغيليّ بالصورة المنشورة — من صنف /healthz و/readyz.
-_INFRA_PREFIXES = ("/healthz", "/readyz", "/internal", "/metrics", "/runtime-identity")
+_INFRA_PREFIXES = ("/healthz", "/readyz", "/internal", "/metrics")
 
 
 def _main_src() -> str:

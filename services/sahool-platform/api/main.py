@@ -2551,12 +2551,3 @@ _rebuild_pydantic_models()
 from api.router_registry import register_routers  # noqa: E402
 
 register_routers(app)
-
-
-# Runtime identity is read from a build-time generated, read-only image file.
-# Mutable runtime environment values are deliberately not trusted.
-@app.get("/runtime-identity", include_in_schema=True)
-def runtime_evidence_identity():
-    from shared.runtime_identity import load_build_identity
-
-    return load_build_identity("sahool-platform")

@@ -122,4 +122,4 @@ This index identifies the current release-candidate evidence and separates it fr
 - `PHASE11_MOBILE_OFFLINE_SYNC_RUNTIME_REPORT_20260626.md`
 - `PHASE12_FINAL_PRODUCTION_GATES_REPORT_20260626.md`
 - `PHASE13_PRODUCTION_OBSERVABILITY_DASHBOARDS_REPORT_20260626.md`
-- ... 95 additional historical reports omitted from this index view
+- ... 96 additional historical reports omitted from this index view

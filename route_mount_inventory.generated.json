@@ -315,13 +315,13 @@
     "path": "services/sahool-platform/api/main.py",
     "service": "sahool-platform",
     "has_fastapi": true,
-    "direct_routes": 1,
-    "router_routes": 571,
+    "direct_routes": 0,
+    "router_routes": 572,
     "delegates_to_router_registry": true,
     "delegates_to_app_factory": false,
     "delegates_to_runtime_module": false,
-    "status": "direct_routes",
-    "reason": "main.py owns direct route handlers"
+    "status": "delegated_routes",
+    "reason": "main.py delegates to router_registry and routers contain routes"
   },
   {
     "path": "bots/telegram/main.py",
