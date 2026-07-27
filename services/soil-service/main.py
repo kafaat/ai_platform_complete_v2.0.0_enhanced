@@ -190,3 +190,12 @@ register_routers(app)
 # ``main.ingest_reading``/``main.get_readings`` مباشرةً وحارس تصادم الأسماء يفحص وجودها).
 # ربط اسم فقط — لا يُسجّل مساراً ثانياً (register_routers سجّلها عبر الراوتر).
 from routers.readings import get_readings, ingest_reading  # noqa: E402, F401
+
+
+# Runtime identity is read from a build-time generated, read-only image file.
+# Mutable runtime environment values are deliberately not trusted.
+@app.get("/runtime-identity", include_in_schema=True)
+def runtime_evidence_identity():
+    from shared.runtime_identity import load_build_identity
+
+    return load_build_identity("soil-service")

@@ -1,66 +1,84 @@
 {
-  "schema_version": "1.0",
-  "note": "Governance-only, MULTI-SERVICE bridge between the runtime evidence ledger (which keys services by NAME, e.g. 'weather-service', 'soil-service') and the capability registry (which keys services by PATH, e.g. 'services/weather-service/main.py'). This file alone changes NOTHING: it neither sets runtime_verified nor is trusted to. Propagation to a capability is allowed only by a separate, evidence-gated step and only when valid Step-3 FUNCTIONAL evidence (bound to SHA + environment + time + probe kind) covers that capability's declared requirements. Matching is by explicit declared identity only — never by approximate name or substring. Every service listed here is evaluated independently; adding a service extends what the framework CAN prove but flips nothing on its own. Everything is fail-closed.",
-  "service_identity": [
-    {
-      "ledger_service": "weather-service",
-      "capability_service_path": "services/weather-service/main.py",
-      "owner": "target-weather-system-of-record",
-      "cardinality": "one-to-one",
-      "functional_plan": "weather-service"
-    },
-    {
-      "ledger_service": "soil-service",
-      "capability_service_path": "services/soil-service/main.py",
-      "owner": "target-soil-system-of-record",
-      "cardinality": "one-to-one",
-      "functional_plan": "soil-service"
-    },
-    {
-      "ledger_service": "sahool-platform",
-      "capability_service_path": "services/sahool-platform/api/main.py",
-      "owner": "target-platform-system-of-record",
-      "cardinality": "one-to-one",
-      "functional_plan": "sahool-platform"
-    }
-  ],
   "capability_functional_coverage": [
     {
       "capability": "WX-004",
-      "title": "ET0",
       "ledger_service": "weather-service",
-      "requires_probes": ["agro-et0-fao56"]
+      "requires_probes": [
+        "agro-et0-fao56"
+      ],
+      "title": "ET0"
     },
     {
       "capability": "WX-006",
-      "title": "GDD",
       "ledger_service": "weather-service",
-      "requires_probes": ["agro-gdd-accumulation"]
+      "requires_probes": [
+        "agro-gdd-accumulation"
+      ],
+      "title": "GDD"
     },
     {
       "capability": "SOIL-001",
-      "title": "Soil profile (USDA texture classification)",
       "ledger_service": "soil-service",
-      "requires_probes": ["soil-texture-loam", "soil-texture-sand"]
+      "requires_probes": [
+        "soil-texture-loam",
+        "soil-texture-sand"
+      ],
+      "title": "Soil profile (USDA texture classification)"
     },
     {
       "capability": "IRR-009",
-      "title": "Water suitability multi-hazard (FAO-56 salinity/sodicity)",
       "ledger_service": "sahool-platform",
-      "requires_probes": ["water-suitability-multihazard"]
+      "requires_probes": [
+        "water-suitability-multihazard"
+      ],
+      "title": "Water suitability multi-hazard (FAO-56 salinity/sodicity)"
     },
     {
       "capability": "IRR-010",
-      "title": "Leaching and drainage safety (FAO-56 leaching requirement)",
       "ledger_service": "sahool-platform",
-      "requires_probes": ["leaching-requirement-fao56"]
+      "requires_probes": [
+        "leaching-requirement-fao56"
+      ],
+      "title": "Leaching and drainage safety (FAO-56 leaching requirement)"
     }
   ],
   "evidence_policy": {
-    "require_kind": "functional",
+    "max_age_seconds": 2592000,
+    "max_future_clock_skew_seconds": 300,
     "reject_liveness_only": true,
-    "require_sha_match": true,
+    "require_artifact_digests": true,
+    "require_attestation": true,
     "require_environment": true,
-    "max_age_seconds": 2592000
-  }
+    "require_external_provenance": true,
+    "require_kind": "functional",
+    "require_runtime_identity": true,
+    "require_sha_match": true,
+    "require_trusted_environment": true,
+    "trusted_environment_registry": "runtime-verification/trusted_environments.json"
+  },
+  "note": "Governance-only, MULTI-SERVICE bridge between the runtime evidence ledger (which keys services by NAME, e.g. 'weather-service', 'soil-service') and the capability registry (which keys services by PATH, e.g. 'services/weather-service/main.py'). This file alone changes NOTHING: it neither sets runtime_verified nor is trusted to. Propagation to a capability is allowed only by a separate, evidence-gated step and only when valid Step-3 FUNCTIONAL evidence (bound to SHA + environment + time + probe kind) covers that capability's declared requirements. Matching is by explicit declared identity only \u2014 never by approximate name or substring. Every service listed here is evaluated independently; adding a service extends what the framework CAN prove but flips nothing on its own. Everything is fail-closed.",
+  "schema_version": "1.0",
+  "service_identity": [
+    {
+      "capability_service_path": "services/weather-service/main.py",
+      "cardinality": "one-to-one",
+      "functional_plan": "weather-service",
+      "ledger_service": "weather-service",
+      "owner": "target-weather-system-of-record"
+    },
+    {
+      "capability_service_path": "services/soil-service/main.py",
+      "cardinality": "one-to-one",
+      "functional_plan": "soil-service",
+      "ledger_service": "soil-service",
+      "owner": "target-soil-system-of-record"
+    },
+    {
+      "capability_service_path": "services/sahool-platform/api/main.py",
+      "cardinality": "one-to-one",
+      "functional_plan": "sahool-platform",
+      "ledger_service": "sahool-platform",
+      "owner": "target-platform-system-of-record"
+    }
+  ]
 }

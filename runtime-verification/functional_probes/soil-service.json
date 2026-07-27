@@ -24,11 +24,32 @@
         "ec": 1.0
       },
       "response_assertions": [
-        {"field": "source", "equals": "input"},
-        {"field": "texture.key", "equals": "loam"},
-        {"field": "texture.clay", "type": "number", "equals": 20.0, "tolerance": 0.05},
-        {"field": "texture.sand", "type": "number", "equals": 40.0, "tolerance": 0.05},
-        {"field": "texture.silt", "type": "number", "equals": 40.0, "tolerance": 0.05}
+        {
+          "field": "source",
+          "equals": "input"
+        },
+        {
+          "field": "texture.key",
+          "equals": "loam"
+        },
+        {
+          "field": "texture.clay",
+          "type": "number",
+          "equals": 20.0,
+          "tolerance": 0.05
+        },
+        {
+          "field": "texture.sand",
+          "type": "number",
+          "equals": 40.0,
+          "tolerance": 0.05
+        },
+        {
+          "field": "texture.silt",
+          "type": "number",
+          "equals": 40.0,
+          "tolerance": 0.05
+        }
       ]
     },
     {
@@ -47,10 +68,23 @@
         "silt": 5.0
       },
       "response_assertions": [
-        {"field": "source", "equals": "input"},
-        {"field": "texture.key", "equals": "sand"},
-        {"field": "texture.clay", "type": "number", "equals": 5.0, "tolerance": 0.05}
+        {
+          "field": "source",
+          "equals": "input"
+        },
+        {
+          "field": "texture.key",
+          "equals": "sand"
+        },
+        {
+          "field": "texture.clay",
+          "type": "number",
+          "equals": 5.0,
+          "tolerance": 0.05
+        }
       ]
     }
-  ]
+  ],
+  "identity_path": "/runtime-identity",
+  "openapi_path": "/openapi.json"
 }

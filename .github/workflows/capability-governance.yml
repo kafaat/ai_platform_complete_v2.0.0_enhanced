@@ -41,6 +41,16 @@ jobs:
         run: python scripts/ci/rls_policy_guard.py --check
       - name: Validate migration graph
         run: python scripts/ci/migration_graph_guard.py --check
+      - name: Validate functional probe plans
+        run: python scripts/ci/functional_probe_runner.py --check
+      - name: Validate runtime identity trust bridge
+        run: python scripts/ci/runtime_identity_bridge.py --check
+      - name: Assert clean checkout remains zero in bridge dry-run
+        run: |
+          output="$(python scripts/ci/runtime_identity_bridge.py --dry-run --target-sha "$GITHUB_SHA")"
+          printf '%s\n' "$output"
+          grep -F "would_set_runtime_verified: 0" <<<"$output"
+          grep -F "production_certified: 0" <<<"$output"
       - name: Validate runtime verification harness plan
         run: python scripts/ci/runtime_verification_harness.py --check
       - name: Validate runtime evidence ingestion (fail-closed)
@@ -102,6 +112,10 @@ jobs:
             tests/architecture/test_event_contract_graph.py \
             tests/architecture/test_gateway_reachability_guard.py \
             tests/architecture/test_database_contract_graph.py \
+            tests/architecture/test_functional_probe_plan.py \
+            tests/architecture/test_runtime_identity_bridge.py \
+            tests/architecture/test_runtime_evidence_trust_hardening.py \
+            tests/architecture/test_runtime_build_identity_attestation.py \
             tests/architecture/test_runtime_verification_harness.py \
             tests/architecture/test_runtime_evidence_ingestion.py \
             tests/architecture/test_runtime_certification_gate.py \

@@ -17,13 +17,13 @@ services/raster-service/main.py,raster-service,False,0,81,False,True,True,factor
 services/remote-sensing-workspace-bff/main.py,remote-sensing-workspace-bff,True,3,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/sam2-inference/main.py,sam2-inference,True,4,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/scout-ingest-service/main.py,scout-ingest-service,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
-services/soil-service/main.py,soil-service,True,0,59,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
+services/soil-service/main.py,soil-service,True,1,59,True,False,False,direct_routes,main.py owns direct route handlers
 services/supervisor-agent/main.py,supervisor-agent,True,0,10,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/tts-service/main.py,tts-service,True,0,8,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/vegetation-analysis-service/main.py,vegetation-analysis-service,True,0,21,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/video-processor/main.py,video-processor,True,0,11,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
-services/weather-service/main.py,weather-service,True,27,0,False,False,True,direct_routes,main.py owns direct route handlers
+services/weather-service/main.py,weather-service,True,28,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/weather-polygon-worker/src/main.py,weather-polygon-worker,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint
 services/weather-signal-engine/src/main.py,weather-signal-engine,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint
-services/sahool-platform/api/main.py,sahool-platform,True,0,571,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
+services/sahool-platform/api/main.py,sahool-platform,True,1,571,True,False,False,direct_routes,main.py owns direct route handlers
 bots/telegram/main.py,telegram,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint

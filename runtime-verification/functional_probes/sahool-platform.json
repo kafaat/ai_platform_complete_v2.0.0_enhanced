@@ -23,10 +23,23 @@
         "crop_threshold_ece": 6.0
       },
       "response_assertions": [
-        {"field": "supported", "type": "boolean", "equals": true},
-        {"field": "components.soil_salinity.class", "equals": "moderately_saline"},
-        {"field": "components.water_salinity.risk", "equals": "severe"},
-        {"field": "components.sodium_hazard.class", "equals": "medium"}
+        {
+          "field": "supported",
+          "type": "boolean",
+          "equals": true
+        },
+        {
+          "field": "components.soil_salinity.class",
+          "equals": "moderately_saline"
+        },
+        {
+          "field": "components.water_salinity.risk",
+          "equals": "severe"
+        },
+        {
+          "field": "components.sodium_hazard.class",
+          "equals": "medium"
+        }
       ]
     },
     {
@@ -46,10 +59,26 @@
         "crop_threshold_ece": 6.0
       },
       "response_assertions": [
-        {"field": "components.leaching.feasible", "type": "boolean", "equals": true},
-        {"field": "components.leaching.leaching_fraction", "type": "number", "equals": 0.111, "tolerance": 0.0005},
-        {"field": "components.leaching.leaching_pct", "type": "number", "equals": 11.1, "tolerance": 0.05}
+        {
+          "field": "components.leaching.feasible",
+          "type": "boolean",
+          "equals": true
+        },
+        {
+          "field": "components.leaching.leaching_fraction",
+          "type": "number",
+          "equals": 0.111,
+          "tolerance": 0.0005
+        },
+        {
+          "field": "components.leaching.leaching_pct",
+          "type": "number",
+          "equals": 11.1,
+          "tolerance": 0.05
+        }
       ]
     }
-  ]
+  ],
+  "identity_path": "/runtime-identity",
+  "openapi_path": "/openapi.json"
 }

@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac0b701ca874579424987e52b4aec0ed1ac0df47e5a94e03c6e9d496c5b283af"
+          "content": "faf786baf0b17664cacab4f9e3071e30c04943857b79718c3820118502e875e4"
         }
       ],
       "name": "docker-compose.runtime-verification.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd0dd1cefce86e452f312ca24020355241343daa4ef858c6d55243aa7fbab073"
+          "content": "cf31a78abd968db9029cea96a69320f45cda282bb6ba98ed673ec86446c52b84"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -14495,7 +14495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4957cf966a76c2540f9502e094b1fa207b84f4672b138a6539bbdbd3d4515804"
+          "content": "df4e8a9048e8ed718cfa7d44dad4804b9a1dce62fed875e30b8a92eedcc912e8"
         }
       ],
       "name": "services/sahool-platform/Dockerfile",
@@ -16215,7 +16215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e4dc5b7c72deecac898fb4e9895cdde32f5beb56022d81ef66ae0348fb31e428"
+          "content": "a9105c5220165027e6c0859b3e2937601e8e091d2dc7b2a03af5a03743238de8"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -25735,7 +25735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0d8de6500d9f6af06f892766a970f285e7250688817ef33b80b67b8e9364629"
+          "content": "c3cb1d13b88ca0d72c03a45386b4db1f048640087db017f1dda23985380b9468"
         }
       ],
       "name": "services/sahool-platform/tests/test_router_decomposition_guard.py",
@@ -26925,7 +26925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "119c171eafc13d68ed0b88fadceeab024368356dce689576a573e47f158d59c2"
+          "content": "7dd93176010d259d46e24776f5f1323f518997b5e54eea0172d282c6f48cfe32"
         }
       ],
       "name": "services/soil-service/Dockerfile",
@@ -26965,7 +26965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f94466d14b4152003948dcf33cb8b6b6fd997421e8613f5741771b917c61010"
+          "content": "958b21651798dadc296d734709a425a32c5e721c49f3c5ed13e7c2c88eb8685b"
         }
       ],
       "name": "services/soil-service/main.py",
@@ -28445,7 +28445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08087ce1e003ffdeceb87b06f3c61c877c0c192389e009a54ea2d8aa0512c40f"
+          "content": "43ca1ce12df024e99928ce900fb9db16ad649090a5951715f9ddd71f7412eb3f"
         }
       ],
       "name": "services/weather-service/Dockerfile",
@@ -28555,7 +28555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3274fef96859aee420e4cb16378faa58b0357bf2863762f533a8960e5310e01e"
+          "content": "a9695e6e5eee68ce8d0d18f25ba245c369c683b31b967ea6eab437b7d5678119"
         }
       ],
       "name": "services/weather-service/main.py",
@@ -30009,6 +30009,16 @@
         }
       ],
       "name": "shared/precision_agriculture/test_phase6_intelligence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ef4a0ff594f91f6dee25ed89309c49f4f15d03d44c12065c8039d7112b81610f"
+        }
+      ],
+      "name": "shared/runtime_identity.py",
       "type": "file"
     },
     {

@@ -1,0 +1,131 @@
+name: Runtime Image Provenance
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full commit SHA to build
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: runtime-image-provenance-${{ inputs.source_sha }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-attest:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: weather-service
+            dockerfile: services/weather-service/Dockerfile
+            image_name: sahool-weather-service
+          - service: soil-service
+            dockerfile: services/soil-service/Dockerfile
+            image_name: sahool-soil-service
+          - service: sahool-platform
+            dockerfile: services/sahool-platform/Dockerfile
+            image_name: sahool-platform
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+      - name: Validate exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ inputs.source_sha }}"
+          [[ "${{ inputs.source_sha }}" =~ ^[0-9a-f]{40}$ ]]
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+      - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push immutable image
+        id: build
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          provenance: false
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ inputs.source_sha }}
+          build-args: |
+            SAHOOL_GIT_SHA=${{ inputs.source_sha }}
+            SAHOOL_BUILD_ID=gha-image-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.service }}
+            SAHOOL_SOURCE_REPOSITORY=${{ github.repository }}
+            SAHOOL_SOURCE_REF=${{ github.ref }}
+      - name: Attest OCI image digest
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+      - name: Write image manifest fragment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p image-manifest-fragments
+          cat > "image-manifest-fragments/${{ matrix.service }}.json" <<EOF
+          {
+            "service": "${{ matrix.service }}",
+            "image": "ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}@${{ steps.build.outputs.digest }}",
+            "source_sha": "${{ inputs.source_sha }}",
+            "builder_workflow": "${{ github.repository }}/.github/workflows/runtime-image-provenance.yml",
+            "builder_run_id": "${{ github.run_id }}",
+            "builder_run_attempt": "${{ github.run_attempt }}"
+          }
+          EOF
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: runtime-image-fragment-${{ matrix.service }}
+          path: image-manifest-fragments/${{ matrix.service }}.json
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-manifest:
+    needs: build-and-attest
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: runtime-image-fragment-*
+          path: image-manifest-fragments
+          merge-multiple: true
+      - name: Assemble immutable image manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          fragments={}
+          for p in sorted(Path('image-manifest-fragments').glob('*.json')):
+              row=json.loads(p.read_text())
+              fragments[row['service']]=row
+          expected={'weather-service','soil-service','sahool-platform'}
+          if set(fragments)!=expected:
+              raise SystemExit(f'image manifest incomplete: {sorted(set(fragments)^expected)}')
+          out={'schema_version':'1.0','source_sha':os.environ['SOURCE_SHA'],'repository':os.environ['GITHUB_REPOSITORY'],'source_ref':os.environ['GITHUB_REF'],'builder_workflow':f"{os.environ['GITHUB_REPOSITORY']}/.github/workflows/runtime-image-provenance.yml",'builder_run_id':os.environ['GITHUB_RUN_ID'],'images':fragments}
+          Path('runtime-image-manifest.json').write_text(json.dumps(out,sort_keys=True,indent=2)+'\n')
+          PY
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: runtime-image-manifest-${{ inputs.source_sha }}
+          path: runtime-image-manifest.json
+          if-no-files-found: error
+          retention-days: 30

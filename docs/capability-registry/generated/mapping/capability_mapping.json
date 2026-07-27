@@ -15,13 +15,13 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4713,
+    "files_scanned": 4722,
     "files_by_kind": {
       "backend": 1183,
       "database": 266,
-      "governance": 55,
+      "governance": 56,
       "mobile": 51,
-      "other": 1208,
+      "other": 1216,
       "tests": 1504,
       "web": 446
     },
@@ -12336,7 +12336,7 @@
           "score": 14
         },
         {
-          "value": "components.soil_salinity.class @ runtime-verification/functional_probes/sahool-platform.json:27",
+          "value": "components.soil_salinity.class @ runtime-verification/functional_probes/sahool-platform.json:32",
           "score": 9
         }
       ],
@@ -14917,6 +14917,10 @@
         {
           "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:78",
           "score": 48
+        },
+        {
+          "value": "/runtime-identity @ services/sahool-platform/api/main.py:2558",
+          "score": 23
         }
       ],
       "database": [
@@ -15058,7 +15062,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 3,
-        "routes": 3,
+        "routes": 4,
         "database": 10,
         "events": 2,
         "web": 0,
@@ -28239,6 +28243,10 @@
           "score": 12
         },
         {
+          "value": "/runtime-identity @ services/weather-service/main.py:54",
+          "score": 12
+        },
+        {
           "value": "/api/v1/confidence/irrigation @ services/sahool-platform/api/routers/confidence.py:53",
           "score": 9
         },
@@ -28969,7 +28977,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 23,
-        "routes": 50,
+        "routes": 51,
         "database": 9,
         "events": 55,
         "web": 9,
@@ -29771,6 +29779,10 @@
         },
         {
           "value": "/readyz @ vegetation_real/indicators_real.py:495",
+          "score": 12
+        },
+        {
+          "value": "/runtime-identity @ services/weather-service/main.py:54",
           "score": 12
         },
         {
@@ -30957,7 +30969,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 60,
-        "routes": 51,
+        "routes": 52,
         "database": 0,
         "events": 77,
         "web": 19,

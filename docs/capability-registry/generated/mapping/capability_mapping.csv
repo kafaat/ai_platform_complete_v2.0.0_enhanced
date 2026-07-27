@@ -45,7 +45,7 @@ OPS-007,operations,Maintenance,True,5,1,4,3,1,0,0,1,0
 OPS-008,operations,Workforce and worker identity,False,0,0,0,0,0,0,0,0,0
 PA-001,precision,Management zones,True,5,9,33,8,1,0,0,7,0
 PA-002,precision,Variable rate prescription,True,1,1,0,0,0,0,0,0,0
-PA-003,precision,Yield map ingestion,True,5,3,3,10,2,0,0,4,0
+PA-003,precision,Yield map ingestion,True,5,3,4,10,2,0,0,4,0
 PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
 SAT-001,satellite,Satellite scene search,True,6,36,65,3,32,5,0,39,0
@@ -71,9 +71,9 @@ SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
 SOIL-004,soil,pH EC SOM nutrients,True,1,0,0,0,0,0,0,1,0
 SOIL-005,soil,Soil water properties,True,3,5,0,0,2,0,0,2,0
 WX-001,weather,Current weather,False,0,0,0,0,0,0,0,0,0
-WX-002,weather,Weather forecast,True,6,23,50,9,55,9,0,21,0
+WX-002,weather,Weather forecast,True,6,23,51,9,55,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
-WX-004,weather,ET0,True,5,60,51,0,77,19,0,57,0
+WX-004,weather,ET0,True,5,60,52,0,77,19,0,57,0
 WX-005,weather,VPD,True,5,8,29,0,6,2,0,6,0
 WX-006,weather,GDD,True,6,79,25,26,21,15,0,38,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0
