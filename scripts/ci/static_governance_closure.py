@@ -58,13 +58,21 @@ def _manifest_entries() -> dict[str, str]:
     """Parse the release checksum manifest as a strict offline trust boundary.
 
     The manifest is not merely a list of paths: each entry must be a canonical
-    ``<sha256><two spaces><relative path>`` record. Unsafe paths, malformed
-    digests, and conflicting duplicates are rejected so an extracted archive
-    cannot widen or ambiguously redefine repository membership.
+    ``<sha256><two spaces><relative path>`` record. The manifest file itself
+    must also be a regular, non-symlinked file confined to the exact project
+    root. Unsafe paths, malformed digests, and all duplicate path records are
+    rejected so an extracted archive cannot widen or ambiguously redefine
+    repository membership.
     """
     manifest = ROOT / "release" / "FILE_CHECKSUMS.sha256"
     if not manifest.exists():
         return {}
+
+    # The trust anchor must not itself be redirectable through a symlink.  Use
+    # the same confinement primitive as evidence files before parsing it.
+    manifest = _verify_regular_confined_file(
+        "release/FILE_CHECKSUMS.sha256", source="release checksum manifest"
+    )
 
     entries: dict[str, str] = {}
     for line_number, raw_line in enumerate(
@@ -86,8 +94,9 @@ def _manifest_entries() -> dict[str, str]:
                 f"unsafe path on release checksum manifest line {line_number}: {rel!r}"
             )
         previous = entries.get(rel)
-        if previous is not None and previous != digest:
-            raise RuntimeError(f"conflicting duplicate path in release checksum manifest: {rel}")
+        if previous is not None:
+            qualifier = "conflicting " if previous != digest else ""
+            raise RuntimeError(f"{qualifier}duplicate path in release checksum manifest: {rel}")
         entries[rel] = digest
     return entries
 

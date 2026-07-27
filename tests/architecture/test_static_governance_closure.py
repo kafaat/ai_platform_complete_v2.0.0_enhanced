@@ -245,3 +245,39 @@ def test_git_required_evidence_must_exist_as_regular_file(tmp_path, monkeypatch)
         assert "git-tracked required evidence file missing" in str(exc)
     else:
         raise AssertionError("missing Git-tracked required evidence was accepted")
+
+
+def test_release_manifest_itself_rejects_symlink_escape(tmp_path, monkeypatch):
+    module = load_module()
+    outside = tmp_path.parent / f"{tmp_path.name}-manifest.sha256"
+    outside.write_text("a" * 64 + "  capabilities/generated/a.json\n", encoding="utf-8")
+    release = tmp_path / "release"
+    release.mkdir()
+    (release / "FILE_CHECKSUMS.sha256").symlink_to(outside)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+
+    try:
+        module._manifest_entries()
+    except RuntimeError as exc:
+        assert "release checksum manifest" in str(exc)
+        assert "symlink" in str(exc) or "escapes project root" in str(exc)
+    else:
+        raise AssertionError("symlinked release manifest was accepted")
+    finally:
+        outside.unlink(missing_ok=True)
+
+
+def test_manifest_parser_rejects_duplicate_path_even_with_same_digest(tmp_path, monkeypatch):
+    module = load_module()
+    release = tmp_path / "release"
+    release.mkdir()
+    line = "a" * 64 + "  capabilities/generated/a.json\n"
+    (release / "FILE_CHECKSUMS.sha256").write_text(line + line, encoding="utf-8")
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+
+    try:
+        module._manifest_entries()
+    except RuntimeError as exc:
+        assert "duplicate path" in str(exc)
+    else:
+        raise AssertionError("duplicate manifest path was accepted")
