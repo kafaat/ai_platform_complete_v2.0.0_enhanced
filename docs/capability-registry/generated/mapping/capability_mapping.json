@@ -15,13 +15,13 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4711,
+    "files_scanned": 4712,
     "files_by_kind": {
       "backend": 1183,
       "database": 266,
       "governance": 55,
       "mobile": 51,
-      "other": 1206,
+      "other": 1207,
       "tests": 1504,
       "web": 446
     },
@@ -26744,6 +26744,15 @@
           ]
         },
         {
+          "path": "runtime-verification/service_identity_map.json",
+          "score": 26,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "shared/contracts/soil/soil_profile_snapshot.v1.schema.json",
           "score": 22,
           "signals": [
@@ -26839,7 +26848,7 @@
         "mobile": 0,
         "tests": 11,
         "governance": 1,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -44750,6 +44759,15 @@
           "signals": [
             "content:ET0",
             "content:et0",
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "SOIL-001",
+          "score": 26,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile",
             "explicit_id"
           ]
         }

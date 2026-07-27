@@ -3686,6 +3686,15 @@
           "content:et0",
           "explicit_id"
         ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 26,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile",
+          "explicit_id"
+        ]
       }
     ]
   },
