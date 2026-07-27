@@ -1,0 +1,202 @@
+{
+  "schema_version": 3,
+  "status": "not_verified",
+  "production_certified": false,
+  "timestamp_utc": "2026-07-27T19:43:52Z",
+  "services": [
+    "raster-service",
+    "weather-service",
+    "edge-inference",
+    "sam2-inference"
+  ],
+  "phases_run": {
+    "build": true,
+    "file_check": true,
+    "health": true,
+    "security": true,
+    "compose_config": true
+  },
+  "summary": {
+    "service_count": 4,
+    "built": 0,
+    "build_failed": 4,
+    "health_passed": 0,
+    "health_failed": 4,
+    "critical_vulnerabilities": 0,
+    "compose_status": "fail"
+  },
+  "build": {
+    "raster-service": {
+      "service": "raster-service",
+      "dockerfile": "services/raster-service/Dockerfile",
+      "build_status": "fail",
+      "build_time_sec": 0.4371464252471924,
+      "image_size_mb": null,
+      "image_size_raw": null,
+      "layers": null,
+      "error": "ERROR: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "weather-service": {
+      "service": "weather-service",
+      "dockerfile": "services/weather-service/Dockerfile",
+      "build_status": "fail",
+      "build_time_sec": 0.1499178409576416,
+      "image_size_mb": null,
+      "image_size_raw": null,
+      "layers": null,
+      "error": "ERROR: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "edge-inference": {
+      "service": "edge-inference",
+      "dockerfile": "services/edge-inference/Dockerfile.arm64",
+      "build_status": "fail",
+      "build_time_sec": 0.15947890281677246,
+      "image_size_mb": null,
+      "image_size_raw": null,
+      "layers": null,
+      "error": "ERROR: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "sam2-inference": {
+      "service": "sam2-inference",
+      "dockerfile": "services/sam2-inference/Dockerfile",
+      "build_status": "fail",
+      "build_time_sec": 0.1910264492034912,
+      "image_size_mb": null,
+      "image_size_raw": null,
+      "layers": null,
+      "error": "ERROR: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    }
+  },
+  "required_files": {
+    "raster-service": {
+      "service": "raster-service",
+      "status": "fail",
+      "missing_files": [
+        "/app/main.py",
+        "/app/raw_data_processing.py",
+        "/app/raster_pixel_processing.py",
+        "/app/raster_cloud_mask_strategies.py",
+        "/app/raster_validated_product.py",
+        "/app/raster_topographic_qa.py"
+      ],
+      "error": "failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "weather-service": {
+      "service": "weather-service",
+      "status": "fail",
+      "missing_files": [
+        "/app/main.py",
+        "/app/weather_runtime.py",
+        "/app/raw_weather_processing.py",
+        "/app/open_meteo.py",
+        "/app/cache.py"
+      ],
+      "error": "failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "edge-inference": {
+      "service": "edge-inference",
+      "status": "fail",
+      "missing_files": [
+        "/app/main.py",
+        "/app/models_manifest/edge_models.required.json"
+      ],
+      "error": "failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "sam2-inference": {
+      "service": "sam2-inference",
+      "status": "fail",
+      "missing_files": [
+        "/app/main.py",
+        "/app/sam2_runtime.py"
+      ],
+      "error": "failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    }
+  },
+  "health": {
+    "raster-service": {
+      "service": "raster-service",
+      "status": "fail",
+      "health_http_status": null,
+      "readyz_status": null,
+      "response_time_ms": null,
+      "error": "container start failed: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "weather-service": {
+      "service": "weather-service",
+      "status": "fail",
+      "health_http_status": null,
+      "readyz_status": null,
+      "response_time_ms": null,
+      "error": "container start failed: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "edge-inference": {
+      "service": "edge-inference",
+      "status": "fail",
+      "health_http_status": null,
+      "readyz_status": null,
+      "response_time_ms": null,
+      "error": "container start failed: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "sam2-inference": {
+      "service": "sam2-inference",
+      "status": "fail",
+      "health_http_status": null,
+      "readyz_status": null,
+      "response_time_ms": null,
+      "error": "container start failed: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    }
+  },
+  "security": {
+    "raster-service": {
+      "service": "raster-service",
+      "status": "skipped",
+      "critical_count": 0,
+      "high_count": 0,
+      "medium_count": 0,
+      "report_path": null,
+      "error": "trivy not installed"
+    },
+    "weather-service": {
+      "service": "weather-service",
+      "status": "skipped",
+      "critical_count": 0,
+      "high_count": 0,
+      "medium_count": 0,
+      "report_path": null,
+      "error": "trivy not installed"
+    },
+    "edge-inference": {
+      "service": "edge-inference",
+      "status": "skipped",
+      "critical_count": 0,
+      "high_count": 0,
+      "medium_count": 0,
+      "report_path": null,
+      "error": "trivy not installed"
+    },
+    "sam2-inference": {
+      "service": "sam2-inference",
+      "status": "skipped",
+      "critical_count": 0,
+      "high_count": 0,
+      "medium_count": 0,
+      "report_path": null,
+      "error": "trivy not installed"
+    }
+  },
+  "compose": {
+    "status": "fail",
+    "compose_file": "docker-compose.v9.yml",
+    "all_services_up": false,
+    "cross_service_connectivity": false,
+    "errors": [
+      "error while interpolating services.sahool-sam2-inference.environment.SAHOOL_AGENT_TOKEN: required variable SAHOOL_AGENT_TOKEN is missing a value: SAHOOL_AGENT_TOKEN required\n"
+    ],
+    "config_valid": false
+  },
+  "pcert_mapping": {
+    "P-CERT-1": "Docker build matrix evidence produced only when build/file/health phases pass.",
+    "P-CERT-3": "Redis live integration remains separate unless WEATHER_REDIS_INTEGRATION_URL test is run.",
+    "P-CERT-4": "Model readiness requires strict edge/SAM2 artifact-present smoke, not just /healthz."
+  }
+}

@@ -2101,7 +2101,7 @@
       "line": 87,
       "module": "services.soil-service.main",
       "node_id": "services.soil-service.main:app",
-      "route_count": 0,
+      "route_count": 1,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -2353,7 +2353,7 @@
       "line": 13,
       "module": "services.weather-service.main",
       "node_id": "services.weather-service.main:app",
-      "route_count": 0,
+      "route_count": 1,
       "statically_reachable": true,
       "symbol": "app"
     }
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "b92e8fbacb01ec2ff74d712e1a612086fbd012f0d4140ce9cb7a7651e7945b76",
+  "inventory_sha256": "ca6b054b588feebae69ca7532196f600682fd5f0fd0d90a0062a3a11011b0620",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {

@@ -1,16 +1,23 @@
 {
-  "blocker_id": "P-CERT-4",
-  "name": "ONNX/SAM2 model provisioning",
-  "status": "pending",
-  "required_status": "verified",
-  "waivable": false,
-  "minimum_fields": [
-    "status",
-    "edge_readiness_mode",
-    "edge_production_required",
-    "artifacts",
-    "timestamp_utc"
-  ],
-  "timestamp_utc": null,
-  "notes": "Attach real CI/deployment evidence here; pending placeholders are not certification evidence."
+  "status": "not_verified",
+  "reason": "artifact-present strict readiness must be run separately and cannot be inferred from /healthz",
+  "services": {
+    "edge-inference": {
+      "service": "edge-inference",
+      "status": "fail",
+      "health_http_status": null,
+      "readyz_status": null,
+      "response_time_ms": null,
+      "error": "container start failed: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    },
+    "sam2-inference": {
+      "service": "sam2-inference",
+      "status": "fail",
+      "health_http_status": null,
+      "readyz_status": null,
+      "response_time_ms": null,
+      "error": "container start failed: failed to connect to the docker API at unix:///var/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /var/run/docker.sock: connect: no such file or directory\n"
+    }
+  },
+  "timestamp_utc": "2026-07-27T19:43:52Z"
 }
