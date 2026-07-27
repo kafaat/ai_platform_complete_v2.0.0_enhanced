@@ -48,10 +48,13 @@ def test_identity_reader_rejects_bad_metadata(tmp_path):
 
 
 def test_service_endpoints_do_not_read_identity_from_environment():
+    # sahool-platform deliberately does NOT expose an HTTP /runtime-identity endpoint
+    # (dropped to preserve the platform route-budget ratchet); its build identity comes
+    # from the authoritative deployment manifest. Only the services that expose the
+    # endpoint are asserted here.
     for rel in [
         "services/weather-service/main.py",
         "services/soil-service/main.py",
-        "services/sahool-platform/api/main.py",
     ]:
         text = (ROOT / rel).read_text()
         block = text[text.index('@app.get("/runtime-identity"') :]
