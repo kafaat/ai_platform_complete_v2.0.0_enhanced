@@ -282,14 +282,14 @@ def _soil_evidence(probe_ids, **kw):
 
 
 def test_committed_bridge_is_multi_service():
-    # The real committed map must carry BOTH services (guards against silently dropping
-    # weather when soil was added) and declare the soil capability.
+    # The real committed map must carry every wired service (guards against silently
+    # dropping one when another is added) and declare each service's capabilities.
     m = _mod()
     bridge = json.loads(m.IDENTITY_MAP.read_text())
     names = {e["ledger_service"] for e in bridge["service_identity"]}
-    assert {"weather-service", "soil-service"} <= names
+    assert {"weather-service", "soil-service", "sahool-platform"} <= names
     caps = {c["capability"] for c in bridge["capability_functional_coverage"]}
-    assert {"WX-004", "WX-006", "SOIL-001"} <= caps
+    assert {"WX-004", "WX-006", "SOIL-001", "IRR-009", "IRR-010"} <= caps
 
 
 def test_multi_service_bridge_validates(monkeypatch):
@@ -391,4 +391,120 @@ def test_soil_full_coverage_would_flip_but_registry_untouched():
     reg = json.loads(m.CAPABILITY_REGISTRY.read_text())
     for cap in reg["capabilities"]:
         if cap["id"] == "SOIL-001":
+            assert not cap.get("runtime_verified"), cap["id"]
+
+
+# ── third service (sahool-platform, JWT-gated) is wired the same fail-closed way ──
+
+
+def _tri_bridge():
+    """The full committed shape: weather + soil + platform."""
+    b = _valid_multi_bridge()
+    b["service_identity"].append(
+        {
+            "ledger_service": "sahool-platform",
+            "capability_service_path": "services/sahool-platform/api/main.py",
+            "owner": "target-platform-system-of-record",
+            "cardinality": "one-to-one",
+            "functional_plan": "sahool-platform",
+        }
+    )
+    b["capability_functional_coverage"].append(
+        {
+            "capability": "IRR-009",
+            "ledger_service": "sahool-platform",
+            "requires_probes": ["water-suitability-multihazard"],
+        }
+    )
+    b["capability_functional_coverage"].append(
+        {
+            "capability": "IRR-010",
+            "ledger_service": "sahool-platform",
+            "requires_probes": ["leaching-requirement-fao56"],
+        }
+    )
+    return b
+
+
+def _platform_evidence(probe_ids, **kw):
+    ev = _evidence(probe_ids, **kw)
+    ev["service"] = "sahool-platform"
+    return ev
+
+
+def test_platform_two_capabilities_flip_independently():
+    # IRR-009 and IRR-010 are backed by DIFFERENT probes on the same service; evidence
+    # for one must not flip the other. Only the multi-hazard probe passed here.
+    m = _mod()
+    by = {"sahool-platform": [_platform_evidence(["water-suitability-multihazard"])]}
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_tri_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert ev["IRR-009"]["would_set_runtime_verified"] is True
+    assert ev["IRR-010"]["would_set_runtime_verified"] is False
+    assert "partial_coverage" in ev["IRR-010"]["reason"]
+
+
+def test_platform_evidence_does_not_touch_other_services():
+    # Full platform evidence flips its own caps but leaves weather/soil at zero.
+    m = _mod()
+    by = {
+        "sahool-platform": [
+            _platform_evidence(["water-suitability-multihazard", "leaching-requirement-fao56"])
+        ]
+    }
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_tri_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert ev["IRR-009"]["would_set_runtime_verified"] is True
+    assert ev["IRR-010"]["would_set_runtime_verified"] is True
+    for cap in ("WX-004", "WX-006", "SOIL-001"):
+        assert ev[cap]["would_set_runtime_verified"] is False
+        assert ev[cap]["reason"] == "no_functional_evidence"
+
+
+def test_platform_sha_mismatch_not_eligible():
+    m = _mod()
+    by = {
+        "sahool-platform": [
+            _platform_evidence(["water-suitability-multihazard"], tested_sha="b" * 40)
+        ]
+    }
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_tri_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert ev["IRR-009"]["would_set_runtime_verified"] is False
+    assert "sha_mismatch" in ev["IRR-009"]["reason"]
+
+
+def test_platform_liveness_only_not_eligible():
+    m = _mod()
+    by = {"sahool-platform": [_platform_evidence(["water-suitability-multihazard"], kind="health")]}
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_tri_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert ev["IRR-009"]["would_set_runtime_verified"] is False
+    assert "functional" in ev["IRR-009"]["reason"] or "liveness" in ev["IRR-009"]["reason"]
+
+
+def test_platform_full_coverage_would_flip_but_registry_untouched():
+    m = _mod()
+    by = {
+        "sahool-platform": [
+            _platform_evidence(["water-suitability-multihazard", "leaching-requirement-fao56"])
+        ]
+    }
+    ev = {
+        e["capability"]: e
+        for e in m.evaluate_propagation(_tri_bridge(), by, SHA, datetime.now(UTC))
+    }
+    assert ev["IRR-009"]["would_set_runtime_verified"] is True
+    assert ev["IRR-010"]["would_set_runtime_verified"] is True
+    reg = json.loads(m.CAPABILITY_REGISTRY.read_text())
+    for cap in reg["capabilities"]:
+        if cap["id"] in ("IRR-009", "IRR-010"):
             assert not cap.get("runtime_verified"), cap["id"]

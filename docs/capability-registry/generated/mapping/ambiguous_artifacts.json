@@ -3666,39 +3666,6 @@
     ]
   },
   {
-    "path": "runtime-verification/service_identity_map.json",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "WX-006",
-        "score": 28,
-        "signals": [
-          "content:GDD",
-          "content:gdd",
-          "explicit_id"
-        ]
-      },
-      {
-        "capability_id": "WX-004",
-        "score": 28,
-        "signals": [
-          "content:ET0",
-          "content:et0",
-          "explicit_id"
-        ]
-      },
-      {
-        "capability_id": "SOIL-001",
-        "score": 26,
-        "signals": [
-          "content:Soil profile",
-          "content:soil profile",
-          "explicit_id"
-        ]
-      }
-    ]
-  },
-  {
     "path": "scripts/certification/evidence_lab.py",
     "kind": "other",
     "candidates": [

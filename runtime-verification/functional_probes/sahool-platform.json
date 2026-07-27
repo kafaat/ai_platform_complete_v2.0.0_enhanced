@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "service": "sahool-platform",
+  "source_service": "services/sahool-platform/api",
+  "entrypoint": "services/sahool-platform/api/routers/salinity.py",
+  "base_url_env": "SAHOOL_PLATFORM_BASE_URL",
+  "note": "Functional probes verify the platform API COMPUTES correctly (FAO-56 salinity / leaching multi-hazard assessment — schema + value + determinism), not merely that it is alive. Only the compute-only POST /api/v1/salinity/assess endpoint is declared: it is a synchronous handler delegating to the pure api.salinity_management + core.engines.fao56 modules (no DB/Redis/provider on the request path). The endpoint is JWT-gated; the plan declares only the ${SAHOOL_PLATFORM_PROBE_JWT} variable NAME (expanded at --run time), never a token. Producing evidence and setting runtime_verified is a separate, deliberate step; this plan alone changes nothing in the runtime ledger.",
+  "probes": [
+    {
+      "probe_id": "water-suitability-multihazard",
+      "method": "POST",
+      "path": "/api/v1/salinity/assess",
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "headers": {
+        "Authorization": "Bearer ${SAHOOL_PLATFORM_PROBE_JWT}"
+      },
+      "request_body": {
+        "ece_dsm": 6.0,
+        "ecw_dsm": 3.0,
+        "sar": 12.0,
+        "crop_threshold_ece": 6.0
+      },
+      "response_assertions": [
+        {"field": "supported", "type": "boolean", "equals": true},
+        {"field": "components.soil_salinity.class", "equals": "moderately_saline"},
+        {"field": "components.water_salinity.risk", "equals": "severe"},
+        {"field": "components.sodium_hazard.class", "equals": "medium"}
+      ]
+    },
+    {
+      "probe_id": "leaching-requirement-fao56",
+      "method": "POST",
+      "path": "/api/v1/salinity/assess",
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "headers": {
+        "Authorization": "Bearer ${SAHOOL_PLATFORM_PROBE_JWT}"
+      },
+      "request_body": {
+        "ece_dsm": 6.0,
+        "ecw_dsm": 3.0,
+        "sar": 12.0,
+        "crop_threshold_ece": 6.0
+      },
+      "response_assertions": [
+        {"field": "components.leaching.feasible", "type": "boolean", "equals": true},
+        {"field": "components.leaching.leaching_fraction", "type": "number", "equals": 0.111, "tolerance": 0.0005},
+        {"field": "components.leaching.leaching_pct", "type": "number", "equals": 11.1, "tolerance": 0.05}
+      ]
+    }
+  ]
+}
