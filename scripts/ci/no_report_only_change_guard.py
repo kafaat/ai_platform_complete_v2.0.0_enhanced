@@ -55,6 +55,14 @@ def is_report_like(path: str) -> bool:
     p = Path(path)
     if p.suffix not in REPORT_SUFFIXES:
         return False
+    # The sahool-brain/ knowledge base is mandated documentation (CLAUDE.md contributor
+    # protocol, strict per-fact sourcing), NOT a certification/progress report — even when
+    # a file name matches a report hint (e.g. the brain's own gaps/registry.md). Treating
+    # it as docs lets the required end-of-session brain maintenance land without contriving
+    # an unrelated code change; the guard still blocks the capabilities/ certification
+    # registry and generated release reports.
+    if path.startswith("sahool-brain/"):
+        return False
     upper = p.name.upper()
     if any(hint in upper for hint in REPORT_NAME_HINTS):
         return True
