@@ -2026,7 +2026,6 @@
       "runtime_verified": false,
       "title": "Yield map ingestion",
       "unit_test_paths": [
-        "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
         "tests_v9/test_platform_catalog_gate.py",
         "tests_v9/test_v215_yield_map_ingestion_static.py"
