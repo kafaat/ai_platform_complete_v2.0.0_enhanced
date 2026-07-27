@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -40,8 +41,13 @@ ROOT = Path(__file__).resolve().parents[2]
 PLAN_DIR = ROOT / "runtime-verification" / "functional_probes"
 EVIDENCE_DIR = ROOT / "runtime-verification" / "functional_evidence"
 SCHEMA_VERSION = "1.0"
-_ROUTE_RE = re.compile(r'app\.(get|post|put|patch|delete)\(\s*["\']([^"\']+)["\']')
+# A route may be registered directly on the app (``app.post(...)``) or on an
+# ``APIRouter`` that is later mounted with no prefix (``@router.post(...)`` in a
+# routers/ module). Both forms are matched so a plan may point its ``entrypoint`` at
+# whichever file actually declares the route decorators.
+_ROUTE_RE = re.compile(r'(?:app|router)\.(get|post|put|patch|delete)\(\s*["\']([^"\']+)["\']')
 _ALLOWED_DEPENDENCY = {"compute-only"}
+_ENV_REF_RE = re.compile(r"\$\{([A-Z0-9_]+)\}")
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -91,6 +97,8 @@ def validate_plan(plan: dict[str, Any], path: Path) -> list[str]:
             errors.append(f"{tag}: invalid path {route!r}")
         elif routes and (method, route) not in routes:
             errors.append(f"{tag}: {method} {route} is not registered in {plan['entrypoint']}")
+        if "headers" in probe and not isinstance(probe["headers"], dict):
+            errors.append(f"{tag}: headers must be an object of name -> value")
         if probe.get("dependency_class") not in _ALLOWED_DEPENDENCY:
             errors.append(
                 f"{tag}: dependency_class must be one of {sorted(_ALLOWED_DEPENDENCY)} "
@@ -144,12 +152,25 @@ def _check_assertion(payload: Any, a: dict[str, Any]) -> tuple[bool, str]:
     return True, f"{a['field']}: ok"
 
 
+def _resolve_headers(probe: dict[str, Any]) -> dict[str, str]:
+    """Static header values from the plan, with ``${ENV_VAR}`` placeholders expanded
+    from the environment at run time. This keeps shared secrets (e.g. a service token)
+    out of the committed plan — the plan declares only the variable name, never a value.
+    An unset referenced variable expands to empty, so a live run that needs a token
+    simply fails the probe's expected status rather than smuggling a false pass."""
+    out: dict[str, str] = {}
+    for name, value in (probe.get("headers") or {}).items():
+        out[str(name)] = _ENV_REF_RE.sub(lambda m: os.environ.get(m.group(1), ""), str(value))
+    return out
+
+
 def _http(base_url: str, probe: dict[str, Any], timeout: float) -> tuple[int, float, bytes]:
     method = str(probe["method"]).upper()
     url = base_url.rstrip("/") + probe["path"]
     body = probe.get("request_body")
     data = json.dumps(body).encode() if body is not None else None
     headers = {"Content-Type": "application/json"} if data is not None else {}
+    headers.update(_resolve_headers(probe))
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     start = time.perf_counter()
     with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — first-party probe

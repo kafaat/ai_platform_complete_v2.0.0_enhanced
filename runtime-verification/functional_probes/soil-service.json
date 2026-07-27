@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "service": "soil-service",
+  "source_service": "services/soil-service",
+  "entrypoint": "services/soil-service/routers/soil_profile.py",
+  "base_url_env": "SOIL_SERVICE_BASE_URL",
+  "note": "Functional probes verify soil-service COMPUTES correctly (USDA texture classification — schema + value + determinism), not merely that it is alive. Only the compute-only /soil/suitability endpoint is declared, so a probe run needs no DB/Redis/external provider (the soilgrids route, which makes an outbound call, is deliberately excluded). The endpoint is token-gated; the plan declares only the ${SAHOOL_AGENT_TOKEN} variable NAME (expanded at --run time), never a secret value. Producing evidence and setting runtime_verified is a separate, deliberate step; this plan alone changes nothing in the runtime ledger.",
+  "probes": [
+    {
+      "probe_id": "soil-texture-loam",
+      "method": "POST",
+      "path": "/soil/suitability",
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "headers": {
+        "X-Agent-Token": "${SAHOOL_AGENT_TOKEN}"
+      },
+      "request_body": {
+        "clay": 20.0,
+        "sand": 40.0,
+        "silt": 40.0,
+        "ph": 6.5,
+        "ec": 1.0
+      },
+      "response_assertions": [
+        {"field": "source", "equals": "input"},
+        {"field": "texture.key", "equals": "loam"},
+        {"field": "texture.clay", "type": "number", "equals": 20.0, "tolerance": 0.05},
+        {"field": "texture.sand", "type": "number", "equals": 40.0, "tolerance": 0.05},
+        {"field": "texture.silt", "type": "number", "equals": 40.0, "tolerance": 0.05}
+      ]
+    },
+    {
+      "probe_id": "soil-texture-sand",
+      "method": "POST",
+      "path": "/soil/suitability",
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "headers": {
+        "X-Agent-Token": "${SAHOOL_AGENT_TOKEN}"
+      },
+      "request_body": {
+        "clay": 5.0,
+        "sand": 90.0,
+        "silt": 5.0
+      },
+      "response_assertions": [
+        {"field": "source", "equals": "input"},
+        {"field": "texture.key", "equals": "sand"},
+        {"field": "texture.clay", "type": "number", "equals": 5.0, "tolerance": 0.05}
+      ]
+    }
+  ]
+}

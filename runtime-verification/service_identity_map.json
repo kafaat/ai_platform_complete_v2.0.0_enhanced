@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "note": "Governance-only bridge between the runtime evidence ledger (which keys services by NAME, e.g. 'weather-service') and the capability registry (which keys services by PATH, e.g. 'services/weather-service/main.py'). This file alone changes NOTHING: it neither sets runtime_verified nor is trusted to. Propagation to a capability is allowed only by a separate, evidence-gated step and only when valid Step-3 FUNCTIONAL evidence (bound to SHA + environment + time + probe kind) covers that capability's declared requirements. Matching is by explicit declared identity only — never by approximate name or substring. Everything is fail-closed.",
+  "note": "Governance-only, MULTI-SERVICE bridge between the runtime evidence ledger (which keys services by NAME, e.g. 'weather-service', 'soil-service') and the capability registry (which keys services by PATH, e.g. 'services/weather-service/main.py'). This file alone changes NOTHING: it neither sets runtime_verified nor is trusted to. Propagation to a capability is allowed only by a separate, evidence-gated step and only when valid Step-3 FUNCTIONAL evidence (bound to SHA + environment + time + probe kind) covers that capability's declared requirements. Matching is by explicit declared identity only — never by approximate name or substring. Every service listed here is evaluated independently; adding a service extends what the framework CAN prove but flips nothing on its own. Everything is fail-closed.",
   "service_identity": [
     {
       "ledger_service": "weather-service",
@@ -8,6 +8,13 @@
       "owner": "target-weather-system-of-record",
       "cardinality": "one-to-one",
       "functional_plan": "weather-service"
+    },
+    {
+      "ledger_service": "soil-service",
+      "capability_service_path": "services/soil-service/main.py",
+      "owner": "target-soil-system-of-record",
+      "cardinality": "one-to-one",
+      "functional_plan": "soil-service"
     }
   ],
   "capability_functional_coverage": [
@@ -22,6 +29,12 @@
       "title": "GDD",
       "ledger_service": "weather-service",
       "requires_probes": ["agro-gdd-accumulation"]
+    },
+    {
+      "capability": "SOIL-001",
+      "title": "Soil profile (USDA texture classification)",
+      "ledger_service": "soil-service",
+      "requires_probes": ["soil-texture-loam", "soil-texture-sand"]
     }
   ],
   "evidence_policy": {

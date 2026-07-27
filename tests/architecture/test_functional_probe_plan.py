@@ -72,3 +72,30 @@ def test_assertions_are_falsifiable():
         plan = json.loads(path.read_text())
         for probe in plan["probes"]:
             assert probe.get("response_assertions"), f"{probe['probe_id']}: no assertions"
+
+
+def test_header_env_refs_expand_and_never_smuggle_a_value(monkeypatch):
+    # A token-gated endpoint is reached by declaring only the ${ENV_VAR} NAME in the
+    # plan; the value is resolved from the environment at run time. An unset variable
+    # expands to empty (the probe then fails its expected status) — it can never
+    # smuggle a false pass, and no secret ever lives in the committed plan.
+    m = _runner()
+    probe = {"headers": {"X-Agent-Token": "${SAHOOL_AGENT_TOKEN}", "X-Static": "lit"}}
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "s3cr3t")
+    resolved = m._resolve_headers(probe)
+    assert resolved == {"X-Agent-Token": "s3cr3t", "X-Static": "lit"}
+    monkeypatch.delenv("SAHOOL_AGENT_TOKEN", raising=False)
+    assert m._resolve_headers(probe)["X-Agent-Token"] == ""
+
+
+def test_committed_plans_embed_no_literal_secrets():
+    # Any header that names a credential must be an ${ENV} reference, never a literal —
+    # so a plan can target a token-gated endpoint without committing the token.
+    for path in sorted(PLAN_DIR.glob("*.json")):
+        plan = json.loads(path.read_text())
+        for probe in plan["probes"]:
+            for name, value in (probe.get("headers") or {}).items():
+                if any(k in name.lower() for k in ("token", "secret", "authorization", "api-key")):
+                    assert value.startswith("${") and value.endswith("}"), (
+                        f"{probe['probe_id']}:{name} must reference an env var, not a literal"
+                    )
