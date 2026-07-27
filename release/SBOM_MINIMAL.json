@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d91d28cfc61c80a50ee2542db6dc6c8f4bababba94b368b5c4f998e2c93fd0a"
+          "content": "f265a1c2a188e73789267b4938af2d4d840cff6bb13316eac2da5446874a2b13"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17745,7 +17745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf3ecc49b2c3fc754746816a901331b85ac9587055dc606934950c0243bd32fc"
+          "content": "73fcc52f3bc304ae30fa6a5331d77b59b0dd2554206c6e211fdf1dcce2599c9a"
         }
       ],
       "name": "services/sahool-platform/api/routers/platform_health.py",
@@ -25085,7 +25085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6386955da257e39b2c4145fefeb42ccc6354ed8e799b1dbb1012ec3318b05d3f"
+          "content": "f0db2fd3546c78393fd3f639cc204afa8e1c0545be028d087df44350bfa1dc3f"
         }
       ],
       "name": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
@@ -25205,7 +25205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f3c84ec307bb69b1bb69f6655e14e26e1315449bdc1f1e12a375ca9e2e52840"
+          "content": "4cbfaca595d1282560f3fa471a9ab3c11762daaaa92e6527c9584f2f73a059e0"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -29809,6 +29809,16 @@
         }
       ],
       "name": "shared/governance/chemical_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "05064d993a5a7a18b4f2ccaceaece6e99cb7ae24a2c9c804a9e70c166969220e"
+        }
+      ],
+      "name": "shared/governance/platform_route_budget.py",
       "type": "file"
     },
     {

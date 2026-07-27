@@ -1,27 +1,131 @@
+import ast
 import json
-import re
+import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
-ARCH = ROOT.parents[1] / "docs/architecture"
-ROUTE_RE = re.compile(r"@(app|router)\.(get|post|put|patch|delete)\(")
+REPO = ROOT.parents[1]
+ARCH = REPO / "docs/architecture"
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from scripts.ci.platform_route_classification import (  # noqa: E402
+    INFRASTRUCTURE_ROUTES,
+    RouteDeclaration,
+    assert_infrastructure_allowlist_is_used,
+    collect_platform_routes,
+    extract_routes,
+    is_infrastructure_route,
+    normalize_route_path,
+    partition_routes,
+)
 
 
-def test_platform_route_budget_reduced_after_extractions():
+def _inventory():
+    raw = collect_platform_routes(ROOT)
+    assert_infrastructure_allowlist_is_used(raw)
+    infrastructure, domain = partition_routes(raw)
+    return raw, infrastructure, domain
+
+
+def test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion():
     data = json.loads((ARCH / "platform_extraction_map.json").read_text(encoding="utf-8"))
-    budget = data["p2_6_route_budget_reduction"]["new_max_platform_routes"]
-    current = sum(
-        len(ROUTE_RE.findall(p.read_text(encoding="utf-8", errors="ignore")))
-        for p in ROOT.rglob("*.py")
-        if not str(p.relative_to(ROOT)).startswith("tests/")
+    policy = data["p2_6_route_budget_reduction"]
+    budget = policy["domain_route_budget"]
+    raw, infrastructure, domain = _inventory()
+
+    assert budget == policy["new_max_platform_routes"] == 629
+    assert len(raw) == 630
+    assert len(infrastructure) == 4
+    assert len(domain) == 626
+    assert len(raw) == len(infrastructure) + len(domain)
+    assert len(domain) <= budget, (
+        "Platform domain-route budget exceeded:\n"
+        f"  raw routes:            {len(raw)}\n"
+        f"  infrastructure routes: {len(infrastructure)}\n"
+        f"  domain routes:         {len(domain)}\n"
+        f"  domain maximum:        {budget}\n"
     )
-    assert (
-        budget <= 629
-    )  # 626->629 PA-003 yield-map ingestion (3 routes POST/GET yield-maps/ingestions + GET yield-map-records; target_owner sahool-platform; owner_type system-of-record — platform owns yield_map_ingestions/yield_map_records under FORCE-RLS; append-only idempotent provenance data plane, no actuation; documented raise, not silent growth). Prior: 625->626 V8-05 PR2 single-scene process-date proxy (compute-store; target_owner raster-service; single-scene sibling of field_imagery_backfill_proxy, same facade pattern: field-ownership + geometry_revision authz at the platform boundary, HTTP pass-through to raster-service which owns compute/store; documented raise, not silent growth). Prior: 609->611 IRR-X1.7/1.9 interactive + reservoir/booster network calculators (bff-orchestrator; owned+documented; stateless recommendation-only compute, no persistence/actuation; fail-closed tenant + 422 on invalid input). Prior: deliberately raised 567->570 (JSON-metrics hotfix); 575->576 WX-10.6 candidate; 576->577 WX-10.7 decision review; 577->578 WX-10.8 review-queue; 578->582 WX-10.9..10.12 execution; 582->591 WX-10.13..11.6 model/MLOps chain; 591->592 Phase E decision-evidence BFF proxy (owned+documented); 592->593 durable lab chain-of-custody transition + publication (v156/v159/v160; owned+documented); 593->595 MPC P1.1b irrigation bridge plan+capabilities (bff-orchestrator; owned+documented; same pattern as irrigation_*.py + water_decision_bridge); 595->597 MPC P1.1c-b server-authoritative simulate+recommendation (bff-orchestrator; owned+documented; SoR fact-sourcing + fail-closed); 597->598 WX-I1 hourly energy-aware MPC recommendation (bff-orchestrator; owned+documented; hourly sibling of daily /recommendation; composes platform SoR + weather native hourly ETc; fail-closed; recommendation-only); 598->599 WX-I1 closed-loop reconcile (bff-orchestrator; owned+documented; server-owned measured-as-applied → water_ledger reconciliation v184; idempotent; measurement-only); 599->609 IRR-X1 vendor-neutral irrigation engineering + digital commissioning + manual execution lifecycle (10 routes: engineering calculate; commissioning certificates/current/authorize; manual-executions create/list/transition/confirm/verify/reconcile; bff-orchestrator; owned+documented; recommendation/record-only, no actuation; authoritative-provenance-locked v190; as-applied→water_ledger reconcile idempotent)
-    assert current <= budget
-    assert data["p2_6_route_budget_reduction"]["previous_baseline_route_count"] == 567
+    assert any(r.key == ("GET", "/runtime-identity") for r in raw)
+    assert any(r.key == ("GET", "/runtime-identity") for r in infrastructure)
+
+
+def test_canonical_infrastructure_allowlist_matches_documented_policy():
+    data = json.loads((ARCH / "platform_extraction_map.json").read_text(encoding="utf-8"))
+    documented = {
+        (item["method"], item["path"])
+        for item in data["p2_6_route_budget_reduction"]["infrastructure_route_allowlist"]
+    }
+    assert documented == set(INFRASTRUCTURE_ROUTES)
+
+
+def test_only_exact_runtime_identity_get_is_infrastructure():
+    assert ("GET", "/runtime-identity") in INFRASTRUCTURE_ROUTES
+    assert ("POST", "/runtime-identity") not in INFRASTRUCTURE_ROUTES
+    assert ("GET", "/fields/runtime-identity") not in INFRASTRUCTURE_ROUTES
+    assert ("GET", "/runtime-identity/export") not in INFRASTRUCTURE_ROUTES
+    assert ("GET", "/runtime-identity-v2") not in INFRASTRUCTURE_ROUTES
+    assert is_infrastructure_route("get", "//runtime-identity/")
+
+
+def test_similarly_named_routes_remain_in_domain_partition():
+    routes = [
+        RouteDeclaration("GET", "/runtime-identity", "x.py", 1, "infra"),
+        RouteDeclaration("GET", "/fields/runtime-identity", "x.py", 2, "field"),
+        RouteDeclaration("GET", "/runtime-identity/export", "x.py", 3, "export"),
+        RouteDeclaration("POST", "/runtime-identity", "x.py", 4, "post"),
+    ]
+    infrastructure, domain = partition_routes(routes)
+    assert [r.function for r in infrastructure] == ["infra"]
+    assert {r.function for r in domain} == {"field", "export", "post"}
+
+
+def test_route_path_normalization_is_conservative():
+    assert normalize_route_path("runtime-identity") == "/runtime-identity"
+    assert normalize_route_path("/runtime-identity/") == "/runtime-identity"
+    assert normalize_route_path("//runtime-identity") == "/runtime-identity"
+    assert normalize_route_path("/Runtime-Identity") == "/Runtime-Identity"
+    assert normalize_route_path("/runtime%2Didentity") == "/runtime%2Didentity"
+
+
+def test_non_literal_route_path_fails_closed(tmp_path: Path):
+    source = tmp_path / "routes.py"
+    source.write_text(
+        'PATH = "/runtime-identity"\n@app.get(PATH)\ndef route():\n    pass\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(AssertionError, match="Non-literal route path"):
+        extract_routes(source)
+
+
+def test_route_declaration_retains_source_and_line(tmp_path: Path):
+    source = tmp_path / "routes.py"
+    source.write_text('@app.get("/x")\ndef route():\n    pass\n', encoding="utf-8")
+    [route] = extract_routes(source)
+    assert route.method == "GET"
+    assert route.path == "/x"
+    assert route.line == 1
+    assert route.source.endswith("routes.py")
+
+
+def test_unused_infrastructure_allowlist_entries_fail():
+    raw, _, _ = _inventory()
+    declared = {route.key for route in raw}
+    assert INFRASTRUCTURE_ROUTES <= declared
+    assert_infrastructure_allowlist_is_used(raw)
+
+
+def test_unused_allowlist_guard_rejects_incomplete_inventory():
+    with pytest.raises(AssertionError, match="not declared"):
+        assert_infrastructure_allowlist_is_used(
+            [RouteDeclaration("GET", "/runtime-identity", "x.py", 1, "identity")]
+        )
 
 
 def test_route_growth_requires_ownership_map_update():
     data = json.loads((ARCH / "platform_extraction_map.json").read_text(encoding="utf-8"))
-    assert "No route growth" in data["p2_6_route_budget_reduction"]["policy"]
+    policy = data["p2_6_route_budget_reduction"]
+    assert "No platform domain-route growth" in policy["policy"]
+    assert "explicit method-and-normalized-path allowlist" in policy["infrastructure_budget_policy"]

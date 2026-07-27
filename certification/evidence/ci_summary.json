@@ -1,14 +1,16 @@
 {
-  "status": "not_verified",
-  "production_certified": false,
-  "jobs": {
-    "service_count": 4,
-    "built": 0,
-    "build_failed": 4,
-    "health_passed": 0,
-    "health_failed": 4,
-    "critical_vulnerabilities": 0,
-    "compose_status": "fail"
-  },
-  "timestamp_utc": "2026-07-27T19:43:52Z"
+  "blocker_id": "P-CERT-1",
+  "name": "Full branch CI",
+  "status": "pending",
+  "required_status": "verified",
+  "waivable": false,
+  "minimum_fields": [
+    "status",
+    "branch",
+    "commit",
+    "jobs",
+    "timestamp_utc"
+  ],
+  "timestamp_utc": null,
+  "notes": "Attach real CI/deployment evidence here; pending placeholders are not certification evidence."
 }

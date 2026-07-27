@@ -413,7 +413,7 @@
         },
         {
           "function": "healthz",
-          "line": 21,
+          "line": 31,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/healthz",
@@ -579,7 +579,7 @@
         },
         {
           "function": "metrics",
-          "line": 28,
+          "line": 38,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/metrics",
@@ -817,7 +817,7 @@
         },
         {
           "function": "readyz",
-          "line": 49,
+          "line": 59,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/readyz",
@@ -886,6 +886,14 @@
       "method": "GET",
       "path": "/runtime-identity",
       "registrations": [
+        {
+          "function": "runtime_evidence_identity",
+          "line": 24,
+          "method": "GET",
+          "module": "services/sahool-platform/api/routers/platform_health.py",
+          "path": "/runtime-identity",
+          "receiver": "router"
+        },
         {
           "function": "runtime_evidence_identity",
           "line": 198,
@@ -1155,8 +1163,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1087,
-  "route_inventory_sha256": "24638a371b70af9cc807f6a0539e3b007685944d4ffcfee1aef19f10f57fcbc8",
+  "route_count": 1088,
+  "route_inventory_sha256": "a483e45cf3071cead36f48a2c570f4d7ef29d88634cb8a6458208f4de84925ac",
   "runtime_verified": false,
   "schema_version": 1
 }

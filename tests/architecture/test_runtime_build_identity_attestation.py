@@ -48,19 +48,24 @@ def test_identity_reader_rejects_bad_metadata(tmp_path):
 
 
 def test_service_endpoints_do_not_read_identity_from_environment():
-    # sahool-platform deliberately does NOT expose an HTTP /runtime-identity endpoint
-    # (dropped to preserve the platform route-budget ratchet); its build identity comes
-    # from the authoritative deployment manifest. Only the services that expose the
-    # endpoint are asserted here.
-    for rel in [
-        "services/weather-service/main.py",
-        "services/soil-service/main.py",
+    # weather/soil declare the endpoint directly on their app; sahool-platform declares it
+    # on the platform_health router (api/main.py must stay route-free per the P1
+    # decomposition guard). Either decorator form is accepted — what matters is that the
+    # identity comes from the read-only build metadata, never from mutable env.
+    for rel, dec in [
+        ("services/weather-service/main.py", '@app.get("/runtime-identity"'),
+        ("services/soil-service/main.py", '@app.get("/runtime-identity"'),
+        (
+            "services/sahool-platform/api/routers/platform_health.py",
+            '@router.get("/runtime-identity"',
+        ),
     ]:
         text = (ROOT / rel).read_text()
-        block = text[text.index('@app.get("/runtime-identity"') :]
+        block = text[text.index(dec) :]
         block = block[: block.find("\n\n", 1)]
         assert "os.getenv" not in block
         assert "load_build_identity" in block
+    assert "/runtime-identity" not in (ROOT / "services/sahool-platform/api/main.py").read_text()
 
 
 def test_dockerfiles_embed_immutable_metadata_and_oci_labels():

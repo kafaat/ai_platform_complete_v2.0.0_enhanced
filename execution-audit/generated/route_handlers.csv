@@ -746,9 +746,10 @@ sahool-platform,GET,/api/v1/fields/{field_id}/stage-actions,field_stage_actions,
 sahool-platform,GET,/api/v1/planting/crops,planting_crops_endpoint,services/sahool-platform/api/routers/planting.py,30
 sahool-platform,GET,/api/v1/planting/window,planting_window_endpoint,services/sahool-platform/api/routers/planting.py,36
 sahool-platform,GET,/api/v1/planting/check,planting_check_endpoint,services/sahool-platform/api/routers/planting.py,42
-sahool-platform,GET,/healthz,healthz,services/sahool-platform/api/routers/platform_health.py,21
-sahool-platform,GET,/metrics,metrics,services/sahool-platform/api/routers/platform_health.py,28
-sahool-platform,GET,/readyz,readyz,services/sahool-platform/api/routers/platform_health.py,49
+sahool-platform,GET,/runtime-identity,runtime_evidence_identity,services/sahool-platform/api/routers/platform_health.py,24
+sahool-platform,GET,/healthz,healthz,services/sahool-platform/api/routers/platform_health.py,31
+sahool-platform,GET,/metrics,metrics,services/sahool-platform/api/routers/platform_health.py,38
+sahool-platform,GET,/readyz,readyz,services/sahool-platform/api/routers/platform_health.py,59
 sahool-platform,GET,/api/v1/policy-learning/threshold-suggestions,threshold_suggestions,services/sahool-platform/api/routers/policy_learning.py,37
 sahool-platform,POST,/api/v1/portfolio/command,portfolio_command_endpoint,services/sahool-platform/api/routers/portfolio_command.py,70
 sahool-platform,GET,/api/v1/postharvest/moisture-check,postharvest_moisture_endpoint,services/sahool-platform/api/routers/postharvest.py,28

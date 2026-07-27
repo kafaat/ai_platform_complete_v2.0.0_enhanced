@@ -33,7 +33,7 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
 PINNED_BACKEND_COMPONENTS = 32
-PINNED_UNIQUE_METHOD_PATH = 990  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil build-identity)
+PINNED_UNIQUE_METHOD_PATH = 990  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity)
 
 
 def _catalog() -> dict:

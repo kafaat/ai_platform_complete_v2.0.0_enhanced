@@ -6218,7 +6218,15 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 21,
+    "line": 24,
+    "method": "GET",
+    "path": "/runtime-identity",
+    "function": "runtime_evidence_identity"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/platform_health.py",
+    "line": 31,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -6226,7 +6234,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 28,
+    "line": 38,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -6234,7 +6242,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 49,
+    "line": 59,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"

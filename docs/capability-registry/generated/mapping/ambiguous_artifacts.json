@@ -1003,6 +1003,48 @@
     ]
   },
   {
+    "path": "docs/architecture/platform_extraction_map.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-003",
+        "score": 18,
+        "signals": [
+          "content:Weather history",
+          "content:historical weather",
+          "content:weather history"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 18,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 18,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      },
+      {
+        "capability_id": "PA-001",
+        "score": 18,
+        "signals": [
+          "content:Management zones",
+          "content:management zone",
+          "content:productivity zone"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/architecture/raster_boundary_allowlist.json",
     "kind": "other",
     "candidates": [

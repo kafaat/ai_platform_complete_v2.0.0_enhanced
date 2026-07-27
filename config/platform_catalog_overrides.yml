@@ -65,7 +65,7 @@ ui_waiver_policy:
   default_tracking: U4-WAIVER-REVIEW
 
 duplicate_route_classifications:
-  # قرار واحد لكلّ مجموعة (method,path) مكرّرة — 14 مجموعة مقاسة في الكتالوج.
+  # قرار واحد لكلّ مجموعة (method,path) مكرّرة — 15 مجموعة مقاسة في الكتالوج.
   - {method: GET, path: /, classification: service_metadata, expires_on: "2026-12-31",
      decision: "جذور تعريفيّة محدودة النطاق بالخدمة؛ تبقى خارج الفضاء العامّ المشترك."}
   - {method: GET, path: /capabilities, classification: standard_capability_contract,
@@ -79,7 +79,7 @@ duplicate_route_classifications:
   - {method: GET, path: /metrics, classification: standard_observability,
      decision: "عقد مقاييس Prometheus محلّيّ بالخدمة."}
   - {method: GET, path: /runtime-identity, classification: standard_observability,
-     decision: "عقد هويّة بناء/صورة محلّيّ بالخدمة (git_sha/build_id/image_digest من ملفّ صورة للقراءة فقط) — لربط أدلّة التحقّق التشغيليّ بالصورة المنشورة؛ لكلّ خدمة نسختها."}
+     decision: "عقد هويّة بناء/صورة محلّيّ بالخدمة (git_sha/build_id/image_digest من ملفّ صورة للقراءة فقط) — سطح provenance تشغيليّ لربط أدلّة التحقّق بالصورة المنشورة؛ لكلّ خدمة نسختها، ومستثنى من ميزانية مسارات النطاق عبر allowlist صريحة."}
   - {method: GET, path: /products, classification: service_scoped_semantics, expires_on: "2026-12-31",
      decision: "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما."}
   - {method: GET, path: /readyz, classification: standard_readiness,

@@ -1,0 +1,206 @@
+name: Runtime Verification Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      path3_run_id:
+        description: Successful PATH-3 run containing an attested runtime candidate
+        required: true
+      target_sha:
+        description: Exact full source commit SHA evaluated by PATH-3
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+  attestations: read
+
+concurrency:
+  group: runtime-verification-promotion-${{ inputs.target_sha }}
+  cancel-in-progress: false
+
+jobs:
+  certify-environment-controls:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Fail closed unless approval environment is protected
+        env:
+          GH_TOKEN: ${{ secrets.RUNTIME_VERIFICATION_ENV_AUDITOR_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}" || { echo 'missing environment auditor token'; exit 1; }
+          gh api "repos/${REPO}/environments/runtime-verification-approval" > environment.json
+          python - <<'PY'
+          import json,sys
+          e=json.load(open('environment.json'))
+          rules=e.get('protection_rules') or []
+          reviewers=[r for r in rules if r.get('type')=='required_reviewers']
+          if not reviewers or not any((r.get('reviewers') or []) for r in reviewers):
+              sys.exit('runtime-verification-approval has no required reviewers')
+          p=e.get('deployment_branch_policy') or {}
+          if not (p.get('protected_branches') or p.get('custom_branch_policies')):
+              sys.exit('runtime-verification-approval has no branch/deployment restriction')
+          print('approval_environment_controls_certified')
+          PY
+
+  verify-candidate:
+    needs: certify-environment-controls
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.target_sha }}
+      - name: Bind checkout to exact tested SHA
+        run: test "$(git rev-parse HEAD)" = "${{ inputs.target_sha }}"
+      - name: Download candidate from PATH-3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ inputs.target_sha }}
+        run: |
+          set -euo pipefail
+          test "${#TARGET_SHA}" = 40
+          gh run download "${{ inputs.path3_run_id }}" --repo "$GITHUB_REPOSITORY" \
+            --name "path3-runtime-candidate-${TARGET_SHA}" --dir candidate
+      - name: Verify candidate attestation and contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh attestation verify candidate/runtime-verification-candidate.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/path3-runtime-verification.yml" \
+            --source-digest "${{ inputs.target_sha }}" --format json > candidate/candidate-attestation.json
+          python scripts/ci/runtime_verification_apply.py validate-candidate --candidate candidate/runtime-verification-candidate.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verified-runtime-candidate-${{ inputs.target_sha }}
+          path: candidate
+          if-no-files-found: error
+          retention-days: 30
+
+  approval-receipt:
+    needs: verify-candidate
+    runs-on: ubuntu-24.04
+    environment: runtime-verification-approval
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.target_sha }}
+      - name: Bind approval code to exact tested SHA
+        run: test "$(git rev-parse HEAD)" = "${{ inputs.target_sha }}"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: verified-runtime-candidate-${{ inputs.target_sha }}
+          path: approved
+      - name: Issue narrowly scoped approval receipt
+        run: |
+          python scripts/ci/runtime_verification_apply.py create-approval \
+            --candidate approved/runtime-verification-candidate.json \
+            --output approved/runtime-verification-approval.json \
+            --run-id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" --actor "$GITHUB_ACTOR"
+      - uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        with:
+          subject-path: approved/runtime-verification-approval.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: approved-runtime-candidate-${{ inputs.target_sha }}
+          path: approved
+          if-no-files-found: error
+          retention-days: 30
+
+  apply-as-pull-request:
+    needs: approval-receipt
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+      attestations: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.target_sha }}
+          fetch-depth: 0
+      - name: Bind application checkout to exact tested SHA
+        run: test "$(git rev-parse HEAD)" = "${{ inputs.target_sha }}"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: approved-runtime-candidate-${{ inputs.target_sha }}
+          path: approved
+      - name: Verify approval attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh attestation verify approved/runtime-verification-approval.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/runtime-verification-promotion.yml" \
+            --source-digest "${{ inputs.target_sha }}" --format json > approved/approval-attestation.json
+          python - <<'PY'
+          import hashlib,json,os
+          files=['approved/candidate-attestation.json','approved/approval-attestation.json']
+          out={'schema_version':'1.0','kind':'promotion-attestation-verification','target_sha':os.environ['TARGET_SHA'],
+               'candidate_attestation_sha256':hashlib.sha256(open(files[0],'rb').read()).hexdigest(),
+               'approval_attestation_sha256':hashlib.sha256(open(files[1],'rb').read()).hexdigest()}
+          open('approved/promotion-verification-receipt.json','w').write(json.dumps(out,sort_keys=True,indent=2)+'\n')
+          PY
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ inputs.target_sha }}
+      - name: Refuse duplicate promotion PR or ledger
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          app_id="$(python - <<'PY'
+          import json,hashlib
+          c=json.load(open('approved/runtime-verification-candidate.json'));a=json.load(open('approved/runtime-verification-approval.json'))
+          print(hashlib.sha256((c['candidate_id']+':'+a['approval_run_id']).encode()).hexdigest())
+          PY
+          )"
+          test ! -e "runtime-verification/apply-ledger/${app_id}.json"
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state all --search "${app_id} in:body" --json number --jq 'length')"
+          test "$existing" = 0 || { echo "promotion PR already exists for ${app_id}"; exit 1; }
+          echo "APPLICATION_ID=$app_id" >> "$GITHUB_ENV"
+      - name: Apply runtime_verified only
+        env:
+          PATH3_RUN_ID: ${{ inputs.path3_run_id }}
+        run: |
+          set -euo pipefail
+          python scripts/ci/runtime_verification_apply.py apply \
+            --candidate approved/runtime-verification-candidate.json \
+            --approval approved/runtime-verification-approval.json \
+            --registry-out capabilities/registry/capabilities.json \
+            --receipt-out "runtime-verification/apply-ledger/${APPLICATION_ID}.json" \
+            --current-head "$(git rev-parse HEAD)" \
+            --candidate-attestation approved/candidate-attestation.json \
+            --approval-attestation approved/approval-attestation.json \
+            --verification-receipt approved/promotion-verification-receipt.json \
+            --confirm RUNTIME_VERIFIED_ONLY
+          python scripts/architecture/build_platform_catalog.py
+          python scripts/ci/static_governance_closure.py --check
+          python scripts/release/build_release_bundle.py
+          python scripts/release/validate_release_package.py
+          grep -R '"production_certified": true' "runtime-verification/apply-ledger/${APPLICATION_ID}.json" && exit 1 || true
+          grep -R '"status_taxonomy_changes": 0' "runtime-verification/apply-ledger/${APPLICATION_ID}.json"
+      - name: Open reviewable promotion PR from exact tested commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="runtime-verification/${APPLICATION_ID:0:16}"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git checkout -b "$branch"
+          git add capabilities/registry runtime-verification/apply-ledger release runtime_capability_manifest.generated.json
+          git commit -m "governance(runtime): apply attested runtime verification"
+          git push origin "$branch"
+          gh pr create --base "${{ github.event.repository.default_branch }}" --head "$branch" \
+            --title "governance(runtime): apply attested runtime verification" \
+            --body "Attested Step-4 promotion from exact tested commit ${{ inputs.target_sha }}. Applies runtime_verified only; status taxonomy and production_certified are unchanged. Application: ${APPLICATION_ID}."

@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4724,
+    "files_scanned": 4745,
     "files_by_kind": {
       "backend": 1183,
       "database": 266,
-      "governance": 56,
+      "governance": 58,
       "mobile": 51,
-      "other": 1218,
-      "tests": 1504,
+      "other": 1236,
+      "tests": 1505,
       "web": 446
     },
-    "unmapped_artifacts": 1936,
-    "ambiguous_artifacts": 388
+    "unmapped_artifacts": 1938,
+    "ambiguous_artifacts": 389
   },
   "capabilities": [
     {
@@ -14743,6 +14743,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/architecture/platform_extraction_map.json",
+          "score": 18,
+          "signals": [
+            "content:Management zones",
+            "content:management zone",
+            "content:productivity zone"
+          ]
+        },
+        {
           "path": "docs/architecture/PLATFORM_EXTRACTION_MAP.md",
           "score": 16,
           "signals": [
@@ -14814,7 +14823,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 8
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -15004,15 +15013,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-          "score": 30,
-          "signals": [
-            "content:Yield map ingestion",
-            "content:yield map",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "tests_v9/test_platform_catalog_gate.py",
           "score": 26,
           "signals": [
@@ -15024,15 +15024,6 @@
       ],
       "governance": [],
       "other_evidence": [
-        {
-          "path": "docs/architecture/platform_extraction_map.json",
-          "score": 32,
-          "signals": [
-            "content:Yield map ingestion",
-            "content:yield map",
-            "explicit_id"
-          ]
-        },
         {
           "path": "docs/architecture/platform_python_module_baseline.json",
           "score": 32,
@@ -15063,9 +15054,9 @@
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 4,
+        "tests": 3,
         "governance": 0,
-        "other_evidence": 3
+        "other_evidence": 2
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -27126,19 +27117,19 @@
           "score": 15
         },
         {
-          "value": "/internal/svc @ tests_v9/test_endpoint_auth_coverage.py:382",
+          "value": "/internal/svc @ tests_v9/test_endpoint_auth_coverage.py:383",
           "score": 10
         },
         {
-          "value": "/public/calc @ tests_v9/test_endpoint_auth_coverage.py:367",
+          "value": "/public/calc @ tests_v9/test_endpoint_auth_coverage.py:368",
           "score": 10
         },
         {
-          "value": "/secure/perm @ tests_v9/test_endpoint_auth_coverage.py:372",
+          "value": "/secure/perm @ tests_v9/test_endpoint_auth_coverage.py:373",
           "score": 10
         },
         {
-          "value": "/secure/user @ tests_v9/test_endpoint_auth_coverage.py:377",
+          "value": "/secure/user @ tests_v9/test_endpoint_auth_coverage.py:378",
           "score": 10
         },
         {
@@ -27387,6 +27378,15 @@
           ]
         },
         {
+          "path": "docs/architecture/platform_extraction_map.json",
+          "score": 18,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
           "path": "shared/ai/tool_schema.py",
           "score": 18,
           "signals": [
@@ -27548,7 +27548,7 @@
         "mobile": 0,
         "tests": 11,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 20
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -28251,19 +28251,19 @@
           "score": 9
         },
         {
-          "value": "/internal/svc @ tests_v9/test_endpoint_auth_coverage.py:382",
+          "value": "/internal/svc @ tests_v9/test_endpoint_auth_coverage.py:383",
           "score": 9
         },
         {
-          "value": "/public/calc @ tests_v9/test_endpoint_auth_coverage.py:367",
+          "value": "/public/calc @ tests_v9/test_endpoint_auth_coverage.py:368",
           "score": 9
         },
         {
-          "value": "/secure/perm @ tests_v9/test_endpoint_auth_coverage.py:372",
+          "value": "/secure/perm @ tests_v9/test_endpoint_auth_coverage.py:373",
           "score": 9
         },
         {
-          "value": "/secure/user @ tests_v9/test_endpoint_auth_coverage.py:377",
+          "value": "/secure/user @ tests_v9/test_endpoint_auth_coverage.py:378",
           "score": 9
         }
       ],
@@ -28814,6 +28814,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/architecture/platform_extraction_map.json",
+          "score": 18,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "scripts/ci/weather_service_real_contract_gate.py",
           "score": 18,
           "signals": [
@@ -28980,7 +28989,7 @@
         "mobile": 0,
         "tests": 21,
         "governance": 0,
-        "other_evidence": 17
+        "other_evidence": 18
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -29114,6 +29123,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/architecture/platform_extraction_map.json",
+          "score": 18,
+          "signals": [
+            "content:Weather history",
+            "content:historical weather",
+            "content:weather history"
+          ]
+        },
+        {
           "path": "docs/architecture/weather_boundary_allowlist.json",
           "score": 16,
           "signals": [
@@ -29144,7 +29162,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 4,
       "mapped": true
@@ -38861,6 +38879,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_p3_4_weather_facade_neutral.py",
       "kind": "tests"
     },
@@ -39702,6 +39724,10 @@
     },
     {
       "path": "tests/release/test_phase14_release_packaging_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/release/test_platform_route_release_binding.py",
       "kind": "tests"
     },
     {
@@ -42077,6 +42103,48 @@
           "signals": [
             "content:erp bridge",
             "content:odoo bridge"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/platform_extraction_map.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-003",
+          "score": 18,
+          "signals": [
+            "content:Weather history",
+            "content:historical weather",
+            "content:weather history"
+          ]
+        },
+        {
+          "capability_id": "WX-002",
+          "score": 18,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
+          "capability_id": "SOIL-002",
+          "score": 18,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
+          "capability_id": "PA-001",
+          "score": 18,
+          "signals": [
+            "content:Management zones",
+            "content:management zone",
+            "content:productivity zone"
           ]
         }
       ]
