@@ -97,12 +97,39 @@ def _manifest_files() -> set[str]:
     return set(_manifest_entries())
 
 
-def _verify_manifest_file(rel: str, expected_sha256: str) -> None:
-    """Verify one allowlisted file before using it as closure evidence."""
+def _verify_regular_confined_file(rel: str, *, source: str) -> Path:
+    """Return a regular, non-symlinked file confined to the exact project root.
+
+    Repository membership alone is not enough.  Git tracks symlinks, and a
+    modified worktree can replace a tracked regular file with a symlink.  Every
+    closure input therefore receives the same path-confinement check regardless
+    of whether membership came from Git or the offline checksum manifest.
+    """
     path = ROOT / rel
-    if not path.is_file():
-        raise RuntimeError(f"release-manifest file missing from archive: {rel}")
-    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    root_resolved = ROOT.resolve()
+    try:
+        resolved = path.resolve(strict=True)
+    except OSError as exc:
+        raise RuntimeError(f"{source} file missing: {rel}") from exc
+    try:
+        resolved.relative_to(root_resolved)
+    except ValueError as exc:
+        raise RuntimeError(f"{source} path escapes project root: {rel}") from exc
+
+    current = ROOT
+    for part in Path(rel).parts:
+        current = current / part
+        if current.is_symlink():
+            raise RuntimeError(f"{source} path contains symlink: {rel}")
+    if not resolved.is_file():
+        raise RuntimeError(f"{source} path is not a regular file: {rel}")
+    return resolved
+
+
+def _verify_manifest_file(rel: str, expected_sha256: str) -> None:
+    """Verify one allowlisted regular file before using it as closure evidence."""
+    resolved = _verify_regular_confined_file(rel, source="release-manifest")
+    actual = hashlib.sha256(resolved.read_bytes()).hexdigest()
     if actual != expected_sha256:
         raise RuntimeError(
             f"release-manifest checksum mismatch for {rel}: "
@@ -181,6 +208,8 @@ def artifact_files() -> list[Path]:
                     continue
                 if manifest_entries is not None:
                     _verify_manifest_file(rel, manifest_entries[rel])
+                else:
+                    _verify_regular_confined_file(rel, source="git-tracked")
                 files.append(path)
     return sorted(files, key=lambda path: path.relative_to(ROOT).as_posix())
 
@@ -196,7 +225,28 @@ def check(name: str, passed: bool, detail: str) -> dict[str, Any]:
     return {"name": name, "passed": passed, "detail": detail}
 
 
+def _verify_required_evidence() -> None:
+    """Require every closure input to belong to the active trust inventory.
+
+    ``evaluate`` reads these files directly, so validating only the broader
+    artifact manifest later would leave a gap: an untracked or tampered required
+    JSON could influence closure before membership/integrity was checked.
+    """
+    tracked, manifest_entries = _tracked_inventory()
+    for name, path in REQUIRED.items():
+        rel = path.relative_to(ROOT).as_posix()
+        if rel not in tracked:
+            raise RuntimeError(
+                f"required closure evidence is outside repository membership: {name}={rel}"
+            )
+        if manifest_entries is not None:
+            _verify_manifest_file(rel, manifest_entries[rel])
+        else:
+            _verify_regular_confined_file(rel, source="git-tracked required evidence")
+
+
 def evaluate() -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    _verify_required_evidence()
     data = {name: load_json(path) for name, path in REQUIRED.items()}
     checks = [
         check(f"artifact:{name}", bool(payload), path.relative_to(ROOT).as_posix())

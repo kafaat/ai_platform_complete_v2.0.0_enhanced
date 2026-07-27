@@ -160,3 +160,88 @@ def test_git_parent_worktree_is_not_accepted_as_repository_root(tmp_path, monkey
     tracked, manifest = module._tracked_inventory()
     assert tracked == {"capabilities/generated/a.json"}
     assert manifest is not None
+
+
+def test_required_evidence_must_be_in_active_inventory(tmp_path, monkeypatch):
+    module = load_module()
+    required = tmp_path / "capabilities/generated/required.json"
+    required.parent.mkdir(parents=True)
+    required.write_text("{}\n", encoding="utf-8")
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "REQUIRED", {"required": required})
+    monkeypatch.setattr(module, "_tracked_inventory", lambda: (set(), None))
+
+    try:
+        module._verify_required_evidence()
+    except RuntimeError as exc:
+        assert "outside repository membership" in str(exc)
+    else:
+        raise AssertionError("untracked required evidence was accepted")
+
+
+def test_manifest_file_rejects_symlink_escape(tmp_path, monkeypatch):
+    module = load_module()
+    outside = tmp_path.parent / f"{tmp_path.name}-outside.json"
+    outside.write_text("{}\n", encoding="utf-8")
+    artifact_dir = tmp_path / "capabilities/generated"
+    artifact_dir.mkdir(parents=True)
+    link = artifact_dir / "a.json"
+    link.symlink_to(outside)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+
+    digest = module.hashlib.sha256(outside.read_bytes()).hexdigest()
+    try:
+        module._verify_manifest_file("capabilities/generated/a.json", digest)
+    except RuntimeError as exc:
+        assert "escapes project root" in str(exc) or "contains symlink" in str(exc)
+    else:
+        raise AssertionError("symlink escape was accepted")
+    finally:
+        outside.unlink(missing_ok=True)
+
+
+def test_git_tracked_artifact_rejects_symlink_even_without_manifest(tmp_path, monkeypatch):
+    module = load_module()
+    outside = tmp_path.parent / f"{tmp_path.name}-git-outside.json"
+    outside.write_text("{}\n", encoding="utf-8")
+    artifact_dir = tmp_path / "capabilities/generated"
+    artifact_dir.mkdir(parents=True)
+    link = artifact_dir / "a.json"
+    link.symlink_to(outside)
+
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "ARTIFACT_ROOTS", [artifact_dir])
+    monkeypatch.setattr(
+        module,
+        "_tracked_inventory",
+        lambda: ({"capabilities/generated/a.json"}, None),
+    )
+
+    try:
+        module.artifact_files()
+    except RuntimeError as exc:
+        assert "git-tracked" in str(exc)
+        assert "symlink" in str(exc) or "escapes project root" in str(exc)
+    else:
+        raise AssertionError("Git-tracked symlink artifact was accepted")
+    finally:
+        outside.unlink(missing_ok=True)
+
+
+def test_git_required_evidence_must_exist_as_regular_file(tmp_path, monkeypatch):
+    module = load_module()
+    required = tmp_path / "capabilities/generated/required.json"
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "REQUIRED", {"required": required})
+    monkeypatch.setattr(
+        module,
+        "_tracked_inventory",
+        lambda: ({"capabilities/generated/required.json"}, None),
+    )
+
+    try:
+        module._verify_required_evidence()
+    except RuntimeError as exc:
+        assert "git-tracked required evidence file missing" in str(exc)
+    else:
+        raise AssertionError("missing Git-tracked required evidence was accepted")
