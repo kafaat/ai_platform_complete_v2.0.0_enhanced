@@ -7,11 +7,15 @@ on:
       - "scripts/ci/platform_route_classification.py"
       - "scripts/ci/platform_route_budget_guard.py"
       - "scripts/ci/platform_route_ownership_guard.py"
+      - "scripts/ci/platform_route_governance_attestation.py"
       - "docs/architecture/platform_extraction_map.json"
       - "docs/architecture/generated/platform_route_budget_inventory.json"
+      - "docs/architecture/generated/platform_route_ownership_inventory.json"
+      - "docs/architecture/generated/platform_route_governance_attestation.json"
       - "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py"
       - "tests/architecture/test_platform_route_budget_guard.py"
       - "tests/architecture/test_platform_route_ownership_guard.py"
+      - "tests/architecture/test_platform_route_governance_attestation.py"
       - ".github/workflows/platform-route-budget.yml"
   push:
     branches: [main]
@@ -20,8 +24,11 @@ on:
       - "scripts/ci/platform_route_classification.py"
       - "scripts/ci/platform_route_budget_guard.py"
       - "scripts/ci/platform_route_ownership_guard.py"
+      - "scripts/ci/platform_route_governance_attestation.py"
       - "docs/architecture/platform_extraction_map.json"
       - "docs/architecture/generated/platform_route_budget_inventory.json"
+      - "docs/architecture/generated/platform_route_ownership_inventory.json"
+      - "docs/architecture/generated/platform_route_governance_attestation.json"
       - ".github/workflows/platform-route-budget.yml"
 
 permissions:
@@ -35,17 +42,28 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - name: Verify route ownership map
-        run: python scripts/ci/platform_route_ownership_guard.py
+      - name: Verify route ownership map and generated inventory
+        run: |
+          python scripts/ci/platform_route_ownership_guard.py \
+            --check-generated \
+            --json-output platform-route-ownership-result.json
       - name: Verify domain-route ratchet and generated inventory
         run: |
           python scripts/ci/platform_route_budget_guard.py \
             --check-generated \
             --json-output platform-route-budget-result.json
-      - name: Upload transparent route inventory
+      - name: Verify cross-source governance attestation
+        run: |
+          python scripts/ci/platform_route_governance_attestation.py \
+            --check-generated \
+            --json-output platform-route-governance-attestation-result.json
+      - name: Upload transparent route inventories and attestation
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: platform-route-budget-${{ github.sha }}
-          path: platform-route-budget-result.json
+          path: |
+            platform-route-budget-result.json
+            platform-route-ownership-result.json
+            platform-route-governance-attestation-result.json
           if-no-files-found: error
           retention-days: 30
