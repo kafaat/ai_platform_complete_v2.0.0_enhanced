@@ -2,7 +2,7 @@
   "inputs": [
     {
       "path": "scripts/ci/platform_route_classification.py",
-      "sha256": "0b6f53d390888251abfc440b973a15321f723542131d75a3a89f83c2d0aa431d"
+      "sha256": "88f1e87a5e75d7331e4305f4b6c4e026490d6806f9e95a7be27080dc21f4703e"
     },
     {
       "path": "docs/architecture/platform_extraction_map.json",
@@ -21,7 +21,7 @@
   "statement": {
     "api_route_declarations": 4,
     "budget_inventory_sha256": "a722e9061d2102c4081a6f036240599481dc818df4301e96fb6ca965dbfdc8d7",
-    "classification_sha256": "0b6f53d390888251abfc440b973a15321f723542131d75a3a89f83c2d0aa431d",
+    "classification_sha256": "88f1e87a5e75d7331e4305f4b6c4e026490d6806f9e95a7be27080dc21f4703e",
     "domain_budget_routes": 626,
     "domain_route_budget": 629,
     "full_ownership_surface": 634,
@@ -30,5 +30,5 @@
     "ownership_inventory_sha256": "0ec6dfd4c1c8ac397713495dd13eab22b7e2c506c20c4dc06f35821be10560b2",
     "raw_routes": 630
   },
-  "statement_sha256": "9246ccd4bda1dd04381e619bc739561107cda71b77794b139aa158aeabe89964"
+  "statement_sha256": "0efba671acde8e9a1430b499e90a345d7e7381bba5dab0ade28982db759cf8ef"
 }
