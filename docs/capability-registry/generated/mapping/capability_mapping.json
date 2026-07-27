@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4709,
+    "files_scanned": 4711,
     "files_by_kind": {
       "backend": 1183,
       "database": 266,
       "governance": 55,
       "mobile": 51,
-      "other": 1204,
+      "other": 1206,
       "tests": 1504,
       "web": 446
     },
     "unmapped_artifacts": 1936,
-    "ambiguous_artifacts": 388
+    "ambiguous_artifacts": 389
   },
   "capabilities": [
     {
@@ -30759,6 +30759,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "runtime-verification/service_identity_map.json",
+          "score": 28,
+          "signals": [
+            "content:ET0",
+            "content:et0",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -30941,7 +30950,7 @@
         "mobile": 0,
         "tests": 57,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 22
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -32707,6 +32716,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "runtime-verification/service_identity_map.json",
+          "score": 28,
+          "signals": [
+            "content:GDD",
+            "content:gdd",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -32873,7 +32891,7 @@
         "mobile": 0,
         "tests": 38,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 20
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -44709,6 +44727,30 @@
           "signals": [
             "content:GDD",
             "content:gdd"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "runtime-verification/service_identity_map.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 28,
+          "signals": [
+            "content:GDD",
+            "content:gdd",
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 28,
+          "signals": [
+            "content:ET0",
+            "content:et0",
+            "explicit_id"
           ]
         }
       ]
