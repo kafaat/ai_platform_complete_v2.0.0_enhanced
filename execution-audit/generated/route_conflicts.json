@@ -1,6 +1,6 @@
 {
   "analysis_kind": "static_repository_evidence",
-  "cross_scope_candidate_count": 18,
+  "cross_scope_candidate_count": 19,
   "cross_scope_candidates": [
     {
       "classification": "review_only_distinct_module_or_router",
@@ -884,6 +884,29 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "GET",
+      "path": "/runtime-identity",
+      "registrations": [
+        {
+          "function": "runtime_evidence_identity",
+          "line": 198,
+          "method": "GET",
+          "module": "services/soil-service/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        },
+        {
+          "function": "runtime_evidence_identity",
+          "line": 55,
+          "method": "GET",
+          "module": "services/weather-service/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
       "path": "/stac",
       "registrations": [
         {
@@ -1132,8 +1155,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1085,
-  "route_inventory_sha256": "3bfeecc87e0b0f93abb1c7201fcb5722c5ceb5fa7e48ff4bf1f0252f17c1b301",
+  "route_count": 1087,
+  "route_inventory_sha256": "24638a371b70af9cc807f6a0539e3b007685944d4ffcfee1aef19f10f57fcbc8",
   "runtime_verified": false,
   "schema_version": 1
 }
