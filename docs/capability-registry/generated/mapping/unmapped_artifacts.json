@@ -3864,10 +3864,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/routers/prescriptions.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/routers/propagation.py",
     "kind": "backend"
   },

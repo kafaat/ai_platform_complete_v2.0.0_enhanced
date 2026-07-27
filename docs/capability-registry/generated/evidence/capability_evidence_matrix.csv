@@ -24,7 +24,7 @@ GIS-004,Spatial analytics,gis,3,2,declared_above_evidence,5,True,True,True,True,
 INT-001,Public API and SDK,farm_management,3,1,declared_above_evidence,2,True,False,True,False,False,False,False,False,False,False,False,False
 INT-002,Event bus integration,farm_management,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
 INT-003,IoT and sensors,irrigation,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
-INT-004,External machinery integrations,precision,1,1,aligned,1,True,False,False,False,False,False,False,False,False,False,False,False
+INT-004,External machinery integrations,precision,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
 IRR-001,Water source registry,irrigation,3,1,declared_above_evidence,3,True,False,False,True,False,False,False,True,False,False,False,False
 IRR-002,Water quality samples,irrigation,3,1,declared_above_evidence,5,True,True,True,True,True,False,False,False,False,False,False,False
 IRR-003,Field water-source binding,irrigation,0,1,evidence_above_declared,4,True,True,False,True,False,False,False,True,False,False,False,False

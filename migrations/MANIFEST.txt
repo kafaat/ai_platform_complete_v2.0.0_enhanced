@@ -732,6 +732,11 @@ v214_field_irrigation_source_assignments.sql
 #   tenant_isolation، مغلّفان بمُشغّلات نطاق (الموسم/التغطية داخل هندسة الحقل) ومنع تحوير.
 #   يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
 v215_yield_map_ingestion.sql
+# v216 (INT-004، شريحة المحوِّل): مصدر سجل ملفّات تعريف وحدات التحكّم (machine_control_profiles،
+#   قابل للتعديل، معزول لكلّ مستأجر، FORCE-RLS) + سجلّ append-only غير قابل للتحوير لحزم ISOXML
+#   القابلة للرفع إلى الآلة (machinery_export_artifacts: لقطة ملف تعريف غير قابلة للتغيير +
+#   بايتات الحزمة + checksum). لا نقل فيزيائي/تسليم جهاز. يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
+v216_machinery_export.sql
 # v206 (حزمة 72 ساعة، DB-P0-06/07): تشديد tenant_isolation — كتابة fail-closed بلا
 # app.current_tenant + تأكيد catalog دائم (ENABLE+FORCE+WITH CHECK). يجب أن يبقى آخر مدخل.
 v206_rls_final_hardening.sql

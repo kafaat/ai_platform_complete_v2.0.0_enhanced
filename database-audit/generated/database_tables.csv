@@ -194,6 +194,8 @@ lab_samples,v156_durable_soil_lab_workflow.sql,161,True,True,True,0,False,False,
 learning_drift_reports,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
 lifecycle_temporal_rejections,v9_lifecycle_occurred_at.sql,13,True,True,True,1,False,False,0,1
 lineage_link,v82_lineage_link.sql,87,True,True,True,1,True,False,1,1
+machine_control_profiles,v216_machinery_export.sql,220,True,True,True,1,True,False,1,0
+machinery_export_artifacts,v216_machinery_export.sql,220,True,True,True,1,True,False,1,1
 management_zone_sets,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
 management_zones,v14_imagery_storage.sql,17,True,True,False,1,False,True,0,0
 market_sales_listings,v9_market.sql,5,True,False,False,0,False,True,1,1

@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d0d1f944c5b16e3626da75cdb4af42e3faab322d4380d6f39692dbff59553d2"
+          "content": "ab5a37ba3e932c58616ce9c2f9a722bd53172f2bdc22416cc2a3e2148c04d717"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6575,7 +6575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "405a9fc0a133a70e03929043c799400e63e90cb5f33603d7c155c6d4b2943cbe"
+          "content": "21dd0bcfe566626404a2cfc9a28e65e9eda071062a2da849212b236f2bd476fc"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7879,6 +7879,16 @@
         }
       ],
       "name": "migrations/v215_yield_map_ingestion.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb03914407360e3686dcd7bc8033d5b7e01023baed9996e9e69c3471ce4508c3"
+        }
+      ],
+      "name": "migrations/v216_machinery_export.sql",
       "type": "file"
     },
     {
@@ -16195,6 +16205,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ff2f264567185eb570ee518f2e45e25c1a054dfaae0d1b24b03a461ccc3010a9"
+        }
+      ],
+      "name": "services/sahool-platform/api/machinery_export.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e4dc5b7c72deecac898fb4e9895cdde32f5beb56022d81ef66ae0348fb31e428"
         }
       ],
@@ -17775,7 +17795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d96ffce9163efd76b1546206e77eabf8d73f60d88bfc74b065bc23093b211127"
+          "content": "f2fbb5f0e30e6c705ce67a0d9c6f09dea0c0617e0092131a6d0ba7a1cb306fd8"
         }
       ],
       "name": "services/sahool-platform/api/routers/prescriptions.py",
@@ -24785,6 +24805,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e9413d8462b5c52df799181541dd9a642814be6cf8d2f5fe20f31b0293bc759b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_machinery_export.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4f3abe3cf747758abeff90f4553583c3f492251eeb7949333a2ef26cac88f814"
         }
       ],
@@ -25915,7 +25945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b61645c50ac26ab3cb9e00cd71f27878b02f8297c0f8ebc6b597ccda79fff0b"
+          "content": "457c6ca97c970e0bf66a2f36931dbad6e3d51f1a1c8db0188c9ac3e487b2bcdf"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",

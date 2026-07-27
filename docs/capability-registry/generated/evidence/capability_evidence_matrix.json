@@ -1135,38 +1135,43 @@
       ]
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
-        "documentation_only"
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
       ],
       "automatic_registry_update": false,
       "capability_id": "INT-004",
       "decision_linked": false,
-      "declared_maturity": 1,
+      "declared_maturity": 3,
       "domain": "precision",
       "evidence": {
-        "api": false,
-        "backend": false,
-        "database": false,
+        "api": true,
+        "backend": true,
+        "database": true,
         "documentation": true,
-        "events": false,
+        "events": true,
         "integration_tests": false,
         "mobile": false,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
-      "evidence_score": 1,
+      "evidence_score": 6,
       "integration_test_paths": [],
       "learning_linked": false,
-      "maturity_alignment": "aligned",
-      "maturity_delta": 0,
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
       "production_certified": false,
       "runtime_verified": false,
       "title": "External machinery integrations",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "services/sahool-platform/tests/test_machinery_export.py"
+      ]
     },
     {
       "assessed_maturity": 1,
@@ -3763,10 +3768,10 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 26,
-    "average_assessed_maturity": 1.98,
+    "aligned": 25,
+    "average_assessed_maturity": 1.99,
     "capability_count": 81,
-    "declared_above_evidence": 52,
+    "declared_above_evidence": 53,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "runtime_verified": 0

@@ -47,7 +47,8 @@ def load_yaml(path: Path) -> Any:
 # *declares* an on-disk file is genuinely covered even when the content-scanning
 # mapper heuristic did not attribute the file to it; crediting the declared
 # path is truthful (its existence is separately enforced by the traceability
-# gate). Pure scaffolds that declare nothing (e.g. INT-004) stay unmapped.
+# gate). Pure scaffolds that declare no specific-dimension evidence (only a
+# catch-all other_evidence bucket, e.g. the synthetic ZZ-999 test) stay unmapped.
 _REGISTRY_DIMENSION = {
     "services": "backend",
     "apis": "routes",
@@ -209,8 +210,10 @@ def generate_payload(reg, mapping, evidence, parity, investment):
         # ``mapped`` is decided by SPECIFIC, high-signal dimensions only. ``governance`` and
         # ``other_evidence`` are catch-all buckets that the token scanner fills from bare
         # capability-ID mentions (self-reference / narrative), so they are reported but never
-        # promote a capability on their own — a genuine scaffold (INT-004: no service/route/
-        # db/event/web/mobile/test) stays unmapped rather than being lifted by a stray mention.
+        # promote a capability on their own — a genuine scaffold (no service/route/db/event/
+        # web/mobile/test evidence) stays unmapped rather than being lifted by a stray mention.
+        # The raw capability_mapping_engine enforces the identical specific-dimension rule, so
+        # its ``mapped`` is a subset lower bound of this authoritative matrix.
         specific = ("backend", "routes", "database", "events", "web", "mobile", "tests")
         coverage_dimension_count = sum(dimensions[k] for k in specific)
         mapped = coverage_dimension_count > 0

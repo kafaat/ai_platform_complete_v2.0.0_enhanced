@@ -327,20 +327,38 @@ capabilities:
     en: External machinery integrations
     ar: ''
   domain: precision
-  owner: UNASSIGNED
+  owner: sahool-platform
   lifecycle: active
-  maturity: 1
-  evidence_level: 1
-  status: documentation_or_scaffold
-  confidence: low
+  maturity: 3
+  evidence_level: 3
+  status: machine_upload_artifact_persisted_delivery_unverified
+  confidence: high
   production_certified: false
+  # Honest closure semantics (per session decision): this closes only the ISOXML
+  # artifact adapter sub-item (INT-004A). Transport/consumption stays OPEN.
+  scope:
+    closed_sub_item: INT-004A
+    adapter_implemented: true
+    artifact_generation_verified: true
+    machine_upload_package_verified: true
+    device_delivery_verified: false
+    machine_consumption_verified: false
+    physical_execution_verified: false
+    runtime_verified: false
+    production_certified: false
+    open_sub_items:
+    - INT-004B device transport (CAN/ISOBUS upload to a controller) — not implemented
+    - INT-004C machine-consumption / execution confirmation — not implemented
   dependencies:
   - PA-005
-  services: []
-  apis: []
+  services:
+  - services/sahool-platform/api/machinery_export.py
+  apis:
+  - GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:337
   ui_consumers: []
   mobile_consumers: []
-  tests: []
+  tests:
+  - services/sahool-platform/tests/test_machinery_export.py
   runtime:
     metrics: []
     traces: []
@@ -348,9 +366,31 @@ capabilities:
     audit_events: []
   evidence:
   - type: repository
+    path: services/sahool-platform/api/machinery_export.py
+  - type: repository
+    path: services/sahool-platform/api/routers/prescriptions.py
+  - type: repository
     path: services/sahool-platform/core/isoxml_vrt.py
-  rationale: 'Capability linkage generated conservatively from repository inventories: services=0, apis=0, tests=0, ui=0,
-    mobile=0. Runtime and production certification remain manual evidence gates.'
+  - type: repository
+    path: services/sahool-platform/tests/test_machinery_export.py
+  - type: migration
+    path: migrations/v216_machinery_export.sql
+  rationale: 'Platform-side machinery-integration adapter (INT-004A). The canonical path GET .../export
+    ?format=isoxml&machine_profile_id=… (EQUIPMENT_MANAGE) resolves a controller profile from the persisted
+    machine_control_profiles system of record (v216, tenant-scoped FORCE-RLS), validates the saved VRT
+    prescription via the fail-closed ISOXMLTask contract, generates ISO11783 TaskData, packages it
+    deterministically into a machine-uploadable ISOXML ZIP, and persists an append-only, immutable artifact
+    (machinery_export_artifacts) carrying a SHA-256 checksum, package bytes, and an IMMUTABLE snapshot of the
+    resolved profile (a later profile edit cannot change an existing export). Persistence is idempotent
+    (dedup on the deterministic checksum), so the GET stays safe; the same route with &artifact_id=… downloads
+    a persisted package + checksum header. To honor the platform route Ratchet (p2_6 no-route-growth ceiling),
+    the slice is folded into the existing export route rather than adding new endpoints. Missing/inactive/
+    tenant-mismatched/incompatible profiles fail closed; the inline query-param profile is a PLATFORM_MANAGE-
+    gated dev path only. Migration + RLS/immutability/fail-closed + end-to-end persist/download roundtrip are
+    live-proven on PG16. Honest boundary: this produces and persists the machine-uploadable artifact at the
+    platform edge only. It does NOT connect to a controller, transmit over CAN/ISOBUS, or claim a machine
+    consumed/executed the task — device delivery (INT-004B) and machine consumption (INT-004C) remain OPEN and
+    unverified. maturity/evidence stay at 3 and production_certified false accordingly.'
   business_goal: To be completed by the domain owner; repository evidence remains authoritative.
   priority: unassessed
   business_value: unassessed

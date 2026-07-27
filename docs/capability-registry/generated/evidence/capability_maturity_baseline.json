@@ -430,15 +430,18 @@
       "title": "IoT and sensors"
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
-        "documentation_only"
+        "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
+        "runtime_not_verified_caps_maturity_at_3",
+        "production_not_certified_caps_maturity_below_5"
       ],
       "capability_id": "INT-004",
-      "declared_maturity": 1,
+      "declared_maturity": 3,
       "domain": "precision",
-      "maturity_alignment": "aligned",
-      "maturity_delta": 0,
+      "maturity_alignment": "declared_above_evidence",
+      "maturity_delta": -1,
       "production_certified": false,
       "runtime_verified": false,
       "title": "External machinery integrations"
@@ -1375,10 +1378,10 @@
   "policy": "evidence-derived-fail-closed",
   "schema_version": "1.0",
   "summary": {
-    "aligned": 26,
-    "average_assessed_maturity": 1.98,
+    "aligned": 25,
+    "average_assessed_maturity": 1.99,
     "capability_count": 81,
-    "declared_above_evidence": 52,
+    "declared_above_evidence": 53,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "runtime_verified": 0
