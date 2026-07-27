@@ -57,3 +57,26 @@ def test_runtime_verification_spec_change_is_substantive():
         "release/FILE_CHECKSUMS.sha256",
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_brain_maintenance_is_docs_not_report_only():
+    # The mandated end-of-session brain update — even the brain's own gaps/registry.md
+    # (whose name matches the REGISTRY hint) plus the regenerated release manifest — is
+    # documentation, not a certification report, and must NOT be blocked.
+    result = _run(
+        "sahool-brain/log.md",
+        "sahool-brain/gaps/registry.md",
+        "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_capabilities_registry_report_still_blocked():
+    # The exemption is scoped to sahool-brain/: the capabilities/ certification registry
+    # and generated mapping reports remain report-like and blocked without substantive code.
+    result = _run(
+        "capabilities/registry/capabilities.json",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode != 0
+    assert "report-only" in result.stderr
