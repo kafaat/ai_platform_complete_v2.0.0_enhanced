@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -88,14 +89,25 @@ def test_header_env_refs_expand_and_never_smuggle_a_value(monkeypatch):
     assert m._resolve_headers(probe)["X-Agent-Token"] == ""
 
 
+def test_bearer_scheme_header_expands_env_ref(monkeypatch):
+    # A JWT-gated endpoint uses "Bearer ${ENV}": only the token is drawn from the
+    # environment; the scheme prefix stays literal.
+    m = _runner()
+    probe = {"headers": {"Authorization": "Bearer ${SAHOOL_PLATFORM_PROBE_JWT}"}}
+    monkeypatch.setenv("SAHOOL_PLATFORM_PROBE_JWT", "jwt.abc.def")
+    assert m._resolve_headers(probe)["Authorization"] == "Bearer jwt.abc.def"
+
+
 def test_committed_plans_embed_no_literal_secrets():
-    # Any header that names a credential must be an ${ENV} reference, never a literal —
-    # so a plan can target a token-gated endpoint without committing the token.
+    # Any header that names a credential must draw its value from an ${ENV} reference,
+    # never a committed literal — so a plan can target a token-gated endpoint (a bare
+    # "${TOKEN}" or a "Bearer ${JWT}" scheme prefix) without embedding the secret itself.
+    env_ref = re.compile(r"\$\{[A-Z0-9_]+\}")
     for path in sorted(PLAN_DIR.glob("*.json")):
         plan = json.loads(path.read_text())
         for probe in plan["probes"]:
             for name, value in (probe.get("headers") or {}).items():
                 if any(k in name.lower() for k in ("token", "secret", "authorization", "api-key")):
-                    assert value.startswith("${") and value.endswith("}"), (
+                    assert env_ref.search(value), (
                         f"{probe['probe_id']}:{name} must reference an env var, not a literal"
                     )

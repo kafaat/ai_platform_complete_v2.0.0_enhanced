@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4712,
+    "files_scanned": 4713,
     "files_by_kind": {
       "backend": 1183,
       "database": 266,
       "governance": 55,
       "mobile": 51,
-      "other": 1207,
+      "other": 1208,
       "tests": 1504,
       "web": 446
     },
     "unmapped_artifacts": 1936,
-    "ambiguous_artifacts": 389
+    "ambiguous_artifacts": 388
   },
   "capabilities": [
     {
@@ -12334,6 +12334,10 @@
         {
           "value": "irrigation_source_binding.py @ services/sahool-platform/tests/test_h5_salinity_ecw_binding.py:27",
           "score": 14
+        },
+        {
+          "value": "components.soil_salinity.class @ runtime-verification/functional_probes/sahool-platform.json:27",
+          "score": 9
         }
       ],
       "web": [
@@ -12416,6 +12420,17 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "runtime-verification/service_identity_map.json",
+          "score": 33,
+          "signals": [
+            "content:Water suitability multi-hazard",
+            "content:salinity",
+            "content:sodicity",
+            "content:water suitability",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/capabilities/SALINITY_CAPABILITY.md",
           "score": 14,
           "signals": [
@@ -12440,6 +12455,14 @@
           ]
         },
         {
+          "path": "runtime-verification/functional_probes/sahool-platform.json",
+          "score": 9,
+          "signals": [
+            "content:salinity",
+            "content:water suitability"
+          ]
+        },
+        {
           "path": "shared/contracts/soil/p2.py",
           "score": 9,
           "signals": [
@@ -12456,12 +12479,12 @@
         "backend": 7,
         "routes": 1,
         "database": 0,
-        "events": 4,
+        "events": 5,
         "web": 1,
         "mobile": 0,
         "tests": 8,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 6
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -26744,15 +26767,6 @@
           ]
         },
         {
-          "path": "runtime-verification/service_identity_map.json",
-          "score": 26,
-          "signals": [
-            "content:Soil profile",
-            "content:soil profile",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "shared/contracts/soil/soil_profile_snapshot.v1.schema.json",
           "score": 22,
           "signals": [
@@ -26848,7 +26862,7 @@
         "mobile": 0,
         "tests": 11,
         "governance": 1,
-        "other_evidence": 13
+        "other_evidence": 12
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -30768,15 +30782,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "runtime-verification/service_identity_map.json",
-          "score": 28,
-          "signals": [
-            "content:ET0",
-            "content:et0",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -30959,7 +30964,7 @@
         "mobile": 0,
         "tests": 57,
         "governance": 0,
-        "other_evidence": 22
+        "other_evidence": 21
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -32725,15 +32730,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "runtime-verification/service_identity_map.json",
-          "score": 28,
-          "signals": [
-            "content:GDD",
-            "content:gdd",
-            "explicit_id"
-          ]
-        },
-        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -32900,7 +32896,7 @@
         "mobile": 0,
         "tests": 38,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 19
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -44736,39 +44732,6 @@
           "signals": [
             "content:GDD",
             "content:gdd"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "runtime-verification/service_identity_map.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 28,
-          "signals": [
-            "content:GDD",
-            "content:gdd",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 28,
-          "signals": [
-            "content:ET0",
-            "content:et0",
-            "explicit_id"
-          ]
-        },
-        {
-          "capability_id": "SOIL-001",
-          "score": 26,
-          "signals": [
-            "content:Soil profile",
-            "content:soil profile",
-            "explicit_id"
           ]
         }
       ]

@@ -15,6 +15,13 @@
       "owner": "target-soil-system-of-record",
       "cardinality": "one-to-one",
       "functional_plan": "soil-service"
+    },
+    {
+      "ledger_service": "sahool-platform",
+      "capability_service_path": "services/sahool-platform/api/main.py",
+      "owner": "target-platform-system-of-record",
+      "cardinality": "one-to-one",
+      "functional_plan": "sahool-platform"
     }
   ],
   "capability_functional_coverage": [
@@ -35,6 +42,18 @@
       "title": "Soil profile (USDA texture classification)",
       "ledger_service": "soil-service",
       "requires_probes": ["soil-texture-loam", "soil-texture-sand"]
+    },
+    {
+      "capability": "IRR-009",
+      "title": "Water suitability multi-hazard (FAO-56 salinity/sodicity)",
+      "ledger_service": "sahool-platform",
+      "requires_probes": ["water-suitability-multihazard"]
+    },
+    {
+      "capability": "IRR-010",
+      "title": "Leaching and drainage safety (FAO-56 leaching requirement)",
+      "ledger_service": "sahool-platform",
+      "requires_probes": ["leaching-requirement-fao56"]
     }
   ],
   "evidence_policy": {
