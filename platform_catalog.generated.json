@@ -12016,6 +12016,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "sahool-platform.runtime-identity",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "sahool-platform.runtime.authority-envelope",
       "consumers": [
         "frontend"
@@ -14213,6 +14230,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "soil-service.runtime-identity",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "soil-service",
+      "producer": "soil-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "soil-service.soil.action-policies",
       "consumers": [
         "frontend"
@@ -15060,6 +15094,23 @@
       "kind": "mixed",
       "owner": "video-processor",
       "producer": "video-processor",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "weather-service.runtime-identity",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "weather-service",
+      "producer": "weather-service",
       "required_context": []
     },
     {
@@ -17021,7 +17072,7 @@
           "sahool-soil-service"
         ],
         "healthcheck": "CMD python -c import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).read()",
-        "mount_status": "delegated_routes",
+        "mount_status": "direct_routes",
         "published_ports": []
       },
       "sources": {
@@ -17378,20 +17429,20 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 849,
+    "capabilities": 852,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
     "capabilities_idempotent": 46,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 457,
     "components": 34,
-    "cross_service_duplicate_method_paths": 14,
-    "duplicate_groups_classified": 14,
+    "cross_service_duplicate_method_paths": 15,
+    "duplicate_groups_classified": 15,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1101,
+    "route_rows": 1104,
     "ui_waivers": 51,
-    "unique_method_path": 989
+    "unique_method_path": 990
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17639,6 +17690,21 @@
       "path": "/recommend"
     },
     {
+      "canonical_owner": null,
+      "classification": "standard_observability",
+      "classified": true,
+      "components": [
+        "sahool-platform",
+        "soil-service",
+        "weather-service"
+      ],
+      "decision": "عقد هويّة بناء/صورة محلّيّ بالخدمة (git_sha/build_id/image_digest من ملفّ صورة للقراءة فقط) — سطح provenance تشغيليّ لربط أدلّة التحقّق بالصورة المنشورة؛ لكلّ خدمة نسختها، ومستثنى من ميزانية مسارات النطاق عبر allowlist صريحة.",
+      "expires_on": null,
+      "facade": null,
+      "method": "GET",
+      "path": "/runtime-identity"
+    },
+    {
       "canonical_owner": "raster-service",
       "classification": "legacy_bff_facade",
       "classified": true,
@@ -17667,7 +17733,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "fd139c0b1ab1802a3a7c1b6ce4b543acddb154fa3df5c68952aa54a4fe520637",
+  "fingerprint": "2fdccc6614355ae78475b49892815f9c7fc94d50e27a749ef13d0083199f8a59",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

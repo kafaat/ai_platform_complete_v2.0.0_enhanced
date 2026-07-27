@@ -33,7 +33,7 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
 PINNED_BACKEND_COMPONENTS = 32
-PINNED_UNIQUE_METHOD_PATH = 989  # +3: PA-003 yield-map ingestion + records routes
+PINNED_UNIQUE_METHOD_PATH = 990  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity)
 
 
 def _catalog() -> dict:
@@ -125,7 +125,7 @@ def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
     الواجهات القديمة تسمّي مالكاً قانونيّاً وواجهةً مختلفَين وكلاهما عضو المجموعة."""
     cat = _catalog()
     groups = cat["cross_service_duplicate_method_paths"]
-    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 14
+    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 15
     for g in groups:
         assert g["classified"] is True, g
         assert g["classification"], g
