@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1804,
-    "route_handlers": 1040,
-    "call_edges": 70405,
+    "python_files_parsed": 1805,
+    "route_handlers": 1041,
+    "call_edges": 70450,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 57,
     "route_owners": 26,
@@ -5991,7 +5991,15 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
-      "line": 21,
+      "line": 24,
+      "handler": "runtime_evidence_identity",
+      "method": "GET",
+      "path": "/runtime-identity"
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "line": 31,
       "handler": "healthz",
       "method": "GET",
       "path": "/healthz"
@@ -5999,7 +6007,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
-      "line": 28,
+      "line": 38,
       "handler": "metrics",
       "method": "GET",
       "path": "/metrics"
@@ -6007,7 +6015,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
-      "line": 49,
+      "line": 59,
       "handler": "readyz",
       "method": "GET",
       "path": "/readyz"
@@ -258055,114 +258063,128 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "runtime_evidence_identity",
+      "target": "get",
+      "line": 23
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "runtime_evidence_identity",
+      "target": "load_build_identity",
+      "line": 27
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
       "source": "healthz",
       "target": "get",
-      "line": 20
+      "line": 30
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
       "source": "healthz",
       "target": "handle_healthz",
-      "line": 23
+      "line": 33
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
       "source": "healthz",
       "target": "JSONResponse",
-      "line": 24
+      "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
       "source": "metrics",
       "target": "get",
-      "line": 27
+      "line": 37
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
       "source": "metrics",
       "target": "join",
-      "line": 31
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/platform_health.py",
-      "source": "metrics",
-      "target": "len",
       "line": 41
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
       "source": "metrics",
-      "target": "PlainTextResponse",
-      "line": 45
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/platform_health.py",
-      "source": "readyz",
-      "target": "get",
-      "line": 48
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/platform_health.py",
-      "source": "readyz",
-      "target": "handle_readyz",
+      "target": "len",
       "line": 51
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
-      "source": "readyz",
-      "target": "JSONResponse",
-      "line": 53
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/platform_health.py",
-      "source": "readyz",
-      "target": "db_probe_ok",
-      "line": 54
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/platform_health.py",
-      "source": "readyz",
-      "target": "dict",
+      "source": "metrics",
+      "target": "PlainTextResponse",
       "line": 55
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
       "source": "readyz",
-      "target": "update",
-      "line": 56
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/platform_health.py",
-      "source": "readyz",
-      "target": "warning",
-      "line": 57
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/platform_health.py",
-      "source": "readyz",
-      "target": "JSONResponse",
+      "target": "get",
       "line": 58
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/platform_health.py",
       "source": "readyz",
+      "target": "handle_readyz",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "readyz",
       "target": "JSONResponse",
-      "line": 59
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "readyz",
+      "target": "db_probe_ok",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "readyz",
+      "target": "dict",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "readyz",
+      "target": "update",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "readyz",
+      "target": "warning",
+      "line": 67
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "readyz",
+      "target": "JSONResponse",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/platform_health.py",
+      "source": "readyz",
+      "target": "JSONResponse",
+      "line": 69
     },
     {
       "owner": "sahool-platform",
@@ -390665,20 +390687,6 @@
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "isinstance",
-      "line": 14
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "_decorator_route",
-      "target": "isinstance",
-      "line": 18
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "_decorator_route",
-      "target": "upper",
       "line": 19
     },
     {
@@ -390686,14 +390694,14 @@
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "isinstance",
-      "line": 20
+      "line": 23
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "upper",
-      "line": 21
+      "line": 24
     },
     {
       "owner": "sahool-platform",
@@ -390706,232 +390714,316 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
-      "target": "isinstance",
-      "line": 25
+      "target": "upper",
+      "line": 26
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "isinstance",
-      "line": 31
+      "line": 30
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "isinstance",
-      "line": 32
+      "line": 30
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "isinstance",
-      "line": 39
+      "line": 36
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "isinstance",
-      "line": 41
+      "line": 37
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "isinstance",
-      "line": 41
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "_decorator_route",
+      "target": "isinstance",
+      "line": 46
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "_decorator_route",
+      "target": "isinstance",
+      "line": 46
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "append",
-      "line": 42
+      "line": 47
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "upper",
-      "line": 42
+      "line": 47
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "join",
-      "line": 43
+      "line": 48
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_decorator_route",
       "target": "sorted",
-      "line": 43
+      "line": 48
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_current_platform_routes",
       "target": "rglob",
-      "line": 49
+      "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_current_platform_routes",
       "target": "sorted",
-      "line": 49
+      "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_current_platform_routes",
       "target": "parse",
-      "line": 50
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "_current_platform_routes",
-      "target": "read_text",
-      "line": 50
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "_current_platform_routes",
-      "target": "as_posix",
-      "line": 51
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "_current_platform_routes",
-      "target": "relative_to",
-      "line": 51
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "_current_platform_routes",
-      "target": "walk",
-      "line": 52
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "_current_platform_routes",
-      "target": "isinstance",
-      "line": 53
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "_current_platform_routes",
-      "target": "_decorator_route",
       "line": 55
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_current_platform_routes",
-      "target": "append",
+      "target": "read_text",
+      "line": 55
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "_current_platform_routes",
+      "target": "as_posix",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "_current_platform_routes",
+      "target": "relative_to",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "_current_platform_routes",
+      "target": "walk",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "_current_platform_routes",
+      "target": "isinstance",
       "line": 58
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "_current_platform_routes",
+      "target": "_decorator_route",
+      "line": 60
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "_current_platform_routes",
+      "target": "append",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "_current_platform_routes",
       "target": "sorted",
-      "line": 59
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "test_every_platform_route_has_explicit_target_owner",
-      "target": "loads",
-      "line": 63
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "test_every_platform_route_has_explicit_target_owner",
-      "target": "read_text",
-      "line": 63
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
-      "source": "test_every_platform_route_has_explicit_target_owner",
-      "target": "get",
       "line": 64
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_every_platform_route_has_explicit_target_owner",
+      "target": "loads",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_every_platform_route_has_explicit_target_owner",
+      "target": "read_text",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_every_platform_route_has_explicit_target_owner",
+      "target": "get",
+      "line": 69
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_every_platform_route_has_explicit_target_owner",
       "target": "_current_platform_routes",
-      "line": 65
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_every_platform_route_has_explicit_target_owner",
       "target": "set",
-      "line": 65
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_every_platform_route_has_explicit_target_owner",
       "target": "sorted",
-      "line": 66
+      "line": 71
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_every_platform_route_has_explicit_target_owner",
       "target": "repr",
-      "line": 69
+      "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_platform_route_budget_does_not_grow",
       "target": "loads",
-      "line": 74
+      "line": 79
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_platform_route_budget_does_not_grow",
       "target": "read_text",
-      "line": 74
+      "line": 79
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_platform_route_budget_does_not_grow",
       "target": "_current_platform_routes",
-      "line": 75
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "split",
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "split",
+      "line": 86
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "is_infrastructure_route",
+      "line": 87
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "append",
+      "line": 88
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_platform_route_budget_does_not_grow",
       "target": "len",
-      "line": 75
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "len",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "len",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "len",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "any",
+      "line": 91
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
       "source": "test_platform_route_budget_does_not_grow",
       "target": "int",
-      "line": 76
+      "line": 92
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "len",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "source": "test_platform_route_budget_does_not_grow",
+      "target": "len",
+      "line": 94
     },
     {
       "owner": "sahool-platform",
@@ -393526,86 +393618,317 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
+      "source": "_inventory",
+      "target": "collect_platform_routes",
+      "line": 27
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "_inventory",
+      "target": "assert_infrastructure_allowlist_is_used",
+      "line": 28
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "_inventory",
+      "target": "partition_routes",
+      "line": 29
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
       "target": "loads",
-      "line": 11
+      "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
       "target": "read_text",
-      "line": 11
+      "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
-      "target": "sum",
-      "line": 13
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "_inventory",
+      "line": 37
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
-      "target": "findall",
-      "line": 14
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
       "target": "len",
-      "line": 14
+      "line": 40
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 42
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 46
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 47
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "len",
+      "line": 48
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "any",
+      "line": 51
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion",
+      "target": "any",
+      "line": 52
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_canonical_infrastructure_allowlist_matches_documented_policy",
+      "target": "loads",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_canonical_infrastructure_allowlist_matches_documented_policy",
       "target": "read_text",
-      "line": 14
+      "line": 56
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
-      "target": "rglob",
-      "line": 15
+      "source": "test_canonical_infrastructure_allowlist_matches_documented_policy",
+      "target": "set",
+      "line": 61
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
-      "target": "relative_to",
-      "line": 16
+      "source": "test_only_exact_runtime_identity_get_is_infrastructure",
+      "target": "is_infrastructure_route",
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
-      "target": "startswith",
-      "line": 16
+      "source": "test_similarly_named_routes_remain_in_domain_partition",
+      "target": "RouteDeclaration",
+      "line": 75
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
-      "source": "test_platform_route_budget_reduced_after_extractions",
-      "target": "str",
-      "line": 16
+      "source": "test_similarly_named_routes_remain_in_domain_partition",
+      "target": "RouteDeclaration",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_similarly_named_routes_remain_in_domain_partition",
+      "target": "RouteDeclaration",
+      "line": 77
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_similarly_named_routes_remain_in_domain_partition",
+      "target": "RouteDeclaration",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_similarly_named_routes_remain_in_domain_partition",
+      "target": "partition_routes",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_route_path_normalization_is_conservative",
+      "target": "normalize_route_path",
+      "line": 86
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_route_path_normalization_is_conservative",
+      "target": "normalize_route_path",
+      "line": 87
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_route_path_normalization_is_conservative",
+      "target": "normalize_route_path",
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_route_path_normalization_is_conservative",
+      "target": "normalize_route_path",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_route_path_normalization_is_conservative",
+      "target": "normalize_route_path",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_non_literal_route_path_fails_closed",
+      "target": "write_text",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_non_literal_route_path_fails_closed",
+      "target": "raises",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_non_literal_route_path_fails_closed",
+      "target": "extract_routes",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_route_declaration_retains_source_and_line",
+      "target": "write_text",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_route_declaration_retains_source_and_line",
+      "target": "extract_routes",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_route_declaration_retains_source_and_line",
+      "target": "endswith",
+      "line": 110
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_unused_infrastructure_allowlist_entries_fail",
+      "target": "_inventory",
+      "line": 114
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_unused_infrastructure_allowlist_entries_fail",
+      "target": "assert_infrastructure_allowlist_is_used",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_unused_allowlist_guard_rejects_incomplete_inventory",
+      "target": "raises",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_unused_allowlist_guard_rejects_incomplete_inventory",
+      "target": "assert_infrastructure_allowlist_is_used",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "source": "test_unused_allowlist_guard_rejects_incomplete_inventory",
+      "target": "RouteDeclaration",
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
       "source": "test_route_growth_requires_ownership_map_update",
       "target": "loads",
-      "line": 26
+      "line": 128
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
       "source": "test_route_growth_requires_ownership_map_update",
       "target": "read_text",
-      "line": 26
+      "line": 128
     },
     {
       "owner": "sahool-platform",
@@ -508657,7 +508980,7 @@
         {
           "file": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
           "symbol": "_decorator_route",
-          "line": 13,
+          "line": 18,
           "owner": "sahool-platform"
         },
         {

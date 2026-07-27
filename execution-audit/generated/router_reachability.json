@@ -1606,7 +1606,7 @@
       "line": 17,
       "module": "services.sahool-platform.api.routers.platform_health",
       "node_id": "services.sahool-platform.api.routers.platform_health:router",
-      "route_count": 3,
+      "route_count": 4,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "ca6b054b588feebae69ca7532196f600682fd5f0fd0d90a0062a3a11011b0620",
+  "inventory_sha256": "cd4eac3f4805124f34c65676a5ca03e03b97ff5414314fab7188b70338585524",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -4125,7 +4125,7 @@
       "line": 17,
       "module": "services.sahool-platform.api.routers.platform_health",
       "node_id": "services.sahool-platform.api.routers.platform_health:router",
-      "route_count": 3,
+      "route_count": 4,
       "safe_to_delete": false,
       "symbol": "router"
     },

@@ -6,6 +6,17 @@ Generated from `services/sahool-platform/api/**/*.py`. This is a CI-owned baseli
 - Rule: new platform routes must be added here with an explicit target owner, or the ownership guard fails.
 - Rule: platform route count must not grow above the baseline unless a deliberate budget update is reviewed.
 
+
+## Infrastructure/provenance routes
+
+Infrastructure routes remain in the raw platform inventory and ownership map, but exact normalized method/path matches do not consume the domain-route budget. The canonical allowlist is defined in `shared/governance/platform_route_budget.py`; substring and prefix matching are prohibited.
+
+| File | Method | Path | Function | Target owner | Type |
+|---|---|---|---|---|---|
+| `api/main.py` | `GET` | `/runtime-identity` | `runtime_evidence_identity` | `sahool-platform` | `infrastructure-provenance` |
+
+The following remain domain-budget routes and are not covered by the exception: `GET /fields/runtime-identity`, `GET /runtime-identity/export`, and `POST /runtime-identity`.
+
 ## Owner summary
 
 | Target owner | Routes | Type |

@@ -256,6 +256,7 @@
         "services/sahool-platform/api/routers/observations.py",
         "services/sahool-platform/api/routers/operational_truth.py",
         "services/sahool-platform/api/routers/pest_escalation.py",
+        "services/sahool-platform/api/routers/platform_health.py",
         "services/sahool-platform/api/routers/productivity.py",
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py",
@@ -393,7 +394,6 @@
         "services/sahool-platform/tests/test_offline_first.py",
         "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
-        "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
         "services/sahool-platform/tests/test_phenology_narrative.py",
         "services/sahool-platform/tests/test_platform_agri_full_lifecycle_forensic.py",
         "services/sahool-platform/tests/test_ponytail_guardrails.py",
@@ -539,7 +539,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 456,
+      "evidence_count": 455,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -925,7 +925,6 @@
         "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
-        "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
         "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
         "services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py",
@@ -1204,7 +1203,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 232,
+      "evidence_count": 231,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1406,7 +1405,6 @@
         "services/sahool-platform/tests/test_learning_source_lineage.py",
         "services/sahool-platform/tests/test_mcp_streaming_review_artifacts.py",
         "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
-        "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
         "services/sahool-platform/tests/test_platform_agri_full_lifecycle_forensic.py",
         "services/sahool-platform/tests/test_ponytail_guardrails.py",
         "services/sahool-platform/tests/test_productivity_zones_ai_brief.py",
@@ -2210,7 +2208,7 @@
         "services/sahool-platform/core/field_intelligence_card.py"
       ],
       "source_evidence_count": 499,
-      "target_evidence_count": 456,
+      "target_evidence_count": 455,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2310,7 +2308,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 456,
+      "source_evidence_count": 455,
       "target_evidence_count": 159,
       "static_supported": true,
       "runtime_verified": false
@@ -2376,7 +2374,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 159,
-      "target_evidence_count": 232,
+      "target_evidence_count": 231,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2406,7 +2404,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 232,
+      "source_evidence_count": 231,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2560,5 +2558,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "d56028bae9229d1a9348d024072f1f3d1eb2cd02c6502201605ae919da0de6c3"
+  "content_sha256": "e8f53c8dd23de9a80d944e9213257f7851bccef129cb6fee9bf40e62fbf1d26e"
 }

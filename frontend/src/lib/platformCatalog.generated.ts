@@ -14,24 +14,24 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'ab7bc1b4d166c6901acc1b1b4fe17ff31a3fee9f9f788f5aaed3ab1028feab60';
+export const PLATFORM_CATALOG_FINGERPRINT = 'fd139c0b1ab1802a3a7c1b6ce4b543acddb154fa3df5c68952aa54a4fe520637';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
-  "capabilities": 851,
+  "capabilities": 849,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 93,
   "capabilities_idempotent": 46,
   "capabilities_season_scoped": 10,
   "capabilities_tenant_scoped": 457,
   "components": 34,
-  "cross_service_duplicate_method_paths": 15,
-  "duplicate_groups_classified": 15,
+  "cross_service_duplicate_method_paths": 14,
+  "duplicate_groups_classified": 14,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1103,
+  "route_rows": 1101,
   "ui_waivers": 51,
-  "unique_method_path": 990
+  "unique_method_path": 989
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -270,7 +270,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 20,
+    "capabilityCount": 19,
     "domain": "soil",
     "id": "soil-service",
     "tested": true,
@@ -324,7 +324,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 22,
+    "capabilityCount": 21,
     "domain": "weather-truth",
     "id": "weather-service",
     "tested": true,

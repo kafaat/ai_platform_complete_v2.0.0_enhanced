@@ -14213,23 +14213,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "soil-service.runtime-identity",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /runtime-identity"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "soil-service",
-      "producer": "soil-service",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "soil-service.soil.action-policies",
       "consumers": [
         "frontend"
@@ -15077,23 +15060,6 @@
       "kind": "mixed",
       "owner": "video-processor",
       "producer": "video-processor",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "weather-service.runtime-identity",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /runtime-identity"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "weather-service",
-      "producer": "weather-service",
       "required_context": []
     },
     {
@@ -17055,7 +17021,7 @@
           "sahool-soil-service"
         ],
         "healthcheck": "CMD python -c import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).read()",
-        "mount_status": "direct_routes",
+        "mount_status": "delegated_routes",
         "published_ports": []
       },
       "sources": {
@@ -17412,20 +17378,20 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 851,
+    "capabilities": 849,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
     "capabilities_idempotent": 46,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 457,
     "components": 34,
-    "cross_service_duplicate_method_paths": 15,
-    "duplicate_groups_classified": 15,
+    "cross_service_duplicate_method_paths": 14,
+    "duplicate_groups_classified": 14,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1103,
+    "route_rows": 1101,
     "ui_waivers": 51,
-    "unique_method_path": 990
+    "unique_method_path": 989
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17673,20 +17639,6 @@
       "path": "/recommend"
     },
     {
-      "canonical_owner": null,
-      "classification": "standard_observability",
-      "classified": true,
-      "components": [
-        "soil-service",
-        "weather-service"
-      ],
-      "decision": "عقد هويّة بناء/صورة محلّيّ بالخدمة (git_sha/build_id/image_digest من ملفّ صورة للقراءة فقط) — لربط أدلّة التحقّق التشغيليّ بالصورة المنشورة؛ لكلّ خدمة نسختها.",
-      "expires_on": null,
-      "facade": null,
-      "method": "GET",
-      "path": "/runtime-identity"
-    },
-    {
       "canonical_owner": "raster-service",
       "classification": "legacy_bff_facade",
       "classified": true,
@@ -17715,7 +17667,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "ab7bc1b4d166c6901acc1b1b4fe17ff31a3fee9f9f788f5aaed3ab1028feab60",
+  "fingerprint": "fd139c0b1ab1802a3a7c1b6ce4b543acddb154fa3df5c68952aa54a4fe520637",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

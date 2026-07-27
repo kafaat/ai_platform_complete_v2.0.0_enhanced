@@ -7721,14 +7721,6 @@
   },
   {
     "service": "soil-service",
-    "file": "services/soil-service/main.py",
-    "line": 198,
-    "method": "GET",
-    "path": "/runtime-identity",
-    "function": "runtime_evidence_identity"
-  },
-  {
-    "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
     "line": 22,
     "method": "POST",
@@ -8598,14 +8590,6 @@
     "method": "POST",
     "path": "/streams/{stream_id}/record/stop",
     "function": "record_stop"
-  },
-  {
-    "service": "weather-service",
-    "file": "services/weather-service/main.py",
-    "line": 55,
-    "method": "GET",
-    "path": "/runtime-identity",
-    "function": "runtime_evidence_identity"
   },
   {
     "service": "weather-service",

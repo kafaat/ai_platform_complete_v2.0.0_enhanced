@@ -1,0 +1,51 @@
+name: Platform Route Budget
+
+on:
+  pull_request:
+    paths:
+      - "services/sahool-platform/**/*.py"
+      - "scripts/ci/platform_route_classification.py"
+      - "scripts/ci/platform_route_budget_guard.py"
+      - "scripts/ci/platform_route_ownership_guard.py"
+      - "docs/architecture/platform_extraction_map.json"
+      - "docs/architecture/generated/platform_route_budget_inventory.json"
+      - "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py"
+      - "tests/architecture/test_platform_route_budget_guard.py"
+      - "tests/architecture/test_platform_route_ownership_guard.py"
+      - ".github/workflows/platform-route-budget.yml"
+  push:
+    branches: [main]
+    paths:
+      - "services/sahool-platform/**/*.py"
+      - "scripts/ci/platform_route_classification.py"
+      - "scripts/ci/platform_route_budget_guard.py"
+      - "scripts/ci/platform_route_ownership_guard.py"
+      - "docs/architecture/platform_extraction_map.json"
+      - "docs/architecture/generated/platform_route_budget_inventory.json"
+      - ".github/workflows/platform-route-budget.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  platform-route-budget:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Verify route ownership map
+        run: python scripts/ci/platform_route_ownership_guard.py
+      - name: Verify domain-route ratchet and generated inventory
+        run: |
+          python scripts/ci/platform_route_budget_guard.py \
+            --check-generated \
+            --json-output platform-route-budget-result.json
+      - name: Upload transparent route inventory
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: platform-route-budget-${{ github.sha }}
+          path: platform-route-budget-result.json
+          if-no-files-found: error
+          retention-days: 30

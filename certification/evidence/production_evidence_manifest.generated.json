@@ -35,7 +35,7 @@
       "blocker_id": "P-CERT-1",
       "name": "Full branch CI",
       "file": "certification/evidence/ci_summary.json",
-      "current_status": "not_verified",
+      "current_status": "pending",
       "required_status": "verified",
       "waivable": false,
       "minimum_fields": [
@@ -50,7 +50,7 @@
       "blocker_id": "P-CERT-4",
       "name": "ONNX/SAM2 model provisioning",
       "file": "certification/evidence/model_provisioning_summary.json",
-      "current_status": "not_verified",
+      "current_status": "pending",
       "required_status": "verified",
       "waivable": false,
       "minimum_fields": [

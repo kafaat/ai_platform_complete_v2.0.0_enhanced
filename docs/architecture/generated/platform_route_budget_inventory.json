@@ -1,0 +1,5076 @@
+{
+  "counts": {
+    "domain_budget_headroom": 3,
+    "domain_budget_routes": 626,
+    "domain_route_budget": 629,
+    "infrastructure_routes": 4,
+    "raw_routes": 630
+  },
+  "inventory_sha256": "a722e9061d2102c4081a6f036240599481dc818df4301e96fb6ca965dbfdc8d7",
+  "policy": {
+    "canonical_infrastructure_allowlist": [
+      {
+        "method": "GET",
+        "path": "/healthz"
+      },
+      {
+        "method": "GET",
+        "path": "/metrics"
+      },
+      {
+        "method": "GET",
+        "path": "/readyz"
+      },
+      {
+        "method": "GET",
+        "path": "/runtime-identity"
+      }
+    ],
+    "domain_route_budget": 629,
+    "policy_file": "docs/architecture/platform_extraction_map.json",
+    "policy_sha256": "c6c5d1c7858b2558787e1038675f725950d85848453e958dc57c336a3182b654"
+  },
+  "routes": [
+    {
+      "classification": "domain",
+      "function": "revoke_break_glass",
+      "line": 357,
+      "method": "DELETE",
+      "path": "/api/v1/admin/break-glass/{grant_id}",
+      "source": "api/routers/break_glass.py"
+    },
+    {
+      "classification": "domain",
+      "function": "delete_region_override",
+      "line": 570,
+      "method": "DELETE",
+      "path": "/api/v1/calibration/{region}/override",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "delete_drawing_feature",
+      "line": 635,
+      "method": "DELETE",
+      "path": "/api/v1/drawing-features/{feature_id}",
+      "source": "api/routers/drawing_features.py"
+    },
+    {
+      "classification": "domain",
+      "function": "delete_field",
+      "line": 1702,
+      "method": "DELETE",
+      "path": "/api/v1/fields/{field_id}",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "delete_schedule",
+      "line": 356,
+      "method": "DELETE",
+      "path": "/api/v1/irrigation/schedules/{schedule_id}",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "release_geometry_lock",
+      "line": 627,
+      "method": "DELETE",
+      "path": "/locks/{field_id}",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agent_health_alias",
+      "line": 47,
+      "method": "GET",
+      "path": "/api/agent/health",
+      "source": "api/routers/compat_gateway.py"
+    },
+    {
+      "classification": "domain",
+      "function": "indicators_readyz_alias",
+      "line": 30,
+      "method": "GET",
+      "path": "/api/indicators/readyz",
+      "source": "api/routers/compat_gateway.py"
+    },
+    {
+      "classification": "domain",
+      "function": "raster_api_passthrough",
+      "line": 113,
+      "method": "GET",
+      "path": "/api/raster/{path:path}",
+      "source": "api/routers/compat_gateway.py"
+    },
+    {
+      "classification": "domain",
+      "function": "break_glass_read_fields",
+      "line": 317,
+      "method": "GET",
+      "path": "/api/v1/admin/break-glass/{token}/fields",
+      "source": "api/routers/break_glass.py"
+    },
+    {
+      "classification": "domain",
+      "function": "admin_events_dead_letter",
+      "line": 34,
+      "method": "GET",
+      "path": "/api/v1/admin/events/dead-letter",
+      "source": "api/routers/admin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "admin_outbox_dead_letter",
+      "line": 121,
+      "method": "GET",
+      "path": "/api/v1/admin/outbox/dead-letter",
+      "source": "api/routers/admin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "production_readiness",
+      "line": 20,
+      "method": "GET",
+      "path": "/api/v1/admin/readiness",
+      "source": "api/routers/readiness.py"
+    },
+    {
+      "classification": "domain",
+      "function": "security_denials",
+      "line": 18,
+      "method": "GET",
+      "path": "/api/v1/admin/security/denials",
+      "source": "api/routers/security_audit.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agricultural_proverbs",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/agricultural-proverbs",
+      "source": "api/routers/agricultural_proverbs.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agricultural_proverbs_for_date",
+      "line": 21,
+      "method": "GET",
+      "path": "/api/v1/agricultural-proverbs/for-date",
+      "source": "api/routers/agricultural_proverbs.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agro_zone_elevation_endpoint",
+      "line": 52,
+      "method": "GET",
+      "path": "/api/v1/agro-zones/by-elevation",
+      "source": "api/routers/agro_zones.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agro_zone_identify_endpoint",
+      "line": 40,
+      "method": "GET",
+      "path": "/api/v1/agro-zones/identify",
+      "source": "api/routers/agro_zones.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agro_zone_identify_smart_endpoint",
+      "line": 60,
+      "method": "GET",
+      "path": "/api/v1/agro-zones/identify-smart",
+      "source": "api/routers/agro_zones.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agro_zones_list_endpoint",
+      "line": 28,
+      "method": "GET",
+      "path": "/api/v1/agro-zones/list",
+      "source": "api/routers/agro_zones.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agro_zone_profile_endpoint",
+      "line": 34,
+      "method": "GET",
+      "path": "/api/v1/agro-zones/profile",
+      "source": "api/routers/agro_zones.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agro_zone_suited_endpoint",
+      "line": 46,
+      "method": "GET",
+      "path": "/api/v1/agro-zones/suited-crops",
+      "source": "api/routers/agro_zones.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_kc",
+      "line": 139,
+      "method": "GET",
+      "path": "/api/v1/agro/kc-timeseries/{field_id}",
+      "source": "api/routers/kc_timeseries.py"
+    },
+    {
+      "classification": "domain",
+      "function": "compare_kc",
+      "line": 155,
+      "method": "GET",
+      "path": "/api/v1/agro/kc-timeseries/{field_id}/compare",
+      "source": "api/routers/kc_timeseries.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_ai_models",
+      "line": 20,
+      "method": "GET",
+      "path": "/api/v1/ai/models",
+      "source": "api/routers/ai_models.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_alerts",
+      "line": 50,
+      "method": "GET",
+      "path": "/api/v1/alerts",
+      "source": "api/routers/alerts.py"
+    },
+    {
+      "classification": "domain",
+      "function": "yield_analysis_endpoint",
+      "line": 38,
+      "method": "GET",
+      "path": "/api/v1/analysis/yield",
+      "source": "api/routers/yield_analysis.py"
+    },
+    {
+      "classification": "domain",
+      "function": "analytics_costs",
+      "line": 28,
+      "method": "GET",
+      "path": "/api/v1/analytics/costs",
+      "source": "api/routers/analytics.py"
+    },
+    {
+      "classification": "domain",
+      "function": "analytics_costs_by_field",
+      "line": 56,
+      "method": "GET",
+      "path": "/api/v1/analytics/costs/by-field",
+      "source": "api/routers/analytics.py"
+    },
+    {
+      "classification": "domain",
+      "function": "aromatic_crops_list_endpoint",
+      "line": 24,
+      "method": "GET",
+      "path": "/api/v1/aromatic-crops/list",
+      "source": "api/routers/aromatic_crops.py"
+    },
+    {
+      "classification": "domain",
+      "function": "astronomical_stars",
+      "line": 28,
+      "method": "GET",
+      "path": "/api/v1/astronomical-timing/stars",
+      "source": "api/routers/astronomical_timing.py"
+    },
+    {
+      "classification": "domain",
+      "function": "auth_me",
+      "line": 90,
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "source": "api/routers/auth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "imagery_automation_status_endpoint",
+      "line": 151,
+      "method": "GET",
+      "path": "/api/v1/automation/imagery/status",
+      "source": "api/routers/automation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "automation_runs_endpoint",
+      "line": 56,
+      "method": "GET",
+      "path": "/api/v1/automation/runs",
+      "source": "api/routers/automation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scheduler_status_endpoint",
+      "line": 41,
+      "method": "GET",
+      "path": "/api/v1/automation/scheduler-status",
+      "source": "api/routers/automation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_cached_endpoint",
+      "line": 98,
+      "method": "GET",
+      "path": "/api/v1/automation/weather/cached",
+      "source": "api/routers/automation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_automation_status_endpoint",
+      "line": 117,
+      "method": "GET",
+      "path": "/api/v1/automation/weather/status",
+      "source": "api/routers/automation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "calendars_context",
+      "line": 76,
+      "method": "GET",
+      "path": "/api/v1/calendars/context",
+      "source": "api/routers/calendars.py"
+    },
+    {
+      "classification": "domain",
+      "function": "calendars_himyarite_months",
+      "line": 60,
+      "method": "GET",
+      "path": "/api/v1/calendars/himyarite-months",
+      "source": "api/routers/calendars.py"
+    },
+    {
+      "classification": "domain",
+      "function": "calendars_lunar_mansions",
+      "line": 52,
+      "method": "GET",
+      "path": "/api/v1/calendars/lunar-mansions",
+      "source": "api/routers/calendars.py"
+    },
+    {
+      "classification": "domain",
+      "function": "calendars_regional_profiles",
+      "line": 68,
+      "method": "GET",
+      "path": "/api/v1/calendars/regional-profiles",
+      "source": "api/routers/calendars.py"
+    },
+    {
+      "classification": "domain",
+      "function": "calendars_today",
+      "line": 20,
+      "method": "GET",
+      "path": "/api/v1/calendars/today",
+      "source": "api/routers/calendars.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_calibration",
+      "line": 94,
+      "method": "GET",
+      "path": "/api/v1/calibration",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_region_overrides",
+      "line": 537,
+      "method": "GET",
+      "path": "/api/v1/calibration/overrides/all",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_region_calibration",
+      "line": 105,
+      "method": "GET",
+      "path": "/api/v1/calibration/{region}",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_region_calibration_audit",
+      "line": 616,
+      "method": "GET",
+      "path": "/api/v1/calibration/{region}/audit",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_persisted_region_evidence",
+      "line": 143,
+      "method": "GET",
+      "path": "/api/v1/calibration/{region}/evidence/persisted",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_resolved_region_calibration",
+      "line": 508,
+      "method": "GET",
+      "path": "/api/v1/calibration/{region}/resolved",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_capabilities",
+      "line": 21,
+      "method": "GET",
+      "path": "/api/v1/capabilities",
+      "source": "api/routers/capabilities.py"
+    },
+    {
+      "classification": "domain",
+      "function": "chemical_safety_banned",
+      "line": 39,
+      "method": "GET",
+      "path": "/api/v1/chemical-safety/banned",
+      "source": "api/routers/chemical_safety.py"
+    },
+    {
+      "classification": "domain",
+      "function": "climate_analogs_crops_endpoint",
+      "line": 39,
+      "method": "GET",
+      "path": "/api/v1/climate-analogs/desert-crops",
+      "source": "api/routers/climate_analogs.py"
+    },
+    {
+      "classification": "domain",
+      "function": "climate_analogs_detail_endpoint",
+      "line": 33,
+      "method": "GET",
+      "path": "/api/v1/climate-analogs/detail",
+      "source": "api/routers/climate_analogs.py"
+    },
+    {
+      "classification": "domain",
+      "function": "climate_analogs_list_endpoint",
+      "line": 27,
+      "method": "GET",
+      "path": "/api/v1/climate-analogs/list",
+      "source": "api/routers/climate_analogs.py"
+    },
+    {
+      "classification": "domain",
+      "function": "climate_analogs_strategic_endpoint",
+      "line": 45,
+      "method": "GET",
+      "path": "/api/v1/climate-analogs/strategic-tiers",
+      "source": "api/routers/climate_analogs.py"
+    },
+    {
+      "classification": "domain",
+      "function": "climate_analogs_strategy_endpoint",
+      "line": 53,
+      "method": "GET",
+      "path": "/api/v1/climate-analogs/strategy",
+      "source": "api/routers/climate_analogs.py"
+    },
+    {
+      "classification": "domain",
+      "function": "coffee_guide_endpoint",
+      "line": 39,
+      "method": "GET",
+      "path": "/api/v1/coffee/guide",
+      "source": "api/routers/coffee.py"
+    },
+    {
+      "classification": "domain",
+      "function": "coffee_pests_endpoint",
+      "line": 51,
+      "method": "GET",
+      "path": "/api/v1/coffee/pests",
+      "source": "api/routers/coffee.py"
+    },
+    {
+      "classification": "domain",
+      "function": "coffee_site_endpoint",
+      "line": 33,
+      "method": "GET",
+      "path": "/api/v1/coffee/site-suitability",
+      "source": "api/routers/coffee.py"
+    },
+    {
+      "classification": "domain",
+      "function": "coffee_varieties_endpoint",
+      "line": 45,
+      "method": "GET",
+      "path": "/api/v1/coffee/varieties",
+      "source": "api/routers/coffee.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_command",
+      "line": 30,
+      "method": "GET",
+      "path": "/api/v1/commands/{command_id}",
+      "source": "api/routers/commands.py"
+    },
+    {
+      "classification": "domain",
+      "function": "consistency_freshness_endpoint",
+      "line": 56,
+      "method": "GET",
+      "path": "/api/v1/consistency/freshness",
+      "source": "api/routers/consistency.py"
+    },
+    {
+      "classification": "domain",
+      "function": "consistency_irrigation_endpoint",
+      "line": 34,
+      "method": "GET",
+      "path": "/api/v1/consistency/irrigation",
+      "source": "api/routers/consistency.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_cards_index",
+      "line": 32,
+      "method": "GET",
+      "path": "/api/v1/crop-cards",
+      "source": "api/routers/crop_cards.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_card_detail",
+      "line": 57,
+      "method": "GET",
+      "path": "/api/v1/crop-cards/crop/{crop_id}",
+      "source": "api/routers/crop_cards.py"
+    },
+    {
+      "classification": "domain",
+      "function": "variety_card_detail",
+      "line": 69,
+      "method": "GET",
+      "path": "/api/v1/crop-cards/variety/{variety_id}",
+      "source": "api/routers/crop_cards.py"
+    },
+    {
+      "classification": "domain",
+      "function": "variety_disease_watch_endpoint",
+      "line": 112,
+      "method": "GET",
+      "path": "/api/v1/crop-cards/variety/{variety_id}/disease-watch",
+      "source": "api/routers/crop_cards.py"
+    },
+    {
+      "classification": "domain",
+      "function": "variety_expected_harvest",
+      "line": 95,
+      "method": "GET",
+      "path": "/api/v1/crop-cards/variety/{variety_id}/expected-harvest",
+      "source": "api/routers/crop_cards.py"
+    },
+    {
+      "classification": "domain",
+      "function": "variety_salinity_suitability",
+      "line": 82,
+      "method": "GET",
+      "path": "/api/v1/crop-cards/variety/{variety_id}/salinity-suitability",
+      "source": "api/routers/crop_cards.py"
+    },
+    {
+      "classification": "domain",
+      "function": "compare_drought_resilience",
+      "line": 46,
+      "method": "GET",
+      "path": "/api/v1/crops/compare-drought-resilience",
+      "source": "api/routers/crops.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_drought_resilience",
+      "line": 25,
+      "method": "GET",
+      "path": "/api/v1/crops/drought-resilience",
+      "source": "api/routers/crops.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_operations_calendar_endpoint",
+      "line": 23,
+      "method": "GET",
+      "path": "/api/v1/crops/{crop_id}/operations-calendar",
+      "source": "api/routers/crop_operations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "cultural_calendar",
+      "line": 23,
+      "method": "GET",
+      "path": "/api/v1/cultural-calendar",
+      "source": "api/routers/cultural_calendar.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_dispatch_decisions",
+      "line": 475,
+      "method": "GET",
+      "path": "/api/v1/decision/dispatch/decisions",
+      "source": "api/routers/decision_dispatch.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_dispatch_queue",
+      "line": 507,
+      "method": "GET",
+      "path": "/api/v1/decision/dispatch/queue",
+      "source": "api/routers/decision_dispatch.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_decision_economics",
+      "line": 141,
+      "method": "GET",
+      "path": "/api/v1/decision/economics",
+      "source": "api/routers/decision_impact.py"
+    },
+    {
+      "classification": "domain",
+      "function": "decision_explain_endpoint",
+      "line": 47,
+      "method": "GET",
+      "path": "/api/v1/decision/explain",
+      "source": "api/routers/decision.py"
+    },
+    {
+      "classification": "domain",
+      "function": "decision_for_location_endpoint",
+      "line": 32,
+      "method": "GET",
+      "path": "/api/v1/decision/for-location",
+      "source": "api/routers/decision.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_impact",
+      "line": 102,
+      "method": "GET",
+      "path": "/api/v1/decision/impact",
+      "source": "api/routers/decision_impact.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_learning",
+      "line": 118,
+      "method": "GET",
+      "path": "/api/v1/decision/learning",
+      "source": "api/routers/decision_impact.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_execution_ledger",
+      "line": 659,
+      "method": "GET",
+      "path": "/api/v1/decision/ledger",
+      "source": "api/routers/decision_dispatch.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_policies",
+      "line": 112,
+      "method": "GET",
+      "path": "/api/v1/decision/policies",
+      "source": "api/routers/decision_policies.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_decision_records",
+      "line": 576,
+      "method": "GET",
+      "path": "/api/v1/decision/records",
+      "source": "api/routers/decision_record.py"
+    },
+    {
+      "classification": "domain",
+      "function": "explain_decision_endpoint",
+      "line": 62,
+      "method": "GET",
+      "path": "/api/v1/decision/{decision_id}/explain",
+      "source": "api/routers/decision_explain.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_decision_lineage",
+      "line": 536,
+      "method": "GET",
+      "path": "/api/v1/decision/{decision_id}/lineage",
+      "source": "api/routers/decision_record.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_decision_review_queue",
+      "line": 44,
+      "method": "GET",
+      "path": "/api/v1/decisions/review-queue",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_decision_agronomic_evidence_boundary",
+      "line": 70,
+      "method": "GET",
+      "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_devices",
+      "line": 96,
+      "method": "GET",
+      "path": "/api/v1/devices",
+      "source": "api/routers/devices.py"
+    },
+    {
+      "classification": "domain",
+      "function": "devices_fleet_health",
+      "line": 191,
+      "method": "GET",
+      "path": "/api/v1/devices/fleet-health",
+      "source": "api/routers/devices.py"
+    },
+    {
+      "classification": "domain",
+      "function": "device_twin_endpoint",
+      "line": 78,
+      "method": "GET",
+      "path": "/api/v1/devices/twin",
+      "source": "api/routers/device_twin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_telemetry",
+      "line": 166,
+      "method": "GET",
+      "path": "/api/v1/devices/{device_id}/telemetry",
+      "source": "api/routers/devices.py"
+    },
+    {
+      "classification": "domain",
+      "function": "diagnosis_symptom_catalog",
+      "line": 90,
+      "method": "GET",
+      "path": "/api/v1/diagnose/symptoms",
+      "source": "api/routers/diagnose.py"
+    },
+    {
+      "classification": "domain",
+      "function": "districts_index",
+      "line": 24,
+      "method": "GET",
+      "path": "/api/v1/districts",
+      "source": "api/routers/districts.py"
+    },
+    {
+      "classification": "domain",
+      "function": "district_detail",
+      "line": 47,
+      "method": "GET",
+      "path": "/api/v1/districts/{district_id}",
+      "source": "api/routers/districts.py"
+    },
+    {
+      "classification": "domain",
+      "function": "district_active_pests",
+      "line": 59,
+      "method": "GET",
+      "path": "/api/v1/districts/{district_id}/active-pests",
+      "source": "api/routers/districts.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_documents",
+      "line": 87,
+      "method": "GET",
+      "path": "/api/v1/documents",
+      "source": "api/routers/documents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_document",
+      "line": 126,
+      "method": "GET",
+      "path": "/api/v1/documents/{doc_id}",
+      "source": "api/routers/documents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "economics_break_even_endpoint",
+      "line": 45,
+      "method": "GET",
+      "path": "/api/v1/economics/break-even",
+      "source": "api/routers/economics.py"
+    },
+    {
+      "classification": "domain",
+      "function": "economics_categories_endpoint",
+      "line": 25,
+      "method": "GET",
+      "path": "/api/v1/economics/cost-categories",
+      "source": "api/routers/economics.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_equipment",
+      "line": 92,
+      "method": "GET",
+      "path": "/api/v1/equipment",
+      "source": "api/routers/equipment.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_maintenance",
+      "line": 178,
+      "method": "GET",
+      "path": "/api/v1/equipment/{equipment_id}/maintenance",
+      "source": "api/routers/equipment.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_erp_reconciliations",
+      "line": 284,
+      "method": "GET",
+      "path": "/api/v1/erp/reconciliations",
+      "source": "api/routers/operational_truth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "entity_events",
+      "line": 31,
+      "method": "GET",
+      "path": "/api/v1/events/{entity_type}/{entity_id}",
+      "source": "api/routers/events.py"
+    },
+    {
+      "classification": "domain",
+      "function": "evidence_graph_analytics",
+      "line": 604,
+      "method": "GET",
+      "path": "/api/v1/evidence-graph/analytics",
+      "source": "api/routers/field_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "evidence_map_endpoint",
+      "line": 86,
+      "method": "GET",
+      "path": "/api/v1/evidence/map",
+      "source": "api/routers/evidence_map.py"
+    },
+    {
+      "classification": "domain",
+      "function": "execution_feedback_endpoint",
+      "line": 49,
+      "method": "GET",
+      "path": "/api/v1/execution/feedback",
+      "source": "api/routers/execution_feedback.py"
+    },
+    {
+      "classification": "domain",
+      "function": "book_balances",
+      "line": 486,
+      "method": "GET",
+      "path": "/api/v1/farm-book/balances",
+      "source": "api/routers/simple_farm_book.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_entries",
+      "line": 417,
+      "method": "GET",
+      "path": "/api/v1/farm-book/entries",
+      "source": "api/routers/simple_farm_book.py"
+    },
+    {
+      "classification": "domain",
+      "function": "export_book",
+      "line": 507,
+      "method": "GET",
+      "path": "/api/v1/farm-book/export",
+      "source": "api/routers/simple_farm_book.py"
+    },
+    {
+      "classification": "domain",
+      "function": "monthly_report",
+      "line": 450,
+      "method": "GET",
+      "path": "/api/v1/farm-book/monthly",
+      "source": "api/routers/simple_farm_book.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_parties",
+      "line": 161,
+      "method": "GET",
+      "path": "/api/v1/farm-book/parties",
+      "source": "api/routers/simple_farm_book.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_season_budget",
+      "line": 608,
+      "method": "GET",
+      "path": "/api/v1/farm-ledger/budgets/{season_id}",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_economic_state",
+      "line": 1002,
+      "method": "GET",
+      "path": "/api/v1/farm-ledger/economic-state/{season_id}",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_erp_projection",
+      "line": 791,
+      "method": "GET",
+      "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_inventory_projection",
+      "line": 911,
+      "method": "GET",
+      "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_operation_ledger_records",
+      "line": 353,
+      "method": "GET",
+      "path": "/api/v1/farm-ledger/operations",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_season_profitability",
+      "line": 756,
+      "method": "GET",
+      "path": "/api/v1/farm-ledger/profitability/{season_id}",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "farm_ledger_summary",
+      "line": 401,
+      "method": "GET",
+      "path": "/api/v1/farm-ledger/summary",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_budget_variance",
+      "line": 728,
+      "method": "GET",
+      "path": "/api/v1/farm-ledger/variance/{season_id}",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_farms",
+      "line": 104,
+      "method": "GET",
+      "path": "/api/v1/farms",
+      "source": "api/routers/farms.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_farm_fields",
+      "line": 139,
+      "method": "GET",
+      "path": "/api/v1/farms/{farm_id}/fields",
+      "source": "api/routers/farms.py"
+    },
+    {
+      "classification": "domain",
+      "function": "farm_priority_queue",
+      "line": 178,
+      "method": "GET",
+      "path": "/api/v1/farms/{farm_id}/priority-queue",
+      "source": "api/routers/field_priority_queue.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_features",
+      "line": 59,
+      "method": "GET",
+      "path": "/api/v1/features",
+      "source": "api/routers/features.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_intelligence_analyze_job_status",
+      "line": 515,
+      "method": "GET",
+      "path": "/api/v1/field-intelligence/analyze/jobs/{job_id}",
+      "source": "api/routers/field_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_operational_state_endpoint",
+      "line": 22,
+      "method": "GET",
+      "path": "/api/v1/field/operational-state",
+      "source": "api/routers/field_single.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_field_lineage",
+      "line": 627,
+      "method": "GET",
+      "path": "/api/v1/field/{field_id}/lineage",
+      "source": "api/routers/decision_record.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_fields",
+      "line": 570,
+      "method": "GET",
+      "path": "/api/v1/fields",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_field",
+      "line": 1064,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_field_activities",
+      "line": 3028,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/activities",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agronomic_replay_endpoint",
+      "line": 57,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/agronomic-replay",
+      "source": "api/routers/agronomic_replay.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_ai_context_pack",
+      "line": 701,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/ai-context-pack",
+      "source": "api/routers/field_ai_context.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_alerts_derived",
+      "line": 4017,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/alerts/derived",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_imagery_available_dates_facade",
+      "line": 40,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/available-dates",
+      "source": "api/routers/field_workspace_imagery.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_field_boundary_graph",
+      "line": 264,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/boundary-graph",
+      "source": "api/routers/boundaries.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_data_completeness",
+      "line": 55,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/data-completeness",
+      "source": "api/routers/field_completeness.py"
+    },
+    {
+      "classification": "domain",
+      "function": "decision_confidence_endpoint",
+      "line": 73,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/decision-confidence",
+      "source": "api/routers/decision_confidence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_field_drawing_features",
+      "line": 412,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/drawing-features",
+      "source": "api/routers/drawing_features.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_evidence_graph_latest",
+      "line": 538,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/evidence-graph/latest",
+      "source": "api/routers/field_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_evidence_graph_nodes",
+      "line": 637,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/evidence-graph/nodes",
+      "source": "api/routers/field_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_evidence_graph_timeline",
+      "line": 570,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/evidence-graph/timeline",
+      "source": "api/routers/field_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_geometry_history",
+      "line": 1557,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/geometry/history",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_history",
+      "line": 3714,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/history",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_imagery_backfill_status_proxy",
+      "line": 1030,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_imagery_timeline_facade",
+      "line": 76,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/imagery/timeline",
+      "source": "api/routers/field_workspace_imagery.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_input_traceability",
+      "line": 3057,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/input-traceability",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_lab_context",
+      "line": 395,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/lab-context",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_phenology",
+      "line": 158,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/phenology",
+      "source": "api/routers/phenology.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_prescriptions",
+      "line": 293,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/prescriptions",
+      "source": "api/routers/prescriptions.py"
+    },
+    {
+      "classification": "domain",
+      "function": "export_prescription",
+      "line": 337,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
+      "source": "api/routers/prescriptions.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_priority_queue",
+      "line": 116,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/priority-queue",
+      "source": "api/routers/field_priority_queue.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_readiness",
+      "line": 55,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/readiness",
+      "source": "api/routers/field_readiness.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_recommendations",
+      "line": 2798,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/recommendations",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_crop_rotations",
+      "line": 3473,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/rotations",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "season_workspace",
+      "line": 218,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/season-workspace",
+      "source": "api/routers/season_workspace.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_seasons",
+      "line": 2300,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/seasons",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_season_state_endpoint",
+      "line": 511,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
+      "source": "api/routers/seasons.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_soil_lab_tests",
+      "line": 3261,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/soil-lab-tests",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_soil_moisture",
+      "line": 2496,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/soil-moisture",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_stage_actions",
+      "line": 180,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/stage-actions",
+      "source": "api/routers/phenology.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_canonical_state",
+      "line": 3989,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/state",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_state_full",
+      "line": 4043,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/state/full",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_sustainability",
+      "line": 206,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/sustainability",
+      "source": "api/routers/reports.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_field_terrain",
+      "line": 1089,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/terrain",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_field_twin",
+      "line": 38,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/twin",
+      "source": "api/routers/field_twin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_unified_timeline_facade",
+      "line": 31,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/unified-timeline",
+      "source": "api/routers/field_workspace_timeline.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_water_efficiency",
+      "line": 196,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/water-efficiency",
+      "source": "api/routers/water_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_water_ledger",
+      "line": 144,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/water-ledger",
+      "source": "api/routers/water_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_water_stress_spectral",
+      "line": 3957,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/water-stress-spectral",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_weather_crop_stress",
+      "line": 103,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/weather/crop-stress",
+      "source": "api/routers/field_workspace_weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_disease_risk_facade",
+      "line": 278,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/weather/disease-risk",
+      "source": "api/routers/field_workspace_weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_irrigation_advice_facade",
+      "line": 223,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
+      "source": "api/routers/field_workspace_weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_weather_operation_windows",
+      "line": 170,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/weather/operation-windows",
+      "source": "api/routers/field_workspace_weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_weather_thermal_stress",
+      "line": 68,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/weather/thermal-stress",
+      "source": "api/routers/field_workspace_weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_wind_prevailing",
+      "line": 2644,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/wind/prevailing",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_field_workspace",
+      "line": 1180,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/workspace",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "query_yield_map_records",
+      "line": 287,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/yield-map-records",
+      "source": "api/routers/yield_map_ingestion.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_yield_map_ingestions",
+      "line": 250,
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
+      "source": "api/routers/yield_map_ingestion.py"
+    },
+    {
+      "classification": "domain",
+      "function": "fodder_alternatives_list_endpoint",
+      "line": 24,
+      "method": "GET",
+      "path": "/api/v1/fodder-alternatives/list",
+      "source": "api/routers/fodder_alternatives.py"
+    },
+    {
+      "classification": "domain",
+      "function": "geo_locate_field_endpoint",
+      "line": 23,
+      "method": "GET",
+      "path": "/api/v1/geo-locate/field",
+      "source": "api/routers/geo_locate.py"
+    },
+    {
+      "classification": "domain",
+      "function": "geo_locate_recommend_endpoint",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/geo-locate/recommend",
+      "source": "api/routers/geo_locate.py"
+    },
+    {
+      "classification": "domain",
+      "function": "geo_reverse_endpoint",
+      "line": 27,
+      "method": "GET",
+      "path": "/api/v1/geo/reverse",
+      "source": "api/routers/geo.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_harvest_lots",
+      "line": 140,
+      "method": "GET",
+      "path": "/api/v1/harvest-lots",
+      "source": "api/routers/harvest_traceability.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_harvest_lot",
+      "line": 176,
+      "method": "GET",
+      "path": "/api/v1/harvest-lots/{harvest_lot_id}",
+      "source": "api/routers/harvest_traceability.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_traceability",
+      "line": 294,
+      "method": "GET",
+      "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
+      "source": "api/routers/harvest_traceability.py"
+    },
+    {
+      "classification": "domain",
+      "function": "high_value_crops_detail_endpoint",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/high-value-crops/detail",
+      "source": "api/routers/high_value_crops.py"
+    },
+    {
+      "classification": "domain",
+      "function": "high_value_crops_list_endpoint",
+      "line": 23,
+      "method": "GET",
+      "path": "/api/v1/high-value-crops/list",
+      "source": "api/routers/high_value_crops.py"
+    },
+    {
+      "classification": "domain",
+      "function": "indicators_catalog",
+      "line": 34,
+      "method": "GET",
+      "path": "/api/v1/indicators/catalog",
+      "source": "api/routers/indicators.py"
+    },
+    {
+      "classification": "domain",
+      "function": "indicators_dashboard",
+      "line": 59,
+      "method": "GET",
+      "path": "/api/v1/indicators/dashboard",
+      "source": "api/routers/indicators.py"
+    },
+    {
+      "classification": "domain",
+      "function": "indicators_map_layers",
+      "line": 46,
+      "method": "GET",
+      "path": "/api/v1/indicators/map-layers",
+      "source": "api/routers/indicators.py"
+    },
+    {
+      "classification": "domain",
+      "function": "indices_coverage_report",
+      "line": 21,
+      "method": "GET",
+      "path": "/api/v1/indices/coverage-report",
+      "source": "api/routers/indices.py"
+    },
+    {
+      "classification": "domain",
+      "function": "introduction_candidates_endpoint",
+      "line": 28,
+      "method": "GET",
+      "path": "/api/v1/introduction/candidates",
+      "source": "api/routers/introduction.py"
+    },
+    {
+      "classification": "domain",
+      "function": "introduction_card_endpoint",
+      "line": 34,
+      "method": "GET",
+      "path": "/api/v1/introduction/card",
+      "source": "api/routers/introduction.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_expiring_batches",
+      "line": 183,
+      "method": "GET",
+      "path": "/api/v1/inventory/expiring",
+      "source": "api/routers/inventory.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_inventory_items",
+      "line": 89,
+      "method": "GET",
+      "path": "/api/v1/inventory/items",
+      "source": "api/routers/inventory.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ipm_crop_pests_endpoint",
+      "line": 36,
+      "method": "GET",
+      "path": "/api/v1/ipm/crop-pests",
+      "source": "api/routers/ipm.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ipm_pests_endpoint",
+      "line": 24,
+      "method": "GET",
+      "path": "/api/v1/ipm/pests",
+      "source": "api/routers/ipm.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ipm_plan_endpoint",
+      "line": 30,
+      "method": "GET",
+      "path": "/api/v1/ipm/plan",
+      "source": "api/routers/ipm.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_methods",
+      "line": 24,
+      "method": "GET",
+      "path": "/api/v1/irrigation-method",
+      "source": "api/routers/irrigation_method.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_method",
+      "line": 30,
+      "method": "GET",
+      "path": "/api/v1/irrigation-method/{method}",
+      "source": "api/routers/irrigation_method.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_moisture_decision_endpoint",
+      "line": 377,
+      "method": "GET",
+      "path": "/api/v1/irrigation/moisture-decision",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_mpc_capabilities",
+      "line": 163,
+      "method": "GET",
+      "path": "/api/v1/irrigation/mpc/capabilities",
+      "source": "api/routers/irrigation_mpc.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_schedules",
+      "line": 306,
+      "method": "GET",
+      "path": "/api/v1/irrigation/schedules",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_soil_types_endpoint",
+      "line": 371,
+      "method": "GET",
+      "path": "/api/v1/irrigation/soil-types",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_valves",
+      "line": 156,
+      "method": "GET",
+      "path": "/api/v1/irrigation/valves",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_lab_samples",
+      "line": 159,
+      "method": "GET",
+      "path": "/api/v1/lab/samples",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "learning_activation_status",
+      "line": 54,
+      "method": "GET",
+      "path": "/api/v1/learning/activation-status",
+      "source": "api/routers/learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "read_calibration_dataset_boundary",
+      "line": 578,
+      "method": "GET",
+      "path": "/api/v1/learning/calibration-dataset",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "prediction_calibration_status",
+      "line": 113,
+      "method": "GET",
+      "path": "/api/v1/learning/prediction-calibration",
+      "source": "api/routers/learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_learning_summary",
+      "line": 52,
+      "method": "GET",
+      "path": "/api/v1/learning/summary",
+      "source": "api/routers/learning_summary.py"
+    },
+    {
+      "classification": "domain",
+      "function": "entity_lineage",
+      "line": 30,
+      "method": "GET",
+      "path": "/api/v1/lineage/{entity_type}/{entity_id}",
+      "source": "api/routers/lineage.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_lineage_chain",
+      "line": 120,
+      "method": "GET",
+      "path": "/api/v1/lineage/{lineage_id}",
+      "source": "api/routers/execution_lineage.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_classification_readiness_endpoint",
+      "line": 100,
+      "method": "GET",
+      "path": "/api/v1/market/crop-classification-readiness",
+      "source": "api/routers/market.py"
+    },
+    {
+      "classification": "domain",
+      "function": "market_crop_gap",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/market/crop-gap",
+      "source": "api/routers/market.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_master_data",
+      "line": 95,
+      "method": "GET",
+      "path": "/api/v1/master-data",
+      "source": "api/routers/master_data.py"
+    },
+    {
+      "classification": "domain",
+      "function": "me",
+      "line": 25,
+      "method": "GET",
+      "path": "/api/v1/me",
+      "source": "api/routers/me.py"
+    },
+    {
+      "classification": "domain",
+      "function": "niche_crops_detail_endpoint",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/niche-crops/detail",
+      "source": "api/routers/niche_crops.py"
+    },
+    {
+      "classification": "domain",
+      "function": "niche_crops_list_endpoint",
+      "line": 23,
+      "method": "GET",
+      "path": "/api/v1/niche-crops/list",
+      "source": "api/routers/niche_crops.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_notification_preferences",
+      "line": 54,
+      "method": "GET",
+      "path": "/api/v1/notifications/preferences",
+      "source": "api/routers/notifications.py"
+    },
+    {
+      "classification": "domain",
+      "function": "onboarding_questionnaire",
+      "line": 34,
+      "method": "GET",
+      "path": "/api/v1/onboarding/questionnaire",
+      "source": "api/routers/onboarding.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_onboarding",
+      "line": 96,
+      "method": "GET",
+      "path": "/api/v1/onboarding/responses",
+      "source": "api/routers/onboarding.py"
+    },
+    {
+      "classification": "domain",
+      "function": "operations_summary_endpoint",
+      "line": 92,
+      "method": "GET",
+      "path": "/api/v1/operations/summary",
+      "source": "api/routers/operations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "orchard_economics_endpoint",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/orchard/economics",
+      "source": "api/routers/orchard.py"
+    },
+    {
+      "classification": "domain",
+      "function": "orchard_plan_endpoint",
+      "line": 23,
+      "method": "GET",
+      "path": "/api/v1/orchard/plan",
+      "source": "api/routers/orchard.py"
+    },
+    {
+      "classification": "domain",
+      "function": "planting_check_endpoint",
+      "line": 41,
+      "method": "GET",
+      "path": "/api/v1/planting/check",
+      "source": "api/routers/planting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "planting_crops_endpoint",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/planting/crops",
+      "source": "api/routers/planting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "planting_window_endpoint",
+      "line": 35,
+      "method": "GET",
+      "path": "/api/v1/planting/window",
+      "source": "api/routers/planting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "threshold_suggestions",
+      "line": 36,
+      "method": "GET",
+      "path": "/api/v1/policy-learning/threshold-suggestions",
+      "source": "api/routers/policy_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "postharvest_practices_endpoint",
+      "line": 39,
+      "method": "GET",
+      "path": "/api/v1/postharvest/best-practices",
+      "source": "api/routers/postharvest.py"
+    },
+    {
+      "classification": "domain",
+      "function": "postharvest_moisture_endpoint",
+      "line": 27,
+      "method": "GET",
+      "path": "/api/v1/postharvest/moisture-check",
+      "source": "api/routers/postharvest.py"
+    },
+    {
+      "classification": "domain",
+      "function": "postharvest_pests_endpoint",
+      "line": 33,
+      "method": "GET",
+      "path": "/api/v1/postharvest/pests",
+      "source": "api/routers/postharvest.py"
+    },
+    {
+      "classification": "domain",
+      "function": "practices_guide_endpoint",
+      "line": 30,
+      "method": "GET",
+      "path": "/api/v1/practices/guide",
+      "source": "api/routers/practices.py"
+    },
+    {
+      "classification": "domain",
+      "function": "practices_list_endpoint",
+      "line": 24,
+      "method": "GET",
+      "path": "/api/v1/practices/list",
+      "source": "api/routers/practices.py"
+    },
+    {
+      "classification": "domain",
+      "function": "propagation_crop_endpoint",
+      "line": 41,
+      "method": "GET",
+      "path": "/api/v1/propagation/crop",
+      "source": "api/routers/propagation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "propagation_method_guide_endpoint",
+      "line": 35,
+      "method": "GET",
+      "path": "/api/v1/propagation/method-guide",
+      "source": "api/routers/propagation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "propagation_methods_endpoint",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/propagation/methods",
+      "source": "api/routers/propagation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "propagation_rootstock_endpoint",
+      "line": 47,
+      "method": "GET",
+      "path": "/api/v1/propagation/rootstock",
+      "source": "api/routers/propagation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "queue_status",
+      "line": 21,
+      "method": "GET",
+      "path": "/api/v1/queue/status",
+      "source": "api/routers/queue.py"
+    },
+    {
+      "classification": "domain",
+      "function": "rbac_permission_matrix",
+      "line": 43,
+      "method": "GET",
+      "path": "/api/v1/rbac/permission-matrix",
+      "source": "api/routers/rbac.py"
+    },
+    {
+      "classification": "domain",
+      "function": "rbac_preview_role_change",
+      "line": 53,
+      "method": "GET",
+      "path": "/api/v1/rbac/preview-role-change",
+      "source": "api/routers/rbac.py"
+    },
+    {
+      "classification": "domain",
+      "function": "rbac_who_can",
+      "line": 27,
+      "method": "GET",
+      "path": "/api/v1/rbac/who-can",
+      "source": "api/routers/rbac.py"
+    },
+    {
+      "classification": "domain",
+      "function": "capacity_profiles_endpoint",
+      "line": 254,
+      "method": "GET",
+      "path": "/api/v1/recommendations/capacity-profiles",
+      "source": "api/routers/recommendations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "recommendation_engines",
+      "line": 189,
+      "method": "GET",
+      "path": "/api/v1/recommendations/engines",
+      "source": "api/routers/recommendations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_recommendation",
+      "line": 423,
+      "method": "GET",
+      "path": "/api/v1/recommendations/{rec_id}",
+      "source": "api/routers/recommendations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "regional_calendar",
+      "line": 19,
+      "method": "GET",
+      "path": "/api/v1/regional-calendar",
+      "source": "api/routers/regional_calendar.py"
+    },
+    {
+      "classification": "domain",
+      "function": "regional_bulletin",
+      "line": 52,
+      "method": "GET",
+      "path": "/api/v1/regional/bulletin",
+      "source": "api/routers/regional_bulletin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "registry_cost_profiles",
+      "line": 87,
+      "method": "GET",
+      "path": "/api/v1/registry/cost-profiles",
+      "source": "api/routers/registry.py"
+    },
+    {
+      "classification": "domain",
+      "function": "registry_data_quality_rules",
+      "line": 97,
+      "method": "GET",
+      "path": "/api/v1/registry/data-quality-rules",
+      "source": "api/routers/registry.py"
+    },
+    {
+      "classification": "domain",
+      "function": "registry_device_types",
+      "line": 67,
+      "method": "GET",
+      "path": "/api/v1/registry/device-types",
+      "source": "api/routers/registry.py"
+    },
+    {
+      "classification": "domain",
+      "function": "registry_events",
+      "line": 77,
+      "method": "GET",
+      "path": "/api/v1/registry/events",
+      "source": "api/routers/registry.py"
+    },
+    {
+      "classification": "domain",
+      "function": "registry_indices",
+      "line": 57,
+      "method": "GET",
+      "path": "/api/v1/registry/indices",
+      "source": "api/routers/registry.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_registry_report_fields",
+      "line": 31,
+      "method": "GET",
+      "path": "/api/v1/registry/report-fields",
+      "source": "api/routers/registry.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_registry_workflows",
+      "line": 44,
+      "method": "GET",
+      "path": "/api/v1/registry/workflows",
+      "source": "api/routers/registry.py"
+    },
+    {
+      "classification": "domain",
+      "function": "report_farm_summary",
+      "line": 40,
+      "method": "GET",
+      "path": "/api/v1/reports/farm-summary",
+      "source": "api/routers/reports.py"
+    },
+    {
+      "classification": "domain",
+      "function": "report_field_summary",
+      "line": 95,
+      "method": "GET",
+      "path": "/api/v1/reports/field/{field_id}/summary",
+      "source": "api/routers/reports.py"
+    },
+    {
+      "classification": "domain",
+      "function": "report_season_summary",
+      "line": 252,
+      "method": "GET",
+      "path": "/api/v1/reports/season/{season_id}/summary",
+      "source": "api/routers/reports.py"
+    },
+    {
+      "classification": "domain",
+      "function": "rotation_evaluate",
+      "line": 33,
+      "method": "GET",
+      "path": "/api/v1/rotation/evaluate",
+      "source": "api/routers/rotation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "rotation_principles_endpoint",
+      "line": 27,
+      "method": "GET",
+      "path": "/api/v1/rotation/principles",
+      "source": "api/routers/rotation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "rotation_suggest",
+      "line": 39,
+      "method": "GET",
+      "path": "/api/v1/rotation/suggest",
+      "source": "api/routers/rotation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "sampling_strategy",
+      "line": 30,
+      "method": "GET",
+      "path": "/api/v1/sampling/strategy",
+      "source": "api/routers/sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_scouting_pins",
+      "line": 77,
+      "method": "GET",
+      "path": "/api/v1/scouting/pins",
+      "source": "api/routers/scouting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scouting_taxonomy",
+      "line": 113,
+      "method": "GET",
+      "path": "/api/v1/scouting/taxonomy",
+      "source": "api/routers/scouting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "seasonal_risk_calendar_endpoint",
+      "line": 27,
+      "method": "GET",
+      "path": "/api/v1/seasonal-risk/calendar",
+      "source": "api/routers/seasonal_risk.py"
+    },
+    {
+      "classification": "domain",
+      "function": "seasonal_risk_chill_endpoint",
+      "line": 39,
+      "method": "GET",
+      "path": "/api/v1/seasonal-risk/chill-hours",
+      "source": "api/routers/seasonal_risk.py"
+    },
+    {
+      "classification": "domain",
+      "function": "seasonal_risk_stage_endpoint",
+      "line": 33,
+      "method": "GET",
+      "path": "/api/v1/seasonal-risk/stage-check",
+      "source": "api/routers/seasonal_risk.py"
+    },
+    {
+      "classification": "domain",
+      "function": "seed_criteria_endpoint",
+      "line": 29,
+      "method": "GET",
+      "path": "/api/v1/seed/criteria",
+      "source": "api/routers/seed.py"
+    },
+    {
+      "classification": "domain",
+      "function": "seed_germination_endpoint",
+      "line": 41,
+      "method": "GET",
+      "path": "/api/v1/seed/germination-rate",
+      "source": "api/routers/seed.py"
+    },
+    {
+      "classification": "domain",
+      "function": "seed_sowing_depth_endpoint",
+      "line": 57,
+      "method": "GET",
+      "path": "/api/v1/seed/sowing-depth",
+      "source": "api/routers/seed.py"
+    },
+    {
+      "classification": "domain",
+      "function": "seed_storage_endpoint",
+      "line": 49,
+      "method": "GET",
+      "path": "/api/v1/seed/storage-check",
+      "source": "api/routers/seed.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_settings",
+      "line": 62,
+      "method": "GET",
+      "path": "/api/v1/settings",
+      "source": "api/routers/settings.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_sharing_keys",
+      "line": 116,
+      "method": "GET",
+      "path": "/api/v1/sharing/keys",
+      "source": "api/routers/sharing.py"
+    },
+    {
+      "classification": "domain",
+      "function": "soil_depth_endpoint",
+      "line": 52,
+      "method": "GET",
+      "path": "/api/v1/soil-sampling/depth",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "soil_protocol_endpoint",
+      "line": 58,
+      "method": "GET",
+      "path": "/api/v1/soil-sampling/protocol",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "soil_subsamples_endpoint",
+      "line": 46,
+      "method": "GET",
+      "path": "/api/v1/soil-sampling/subsamples",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "sync_manifest",
+      "line": 59,
+      "method": "GET",
+      "path": "/api/v1/sync/manifest",
+      "source": "api/routers/sync.py"
+    },
+    {
+      "classification": "domain",
+      "function": "sync_status",
+      "line": 69,
+      "method": "GET",
+      "path": "/api/v1/sync/status",
+      "source": "api/routers/sync.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_tasks",
+      "line": 36,
+      "method": "GET",
+      "path": "/api/v1/tasks",
+      "source": "api/routers/tasks.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_tenant_config",
+      "line": 28,
+      "method": "GET",
+      "path": "/api/v1/tenant/config",
+      "source": "api/routers/tenant.py"
+    },
+    {
+      "classification": "domain",
+      "function": "food_grain_varieties_endpoint",
+      "line": 26,
+      "method": "GET",
+      "path": "/api/v1/varieties/food-grains",
+      "source": "api/routers/varieties.py"
+    },
+    {
+      "classification": "domain",
+      "function": "food_grain_variety_detail_endpoint",
+      "line": 46,
+      "method": "GET",
+      "path": "/api/v1/varieties/food-grains/{variety_id}",
+      "source": "api/routers/varieties.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_method_guide_endpoint",
+      "line": 41,
+      "method": "GET",
+      "path": "/api/v1/water-harvesting/method-guide",
+      "source": "api/routers/water_harvesting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_methods_endpoint",
+      "line": 35,
+      "method": "GET",
+      "path": "/api/v1/water-harvesting/methods",
+      "source": "api/routers/water_harvesting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_potential_endpoint",
+      "line": 27,
+      "method": "GET",
+      "path": "/api/v1/water-harvesting/potential",
+      "source": "api/routers/water_harvesting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_upstream_flood_endpoint",
+      "line": 47,
+      "method": "GET",
+      "path": "/api/v1/water-harvesting/upstream-flood",
+      "source": "api/routers/water_harvesting.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_sensitivity_calendar",
+      "line": 43,
+      "method": "GET",
+      "path": "/api/v1/water-sensitivity/calendar",
+      "source": "api/routers/water_sensitivity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_sensitivity_crops",
+      "line": 37,
+      "method": "GET",
+      "path": "/api/v1/water-sensitivity/crops",
+      "source": "api/routers/water_sensitivity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_sensitivity_wheat_calendar",
+      "line": 52,
+      "method": "GET",
+      "path": "/api/v1/water-sensitivity/wheat-calendar",
+      "source": "api/routers/water_sensitivity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_action_recommendation",
+      "line": 2564,
+      "method": "GET",
+      "path": "/api/v1/weather/action-recommendation",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_alerts",
+      "line": 2629,
+      "method": "GET",
+      "path": "/api/v1/weather/alerts",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_current",
+      "line": 2061,
+      "method": "GET",
+      "path": "/api/v1/weather/current",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_env_doctor",
+      "line": 2040,
+      "method": "GET",
+      "path": "/api/v1/weather/env-doctor",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_field_summary",
+      "line": 2506,
+      "method": "GET",
+      "path": "/api/v1/weather/field-weather-summary",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_forecast",
+      "line": 2067,
+      "method": "GET",
+      "path": "/api/v1/weather/forecast",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_health",
+      "line": 1930,
+      "method": "GET",
+      "path": "/api/v1/weather/health",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_historical",
+      "line": 2073,
+      "method": "GET",
+      "path": "/api/v1/weather/historical",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "historical_weather_coverage",
+      "line": 201,
+      "method": "GET",
+      "path": "/api/v1/weather/history/coverage",
+      "source": "api/routers/operational_truth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "read_historical_weather",
+      "line": 170,
+      "method": "GET",
+      "path": "/api/v1/weather/history/records",
+      "source": "api/routers/operational_truth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_layers_manifest",
+      "line": 2084,
+      "method": "GET",
+      "path": "/api/v1/weather/layers",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_metrics_prometheus",
+      "line": 2313,
+      "method": "GET",
+      "path": "/api/v1/weather/metrics.prom",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_observability",
+      "line": 2282,
+      "method": "GET",
+      "path": "/api/v1/weather/observability",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_operation_plan",
+      "line": 2550,
+      "method": "GET",
+      "path": "/api/v1/weather/operation-plan",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_operation_tile_data",
+      "line": 2427,
+      "method": "GET",
+      "path": "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_operation_window",
+      "line": 2492,
+      "method": "GET",
+      "path": "/api/v1/weather/operation-window",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_probe",
+      "line": 2446,
+      "method": "GET",
+      "path": "/api/v1/weather/probe",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_rate_limit_backend",
+      "line": 2269,
+      "method": "GET",
+      "path": "/api/v1/weather/rate-limit/backend",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_readyz",
+      "line": 1948,
+      "method": "GET",
+      "path": "/api/v1/weather/readyz",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_runtime_contract",
+      "line": 2027,
+      "method": "GET",
+      "path": "/api/v1/weather/runtime-contract",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_runtime_smoke_plan",
+      "line": 2053,
+      "method": "GET",
+      "path": "/api/v1/weather/runtime-smoke-plan",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_self_test",
+      "line": 1962,
+      "method": "GET",
+      "path": "/api/v1/weather/self-test",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_tile_cache_backend",
+      "line": 2262,
+      "method": "GET",
+      "path": "/api/v1/weather/tile-cache/backend",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_tile_cache_stats",
+      "line": 2276,
+      "method": "GET",
+      "path": "/api/v1/weather/tile-cache/stats",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_tile_data",
+      "line": 2404,
+      "method": "GET",
+      "path": "/api/v1/weather/tile-data/{z}/{x}/{y}",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_tile_series",
+      "line": 2984,
+      "method": "GET",
+      "path": "/api/v1/weather/tile-series/{z}/{x}/{y}",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_wind_source_selftest",
+      "line": 1972,
+      "method": "GET",
+      "path": "/api/v1/weather/wind-source-selftest",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "wofost_adaptation_endpoint",
+      "line": 32,
+      "method": "GET",
+      "path": "/api/v1/wofost/adaptation-guidance",
+      "source": "api/routers/wofost.py"
+    },
+    {
+      "classification": "domain",
+      "function": "wofost_crop_types_endpoint",
+      "line": 26,
+      "method": "GET",
+      "path": "/api/v1/wofost/crop-types",
+      "source": "api/routers/wofost.py"
+    },
+    {
+      "classification": "domain",
+      "function": "vegetation_readyz_alias",
+      "line": 42,
+      "method": "GET",
+      "path": "/api/vegetation/readyz",
+      "source": "api/routers/compat_gateway.py"
+    },
+    {
+      "classification": "domain",
+      "function": "vegetation_all_fields_passthrough",
+      "line": 52,
+      "method": "GET",
+      "path": "/api/vegetation/v1/all_fields",
+      "source": "api/routers/compat_gateway.py"
+    },
+    {
+      "classification": "domain",
+      "function": "vegetation_analyze_passthrough",
+      "line": 79,
+      "method": "GET",
+      "path": "/api/vegetation/v1/analyze",
+      "source": "api/routers/compat_gateway.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_readyz_alias",
+      "line": 36,
+      "method": "GET",
+      "path": "/api/weather/readyz",
+      "source": "api/routers/compat_gateway.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_current_commissioning_certificate",
+      "line": 175,
+      "method": "GET",
+      "path": "/commissioning/systems/{system_id}/current",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "developer_portal_index",
+      "line": 192,
+      "method": "GET",
+      "path": "/developer-portal/index",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "graphql_schema",
+      "line": 188,
+      "method": "GET",
+      "path": "/graphql/schema",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "infrastructure",
+      "function": "healthz",
+      "line": 30,
+      "method": "GET",
+      "path": "/healthz",
+      "source": "api/routers/platform_health.py"
+    },
+    {
+      "classification": "domain",
+      "function": "internal_field_state",
+      "line": 24,
+      "method": "GET",
+      "path": "/internal/fields/{field_id}/state",
+      "source": "api/routers/internal_service.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_manual_executions",
+      "line": 236,
+      "method": "GET",
+      "path": "/manual-executions",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "infrastructure",
+      "function": "metrics",
+      "line": 37,
+      "method": "GET",
+      "path": "/metrics",
+      "source": "api/routers/platform_health.py"
+    },
+    {
+      "classification": "domain",
+      "function": "model_serving_resolve",
+      "line": 300,
+      "method": "GET",
+      "path": "/models/serving/{alias:path}",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "mosaicjson",
+      "line": 512,
+      "method": "GET",
+      "path": "/mosaicjson",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ogc_root",
+      "line": 294,
+      "method": "GET",
+      "path": "/ogc",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_ogc_collections",
+      "line": 308,
+      "method": "GET",
+      "path": "/ogc/collections",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ogc_field_items",
+      "line": 315,
+      "method": "GET",
+      "path": "/ogc/collections/fields/items",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ogc_conformance",
+      "line": 301,
+      "method": "GET",
+      "path": "/ogc/conformance",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "raster_tilejson",
+      "line": 531,
+      "method": "GET",
+      "path": "/rasters/{raster_id}/tilejson.json",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "infrastructure",
+      "function": "readyz",
+      "line": 58,
+      "method": "GET",
+      "path": "/readyz",
+      "source": "api/routers/platform_health.py"
+    },
+    {
+      "classification": "infrastructure",
+      "function": "runtime_evidence_identity",
+      "line": 23,
+      "method": "GET",
+      "path": "/runtime-identity",
+      "source": "api/routers/platform_health.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scene_processing_plan",
+      "line": 261,
+      "method": "GET",
+      "path": "/scene-processing-plan",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scene_ranking",
+      "line": 244,
+      "method": "GET",
+      "path": "/scene-ranking",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "sdk_manifest",
+      "line": 184,
+      "method": "GET",
+      "path": "/sdk/manifest",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "stac_root",
+      "line": 178,
+      "method": "GET",
+      "path": "/stac",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "list_stac_collections",
+      "line": 199,
+      "method": "GET",
+      "path": "/stac/collections",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_collection",
+      "line": 496,
+      "method": "GET",
+      "path": "/stac/collections/{collection_id}",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "stac_conformance",
+      "line": 185,
+      "method": "GET",
+      "path": "/stac/conformance",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_stac_queryables",
+      "line": 192,
+      "method": "GET",
+      "path": "/stac/queryables",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "stac_search",
+      "line": 475,
+      "method": "GET",
+      "path": "/stac/search",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "get_tile_cache_plan",
+      "line": 278,
+      "method": "GET",
+      "path": "/tile-cache-plan",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "acknowledge_alert",
+      "line": 204,
+      "method": "PATCH",
+      "path": "/api/v1/alerts/{alert_id}/acknowledge",
+      "source": "api/routers/alerts.py"
+    },
+    {
+      "classification": "domain",
+      "function": "update_drawing_feature",
+      "line": 535,
+      "method": "PATCH",
+      "path": "/api/v1/drawing-features/{feature_id}",
+      "source": "api/routers/drawing_features.py"
+    },
+    {
+      "classification": "domain",
+      "function": "update_field",
+      "line": 1269,
+      "method": "PATCH",
+      "path": "/api/v1/fields/{field_id}",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "review_field_boundary",
+      "line": 35,
+      "method": "PATCH",
+      "path": "/api/v1/fields/{field_id}/boundary/review",
+      "source": "api/routers/boundaries.py"
+    },
+    {
+      "classification": "domain",
+      "function": "update_season",
+      "line": 2327,
+      "method": "PATCH",
+      "path": "/api/v1/fields/{field_id}/seasons/{season_id}",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "update_soil_lab_test",
+      "line": 3285,
+      "method": "PATCH",
+      "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "update_task",
+      "line": 86,
+      "method": "PATCH",
+      "path": "/api/v1/tasks/{task_id}",
+      "source": "api/routers/tasks.py"
+    },
+    {
+      "classification": "domain",
+      "function": "agents_propose",
+      "line": 124,
+      "method": "POST",
+      "path": "/agents/propose",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "plan_ai_boundary_extraction",
+      "line": 341,
+      "method": "POST",
+      "path": "/ai-boundary/plan",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "chat",
+      "line": 109,
+      "method": "POST",
+      "path": "/api/chat",
+      "source": "api/chat_proxy_reference.py"
+    },
+    {
+      "classification": "domain",
+      "function": "request_break_glass",
+      "line": 140,
+      "method": "POST",
+      "path": "/api/v1/admin/break-glass",
+      "source": "api/routers/break_glass.py"
+    },
+    {
+      "classification": "domain",
+      "function": "admin_requeue_all_dead_letter",
+      "line": 100,
+      "method": "POST",
+      "path": "/api/v1/admin/events/dead-letter/requeue-all",
+      "source": "api/routers/admin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "admin_requeue_dead_letter",
+      "line": 82,
+      "method": "POST",
+      "path": "/api/v1/admin/events/dead-letter/{outbox_id}/requeue",
+      "source": "api/routers/admin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "admin_outbox_requeue_dead_letter",
+      "line": 158,
+      "method": "POST",
+      "path": "/api/v1/admin/outbox/dead-letter/requeue",
+      "source": "api/routers/admin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_risk_endpoint",
+      "line": 153,
+      "method": "POST",
+      "path": "/api/v1/agro/crop-risk",
+      "source": "api/routers/agro_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_rotation_endpoint",
+      "line": 188,
+      "method": "POST",
+      "path": "/api/v1/agro/crop-rotation",
+      "source": "api/routers/agro_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "decision_playbook_endpoint",
+      "line": 213,
+      "method": "POST",
+      "path": "/api/v1/agro/decision-playbook",
+      "source": "api/routers/agro_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "persist_kc",
+      "line": 86,
+      "method": "POST",
+      "path": "/api/v1/agro/kc-timeseries",
+      "source": "api/routers/kc_timeseries.py"
+    },
+    {
+      "classification": "domain",
+      "function": "plant_soil_feedback_endpoint",
+      "line": 166,
+      "method": "POST",
+      "path": "/api/v1/agro/plant-soil-feedback",
+      "source": "api/routers/agro_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "plant_soil_feedback_trend_endpoint",
+      "line": 174,
+      "method": "POST",
+      "path": "/api/v1/agro/plant-soil-feedback/trend",
+      "source": "api/routers/agro_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "season_comparison_endpoint",
+      "line": 205,
+      "method": "POST",
+      "path": "/api/v1/agro/season-comparison",
+      "source": "api/routers/agro_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_alert",
+      "line": 97,
+      "method": "POST",
+      "path": "/api/v1/alerts",
+      "source": "api/routers/alerts.py"
+    },
+    {
+      "classification": "domain",
+      "function": "astronomical_cross_check",
+      "line": 34,
+      "method": "POST",
+      "path": "/api/v1/astronomical-timing/cross-check",
+      "source": "api/routers/astronomical_timing.py"
+    },
+    {
+      "classification": "domain",
+      "function": "login",
+      "line": 46,
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "source": "api/routers/auth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "auth_logout",
+      "line": 103,
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "source": "api/routers/auth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "auth_signup",
+      "line": 131,
+      "method": "POST",
+      "path": "/api/v1/auth/signup",
+      "source": "api/routers/auth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "automation_run_alerts_endpoint",
+      "line": 163,
+      "method": "POST",
+      "path": "/api/v1/automation/alerts/run",
+      "source": "api/routers/automation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "imagery_register_field_endpoint",
+      "line": 125,
+      "method": "POST",
+      "path": "/api/v1/automation/imagery/register-field",
+      "source": "api/routers/automation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_register_endpoint",
+      "line": 75,
+      "method": "POST",
+      "path": "/api/v1/automation/weather/register",
+      "source": "api/routers/automation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "compute_learning_feedback",
+      "line": 195,
+      "method": "POST",
+      "path": "/api/v1/calibration/feedback",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "propose_region_adaptation",
+      "line": 213,
+      "method": "POST",
+      "path": "/api/v1/calibration/{region}/adapt",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "propose_region_adaptation_from_evidence",
+      "line": 246,
+      "method": "POST",
+      "path": "/api/v1/calibration/{region}/adapt-from-evidence",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "apply_region_adaptation_from_evidence",
+      "line": 301,
+      "method": "POST",
+      "path": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "compute_region_evidence",
+      "line": 123,
+      "method": "POST",
+      "path": "/api/v1/calibration/{region}/evidence",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "set_region_override",
+      "line": 442,
+      "method": "POST",
+      "path": "/api/v1/calibration/{region}/override",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "propose_region_values",
+      "line": 419,
+      "method": "POST",
+      "path": "/api/v1/calibration/{region}/propose-values",
+      "source": "api/routers/calibration.py"
+    },
+    {
+      "classification": "domain",
+      "function": "cameras_register",
+      "line": 36,
+      "method": "POST",
+      "path": "/api/v1/cameras/register",
+      "source": "api/routers/cameras.py"
+    },
+    {
+      "classification": "domain",
+      "function": "cameras_snapshot_evidence",
+      "line": 57,
+      "method": "POST",
+      "path": "/api/v1/cameras/snapshot-evidence",
+      "source": "api/routers/cameras.py"
+    },
+    {
+      "classification": "domain",
+      "function": "chemical_safety_check",
+      "line": 30,
+      "method": "POST",
+      "path": "/api/v1/chemical-safety/check",
+      "source": "api/routers/chemical_safety.py"
+    },
+    {
+      "classification": "domain",
+      "function": "confidence_gate",
+      "line": 26,
+      "method": "POST",
+      "path": "/api/v1/confidence-gate",
+      "source": "api/routers/confidence_gate.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_rec_confidence",
+      "line": 53,
+      "method": "POST",
+      "path": "/api/v1/confidence/irrigation",
+      "source": "api/routers/confidence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ndvi_confidence",
+      "line": 34,
+      "method": "POST",
+      "path": "/api/v1/confidence/ndvi",
+      "source": "api/routers/confidence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_suitability",
+      "line": 30,
+      "method": "POST",
+      "path": "/api/v1/crop-suitability",
+      "source": "api/routers/crop_suitability.py"
+    },
+    {
+      "classification": "domain",
+      "function": "compose_crop_twin",
+      "line": 299,
+      "method": "POST",
+      "path": "/api/v1/crop-twin/compose",
+      "source": "api/routers/crop_twin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_decision_endpoint",
+      "line": 458,
+      "method": "POST",
+      "path": "/api/v1/crop-twin/decision",
+      "source": "api/routers/crop_twin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "crop_decision_candidate_endpoint",
+      "line": 351,
+      "method": "POST",
+      "path": "/api/v1/crop-twin/decision-candidate",
+      "source": "api/routers/crop_twin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "profit_aware_decision_endpoint",
+      "line": 584,
+      "method": "POST",
+      "path": "/api/v1/crop-twin/decision/profit-aware",
+      "source": "api/routers/crop_twin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "data_readiness",
+      "line": 29,
+      "method": "POST",
+      "path": "/api/v1/data-readiness",
+      "source": "api/routers/data_readiness.py"
+    },
+    {
+      "classification": "domain",
+      "function": "consume_dispatch_queue",
+      "line": 427,
+      "method": "POST",
+      "path": "/api/v1/decision/dispatch/consume",
+      "source": "api/routers/decision_dispatch.py"
+    },
+    {
+      "classification": "domain",
+      "function": "evaluate_dispatch_endpoint",
+      "line": 194,
+      "method": "POST",
+      "path": "/api/v1/decision/dispatch/evaluate",
+      "source": "api/routers/decision_dispatch.py"
+    },
+    {
+      "classification": "domain",
+      "function": "execute_dispatch_endpoint",
+      "line": 243,
+      "method": "POST",
+      "path": "/api/v1/decision/dispatch/execute",
+      "source": "api/routers/decision_dispatch.py"
+    },
+    {
+      "classification": "domain",
+      "function": "record_execution_outcome",
+      "line": 563,
+      "method": "POST",
+      "path": "/api/v1/decision/ledger",
+      "source": "api/routers/decision_dispatch.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_policy",
+      "line": 81,
+      "method": "POST",
+      "path": "/api/v1/decision/policies",
+      "source": "api/routers/decision_policies.py"
+    },
+    {
+      "classification": "domain",
+      "function": "resolve_policy_endpoint",
+      "line": 147,
+      "method": "POST",
+      "path": "/api/v1/decision/policies/resolve",
+      "source": "api/routers/decision_policies.py"
+    },
+    {
+      "classification": "domain",
+      "function": "record_decision",
+      "line": 326,
+      "method": "POST",
+      "path": "/api/v1/decision/record",
+      "source": "api/routers/decision_record.py"
+    },
+    {
+      "classification": "domain",
+      "function": "unified_decision_endpoint",
+      "line": 125,
+      "method": "POST",
+      "path": "/api/v1/decision/unified",
+      "source": "api/routers/decision_dispatch.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_decision_execution_plan",
+      "line": 187,
+      "method": "POST",
+      "path": "/api/v1/decisions/{decision_id}/execution-plan",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "review_decision_candidate",
+      "line": 106,
+      "method": "POST",
+      "path": "/api/v1/decisions/{decision_id}/review",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "register_device",
+      "line": 41,
+      "method": "POST",
+      "path": "/api/v1/devices",
+      "source": "api/routers/devices.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ingest_telemetry",
+      "line": 122,
+      "method": "POST",
+      "path": "/api/v1/devices/{device_id}/telemetry",
+      "source": "api/routers/devices.py"
+    },
+    {
+      "classification": "domain",
+      "function": "diagnose_symptoms",
+      "line": 31,
+      "method": "POST",
+      "path": "/api/v1/diagnose",
+      "source": "api/routers/diagnose.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_authorized_execution_request",
+      "line": 392,
+      "method": "POST",
+      "path": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "register_document",
+      "line": 35,
+      "method": "POST",
+      "path": "/api/v1/documents",
+      "source": "api/routers/documents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_drawing_feature",
+      "line": 467,
+      "method": "POST",
+      "path": "/api/v1/drawing-features",
+      "source": "api/routers/drawing_features.py"
+    },
+    {
+      "classification": "domain",
+      "function": "validate_drawing_feature_topology",
+      "line": 444,
+      "method": "POST",
+      "path": "/api/v1/drawing-features/validate",
+      "source": "api/routers/drawing_features.py"
+    },
+    {
+      "classification": "domain",
+      "function": "economics_feasibility_endpoint",
+      "line": 31,
+      "method": "POST",
+      "path": "/api/v1/economics/feasibility",
+      "source": "api/routers/economics.py"
+    },
+    {
+      "classification": "domain",
+      "function": "edge_sync_receive",
+      "line": 23,
+      "method": "POST",
+      "path": "/api/v1/edge/sync",
+      "source": "api/routers/edge.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_equipment",
+      "line": 37,
+      "method": "POST",
+      "path": "/api/v1/equipment",
+      "source": "api/routers/equipment.py"
+    },
+    {
+      "classification": "domain",
+      "function": "log_maintenance",
+      "line": 112,
+      "method": "POST",
+      "path": "/api/v1/equipment/{equipment_id}/maintenance",
+      "source": "api/routers/equipment.py"
+    },
+    {
+      "classification": "domain",
+      "function": "record_erp_reconciliation",
+      "line": 220,
+      "method": "POST",
+      "path": "/api/v1/erp/reconciliations",
+      "source": "api/routers/operational_truth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "escalation_assess",
+      "line": 22,
+      "method": "POST",
+      "path": "/api/v1/escalation/assess",
+      "source": "api/routers/escalation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "evidence_corroborate",
+      "line": 25,
+      "method": "POST",
+      "path": "/api/v1/evidence/corroborate",
+      "source": "api/routers/evidence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "authorize_execution_plan_dispatch",
+      "line": 327,
+      "method": "POST",
+      "path": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "verify_execution_outcome_boundary",
+      "line": 459,
+      "method": "POST",
+      "path": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "check_failures",
+      "line": 29,
+      "method": "POST",
+      "path": "/api/v1/failures/check",
+      "source": "api/routers/failures.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_entry",
+      "line": 246,
+      "method": "POST",
+      "path": "/api/v1/farm-book/entries",
+      "source": "api/routers/simple_farm_book.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_party",
+      "line": 129,
+      "method": "POST",
+      "path": "/api/v1/farm-book/parties",
+      "source": "api/routers/simple_farm_book.py"
+    },
+    {
+      "classification": "domain",
+      "function": "operation_autowrite_preview",
+      "line": 863,
+      "method": "POST",
+      "path": "/api/v1/farm-ledger/autowrite-preview",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "upsert_season_budget_lines",
+      "line": 527,
+      "method": "POST",
+      "path": "/api/v1/farm-ledger/budgets",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_operation_ledger_record",
+      "line": 210,
+      "method": "POST",
+      "path": "/api/v1/farm-ledger/operations",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_revenue_record",
+      "line": 636,
+      "method": "POST",
+      "path": "/api/v1/farm-ledger/revenues",
+      "source": "api/routers/farm_operations_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_farm",
+      "line": 35,
+      "method": "POST",
+      "path": "/api/v1/farms",
+      "source": "api/routers/farms.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_intelligence_analyze",
+      "line": 468,
+      "method": "POST",
+      "path": "/api/v1/field-intelligence/analyze",
+      "source": "api/routers/field_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_intelligence_analyze_job_cancel",
+      "line": 525,
+      "method": "POST",
+      "path": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
+      "source": "api/routers/field_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "allocate_portfolio_endpoint",
+      "line": 75,
+      "method": "POST",
+      "path": "/api/v1/field-portfolio/allocate",
+      "source": "api/routers/field_portfolio.py"
+    },
+    {
+      "classification": "domain",
+      "function": "optimize_portfolio",
+      "line": 34,
+      "method": "POST",
+      "path": "/api/v1/field-portfolio/optimize",
+      "source": "api/routers/field_portfolio.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_field",
+      "line": 593,
+      "method": "POST",
+      "path": "/api/v1/fields",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "rebuild_boundary_graph",
+      "line": 243,
+      "method": "POST",
+      "path": "/api/v1/fields/boundary-graph/rebuild",
+      "source": "api/routers/boundaries.py"
+    },
+    {
+      "classification": "domain",
+      "function": "import_field",
+      "line": 617,
+      "method": "POST",
+      "path": "/api/v1/fields/import",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "merge_fields",
+      "line": 1828,
+      "method": "POST",
+      "path": "/api/v1/fields/merge",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "split_field",
+      "line": 1953,
+      "method": "POST",
+      "path": "/api/v1/fields/split",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "validate_geometry",
+      "line": 3559,
+      "method": "POST",
+      "path": "/api/v1/fields/validate-geometry",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_activity",
+      "line": 2890,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/activities",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "evaluate_field_alerts_endpoint",
+      "line": 3412,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/alerts/evaluate",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "clean_field_boundary",
+      "line": 180,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/boundary/clean",
+      "source": "api/routers/boundaries.py"
+    },
+    {
+      "classification": "domain",
+      "function": "score_field_boundary",
+      "line": 78,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/boundary/score",
+      "source": "api/routers/boundaries.py"
+    },
+    {
+      "classification": "domain",
+      "function": "daily_ai_brief_endpoint",
+      "line": 106,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/daily-ai-brief",
+      "source": "api/routers/productivity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_etc_dual",
+      "line": 227,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/etc-dual",
+      "source": "api/routers/etc_dual.py"
+    },
+    {
+      "classification": "domain",
+      "function": "revert_field_geometry",
+      "line": 1604,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/geometry/revert/{revision}",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_growth_narrative",
+      "line": 3162,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/growth-narrative",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_imagery_backfill_proxy",
+      "line": 958,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/imagery/backfill",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_imagery_process_date_proxy",
+      "line": 699,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/imagery/process-date",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "refresh_field_imagery",
+      "line": 755,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/imagery/refresh",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_irrigation_recommendation",
+      "line": 244,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
+      "source": "api/routers/irrigation_recommendation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_mpc_hourly_recommendation",
+      "line": 499,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
+      "source": "api/routers/irrigation_mpc.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_mpc_recommendation",
+      "line": 319,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
+      "source": "api/routers/irrigation_mpc.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_ndvi_analysis",
+      "line": 34,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/ndvi-analysis",
+      "source": "api/routers/ndvi_analysis.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_pin",
+      "line": 3831,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/pins",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_prescription",
+      "line": 176,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/prescriptions",
+      "source": "api/routers/prescriptions.py"
+    },
+    {
+      "classification": "domain",
+      "function": "prescribe_nitrogen",
+      "line": 3592,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "productivity_zones_endpoint",
+      "line": 64,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/productivity-zones",
+      "source": "api/routers/productivity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "add_crop_rotation",
+      "line": 3431,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/rotations",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_season",
+      "line": 2089,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/seasons",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_soil_lab_test",
+      "line": 3202,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/soil-lab-tests",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_timeline",
+      "line": 3694,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/timeline",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "apply_trueup",
+      "line": 3500,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/trueup",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_walk_plan",
+      "line": 3914,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/walk-plan",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_walk_plan_pdf",
+      "line": 3924,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "upsert_water_ledger",
+      "line": 77,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/water-ledger",
+      "source": "api/routers/water_ledger.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_water_twin",
+      "line": 145,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/water-twin",
+      "source": "api/routers/water_twin.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_wind_drift_risk",
+      "line": 2719,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/wind/drift-risk",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "estimate_field_yield",
+      "line": 3621,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/yield-estimate",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_yield_interval_endpoint",
+      "line": 48,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/yield-interval",
+      "source": "api/routers/yield_interval.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ingest_yield_map",
+      "line": 78,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
+      "source": "api/routers/yield_map_ingestion.py"
+    },
+    {
+      "classification": "domain",
+      "function": "zone_sampling_plan_endpoint",
+      "line": 83,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/zone-sampling-plan",
+      "source": "api/routers/productivity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "field_zones",
+      "line": 3943,
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/zones",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "gdd_track",
+      "line": 44,
+      "method": "POST",
+      "path": "/api/v1/gdd/track",
+      "source": "api/routers/gdd.py"
+    },
+    {
+      "classification": "domain",
+      "function": "gis_buffer",
+      "line": 117,
+      "method": "POST",
+      "path": "/api/v1/gis/buffer",
+      "source": "api/routers/gis_kernel.py"
+    },
+    {
+      "classification": "domain",
+      "function": "gis_split",
+      "line": 207,
+      "method": "POST",
+      "path": "/api/v1/gis/split",
+      "source": "api/routers/gis_kernel.py"
+    },
+    {
+      "classification": "domain",
+      "function": "gis_union",
+      "line": 166,
+      "method": "POST",
+      "path": "/api/v1/gis/union",
+      "source": "api/routers/gis_kernel.py"
+    },
+    {
+      "classification": "domain",
+      "function": "gis_validate",
+      "line": 256,
+      "method": "POST",
+      "path": "/api/v1/gis/validate",
+      "source": "api/routers/gis_kernel.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_harvest_lot",
+      "line": 57,
+      "method": "POST",
+      "path": "/api/v1/harvest-lots",
+      "source": "api/routers/harvest_traceability.py"
+    },
+    {
+      "classification": "domain",
+      "function": "add_custody_event",
+      "line": 195,
+      "method": "POST",
+      "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
+      "source": "api/routers/harvest_traceability.py"
+    },
+    {
+      "classification": "domain",
+      "function": "introduction_field_fit_endpoint",
+      "line": 40,
+      "method": "POST",
+      "path": "/api/v1/introduction/field-fit",
+      "source": "api/routers/introduction.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_inventory_item",
+      "line": 39,
+      "method": "POST",
+      "path": "/api/v1/inventory/items",
+      "source": "api/routers/inventory.py"
+    },
+    {
+      "classification": "domain",
+      "function": "add_inventory_batch",
+      "line": 120,
+      "method": "POST",
+      "path": "/api/v1/inventory/items/{item_id}/batches",
+      "source": "api/routers/inventory.py"
+    },
+    {
+      "classification": "domain",
+      "function": "compute_gross",
+      "line": 42,
+      "method": "POST",
+      "path": "/api/v1/irrigation-method/gross",
+      "source": "api/routers/irrigation_method.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_plan_endpoint",
+      "line": 110,
+      "method": "POST",
+      "path": "/api/v1/irrigation-plan",
+      "source": "api/routers/irrigation_plan.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_recommendation",
+      "line": 168,
+      "method": "POST",
+      "path": "/api/v1/irrigation-recommendation",
+      "source": "api/routers/irrigation_recommendation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "reconcile_irrigation_execution",
+      "line": 540,
+      "method": "POST",
+      "path": "/api/v1/irrigation/executions/reconcile",
+      "source": "api/routers/irrigation_mpc.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_mpc_plan",
+      "line": 95,
+      "method": "POST",
+      "path": "/api/v1/irrigation/mpc/plan",
+      "source": "api/routers/irrigation_mpc.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_mpc_simulate",
+      "line": 286,
+      "method": "POST",
+      "path": "/api/v1/irrigation/mpc/simulate",
+      "source": "api/routers/irrigation_mpc.py"
+    },
+    {
+      "classification": "domain",
+      "function": "network_feasibility_endpoint",
+      "line": 54,
+      "method": "POST",
+      "path": "/api/v1/irrigation/network/feasibility",
+      "source": "api/routers/irrigation_network.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_schedule",
+      "line": 235,
+      "method": "POST",
+      "path": "/api/v1/irrigation/schedules",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "register_valve",
+      "line": 99,
+      "method": "POST",
+      "path": "/api/v1/irrigation/valves",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "set_valve_state",
+      "line": 178,
+      "method": "POST",
+      "path": "/api/v1/irrigation/valves/{valve_id}/state",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "irrigation_water_analysis",
+      "line": 396,
+      "method": "POST",
+      "path": "/api/v1/irrigation/water-analysis",
+      "source": "api/routers/irrigation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_lab_sample",
+      "line": 168,
+      "method": "POST",
+      "path": "/api/v1/lab/samples",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "transition_lab_sample",
+      "line": 293,
+      "method": "POST",
+      "path": "/api/v1/lab/samples/{sample_id}/transition",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "submit_soil_lab_result",
+      "line": 189,
+      "method": "POST",
+      "path": "/api/v1/lab/soil-results",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "submit_water_lab_result",
+      "line": 261,
+      "method": "POST",
+      "path": "/api/v1/lab/water-results",
+      "source": "api/routers/soil_sampling.py"
+    },
+    {
+      "classification": "domain",
+      "function": "claim_registry_activation_command_bff",
+      "line": 830,
+      "method": "POST",
+      "path": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "record_registry_activation_receipt_bff",
+      "line": 867,
+      "method": "POST",
+      "path": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_registry_rollback_command_bff",
+      "line": 899,
+      "method": "POST",
+      "path": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "register_model_activation_request_boundary",
+      "line": 728,
+      "method": "POST",
+      "path": "/api/v1/learning/activation-requests",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "review_model_activation_request_boundary",
+      "line": 776,
+      "method": "POST",
+      "path": "/api/v1/learning/activation-requests/{activation_request_id}/review",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "register_model_evaluation_boundary",
+      "line": 632,
+      "method": "POST",
+      "path": "/api/v1/learning/evaluation-runs",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "external_prior_blend",
+      "line": 31,
+      "method": "POST",
+      "path": "/api/v1/learning/external-prior-blend",
+      "source": "api/routers/learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "register_model_promotion_decision_boundary",
+      "line": 683,
+      "method": "POST",
+      "path": "/api/v1/learning/promotion-decisions",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "validate_transition",
+      "line": 31,
+      "method": "POST",
+      "path": "/api/v1/lifecycle/validate-transition",
+      "source": "api/routers/lifecycle.py"
+    },
+    {
+      "classification": "domain",
+      "function": "link_lineage_ref",
+      "line": 60,
+      "method": "POST",
+      "path": "/api/v1/lineage/link",
+      "source": "api/routers/execution_lineage.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_master_data",
+      "line": 34,
+      "method": "POST",
+      "path": "/api/v1/master-data",
+      "source": "api/routers/master_data.py"
+    },
+    {
+      "classification": "domain",
+      "function": "nl_gis_query_endpoint",
+      "line": 198,
+      "method": "POST",
+      "path": "/api/v1/nl-gis/query",
+      "source": "api/routers/nl_gis.py"
+    },
+    {
+      "classification": "domain",
+      "function": "nl_sql_endpoint",
+      "line": 70,
+      "method": "POST",
+      "path": "/api/v1/nl-sql",
+      "source": "api/routers/nl_sql.py"
+    },
+    {
+      "classification": "domain",
+      "function": "upsert_notification_delivery",
+      "line": 175,
+      "method": "POST",
+      "path": "/api/v1/notifications/delivery",
+      "source": "api/routers/notifications.py"
+    },
+    {
+      "classification": "domain",
+      "function": "nutrient_4r_plan",
+      "line": 30,
+      "method": "POST",
+      "path": "/api/v1/nutrients/4r-plan",
+      "source": "api/routers/nutrients.py"
+    },
+    {
+      "classification": "domain",
+      "function": "observations",
+      "line": 33,
+      "method": "POST",
+      "path": "/api/v1/observations",
+      "source": "api/routers/observations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "submit_onboarding",
+      "line": 45,
+      "method": "POST",
+      "path": "/api/v1/onboarding/responses",
+      "source": "api/routers/onboarding.py"
+    },
+    {
+      "classification": "domain",
+      "function": "measure_decision_outcome",
+      "line": 42,
+      "method": "POST",
+      "path": "/api/v1/outcome/measure",
+      "source": "api/routers/outcome.py"
+    },
+    {
+      "classification": "domain",
+      "function": "record_outcome",
+      "line": 429,
+      "method": "POST",
+      "path": "/api/v1/outcome/record",
+      "source": "api/routers/decision_record.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_learning_attribution_boundary",
+      "line": 522,
+      "method": "POST",
+      "path": "/api/v1/outcomes/{outcome_id}/learning-attribution",
+      "source": "api/routers/decision_review.py"
+    },
+    {
+      "classification": "domain",
+      "function": "pest_escalation_run",
+      "line": 33,
+      "method": "POST",
+      "path": "/api/v1/pest-escalation/run",
+      "source": "api/routers/pest_escalation.py"
+    },
+    {
+      "classification": "domain",
+      "function": "portfolio_command_endpoint",
+      "line": 69,
+      "method": "POST",
+      "path": "/api/v1/portfolio/command",
+      "source": "api/routers/portfolio_command.py"
+    },
+    {
+      "classification": "domain",
+      "function": "recommendations",
+      "line": 103,
+      "method": "POST",
+      "path": "/api/v1/recommendations",
+      "source": "api/routers/recommendations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "generate_crop_candidates",
+      "line": 262,
+      "method": "POST",
+      "path": "/api/v1/recommendations/candidates",
+      "source": "api/routers/recommendations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "economic_adaptation_endpoint",
+      "line": 236,
+      "method": "POST",
+      "path": "/api/v1/recommendations/economic-adaptation",
+      "source": "api/routers/recommendations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "recommendations_for_field",
+      "line": 129,
+      "method": "POST",
+      "path": "/api/v1/recommendations/for-field",
+      "source": "api/routers/recommendations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "record_recommendation_outcome",
+      "line": 327,
+      "method": "POST",
+      "path": "/api/v1/recommendations/outcomes",
+      "source": "api/routers/recommendations.py"
+    },
+    {
+      "classification": "domain",
+      "function": "replay_reconstruct",
+      "line": 31,
+      "method": "POST",
+      "path": "/api/v1/replay/reconstruct",
+      "source": "api/routers/replay.py"
+    },
+    {
+      "classification": "domain",
+      "function": "build_report",
+      "line": 357,
+      "method": "POST",
+      "path": "/api/v1/reports/build",
+      "source": "api/routers/reports.py"
+    },
+    {
+      "classification": "domain",
+      "function": "operation_report_csv",
+      "line": 307,
+      "method": "POST",
+      "path": "/api/v1/reports/operation",
+      "source": "api/routers/reports.py"
+    },
+    {
+      "classification": "domain",
+      "function": "salinity_assess_endpoint",
+      "line": 29,
+      "method": "POST",
+      "path": "/api/v1/salinity/assess",
+      "source": "api/routers/salinity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scenario_planting_date",
+      "line": 185,
+      "method": "POST",
+      "path": "/api/v1/scenario/planting-date",
+      "source": "api/routers/scenario.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scenario_rainfall",
+      "line": 235,
+      "method": "POST",
+      "path": "/api/v1/scenario/rainfall",
+      "source": "api/routers/scenario.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scenario_temperature",
+      "line": 142,
+      "method": "POST",
+      "path": "/api/v1/scenario/temperature",
+      "source": "api/routers/scenario.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scenario_water_twin",
+      "line": 113,
+      "method": "POST",
+      "path": "/api/v1/scenario/water-twin",
+      "source": "api/routers/scenario.py"
+    },
+    {
+      "classification": "domain",
+      "function": "simulate_season_endpoint",
+      "line": 131,
+      "method": "POST",
+      "path": "/api/v1/seasons/{season_id}/simulate",
+      "source": "api/routers/seasons.py"
+    },
+    {
+      "classification": "domain",
+      "function": "seed_evaluate_endpoint",
+      "line": 35,
+      "method": "POST",
+      "path": "/api/v1/seed/evaluate-source",
+      "source": "api/routers/seed.py"
+    },
+    {
+      "classification": "domain",
+      "function": "generate_share_key",
+      "line": 45,
+      "method": "POST",
+      "path": "/api/v1/sharing/generate-key",
+      "source": "api/routers/sharing.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_sharing_key",
+      "line": 85,
+      "method": "POST",
+      "path": "/api/v1/sharing/keys",
+      "source": "api/routers/sharing.py"
+    },
+    {
+      "classification": "domain",
+      "function": "simulate_what_if",
+      "line": 27,
+      "method": "POST",
+      "path": "/api/v1/simulate/what-if",
+      "source": "api/routers/simulate.py"
+    },
+    {
+      "classification": "domain",
+      "function": "sync",
+      "line": 91,
+      "method": "POST",
+      "path": "/api/v1/sync",
+      "source": "api/routers/sync.py"
+    },
+    {
+      "classification": "domain",
+      "function": "temporal_check",
+      "line": 33,
+      "method": "POST",
+      "path": "/api/v1/temporal/check",
+      "source": "api/routers/temporal.py"
+    },
+    {
+      "classification": "domain",
+      "function": "temporal_coherence",
+      "line": 59,
+      "method": "POST",
+      "path": "/api/v1/temporal/coherence",
+      "source": "api/routers/temporal.py"
+    },
+    {
+      "classification": "domain",
+      "function": "analyze_trial",
+      "line": 29,
+      "method": "POST",
+      "path": "/api/v1/trials/analyze",
+      "source": "api/routers/trials.py"
+    },
+    {
+      "classification": "domain",
+      "function": "compute_water_balance",
+      "line": 65,
+      "method": "POST",
+      "path": "/api/v1/water-balance",
+      "source": "api/routers/water_balance.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_sensitivity_integrated",
+      "line": 67,
+      "method": "POST",
+      "path": "/api/v1/water-sensitivity/integrated-advice",
+      "source": "api/routers/water_sensitivity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "water_sensitivity_stress",
+      "line": 58,
+      "method": "POST",
+      "path": "/api/v1/water-sensitivity/stress-risk",
+      "source": "api/routers/water_sensitivity.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_analyze_endpoint",
+      "line": 24,
+      "method": "POST",
+      "path": "/api/v1/weather-analytics/analyze",
+      "source": "api/routers/weather_analytics.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_planting_guide_endpoint",
+      "line": 39,
+      "method": "POST",
+      "path": "/api/v1/weather-analytics/planting-guide",
+      "source": "api/routers/weather_analytics.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_alerts_notify",
+      "line": 2698,
+      "method": "POST",
+      "path": "/api/v1/weather/alerts/notify",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ingest_historical_weather",
+      "line": 94,
+      "method": "POST",
+      "path": "/api/v1/weather/history/records",
+      "source": "api/routers/operational_truth.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_recommendation_from_operation_plan",
+      "line": 2893,
+      "method": "POST",
+      "path": "/api/v1/weather/recommendations/from-operation-plan",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_create_task_from_operation_plan",
+      "line": 2792,
+      "method": "POST",
+      "path": "/api/v1/weather/tasks/from-operation-plan",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "weather_tile_cache_prune",
+      "line": 2329,
+      "method": "POST",
+      "path": "/api/v1/weather/tile-cache/prune",
+      "source": "api/routers/weather.py"
+    },
+    {
+      "classification": "domain",
+      "function": "work_order_from_recommendation_endpoint",
+      "line": 302,
+      "method": "POST",
+      "path": "/api/v1/work-orders/from-recommendation",
+      "source": "api/routers/agro_intelligence.py"
+    },
+    {
+      "classification": "domain",
+      "function": "calculate_engineering",
+      "line": 61,
+      "method": "POST",
+      "path": "/calculate",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "champion_challenger",
+      "line": 224,
+      "method": "POST",
+      "path": "/champion-challenger",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "register_cog",
+      "line": 419,
+      "method": "POST",
+      "path": "/cog-registry",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "evaluate_execution_authorization",
+      "line": 199,
+      "method": "POST",
+      "path": "/commissioning/authorize",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "issue_commissioning_certificate",
+      "line": 110,
+      "method": "POST",
+      "path": "/commissioning/certificates",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "connector_descriptor",
+      "line": 170,
+      "method": "POST",
+      "path": "/connectors/descriptor",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "consensus",
+      "line": 131,
+      "method": "POST",
+      "path": "/consensus",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "context",
+      "line": 114,
+      "method": "POST",
+      "path": "/context",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "learning_cycle",
+      "line": 196,
+      "method": "POST",
+      "path": "/cycle",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "cycle",
+      "line": 170,
+      "method": "POST",
+      "path": "/cycle",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "ecosystem_cycle",
+      "line": 238,
+      "method": "POST",
+      "path": "/cycle",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "run_cycle",
+      "line": 147,
+      "method": "POST",
+      "path": "/cycle",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "dataset",
+      "line": 151,
+      "method": "POST",
+      "path": "/dataset",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "drift",
+      "line": 208,
+      "method": "POST",
+      "path": "/drift",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "upsert_editing_session",
+      "line": 556,
+      "method": "POST",
+      "path": "/editing-sessions",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "editing_session_undo_redo",
+      "line": 359,
+      "method": "POST",
+      "path": "/editing-sessions/undo-redo",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "events_from_plan",
+      "line": 195,
+      "method": "POST",
+      "path": "/events/from-plan",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "replay_events",
+      "line": 201,
+      "method": "POST",
+      "path": "/events/replay",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "assign_variant",
+      "line": 188,
+      "method": "POST",
+      "path": "/experiments/assign",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "experiment_evaluation",
+      "line": 181,
+      "method": "POST",
+      "path": "/experiments/evaluate",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "shadow_experiment",
+      "line": 151,
+      "method": "POST",
+      "path": "/experiments/shadow",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "feature_schema",
+      "line": 146,
+      "method": "POST",
+      "path": "/feature-schema",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "feature_store_offline_dataset",
+      "line": 243,
+      "method": "POST",
+      "path": "/feature-store/offline-dataset",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "feature_store_online_materialization",
+      "line": 253,
+      "method": "POST",
+      "path": "/feature-store/online-materialization",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "feature_store_point_in_time",
+      "line": 261,
+      "method": "POST",
+      "path": "/feature-store/point-in-time",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "feature_store_register",
+      "line": 236,
+      "method": "POST",
+      "path": "/feature-store/register",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "export_geoparquet",
+      "line": 645,
+      "method": "POST",
+      "path": "/geoparquet/export",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "calculate_interactive_engineering",
+      "line": 72,
+      "method": "POST",
+      "path": "/interactive-calculate",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "internal_ai_advice_event",
+      "line": 44,
+      "method": "POST",
+      "path": "/internal/events/ai-advice",
+      "source": "api/routers/internal_service.py"
+    },
+    {
+      "classification": "domain",
+      "function": "preview_iot_dispatch",
+      "line": 216,
+      "method": "POST",
+      "path": "/iot/dispatch/preview",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "simulate_iot_dispatch",
+      "line": 229,
+      "method": "POST",
+      "path": "/iot/dispatch/simulate",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "verify_iot_telemetry",
+      "line": 250,
+      "method": "POST",
+      "path": "/iot/telemetry/verify",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "acquire_geometry_lock",
+      "line": 591,
+      "method": "POST",
+      "path": "/locks",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "summarize_management_zones",
+      "line": 351,
+      "method": "POST",
+      "path": "/management-zones/summary",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_manual_execution",
+      "line": 274,
+      "method": "POST",
+      "path": "/manual-executions",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "confirm_manual_execution",
+      "line": 425,
+      "method": "POST",
+      "path": "/manual-executions/{execution_id}/confirm",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "reconcile_manual_execution_to_water_ledger",
+      "line": 574,
+      "method": "POST",
+      "path": "/manual-executions/{execution_id}/reconcile",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "transition_manual_execution_endpoint",
+      "line": 353,
+      "method": "POST",
+      "path": "/manual-executions/{execution_id}/transition",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "verify_manual_execution",
+      "line": 485,
+      "method": "POST",
+      "path": "/manual-executions/{execution_id}/verify",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_marketplace_app",
+      "line": 136,
+      "method": "POST",
+      "path": "/marketplace/apps",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "install_app",
+      "line": 142,
+      "method": "POST",
+      "path": "/marketplace/installations",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "model_promotion",
+      "line": 161,
+      "method": "POST",
+      "path": "/models/promote",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "model_register",
+      "line": 268,
+      "method": "POST",
+      "path": "/models/register",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "register_model",
+      "line": 174,
+      "method": "POST",
+      "path": "/models/register",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "model_serving_promote",
+      "line": 283,
+      "method": "POST",
+      "path": "/models/serving/promote",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "model_serving_rollback",
+      "line": 290,
+      "method": "POST",
+      "path": "/models/serving/rollback",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "calculate_network_engineering",
+      "line": 85,
+      "method": "POST",
+      "path": "/network-calculate",
+      "source": "api/routers/irrigation_engineering.py"
+    },
+    {
+      "classification": "domain",
+      "function": "online_update",
+      "line": 171,
+      "method": "POST",
+      "path": "/online-update",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "operation_plan",
+      "line": 141,
+      "method": "POST",
+      "path": "/operation-plan",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "phase6_extract_boundary",
+      "line": 671,
+      "method": "POST",
+      "path": "/phase6/boundaries/extract",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "phase6_digital_twin_snapshot",
+      "line": 739,
+      "method": "POST",
+      "path": "/phase6/digital-twin/snapshot",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "phase6_generate_management_zones",
+      "line": 690,
+      "method": "POST",
+      "path": "/phase6/management-zones/generate",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "phase6_generate_prescription_map",
+      "line": 706,
+      "method": "POST",
+      "path": "/phase6/prescriptions/generate",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "phase6_profitability_map",
+      "line": 727,
+      "method": "POST",
+      "path": "/phase6/profitability-map",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "phase6_yield_stability",
+      "line": 719,
+      "method": "POST",
+      "path": "/phase6/yield-stability",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_execution_plan",
+      "line": 111,
+      "method": "POST",
+      "path": "/plan",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "plugin_runtime_event_envelope",
+      "line": 225,
+      "method": "POST",
+      "path": "/plugins/runtime/event-envelope",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "plugin_runtime_plan",
+      "line": 210,
+      "method": "POST",
+      "path": "/plugins/runtime/plan",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "plugin_runtime_report",
+      "line": 234,
+      "method": "POST",
+      "path": "/plugins/runtime/report",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "plugin_runtime_validate_output",
+      "line": 221,
+      "method": "POST",
+      "path": "/plugins/runtime/validate-output",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "sandbox_policy",
+      "line": 154,
+      "method": "POST",
+      "path": "/plugins/sandbox-policy",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "validate_plugin",
+      "line": 132,
+      "method": "POST",
+      "path": "/plugins/validate",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "quality",
+      "line": 165,
+      "method": "POST",
+      "path": "/quality",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "quota_check",
+      "line": 206,
+      "method": "POST",
+      "path": "/quota/check",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "retraining_plan",
+      "line": 217,
+      "method": "POST",
+      "path": "/retraining/plan",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "runtime_authority_envelope",
+      "line": 205,
+      "method": "POST",
+      "path": "/runtime/authority-envelope",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "runtime_event_envelope",
+      "line": 223,
+      "method": "POST",
+      "path": "/runtime/event-envelope",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "runtime_reputation_update",
+      "line": 212,
+      "method": "POST",
+      "path": "/runtime/reputation/update",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "runtime_resolve",
+      "line": 194,
+      "method": "POST",
+      "path": "/runtime/resolve",
+      "source": "api/phase11_federated_agents.py"
+    },
+    {
+      "classification": "domain",
+      "function": "scenario",
+      "line": 191,
+      "method": "POST",
+      "path": "/scenario",
+      "source": "api/phase10_continuous_learning.py"
+    },
+    {
+      "classification": "domain",
+      "function": "stac_search_post",
+      "line": 214,
+      "method": "POST",
+      "path": "/stac/search",
+      "source": "api/routers/gis_cloud_native.py"
+    },
+    {
+      "classification": "domain",
+      "function": "usage_record",
+      "line": 196,
+      "method": "POST",
+      "path": "/usage",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "edge_sync_receive",
+      "line": 24,
+      "method": "POST",
+      "path": "/v1/edge/sync",
+      "source": "api/routers/edge.py"
+    },
+    {
+      "classification": "domain",
+      "function": "verify_execution",
+      "line": 133,
+      "method": "POST",
+      "path": "/verify",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "command_verification_loop",
+      "line": 206,
+      "method": "POST",
+      "path": "/verify-loop",
+      "source": "api/phase9_autonomous_farm_os.py"
+    },
+    {
+      "classification": "domain",
+      "function": "create_webhook",
+      "line": 158,
+      "method": "POST",
+      "path": "/webhooks",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "webhook_delivery_plan",
+      "line": 166,
+      "method": "POST",
+      "path": "/webhooks/delivery-plan",
+      "source": "api/phase12_marketplace_ecosystem.py"
+    },
+    {
+      "classification": "domain",
+      "function": "update_field",
+      "line": 1268,
+      "method": "PUT",
+      "path": "/api/v1/fields/{field_id}",
+      "source": "api/routers/fields.py"
+    },
+    {
+      "classification": "domain",
+      "function": "update_notification_preferences",
+      "line": 84,
+      "method": "PUT",
+      "path": "/api/v1/notifications/preferences",
+      "source": "api/routers/notifications.py"
+    },
+    {
+      "classification": "domain",
+      "function": "upsert_setting",
+      "line": 29,
+      "method": "PUT",
+      "path": "/api/v1/settings",
+      "source": "api/routers/settings.py"
+    }
+  ],
+  "schema_version": "sahool.platform-route-budget-inventory.v1"
+}

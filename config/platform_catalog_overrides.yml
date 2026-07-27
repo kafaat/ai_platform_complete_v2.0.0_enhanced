@@ -78,8 +78,6 @@ duplicate_route_classifications:
      decision: "عقد حيويّة Kubernetes محلّيّ بالخدمة."}
   - {method: GET, path: /metrics, classification: standard_observability,
      decision: "عقد مقاييس Prometheus محلّيّ بالخدمة."}
-  - {method: GET, path: /runtime-identity, classification: standard_observability,
-     decision: "عقد هويّة بناء/صورة محلّيّ بالخدمة (git_sha/build_id/image_digest من ملفّ صورة للقراءة فقط) — لربط أدلّة التحقّق التشغيليّ بالصورة المنشورة؛ لكلّ خدمة نسختها."}
   - {method: GET, path: /products, classification: service_scoped_semantics, expires_on: "2026-12-31",
      decision: "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما."}
   - {method: GET, path: /readyz, classification: standard_readiness,

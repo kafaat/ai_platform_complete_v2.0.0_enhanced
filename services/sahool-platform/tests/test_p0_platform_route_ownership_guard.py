@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import ast
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 PLATFORM = ROOT / "services" / "sahool-platform"
 MAP_PATH = ROOT / "docs" / "architecture" / "platform_extraction_map.json"
 METHODS = {"get", "post", "put", "patch", "delete", "api_route"}
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from shared.governance.platform_route_budget import is_infrastructure_route  # noqa: E402
 
 
 def _decorator_route(dec: ast.AST):
@@ -72,8 +77,20 @@ def test_every_platform_route_has_explicit_target_owner():
 
 def test_platform_route_budget_does_not_grow():
     baseline = json.loads(MAP_PATH.read_text(encoding="utf-8"))
-    current_count = len(_current_platform_routes())
+    raw_routes = _current_platform_routes()
+    domain_routes = []
+    infrastructure_routes = []
+    for route_key in raw_routes:
+        # route key: api/file.py::METHOD /path::function
+        method_path = route_key.split("::", 2)[1]
+        method, path = method_path.split(" ", 1)
+        target = infrastructure_routes if is_infrastructure_route(method, path) else domain_routes
+        target.append(route_key)
+    current_count = len(domain_routes)
+    assert len(raw_routes) == len(domain_routes) + len(infrastructure_routes)
+    assert any("GET /runtime-identity" in key for key in infrastructure_routes)
     assert current_count <= int(baseline["baseline_route_count"]), (
-        f"sahool-platform route count grew from {baseline['baseline_route_count']} to {current_count}. "
-        "Add new domain endpoints to their owner service, not to sahool-platform, or update the extraction budget deliberately."
+        f"sahool-platform domain route count grew from {baseline['baseline_route_count']} to {current_count} "
+        f"(raw={len(raw_routes)}, infrastructure={len(infrastructure_routes)}). "
+        "Add new domain endpoints to their owner service, not to sahool-platform, or update the domain budget deliberately."
     )

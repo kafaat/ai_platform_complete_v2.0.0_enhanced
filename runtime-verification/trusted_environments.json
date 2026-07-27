@@ -1,16 +1,27 @@
 {
   "environments": [
     {
+      "candidate_ttl_minutes": 240,
       "classification": "runtime-verification",
       "eligible_for_runtime_verified": true,
       "environment_id": "staging-pg16",
       "github_environment": "staging-pg16",
+      "preserve_status_taxonomy": true,
+      "production_certification_via_runtime_verification": false,
+      "promotion_mode": "pull-request-only",
       "replay_marker_retention_days": 90,
+      "require_approval_branch_restrictions": true,
+      "require_exact_target_sha_at_apply": true,
       "require_external_provenance_receipt": true,
+      "require_policy_digest_revalidation": true,
       "require_pull_by_digest": true,
+      "require_repository_retained_attestation_chain": true,
+      "required_approval_environment": "runtime-verification-approval",
+      "required_approval_reviewers_min": 1,
       "required_evidence_signer_environment": "staging-pg16-attestation",
       "required_evidence_signer_workflow": ".github/workflows/path3-runtime-verification.yml",
       "required_image_builder_workflow": ".github/workflows/runtime-image-provenance.yml",
+      "required_promotion_workflow": ".github/workflows/runtime-verification-promotion.yml",
       "required_runner_labels": [
         "self-hosted",
         "linux",

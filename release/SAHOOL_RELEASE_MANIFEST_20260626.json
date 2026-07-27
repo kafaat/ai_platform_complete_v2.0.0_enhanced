@@ -7,10 +7,10 @@
       "migrations": 230,
       "mobile": 68,
       "prometheus": 2,
-      "scripts": 308,
+      "scripts": 312,
       "services": 1935,
-      "shared": 133,
-      "tests": 103
+      "shared": 134,
+      "tests": 107
     }
   },
   "deployment_gates": [
@@ -35,8 +35,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 5145,
-  "generated_at": "2026-07-27T20:32:27.297586+00:00",
+  "file_count": 5164,
+  "generated_at": "2026-07-27T21:16:14.765243+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -84,6 +84,9 @@
     ".github/workflows/release-artifact-attestation.yml",
     ".github/workflows/runtime-image-provenance.yml",
     ".github/workflows/path3-runtime-verification.yml",
+    ".github/workflows/runtime-verification-promotion.yml",
+    "scripts/ci/runtime_verification_apply.py",
+    "runtime-verification/apply-ledger/README.md",
     "scripts/ci/provenance_receipt.py",
     "scripts/ci/runtime_replay_guard.py",
     "scripts/ci/prepare_attested_runtime_images.py",
@@ -129,5 +132,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 54260383
+  "total_size_bytes": 54491139
 }

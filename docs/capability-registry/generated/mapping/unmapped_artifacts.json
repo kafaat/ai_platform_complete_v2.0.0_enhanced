@@ -5528,6 +5528,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_p3_4_weather_facade_neutral.py",
     "kind": "tests"
   },
