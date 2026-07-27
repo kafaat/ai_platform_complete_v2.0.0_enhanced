@@ -16,6 +16,7 @@ on:
       - "tests/architecture/test_platform_route_budget_guard.py"
       - "tests/architecture/test_platform_route_ownership_guard.py"
       - "tests/architecture/test_platform_route_governance_attestation.py"
+      - "tests/architecture/test_platform_infrastructure_route_placement.py"
       - ".github/workflows/platform-route-budget.yml"
   push:
     branches: [main]
@@ -57,6 +58,10 @@ jobs:
           python scripts/ci/platform_route_governance_attestation.py \
             --check-generated \
             --json-output platform-route-governance-attestation-result.json
+      - name: Enforce canonical infrastructure-route placement
+        run: |
+          python -m pytest -q \
+            tests/architecture/test_platform_infrastructure_route_placement.py
       - name: Upload transparent route inventories and attestation
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
