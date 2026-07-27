@@ -20,7 +20,7 @@
 ## مسارات المنصّة — الموضع القانونيّ وميزانية النطاق
 
 - **`services/sahool-platform/api/main.py` خالٍ من المسارات بالعقد.** `scripts/ci/p1_main_decomposition_guard.py` يرفض **أيّ** مُزخرِف مسار فيه ويحدّ عدد أسطره. كلّ مسار جديد يذهب إلى `api/routers/`.
-- **مسارات البنية/الـprovenance** (`/healthz` · `/readyz` · `/metrics` · `/runtime-identity`) موضعها القانونيّ **`api/routers/platform_health.py`**، مُعلَنة آليّاً في `scripts/ci/platform_route_classification.py::CANONICAL_DECLARATION_SITES` ومفروضة بـ`tests/architecture/test_platform_infrastructure_route_placement.py` (يفشل برسالة تسمّي الملفّ الصحيح).
+- **مسارات البنية/الـprovenance** (`/healthz` · `/readyz` · `/metrics` · `/runtime-identity`) موضعها القانونيّ **`api/routers/platform_health.py`**، مُعلَنة كبيانات في `docs/architecture/platform_route_placement_contract.json` (`required_source` + `forbidden_sources` + `required_function` + `uniqueness`) ومفروضة بـ`scripts/ci/platform_route_placement_guard.py` — حارس مستقلّ يعمل بلا pytest داخل وظيفة `platform-route-budget`، ويفشل برسالة تسمّي الملفّ الصحيح.
 - **الميزانية:** الراتشِت يحدّ **مسارات النطاق فقط** (`domain ≤ 629`). مسارات البنية تُستثنى عبر allowlist صريحة (method + مسار مُطبَّع، لا substring) بينما يبقى **الجرد الخام ظاهراً** (630). التصنيف يقول ما هو المسار؛ خريطة الموضع تقول أين ينتمي — والاستثناء من الميزانية **لا** يرخّص إعلانه في `main.py`.
 - **لا ترفع السقف ولا تحذف نقطة provenance** لحلّ تعارض ميزانية؛ صنّفها بصدق أو ضعها في خدمتها.
 

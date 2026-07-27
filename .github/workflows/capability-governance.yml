@@ -132,5 +132,4 @@ jobs:
             tests/architecture/test_path3_run_attestation.py \
             tests/architecture/test_path3_attestation_policy.py \
             tests/architecture/test_path3_live_acceptance_gate.py \
-            tests/architecture/test_platform_infrastructure_route_placement.py \
             tests/architecture/test_static_governance_closure.py

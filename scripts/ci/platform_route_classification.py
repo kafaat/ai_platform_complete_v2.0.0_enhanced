@@ -26,21 +26,6 @@ INFRASTRUCTURE_ROUTES: frozenset[tuple[str, str]] = frozenset(
     }
 )
 
-# Canonical declaration site per infrastructure route — WHERE it must be declared, not
-# merely that it exists. `api/main.py` is route-free by contract
-# (scripts/ci/p1_main_decomposition_guard.py rejects ANY route decorator there and caps
-# its LOC), so every platform infrastructure route lives in the health router. This is
-# declared machine-readably because generated/imported patches repeatedly re-added
-# GET /runtime-identity to api/main.py, where it breaks P1 while looking harmless.
-#
-# Excluding a route from the domain budget does NOT license declaring it anywhere: the
-# classification says what it *is*, this map says where it *belongs*.
-CANONICAL_DECLARATION_SITES: dict[tuple[str, str], str] = {
-    ("GET", "/healthz"): "api/routers/platform_health.py",
-    ("GET", "/readyz"): "api/routers/platform_health.py",
-    ("GET", "/metrics"): "api/routers/platform_health.py",
-    ("GET", "/runtime-identity"): "api/routers/platform_health.py",
-}
 
 _MULTI_SLASH_RE = re.compile(r"/{2,}")
 
