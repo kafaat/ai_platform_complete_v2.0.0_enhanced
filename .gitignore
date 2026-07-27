@@ -45,3 +45,6 @@ artifacts/
 
 # Hypothesis example database (test cache; never commit — trips security audit on BYPASSRLS constants)
 .hypothesis/
+
+# Functional runtime probe evidence is produced live, never committed (keeps the repo at the honest baseline)
+runtime-verification/functional_evidence/

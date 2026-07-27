@@ -3644,6 +3644,28 @@
     ]
   },
   {
+    "path": "runtime-verification/functional_probes/weather-service.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      },
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      }
+    ]
+  },
+  {
     "path": "scripts/certification/evidence_lab.py",
     "kind": "other",
     "candidates": [
