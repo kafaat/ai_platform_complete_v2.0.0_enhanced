@@ -418,7 +418,7 @@
       "version": "5.24.0"
     },
     {
-      "bom-ref": "urn:uuid:120206388b6c49a0b53658de837bfaab",
+      "bom-ref": "urn:uuid:2cb17afbaebc48cf19e247a3986c82d9",
       "name": "postcss",
       "properties": [
         {
@@ -426,9 +426,9 @@
           "value": "frontend/package.json"
         }
       ],
-      "purl": "pkg:npm/postcss@8.4.38",
+      "purl": "pkg:npm/postcss@8.5.23",
       "type": "library",
-      "version": "8.4.38"
+      "version": "8.5.23"
     },
     {
       "bom-ref": "urn:uuid:a174a73993e72d7dbd730b7cf39adda2",
@@ -483,17 +483,17 @@
       "version": "5.0.0"
     },
     {
-      "bom-ref": "urn:uuid:ce1fe72dc3e33ac45f9b15674150f542",
-      "name": "react-router-dom",
+      "bom-ref": "urn:uuid:c43f2040142e7e1690f2d136fcbd64cf",
+      "name": "react-router",
       "properties": [
         {
           "name": "sahool:source-manifest",
           "value": "frontend/package.json"
         }
       ],
-      "purl": "pkg:npm/react-router-dom@6.23.0",
+      "purl": "pkg:npm/react-router@8.3.0",
       "type": "library",
-      "version": "6.23.0"
+      "version": "8.3.0"
     },
     {
       "bom-ref": "urn:uuid:03199d62ae34a1eec6e116ac0971c767",

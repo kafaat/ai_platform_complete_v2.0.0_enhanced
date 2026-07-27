@@ -1,0 +1,51 @@
+{
+  "environments": [
+    {
+      "classification": "runtime-verification",
+      "eligible_for_runtime_verified": true,
+      "environment_id": "staging-pg16",
+      "github_environment": "staging-pg16",
+      "replay_marker_retention_days": 90,
+      "require_external_provenance_receipt": true,
+      "require_pull_by_digest": true,
+      "required_evidence_signer_environment": "staging-pg16-attestation",
+      "required_evidence_signer_workflow": ".github/workflows/path3-runtime-verification.yml",
+      "required_image_builder_workflow": ".github/workflows/runtime-image-provenance.yml",
+      "required_runner_labels": [
+        "self-hosted",
+        "linux",
+        "docker",
+        "sahool-path3-trusted"
+      ],
+      "trusted_issuers": [
+        "github-actions-oidc",
+        "sahool-staging-hmac"
+      ]
+    },
+    {
+      "classification": "diagnostic-only",
+      "eligible_for_runtime_verified": false,
+      "environment_id": "local",
+      "trusted_issuers": []
+    },
+    {
+      "classification": "diagnostic-only",
+      "eligible_for_runtime_verified": false,
+      "environment_id": "sandbox",
+      "trusted_issuers": []
+    }
+  ],
+  "issuers": [
+    {
+      "algorithm": "hmac-sha256",
+      "issuer": "sahool-staging-hmac",
+      "verification_key_env": "SAHOOL_RUNTIME_EVIDENCE_HMAC_KEY"
+    },
+    {
+      "algorithm": "external-oidc-attestation",
+      "issuer": "github-actions-oidc",
+      "note": "Receipts from this issuer require an external provenance verifier; the local bridge rejects them until a verifier is configured."
+    }
+  ],
+  "schema_version": "1.0"
+}

@@ -7,10 +7,10 @@
       "migrations": 230,
       "mobile": 68,
       "prometheus": 2,
-      "scripts": 303,
+      "scripts": 308,
       "services": 1935,
-      "shared": 132,
-      "tests": 98
+      "shared": 133,
+      "tests": 102
     }
   },
   "deployment_gates": [
@@ -35,8 +35,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 5129,
-  "generated_at": "2026-07-27T15:08:42.422339+00:00",
+  "file_count": 5144,
+  "generated_at": "2026-07-27T20:06:30.870812+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -82,6 +82,11 @@
     ".github/workflows/scene-provenance-ui.yml",
     ".github/workflows/sim-golden-certification.yml",
     ".github/workflows/release-artifact-attestation.yml",
+    ".github/workflows/runtime-image-provenance.yml",
+    ".github/workflows/path3-runtime-verification.yml",
+    "scripts/ci/provenance_receipt.py",
+    "scripts/ci/runtime_replay_guard.py",
+    "scripts/ci/prepare_attested_runtime_images.py",
     ".github/workflows/secret-history-scan.yml",
     ".github/workflows/transitive-lock-certification.yml",
     ".github/workflows/raster-service-gates.yml",
@@ -124,5 +129,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 54162681
+  "total_size_bytes": 54257429
 }

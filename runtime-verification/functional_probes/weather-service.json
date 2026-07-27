@@ -26,10 +26,24 @@
         "valid_time": "2026-07-06T12:00:00Z"
       },
       "response_assertions": [
-        {"field": "et0_mm", "type": "number", "min": 2.0, "max": 6.0},
-        {"field": "method", "equals": "fao56_penman_monteith"},
-        {"field": "formula_version", "equals": "et0/fao56-pm/1.0.0"},
-        {"field": "quality_status", "equals": "validated"}
+        {
+          "field": "et0_mm",
+          "type": "number",
+          "min": 2.0,
+          "max": 6.0
+        },
+        {
+          "field": "method",
+          "equals": "fao56_penman_monteith"
+        },
+        {
+          "field": "formula_version",
+          "equals": "et0/fao56-pm/1.0.0"
+        },
+        {
+          "field": "quality_status",
+          "equals": "validated"
+        }
       ]
     },
     {
@@ -40,16 +54,34 @@
       "deterministic": true,
       "expected_status": 200,
       "request_body": {
-        "daily_t_min": [10.0, 12.0, 11.0],
-        "daily_t_max": [25.0, 28.0, 26.0],
+        "daily_t_min": [
+          10.0,
+          12.0,
+          11.0
+        ],
+        "daily_t_max": [
+          25.0,
+          28.0,
+          26.0
+        ],
         "base_c": 10.0,
         "upper_cutoff_c": 30.0,
         "method": "modified"
       },
       "response_assertions": [
-        {"field": "accumulated_gdd", "type": "number", "equals": 26.0, "tolerance": 0.001},
-        {"field": "quality_status", "equals": "validated"}
+        {
+          "field": "accumulated_gdd",
+          "type": "number",
+          "equals": 26.0,
+          "tolerance": 0.001
+        },
+        {
+          "field": "quality_status",
+          "equals": "validated"
+        }
       ]
     }
-  ]
+  ],
+  "identity_path": "/runtime-identity",
+  "openapi_path": "/openapi.json"
 }

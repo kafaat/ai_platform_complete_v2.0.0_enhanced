@@ -1,0 +1,175 @@
+{
+  "certification": {
+    "blockers": [
+      {
+        "blocker_id": "P-CERT-1",
+        "file": "certification/evidence/ci_summary.json",
+        "name": "Full branch CI",
+        "status": "not_verified",
+        "timestamp_utc": "2026-07-27T19:43:52Z",
+        "waivable": false
+      },
+      {
+        "blocker_id": "P-CERT-2",
+        "file": "certification/evidence/transitive_locks_summary.json",
+        "name": "Connected transitive lock generation",
+        "status": "pending",
+        "timestamp_utc": null,
+        "waivable": false
+      },
+      {
+        "blocker_id": "P-CERT-3",
+        "file": "certification/evidence/redis_live_test_summary.json",
+        "name": "Redis live integration",
+        "status": "pending",
+        "timestamp_utc": null,
+        "waivable": true
+      },
+      {
+        "blocker_id": "P-CERT-4",
+        "file": "certification/evidence/model_provisioning_summary.json",
+        "name": "ONNX/SAM2 model provisioning",
+        "status": "not_verified",
+        "timestamp_utc": "2026-07-27T19:43:52Z",
+        "waivable": false
+      }
+    ],
+    "production_certified": false,
+    "qdrant_restore_drill": {
+      "required_for_disaster_recovery": true,
+      "status": "missing"
+    },
+    "sim_golden": {
+      "eligible_for_promotion": false,
+      "status": "missing"
+    }
+  },
+  "checks": [
+    {
+      "exit_code": 0,
+      "name": "ci_contract",
+      "output_sha256": "ebd9124efc80c09fd71b97af762135d8765cbf553b2e19e54c23855cf437b04b",
+      "output_tail": "CI/CD gate validation passed",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "production_honesty",
+      "output_sha256": "56ee68429d2dce6d3f0780b6e4c57b71c028ad1f7f51aa3974c59807f7bf5754",
+      "output_tail": "\u2713 production honesty guard passed",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "production_truth",
+      "output_sha256": "ba8587ac3d32212def7e60e78078a28f76c9493a162d783f9df8698e391c9cec",
+      "output_tail": "PASS vegetation synthetic generator removed\nPASS vegetation current NDVI authoritative\nPASS vegetation readiness raster-aware\nPASS agriai readiness pcse-aware\nPASS runtime work docs mention leases",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "runtime_contract",
+      "output_sha256": "7547c4d1772ce625234249b051e01353dbc9dfbba8275cb67305a070080338aa",
+      "output_tail": "runtime-readiness contract: OK",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "minio_isolation",
+      "output_sha256": "6e4312615fa116dae0f92029ca41a109d282da416b98aa420bbbed295e0dff4f",
+      "output_tail": "\u2713 MinIO/S3 credential and storage contract is consistent",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "supply_chain",
+      "output_sha256": "30dc1b51fe19678de2a015d32531ddd6ae03cde5d9adbae0e7b15e88f081ca2f",
+      "output_tail": "container image pin guard passed: 20 images",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "release_attestation",
+      "output_sha256": "3e775b8826efb8b08f1aec32e7443ae8b21223c9080d391435c8faa6f742af4c",
+      "output_tail": "release attestation guard: PASSED",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "secret_history_scan",
+      "output_sha256": "1ddd379159b2463d3edd78ae25a1c18669be65175055b8abaee7d90fe3a6d6f2",
+      "output_tail": "secret history scan guard: PASSED",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "github_actions_policy",
+      "output_sha256": "ce28fad7759eaf1d3e0201ec681937d4e98400b7bddf25aa3a2b7c3f805a8e97",
+      "output_tail": "GitHub Actions policy guard: PASSED (193 immutable references)",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "waiver_expiry",
+      "output_sha256": "02e423496c05f9cb5aaaf7e273dea79993d8fbd085cc53b5e17d109ac5e8a695",
+      "output_tail": "waiver_expiry_guard_ok (scanned 2 waiver file(s); today=2026-07-27)",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "frontend_reproducibility",
+      "output_sha256": "3a1669e8c0d1470daf57030b5e85f123c1615baf4efe6eca4a46fb0555b301ee",
+      "output_tail": "frontend reproducibility guard: PASSED (3 npm ci installs)",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "scene_provenance_ui",
+      "output_sha256": "31c777a54dab1ea74f6d6ccc1aea618dd171126bc1040f9b215683c10591ca51",
+      "output_tail": "scene provenance UI guard: PASS",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "evidence_pack",
+      "output_sha256": "97c9fab363f31f443633a5b2ce45614a16f78eab89ac5327cde1ed48c42e4b99",
+      "output_tail": "production_evidence_pack_check_ok",
+      "status": "passed"
+    },
+    {
+      "exit_code": 0,
+      "name": "certification_checklist",
+      "output_sha256": "637572af31f0f6838fb237ace48eb4ae4b7290450bd08dff448a95cf91ddc13a",
+      "output_tail": "production_certification_checklist_ok",
+      "status": "passed"
+    },
+    {
+      "exit_code": 1,
+      "name": "release_package",
+      "output_sha256": "2d8b65a9750dab8f71c42ba3d86cae02c31c074bfdd76f1257e7909ccdda80f0",
+      "output_tail": "checksum mismatch: certification/evidence/production_evidence_manifest.generated.json",
+      "status": "failed"
+    },
+    {
+      "exit_code": 0,
+      "name": "dependency_resolution",
+      "output_sha256": "d3da3bf4a7adcbdf95e17de7945a7f8915c02e67000e40d107379804a3cd7e87",
+      "output_tail": "pip_audit_resolution_guard_ok",
+      "status": "passed"
+    }
+  ],
+  "generated_at_utc": "2026-07-27T20:02:32.207224+00:00",
+  "not_executed_by_this_gate": [
+    "python_and_raster_test_suites",
+    "frontend_typecheck_vitest_and_build",
+    "playwright_real_browser",
+    "npm_and_pip_vulnerability_audits",
+    "release_archive_scan_and_signature",
+    "live_database_messaging_models_restore_and_soak"
+  ],
+  "production_certified": false,
+  "schema_version": 1,
+  "scope": "static_source_contracts_only",
+  "static_ready": false,
+  "verdict": "blocked"
+}

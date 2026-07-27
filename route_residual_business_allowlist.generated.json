@@ -793,6 +793,22 @@
       "method": "POST",
       "path": "/predict",
       "function": "predict"
+    },
+    {
+      "service": "soil-service",
+      "file": "services/soil-service/main.py",
+      "line": 198,
+      "method": "GET",
+      "path": "/runtime-identity",
+      "function": "runtime_evidence_identity"
+    },
+    {
+      "service": "weather-service",
+      "file": "services/weather-service/main.py",
+      "line": 55,
+      "method": "GET",
+      "path": "/runtime-identity",
+      "function": "runtime_evidence_identity"
     }
   ]
 }

@@ -146,3 +146,5 @@ scout-ingest-service,services/scout-ingest-service/main.py,183,GET,/readyz,ready
 scout-ingest-service,services/scout-ingest-service/main.py,216,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint
 scout-ingest-service,services/scout-ingest-service/main.py,335,POST,/internal/ingest/submissions/odk,ingest_odk_submission,internal_endpoint
 scout-ingest-service,services/scout-ingest-service/main.py,344,POST,/internal/ingest/submissions/kobo,ingest_kobo_submission,internal_endpoint
+soil-service,services/soil-service/main.py,198,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
+weather-service,services/weather-service/main.py,55,GET,/runtime-identity,runtime_evidence_identity,business_endpoint

@@ -3,12 +3,12 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1803,
-    "route_handlers": 1038,
-    "call_edges": 70380,
+    "python_files_parsed": 1804,
+    "route_handlers": 1040,
+    "call_edges": 70405,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 57,
-    "route_owners": 25,
+    "route_owners": 26,
     "automatic_deletions": 0
   },
   "routes": [
@@ -7486,6 +7486,14 @@
     },
     {
       "owner": "soil-service",
+      "file": "services/soil-service/main.py",
+      "line": 198,
+      "handler": "runtime_evidence_identity",
+      "method": "GET",
+      "path": "/runtime-identity"
+    },
+    {
+      "owner": "soil-service",
       "file": "services/soil-service/routers/canonical.py",
       "line": 22,
       "handler": "create_observation",
@@ -8315,6 +8323,14 @@
       "handler": "record_stop",
       "method": "POST",
       "path": "/streams/{stream_id}/record/stop"
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/main.py",
+      "line": 55,
+      "handler": "runtime_evidence_identity",
+      "method": "GET",
+      "path": "/runtime-identity"
     }
   ],
   "call_edges": [
@@ -428824,6 +428840,20 @@
     },
     {
       "owner": "soil-service",
+      "file": "services/soil-service/main.py",
+      "source": "runtime_evidence_identity",
+      "target": "get",
+      "line": 197
+    },
+    {
+      "owner": "soil-service",
+      "file": "services/soil-service/main.py",
+      "source": "runtime_evidence_identity",
+      "target": "load_build_identity",
+      "line": 201
+    },
+    {
+      "owner": "soil-service",
       "file": "services/soil-service/modbus_decoder.py",
       "source": "crc16_modbus",
       "target": "range",
@@ -460391,6 +460421,20 @@
       "source": "compute_lodging_risk",
       "target": "round",
       "line": 133
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/main.py",
+      "source": "runtime_evidence_identity",
+      "target": "get",
+      "line": 54
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/main.py",
+      "source": "runtime_evidence_identity",
+      "target": "load_build_identity",
+      "line": 58
     },
     {
       "owner": "weather-service",
@@ -497575,6 +497619,153 @@
       "source": "test_digital_twin_snapshot_rolls_up_health_and_alerts",
       "target": "len",
       "line": 79
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "lru_cache",
+      "line": 25
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "Path",
+      "line": 29
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "loads",
+      "line": 31
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "read_text",
+      "line": 31
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "BuildIdentityError",
+      "line": 33
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "isinstance",
+      "line": 34
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "BuildIdentityError",
+      "line": 35
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "get",
+      "line": 36
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "BuildIdentityError",
+      "line": 37
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "get",
+      "line": 38
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "get",
+      "line": 39
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "fullmatch",
+      "line": 40
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "isinstance",
+      "line": 40
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "BuildIdentityError",
+      "line": 41
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "fullmatch",
+      "line": 42
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "isinstance",
+      "line": 42
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "BuildIdentityError",
+      "line": 43
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "get",
+      "line": 48
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "str",
+      "line": 48
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "get",
+      "line": 49
+    },
+    {
+      "owner": "shared",
+      "file": "shared/runtime_identity.py",
+      "source": "load_build_identity",
+      "target": "str",
+      "line": 49
     },
     {
       "owner": "shared",

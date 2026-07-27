@@ -933,6 +933,7 @@ scout-ingest-service,POST,/internal/seasons/{season_id}/events,add_season_event,
 scout-ingest-service,POST,/internal/seasons/{season_id}/harvest,set_season_harvest,services/scout-ingest-service/season_api.py,583
 scout-ingest-service,POST,/internal/seasons/{season_id}/costs,add_season_cost,services/scout-ingest-service/season_api.py,624
 scout-ingest-service,GET,/internal/seasons/{season_id}/detail,season_detail,services/scout-ingest-service/season_api.py,668
+soil-service,GET,/runtime-identity,runtime_evidence_identity,services/soil-service/main.py,198
 soil-service,POST,/v1/soil/observations,create_observation,services/soil-service/routers/canonical.py,22
 soil-service,GET,/v1/fields/{field_id}/soil/observations,observations,services/soil-service/routers/canonical.py,43
 soil-service,POST,/v1/fields/{field_id}/soil/profile/rebuild,rebuild_profile,services/soil-service/routers/canonical.py,60
@@ -1037,3 +1038,4 @@ video-processor,POST,/streams/{stream_id}/snapshot,snapshot,services/video-proce
 video-processor,GET,/streams/{stream_id}/snapshot,snapshot_zlm,services/video-processor/routers/streams.py,180
 video-processor,POST,/streams/{stream_id}/record/start,record_start,services/video-processor/routers/streams.py,202
 video-processor,POST,/streams/{stream_id}/record/stop,record_stop,services/video-processor/routers/streams.py,222
+weather-service,GET,/runtime-identity,runtime_evidence_identity,services/weather-service/main.py,55

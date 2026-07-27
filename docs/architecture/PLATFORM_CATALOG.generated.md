@@ -3,11 +3,11 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `fd139c0b1ab1802a3a7c1b6ce4b543acddb154fa3df5c68952aa54a4fe520637`
+- fingerprint: `ab7bc1b4d166c6901acc1b1b4fe17ff31a3fee9f9f788f5aaed3ab1028feab60`
 - components: **34** (backend: 32)
-- route rows: **1101** → unique method/path: **989**
-- capabilities (derived, uncurated): **849**
-- cross-service duplicate method/paths: **14**
+- route rows: **1103** → unique method/path: **990**
+- capabilities (derived, uncurated): **851**
+- cross-service duplicate method/paths: **15**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **51**
 
@@ -71,5 +71,6 @@
 | `POST` | `/query` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/readyz` | `standard_readiness` | `service-local` | `permanent` |
 | `POST` | `/recommend` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
+| `GET` | `/runtime-identity` | `standard_observability` | `service-local` | `permanent` |
 | `GET` | `/stac` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
 | `GET` | `/stac/collections` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
