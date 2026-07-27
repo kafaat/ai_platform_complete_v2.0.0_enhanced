@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -50,72 +51,137 @@ def load_json(path: Path) -> dict[str, Any]:
         return {}
 
 
-def _manifest_files() -> set[str]:
-    """Return the signed release-manifest paths as an offline allowlist.
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
-    Extracted release archives do not contain ``.git``.  In that environment we
-    must not fall back to scanning the raw filesystem, because editor caches,
-    partial generated files, or other untracked content would make the closure
-    manifest non-reproducible.  The release checksum manifest is the only
-    accepted offline source of repository membership.
+
+def _manifest_entries() -> dict[str, str]:
+    """Parse the release checksum manifest as a strict offline trust boundary.
+
+    The manifest is not merely a list of paths: each entry must be a canonical
+    ``<sha256><two spaces><relative path>`` record. Unsafe paths, malformed
+    digests, and conflicting duplicates are rejected so an extracted archive
+    cannot widen or ambiguously redefine repository membership.
     """
     manifest = ROOT / "release" / "FILE_CHECKSUMS.sha256"
     if not manifest.exists():
-        return set()
+        return {}
 
-    paths: set[str] = set()
-    for line in manifest.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
+    entries: dict[str, str] = {}
+    for line_number, raw_line in enumerate(
+        manifest.read_text(encoding="utf-8").splitlines(), start=1
+    ):
+        if not raw_line:
             continue
-        parts = line.split(None, 1)
-        if len(parts) == 2 and parts[1]:
-            paths.add(parts[1])
-    return paths
+        if "  " not in raw_line:
+            raise RuntimeError(
+                f"malformed release checksum manifest line {line_number}: "
+                "expected '<sha256>  <relative-path>'"
+            )
+        digest, rel = raw_line.split("  ", 1)
+        if not _SHA256_RE.fullmatch(digest):
+            raise RuntimeError(f"malformed SHA-256 on release checksum manifest line {line_number}")
+        path = Path(rel)
+        if not rel or path.is_absolute() or ".." in path.parts or path.as_posix() != rel:
+            raise RuntimeError(
+                f"unsafe path on release checksum manifest line {line_number}: {rel!r}"
+            )
+        previous = entries.get(rel)
+        if previous is not None and previous != digest:
+            raise RuntimeError(f"conflicting duplicate path in release checksum manifest: {rel}")
+        entries[rel] = digest
+    return entries
 
 
-def _tracked_files() -> set[str]:
-    """Return repository paths without ever scanning arbitrary untracked files.
+def _manifest_files() -> set[str]:
+    """Return strict release-manifest paths as the offline allowlist."""
+    return set(_manifest_entries())
 
-    A git worktree is authoritative in CI and development.  For an extracted,
-    signed release archive, use ``release/FILE_CHECKSUMS.sha256`` as a fail-closed
-    allowlist.  If neither source is available, abort instead of silently
-    widening the artifact set.
+
+def _verify_manifest_file(rel: str, expected_sha256: str) -> None:
+    """Verify one allowlisted file before using it as closure evidence."""
+    path = ROOT / rel
+    if not path.is_file():
+        raise RuntimeError(f"release-manifest file missing from archive: {rel}")
+    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    if actual != expected_sha256:
+        raise RuntimeError(
+            f"release-manifest checksum mismatch for {rel}: "
+            f"expected={expected_sha256} actual={actual}"
+        )
+
+
+def _git_tracked_files() -> set[str]:
+    """Return tracked files only when ``ROOT`` is the exact Git worktree root.
+
+    Git normally walks up parent directories.  An extracted archive nested inside
+    another checkout must not accidentally inherit that parent's trust boundary.
+    """
+    top_level = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    if Path(top_level).resolve() != ROOT.resolve():
+        raise RuntimeError(
+            f"git worktree root mismatch: expected={ROOT.resolve()} actual={Path(top_level).resolve()}"
+        )
+    out = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return {rel for rel in out.split("\0") if rel}
+
+
+def _tracked_inventory() -> tuple[set[str], dict[str, str] | None]:
+    """Return repository membership plus the trust source used.
+
+    The second element is ``None`` for a verified Git worktree, or the parsed
+    release manifest when offline fallback is active.  Carrying the source
+    explicitly prevents a stale/forged ``.git`` marker from disabling checksum
+    verification after Git itself has failed.
     """
     try:
-        out = subprocess.run(
-            ["git", "ls-files", "-z"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout
-        tracked = {rel for rel in out.split("\0") if rel}
+        tracked = _git_tracked_files()
         if tracked:
-            return tracked
-    except (OSError, subprocess.CalledProcessError):
+            return tracked, None
+    except (OSError, subprocess.CalledProcessError, RuntimeError):
         pass
 
-    manifest_files = _manifest_files()
-    if manifest_files:
-        return manifest_files
+    manifest_entries = _manifest_entries()
+    if manifest_entries:
+        return set(manifest_entries), manifest_entries
     raise RuntimeError(
-        "no git worktree and no signed release manifest "
+        "no exact git worktree and no signed release manifest "
         "(release/FILE_CHECKSUMS.sha256); refusing to scan the raw filesystem "
         "(fail-closed)"
     )
 
 
+def _tracked_files() -> set[str]:
+    """Compatibility wrapper returning only repository membership."""
+    tracked, _ = _tracked_inventory()
+    return tracked
+
+
 def artifact_files() -> list[Path]:
-    tracked = _tracked_files()
+    tracked, manifest_entries = _tracked_inventory()
     files: list[Path] = []
     for root in ARTIFACT_ROOTS:
         if root.exists():
-            files.extend(
-                path
-                for path in root.rglob("*")
-                if path.is_file() and path.relative_to(ROOT).as_posix() in tracked
-            )
+            for path in root.rglob("*"):
+                if not path.is_file():
+                    continue
+                rel = path.relative_to(ROOT).as_posix()
+                if rel not in tracked:
+                    continue
+                if manifest_entries is not None:
+                    _verify_manifest_file(rel, manifest_entries[rel])
+                files.append(path)
     return sorted(files, key=lambda path: path.relative_to(ROOT).as_posix())
 
 

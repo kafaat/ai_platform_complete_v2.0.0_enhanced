@@ -76,3 +76,87 @@ def test_tracked_files_fails_closed_without_git_or_signed_manifest(tmp_path, mon
         assert "refusing to scan the raw filesystem" in str(exc)
     else:
         raise AssertionError("expected fail-closed RuntimeError")
+
+
+def test_manifest_parser_rejects_unsafe_paths(tmp_path, monkeypatch):
+    module = load_module()
+    release = tmp_path / "release"
+    release.mkdir()
+    (release / "FILE_CHECKSUMS.sha256").write_text(
+        "a" * 64 + "  ../escape.json\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    try:
+        module._manifest_entries()
+    except RuntimeError as exc:
+        assert "unsafe path" in str(exc)
+    else:
+        raise AssertionError("expected unsafe manifest path to fail closed")
+
+
+def test_manifest_file_checksum_is_verified(tmp_path, monkeypatch):
+    module = load_module()
+    release = tmp_path / "release"
+    release.mkdir()
+    artifact = tmp_path / "capabilities/generated/a.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text("{}\n", encoding="utf-8")
+    (release / "FILE_CHECKSUMS.sha256").write_text(
+        "0" * 64 + "  capabilities/generated/a.json\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    try:
+        module._verify_manifest_file("capabilities/generated/a.json", "0" * 64)
+    except RuntimeError as exc:
+        assert "checksum mismatch" in str(exc)
+    else:
+        raise AssertionError("expected checksum mismatch to fail closed")
+
+
+def test_manifest_verification_is_not_bypassed_by_stale_git_marker(tmp_path, monkeypatch):
+    module = load_module()
+    (tmp_path / ".git").mkdir()
+    release = tmp_path / "release"
+    release.mkdir()
+    artifact = tmp_path / "capabilities/generated/a.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text("{}\n", encoding="utf-8")
+    (release / "FILE_CHECKSUMS.sha256").write_text(
+        "0" * 64 + "  capabilities/generated/a.json\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "ARTIFACT_ROOTS", [artifact.parent])
+
+    def no_git(*args, **kwargs):
+        raise module.subprocess.CalledProcessError(128, args[0])
+
+    monkeypatch.setattr(module.subprocess, "run", no_git)
+    try:
+        module.artifact_files()
+    except RuntimeError as exc:
+        assert "checksum mismatch" in str(exc)
+    else:
+        raise AssertionError("stale .git marker bypassed manifest verification")
+
+
+def test_git_parent_worktree_is_not_accepted_as_repository_root(tmp_path, monkeypatch):
+    module = load_module()
+    release = tmp_path / "release"
+    release.mkdir()
+    (release / "FILE_CHECKSUMS.sha256").write_text(
+        "a" * 64 + "  capabilities/generated/a.json\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+
+    calls = iter([str(tmp_path.parent) + "\n"])
+
+    def parent_git(*args, **kwargs):
+        command = args[0]
+        if command[:3] == ["git", "rev-parse", "--show-toplevel"]:
+            return module.subprocess.CompletedProcess(command, 0, next(calls), "")
+        raise AssertionError("git ls-files must not run for a mismatched worktree root")
+
+    monkeypatch.setattr(module.subprocess, "run", parent_git)
+    tracked, manifest = module._tracked_inventory()
+    assert tracked == {"capabilities/generated/a.json"}
+    assert manifest is not None
