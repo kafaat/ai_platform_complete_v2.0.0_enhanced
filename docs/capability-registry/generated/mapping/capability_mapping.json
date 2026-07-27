@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4740,
+    "files_scanned": 4743,
     "files_by_kind": {
       "backend": 1183,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1232,
-      "tests": 1504,
+      "other": 1234,
+      "tests": 1505,
       "web": 446
     },
-    "unmapped_artifacts": 1937,
+    "unmapped_artifacts": 1938,
     "ambiguous_artifacts": 389
   },
   "capabilities": [
@@ -39724,6 +39724,10 @@
     },
     {
       "path": "tests/release/test_phase14_release_packaging_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/release/test_platform_route_release_binding.py",
       "kind": "tests"
     },
     {

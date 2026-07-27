@@ -18,6 +18,9 @@ REQUIRED_RELEASE_ASSETS = [
     "RELEASE_NOTES_20260626.md",
     "scripts/release/build_release_bundle.py",
     "scripts/release/validate_release_package.py",
+    "scripts/release/platform_route_release_binding.py",
+    "release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json",
+    "docs/architecture/generated/platform_route_governance_attestation.json",
 ]
 
 
@@ -48,6 +51,22 @@ def main() -> int:
         return 1
     if int(manifest.get("file_count", 0)) <= 0:
         print("manifest file_count is empty")
+        return 1
+
+    # The source binding must exactly match the current generated route-governance state.
+    import subprocess
+
+    binding_check = subprocess.run(
+        [
+            "python3",
+            str(root / "scripts/release/platform_route_release_binding.py"),
+            "--check-source",
+        ],
+        cwd=root,
+        check=False,
+    )
+    if binding_check.returncode != 0:
+        print("platform route-governance source binding validation failed")
         return 1
 
     checksum_file = root / "release/FILE_CHECKSUMS.sha256"

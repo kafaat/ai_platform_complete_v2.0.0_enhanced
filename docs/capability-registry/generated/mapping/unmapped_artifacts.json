@@ -6376,6 +6376,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/release/test_platform_route_release_binding.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/reliability/test_phase10_reliability_harness_contracts.py",
     "kind": "tests"
   },
