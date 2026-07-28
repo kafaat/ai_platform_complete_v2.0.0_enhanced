@@ -13,6 +13,7 @@ import uuid
 from typing import Annotated
 from uuid import UUID
 
+from core.yield_intelligence import assess_yield_scope, summarize_yield_scope
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.main import (
@@ -297,9 +298,28 @@ async def query_yield_map_records(
     ),
     limit: Annotated[int, Query(ge=1, le=5000)] = 1000,
     offset: Annotated[int, Query(ge=0)] = 0,
+    summary: bool = Query(
+        False,
+        description=(
+            "Attach the canonical_yield_state summary for the queried scope. "
+            "Reports not_evaluated when the scope spans more than one ingestion or "
+            "season, or when the page is truncated."
+        ),
+    ),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """Query persisted yield points and return a GeoJSON FeatureCollection."""
+    """Query persisted yield points and return a GeoJSON FeatureCollection.
+
+    With ``summary=true`` the response also carries the governed
+    ``canonical_yield_state`` for the queried scope. It is folded into this existing
+    route rather than added as a new one, so the platform domain-route budget is
+    untouched (the INT-004A precedent).
+
+    The summary is deliberately conservative: a canonical yield state is identified by
+    (field, season, source_sha256), so it is only computed over exactly one ingestion of
+    one season, and never over a truncated page. Averaging a page of points would
+    produce a number that looks like the field's yield without being it.
+    """
 
     if min_yield_kg_ha is not None and max_yield_kg_ha is not None:
         if min_yield_kg_ha > max_yield_kg_ha:
@@ -351,6 +371,27 @@ async def query_yield_map_records(
                 limit,
                 offset,
             )
+            yield_summary = None
+            if summary:
+                # Scope soundness is decided in core (pure); only the provenance
+                # lookup is I/O, and it is skipped entirely for an unsound scope.
+                record_rows = [dict(row) for row in rows]
+                scope = assess_yield_scope(rows=record_rows, truncated=len(rows) >= limit)
+                source_sha256 = (
+                    await conn.fetchval(
+                        "SELECT source_sha256 FROM yield_map_ingestions "
+                        "WHERE ingestion_id = $1::uuid",
+                        scope.ingestion_id,
+                    )
+                    if scope.evaluable
+                    else None
+                )
+                yield_summary = summarize_yield_scope(
+                    field_id=field_id,
+                    rows=record_rows,
+                    scope=scope,
+                    source_sha256=source_sha256,
+                )
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
@@ -385,7 +426,7 @@ async def query_yield_map_records(
                 },
             }
         )
-    return {
+    response = {
         "type": "FeatureCollection",
         "features": features,
         "query": {
@@ -397,3 +438,6 @@ async def query_yield_map_records(
             "returned": len(features),
         },
     }
+    if yield_summary is not None:
+        response["intelligence"] = yield_summary
+    return response

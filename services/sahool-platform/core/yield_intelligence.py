@@ -11,6 +11,83 @@ from typing import Any
 SCHEMA_VERSION = "canonical_yield_state.v1"
 
 
+STATUS_EVALUATED = "evaluated"
+STATUS_NOT_EVALUATED = "not_evaluated"
+
+
+@dataclass(frozen=True)
+class YieldScope:
+    """Whether a set of queried records can carry a canonical state at all.
+
+    A canonical yield state is identified by (field, season, source_sha256), so it is
+    meaningful over exactly one ingestion of one season. The danger otherwise is not a
+    wrong number but a *plausible* one: averaging the first page of a large harvest
+    produces a figure that looks exactly like the field's yield.
+    """
+
+    evaluable: bool
+    limitations: list[str]
+    ingestion_id: str | None = None
+    season_id: str | None = None
+
+
+def assess_yield_scope(*, rows: list[dict[str, Any]], truncated: bool) -> YieldScope:
+    """Pure scope check — no I/O. Names every reason a scope cannot be summarised."""
+    if truncated:
+        return YieldScope(False, ["record_page_truncated"])
+    if not rows:
+        return YieldScope(False, ["no_records_in_scope"])
+    ingestions = {row.get("ingestion_id") for row in rows}
+    seasons = {row.get("season_id") for row in rows}
+    limitations: list[str] = []
+    if len(ingestions) > 1:
+        limitations.append("multiple_ingestions_in_scope")
+    if len(seasons) > 1:
+        limitations.append("multiple_seasons_in_scope")
+    if limitations:
+        return YieldScope(False, limitations)
+    season_id = next(iter(seasons))
+    if not season_id:
+        return YieldScope(False, ["season_id_missing_on_records"])
+    return YieldScope(True, [], ingestion_id=next(iter(ingestions)), season_id=season_id)
+
+
+def summarize_yield_scope(
+    *,
+    field_id: str,
+    rows: list[dict[str, Any]],
+    scope: YieldScope,
+    source_sha256: str | None,
+) -> dict[str, Any]:
+    """Build the canonical state for a sound scope, or report why there is none.
+
+    ``source_sha256`` is required rather than defaulted: a placeholder digest would bind
+    the state to provenance that does not exist.
+    """
+    if not scope.evaluable:
+        return {
+            "status": STATUS_NOT_EVALUATED,
+            "state": None,
+            "limitations": list(scope.limitations),
+        }
+    if not source_sha256:
+        return {
+            "status": STATUS_NOT_EVALUATED,
+            "state": None,
+            "limitations": ["source_sha256_unavailable"],
+        }
+    state = build_canonical_yield_state(
+        field_id=field_id,
+        season_id=scope.season_id or "",
+        source_sha256=source_sha256,
+        records=rows,
+        # TrueUp calibration has no stored owner yet; the state records
+        # `trueup_not_applied` rather than assuming a factor of 1.0.
+        calibration_factor=None,
+    )
+    return {"status": STATUS_EVALUATED, "state": state.to_dict(), "limitations": []}
+
+
 @dataclass(frozen=True)
 class CanonicalYieldState:
     schema_version: str

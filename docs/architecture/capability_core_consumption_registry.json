@@ -17,15 +17,15 @@
       "consumer": null,
       "consumed_symbol": null,
       "contract": "canonical_field_state.v1",
-      "note": "Blocked behind a design decision, not plumbing: api/routers/field_twin.py already consumes core.field_twin.assemble_twin, so admitting the canonical path needs the duplicate-implementation conflict resolved first."
+      "note": "BLOCKER CORRECTED 2026-07-28. The recorded blocker (duplicate implementation vs core/field_twin.assemble_twin) was a misdiagnosis: they are different layers and core/field_twin.py:30 already declares itself DERIVED_VIEW with CanonicalFieldState authoritative. assemble_twin consumes DB rows; this core consumes schema-versioned state products. The real blocker is missing producers: of required=(weather, water, soil), only water has one (api/canonical_water_state.py::resolve_canonical_water_state). No producer emits canonical_soil_state./soil-profile. anywhere in the tree, and no platform module emits wx10/canonical-weather-state/. spectral is available (core.crop_intelligence.build_canonical_spectral_state) but is not required. Wiring today would therefore yield operational_eligible=false permanently, making the ratchet witness an empty state rather than a used capability. Unblocking needs a soil and a weather product producer, not plumbing."
     },
     {
       "module": "services/sahool-platform/core/yield_intelligence.py",
-      "status": "pending_wiring",
-      "consumer": null,
-      "consumed_symbol": null,
+      "status": "wired",
+      "consumer": "services/sahool-platform/api/routers/yield_map_ingestion.py",
+      "consumed_symbol": "summarize_yield_scope",
       "contract": "canonical_yield_state.v1",
-      "note": "Candidate consumer GET /api/v1/analysis/yield; overlap with api/yield_map_ingestion.py must be checked before wiring so the calibration rule keeps one owner."
+      "note": "Consumed by query_yield_map_records via ?summary=true; no domain route spent (INT-004A). The overlap check the previous note asked for came back clean: calibration_factor has exactly one owner in the tree, this core. api/yield_map_ingestion.py parses and persists; it never aggregates or calibrates. Fail-closed on scope: a truncated page, or a scope spanning more than one ingestion or season, yields not_evaluated rather than a plausible mean."
     },
     {
       "module": "services/sahool-platform/core/economic_scenarios.py",

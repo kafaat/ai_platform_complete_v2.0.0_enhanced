@@ -12,7 +12,7 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **47**
-- Files scanned: **4765**
+- Files scanned: **4766**
 - Ambiguous artifacts queued: **390**
 - Unmapped artifacts queued: **1945**
 
@@ -45,7 +45,7 @@
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 5 | 15 | 2 | 58 | 0 | 0 | 7 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| INT-004 | precision | 3 | 7 | 8 | 6 | 0 | 0 | 1 | 5 |
+| INT-004 | precision | 3 | 7 | 8 | 8 | 0 | 0 | 2 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 0 | 4 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 1 | 3 |

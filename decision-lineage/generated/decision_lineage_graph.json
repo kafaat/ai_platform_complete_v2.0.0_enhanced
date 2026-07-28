@@ -1822,7 +1822,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 263,
+      "evidence_count": 264,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2073,6 +2073,7 @@
         "services/sahool-platform/tests/test_sync_delta.py",
         "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
         "services/sahool-platform/tests/test_workflow_engine.py",
+        "services/sahool-platform/tests/test_yield_intelligence_wiring.py",
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
         "services/scout-ingest-service/field_forms_api.py",
         "services/scout-ingest-service/season_api.py",
@@ -2559,7 +2560,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 42,
-      "target_evidence_count": 263,
+      "target_evidence_count": 264,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2569,5 +2570,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "a42d972ab29319992e828a2f6f15eb46f00b6447af330c73809c30c9a046d651"
+  "content_sha256": "c02c6e741acd2f586404ed44ff904215bb0ef5d163809be7dd51eafb4b599fbe"
 }
