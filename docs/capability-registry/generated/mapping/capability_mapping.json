@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4772,
+    "files_scanned": 4775,
     "files_by_kind": {
       "backend": 1190,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1246,
-      "tests": 1515,
+      "tests": 1518,
       "web": 446
     },
-    "unmapped_artifacts": 1945,
+    "unmapped_artifacts": 1946,
     "ambiguous_artifacts": 390
   },
   "capabilities": [
@@ -15807,15 +15807,15 @@
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:116",
+          "value": "/v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:184",
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:166",
+          "value": "/v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:248",
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:41",
+          "value": "/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:109",
           "score": 17
         },
         {
@@ -16250,6 +16250,14 @@
         },
         {
           "path": "services/raster-service/test_cdse_date_normalization.py",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "services/raster-service/test_cdse_empty_raster_not_cached.py",
           "score": 14,
           "signals": [
             "path:cdse",
@@ -16737,7 +16745,7 @@
         "events": 32,
         "web": 5,
         "mobile": 0,
-        "tests": 39,
+        "tests": 40,
         "governance": 0,
         "other_evidence": 33
       },
@@ -19243,6 +19251,14 @@
           ]
         },
         {
+          "path": "services/raster-service/test_persisted_thumbnail_path.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/raster-service/test_raster_indicator_product.py",
           "score": 12,
           "signals": [
@@ -19804,14 +19820,6 @@
         },
         {
           "path": "tests_v9/test_imagery_product_identity_canonical.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests_v9/test_live_guardrails_adapter.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -36504,6 +36512,10 @@
     },
     {
       "path": "services/raster-service/test_raster_import_graph_static.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/raster-service/test_raster_observable_content.py",
       "kind": "tests"
     },
     {

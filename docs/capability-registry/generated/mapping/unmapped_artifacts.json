@@ -2980,6 +2980,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_raster_observable_content.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_raster_persistence_policy.py",
     "kind": "tests"
   },
