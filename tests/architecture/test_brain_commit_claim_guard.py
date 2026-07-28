@@ -94,3 +94,38 @@ def test_prose_mentions_still_do_not_register_a_gap():
             for line in registry.splitlines()
         )
         assert declared, f"{gid} لم يأتِ من عنوان ولا من عمود معرّف"
+
+
+def test_security_advisory_ids_are_not_treated_as_gap_claims():
+    """`PYSEC-2026-1325` يُطابِق شكل المعرّف ولا يُسجَّل قطّ في السجلّ.
+
+    التقطه الحارس على رسالة `UNIT-TEST-DORMANCY-01` التي تذكره توثيقاً لنتيجة
+    `pip-audit` قبل/بعد. لو بقي، لدفع الحارسُ كلَّ رسالةٍ إلى **كتمان** رقم
+    الاستشارة — عكس ما بُني له. الاستبعاد بالبادئة لا بالحالة الواحدة، لأنّ
+    العلّة صنفيّة: هذه معرّفات تُصدرها جهة خارجيّة.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    for advisory in ("PYSEC-2026-1325", "CVE-2024-24762", "GHSA-XXXX-YYYY-ZZZZ", "OSV-2023-1"):
+        assert mod.is_advisory(advisory), advisory
+
+
+def test_the_advisory_exemption_did_not_swallow_real_gap_ids():
+    """التكذيب: الاستثناء ضيّق بالبادئة — معرّف فجوة حقيقيّ ما زال يُطالَب بالتسجيل."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    for gid in (
+        "UNIT-TEST-DORMANCY-01",
+        "APP-ROUTES-EMPTY-01",
+        "CVE-LIKE-BUT-NOT",
+        "PYSECURITY-A-B",
+    ):
+        assert not mod.is_advisory(gid), f"{gid} استُثني خطأً كاستشارة"
+    # والفشل التاريخيّ ما زال يُلتقَط بعد التعديل.
+    assert _run("4eded7a", "121ab09").returncode == 1

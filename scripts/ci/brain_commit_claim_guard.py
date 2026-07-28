@@ -36,6 +36,27 @@ _NOT_GAP_IDS = {
     "CO-AUTHORED-BY",
 }
 
+# معرّفات استشارات أمنيّة (CVE-…/GHSA-…/PYSEC-…/OSV-…). تُطابِق نمط المعرّف شكلاً
+# — ثلاثة مقاطع كبيرة بشرطات — لكنّها **صنف مختلف**: تُصدرها جهة خارجيّة ولا تُسجَّل
+# قطّ كأقسام في `gaps/registry.md`. استبعادها بالبادئة لا بالحالة الواحدة، لأنّ
+# البديل أن يُسقِط الحارس كلّ التزام يذكر ثغرة باسمها — وهو ما يدفع نحو **كتمان**
+# رقم الاستشارة في رسالة الالتزام، أي عكس ما بُني الحارس له.
+# الدليل: رسالة `UNIT-TEST-DORMANCY-01` تذكر `PYSEC-2026-1325` توثيقاً لنتيجة
+# pip-audit قبل/بعد ⇒ أسقطها الحارس. ما يبقى مرفوضاً: أيّ معرّف خارج هذه الأشكال.
+#
+# الاستثناء على **الشكل الكامل** لا على البادئة وحدها: `startswith("CVE-")` كان
+# سيبتلع معرّف فجوة اسمه `CVE-LIKE-BUT-NOT` — التقطه اختبار التكذيب قبل الدفع.
+# البادئة تُتبَع بمقاطع رقميّة/محدَّدة الطول، وهو ما يميّز الاستشارة عن أيّ معرّف
+# داخليّ قد نختاره.
+_ADVISORY = re.compile(
+    r"^(?:(?:CVE|PYSEC|OSV)-[0-9]{4}-[0-9]+|GHSA-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4})$"
+)
+
+
+def is_advisory(gid: str) -> bool:
+    """معرّف استشارة أمنيّة خارجيّ — لا يُسجَّل في السجلّ ولا يُطالَب به."""
+    return bool(_ADVISORY.match(gid))
+
 
 def registry_ids() -> set[str]:
     """المعرّفات المُعلَنة رسميّاً — عنواناً أو **عمود معرّف في الجدول**.
@@ -81,7 +102,7 @@ def check(base: str, head: str) -> int:
     claimed = 0
     for sha, body in commit_messages(base, head):
         for gid in sorted(set(_GAP_ID.findall(body))):
-            if gid in _NOT_GAP_IDS:
+            if gid in _NOT_GAP_IDS or is_advisory(gid):
                 continue
             claimed += 1
             if gid not in known:
