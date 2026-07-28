@@ -5110,10 +5110,20 @@
     },
     {
       "file": "api/routers/scenario.py",
+      "function": "scenario_economics",
+      "method": "POST",
+      "path": "/api/v1/scenario/economics",
+      "line": 142,
+      "target_owner": "sahool-platform",
+      "owner_type": "decision-compute",
+      "route_key": "api/routers/scenario.py::POST /api/v1/scenario/economics::scenario_economics"
+    },
+    {
+      "file": "api/routers/scenario.py",
       "function": "scenario_planting_date",
       "method": "POST",
       "path": "/api/v1/scenario/planting-date",
-      "line": 185,
+      "line": 235,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/scenario.py::POST /api/v1/scenario/planting-date::scenario_planting_date"
@@ -5123,7 +5133,7 @@
       "function": "scenario_rainfall",
       "method": "POST",
       "path": "/api/v1/scenario/rainfall",
-      "line": 235,
+      "line": 285,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/scenario.py::POST /api/v1/scenario/rainfall::scenario_rainfall"
@@ -5133,7 +5143,7 @@
       "function": "scenario_temperature",
       "method": "POST",
       "path": "/api/v1/scenario/temperature",
-      "line": 142,
+      "line": 192,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/scenario.py::POST /api/v1/scenario/temperature::scenario_temperature"
@@ -5143,7 +5153,7 @@
       "function": "scenario_water_twin",
       "method": "POST",
       "path": "/api/v1/scenario/water-twin",
-      "line": 113,
+      "line": 163,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/scenario.py::POST /api/v1/scenario/water-twin::scenario_water_twin"

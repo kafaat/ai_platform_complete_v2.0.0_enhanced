@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import Literal
 
+from core.economic_scenarios import compare_economic_scenarios
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
@@ -108,6 +109,55 @@ class WaterTwinRequest(BaseModel):
     scenario_days: list[_WaterTwinDay] | None = Field(
         default=None, description="جدول البديل الصريح (kind=explicit)"
     )
+
+
+class EconomicScenarioInputs(BaseModel):
+    """Every quantity/price pair is optional at the schema level and required by the core.
+
+    Optional here so a partial scenario reaches the core and is reported ``not_evaluated``
+    with its gaps named, rather than being rejected as a malformed request — the caller
+    learns which inputs are missing instead of only that something was.
+    """
+
+    expected_yield_t_ha: float | None = Field(default=None, ge=0)
+    crop_price_per_t: float | None = Field(default=None, ge=0)
+    irrigation_m3_ha: float | None = Field(default=None, ge=0)
+    water_price_per_m3: float | None = Field(default=None, ge=0)
+    energy_kwh_ha: float | None = Field(default=None, ge=0)
+    energy_price_per_kwh: float | None = Field(default=None, ge=0)
+    fertilizer_kg_ha: float | None = Field(default=None, ge=0)
+    fertilizer_price_per_kg: float | None = Field(default=None, ge=0)
+
+
+class EconomicAlternativeInputs(EconomicScenarioInputs):
+    scenario_id: str | None = Field(default=None, min_length=1, max_length=128)
+
+
+class EconomicScenarioRequest(BaseModel):
+    currency: str = Field(..., min_length=3, max_length=12)
+    baseline: EconomicScenarioInputs
+    alternatives: list[EconomicAlternativeInputs] = Field(..., min_length=1, max_length=20)
+
+
+@router.post("/api/v1/scenario/economics")
+def scenario_economics(
+    req: EconomicScenarioRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """مقارنة سيناريوهات اقتصاديّة صريحة — نقيّة للقراءة فقط، fail-closed على النقص.
+
+    كلّ الأسعار والكمّيّات يمرّرها المستدعي؛ لا يُخترَع سعر ولا غلّة ولا تكلفة. سيناريو ناقص
+    يعود `not_evaluated` بأسماء مدخلاته الغائبة **ولا يُصنَّف** مقابل سيناريو مكتمل — لأنّ
+    غياب بند تكلفة كان سيجعله يبدو أفضل لمجرّد أنّه لم يُصرَّح به.
+    """
+    try:
+        return compare_economic_scenarios(
+            baseline=req.baseline.model_dump(),
+            alternatives=[item.model_dump() for item in req.alternatives],
+            currency=req.currency,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/api/v1/scenario/water-twin")

@@ -5200,6 +5200,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_emit_event_names.py",
     "kind": "tests"
   },

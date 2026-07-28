@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1817,
-    "route_handlers": 1041,
-    "call_edges": 71027,
+    "python_files_parsed": 1818,
+    "route_handlers": 1042,
+    "call_edges": 71098,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -6431,7 +6431,15 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
-      "line": 114,
+      "line": 143,
+      "handler": "scenario_economics",
+      "method": "POST",
+      "path": "/api/v1/scenario/economics"
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "line": 164,
       "handler": "scenario_water_twin",
       "method": "POST",
       "path": "/api/v1/scenario/water-twin"
@@ -6439,7 +6447,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
-      "line": 143,
+      "line": 193,
       "handler": "scenario_temperature",
       "method": "POST",
       "path": "/api/v1/scenario/temperature"
@@ -6447,7 +6455,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
-      "line": 186,
+      "line": 236,
       "handler": "scenario_planting_date",
       "method": "POST",
       "path": "/api/v1/scenario/planting-date"
@@ -6455,7 +6463,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
-      "line": 236,
+      "line": 286,
       "handler": "scenario_rainfall",
       "method": "POST",
       "path": "/api/v1/scenario/rainfall"
@@ -261824,364 +261832,413 @@
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "_engine_et0",
       "target": "get_et0_product",
-      "line": 60
+      "line": 61
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "_engine_et0",
       "target": "HTTPException",
-      "line": 69
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "_engine_et0",
       "target": "get",
-      "line": 74
+      "line": 75
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "_engine_et0",
       "target": "HTTPException",
-      "line": 76
+      "line": 77
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "_engine_et0",
       "target": "float",
-      "line": 80
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "_engine_et0",
       "target": "get",
-      "line": 80
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "_engine_et0",
       "target": "str",
-      "line": 80
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "post",
-      "line": 113
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "Depends",
-      "line": 116
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "DayPlan",
-      "line": 122
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "delay_irrigation",
-      "line": 124
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "scale_irrigation",
-      "line": 126
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "HTTPException",
-      "line": 129
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "DayPlan",
-      "line": 133
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "compare_scenarios",
-      "line": 135
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "HTTPException",
-      "line": 139
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_water_twin",
-      "target": "str",
-      "line": 139
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_temperature",
+      "source": "scenario_economics",
       "target": "post",
       "line": 142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_temperature",
+      "source": "scenario_economics",
       "target": "Depends",
       "line": 145
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_economics",
+      "target": "compare_economic_scenarios",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_economics",
+      "target": "model_dump",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_economics",
+      "target": "model_dump",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_economics",
+      "target": "HTTPException",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_economics",
+      "target": "str",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "post",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "Depends",
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "DayPlan",
+      "line": 172
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "delay_irrigation",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "scale_irrigation",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "HTTPException",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "DayPlan",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "compare_scenarios",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "HTTPException",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_water_twin",
+      "target": "str",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_temperature",
+      "target": "post",
+      "line": 192
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_temperature",
+      "target": "Depends",
+      "line": 195
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "scenario_temperature",
       "target": "_WInput",
-      "line": 152
+      "line": 202
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "scenario_temperature",
       "target": "_engine_et0",
-      "line": 159
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "scenario_temperature",
       "target": "_engine_et0",
-      "line": 166
+      "line": 216
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "scenario_temperature",
       "target": "whatif_temperature_shift",
-      "line": 173
+      "line": 223
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "scenario_planting_date",
-      "target": "post",
-      "line": 185
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "Depends",
-      "line": 188
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "get",
-      "line": 195
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "HTTPException",
-      "line": 197
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "list",
-      "line": 199
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "_cumulative",
-      "target": "get_gdd_product",
-      "line": 206
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "get_gdd_product",
-      "line": 206
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "_cumulative",
-      "target": "HTTPException",
-      "line": 215
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "HTTPException",
-      "line": 215
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "_cumulative",
-      "target": "get",
-      "line": 220
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "get",
-      "line": 220
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "_cumulative",
-      "target": "HTTPException",
-      "line": 222
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "HTTPException",
-      "line": 222
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "_cumulative",
-      "target": "get",
-      "line": 224
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "get",
-      "line": 224
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "_cumulative",
-      "target": "float",
-      "line": 226
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "float",
-      "line": 226
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "_cumulative",
-      "line": 228
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "_cumulative",
-      "line": 229
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "len",
-      "line": 230
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "stage_result_from_cumulative",
-      "line": 230
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "len",
-      "line": 231
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "stage_result_from_cumulative",
-      "line": 231
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_planting_date",
-      "target": "whatif_planting_date",
-      "line": 232
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_rainfall",
       "target": "post",
       "line": 235
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
-      "source": "scenario_rainfall",
+      "source": "scenario_planting_date",
       "target": "Depends",
       "line": 238
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "get",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "HTTPException",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "list",
+      "line": 249
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "_cumulative",
+      "target": "get_gdd_product",
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "get_gdd_product",
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "_cumulative",
+      "target": "HTTPException",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "HTTPException",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "_cumulative",
+      "target": "get",
+      "line": 270
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "get",
+      "line": 270
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "_cumulative",
+      "target": "HTTPException",
+      "line": 272
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "HTTPException",
+      "line": 272
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "_cumulative",
+      "target": "get",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "get",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "_cumulative",
+      "target": "float",
+      "line": 276
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "float",
+      "line": 276
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "_cumulative",
+      "line": 278
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "_cumulative",
+      "line": 279
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "len",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "stage_result_from_cumulative",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "len",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "stage_result_from_cumulative",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_planting_date",
+      "target": "whatif_planting_date",
+      "line": 282
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_rainfall",
+      "target": "post",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
+      "source": "scenario_rainfall",
+      "target": "Depends",
+      "line": 288
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "scenario_rainfall",
       "target": "_WInput",
-      "line": 245
+      "line": 295
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "scenario_rainfall",
       "target": "_engine_et0",
-      "line": 252
+      "line": 302
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/scenario.py",
       "source": "scenario_rainfall",
       "target": "whatif_rainfall_change",
-      "line": 259
+      "line": 309
     },
     {
       "owner": "sahool-platform",
@@ -302583,72 +302640,226 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/economic_scenarios.py",
-      "source": "compare_economic_scenarios",
+      "source": "_validated_inputs",
+      "target": "get",
+      "line": 46
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_validated_inputs",
+      "target": "append",
+      "line": 48
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_validated_inputs",
+      "target": "isinstance",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_validated_inputs",
       "target": "ValueError",
-      "line": 16
+      "line": 51
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_validated_inputs",
+      "target": "float",
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_validated_inputs",
+      "target": "ValueError",
+      "line": 55
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_validated_inputs",
+      "target": "isfinite",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_validated_inputs",
+      "target": "ValueError",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_evaluate",
+      "target": "_validated_inputs",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_evaluate",
+      "target": "economic_state",
+      "line": 72
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_evaluate",
+      "target": "round",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "_evaluate",
+      "target": "append",
+      "line": 82
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/economic_scenarios.py",
       "source": "compare_economic_scenarios",
-      "target": "economic_state",
-      "line": 17
+      "target": "isinstance",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "strip",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "upper",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "ValueError",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "ValueError",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "_evaluate",
+      "line": 101
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/economic_scenarios.py",
       "source": "compare_economic_scenarios",
       "target": "enumerate",
-      "line": 19
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/economic_scenarios.py",
-      "source": "compare_economic_scenarios",
-      "target": "items",
-      "line": 20
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/economic_scenarios.py",
-      "source": "compare_economic_scenarios",
-      "target": "economic_state",
-      "line": 21
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/economic_scenarios.py",
-      "source": "compare_economic_scenarios",
-      "target": "round",
-      "line": 24
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/economic_scenarios.py",
-      "source": "compare_economic_scenarios",
-      "target": "append",
-      "line": 25
+      "line": 103
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/economic_scenarios.py",
       "source": "compare_economic_scenarios",
       "target": "get",
-      "line": 27
+      "line": 104
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/economic_scenarios.py",
       "source": "compare_economic_scenarios",
       "target": "str",
-      "line": 27
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "_evaluate",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "items",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "round",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "append",
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/economic_scenarios.py",
       "source": "compare_economic_scenarios",
       "target": "sorted",
-      "line": 33
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "int",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "sum",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "len",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "round",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "append",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/economic_scenarios.py",
+      "source": "compare_economic_scenarios",
+      "target": "append",
+      "line": 135
     },
     {
       "owner": "sahool-platform",
@@ -364662,6 +364873,300 @@
       "source": "test_serializable",
       "target": "loads",
       "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "_compare",
+      "target": "compare_economic_scenarios",
+      "line": 39
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "_compare",
+      "target": "dict",
+      "line": 40
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_a_scenario_missing_a_cost_is_never_ranked_as_best",
+      "target": "items",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_a_scenario_missing_a_cost_is_never_ranked_as_best",
+      "target": "_compare",
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_a_scenario_missing_a_cost_is_never_ranked_as_best",
+      "target": "next",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_every_missing_input_is_named_not_merely_counted",
+      "target": "_compare",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_incomplete_baseline_makes_nothing_comparable",
+      "target": "items",
+      "line": 74
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_incomplete_baseline_makes_nothing_comparable",
+      "target": "_compare",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_zero_cost_is_evaluated_not_treated_as_missing",
+      "target": "_compare",
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_zero_total_cost_reports_undefined_roi_rather_than_infinity",
+      "target": "fromkeys",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_zero_total_cost_reports_undefined_roi_rather_than_infinity",
+      "target": "_compare",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_malformed_values_raise_instead_of_being_dropped",
+      "target": "float",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_malformed_values_raise_instead_of_being_dropped",
+      "target": "float",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_malformed_values_raise_instead_of_being_dropped",
+      "target": "parametrize",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_malformed_values_raise_instead_of_being_dropped",
+      "target": "raises",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_malformed_values_raise_instead_of_being_dropped",
+      "target": "_compare",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_currency_and_alternatives_are_required",
+      "target": "raises",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_currency_and_alternatives_are_required",
+      "target": "_compare",
+      "line": 110
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_currency_and_alternatives_are_required",
+      "target": "raises",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_currency_and_alternatives_are_required",
+      "target": "_compare",
+      "line": 112
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_coverage_reports_the_shortfall_without_hiding_it",
+      "target": "_compare",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_coverage_reports_the_shortfall_without_hiding_it",
+      "target": "round",
+      "line": 123
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_full_coverage_carries_no_shortfall_limitation",
+      "target": "_compare",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_currency_is_normalised_not_invented",
+      "target": "_compare",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_router_consumes_the_core",
+      "target": "parse",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_router_consumes_the_core",
+      "target": "read_text",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_router_consumes_the_core",
+      "target": "walk",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_router_consumes_the_core",
+      "target": "isinstance",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "Path",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "resolve",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "loads",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "read_text",
+      "line": 158
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "get",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "next",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "parse",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "read_text",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "next",
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "walk",
+      "line": 168
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "isinstance",
+      "line": 169
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_route_is_registered_in_the_ownership_map_at_its_real_line",
+      "target": "isinstance",
+      "line": 172
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_consumer_does_not_supply_defaults_for_missing_economics",
+      "target": "read_text",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "source": "test_consumer_does_not_supply_defaults_for_missing_economics",
+      "target": "index",
+      "line": 180
     },
     {
       "owner": "sahool-platform",

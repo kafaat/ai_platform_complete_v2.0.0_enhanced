@@ -669,6 +669,7 @@ sahool-platform.runtime.resolve,command,sahool-platform,POST /runtime/resolve,fr
 sahool-platform.salinity.assess,command,sahool-platform,POST /api/v1/salinity/assess,frontend,route,False
 sahool-platform.sampling.strategy,query,sahool-platform,GET /api/v1/sampling/strategy,frontend,route,False
 sahool-platform.scenario,command,sahool-platform,POST /scenario,frontend,route,False
+sahool-platform.scenario.economics,command,sahool-platform,POST /api/v1/scenario/economics,frontend,route,False
 sahool-platform.scenario.planting-date,command,sahool-platform,POST /api/v1/scenario/planting-date,frontend,route,False
 sahool-platform.scenario.rainfall,command,sahool-platform,POST /api/v1/scenario/rainfall,frontend,route,False
 sahool-platform.scenario.temperature,command,sahool-platform,POST /api/v1/scenario/temperature,frontend,route,False

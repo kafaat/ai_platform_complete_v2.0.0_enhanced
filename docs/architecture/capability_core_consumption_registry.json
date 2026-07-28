@@ -29,11 +29,11 @@
     },
     {
       "module": "services/sahool-platform/core/economic_scenarios.py",
-      "status": "pending_wiring",
-      "consumer": null,
-      "consumed_symbol": null,
-      "contract": "economic_scenario_comparison.v1",
-      "note": "Candidate consumer routers/economics.py, which today delegates to api/farm_economics.py. Not a duplicate (feasibility vs scenario comparison), but wiring needs a route decision against a 3-route margin."
+      "status": "wired",
+      "consumer": "services/sahool-platform/api/routers/scenario.py",
+      "consumed_symbol": "compare_economic_scenarios",
+      "contract": "economic_scenario_comparison.v2",
+      "note": "Consumed by scenario_economics on POST /api/v1/scenario/economics. One domain route spent deliberately: the feasibility endpoint takes a different input model (area_ha/price_per_t), so folding it there would have been forced. Fail-closed: an incomplete scenario is not_evaluated with each missing input named, and is never ranked against a complete one."
     }
   ]
 }
