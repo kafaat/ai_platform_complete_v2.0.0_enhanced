@@ -16,3 +16,10 @@ jobs:
           git diff --name-only origin/${{ github.base_ref }}...HEAD | python scripts/ci/no_report_only_change_guard.py --stdin
       - name: Prevent brain-only certification state transitions
         run: python scripts/ci/brain_state_transition_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
+      # BRAIN-DEFERRAL-LEAK-01: كلّ تأجيل في hot.md يحتاج معرّف فجوة مسجَّلاً.
+      # القاعدة كانت عُرفاً في CLAUDE.md؛ هنا تصير إنفاذاً.
+      - name: Deferrals in hot.md must be registered as gaps
+        run: python scripts/ci/brain_deferral_registry_guard.py
+      # BRAIN-CLAIM-UNVERIFIED-01: رسالة الالتزام تذكر معرّف فجوة ⇒ ادّعاء وجودها.
+      - name: Gap IDs claimed in commit messages must exist in the registry
+        run: python scripts/ci/brain_commit_claim_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
