@@ -430,3 +430,11 @@
 - **تصحيح على قياس «صفر إصلاح»:** القياس كان مقصوراً على `-m unit`. تعديل
   `requirements-test.txt` يُصيب كلّ وظيفة تُثبّته ومنها `-m integration` (`ci.yml:624`)،
   وهناك ظهر الفشلان أعلاه وثالثٌ أُصلِح (تصادم `routers` في `test_services_functional`).
+
+### CAPABILITY-CORES-NOT-WIRED — **مُغلقة 2026-07-28** (0/4 ⇒ 4/4)
+
+- **equipment_intelligence** `ac36c03` — أُصلح الاختلاق (250 ساعة مُخترَعة) قبل الربط، ثمّ رُبط بـ`list_equipment?summary=true` بلا مسار جديد.
+- **economic_scenarios** `fce91a9` — v2 يمنع المتوسّط المُجامِل؛ `POST /api/v1/scenario/economics` (مسار واحد أُنفِق عمداً، 626⇒627).
+- **yield_intelligence** `4eded7a` — `query_yield_map_records?summary=true` بلا مسار جديد؛ يرفض الصفحة المبتورة ومتعدّد الاستيعاب/الموسم.
+- **canonical_field_state** `247c69c` — مربوطة بأمر المالك مع **حدّ صدق قائم**: `operational_eligible=false` دائماً حتّى يوجد مُنتِج تربة ومُنتِج منتَج طقس. الفجوة الفرعيّة المفتوحة: **`FIELD-STATE-PRODUCERS-MISSING-01`**.
+- **`FIELD-STATE-PRODUCERS-MISSING-01` — مفتوحة، P1.** لا مُنتِج يُصدِر `canonical_soil_state.`/`soil-profile.` ولا `wx10/canonical-weather-state/` في المنصّة. حتّى ذلك الحين النواة موصولة **ولا تُنتِج حالة صالحة تشغيليّاً**. مصدر: `core/canonical_field_state.py:69` · `api/canonical_water_state.py:21` (الماء وحده متاح).
