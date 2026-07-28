@@ -1,12 +1,12 @@
 {
   "counts": {
-    "domain_budget_headroom": 3,
-    "domain_budget_routes": 626,
+    "domain_budget_headroom": 2,
+    "domain_budget_routes": 627,
     "domain_route_budget": 629,
     "infrastructure_routes": 4,
-    "raw_routes": 630
+    "raw_routes": 631
   },
-  "inventory_sha256": "00304d24265e9b6536c01cdf31bd4c902e2541d091d52c87223bee464ec644c6",
+  "inventory_sha256": "520b7dd625d0ebae93191fda886a34f6bea91cedc08d05b0561b1a84ea7ed906",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "b5b0c7071da90e13ad352cfcc4f8c5041f14235e96cc7cd19ee4e3b9e5abac79"
+    "policy_sha256": "77e2d523ba0c6dd54c5db3e540550b920e29bdb102fea00c074fd540b36ba0ab"
   },
   "routes": [
     {
@@ -4241,8 +4241,16 @@
     },
     {
       "classification": "domain",
+      "function": "scenario_economics",
+      "line": 142,
+      "method": "POST",
+      "path": "/api/v1/scenario/economics",
+      "source": "api/routers/scenario.py"
+    },
+    {
+      "classification": "domain",
       "function": "scenario_planting_date",
-      "line": 185,
+      "line": 235,
       "method": "POST",
       "path": "/api/v1/scenario/planting-date",
       "source": "api/routers/scenario.py"
@@ -4250,7 +4258,7 @@
     {
       "classification": "domain",
       "function": "scenario_rainfall",
-      "line": 235,
+      "line": 285,
       "method": "POST",
       "path": "/api/v1/scenario/rainfall",
       "source": "api/routers/scenario.py"
@@ -4258,7 +4266,7 @@
     {
       "classification": "domain",
       "function": "scenario_temperature",
-      "line": 142,
+      "line": 192,
       "method": "POST",
       "path": "/api/v1/scenario/temperature",
       "source": "api/routers/scenario.py"
@@ -4266,7 +4274,7 @@
     {
       "classification": "domain",
       "function": "scenario_water_twin",
-      "line": 113,
+      "line": 163,
       "method": "POST",
       "path": "/api/v1/scenario/water-twin",
       "source": "api/routers/scenario.py"

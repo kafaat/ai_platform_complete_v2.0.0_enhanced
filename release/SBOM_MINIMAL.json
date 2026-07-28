@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f265a1c2a188e73789267b4938af2d4d840cff6bb13316eac2da5446874a2b13"
+          "content": "4a57359e2b70b02633d723833955b8a3da7a1e7ce87668583970dbcffaf0d3bb"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17945,7 +17945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8347aab0ac2e3debce60d57e86f76b17cb3461fb508f131e1031f30c2f82eaed"
+          "content": "1a0e086a54e669fbb750de64ffb1218f9c0d491f9a7e772d9e04e9b95ba91bd6"
         }
       ],
       "name": "services/sahool-platform/api/routers/scenario.py",
@@ -20405,7 +20405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "108d29597d61a7583bdd6dca805c178ff5160445135ad1c5a06505b39be8aa61"
+          "content": "962c5576fb0389d1be17fe2cbae03e9600eadf25ec858f749732fc36fbc3aafd"
         }
       ],
       "name": "services/sahool-platform/core/economic_scenarios.py",
@@ -23745,6 +23745,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "acb66ea1b845f9c766c4e9d05e435209ee8ea809526636055e3cc85ce769aee3"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "db3f85abed2f7afd90b918931acf7287757b71f9ccaf962e7d396e9cfdf811d2"
         }
       ],
@@ -25325,7 +25335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4cbfaca595d1282560f3fa471a9ab3c11762daaaa92e6527c9584f2f73a059e0"
+          "content": "4dfb466499dd1e53040695c0899b98cec75fa84d1dc6aed1b539e5c076c8caa9"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",

@@ -32,6 +32,13 @@ _NUMERIC_CLAIM = re.compile(r"\b(runtime_verified|production_certified)\s*[:=]\s
 #   "خام 630 · بنية 4 · نطاق 626"   (separator may also be "/")
 _ROUTE_LAYERS = re.compile(r"خام\s+(\d+)\s*[·/]\s*بنية\s+(\d+)\s*[·/]\s*نطاق\s+(\d+)")
 
+# A line that names the commit or PR it describes ("#672", "`cae51f7`") is a dated
+# record of a past tree, not an assertion about the present one. The stamp may sit on
+# the line itself or on the heading that governs it — `log.md` stamps the section
+# ("## 2026-07-27 — … — #672 `cae51f7`") and writes the counts in its bullets.
+_COMMIT_STAMP = re.compile(r"#\d{2,}|`[0-9a-f]{7,40}`")
+_HEADING = re.compile(r"^#{1,6}\s")
+
 
 def _registry_counts() -> dict[str, int]:
     capabilities = json.loads(REGISTRY.read_text(encoding="utf-8"))["capabilities"]
@@ -83,29 +90,43 @@ def _route_layer_counts() -> tuple[int, int, int]:
 
 
 def test_brain_route_layer_counts_match_the_measured_surface():
-    """The brain's raw/infrastructure/domain triple is falsifiable against the code.
+    """The brain's *live* raw/infrastructure/domain triple is falsifiable against the code.
 
     The three-layer count is a governance claim: it is what justifies excluding four
     infrastructure endpoints from the domain ratchet without raising the budget. Left
     as prose it would rot the moment a route moves, and a stale triple in the brain
     reads as if the exclusion were larger than it is.
+
+    The brain is part live state and part append-only history (``log.md``,
+    ``decisions/ledger.md``, superseded ``hot.md`` entries). A triple on a line that
+    names its commit or PR is a *dated record* — "at `cae51f7` the count was 630/4/626"
+    stays true forever, and rewriting it on every route addition would falsify the
+    record this brain exists to keep. So the pin applies to unstamped lines, which
+    assert something about the tree as it is now, and at least one such live claim must
+    exist: history alone would leave the current surface undocumented.
     """
     expected = _route_layer_counts()
     violations: list[str] = []
-    found = 0
+    live_claims = 0
     for path in sorted(BRAIN.rglob("*.md")):
+        dated_section = False
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if _HEADING.match(line):
+                dated_section = bool(_COMMIT_STAMP.search(line))
             for raw, infra, domain in _ROUTE_LAYERS.findall(line):
-                found += 1
+                if dated_section or _COMMIT_STAMP.search(line):
+                    continue
+                live_claims += 1
                 stated = (int(raw), int(infra), int(domain))
                 if stated != expected:
                     rel = path.relative_to(ROOT)
                     violations.append(f"{rel}:{lineno}: states {stated} but measured {expected}")
     assert violations == [], (
-        "brain states a route-layer count the platform source denies "
+        "brain states a current route-layer count the platform source denies "
         "(raw, infrastructure, domain):\n" + "\n".join(violations)
     )
-    assert found > 0, (
-        "no route-layer claim found in the brain — the counts must stay documented "
-        "in the canonical 'خام N · بنية N · نطاق N' shape so this test can check them"
+    assert live_claims > 0, (
+        "no undated route-layer claim found in the brain — the counts of the CURRENT "
+        "tree must stay documented in the canonical 'خام N · بنية N · نطاق N' shape, on "
+        "a line that names no commit, so this test can check them"
     )

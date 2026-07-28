@@ -6658,7 +6658,15 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 114,
+    "line": 143,
+    "method": "POST",
+    "path": "/api/v1/scenario/economics",
+    "function": "scenario_economics"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/scenario.py",
+    "line": 164,
     "method": "POST",
     "path": "/api/v1/scenario/water-twin",
     "function": "scenario_water_twin"
@@ -6666,7 +6674,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 143,
+    "line": 193,
     "method": "POST",
     "path": "/api/v1/scenario/temperature",
     "function": "scenario_temperature"
@@ -6674,7 +6682,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 186,
+    "line": 236,
     "method": "POST",
     "path": "/api/v1/scenario/planting-date",
     "function": "scenario_planting_date"
@@ -6682,7 +6690,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 236,
+    "line": 286,
     "method": "POST",
     "path": "/api/v1/scenario/rainfall",
     "function": "scenario_rainfall"

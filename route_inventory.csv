@@ -831,10 +831,11 @@ sahool-platform,services/sahool-platform/api/routers/rotation.py,34,GET,/api/v1/
 sahool-platform,services/sahool-platform/api/routers/rotation.py,40,GET,/api/v1/rotation/suggest,rotation_suggest
 sahool-platform,services/sahool-platform/api/routers/salinity.py,30,POST,/api/v1/salinity/assess,salinity_assess_endpoint
 sahool-platform,services/sahool-platform/api/routers/sampling.py,31,GET,/api/v1/sampling/strategy,sampling_strategy
-sahool-platform,services/sahool-platform/api/routers/scenario.py,114,POST,/api/v1/scenario/water-twin,scenario_water_twin
-sahool-platform,services/sahool-platform/api/routers/scenario.py,143,POST,/api/v1/scenario/temperature,scenario_temperature
-sahool-platform,services/sahool-platform/api/routers/scenario.py,186,POST,/api/v1/scenario/planting-date,scenario_planting_date
-sahool-platform,services/sahool-platform/api/routers/scenario.py,236,POST,/api/v1/scenario/rainfall,scenario_rainfall
+sahool-platform,services/sahool-platform/api/routers/scenario.py,143,POST,/api/v1/scenario/economics,scenario_economics
+sahool-platform,services/sahool-platform/api/routers/scenario.py,164,POST,/api/v1/scenario/water-twin,scenario_water_twin
+sahool-platform,services/sahool-platform/api/routers/scenario.py,193,POST,/api/v1/scenario/temperature,scenario_temperature
+sahool-platform,services/sahool-platform/api/routers/scenario.py,236,POST,/api/v1/scenario/planting-date,scenario_planting_date
+sahool-platform,services/sahool-platform/api/routers/scenario.py,286,POST,/api/v1/scenario/rainfall,scenario_rainfall
 sahool-platform,services/sahool-platform/api/routers/scouting.py,78,GET,/api/v1/scouting/pins,list_scouting_pins
 sahool-platform,services/sahool-platform/api/routers/scouting.py,114,GET,/api/v1/scouting/taxonomy,scouting_taxonomy
 sahool-platform,services/sahool-platform/api/routers/season_workspace.py,219,GET,/api/v1/fields/{field_id}/season-workspace,season_workspace

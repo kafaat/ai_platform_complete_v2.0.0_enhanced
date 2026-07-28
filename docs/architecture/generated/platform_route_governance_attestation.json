@@ -6,29 +6,29 @@
     },
     {
       "path": "docs/architecture/platform_extraction_map.json",
-      "sha256": "b5b0c7071da90e13ad352cfcc4f8c5041f14235e96cc7cd19ee4e3b9e5abac79"
+      "sha256": "77e2d523ba0c6dd54c5db3e540550b920e29bdb102fea00c074fd540b36ba0ab"
     },
     {
       "path": "docs/architecture/generated/platform_route_budget_inventory.json",
-      "sha256": "c432ad76ce5da6b019701e96e7b53d720e7fe95d579e8d4acb197dbe61c2a1ca"
+      "sha256": "3e6b27dcd7c2aa8bfa26c30f978ee5c75d85649864d5876da8c71301b412d2bd"
     },
     {
       "path": "docs/architecture/generated/platform_route_ownership_inventory.json",
-      "sha256": "ddca827a4a7e6b1245303155202f3853592b28492fe8bb8ae31c05b5ed0fc2eb"
+      "sha256": "da038735171c786ea8c525d3702c52edcab46390c498ad5d4365452509ef2844"
     }
   ],
   "schema_version": "sahool.platform-route-governance-attestation.v1",
   "statement": {
     "api_route_declarations": 4,
-    "budget_inventory_sha256": "00304d24265e9b6536c01cdf31bd4c902e2541d091d52c87223bee464ec644c6",
+    "budget_inventory_sha256": "520b7dd625d0ebae93191fda886a34f6bea91cedc08d05b0561b1a84ea7ed906",
     "classification_sha256": "c8a152411892b5aa921e717ade91f6235f80e62da01cad148bda7de686b6971f",
-    "domain_budget_routes": 626,
+    "domain_budget_routes": 627,
     "domain_route_budget": 629,
-    "full_ownership_surface": 634,
+    "full_ownership_surface": 635,
     "infrastructure_routes": 4,
-    "map_sha256": "b5b0c7071da90e13ad352cfcc4f8c5041f14235e96cc7cd19ee4e3b9e5abac79",
-    "ownership_inventory_sha256": "acd2780e848199f3429eacdb3773c40f1227a1c1d8f63462697a464d7fdca8b8",
-    "raw_routes": 630
+    "map_sha256": "77e2d523ba0c6dd54c5db3e540550b920e29bdb102fea00c074fd540b36ba0ab",
+    "ownership_inventory_sha256": "1872ea90e39d74a55039bdff3e71a42a8e0baeaee08a937864675062c9b57a2e",
+    "raw_routes": 631
   },
-  "statement_sha256": "914f388ec0d866a2880451859e96210b71c081a11c97f31995ef02d8fef807c8"
+  "statement_sha256": "a2f4753af45dfb07514b58fee0025e73bfb87b8010aa13d71c5e249c78bb6292"
 }
