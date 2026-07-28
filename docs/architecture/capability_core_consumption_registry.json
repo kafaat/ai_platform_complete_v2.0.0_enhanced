@@ -1,0 +1,39 @@
+{
+  "schema_version": "sahool.capability-core-consumption.v1",
+  "purpose": "Single registry of the platform capability cores tracked by CAPABILITY-CORES-NOT-WIRED. A core is 'wired' only when a named non-test production consumer imports it. The guard ratchets on this file: a wired core may never silently lose its consumer, and a pending core may never be described as wired without one.",
+  "not_this": "This registry is NOT about optional feature activation (ml_pest_detection, ml_yield_prediction, ml_field_boundary, aquacrop_salinity). Those are governed separately and share only the word 'capability'. Conflating them would mark this gap closed while these cores remain orphaned.",
+  "cores": [
+    {
+      "module": "services/sahool-platform/core/equipment_intelligence.py",
+      "status": "wired",
+      "consumer": "services/sahool-platform/api/routers/equipment.py",
+      "consumed_symbol": "summarize_equipment",
+      "contract": "equipment_intelligence.v2",
+      "note": "Consumed by list_equipment via ?summary=true. Folded into the existing route, so no domain route was spent. Fail-closed: absent maintenance policy yields not_evaluated, never a fabricated due."
+    },
+    {
+      "module": "services/sahool-platform/core/canonical_field_state.py",
+      "status": "pending_wiring",
+      "consumer": null,
+      "consumed_symbol": null,
+      "contract": "canonical_field_state.v1",
+      "note": "Blocked behind a design decision, not plumbing: api/routers/field_twin.py already consumes core.field_twin.assemble_twin, so admitting the canonical path needs the duplicate-implementation conflict resolved first."
+    },
+    {
+      "module": "services/sahool-platform/core/yield_intelligence.py",
+      "status": "pending_wiring",
+      "consumer": null,
+      "consumed_symbol": null,
+      "contract": "canonical_yield_state.v1",
+      "note": "Candidate consumer GET /api/v1/analysis/yield; overlap with api/yield_map_ingestion.py must be checked before wiring so the calibration rule keeps one owner."
+    },
+    {
+      "module": "services/sahool-platform/core/economic_scenarios.py",
+      "status": "pending_wiring",
+      "consumer": null,
+      "consumed_symbol": null,
+      "contract": "economic_scenario_comparison.v1",
+      "note": "Candidate consumer routers/economics.py, which today delegates to api/farm_economics.py. Not a duplicate (feasibility vs scenario comparison), but wiring needs a route decision against a 3-route margin."
+    }
+  ]
+}

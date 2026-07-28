@@ -2353,7 +2353,7 @@
       "function": "list_maintenance",
       "method": "GET",
       "path": "/api/v1/equipment/{equipment_id}/maintenance",
-      "line": 178,
+      "line": 203,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/equipment.py::GET /api/v1/equipment/{equipment_id}/maintenance::list_maintenance"
@@ -2363,7 +2363,7 @@
       "function": "list_equipment",
       "method": "GET",
       "path": "/api/v1/equipment",
-      "line": 92,
+      "line": 93,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/equipment.py::GET /api/v1/equipment::list_equipment"
@@ -2373,7 +2373,7 @@
       "function": "log_maintenance",
       "method": "POST",
       "path": "/api/v1/equipment/{equipment_id}/maintenance",
-      "line": 112,
+      "line": 137,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/equipment.py::POST /api/v1/equipment/{equipment_id}/maintenance::log_maintenance"
@@ -2383,7 +2383,7 @@
       "function": "create_equipment",
       "method": "POST",
       "path": "/api/v1/equipment",
-      "line": 37,
+      "line": 38,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/equipment.py::POST /api/v1/equipment::create_equipment"

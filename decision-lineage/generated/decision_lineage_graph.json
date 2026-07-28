@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 505,
+      "evidence_count": 508,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -291,6 +291,7 @@
         "services/sahool-platform/core/decision_playbook.py",
         "services/sahool-platform/core/engines/phenology_narrative.py",
         "services/sahool-platform/core/eo_stage_mismatch.py",
+        "services/sahool-platform/core/equipment_intelligence.py",
         "services/sahool-platform/core/evidence_class.py",
         "services/sahool-platform/core/evidence_graph.py",
         "services/sahool-platform/core/evidence_graph_analytics.py",
@@ -344,6 +345,7 @@
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_canonical_well_capability.py",
+        "services/sahool-platform/tests/test_capability_plan_closures.py",
         "services/sahool-platform/tests/test_confidence_engine.py",
         "services/sahool-platform/tests/test_context_firewall_and_streams.py",
         "services/sahool-platform/tests/test_crop_confidence_contract.py",
@@ -371,6 +373,7 @@
         "services/sahool-platform/tests/test_decision_playbook.py",
         "services/sahool-platform/tests/test_decision_record_persistence.py",
         "services/sahool-platform/tests/test_eo_stage_mismatch.py",
+        "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
         "services/sahool-platform/tests/test_evidence_class.py",
         "services/sahool-platform/tests/test_evidence_graph.py",
         "services/sahool-platform/tests/test_evidence_graph_analytics.py",
@@ -2215,7 +2218,7 @@
         "services/sahool-platform/core/field_digital_twin.py",
         "services/sahool-platform/core/field_event_sourcing.py"
       ],
-      "source_evidence_count": 505,
+      "source_evidence_count": 508,
       "target_evidence_count": 455,
       "static_supported": true,
       "runtime_verified": false
@@ -2566,5 +2569,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "a3b8cdb7d36c8dec6592d8afc6db3906a430e406cbb0745663ad9bac859e94e4"
+  "content_sha256": "a42d972ab29319992e828a2f6f15eb46f00b6447af330c73809c30c9a046d651"
 }

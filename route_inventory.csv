@@ -536,10 +536,10 @@ sahool-platform,services/sahool-platform/api/routers/economics.py,32,POST,/api/v
 sahool-platform,services/sahool-platform/api/routers/economics.py,46,GET,/api/v1/economics/break-even,economics_break_even_endpoint
 sahool-platform,services/sahool-platform/api/routers/edge.py,25,POST,/api/v1/edge/sync,edge_sync_receive
 sahool-platform,services/sahool-platform/api/routers/edge.py,25,POST,/v1/edge/sync,edge_sync_receive
-sahool-platform,services/sahool-platform/api/routers/equipment.py,38,POST,/api/v1/equipment,create_equipment
-sahool-platform,services/sahool-platform/api/routers/equipment.py,93,GET,/api/v1/equipment,list_equipment
-sahool-platform,services/sahool-platform/api/routers/equipment.py,113,POST,/api/v1/equipment/{equipment_id}/maintenance,log_maintenance
-sahool-platform,services/sahool-platform/api/routers/equipment.py,179,GET,/api/v1/equipment/{equipment_id}/maintenance,list_maintenance
+sahool-platform,services/sahool-platform/api/routers/equipment.py,39,POST,/api/v1/equipment,create_equipment
+sahool-platform,services/sahool-platform/api/routers/equipment.py,94,GET,/api/v1/equipment,list_equipment
+sahool-platform,services/sahool-platform/api/routers/equipment.py,138,POST,/api/v1/equipment/{equipment_id}/maintenance,log_maintenance
+sahool-platform,services/sahool-platform/api/routers/equipment.py,204,GET,/api/v1/equipment/{equipment_id}/maintenance,list_maintenance
 sahool-platform,services/sahool-platform/api/routers/escalation.py,23,POST,/api/v1/escalation/assess,escalation_assess
 sahool-platform,services/sahool-platform/api/routers/etc_dual.py,228,POST,/api/v1/fields/{field_id}/etc-dual,field_etc_dual
 sahool-platform,services/sahool-platform/api/routers/events.py,32,GET,/api/v1/events/{entity_type}/{entity_id},entity_events

@@ -11,8 +11,8 @@
 - Capabilities: **81**
 - Mapped: **74**
 - Unmapped: **7**
-- Multi-dimensional mappings: **48**
-- Files scanned: **4760**
+- Multi-dimensional mappings: **47**
+- Files scanned: **4763**
 - Ambiguous artifacts queued: **390**
 - Unmapped artifacts queued: **1943**
 
@@ -45,7 +45,7 @@
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 5 | 15 | 2 | 58 | 0 | 0 | 7 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| INT-004 | precision | 2 | 3 | 8 | 6 | 0 | 0 | 1 | 5 |
+| INT-004 | precision | 3 | 7 | 8 | 6 | 0 | 0 | 1 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 0 | 4 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 1 | 3 |
@@ -62,7 +62,7 @@
 | OPS-004 | operations | 3 | 12 | 15 | 9 | 0 | 12 | 20 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 6 | 1 | 0 | 1 | 6 |
 | OPS-006 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| OPS-007 | operations | 1 | 4 | 3 | 1 | 0 | 0 | 1 | 5 |
+| OPS-007 | operations | 0 | 0 | 3 | 1 | 0 | 0 | 2 | 3 |
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | PA-001 | precision | 9 | 33 | 8 | 1 | 0 | 0 | 7 | 5 |
 | PA-002 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |

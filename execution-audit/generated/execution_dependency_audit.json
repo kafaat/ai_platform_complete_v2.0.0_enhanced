@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1816,
+    "python_files_parsed": 1817,
     "route_handlers": 1041,
-    "call_edges": 70924,
+    "call_edges": 71027,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -4079,7 +4079,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
-      "line": 38,
+      "line": 39,
       "handler": "create_equipment",
       "method": "POST",
       "path": "/api/v1/equipment"
@@ -4087,7 +4087,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
-      "line": 93,
+      "line": 94,
       "handler": "list_equipment",
       "method": "GET",
       "path": "/api/v1/equipment"
@@ -4095,7 +4095,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
-      "line": 113,
+      "line": 138,
       "handler": "log_maintenance",
       "method": "POST",
       "path": "/api/v1/equipment/{equipment_id}/maintenance"
@@ -4103,7 +4103,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
-      "line": 179,
+      "line": 204,
       "handler": "list_maintenance",
       "method": "GET",
       "path": "/api/v1/equipment/{equipment_id}/maintenance"
@@ -229792,14 +229792,7 @@
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "post",
-      "line": 37
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "create_equipment",
-      "target": "Depends",
-      "line": 40
+      "line": 38
     },
     {
       "owner": "sahool-platform",
@@ -229807,104 +229800,104 @@
       "source": "create_equipment",
       "target": "Depends",
       "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "create_equipment",
+      "target": "Depends",
+      "line": 42
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "require_permission",
-      "line": 41
+      "line": 42
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "uuid4",
-      "line": 45
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "create_equipment",
-      "target": "_parse_date",
       "line": 46
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
-      "target": "tenant_connection",
+      "target": "_parse_date",
       "line": 47
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "create_equipment",
+      "target": "tenant_connection",
+      "line": 48
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "_work",
       "target": "execute",
-      "line": 50
+      "line": 51
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "execute",
-      "line": 50
+      "line": 51
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "_work",
       "target": "str",
-      "line": 55
+      "line": 56
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "str",
-      "line": 55
+      "line": 56
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "_work",
       "target": "_emit_domain_event",
-      "line": 62
+      "line": 63
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "_emit_domain_event",
-      "line": 62
+      "line": 63
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "_idempotent",
-      "line": 78
+      "line": 79
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "CommandStore",
-      "line": 79
+      "line": 80
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
       "target": "get_pool",
-      "line": 79
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "create_equipment",
-      "target": "str",
-      "line": 83
+      "line": 80
     },
     {
       "owner": "sahool-platform",
@@ -229917,295 +229910,323 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "create_equipment",
+      "target": "str",
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "create_equipment",
       "target": "_work",
-      "line": 88
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_equipment",
       "target": "get",
-      "line": 92
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_equipment",
       "target": "Depends",
-      "line": 93
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "list_equipment",
-      "target": "require_permission",
-      "line": 93
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "list_equipment",
-      "target": "tenant_connection",
-      "line": 94
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "list_equipment",
-      "target": "fetch",
       "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_equipment",
+      "target": "require_permission",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "list_equipment",
+      "target": "Query",
+      "line": 96
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "list_equipment",
+      "target": "tenant_connection",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "list_equipment",
+      "target": "fetch",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "list_equipment",
       "target": "float",
-      "line": 105
+      "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_equipment",
       "target": "isoformat",
-      "line": 106
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "list_equipment",
+      "target": "summarize_equipment",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "list_equipment",
+      "target": "to_dict",
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "post",
-      "line": 112
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "Depends",
-      "line": 116
+      "line": 141
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "Depends",
-      "line": 117
+      "line": 142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "require_permission",
-      "line": 117
+      "line": 142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "uuid4",
-      "line": 121
+      "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "_parse_date",
-      "line": 122
+      "line": 147
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "_parse_date",
-      "line": 123
+      "line": 148
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "tenant_connection",
-      "line": 124
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "_work",
-      "target": "fetchval",
-      "line": 127
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "log_maintenance",
-      "target": "fetchval",
-      "line": 127
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "_work",
-      "target": "HTTPException",
-      "line": 131
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "log_maintenance",
-      "target": "HTTPException",
-      "line": 131
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "_work",
-      "target": "execute",
-      "line": 132
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "log_maintenance",
-      "target": "execute",
-      "line": 132
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "_work",
-      "target": "str",
-      "line": 138
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "log_maintenance",
-      "target": "str",
-      "line": 138
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "_work",
-      "target": "execute",
-      "line": 149
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/equipment.py",
-      "source": "log_maintenance",
-      "target": "execute",
       "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "_work",
-      "target": "_emit_domain_event",
+      "target": "fetchval",
       "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
-      "target": "_emit_domain_event",
+      "target": "fetchval",
       "line": 152
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "_work",
+      "target": "HTTPException",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "log_maintenance",
+      "target": "HTTPException",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "_work",
+      "target": "execute",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "log_maintenance",
+      "target": "execute",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "_work",
+      "target": "str",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "log_maintenance",
+      "target": "str",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "_work",
+      "target": "execute",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "log_maintenance",
+      "target": "execute",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "_work",
+      "target": "_emit_domain_event",
+      "line": 177
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/equipment.py",
+      "source": "log_maintenance",
+      "target": "_emit_domain_event",
+      "line": 177
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "_idempotent",
-      "line": 164
+      "line": 189
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "CommandStore",
-      "line": 165
+      "line": 190
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "get_pool",
-      "line": 165
+      "line": 190
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "str",
-      "line": 169
+      "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "str",
-      "line": 170
+      "line": 195
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "log_maintenance",
       "target": "_work",
-      "line": 174
+      "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_maintenance",
       "target": "get",
-      "line": 178
+      "line": 203
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_maintenance",
       "target": "Depends",
-      "line": 181
+      "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_maintenance",
       "target": "require_permission",
-      "line": 181
+      "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_maintenance",
       "target": "tenant_connection",
-      "line": 183
+      "line": 208
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_maintenance",
       "target": "fetch",
-      "line": 184
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_maintenance",
       "target": "isoformat",
-      "line": 195
+      "line": 220
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_maintenance",
       "target": "isoformat",
-      "line": 196
+      "line": 221
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/equipment.py",
       "source": "list_maintenance",
       "target": "float",
-      "line": 197
+      "line": 222
     },
     {
       "owner": "sahool-platform",
@@ -305889,203 +305910,371 @@
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "to_dict",
       "target": "asdict",
-      "line": 25
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "to_dict",
+      "target": "asdict",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_reading",
+      "target": "isinstance",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_reading",
+      "target": "float",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "get",
+      "line": 119
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "date",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "fromisoformat",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "str",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "EquipmentServiceAssessment",
+      "line": 124
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "append",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "_reading",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "get",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "_reading",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "get",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "_reading",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "get",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "append",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "append",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "append",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "append",
+      "line": 147
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "EquipmentServiceAssessment",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "EquipmentServiceAssessment",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "EquipmentServiceAssessment",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "round",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "_assess",
+      "target": "EquipmentServiceAssessment",
+      "line": 158
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "today",
-      "line": 34
+      "line": 172
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "enumerate",
-      "line": 37
+      "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "get",
-      "line": 38
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "get",
-      "line": 38
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "str",
-      "line": 38
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "get",
-      "line": 39
+      "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "str",
-      "line": 39
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "_reading",
+      "line": 183
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "get",
-      "line": 42
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "float",
-      "line": 44
+      "line": 183
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "append",
-      "line": 51
+      "line": 185
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
-      "target": "float",
-      "line": 52
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "get",
-      "line": 52
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "get",
-      "line": 53
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "float",
-      "line": 55
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "get",
-      "line": 59
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "date",
-      "line": 62
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "fromisoformat",
-      "line": 62
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "str",
-      "line": 62
+      "target": "_assess",
+      "line": 189
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "append",
-      "line": 64
+      "line": 190
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "append",
-      "line": 67
+      "line": 192
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "len",
-      "line": 70
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "append",
-      "line": 77
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/equipment_intelligence.py",
-      "source": "summarize_equipment",
-      "target": "EquipmentIntelligenceState",
-      "line": 78
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "len",
-      "line": 80
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "len",
-      "line": 81
+      "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "round",
-      "line": 83
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "append",
+      "line": 206
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "append",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "EquipmentIntelligenceState",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "len",
+      "line": 219
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "len",
+      "line": 220
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "len",
+      "line": 221
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "len",
+      "line": 222
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "round",
+      "line": 225
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/equipment_intelligence.py",
+      "source": "summarize_equipment",
+      "target": "to_dict",
+      "line": 230
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "fromkeys",
-      "line": 87
+      "line": 231
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/equipment_intelligence.py",
       "source": "summarize_equipment",
       "target": "list",
-      "line": 87
+      "line": 231
     },
     {
       "owner": "sahool-platform",
@@ -346895,7 +347084,7 @@
       "file": "services/sahool-platform/tests/test_capability_plan_closures.py",
       "source": "test_economic_scenarios_rank_only_comparable_margins",
       "target": "compare_economic_scenarios",
-      "line": 134
+      "line": 138
     },
     {
       "owner": "sahool-platform",
@@ -365096,6 +365285,538 @@
       "source": "test_reports_baseline_limitation_honestly",
       "target": "detect_eo_stage_mismatch",
       "line": 74
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_complete",
+      "target": "update",
+      "line": 39
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_only",
+      "target": "summarize_equipment",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_only",
+      "target": "to_dict",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_production_payload_never_fabricates_a_service_claim",
+      "target": "summarize_equipment",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_production_payload_never_fabricates_a_service_claim",
+      "target": "to_dict",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_each_missing_input_blocks_evaluation_and_names_itself",
+      "target": "parametrize",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_each_missing_input_blocks_evaluation_and_names_itself",
+      "target": "_complete",
+      "line": 71
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_each_missing_input_blocks_evaluation_and_names_itself",
+      "target": "pop",
+      "line": 72
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_each_missing_input_blocks_evaluation_and_names_itself",
+      "target": "_only",
+      "line": 73
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_missing_policy_does_not_silently_become_not_due",
+      "target": "_complete",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_missing_policy_does_not_silently_become_not_due",
+      "target": "_only",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_zero_baseline_is_a_reading_not_an_absence",
+      "target": "_complete",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_zero_baseline_is_a_reading_not_an_absence",
+      "target": "_only",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_zero_interval_is_a_reading_not_an_absence",
+      "target": "_complete",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_zero_interval_is_a_reading_not_an_absence",
+      "target": "_only",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_boolean_is_never_accepted_as_a_meter_reading",
+      "target": "_complete",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_boolean_is_never_accepted_as_a_meter_reading",
+      "target": "_only",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_complete_inputs_over_interval_are_due_with_computed_overdue",
+      "target": "_complete",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_complete_inputs_over_interval_are_due_with_computed_overdue",
+      "target": "_only",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_complete_inputs_under_interval_are_not_due",
+      "target": "_complete",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_complete_inputs_under_interval_are_not_due",
+      "target": "_only",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_recorded_schedule_that_arrived_is_due_without_meter_inputs",
+      "target": "_only",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_unevaluated_fleet_is_unknown_with_zero_coverage",
+      "target": "summarize_equipment",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_unevaluated_fleet_is_unknown_with_zero_coverage",
+      "target": "to_dict",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_readiness_vocabulary_keeps_each_state_meaning_one_thing",
+      "target": "_complete",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_readiness_vocabulary_keeps_each_state_meaning_one_thing",
+      "target": "_complete",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_readiness_vocabulary_keeps_each_state_meaning_one_thing",
+      "target": "summarize_equipment",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_readiness_vocabulary_keeps_each_state_meaning_one_thing",
+      "target": "to_dict",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_readiness_vocabulary_keeps_each_state_meaning_one_thing",
+      "target": "summarize_equipment",
+      "line": 153
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_readiness_vocabulary_keeps_each_state_meaning_one_thing",
+      "target": "to_dict",
+      "line": 153
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_readiness_vocabulary_keeps_each_state_meaning_one_thing",
+      "target": "summarize_equipment",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_readiness_vocabulary_keeps_each_state_meaning_one_thing",
+      "target": "to_dict",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_a_due_asset_outranks_a_degradation_signal",
+      "target": "summarize_equipment",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_a_due_asset_outranks_a_degradation_signal",
+      "target": "to_dict",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_a_due_asset_outranks_a_degradation_signal",
+      "target": "_complete",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "parse",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "read_text",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "walk",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "isinstance",
+      "line": 184
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "walk",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "isinstance",
+      "line": 192
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "isinstance",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "isinstance",
+      "line": 195
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "isinstance",
+      "line": 197
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_router_consumes_the_core_and_adds_no_route",
+      "target": "sorted",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_consumer_does_not_convert_not_evaluated_into_not_due",
+      "target": "read_text",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "parse",
+      "line": 221
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "read_text",
+      "line": 221
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "str",
+      "line": 221
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "walk",
+      "line": 222
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "isinstance",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "getattr",
+      "line": 224
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "isinstance",
+      "line": 227
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "isinstance",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "isinstance",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "_executable_source",
+      "target": "unparse",
+      "line": 232
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "Path",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "resolve",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "set",
+      "line": 238
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "list",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "list",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "rglob",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "rglob",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "_executable_source",
+      "line": 243
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "add",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "as_posix",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "relative_to",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "set",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_duplicate_service_due_implementation_outside_the_core",
+      "target": "sorted",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_future_schedule_does_not_mask_a_meter_overdue",
+      "target": "_only",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_future_schedule_does_not_mask_a_meter_overdue",
+      "target": "_complete",
+      "line": 264
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_future_schedule_with_unevaluable_meter_is_not_due_by_date",
+      "target": "_only",
+      "line": 277
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_not_due_by_date_is_distinguishable_from_not_due_by_meter",
+      "target": "_only",
+      "line": 286
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_not_due_by_date_is_distinguishable_from_not_due_by_meter",
+      "target": "_complete",
+      "line": 287
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_not_due_by_date_is_distinguishable_from_not_due_by_meter",
+      "target": "_only",
+      "line": 287
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+      "source": "test_no_date_and_unevaluable_meter_stays_not_evaluated",
+      "target": "_only",
+      "line": 295
     },
     {
       "owner": "sahool-platform",

@@ -77,6 +77,8 @@ jobs:
         run: python scripts/ci/capability_release_history.py --check
       - name: Validate unified capability management layer
         run: python scripts/ci/capability_management_engine.py --check
+      - name: Enforce capability-core production consumption
+        run: python scripts/ci/capability_core_consumption_guard.py --check
       - name: Validate capability impact index drift
         run: python scripts/ci/pr_capability_impact_gate.py --check-index
       - name: Enforce declared PR capability impact

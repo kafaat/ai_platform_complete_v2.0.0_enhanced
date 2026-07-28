@@ -12,7 +12,8 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from core.equipment_intelligence import summarize_equipment
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.equipment_models import (
     EquipmentRequest,
@@ -90,13 +91,34 @@ async def create_equipment(
 
 
 @router.get("/api/v1/equipment")
-async def list_equipment(user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_VIEW))):
+async def list_equipment(
+    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_VIEW)),
+    summary: bool = Query(
+        False,
+        description=(
+            "Attach the equipment_intelligence fleet summary alongside the assets. "
+            "Service verdicts stay not_evaluated while maintenance policy is unrecorded."
+        ),
+    ),
+):
+    """List tenant equipment, optionally with the governed fleet-readiness summary.
+
+    The summary is opt-in so the default response shape is unchanged. It is folded into
+    this existing route rather than added as a new one, keeping the platform domain-route
+    budget untouched (the INT-004A precedent).
+
+    Honesty boundary: the ``equipment`` table records no maintenance policy — there is no
+    ``service_interval_hours`` and no last-service meter baseline — so every asset comes
+    back ``not_evaluated`` with ``maintenance_policy_missing`` and
+    ``service_meter_baseline_missing``. That is the true state of the data; the summary
+    reports it rather than assuming an interval and manufacturing a service claim.
+    """
     async with tenant_connection(user) as conn:
         rows = await conn.fetch(
             "SELECT equipment_id, name, type, status, operating_hours, purchase_date "
             "FROM equipment ORDER BY type, name"
         )
-    return [
+    assets = [
         {
             "equipment_id": r["equipment_id"],
             "name": r["name"],
@@ -107,6 +129,9 @@ async def list_equipment(user: UserSchema = Depends(require_permission(Permissio
         }
         for r in rows
     ]
+    if not summary:
+        return assets
+    return {"assets": assets, "intelligence": summarize_equipment(assets=assets).to_dict()}
 
 
 @router.post("/api/v1/equipment/{equipment_id}/maintenance", status_code=201)
