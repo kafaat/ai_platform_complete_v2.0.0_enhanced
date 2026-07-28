@@ -134,4 +134,11 @@ jobs:
             tests/architecture/test_path3_run_attestation.py \
             tests/architecture/test_path3_attestation_policy.py \
             tests/architecture/test_path3_live_acceptance_gate.py \
-            tests/architecture/test_static_governance_closure.py
+            tests/architecture/test_static_governance_closure.py \
+            tests/architecture/test_verify_all_generated.py
+      # المكنسة (#691) لم تكن موصولة بأيّ workflow — لا هي ولا اختبارها. أداة تُشغَّل
+      # يدويّاً لا تحرس شيئاً؛ وهي الحالة الثالثة اليوم لـARCH-TESTS-UNLISTED-IN-CI-01.
+      # تعمل **أخيراً**: تُعيد فحص ما سبق، وتلتقط ما لا يلتقطه أيّ فحص منفرد —
+      # حارساً كتب أثناء الفحص (CHECK-STEPS-MUTATE-THE-TREE-01).
+      - name: Sweep every generated artifact, and catch guards that write while checking
+        run: python scripts/ci/verify_all_generated.py
