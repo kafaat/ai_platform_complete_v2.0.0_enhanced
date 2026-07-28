@@ -5,4 +5,10 @@
 #   tests_v9/test_field_forms_api_integration.py
 #   tests_v9/test_field_forms_sync_binding_p02.py
 #   tests_v9/test_erp_bridge_fail_closed.py
-fastapi>=0.115.0
+# APP-ROUTES-EMPTY-01: مثبَّتة على إصدار الإنتاج (api/requirements.txt:6). كان
+# `>=0.115.0` بلا سقف يحلّ اليوم إلى 0.140.13، وفيها لم يعد `include_router` يُسطِّح
+# المسارات في `app.routes` بل يُدرِج غلافاً واحداً `_IncludedRouter` لكلّ راوتر بلا
+# `.path` — فيرى ١١ اختباراً تطبيقاً «فارغاً» (٤ مسارات افتراضيّة) بينما التطبيق يخدم
+# ٦٣٤ APIRoute فعليّاً. الفارق في سطح الاستبطان لا في التسجيل. أيّ ترقية هنا تُغيّر
+# سلوك اختبارات لا تُختبَر عليها المنصّة — ثبّت مع الإنتاج أو رقِّ الاثنين معاً.
+fastapi==0.136.3

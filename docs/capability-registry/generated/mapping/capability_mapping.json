@@ -15,13 +15,13 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4768,
+    "files_scanned": 4771,
     "files_by_kind": {
       "backend": 1190,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1243,
+      "other": 1246,
       "tests": 1514,
       "web": 446
     },
@@ -11454,6 +11454,20 @@
           "signals": [
             "explicit_id"
           ]
+        },
+        {
+          "path": "scripts/ci/brain_commit_claim_guard.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "scripts/ci/brain_deferral_registry_guard.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
         }
       ],
       "ambiguous": [],
@@ -11469,7 +11483,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 4
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -16494,6 +16508,15 @@
           ]
         },
         {
+          "path": "docs/architecture/brain_deferral_baseline.json",
+          "score": 16,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md",
           "score": 16,
           "signals": [
@@ -16716,7 +16739,7 @@
         "mobile": 0,
         "tests": 39,
         "governance": 0,
-        "other_evidence": 32
+        "other_evidence": 33
       },
       "coverage_dimensions": 6,
       "mapped": true
