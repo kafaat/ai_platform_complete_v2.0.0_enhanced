@@ -58,3 +58,46 @@ def simulate_salinity_risk(state: FieldTwinState) -> FieldTwinState:
     return FieldTwinState(
         state.field_id, state.current, state.expected, state.predicted, risks, state.assumptions
     )
+
+
+def build_field_twin_from_canonical_state(state: dict[str, Any]) -> FieldTwinState:
+    """Project a thin twin view from ``canonical_field_state.v1`` only.
+
+    The twin is deliberately a derived view: it keeps the canonical state digest in
+    assumptions/evidence and refuses unversioned client dictionaries.
+    """
+    if state.get("schema_version") != "canonical_field_state.v1":
+        raise ValueError("Field Digital Twin requires canonical_field_state.v1")
+    if not state.get("operational_eligible"):
+        return FieldTwinState(
+            field_id=str(state.get("field_id") or ""),
+            current={"canonical_state_digest": state.get("state_digest")},
+            risks={"canonical_inputs": "unknown"},
+            assumptions=list(state.get("limitations") or []),
+        )
+    water = state.get("water") or {}
+    soil = state.get("soil") or {}
+    spectral = state.get("spectral") or {}
+    current = {
+        "canonical_state_digest": state.get("state_digest"),
+        "depletion_mm": water.get("depletion_mm"),
+        "taw_mm": water.get("taw_mm"),
+        "soil_texture": soil.get("soil_texture") or soil.get("texture_class"),
+        "ndvi": spectral.get("ndvi") or (spectral.get("products") or {}).get("ndvi"),
+    }
+    risks: dict[str, TwinRisk] = {}
+    dep, taw = current.get("depletion_mm"), current.get("taw_mm")
+    if dep is None or taw in (None, 0):
+        risks["water_stress"] = "unknown"
+    else:
+        ratio = float(dep) / float(taw)
+        risks["water_stress"] = "high" if ratio >= 0.7 else "medium" if ratio >= 0.4 else "low"
+    return FieldTwinState(
+        field_id=str(state["field_id"]),
+        current=current,
+        risks=risks,
+        assumptions=[
+            "derived_view_of_canonical_field_state",
+            f"state_digest:{state.get('state_digest')}",
+        ],
+    )

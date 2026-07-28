@@ -3,10 +3,12 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from core.crop_intelligence.canonical_inputs import resolve_phenology_inputs
 from core.crop_intelligence.confidence import compose_confidence
 from core.crop_intelligence.crop_water import build_crop_water_state
 from core.crop_intelligence.models import CropIntelligenceInput
 from core.crop_intelligence.phenology import build_phenology_state
+from core.crop_intelligence.policy_engine import evaluate_crop_policy
 from core.crop_intelligence.recommendation_context import build_recommendation_context
 from core.crop_intelligence.roots import build_root_state
 from core.crop_intelligence.stress_memory import build_stress_memory
@@ -44,8 +46,14 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
     """
     crop_key = resolve_crop_id(inp.crop)
     crop_known = crop_key is not None
-    gdd = _finite_non_negative(inp.gdd_cumulative)
-    gdd_mat = _finite_non_negative(inp.gdd_to_maturity)
+    canonical_phenology = resolve_phenology_inputs(
+        crop=inp.crop,
+        weather_state=inp.weather_state,
+        legacy_gdd_cumulative=inp.gdd_cumulative,
+        legacy_gdd_to_maturity=inp.gdd_to_maturity,
+    )
+    gdd = canonical_phenology["gdd_cumulative"]
+    gdd_mat = canonical_phenology["gdd_to_maturity"]
 
     evidence_missing: list[str] = []
     if gdd is None:
@@ -56,9 +64,9 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
     phenology = build_phenology_state(
         gdd_cumulative=gdd,
         gdd_to_maturity=gdd_mat,
-        method=inp.phenology_method,
-        formula_version=inp.phenology_formula_version,
-        source_ids=inp.source_ids,
+        method=canonical_phenology.get("method") or inp.phenology_method,
+        formula_version=canonical_phenology.get("formula_version") or inp.phenology_formula_version,
+        source_ids=list(dict.fromkeys([*inp.source_ids, *canonical_phenology["evidence_ids"]])),
     )
     progress = phenology.get("progress")
 
@@ -69,21 +77,12 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
     weather = dict(inp.weather_state or {})
     soil = dict(inp.soil_state or {})
 
-    stress_flags: list[dict[str, str]] = []
-    if water.get("needs_irrigation") is True:
-        stress_flags.append({"code": "water_deficit", "source": "water_state"})
     spectral_confirmed = (
         spectral.get("water_stress", {}).get("confirmed") is True
         or vegetation.get("water_stress_confirmed") is True
     )
-    if spectral_confirmed:
-        stress_flags.append({"code": "spectral_water_stress", "source": "spectral_state"})
-    if weather.get("heat_stress") is True:
-        stress_flags.append({"code": "heat_stress", "source": "weather_state"})
-    if weather.get("frost_risk") is True:
-        stress_flags.append({"code": "frost_risk", "source": "weather_state"})
 
-    limitations = list(inp.limitations)
+    limitations = [*inp.limitations, *canonical_phenology["limitations"]]
     if not crop_known:
         limitations.append("unknown_crop_uses_generic_crop_identity")
     if progress is None:
@@ -129,6 +128,17 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
         source_ids=(crop_water_policy.get("source_ids") or []) + inp.source_ids,
     )
 
+    policy_assessment = evaluate_crop_policy(
+        facts={
+            "water_needs_irrigation": water.get("needs_irrigation") is True,
+            "spectral_water_stress_confirmed": spectral_confirmed,
+            "weather_heat_stress": weather.get("heat_stress") is True,
+            "weather_frost_risk": weather.get("frost_risk") is True,
+            "crop_water_urgency_high": crop_water.get("irrigation_urgency") == "high",
+        }
+    )
+    stress_flags = policy_assessment["stress_flags"]
+
     component_status = {
         "phenology": _availability(phenology),
         "roots": _availability(root_state),
@@ -153,6 +163,7 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
         stress_memory=stress_memory,
         component_status=component_status,
         source_ids=inp.source_ids,
+        policy_assessment=policy_assessment,
     )
 
     return {
@@ -173,6 +184,7 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
         "biomass": biomass,
         "yield_projection": yield_state,
         "stress_flags": stress_flags,
+        "policy_assessment": policy_assessment,
         "stress_memory": stress_memory,
         "crop_water": crop_water,
         "recommendation_context": recommendation_context,
@@ -184,7 +196,10 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
             crop_known=crop_known,
             recommendation_status=recommendation_context.get("status"),
         ),
-        "evidence_ids": list(dict.fromkeys(inp.source_ids)),
+        "evidence_ids": list(
+            dict.fromkeys([*inp.source_ids, *canonical_phenology["evidence_ids"]])
+        ),
+        "canonical_input_sources": {"weather": canonical_phenology["source"]},
         "evidence_missing": evidence_missing,
         "limitations": list(dict.fromkeys(limitations)),
         "ownership": {

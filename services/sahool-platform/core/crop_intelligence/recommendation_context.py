@@ -13,14 +13,11 @@ def build_recommendation_context(
     stress_memory: dict[str, Any],
     component_status: dict[str, str],
     source_ids: list[str] | None = None,
+    policy_assessment: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a decision-ready crop context without making a decision."""
-    urgent_factors: list[str] = []
-    if crop_water.get("irrigation_urgency") == "high":
-        urgent_factors.append("water_urgency_high")
-    urgent_factors.extend(
-        flag["code"] for flag in stress_flags if flag.get("code") in {"heat_stress", "frost_risk"}
-    )
+    policy_assessment = dict(policy_assessment or {})
+    urgent_factors = list(policy_assessment.get("urgent_factors") or [])
 
     status = "available"
     limitations: list[str] = []
@@ -41,10 +38,16 @@ def build_recommendation_context(
             dict.fromkeys(flag.get("code") for flag in stress_flags if flag.get("code"))
         ),
         "stress_memory_state": stress_memory.get("recovery_state"),
-        "urgency": "high" if urgent_factors else "normal",
+        "urgency": policy_assessment.get("urgency") or ("high" if urgent_factors else "normal"),
         "urgent_factors": list(dict.fromkeys(urgent_factors)),
         "confidence": "medium" if status == "available" else "low",
         "evidence_ids": list(dict.fromkeys(source_ids or [])),
+        "policy_assessment": {
+            "schema": policy_assessment.get("schema"),
+            "policy_digest": policy_assessment.get("policy_digest"),
+            "matched_rule_ids": policy_assessment.get("matched_rule_ids") or [],
+            "evidence_ids": policy_assessment.get("evidence_ids") or [],
+        },
         "limitations": limitations,
         "decision_boundary": {
             "is_decision": False,

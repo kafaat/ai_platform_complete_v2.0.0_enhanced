@@ -7419,6 +7419,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/tests/test_capability_plan_closures.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 8,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/tests/test_confidence_aggregation.py",
     "kind": "tests",
     "candidates": [
