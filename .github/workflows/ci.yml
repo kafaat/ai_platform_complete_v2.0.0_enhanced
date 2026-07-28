@@ -503,22 +503,24 @@ jobs:
         with: {python-version: "3.12"}
       - run: pip install -r tests_v9/requirements-test.txt
       - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
-      # بوّابة تغطية حقيقيّة (A1): في بيئة الوحدة الدنيا (بلا fastapi/خدمات) تبلغ
-      # تغطية اختبارات الوحدة لـservices ~44.55% فعليّاً (قياس 2026-07 بنفس أمر CI
-      # وبنفس التبعيّات الدنيا؛ نَمَت من ~24% السابقة). الأرضيّة 40% (هامش ~4.5 نقطة
-      # دون المقيس) — راتشِت غير-كاسر يمنع الانحدار ويصعد فقط.
-      # ratchet: 20→40 (2026-07)؛ ارفعها نحو 55 مع نموّ التغطية. راجع
-      # docs/testing/coverage_ratchet.md للخطّة المرحليّة والتفصيل حسب النطاق.
+      # بوّابة تغطية حقيقيّة (A1): راتشِت غير-كاسر يمنع الانحدار ويصعد فقط.
+      # UNIT-TEST-DORMANCY-01 (2026-07-28): بعد إيقاظ ٤٧٩ اختباراً خامداً (fastapi
+      # وscipy وpillow صارت في `requirements-test.txt`) صار المقيس **46%** بأمر CI
+      # نفسه — كان ~44.55% في البيئة الدنيا. الأرضيّة تصعد 40→42 بنفس هامش
+      # الاتّفاقيّة (~٤ نقاط دون المقيس).
+      # ratchet: 20→40 (2026-07) → 42 (2026-07-28)؛ ارفعها نحو 55 مع نموّ التغطية.
+      # راجع docs/testing/coverage_ratchet.md للخطّة المرحليّة والتفصيل حسب النطاق.
       - name: Coverage gate (fail-under)
-        run: pytest -m unit --cov=services --cov-fail-under=40 -q || (echo "التغطية انهارت دون الأرضيّة 40%" && exit 1)
+        run: pytest -m unit --cov=services --cov-fail-under=42 -q || (echo "التغطية انهارت دون الأرضيّة 42%" && exit 1)
       - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with: {files: coverage.xml}
-      # خطوة معزولة: تُثبّت fastapi فوق البيئة الدنيا (بعد بوّابة التغطية كي لا تُوقظ
-      # الاختبارات الخامدة في مسار -m unit) وتشغّل الملفّات الثلاثة المقصودة صراحةً
-      # بالمسار — تغطية حقيقيّة لـfield-forms API بلا أثر جانبيّ على البيئة المشتركة.
-      - name: Field-forms API integration (isolated fastapi env)
+      # ثلاثة من هذه الأربعة بلا `pytestmark = unit` ⇒ يستبعدها `-m unit`؛ تُشغَّل
+      # صراحةً بالمسار. لم تعد تحتاج تثبيتاً معزولاً: fastapi صارت في البيئة
+      # المشتركة مثبَّتة على إصدار الإنتاج (UNIT-TEST-DORMANCY-01).
+      # تُشغَّل الأربعة **معاً** عمداً: `test_field_forms_sync_binding_p02` كان يفشل
+      # عند التجميع وحده (ترتيب HMAC) — «ناجح منفصلاً ≠ ناجح مُجمَّعاً» (#590).
+      - name: Field-forms API integration (unmarked files, explicit paths)
         run: |
-          pip install -r tests_v9/requirements-field-forms.txt
           pytest -v \
             tests_v9/test_field_forms_api_integration.py \
             tests_v9/test_field_forms_sync_binding_p02.py \
