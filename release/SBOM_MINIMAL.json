@@ -13425,7 +13425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a6af83827bb1732ba99c84e2b8e4ee61f1cbc5421715166f8ff86ebbb34c286d"
+          "content": "b12cbe84feddd35e019e8546867f7819ecfcda7807e0ece2bce2ff196421a9bc"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -13999,6 +13999,16 @@
         }
       ],
       "name": "services/raster-service/test_p2_tile_observability_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7837a9549d98969dc0a7732fccfe4df84dfcd21d701cec271c0f7edab3efc439"
+        }
+      ],
+      "name": "services/raster-service/test_persisted_thumbnail_path.py",
       "type": "file"
     },
     {
@@ -17285,7 +17295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c42f8e047818f3aea089af348813ab9ea6169684c31d428810305bcdab3c51a7"
+          "content": "6ee818a808565ebf2c607b54d3de6a1ea5116868fbf83d5be94b548cb6b1a00c"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_imagery.py",
