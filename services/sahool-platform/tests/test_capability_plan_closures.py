@@ -115,7 +115,11 @@ def test_equipment_intelligence_reports_due_and_unavailable_without_telemetry_cl
     )
     assert state.service_due == 2
     assert state.unavailable == 1
-    assert state.readiness == "degraded"
+    # v2 precedence: a due asset is actionable and outranks a degradation signal, so a
+    # fleet that is both due and partly unavailable reports the actionable state. The
+    # unavailability is not lost — it stays in `unavailable`. `degraded` is now reserved
+    # for evidenced degradation with nothing due.
+    assert state.readiness == "attention_required"
 
 
 def test_economic_scenarios_rank_only_comparable_margins():

@@ -17065,7 +17065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "caef4ac82d70b6ecf1370c4ac8b7cefa42331091723398d13b0a361a4080d7b9"
+          "content": "895d81152cca0e689d4d15224d6aae28408e8266712f8d446b1ae21c36249712"
         }
       ],
       "name": "services/sahool-platform/api/routers/equipment.py",
@@ -20695,7 +20695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e261dd1104f8728cecbca8170fd00bcfb56b2cc221530268fece65566c141eb3"
+          "content": "a5b30ae46f11b65c1c8d443878972be4fd77bfc606ffd3a38d4b475ce2e24461"
         }
       ],
       "name": "services/sahool-platform/core/equipment_intelligence.py",
@@ -22945,7 +22945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f837a8c9b462e40c69d6787e11ce6d0e7357c4f98e94946ab4189ac87129f38"
+          "content": "212ecb3cd651ff70d8cf9679e3bd920d87d3ccfcd46193c920894279e0378bba"
         }
       ],
       "name": "services/sahool-platform/tests/test_capability_plan_closures.py",
@@ -23769,6 +23769,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_eo_stage_mismatch.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4728d4f6138df065ae2fc13f3c81052e6564920d4cbc7f2778ad1fd14fb97afb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
       "type": "file"
     },
     {
