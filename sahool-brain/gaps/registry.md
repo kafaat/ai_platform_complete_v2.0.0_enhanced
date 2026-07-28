@@ -526,7 +526,7 @@
 - **المُنجَز:** `frontend/src/components/maphub/ImageryTimelineThumb.tsx` — ثلاث حالات مُعلَنة: `pending` («قيد المعالجة») · `ready` · `failed` («تعذّر العرض»). تبدّل الرابط يُعيد الحالة فلا تُورَّث حالة فشل لصورة أخرى.
 - **البرهان:** ٧ اختبارات مكوّن + تثبيت رمز الحالة في ٦ اختبارات الخلفيّة. **مُثبَت بالتكذيب من الطرفين:** إعادة الخلفيّة إلى 200 تُسقِط ٣ اختبارات، وإعادة `display:none` تُسقِط ٣ أخرى. حزمة الواجهة **1300/1300**.
 - **الحرّاس الساكنة تبعت الاستخراج ولم تضعف:** `MapHubHistoricalTimeline` و`MapHubTwoYearBackfill` كانا يؤكّدان نصّ `alt` داخل `MapHub.tsx`؛ صارا يؤكّدان تصيير `<ImageryTimelineThumb` في البطاقة **و**وجود `alt` في المكوّن.
-- **حدّ الصدق:** يُغلق **BUG-4 وBUG-5**. لا يزال مفتوحاً: BUG-1A · BUG-1B · نافذة الاكتشاف بـ`acquisition_date` صريح · `SatellitePage.tsx:331` (‏truecolor مُثبَّت نصّيّاً).
+- **حدّ الصدق:** يُغلق **BUG-4 وBUG-5**. لا يزال مفتوحاً: BUG-1A · BUG-1B · نافذة الاكتشاف بـ`acquisition_date` صريح · `SatellitePage.tsx:331` (truecolor مُثبَّت نصّيّاً).
 
 ## FIELD-STATE-PRODUCERS-MISSING-01 — OPEN (P1) 2026-07-28
 

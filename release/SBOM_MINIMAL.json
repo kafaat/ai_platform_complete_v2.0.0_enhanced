@@ -14025,7 +14025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e88ae55f4d479ac1c20e9eb16979a9827aa834ddde0a17939eb29eee158cd799"
+          "content": "6213c29586413e7452a9066e637977680f996a3569c15c4323756b17845c3054"
         }
       ],
       "name": "services/raster-service/test_persisted_thumbnail_path.py",
@@ -14435,7 +14435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ecbdd986d6ca3e67dda009f561e88fbff8fae9e51f08d1c1661d35fe9511bd5"
+          "content": "3397d7cdd82536adbf4e9f06f435e67dc5008ef8f7c74698085b3eb65202376c"
         }
       ],
       "name": "services/raster-service/tile_render.py",

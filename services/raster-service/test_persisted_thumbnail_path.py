@@ -111,7 +111,7 @@ async def test_missing_asset_never_falls_back_to_cdse(monkeypatch, router_module
     )
 
     assert calls == [], "الغياب لا يُبرّر نداءً حيّاً"
-    assert response.status_code == 404, "‏<img> لا يقرأ الترويسات — 404 هي الإشارة الوحيدة"
+    assert response.status_code == 404, "<img> لا يقرأ الترويسات — 404 هي الإشارة الوحيدة"
     assert response.headers["X-Imagery-State"] == "unavailable"
 
 
@@ -129,7 +129,7 @@ async def test_asset_row_without_file_on_disk_is_unavailable(monkeypatch, router
     )
 
     assert calls == []
-    assert response.status_code == 404, "‏<img> لا يقرأ الترويسات — 404 هي الإشارة الوحيدة"
+    assert response.status_code == 404, "<img> لا يقرأ الترويسات — 404 هي الإشارة الوحيدة"
     assert response.headers["X-Imagery-State"] == "unavailable"
 
 
@@ -148,7 +148,7 @@ async def test_corrupt_persisted_asset_is_unavailable_not_blank(
     )
 
     assert calls == []
-    assert response.status_code == 404, "‏<img> لا يقرأ الترويسات — 404 هي الإشارة الوحيدة"
+    assert response.status_code == 404, "<img> لا يقرأ الترويسات — 404 هي الإشارة الوحيدة"
     assert response.headers["X-Imagery-State"] == "unavailable"
     assert response.headers["X-Acquisition-Date"] == "2026-06-18"
 

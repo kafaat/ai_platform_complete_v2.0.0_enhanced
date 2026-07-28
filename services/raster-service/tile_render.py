@@ -116,7 +116,7 @@ def tile_bounds_3857(z: int, x: int, y: int) -> tuple[float, float, float, float
     """حدود بلاطة XYZ في Web-Mercator (EPSG:3857) بالمتر.
 
     يُرجِع (minx, miny, maxx, maxy). يستخدم رياضيّات slippy-map القياسيّة:
-    عدد البلاطات لكلّ محور = 2**z، والإحداثيّات من ‎-ORIGIN_SHIFT إلى +ORIGIN_SHIFT.
+    عدد البلاطات لكلّ محور = 2**z، والإحداثيّات من -ORIGIN_SHIFT إلى +ORIGIN_SHIFT.
     """
     n = 2**z
     tile_span = (2.0 * _ORIGIN_SHIFT) / n
