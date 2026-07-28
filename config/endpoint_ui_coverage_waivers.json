@@ -853,6 +853,26 @@
       "importance": 40,
       "importance_tier": "P2-متوسّط",
       "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/scenario/economics",
+      "audience": "agronomist",
+      "methods": [
+        "post@services/sahool-platform/api/routers/scenario.py"
+      ],
+      "reason_category": "backlog-ui",
+      "reason": "مقارنة سيناريوهات اقتصاديّة (economic_scenario_comparison.v2) — الواجهة الطبيعيّة هي بطاقة «ماذا لو» القائمة التي تستهلك سلفاً scenario/planting-date و rainfall و temperature و water-twin. لم تُبنَ بعد: هذه الشريحة ربطت النواة بمستهلك إنتاجيّ فقط. الدَّين مُعلَن هنا صراحةً بدل ادّعاء تغطية واجهة غير موجودة — إضافته إلى core كانت ستفشل البوّابة الأماميّة أصلاً لغياب أيّ إشارة في الواجهة.",
+      "priority": "medium",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/WhatIfScenariosCard.tsx",
+      "criticality": "decision-support",
+      "importance": 55,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human",
+      "owner": "sahool-platform",
+      "tracking": "ECON-SCENARIO-UI-01",
+      "expiry": "2026-10-28",
+      "temporary": true
     }
   ]
 }

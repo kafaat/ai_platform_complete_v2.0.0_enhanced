@@ -3863,7 +3863,7 @@
       "function": "internal_field_state",
       "method": "GET",
       "path": "/internal/fields/{field_id}/state",
-      "line": 24,
+      "line": 25,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/internal_service.py::GET /internal/fields/{field_id}/state::internal_field_state"
@@ -3873,7 +3873,7 @@
       "function": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice",
-      "line": 44,
+      "line": 69,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/internal_service.py::POST /internal/events/ai-advice::internal_ai_advice_event"
@@ -5110,10 +5110,20 @@
     },
     {
       "file": "api/routers/scenario.py",
+      "function": "scenario_economics",
+      "method": "POST",
+      "path": "/api/v1/scenario/economics",
+      "line": 142,
+      "target_owner": "sahool-platform",
+      "owner_type": "decision-compute",
+      "route_key": "api/routers/scenario.py::POST /api/v1/scenario/economics::scenario_economics"
+    },
+    {
+      "file": "api/routers/scenario.py",
       "function": "scenario_planting_date",
       "method": "POST",
       "path": "/api/v1/scenario/planting-date",
-      "line": 185,
+      "line": 235,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/scenario.py::POST /api/v1/scenario/planting-date::scenario_planting_date"
@@ -5123,7 +5133,7 @@
       "function": "scenario_rainfall",
       "method": "POST",
       "path": "/api/v1/scenario/rainfall",
-      "line": 235,
+      "line": 285,
       "target_owner": "weather-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/scenario.py::POST /api/v1/scenario/rainfall::scenario_rainfall"
@@ -5133,7 +5143,7 @@
       "function": "scenario_temperature",
       "method": "POST",
       "path": "/api/v1/scenario/temperature",
-      "line": 142,
+      "line": 192,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/scenario.py::POST /api/v1/scenario/temperature::scenario_temperature"
@@ -5143,7 +5153,7 @@
       "function": "scenario_water_twin",
       "method": "POST",
       "path": "/api/v1/scenario/water-twin",
-      "line": 113,
+      "line": 163,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/scenario.py::POST /api/v1/scenario/water-twin::scenario_water_twin"
@@ -6324,7 +6334,7 @@
       "function": "ingest_yield_map",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
-      "line": 78,
+      "line": 79,
       "target_owner": "sahool-platform",
       "owner_type": "system-of-record",
       "route_key": "api/routers/yield_map_ingestion.py::POST /api/v1/fields/{field_id}/yield-maps/ingestions::ingest_yield_map"
@@ -6334,7 +6344,7 @@
       "function": "list_yield_map_ingestions",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
-      "line": 250,
+      "line": 251,
       "target_owner": "sahool-platform",
       "owner_type": "system-of-record",
       "route_key": "api/routers/yield_map_ingestion.py::GET /api/v1/fields/{field_id}/yield-maps/ingestions::list_yield_map_ingestions"
@@ -6344,7 +6354,7 @@
       "function": "query_yield_map_records",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-map-records",
-      "line": 287,
+      "line": 288,
       "target_owner": "sahool-platform",
       "owner_type": "system-of-record",
       "route_key": "api/routers/yield_map_ingestion.py::GET /api/v1/fields/{field_id}/yield-map-records::query_yield_map_records"

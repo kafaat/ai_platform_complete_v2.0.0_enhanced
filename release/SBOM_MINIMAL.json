@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f265a1c2a188e73789267b4938af2d4d840cff6bb13316eac2da5446874a2b13"
+          "content": "4a57359e2b70b02633d723833955b8a3da7a1e7ce87668583970dbcffaf0d3bb"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17405,7 +17405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ef2ff77dd9f0772b14afd29680ae387543f475072368f397508055262f62125"
+          "content": "48a7ad7b5bce04c5ac3435b8e050c8b409ed39803eede06ad7c72f48a788640b"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -17945,7 +17945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8347aab0ac2e3debce60d57e86f76b17cb3461fb508f131e1031f30c2f82eaed"
+          "content": "1a0e086a54e669fbb750de64ffb1218f9c0d491f9a7e772d9e04e9b95ba91bd6"
         }
       ],
       "name": "services/sahool-platform/api/routers/scenario.py",
@@ -18235,7 +18235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dfa3e13d5f5d2dc94fa5f44eca97666d8871deae8ae29ac46de9e11f7a1d648a"
+          "content": "2c70808eec850cfa1d8e35a94b9bb66e4dc2891a50400fc9547dd5ccba0dbd12"
         }
       ],
       "name": "services/sahool-platform/api/routers/yield_map_ingestion.py",
@@ -20405,7 +20405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "108d29597d61a7583bdd6dca805c178ff5160445135ad1c5a06505b39be8aa61"
+          "content": "962c5576fb0389d1be17fe2cbae03e9600eadf25ec858f749732fc36fbc3aafd"
         }
       ],
       "name": "services/sahool-platform/core/economic_scenarios.py",
@@ -22015,7 +22015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b0b4634ef792f6944b3016a9c55410290a5da893d63663dbb478bfec3f056cb"
+          "content": "afbc56e5a3b604b03cbeacee9a062b51011596de93e8d6656312009f8787c487"
         }
       ],
       "name": "services/sahool-platform/core/yield_intelligence.py",
@@ -22915,6 +22915,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cc6f619b9613f6ab2e38eeadd864c02ea084bd260d0e12989986ddbc5fe4d4e0"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e6917ae3aff3410ca59fe08a61f4d94a214db1c696aeadde30dab90c49b47d93"
         }
       ],
@@ -23739,6 +23749,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_economic_intelligence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "acb66ea1b845f9c766c4e9d05e435209ee8ea809526636055e3cc85ce769aee3"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
       "type": "file"
     },
     {
@@ -24575,6 +24595,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "53d94e8ac2638aa69cf5d998cd815ee690651080e33291b559a7253855201c4b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_immutable_build_script.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "adec534de795bf2ac64c998a454b90c0a1e1b6fbb95d3af8a2174f1e65ae3030"
         }
       ],
@@ -25325,7 +25355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4cbfaca595d1282560f3fa471a9ab3c11762daaaa92e6527c9584f2f73a059e0"
+          "content": "4dfb466499dd1e53040695c0899b98cec75fa84d1dc6aed1b539e5c076c8caa9"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -26855,6 +26885,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ddfed2b88f59f973e83fd19805021dbf6f02fea6c137fe22d7c50e3e4056c747"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_yield_intelligence_wiring.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "71ee0d65817a503f27db2d6c79e8aa7fce78bab8ef5aab62bbe7c62cbfed33d3"
         }
       ],
@@ -26865,7 +26905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "276852a17047189ea09afd2b4e6934887bf50b2b0983f7c07d47fd21cf336b5d"
+          "content": "c69a49b6325747c37ca1f70ffa44ae9bc15ad9059808c282e53e9997526e371f"
         }
       ],
       "name": "services/sahool-platform/tests/test_yield_map_ingestion.py",

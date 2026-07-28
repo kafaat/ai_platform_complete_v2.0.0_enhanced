@@ -72,7 +72,11 @@ python3 -m pytest tests_v9/test_auth_e2e.py -q     # يتخطّى نظيفاً �
 cp .env.example .env        # املأ الإلزاميّة: JWT_SECRET · SAHOOL_AGENT_TOKEN · REDIS_PASSWORD …
 python scripts/runtime/env_doctor.py --mode preflight --format text   # يجب: ready
 ./scripts/production_validation_gate.sh
-docker compose -f docker-compose.v9.yml up -d --build
+# البناء عبر المُغلِّف: TESTED_SHA تُشتقّ من HEAD (40 محرفاً) ويُرفض العمل المتّسخ.
+# `.env.example` لم يعد يحمل قيمة TESTED_SHA — لا قيمة مُختلَقة، فالبناء المباشر
+# بـ`up --build` سيفشل عند الاستيفاء وهذا مقصود.
+make build-immutable            # أو: ./scripts/build-immutable.sh   (ويندوز: scripts/build-immutable.ps1)
+docker compose -f docker-compose.v9.yml up -d
 BASE_URL=http://localhost python scripts/runtime/env_doctor.py --mode runtime --format text
 ```
 

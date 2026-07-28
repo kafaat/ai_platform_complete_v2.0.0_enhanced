@@ -5506,7 +5506,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 25,
+    "line": 26,
     "method": "GET",
     "path": "/internal/fields/{field_id}/state",
     "function": "internal_field_state"
@@ -5514,7 +5514,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 45,
+    "line": 70,
     "method": "POST",
     "path": "/internal/events/ai-advice",
     "function": "internal_ai_advice_event"
@@ -6658,7 +6658,15 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 114,
+    "line": 143,
+    "method": "POST",
+    "path": "/api/v1/scenario/economics",
+    "function": "scenario_economics"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/scenario.py",
+    "line": 164,
     "method": "POST",
     "path": "/api/v1/scenario/water-twin",
     "function": "scenario_water_twin"
@@ -6666,7 +6674,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 143,
+    "line": 193,
     "method": "POST",
     "path": "/api/v1/scenario/temperature",
     "function": "scenario_temperature"
@@ -6674,7 +6682,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 186,
+    "line": 236,
     "method": "POST",
     "path": "/api/v1/scenario/planting-date",
     "function": "scenario_planting_date"
@@ -6682,7 +6690,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 236,
+    "line": 286,
     "method": "POST",
     "path": "/api/v1/scenario/rainfall",
     "function": "scenario_rainfall"
@@ -7490,7 +7498,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/yield_map_ingestion.py",
-    "line": 83,
+    "line": 84,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
     "function": "ingest_yield_map"
@@ -7498,7 +7506,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/yield_map_ingestion.py",
-    "line": 254,
+    "line": 255,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
     "function": "list_yield_map_ingestions"
@@ -7506,7 +7514,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/yield_map_ingestion.py",
-    "line": 288,
+    "line": 289,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/yield-map-records",
     "function": "query_yield_map_records"

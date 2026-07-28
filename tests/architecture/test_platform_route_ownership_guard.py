@@ -3,10 +3,10 @@ from scripts.ci.platform_route_ownership_guard import collect_api_routes, valida
 
 def test_platform_extraction_map_matches_full_route_surface():
     result = validate()
-    assert result["surface_routes"] == 634
-    assert result["direct_routes"] == 630
+    assert result["surface_routes"] == 635
+    assert result["direct_routes"] == 631
     assert result["api_route_declarations"] == 4
-    assert result["mapped_routes"] == 634
+    assert result["mapped_routes"] == 635
 
 
 def test_multi_method_api_routes_are_visible_to_ownership_guard():

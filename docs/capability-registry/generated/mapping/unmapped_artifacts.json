@@ -3744,10 +3744,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/routers/internal_service.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/routers/introduction.py",
     "kind": "backend"
   },
@@ -5200,6 +5196,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_economic_scenarios_wiring.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_emit_event_names.py",
     "kind": "tests"
   },
@@ -5369,6 +5369,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_imagery_sync_24h_cadence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_immutable_build_script.py",
     "kind": "tests"
   },
   {

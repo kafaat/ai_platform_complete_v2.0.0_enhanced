@@ -37,9 +37,9 @@ def test_platform_domain_route_budget_remains_unchanged_after_infra_exclusion():
     raw, infrastructure, domain = _inventory()
 
     assert budget == policy["new_max_platform_routes"] == 629
-    assert len(raw) == 630
+    assert len(raw) == 631
     assert len(infrastructure) == 4
-    assert len(domain) == 626
+    assert len(domain) == 627
     assert len(raw) == len(infrastructure) + len(domain)
     assert len(domain) <= budget, (
         "Platform domain-route budget exceeded:\n"

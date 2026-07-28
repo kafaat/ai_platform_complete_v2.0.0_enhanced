@@ -13,7 +13,7 @@ SCRIPTS := scripts_v9
 
 .DEFAULT_GOAL := verify-static
 .PHONY: verify-static verify-syntax verify-tests verify-invariants up migrate \
-        verify-runtime verify-rls verify-adversarial verify clean
+        verify-runtime verify-rls verify-adversarial verify clean build-immutable build-immutable-gpu
 
 # ── STAGE 0: Syntax Truth (متاح offline) ──────────────────
 verify-syntax:
@@ -116,3 +116,11 @@ raster-ci:
 .PHONY: test-irr-f01-local
 test-irr-f01-local:
 	@bash scripts/irr_f01/local_gate.sh
+
+
+# Immutable local image builds: derive TESTED_SHA from the checked-out commit.
+build-immutable:
+	@./scripts/build-immutable.sh
+
+build-immutable-gpu:
+	@./scripts/build-immutable.sh --gpu

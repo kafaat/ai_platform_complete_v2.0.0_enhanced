@@ -13,27 +13,27 @@
     },
     {
       "module": "services/sahool-platform/core/canonical_field_state.py",
-      "status": "pending_wiring",
-      "consumer": null,
-      "consumed_symbol": null,
+      "status": "wired",
+      "consumer": "services/sahool-platform/api/routers/internal_service.py",
+      "consumed_symbol": "compose_canonical_field_state",
       "contract": "canonical_field_state.v1",
-      "note": "Blocked behind a design decision, not plumbing: api/routers/field_twin.py already consumes core.field_twin.assemble_twin, so admitting the canonical path needs the duplicate-implementation conflict resolved first."
+      "note": "Consumed by internal_field_state via ?canonical=true; no domain route spent (INT-004A). HONESTY BOUND, recorded because it is not a defect: the contract requires weather+water+soil and this service produces only water (api/canonical_water_state.py). Nothing in the tree emits canonical_soil_state./soil-profile. or wx10/canonical-weather-state/, so the state returns operational_eligible=false with required_weather_unavailable and required_soil_unavailable named. Wired on owner instruction to declare the gaps explicitly rather than leave the core orphaned; the alternative -- fabricating a schema-valid product -- would make an unusable state look valid. Eligibility becomes true only when a soil producer and a weather product producer exist."
     },
     {
       "module": "services/sahool-platform/core/yield_intelligence.py",
-      "status": "pending_wiring",
-      "consumer": null,
-      "consumed_symbol": null,
+      "status": "wired",
+      "consumer": "services/sahool-platform/api/routers/yield_map_ingestion.py",
+      "consumed_symbol": "summarize_yield_scope",
       "contract": "canonical_yield_state.v1",
-      "note": "Candidate consumer GET /api/v1/analysis/yield; overlap with api/yield_map_ingestion.py must be checked before wiring so the calibration rule keeps one owner."
+      "note": "Consumed by query_yield_map_records via ?summary=true; no domain route spent (INT-004A). The overlap check the previous note asked for came back clean: calibration_factor has exactly one owner in the tree, this core. api/yield_map_ingestion.py parses and persists; it never aggregates or calibrates. Fail-closed on scope: a truncated page, or a scope spanning more than one ingestion or season, yields not_evaluated rather than a plausible mean."
     },
     {
       "module": "services/sahool-platform/core/economic_scenarios.py",
-      "status": "pending_wiring",
-      "consumer": null,
-      "consumed_symbol": null,
-      "contract": "economic_scenario_comparison.v1",
-      "note": "Candidate consumer routers/economics.py, which today delegates to api/farm_economics.py. Not a duplicate (feasibility vs scenario comparison), but wiring needs a route decision against a 3-route margin."
+      "status": "wired",
+      "consumer": "services/sahool-platform/api/routers/scenario.py",
+      "consumed_symbol": "compare_economic_scenarios",
+      "contract": "economic_scenario_comparison.v2",
+      "note": "Consumed by scenario_economics on POST /api/v1/scenario/economics. One domain route spent deliberately: the feasibility endpoint takes a different input model (area_ha/price_per_t), so folding it there would have been forced. Fail-closed: an incomplete scenario is not_evaluated with each missing input named, and is never ranked against a complete one."
     }
   ]
 }

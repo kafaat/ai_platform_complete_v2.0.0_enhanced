@@ -1297,7 +1297,7 @@
     },
     {
       "kind": "router",
-      "line": 14,
+      "line": 15,
       "module": "services.sahool-platform.api.routers.internal_service",
       "node_id": "services.sahool-platform.api.routers.internal_service:router",
       "route_count": 2,
@@ -1783,10 +1783,10 @@
     },
     {
       "kind": "router",
-      "line": 46,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.scenario",
       "node_id": "services.sahool-platform.api.routers.scenario:router",
-      "route_count": 4,
+      "route_count": 5,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -2044,7 +2044,7 @@
     },
     {
       "kind": "router",
-      "line": 35,
+      "line": 36,
       "module": "services.sahool-platform.api.routers.yield_map_ingestion",
       "node_id": "services.sahool-platform.api.routers.yield_map_ingestion:router",
       "route_count": 3,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "538baa24907f10743b5cf0d81720f1f59f40e1587aa54aa3c46440825ba46353",
+  "inventory_sha256": "a97975346f8353d426f2b563f1b7ad42a61f28f1542fc887a0c1f9e2aa9f5337",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -3782,7 +3782,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 14,
+      "line": 15,
       "module": "services.sahool-platform.api.routers.internal_service",
       "node_id": "services.sahool-platform.api.routers.internal_service:router",
       "route_count": 2,
@@ -4322,10 +4322,10 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 46,
+      "line": 47,
       "module": "services.sahool-platform.api.routers.scenario",
       "node_id": "services.sahool-platform.api.routers.scenario:router",
-      "route_count": 4,
+      "route_count": 5,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -4612,7 +4612,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 35,
+      "line": 36,
       "module": "services.sahool-platform.api.routers.yield_map_ingestion",
       "node_id": "services.sahool-platform.api.routers.yield_map_ingestion:router",
       "route_count": 3,
