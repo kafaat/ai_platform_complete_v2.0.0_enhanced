@@ -4298,7 +4298,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 38,
+    "line": 39,
     "method": "POST",
     "path": "/api/v1/equipment",
     "function": "create_equipment"
@@ -4306,7 +4306,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 93,
+    "line": 94,
     "method": "GET",
     "path": "/api/v1/equipment",
     "function": "list_equipment"
@@ -4314,7 +4314,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 113,
+    "line": 138,
     "method": "POST",
     "path": "/api/v1/equipment/{equipment_id}/maintenance",
     "function": "log_maintenance"
@@ -4322,7 +4322,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/equipment.py",
-    "line": 179,
+    "line": 204,
     "method": "GET",
     "path": "/api/v1/equipment/{equipment_id}/maintenance",
     "function": "list_maintenance"

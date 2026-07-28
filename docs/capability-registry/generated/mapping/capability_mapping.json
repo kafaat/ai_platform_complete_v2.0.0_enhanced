@@ -14,15 +14,15 @@
     "capabilities_total": 81,
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
-    "capabilities_multidimensional": 48,
-    "files_scanned": 4760,
+    "capabilities_multidimensional": 47,
+    "files_scanned": 4763,
     "files_by_kind": {
       "backend": 1190,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1240,
-      "tests": 1509,
+      "other": 1242,
+      "tests": 1510,
       "web": 446
     },
     "unmapped_artifacts": 1943,
@@ -11267,6 +11267,13 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/routers/equipment.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/routers/prescriptions.py",
           "score": 20,
           "signals": [
@@ -11275,6 +11282,22 @@
         }
       ],
       "routes": [
+        {
+          "value": "/api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:38",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:93",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:137",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:203",
+          "score": 20
+        },
         {
           "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:176",
           "score": 20
@@ -11378,8 +11401,8 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 2,
-        "routes": 3,
+        "backend": 3,
+        "routes": 7,
         "database": 8,
         "events": 6,
         "web": 0,
@@ -14311,34 +14334,8 @@
       "capability_id": "OPS-007",
       "domain": "operations",
       "title": "Maintenance",
-      "backend": [
-        {
-          "path": "services/sahool-platform/api/routers/equipment.py",
-          "score": 12,
-          "signals": [
-            "content:Maintenance",
-            "content:equipment maintenance"
-          ]
-        }
-      ],
-      "routes": [
-        {
-          "value": "/api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:37",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/equipment @ services/sahool-platform/api/routers/equipment.py:92",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:112",
-          "score": 12
-        },
-        {
-          "value": "/api/v1/equipment/{equipment_id}/maintenance @ services/sahool-platform/api/routers/equipment.py:178",
-          "score": 12
-        }
-      ],
+      "backend": [],
+      "routes": [],
       "database": [
         {
           "value": "equipment @ migrations/v23_equipment.sql:11",
@@ -14373,6 +14370,14 @@
             "content:Maintenance",
             "content:equipment maintenance"
           ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
+          "score": 9,
+          "signals": [
+            "content:Maintenance",
+            "content:maintenance record"
+          ]
         }
       ],
       "governance": [],
@@ -14382,17 +14387,17 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 1,
-        "routes": 4,
+        "backend": 0,
+        "routes": 0,
         "database": 3,
         "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 2,
         "governance": 0,
         "other_evidence": 0
       },
-      "coverage_dimensions": 5,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {

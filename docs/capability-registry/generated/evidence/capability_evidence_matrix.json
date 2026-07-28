@@ -1851,7 +1851,7 @@
       "domain": "operations",
       "evidence": {
         "api": true,
-        "backend": true,
+        "backend": false,
         "database": true,
         "documentation": true,
         "events": true,
@@ -1863,7 +1863,7 @@
         "unit_tests": true,
         "web": false
       },
-      "evidence_score": 6,
+      "evidence_score": 5,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
@@ -1872,6 +1872,7 @@
       "runtime_verified": false,
       "title": "Maintenance",
       "unit_test_paths": [
+        "services/sahool-platform/tests/test_equipment_intelligence_wiring.py",
         "tests_v9/test_writeops_events_phase2.py"
       ]
     },
