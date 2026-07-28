@@ -388,7 +388,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.raster-service.routers.cdse_tiles",
       "node_id": "services.raster-service.routers.cdse_tiles:router",
       "route_count": 3,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "a97975346f8353d426f2b563f1b7ad42a61f28f1542fc887a0c1f9e2aa9f5337",
+  "inventory_sha256": "0a935a68d4c05147b082d63e8fca25a66a1a5f3e7a27fe9cb4cb1c46b41d4e29",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2792,7 +2792,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.raster-service.routers.cdse_tiles",
       "node_id": "services.raster-service.routers.cdse_tiles:router",
       "route_count": 3,

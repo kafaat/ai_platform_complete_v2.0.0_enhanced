@@ -691,6 +691,44 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
         return None
 
 
+def raster_has_observable_content(cog_path: str) -> bool:
+    """True إن حمل الراستر **مشاهدة حقيقيّة** واحدة على الأقلّ — لا مجرّد بنية سليمة.
+
+    ``IMAGERY-BLANK-THUMBNAIL-01``. نجاح النقل ليس نجاحاً للمحتوى: تُعيد CDSE استجابة
+    ٢٠٠ بـGeoTIFF **سليم البنية وفارغ البكسلات** حين لا يوجد مرور قمر داخل النافذة
+    المطلوبة. تلك البايتات تُكتب وتنجح عليها عمليّة القناع، فتدخل الكاش ساعةً كاملة
+    وتُعيد كلّ طلب لاحق نفس الفراغ بلا إعادة محاولة.
+
+    الفحص (fail-closed — أيّ تعذّر قراءة ⇒ False، فلا يُخزَّن المجهول):
+      * فكّ التشفير ينجح.
+      * الأبعاد أكبر من ١×١ (استجابة ١×١ ليست صورة حقل).
+      * بكسل صالح واحد على الأقلّ: ألفا > 0 للـRGBA، وغير NaN/nodata للمؤشّرات.
+
+    القصد **قياس لا ترشيح**: تُستدعى قبل الكاش فقط، ولا تُعدِّل الملفّ ولا تحكم على
+    الجودة — سلسلة كلّها NaN تعني «لا مشاهدة»، لا «مشاهدة رديئة».
+    """
+    try:
+        import numpy as np
+        import rasterio
+    except Exception:  # noqa: BLE001 — لا rasterio ⇒ لا تحقّق ⇒ لا تخزين
+        return False
+
+    try:
+        with rasterio.open(cog_path) as src:
+            if src.width <= 1 or src.height <= 1:
+                return False
+            if src.count >= 4 and str(src.dtypes[0]) == "uint8":
+                # RGBA: قناة ألفا هي سلطة الصلاحيّة (خارج القناع = 0).
+                return bool((src.read(4) > 0).any())
+            band = src.read(1, masked=True)
+            if band.mask is not np.ma.nomask and bool(band.mask.all()):
+                return False
+            values = band.filled(np.nan).astype("float64")
+            return bool(np.isfinite(values).any())
+    except Exception:  # noqa: BLE001 — تالف/غير مقروء ⇒ لا يُخزَّن
+        return False
+
+
 def apply_polygon_mask(cog_path: str, geom_4326: dict) -> None:
     """يطبّق قناع مضلّع **بكسليّ دقيق** على COG في مكانه: خارج المضلّع → NaN.
 

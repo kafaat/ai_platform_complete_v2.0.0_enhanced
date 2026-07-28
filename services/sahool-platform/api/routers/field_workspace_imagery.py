@@ -123,9 +123,13 @@ async def field_imagery_timeline_facade(
                     "thumbnail_index": thumbnail_index,
                     "scene_id": row.get("scene_id"),
                     "acquisition_datetime": row.get("acquisition_datetime"),
+                    # IMAGERY-BLANK-THUMBNAIL-01: البطاقة أعلنت has_cog=true، فتُقرأ من
+                    # الأصل المُدَام حصراً (source=persisted ⇒ صفر نداء CDSE). بدونه كانت
+                    # النقطة تُعيد اكتشافاً حيّاً، فقد يظهر مشهد تاريخ آخر تحت هذا التاريخ.
                     "thumbnail_url": (
                         f"/api/raster/v1/fields/{field_id}/cdse-thumbnail.png"
                         f"?index={thumbnail_index}&date={date_str}&size=160&tid={tenant}"
+                        f"&source=persisted"
                         if has_cog and thumbnail_index
                         else None
                     ),

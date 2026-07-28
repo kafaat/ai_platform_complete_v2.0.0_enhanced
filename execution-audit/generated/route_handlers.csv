@@ -218,9 +218,9 @@ raster-service,POST,/terrain/slope,terrain_slope,services/raster-service/routers
 raster-service,GET,/cog/validate,cog_validate,services/raster-service/routers/analysis.py,153
 raster-service,POST,/salinity/classify,salinity_classify,services/raster-service/routers/analysis.py,168
 raster-service,POST,/salinity/calibrate,salinity_calibrate,services/raster-service/routers/analysis.py,175
-raster-service,GET,/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png,field_cdse_tile,services/raster-service/routers/cdse_tiles.py,42
-raster-service,GET,/v1/fields/{field_id}/cdse-thumbnail.png,field_cdse_thumbnail,services/raster-service/routers/cdse_tiles.py,117
-raster-service,GET,/v1/fields/{field_id}/cdse-tilejson,field_cdse_tilejson,services/raster-service/routers/cdse_tiles.py,167
+raster-service,GET,/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png,field_cdse_tile,services/raster-service/routers/cdse_tiles.py,110
+raster-service,GET,/v1/fields/{field_id}/cdse-thumbnail.png,field_cdse_thumbnail,services/raster-service/routers/cdse_tiles.py,185
+raster-service,GET,/v1/fields/{field_id}/cdse-tilejson,field_cdse_tilejson,services/raster-service/routers/cdse_tiles.py,249
 raster-service,GET,/gis/admin-boundaries,gis_admin_boundaries,services/raster-service/routers/fields.py,92
 raster-service,POST,/v1/fields/{field_id}/process-from-stac,process_from_stac,services/raster-service/routers/fields.py,141
 raster-service,POST,/v1/fields/{field_id}/imagery/backfill,field_historical_backfill,services/raster-service/routers/fields.py,226

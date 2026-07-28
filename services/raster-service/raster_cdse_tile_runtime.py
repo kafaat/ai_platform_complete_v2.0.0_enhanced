@@ -197,6 +197,35 @@ async def ensure_field_cog(
                     except OSError:
                         pass
                     return None
+            # نجاح النقل ليس نجاحاً للمحتوى (IMAGERY-BLANK-THUMBNAIL-01): استجابة ٢٠٠
+            # بـGeoTIFF سليم البنية وفارغ البكسلات تدخل الكاش ساعةً وتُجمِّد الفراغ،
+            # فلا يُعيد أيّ طلب لاحق المحاولة حتّى بعد نشر إصلاح. نقيس المحتوى قبل
+            # التخزين: بلا مشاهدة ⇒ لا كاش ولا ملفّ (fail-closed، والطلب التالي يعيد
+            # السؤال بدل استهلاك فراغ مُخبّأ).
+            try:
+                import tile_render as _tr
+
+                observable = _tr.raster_has_observable_content(cog_path)
+            except Exception as e:  # noqa: BLE001 — تعذّر القياس ⇒ لا نُخزّن المجهول
+                logger.warning(
+                    "content check failed (%s/%s): %s — fail-closed",
+                    field_id,
+                    internal,
+                    type(e).__name__,
+                )
+                observable = False
+            if not observable:
+                logger.info(
+                    "CDSE returned an empty raster (%s/%s) — not cached: %s",
+                    field_id,
+                    internal,
+                    date_from,
+                )
+                try:
+                    os.unlink(cog_path)
+                except OSError:
+                    pass
+                return None
             async with cdse_singleflight.cdse_lock():
                 cdse_singleflight.cdse_tile_cache[cache_key] = (_t.monotonic() + 3600.0, cog_path)
                 cdse_singleflight.cdse_prune_key_locks_locked()
