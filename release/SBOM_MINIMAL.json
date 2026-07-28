@@ -19025,6 +19025,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4ddb46187ea1c58366d6d9a2f76181410ac0e3af335e7a8c8293f9531ae4fb40"
+        }
+      ],
+      "name": "services/sahool-platform/core/canonical_field_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fb27589b49a1ceac496676fb81e1560ba81b20f5b86d928cf70a6e16af6dbb33"
         }
       ],
@@ -19955,10 +19965,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe470772da1474654df51ae6305839960a175bbccecb684aafbdf0ac0f10e117"
+          "content": "de7f13e2d004299dc955edddd3a011d43102eec6745be891b865d3503ace21b1"
         }
       ],
       "name": "services/sahool-platform/core/crop_intelligence/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a865f18a17e430dec9594ec88dcac9187d3a83ebaa7e8eaec5bb284b8a54187"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "type": "file"
     },
     {
@@ -19985,7 +20005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "61744890758d0973b85a328e31d8256f2985d513b39d1d5dc301ceecb7ce807b"
+          "content": "8653ebebdd2d0f74718e0b219b3a0b0e2bbf5d61bda9bc30b33aea63d0c95256"
         }
       ],
       "name": "services/sahool-platform/core/crop_intelligence/engine.py",
@@ -20015,7 +20035,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c1b8195a2071cd51fcaf86a33ba165873a94c953412bcf29e437076e3a1ad17"
+          "content": "07365cb4215c707a5f7169e353e1fd413708beffa098c9cbb2b5f82133d20f6a"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/policy_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ef0d750bcd8c10eb59188e92b5e527c926faa34b7133ce277507a3fea5e56d8"
         }
       ],
       "name": "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
@@ -20365,6 +20395,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "108d29597d61a7583bdd6dca805c178ff5160445135ad1c5a06505b39be8aa61"
+        }
+      ],
+      "name": "services/sahool-platform/core/economic_scenarios.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2824f01fe3faed56979972262db7fef637fbcb3c029c5c90077be658d5b87799"
         }
       ],
@@ -20645,6 +20685,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e261dd1104f8728cecbca8170fd00bcfb56b2cc221530268fece65566c141eb3"
+        }
+      ],
+      "name": "services/sahool-platform/core/equipment_intelligence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d7ef10da52f220d2c9cb21f0792b5a55b3ba50f50a5576c5e4381eddeb678644"
         }
       ],
@@ -20825,7 +20875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ad614b59d6e6c7a94b9c3a70e6f0a35c1622cd7ec5b8448b77a29de9afd2436"
+          "content": "27047982e6870d012dc40945bc6de821b574caba3224c543ad3ba496c0ad6521"
         }
       ],
       "name": "services/sahool-platform/core/field_digital_twin.py",
@@ -21955,6 +22005,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8b0b4634ef792f6944b3016a9c55410290a5da893d63663dbb478bfec3f056cb"
+        }
+      ],
+      "name": "services/sahool-platform/core/yield_intelligence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "17cd46f66411650023356a59fd7b5edf7bf99771518303c589f5d8affa0207bd"
         }
       ],
@@ -22875,6 +22935,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8f837a8c9b462e40c69d6787e11ce6d0e7357c4f98e94946ab4189ac87129f38"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_capability_plan_closures.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3f3b67478ecf66ccc896ee8b873b3393754f4995d46c9fa5abd70eba38a893ac"
         }
       ],
@@ -23065,6 +23135,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "876a331e23d9c748c3659024ba5bcb2c48670921d68e40e9d3d370512d84adad"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_intelligence_canonical_inputs.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "64e4f4a9ec5d157975f55c8610519896ba129aa1db964fed1d0c148cab545be0"
         }
       ],
@@ -23139,6 +23219,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_operations.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7561f78317c10afe61d64ddcc517919d310cec983d3133e802fcb8e5ffcfbffe"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_policy_engine.py",
       "type": "file"
     },
     {

@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 666,
+  "baseline_python_module_count": 672,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -448,6 +448,7 @@
     "core/api_adapter.py",
     "core/authorization.py",
     "core/automation_ledger.py",
+    "core/canonical_field_state.py",
     "core/canonical_field_state_lock.py",
     "core/canonical_schemas.py",
     "core/capabilities.py",
@@ -463,11 +464,13 @@
     "core/crop_cards/loader.py",
     "core/crop_inference.py",
     "core/crop_intelligence/__init__.py",
+    "core/crop_intelligence/canonical_inputs.py",
     "core/crop_intelligence/confidence.py",
     "core/crop_intelligence/crop_water.py",
     "core/crop_intelligence/engine.py",
     "core/crop_intelligence/models.py",
     "core/crop_intelligence/phenology.py",
+    "core/crop_intelligence/policy_engine.py",
     "core/crop_intelligence/recommendation_context.py",
     "core/crop_intelligence/roots.py",
     "core/crop_intelligence/spectral.py",
@@ -499,6 +502,7 @@
     "core/drift_geometry.py",
     "core/economic_adaptation.py",
     "core/economic_intelligence.py",
+    "core/economic_scenarios.py",
     "core/engines/__init__.py",
     "core/engines/candidate_generator.py",
     "core/engines/crop_classification_readiness.py",
@@ -527,6 +531,7 @@
     "core/engines/water_cost.py",
     "core/engines/yield_interval.py",
     "core/eo_stage_mismatch.py",
+    "core/equipment_intelligence.py",
     "core/event_schema.py",
     "core/evidence_class.py",
     "core/evidence_graph.py",
@@ -657,6 +662,7 @@
     "core/work_order.py",
     "core/work_order_from_recommendation.py",
     "core/workflow_engine.py",
+    "core/yield_intelligence.py",
     "core/yield_interval_service.py",
     "knowledge/__init__.py",
     "knowledge/conservative_rag.py",
@@ -696,5 +702,6 @@
   "decision_center_slice1_confidence_note": "660: +2 platform modules from the agri-intelligence audit closures — api/agronomic_context_composer.py (DECISION-CENTER Slice 1: pure server-side atomic Agronomic Context assembler that feeds decision-service's existing compose_agronomic_context PIT gate; no fabrication, flag-gated AGRONOMIC_CONTEXT_COMPOSE_ENABLED) and core/crop_intelligence/confidence.py (audit P0-4: composed confidence contract with an honest ceiling, additive to the existing confidence string). Both pure/boundary-respecting; no new route, no new service. 658->660.",
   "h51_binding_note": "api/irrigation_source_binding.py (H5.1): pure server-authoritative field↔water-source binding resolver + decision-grade sample policy; owns the resolver SQL so the route and the real-PG cert test share one implementation (v214).",
   "pa003_yield_map_ingestion_note": "api/yield_map_ingestion.py + api/routers/yield_map_ingestion.py (PA-003): field-scoped yield-map ingestion — idempotent append-only provenance (yield_map_ingestions) + PostGIS point records (yield_map_records) under FORCE-RLS; service owns the ingestion SQL so the router and the static contract test share one implementation; emits the critical YIELD_MAP_INGESTED domain event via the platform fail-closed outbox (v215). Baseline raised 663->665.",
-  "int004_machinery_export_note": "api/machinery_export.py (INT-004): live external-machinery integration — turns a saved manual VRT prescription + operator controller profile into a real ISO11783 TaskData artifact via core/isoxml_vrt, fail-closed on incomplete/incompatible machine; wired into the format=isoxml export endpoint. Baseline raised 665->666."
+  "int004_machinery_export_note": "api/machinery_export.py (INT-004): live external-machinery integration — turns a saved manual VRT prescription + operator controller profile into a real ISO11783 TaskData artifact via core/isoxml_vrt, fail-closed on incomplete/incompatible machine; wired into the format=isoxml export endpoint. Baseline raised 665->666.",
+  "capability_plan_ci7_ci9_note": "666->672: capability-plan increment. TWO modules are wired into a production path and earn platform ownership on the same terms as the entries above: core/crop_intelligence/canonical_inputs.py (CI-7) is called from crop_intelligence/engine.py so phenology reads GDD from CanonicalWeatherState instead of legacy scalars, failing closed on a malformed state; core/crop_intelligence/policy_engine.py (CI-9) replaces the hardcoded stress-flag if-chain in that same engine with versioned policy packs, and is what makes the crop engine generic. Both are platform-owned because Crop Intelligence itself is platform-owned and boundary-locked by scripts/ci/crop_intelligence_boundary_gate.py. FOUR modules are NOT yet wired and are recorded as such rather than justified as production code: core/canonical_field_state.py, core/yield_intelligence.py, core/equipment_intelligence.py and core/economic_scenarios.py are pure, tested cores with ZERO non-test consumers - no route, no persistence, no production caller. By the INT-004 precedent that is groundwork, not an integration lifecycle. They are admitted to the baseline so the capability-plan increment can land intact, NOT because they have earned platform concentration; the honest alternative is relocating them to owner services once each acquires a real consumer. Tracked as CAPABILITY-CORES-NOT-WIRED in sahool-brain/gaps/registry.md. No new route: p2_6 domain budget unchanged at 626 <= 629."
 }

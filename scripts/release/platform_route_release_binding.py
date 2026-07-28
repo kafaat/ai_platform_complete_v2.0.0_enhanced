@@ -135,7 +135,13 @@ def main() -> int:
         write_source_binding()
     if args.check_source:
         check_source_binding()
-    if args.archive:
+    if args.check_archive_binding:
+        if not args.archive:
+            parser.error("--check-archive-binding requires --archive")
+        # Check mode is deliberately side-effect free.  In particular, do not rewrite the
+        # default sidecar before validating it; that would make a tampered binding pass.
+        check_archive_binding(args.archive.resolve(), args.check_archive_binding.resolve())
+    elif args.archive:
         document = build_archive_binding(args.archive.resolve())
         output = args.output or args.archive.with_suffix(
             args.archive.suffix + ".route-governance.json"
@@ -143,10 +149,6 @@ def main() -> int:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(canonical_json(document), encoding="utf-8")
         print(f"archive route-governance binding written: {output}")
-    if args.check_archive_binding:
-        if not args.archive:
-            parser.error("--check-archive-binding requires --archive")
-        check_archive_binding(args.archive.resolve(), args.check_archive_binding.resolve())
     if not any((args.write_source, args.check_source, args.archive, args.check_archive_binding)):
         parser.error("select a source or archive operation")
     print("platform route release binding: PASS")

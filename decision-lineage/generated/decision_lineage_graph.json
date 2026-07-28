@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 499,
+      "evidence_count": 504,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -269,12 +269,15 @@
         "services/sahool-platform/core/agronomic_state_engine.py",
         "services/sahool-platform/core/ai_artifacts.py",
         "services/sahool-platform/core/authorization.py",
+        "services/sahool-platform/core/canonical_field_state.py",
         "services/sahool-platform/core/canonical_field_state_lock.py",
         "services/sahool-platform/core/canonical_schemas.py",
+        "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
         "services/sahool-platform/core/crop_intelligence/confidence.py",
         "services/sahool-platform/core/crop_intelligence/crop_water.py",
         "services/sahool-platform/core/crop_intelligence/engine.py",
         "services/sahool-platform/core/crop_intelligence/phenology.py",
+        "services/sahool-platform/core/crop_intelligence/policy_engine.py",
         "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
         "services/sahool-platform/core/crop_intelligence/roots.py",
         "services/sahool-platform/core/crop_intelligence/spectral.py",
@@ -297,6 +300,7 @@
         "services/sahool-platform/core/farm_closed_loop.py",
         "services/sahool-platform/core/farm_costing.py",
         "services/sahool-platform/core/farm_memory.py",
+        "services/sahool-platform/core/field_digital_twin.py",
         "services/sahool-platform/core/field_event_sourcing.py",
         "services/sahool-platform/core/field_intelligence_card.py",
         "services/sahool-platform/core/field_intelligence_coordinator.py",
@@ -346,6 +350,7 @@
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
         "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
         "services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py",
+        "services/sahool-platform/tests/test_crop_intelligence_canonical_inputs.py",
         "services/sahool-platform/tests/test_crop_intelligence_engine.py",
         "services/sahool-platform/tests/test_crop_intelligence_phase3.py",
         "services/sahool-platform/tests/test_crop_intelligence_phase4.py",
@@ -1813,7 +1818,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 261,
+      "evidence_count": 263,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -2015,6 +2020,7 @@
         "services/sahool-platform/core/recommendation_replay.py",
         "services/sahool-platform/core/skills_registry.py",
         "services/sahool-platform/core/transfer_learning.py",
+        "services/sahool-platform/core/yield_intelligence.py",
         "services/sahool-platform/core/yield_interval_service.py",
         "services/sahool-platform/examples/tenant_data/districts/al_jawf/climate.yaml",
         "services/sahool-platform/examples/tenant_data/districts/tihama/climate.yaml",
@@ -2029,6 +2035,7 @@
         "services/sahool-platform/tests/test_calibration_audit_endpoint.py",
         "services/sahool-platform/tests/test_calibration_endpoint.py",
         "services/sahool-platform/tests/test_calibration_override_endpoints.py",
+        "services/sahool-platform/tests/test_capability_plan_closures.py",
         "services/sahool-platform/tests/test_crop_cards.py",
         "services/sahool-platform/tests/test_crop_confidence_contract.py",
         "services/sahool-platform/tests/test_cross_reference_finder.py",
@@ -2204,10 +2211,10 @@
         "services/sahool-platform/core/farm_closed_loop.py",
         "services/sahool-platform/core/farm_costing.py",
         "services/sahool-platform/core/farm_memory.py",
-        "services/sahool-platform/core/field_event_sourcing.py",
-        "services/sahool-platform/core/field_intelligence_card.py"
+        "services/sahool-platform/core/field_digital_twin.py",
+        "services/sahool-platform/core/field_event_sourcing.py"
       ],
-      "source_evidence_count": 499,
+      "source_evidence_count": 504,
       "target_evidence_count": 455,
       "static_supported": true,
       "runtime_verified": false
@@ -2548,7 +2555,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 42,
-      "target_evidence_count": 261,
+      "target_evidence_count": 263,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2558,5 +2565,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "e8f53c8dd23de9a80d944e9213257f7851bccef129cb6fee9bf40e62fbf1d26e"
+  "content_sha256": "73643d90f83329538ab864ae9868fdb524d62938ce6ba4761073beedee43c035"
 }

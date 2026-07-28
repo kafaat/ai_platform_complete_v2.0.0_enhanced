@@ -56,3 +56,59 @@ def test_source_binding_rejects_stale_content(tmp_path: Path) -> None:
     stale.write_text(json.dumps({"schema_version": "stale"}) + "\n", encoding="utf-8")
     with pytest.raises(AssertionError, match="stale"):
         binding.check_source_binding(stale)
+
+
+def test_cli_check_mode_does_not_rewrite_tampered_sidecar(tmp_path: Path, monkeypatch) -> None:
+    archive = tmp_path / "release.zip"
+    archive.write_bytes(b"release")
+    sidecar = tmp_path / "release.zip.route-governance.json"
+    document = binding.build_archive_binding(archive)
+    document["route_counts"]["domain_budget_routes"] -= 1
+    tampered = binding.canonical_json(document)
+    sidecar.write_text(tampered, encoding="utf-8")
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "platform_route_release_binding.py",
+            "--archive",
+            str(archive),
+            "--check-archive-binding",
+            str(sidecar),
+        ],
+    )
+    with pytest.raises(AssertionError, match="does not match"):
+        binding.main()
+    assert sidecar.read_text(encoding="utf-8") == tampered
+
+
+def test_cli_write_then_independent_check(tmp_path: Path, monkeypatch) -> None:
+    archive = tmp_path / "release.zip"
+    archive.write_bytes(b"release")
+    sidecar = tmp_path / "binding.json"
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "platform_route_release_binding.py",
+            "--archive",
+            str(archive),
+            "--output",
+            str(sidecar),
+        ],
+    )
+    assert binding.main() == 0
+    before = sidecar.read_text(encoding="utf-8")
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "platform_route_release_binding.py",
+            "--archive",
+            str(archive),
+            "--check-archive-binding",
+            str(sidecar),
+        ],
+    )
+    assert binding.main() == 0
+    assert sidecar.read_text(encoding="utf-8") == before

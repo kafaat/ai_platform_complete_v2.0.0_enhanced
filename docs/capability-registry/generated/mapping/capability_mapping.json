@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4745,
+    "files_scanned": 4757,
     "files_by_kind": {
-      "backend": 1183,
+      "backend": 1189,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1236,
-      "tests": 1505,
+      "other": 1239,
+      "tests": 1508,
       "web": 446
     },
-    "unmapped_artifacts": 1938,
-    "ambiguous_artifacts": 389
+    "unmapped_artifacts": 1943,
+    "ambiguous_artifacts": 390
   },
   "capabilities": [
     {
@@ -11364,7 +11364,15 @@
         }
       ],
       "governance": [],
-      "other_evidence": [],
+      "other_evidence": [
+        {
+          "path": "docs/implementation/FULL_CAPABILITY_PLAN_EXECUTION_20260728.md",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ],
       "ambiguous": [],
       "static_evidence_only": true,
       "runtime_verified": false,
@@ -11378,7 +11386,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 0,
-        "other_evidence": 0
+        "other_evidence": 1
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -12030,6 +12038,14 @@
           ]
         },
         {
+          "path": "docs/implementation/TEN_CAPABILITY_PLAN_CLOSABLE_EXECUTION_20260728.md",
+          "score": 10,
+          "signals": [
+            "content:Irrigation recommendation",
+            "content:irrigation recommendation"
+          ]
+        },
+        {
           "path": "docs/specs/WATER-SALT-01_A5_spec.md",
           "score": 8,
           "signals": [
@@ -12051,7 +12067,7 @@
         "mobile": 0,
         "tests": 6,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -17487,6 +17503,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/core/field_digital_twin.py",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/core/skills_registry.py",
           "score": 10,
           "signals": [
@@ -17528,14 +17552,6 @@
         },
         {
           "path": "services/ai_agronomist/tool_governance.py",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "services/gis-workflow-service/bulletin_render.py",
           "score": 8,
           "signals": [
             "content:NDVI",
@@ -29887,7 +29903,7 @@
           "score": 12
         },
         {
-          "value": "crop_intelligence_state.v2 @ services/sahool-platform/core/crop_intelligence/engine.py:15",
+          "value": "crop_intelligence_state.v2 @ services/sahool-platform/core/crop_intelligence/engine.py:17",
           "score": 12
         },
         {
@@ -31537,6 +31553,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/sahool-platform/core/crop_intelligence/engine.py",
           "score": 12,
           "signals": [
@@ -32240,7 +32264,7 @@
           "score": 12
         },
         {
-          "value": "crop_intelligence_state.v2 @ services/sahool-platform/core/crop_intelligence/engine.py:15",
+          "value": "crop_intelligence_state.v2 @ services/sahool-platform/core/crop_intelligence/engine.py:17",
           "score": 12
         },
         {
@@ -32294,6 +32318,10 @@
         {
           "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:527",
           "score": 12
+        },
+        {
+          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_capability_plan_closures.py:24",
+          "score": 8
         },
         {
           "value": "crop_stress_memory.v2 @ services/sahool-platform/tests/test_crop_intelligence_phase5.py:33",
@@ -32553,6 +32581,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_crop_intelligence_canonical_inputs.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_crop_intelligence_engine.py",
           "score": 12,
           "signals": [
@@ -32737,6 +32773,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_capability_plan_closures.py",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_crop_intelligence_phase5.py",
           "score": 8,
           "signals": [
@@ -32914,13 +32958,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 79,
+        "backend": 80,
         "routes": 25,
         "database": 26,
-        "events": 21,
+        "events": 22,
         "web": 15,
         "mobile": 0,
-        "tests": 38,
+        "tests": 40,
         "governance": 0,
         "other_evidence": 19
       },
@@ -37475,6 +37519,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/core/canonical_field_state.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/core/canonical_field_state_lock.py",
       "kind": "backend"
     },
@@ -37675,6 +37723,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/core/crop_intelligence/policy_engine.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
       "kind": "backend"
     },
@@ -37763,6 +37815,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/core/economic_scenarios.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/core/engines/__init__.py",
       "kind": "backend"
     },
@@ -37843,6 +37899,10 @@
       "kind": "backend"
     },
     {
+      "path": "services/sahool-platform/core/equipment_intelligence.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/sahool-platform/core/event_schema.py",
       "kind": "backend"
     },
@@ -37872,10 +37932,6 @@
     },
     {
       "path": "services/sahool-platform/core/field_context_coordinator.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/core/field_digital_twin.py",
       "kind": "backend"
     },
     {
@@ -38136,6 +38192,10 @@
     },
     {
       "path": "services/sahool-platform/core/wind_geometry.py",
+      "kind": "backend"
+    },
+    {
+      "path": "services/sahool-platform/core/yield_intelligence.py",
       "kind": "backend"
     },
     {
@@ -38400,6 +38460,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_crop_operations.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_crop_policy_engine.py",
       "kind": "tests"
     },
     {
@@ -48519,6 +48583,28 @@
           "signals": [
             "content:farm",
             "content:farms"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/tests/test_capability_plan_closures.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 8,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]

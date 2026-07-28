@@ -4124,6 +4124,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/canonical_field_state.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/canonical_field_state_lock.py",
     "kind": "backend"
   },
@@ -4324,6 +4328,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/crop_intelligence/policy_engine.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
     "kind": "backend"
   },
@@ -4412,6 +4420,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/economic_scenarios.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/engines/__init__.py",
     "kind": "backend"
   },
@@ -4492,6 +4504,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/equipment_intelligence.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/event_schema.py",
     "kind": "backend"
   },
@@ -4521,10 +4537,6 @@
   },
   {
     "path": "services/sahool-platform/core/field_context_coordinator.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/core/field_digital_twin.py",
     "kind": "backend"
   },
   {
@@ -4785,6 +4797,10 @@
   },
   {
     "path": "services/sahool-platform/core/wind_geometry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/yield_intelligence.py",
     "kind": "backend"
   },
   {
@@ -5049,6 +5065,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_crop_operations.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_policy_engine.py",
     "kind": "tests"
   },
   {
