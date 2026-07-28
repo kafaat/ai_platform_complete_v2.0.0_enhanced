@@ -1,6 +1,6 @@
 # بيئة معزولة لخطوة field-forms-api في CI — تُثبَّت فوق requirements-test.txt.
-# fastapi لا تُضاف إلى بيئة -m unit المشتركة: وجودها يُوقظ ~15 اختبارًا خامدًا
-# (importorskip) يبني api.main كاملًا عبر TestClient ويفشل في البيئة الدنيا.
+# fastapi صارت جزءاً من requirements-test.txt المشتركة (إيقاظ الاختبارات الخامدة)،
+# فلم يعد استبعادها قائماً. يبقى هذا الملفّ لتثبيت الإصدار الأدنى لهذه الخطوة صراحةً.
 # هنا تُثبَّت فقط للخطوة التي تشغّل الملفات الثلاثة صراحةً بالمسار:
 #   tests_v9/test_field_forms_api_integration.py
 #   tests_v9/test_field_forms_sync_binding_p02.py

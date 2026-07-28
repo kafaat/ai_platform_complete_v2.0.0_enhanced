@@ -33,3 +33,15 @@ hypothesis>=6.100.0
 
 # notification agent imports nats.aio during mobile push tests
 nats-py>=2.3.0
+
+# ── إيقاظ الاختبارات الخامدة (قياس: 2999 ⇒ 3478 ناجح، 369 ⇒ 26 متخطٍّ، صفر فشل) ──
+# كان استبعاد fastapi مقصوداً وموثّقاً في requirements-field-forms.txt: وجودها يوقظ
+# اختبارات تبني api.main عبر TestClient «وتفشل في البيئة الدنيا». الشرط الثاني هو ما
+# تآكل: نمت هذه البيئة تدريجيّاً (prometheus_client · pyotp · numpy · nats-py …) حتّى
+# لم يبقَ ناقصاً إلّا scipy وpillow، فصار الاستبعاد يُخمِد ~479 اختبار وحدة بلا سبب.
+# منها 12 ملفّاً في tests_v9 تفحص app.routes — أي حرّاس ميزانية المسارات والموضع
+# القانونيّ وتفكيك main.py — كانت خارج الوظيفة الحاجبة.
+# scipy ليست توسيعاً للسطح: api/requirements.txt:20 يثبّتها أصلاً لـcore.spatial.
+fastapi>=0.115.0
+scipy>=1.13.1
+pillow>=10.3.0
