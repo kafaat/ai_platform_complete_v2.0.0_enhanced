@@ -24585,6 +24585,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "53d94e8ac2638aa69cf5d998cd815ee690651080e33291b559a7253855201c4b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_immutable_build_script.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "adec534de795bf2ac64c998a454b90c0a1e1b6fbb95d3af8a2174f1e65ae3030"
         }
       ],
