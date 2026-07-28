@@ -39,6 +39,16 @@ def _db_available() -> bool:
 
 
 def _load(path, name):
+    """يُحمّل main.py لخدمة بمسارها، بعد تنظيف الوحدات العامّة.
+
+    بدون التنظيف يلتقط `from routers.x import ...` حزمة `routers` الخاصّة بخدمة أخرى
+    استُوردت قبله في العمليّة نفسها — ٢٤ خدمة تتشارك الاسم. النتيجة ليست فشلاً واضحاً
+    دائماً بل قد تكون **نجاحاً كاذباً**؛ هنا ظهرت كـModuleNotFoundError: routers.readings
+    أثناء تحميل soil-service بينما كانت `routers` هي حزمة auth.
+    """
+    from tests_v9.service_module import purge_generic_modules
+
+    purge_generic_modules()
     spec = importlib.util.spec_from_file_location(name, os.path.join(ROOT, path))
     m = importlib.util.module_from_spec(spec)
     sys.modules[name] = m
