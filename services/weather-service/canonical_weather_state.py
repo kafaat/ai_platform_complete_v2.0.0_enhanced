@@ -37,11 +37,17 @@ STATE_VERSION = "1.0.0"
 # كلّ خانات الحالة وفق مواصفة WX-10 — تُصرَّح كلّها في availability (لا استنتاج null).
 # WX-10.1 يجمع الخانات النقيّة القابلة للاشتقاق من المدخلات؛ الباقي (I/O أو سلاسل) يُصرَّح
 # غيرَ متوفّر صراحةً بقيد — يُوصَّل في إنكرمنتات تالية (لا ادّعاء تغطية زائف).
-_COMPOSED_SLOTS = ("et0", "vpd", "gdd", "astronomy", "dtr")
-_DEFERRED_SLOTS = (
+_COMPOSED_SLOTS = (
     "current",
     "forecast",
     "historical",
+    "et0",
+    "vpd",
+    "gdd",
+    "astronomy",
+    "dtr",
+)
+_DEFERRED_SLOTS = (
     "heat_load",
     "chill_hours",
     "frost_risk",
@@ -133,6 +139,223 @@ def _astronomy_product(*, lat_deg: float | None, day_of_year: int | None) -> dic
     }
 
 
+# `temperature_c` هو الحدّ الأدنى الذي يجعل المشاهدة صالحة للاستهلاك (fail-closed بدونه).
+_CURRENT_CORE_FIELD = "temperature_c"
+# الحقول التي يُصدرها المُطبِّع دائماً لمشاهدة سليمة — غيابها انحدارُ جودة حقيقيّ (degraded).
+_CURRENT_EXPECTED_FIELDS = (
+    "temperature_c",
+    "humidity_pct",
+    "wind_speed_ms",
+    "precipitation_mm",
+    "cloud_cover_pct",
+    "surface_pressure_hpa",
+)
+# حقول قد يُغفِلها المزوّد مشروعاً — تُذكَر عند الغياب ولا تُنزِل الجودة (لا ضجيج كاذب).
+_CURRENT_OPTIONAL_FIELDS = ("wind_direction_deg", "wind_gusts_ms", "weather_code", "is_day")
+# حقول لا يستطيع هذا المنتَج تمييز «غائب» فيها عن «صفر» لأنّ التطبيع الأعلى يُسقِط الغياب
+# إلى 0 (`open_meteo.normalize_current`: `or 0` / `or 0.0`). يُصرَّح القيد ولا يُدَّعى الرصد.
+_CURRENT_ZERO_COERCED_FIELDS = ("precipitation_mm", "wind_speed_ms")
+
+# مفاتيح الغلاف التي يضيفها المنتَج — لا يجوز أن تحجب حقلاً مرصوداً بالاسم نفسه.
+_CURRENT_ENVELOPE_KEYS = (
+    "product",
+    "quality_status",
+    "observed_fields",
+    "missing_fields",
+    "optional_missing_fields",
+    "observed_at",
+    "limitations",
+)
+
+
+def _current_product(observation: dict | None) -> dict:
+    """مشاهدة الطقس الآنيّة كخانة حالة — نقيّة، لا I/O، لا اختلاق.
+
+    تستقبل مشاهدة **مُطبَّعة مسبقاً عند الحافّة** (الجلب يبقى في المُعالِج، والمُجمِّع نقيّ).
+    غياب المشاهدة أو غياب `temperature_c` ⇒ `insufficient` + قيد صريح، **لا قيمة مُختلقة**.
+
+    **مجموعة فائقة إلزاماً:** تُنسَخ المشاهدة كما هي أوّلاً ثمّ يُركَّب الغلاف فوقها، فلا
+    يسقط أيّ حقل يُصدره المُطبِّع (`wind_speed_10m_kmh`, `soil_*`, `timestamp`, …) لمجرّد
+    أنّه ليس في قائمة الجودة — القائمة تقيس الاكتمال فقط، لا تُرشِّح المخرَج.
+    """
+    if not isinstance(observation, dict) or not observation:
+        return {
+            "product": "current",
+            "quality_status": "insufficient",
+            "observed_fields": [],
+            "missing_fields": list(_CURRENT_EXPECTED_FIELDS),
+            "optional_missing_fields": list(_CURRENT_OPTIONAL_FIELDS),
+            "limitations": ["current requires a normalized observation from the edge handler"],
+        }
+
+    observed = [f for f in _CURRENT_EXPECTED_FIELDS if observation.get(f) is not None]
+    missing = [f for f in _CURRENT_EXPECTED_FIELDS if observation.get(f) is None]
+    optional_missing = [f for f in _CURRENT_OPTIONAL_FIELDS if observation.get(f) is None]
+
+    # النسخ أوّلاً = ضمان المجموعة الفائقة؛ الغلاف يُركَّب بعده.
+    product: dict = dict(observation)
+    shadowed = [k for k in _CURRENT_ENVELOPE_KEYS if k in observation]
+
+    limitations: list[str] = []
+    if shadowed:
+        limitations.append(
+            f"current: observation carried reserved envelope keys {shadowed} — "
+            "the state envelope takes precedence"
+        )
+
+    if _CURRENT_CORE_FIELD in missing:
+        product.update(
+            {
+                "product": "current",
+                "quality_status": "insufficient",
+                "observed_fields": observed,
+                "missing_fields": missing,
+                "optional_missing_fields": optional_missing,
+                "limitations": [
+                    *limitations,
+                    f"current requires {_CURRENT_CORE_FIELD} (observed: {observed})",
+                ],
+            }
+        )
+        return product
+
+    if missing:
+        limitations.append(f"current observation is missing expected fields: {missing}")
+    if optional_missing:
+        limitations.append(f"current observation omits optional fields: {optional_missing}")
+    # صدق صريح: الحقول المُكرَهة على الصفر أعلى المجرى لا يُميَّز فيها الغياب عن الرصد.
+    coerced = [f for f in _CURRENT_ZERO_COERCED_FIELDS if f in observed]
+    if coerced:
+        limitations.append(
+            "current: upstream normalization coerces a missing value to zero for "
+            f"{coerced} — an observed zero is indistinguishable from an absent reading"
+        )
+
+    product.update(
+        {
+            "product": "current",
+            "quality_status": "degraded" if missing else "validated",
+            "observed_fields": observed,
+            "missing_fields": missing,
+            "optional_missing_fields": optional_missing,
+            "observed_at": observation.get("time") or observation.get("timestamp"),
+            "limitations": limitations,
+        }
+    )
+    return product
+
+
+# حقول اليوم التي يُصدرها `normalize_daily` لكلا المدىين (التوقّع والأرشيف) — غيابها انحدار.
+_DAILY_EXPECTED_DAY_FIELDS = (
+    "date",
+    "temp_max_c",
+    "temp_min_c",
+    "precipitation_mm",
+    "et0_mm",
+    "wind_max_ms",
+    "weather_code",
+)
+# حقول يطلبها مسار التوقّع فقط — غيابها في الأرشيف مشروع، فلا يُنزِل الجودة.
+_DAILY_OPTIONAL_DAY_FIELDS = (
+    "sunshine_hours",
+    "sunrise",
+    "sunset",
+    "daylight_hours",
+    "solar_radiation_mj_m2",
+)
+# نفس عائلة `_CURRENT_ZERO_COERCED_FIELDS`: `normalize_daily` يضع 0 عند الغياب
+# (`_at(..., idx, 0)`) لهذه الحقول ⇒ لا يُميَّز المرصود من المفقود.
+_DAILY_ZERO_COERCED_FIELDS = ("temp_max_c", "temp_min_c", "precipitation_mm", "wind_max_ms")
+
+_DAILY_ENVELOPE_KEYS = (
+    "product",
+    "quality_status",
+    "day_count",
+    "days_missing_fields",
+    "optional_missing_fields",
+    "limitations",
+)
+
+
+def _daily_series_product(series: dict | None, *, slot: str) -> dict:
+    """سلسلة يوميّة (توقّع/أرشيف) كخانة حالة — نقيّة، لا I/O، لا اختلاق.
+
+    تستقبل سلسلة **مُطبَّعة عند الحافّة** بشكل `normalize_daily` (`days[]`). سلسلة غائبة أو
+    بلا أيّام ⇒ `insufficient` + قيد، **لا أيّام مُختلقة**. نقص حقل متوقَّع في أيّ يوم ⇒
+    `degraded` مع تسمية الحقول واليوم الأوّل المتأثّر — لا إسقاط صامت.
+
+    **مجموعة فائقة إلزاماً:** تُنسَخ السلسلة كما هي (بما فيها `days`/`range`/`model`/`timezone`)
+    ثمّ يُركَّب الغلاف فوقها — الغلاف يقيس ولا يُرشِّح.
+    """
+    if not isinstance(series, dict) or not series:
+        return {
+            "product": slot,
+            "quality_status": "insufficient",
+            "day_count": 0,
+            "days_missing_fields": [],
+            "optional_missing_fields": list(_DAILY_OPTIONAL_DAY_FIELDS),
+            "limitations": [f"{slot} requires a normalized daily series from the edge handler"],
+        }
+
+    days = series.get("days")
+    if not isinstance(days, list) or not days:
+        product: dict = dict(series)
+        product.update(
+            {
+                "product": slot,
+                "quality_status": "insufficient",
+                "day_count": 0,
+                "days_missing_fields": [],
+                "optional_missing_fields": list(_DAILY_OPTIONAL_DAY_FIELDS),
+                "limitations": [f"{slot} series carries no days — nothing observed to expose"],
+            }
+        )
+        return product
+
+    missing_expected: set[str] = set()
+    missing_optional: set[str] = set()
+    for day in days:
+        if not isinstance(day, dict):
+            missing_expected.update(_DAILY_EXPECTED_DAY_FIELDS)
+            continue
+        missing_expected.update(f for f in _DAILY_EXPECTED_DAY_FIELDS if day.get(f) is None)
+        missing_optional.update(f for f in _DAILY_OPTIONAL_DAY_FIELDS if day.get(f) is None)
+
+    product = dict(series)
+    limitations: list[str] = []
+    shadowed = [k for k in _DAILY_ENVELOPE_KEYS if k in series]
+    if shadowed:
+        limitations.append(
+            f"{slot}: series carried reserved envelope keys {shadowed} — "
+            "the state envelope takes precedence"
+        )
+    if missing_expected:
+        limitations.append(
+            f"{slot}: one or more days are missing expected fields {sorted(missing_expected)}"
+        )
+    if missing_optional:
+        limitations.append(
+            f"{slot}: optional daily fields absent for one or more days {sorted(missing_optional)}"
+        )
+    limitations.append(
+        f"{slot}: upstream normalization coerces a missing value to zero for "
+        f"{list(_DAILY_ZERO_COERCED_FIELDS)} — an observed zero is indistinguishable "
+        "from an absent reading"
+    )
+
+    product.update(
+        {
+            "product": slot,
+            "quality_status": "degraded" if missing_expected else "validated",
+            "day_count": len(days),
+            "days_missing_fields": sorted(missing_expected),
+            "optional_missing_fields": sorted(missing_optional),
+            "limitations": limitations,
+        }
+    )
+    return product
+
+
 def _dtr_product(*, t_max_c: float | None, t_min_c: float | None) -> dict:
     """المدى الحراريّ اليوميّ DTR = Tmax − Tmin — نقيّ. مفقود/غير محدود ⇒ insufficient."""
     tmax, tmin = _finite(t_max_c), _finite(t_min_c)
@@ -179,6 +402,9 @@ def build_canonical_weather_state(
     gdd_end_date: str | None = None,
     valid_time: str | None = None,
     weather_snapshot_id_override: str | None = None,
+    current_observation: dict | None = None,
+    forecast_series: dict | None = None,
+    historical_series: dict | None = None,
 ) -> dict:
     """يبني CanonicalWeatherState بجمع منتجات المحرّك القائمة (بلا إعادة حساب).
 
@@ -217,8 +443,20 @@ def build_canonical_weather_state(
     )
     astronomy = _astronomy_product(lat_deg=lat_deg, day_of_year=day_of_year)
     dtr = _dtr_product(t_max_c=t_max_c, t_min_c=t_min_c)
+    current = _current_product(current_observation)
+    forecast = _daily_series_product(forecast_series, slot="forecast")
+    historical = _daily_series_product(historical_series, slot="historical")
 
-    composed = {"et0": et0, "vpd": vpd, "gdd": gdd, "astronomy": astronomy, "dtr": dtr}
+    composed = {
+        "current": current,
+        "forecast": forecast,
+        "historical": historical,
+        "et0": et0,
+        "vpd": vpd,
+        "gdd": gdd,
+        "astronomy": astronomy,
+        "dtr": dtr,
+    }
 
     # بصمة النَّسَب: مصدرها متّجه الطقس (نفس دالّة et0 لتوحيد هويّة اللقطة).
     snapshot_inputs = {
@@ -360,6 +598,58 @@ def et0_view(state: dict) -> dict:
     # حين يُمرّر المُستهلِك override؛ كلاهما صريح.
     et0["source_snapshot_id"] = state.get("source_snapshot_id")
     return et0
+
+
+def _slot_view(state: dict, slot: str) -> dict:
+    """يقرأ خانة من الحالة ويُلحِق بها نَسَب الحالة الموحَّد (لا حساب، لا جلب)."""
+    view = dict(state.get("products", {}).get(slot, {}))
+    snap = state.get("source_snapshot_id")
+    view["derived_from"] = "canonical_weather_state"
+    view["canonical_state_id"] = state.get("state_id")
+    view["canonical_state_version"] = state.get("state_version")
+    view["source_snapshot_id"] = snap
+    view["weather_snapshot_id"] = snap
+    return view
+
+
+def forecast_view(state: dict) -> dict:
+    """WX-10.5 — سلسلة التوقّع كـ**View مُشتقّ من CanonicalWeatherState** (لا جلب مباشر).
+
+    مجموعة فائقة من الردّ السابق: `days`/`range`/`model`/`timezone`/`location` تبقى كما هي،
+    ويُضاف الغلاف (`quality_status`/`day_count`/`days_missing_fields`/`limitations`) ونَسَب
+    الحالة — فيعرف المستهلك أيّ أيّام ناقصة بدل استنتاجها من أصفار.
+    """
+    return _slot_view(state, "forecast")
+
+
+def historical_view(state: dict) -> dict:
+    """WX-10.5 — السلسلة الأرشيفيّة كـ**View مُشتقّ من CanonicalWeatherState**.
+
+    نفس عقد `forecast_view` بالضبط (المُنتِج واحد `normalize_daily`)؛ الحقول التي يطلبها
+    مسار التوقّع وحده تُذكَر في `optional_missing_fields` **دون** إنزال الجودة — غيابها في
+    الأرشيف مشروع لا عيب.
+    """
+    return _slot_view(state, "historical")
+
+
+def current_view(state: dict) -> dict:
+    """WX-10.4 — مشاهدة «الآن» كـ**View مُشتقّ من CanonicalWeatherState** (لا جلب مباشر).
+
+    الانعكاس المعماريّ مُطبَّقاً على أهمّ خانة يستهلكها الجميع: بدل تمرير حمولة المزوّد كما هي،
+    يمرّ الجلب عند الحافّة ثمّ يُبنى State Product وتُقرأ منه الخانة. **توافقيّ للخلف:** كلّ
+    حقول المشاهدة المُطبَّعة تبقى في مستواها الأعلى (مجموعة فائقة — يُضيف لا يحذف)، ويُضاف
+    الغلاف: نَسَب الحالة + `quality_status`/`observed_fields`/`missing_fields`/`limitations`
+    فيعرف المستهلك ما رُصِد فعلاً وما غاب، بدل تخمينه من قيم صفريّة.
+    """
+    current = dict(state.get("products", {}).get("current", {}))
+    snap = state.get("source_snapshot_id")
+    current["derived_from"] = "canonical_weather_state"
+    current["canonical_state_id"] = state.get("state_id")
+    current["canonical_state_version"] = state.get("state_version")
+    current["source_snapshot_id"] = snap
+    # المشاهدة لا تُنتِج بصمة لقطة في نواتها — تُضاف من لقطة الحالة (نَسَب موحَّد عبر Views).
+    current["weather_snapshot_id"] = snap
+    return current
 
 
 def vpd_view(state: dict) -> dict:
