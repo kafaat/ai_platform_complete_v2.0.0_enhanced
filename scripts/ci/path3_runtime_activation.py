@@ -26,8 +26,9 @@ def run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--compose-file", default="docker-compose.v9.yml")
+    parser.add_argument("--compose-file", action="append", dest="compose_files")
     parser.add_argument("--environment-id", required=True)
+    parser.add_argument("--image-manifest")
     parser.add_argument("--service", action="append", dest="services")
     parser.add_argument("--startup-timeout", type=int, default=180)
     parser.add_argument("--keep-stack", action="store_true")
@@ -45,10 +46,13 @@ def main() -> int:
         print("BLOCKED_ENVIRONMENT: docker daemon unreachable", file=sys.stderr)
         return 2
 
-    compose = ROOT / args.compose_file
-    if not compose.exists():
-        print(f"compose file missing: {compose}", file=sys.stderr)
-        return 2
+    compose_files = args.compose_files or ["docker-compose.v9.yml"]
+    composes = [ROOT / f for f in compose_files]
+    for compose in composes:
+        if not compose.exists():
+            print(f"compose file missing: {compose}", file=sys.stderr)
+            return 2
+    compose = composes[0]
     if not OVERLAY.exists():
         print(f"runtime verification overlay missing: {OVERLAY}", file=sys.stderr)
         return 2
@@ -86,7 +90,10 @@ def main() -> int:
             for profile in target_by_service.get(service, {}).get("profiles", [])
         }
     )
-    compose_args = ["docker", "compose", "-f", str(compose), "-f", str(OVERLAY)]
+    compose_args = ["docker", "compose"]
+    for item in composes:
+        compose_args += ["-f", str(item)]
+    compose_args += ["-f", str(OVERLAY)]
     profile_args = [arg for profile in required_profiles for arg in ("--profile", profile)]
     try:
         if run(compose_args + profile_args + ["config"]).returncode:
@@ -119,6 +126,62 @@ def main() -> int:
             batch.extend(["--service", service])
         probe_rc = run(batch).returncode
 
+        # Runtime Evidence Trust Hardening: bind functional receipts to the exact
+        # running image IDs and immutable OCI labels before executing live probes.
+        manifest_cmd = [
+            sys.executable,
+            "scripts/ci/runtime_deployment_manifest.py",
+            "--tested-sha",
+            os.getenv("TESTED_SHA", ""),
+        ]
+        for item in composes:
+            manifest_cmd += ["--compose-file", str(item)]
+        manifest_cmd += ["--compose-file", str(OVERLAY)]
+        if args.image_manifest:
+            manifest_cmd += ["--image-manifest", args.image_manifest]
+        manifest_rc = run(manifest_cmd).returncode
+        functional_rc = 0
+        functional_targets = {
+            "weather-service": "http://sahool-weather-service:8000",
+            "soil-service": "http://sahool-soil-service:8000",
+            "sahool-platform": "http://sahool-platform:8000",
+        }
+        if manifest_rc == 0:
+            for service, base_url in functional_targets.items():
+                cmd = (
+                    compose_args
+                    + profile_args
+                    + [
+                        "--profile",
+                        "runtime-verification",
+                        "run",
+                        "--rm",
+                        "-e",
+                        "SAHOOL_RUNTIME_EVIDENCE_HMAC_KEY",
+                        "-e",
+                        "GITHUB_RUN_ID",
+                        "-e",
+                        "SAHOOL_AGENT_TOKEN",
+                        "-e",
+                        "SAHOOL_PLATFORM_PROBE_JWT",
+                        "functional-runtime-verifier",
+                        "--run",
+                        "--service",
+                        service,
+                        "--base-url",
+                        base_url,
+                        "--environment-id",
+                        args.environment_id,
+                        "--tested-sha",
+                        os.getenv("TESTED_SHA", ""),
+                        "--deployment-manifest",
+                        "/workspace/runtime-verification/generated/functional_deployment_manifest.json",
+                    ]
+                )
+                functional_rc |= run(cmd).returncode
+        else:
+            functional_rc = 1
+
         ingestion_rc = run(
             [sys.executable, "scripts/ci/runtime_evidence_ingestion.py", "--generate"]
         ).returncode
@@ -127,7 +190,9 @@ def main() -> int:
         ).returncode
         if unresolved:
             print("Partial PATH-3 blockers retained: " + ", ".join(unresolved), file=sys.stderr)
-        return 1 if probe_rc or ingestion_rc or certification_rc else 0
+        return (
+            1 if probe_rc or manifest_rc or functional_rc or ingestion_rc or certification_rc else 0
+        )
     finally:
         if not args.keep_stack:
             run(compose_args + ["down", "--remove-orphans"])

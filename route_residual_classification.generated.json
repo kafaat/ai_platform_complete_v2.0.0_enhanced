@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
-  "total_residual_main_routes": 147,
+  "total_residual_main_routes": 149,
   "classification_counts": {
-    "business_endpoint": 99,
+    "business_endpoint": 101,
     "capabilities": 2,
     "contract": 3,
     "health": 19,
@@ -12,7 +12,7 @@
     "metrics": 4,
     "readiness": 13
   },
-  "business_endpoint_count": 99,
+  "business_endpoint_count": 101,
   "rows": [
     {
       "service": "agriai-engine",
@@ -1336,6 +1336,24 @@
       "path": "/internal/ingest/submissions/kobo",
       "function": "ingest_kobo_submission",
       "classification": "internal_endpoint"
+    },
+    {
+      "service": "soil-service",
+      "file": "services/soil-service/main.py",
+      "line": 198,
+      "method": "GET",
+      "path": "/runtime-identity",
+      "function": "runtime_evidence_identity",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "weather-service",
+      "file": "services/weather-service/main.py",
+      "line": 55,
+      "method": "GET",
+      "path": "/runtime-identity",
+      "function": "runtime_evidence_identity",
+      "classification": "business_endpoint"
     }
   ]
 }

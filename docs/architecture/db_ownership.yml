@@ -704,6 +704,16 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v82_lineage_link.sql, migrations/v194_fii_chemical_chain_rls_fail_closed.sql"
+  machine_control_profiles:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v216_machinery_export.sql"
+  machinery_export_artifacts:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v216_machinery_export.sql"
   management_zone_sets:
     owner: field-management-service
     writers: [field-management-service]
@@ -1905,3 +1915,13 @@ tables:
     writers: [decision-service]
     readers: []
     source: "services/decision-service/migrations/029_satellite_cdse_activation_gate.sql"
+  yield_map_ingestions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v215_yield_map_ingestion.sql"
+  yield_map_records:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v215_yield_map_ingestion.sql"

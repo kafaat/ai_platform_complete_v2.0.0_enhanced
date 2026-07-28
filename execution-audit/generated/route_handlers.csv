@@ -746,9 +746,10 @@ sahool-platform,GET,/api/v1/fields/{field_id}/stage-actions,field_stage_actions,
 sahool-platform,GET,/api/v1/planting/crops,planting_crops_endpoint,services/sahool-platform/api/routers/planting.py,30
 sahool-platform,GET,/api/v1/planting/window,planting_window_endpoint,services/sahool-platform/api/routers/planting.py,36
 sahool-platform,GET,/api/v1/planting/check,planting_check_endpoint,services/sahool-platform/api/routers/planting.py,42
-sahool-platform,GET,/healthz,healthz,services/sahool-platform/api/routers/platform_health.py,21
-sahool-platform,GET,/metrics,metrics,services/sahool-platform/api/routers/platform_health.py,28
-sahool-platform,GET,/readyz,readyz,services/sahool-platform/api/routers/platform_health.py,49
+sahool-platform,GET,/runtime-identity,runtime_evidence_identity,services/sahool-platform/api/routers/platform_health.py,24
+sahool-platform,GET,/healthz,healthz,services/sahool-platform/api/routers/platform_health.py,31
+sahool-platform,GET,/metrics,metrics,services/sahool-platform/api/routers/platform_health.py,38
+sahool-platform,GET,/readyz,readyz,services/sahool-platform/api/routers/platform_health.py,59
 sahool-platform,GET,/api/v1/policy-learning/threshold-suggestions,threshold_suggestions,services/sahool-platform/api/routers/policy_learning.py,37
 sahool-platform,POST,/api/v1/portfolio/command,portfolio_command_endpoint,services/sahool-platform/api/routers/portfolio_command.py,70
 sahool-platform,GET,/api/v1/postharvest/moisture-check,postharvest_moisture_endpoint,services/sahool-platform/api/routers/postharvest.py,28
@@ -756,9 +757,9 @@ sahool-platform,GET,/api/v1/postharvest/pests,postharvest_pests_endpoint,service
 sahool-platform,GET,/api/v1/postharvest/best-practices,postharvest_practices_endpoint,services/sahool-platform/api/routers/postharvest.py,40
 sahool-platform,GET,/api/v1/practices/list,practices_list_endpoint,services/sahool-platform/api/routers/practices.py,25
 sahool-platform,GET,/api/v1/practices/guide,practices_guide_endpoint,services/sahool-platform/api/routers/practices.py,31
-sahool-platform,POST,/api/v1/fields/{field_id}/prescriptions,create_prescription,services/sahool-platform/api/routers/prescriptions.py,133
-sahool-platform,GET,/api/v1/fields/{field_id}/prescriptions,list_prescriptions,services/sahool-platform/api/routers/prescriptions.py,250
-sahool-platform,GET,/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export,export_prescription,services/sahool-platform/api/routers/prescriptions.py,294
+sahool-platform,POST,/api/v1/fields/{field_id}/prescriptions,create_prescription,services/sahool-platform/api/routers/prescriptions.py,177
+sahool-platform,GET,/api/v1/fields/{field_id}/prescriptions,list_prescriptions,services/sahool-platform/api/routers/prescriptions.py,294
+sahool-platform,GET,/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export,export_prescription,services/sahool-platform/api/routers/prescriptions.py,338
 sahool-platform,POST,/api/v1/fields/{field_id}/productivity-zones,productivity_zones_endpoint,services/sahool-platform/api/routers/productivity.py,65
 sahool-platform,POST,/api/v1/fields/{field_id}/zone-sampling-plan,zone_sampling_plan_endpoint,services/sahool-platform/api/routers/productivity.py,84
 sahool-platform,POST,/api/v1/fields/{field_id}/daily-ai-brief,daily_ai_brief_endpoint,services/sahool-platform/api/routers/productivity.py,107
@@ -904,6 +905,9 @@ sahool-platform,GET,/api/v1/wofost/crop-types,wofost_crop_types_endpoint,service
 sahool-platform,GET,/api/v1/wofost/adaptation-guidance,wofost_adaptation_endpoint,services/sahool-platform/api/routers/wofost.py,33
 sahool-platform,GET,/api/v1/analysis/yield,yield_analysis_endpoint,services/sahool-platform/api/routers/yield_analysis.py,39
 sahool-platform,POST,/api/v1/fields/{field_id}/yield-interval,field_yield_interval_endpoint,services/sahool-platform/api/routers/yield_interval.py,49
+sahool-platform,POST,/api/v1/fields/{field_id}/yield-maps/ingestions,ingest_yield_map,services/sahool-platform/api/routers/yield_map_ingestion.py,83
+sahool-platform,GET,/api/v1/fields/{field_id}/yield-maps/ingestions,list_yield_map_ingestions,services/sahool-platform/api/routers/yield_map_ingestion.py,254
+sahool-platform,GET,/api/v1/fields/{field_id}/yield-map-records,query_yield_map_records,services/sahool-platform/api/routers/yield_map_ingestion.py,288
 sam2-inference,POST,/predict,predict,services/sam2-inference/main.py,24
 sam2-inference,GET,/healthz,healthz,services/sam2-inference/main.py,105
 sam2-inference,GET,/health,legacy_health,services/sam2-inference/main.py,110
@@ -930,6 +934,7 @@ scout-ingest-service,POST,/internal/seasons/{season_id}/events,add_season_event,
 scout-ingest-service,POST,/internal/seasons/{season_id}/harvest,set_season_harvest,services/scout-ingest-service/season_api.py,583
 scout-ingest-service,POST,/internal/seasons/{season_id}/costs,add_season_cost,services/scout-ingest-service/season_api.py,624
 scout-ingest-service,GET,/internal/seasons/{season_id}/detail,season_detail,services/scout-ingest-service/season_api.py,668
+soil-service,GET,/runtime-identity,runtime_evidence_identity,services/soil-service/main.py,198
 soil-service,POST,/v1/soil/observations,create_observation,services/soil-service/routers/canonical.py,22
 soil-service,GET,/v1/fields/{field_id}/soil/observations,observations,services/soil-service/routers/canonical.py,43
 soil-service,POST,/v1/fields/{field_id}/soil/profile/rebuild,rebuild_profile,services/soil-service/routers/canonical.py,60
@@ -1034,3 +1039,4 @@ video-processor,POST,/streams/{stream_id}/snapshot,snapshot,services/video-proce
 video-processor,GET,/streams/{stream_id}/snapshot,snapshot_zlm,services/video-processor/routers/streams.py,180
 video-processor,POST,/streams/{stream_id}/record/start,record_start,services/video-processor/routers/streams.py,202
 video-processor,POST,/streams/{stream_id}/record/stop,record_stop,services/video-processor/routers/streams.py,222
+weather-service,GET,/runtime-identity,runtime_evidence_identity,services/weather-service/main.py,55

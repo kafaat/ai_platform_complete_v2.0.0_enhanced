@@ -24,7 +24,7 @@ GIS-004,Spatial analytics,,gis,raster-service,3,3,unassessed,unassessed,unassess
 INT-001,Public API and SDK,,farm_management,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
 INT-002,Event bus integration,,farm_management,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 INT-003,IoT and sensors,,irrigation,actuator-service,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
-INT-004,External machinery integrations,,precision,UNASSIGNED,1,1,unassessed,unassessed,unassessed,unassessed,documentation_or_scaffold,False
+INT-004,External machinery integrations,,precision,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,machine_upload_artifact_persisted_delivery_unverified,False
 IRR-001,Water source registry,,irrigation,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,behavioral_test_linked_runtime_unverified,False
 IRR-002,Water quality samples,,irrigation,sahool-platform,3,3,unassessed,unassessed,unassessed,unassessed,runtime_or_workflow_unverified,False
 IRR-003,Field water-source binding,,irrigation,sahool-platform,0,0,unassessed,unassessed,unassessed,unassessed,missing_confirmed,False

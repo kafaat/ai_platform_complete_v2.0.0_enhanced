@@ -3864,10 +3864,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/routers/prescriptions.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/routers/propagation.py",
     "kind": "backend"
   },
@@ -4128,6 +4124,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/canonical_field_state.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/canonical_field_state_lock.py",
     "kind": "backend"
   },
@@ -4328,6 +4328,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/crop_intelligence/policy_engine.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
     "kind": "backend"
   },
@@ -4416,6 +4420,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/economic_scenarios.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/engines/__init__.py",
     "kind": "backend"
   },
@@ -4496,6 +4504,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/equipment_intelligence.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/event_schema.py",
     "kind": "backend"
   },
@@ -4525,10 +4537,6 @@
   },
   {
     "path": "services/sahool-platform/core/field_context_coordinator.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/core/field_digital_twin.py",
     "kind": "backend"
   },
   {
@@ -4789,6 +4797,10 @@
   },
   {
     "path": "services/sahool-platform/core/wind_geometry.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/sahool-platform/core/yield_intelligence.py",
     "kind": "backend"
   },
   {
@@ -5053,6 +5065,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_crop_operations.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_crop_policy_engine.py",
     "kind": "tests"
   },
   {
@@ -6312,118 +6328,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests/architecture/test_architecture_graph.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_capability_evidence_maturity_engine.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_capability_mapping_engine.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_capability_registry_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_capability_registry_v1.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_compose_runtime_target_resolver.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_database_contract_graph.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_decision_lineage_graph.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_duplicate_definition_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_event_contract_graph.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_execution_dependency_audit.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_gateway_reachability_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_integration_runtime_governance_closure.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_path3_attestation_policy.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_path3_live_acceptance_gate.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_path3_run_attestation.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_path3_runtime_readiness_closure.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_phase21_legacy_quarantine.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_phase21_source_of_truth.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_route_conflict_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_router_reachability_guard.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_runtime_certification_gate.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_runtime_contract_generator.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_runtime_environment_preflight.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_runtime_evidence_ingestion.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_runtime_probe_batch.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_runtime_verification_harness.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests/architecture/test_static_governance_closure.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests/certification/test_phase21_certification_matrix.py",
     "kind": "tests"
   },
@@ -6489,6 +6393,10 @@
   },
   {
     "path": "tests/release/test_phase14_release_packaging_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/release/test_platform_route_release_binding.py",
     "kind": "tests"
   },
   {

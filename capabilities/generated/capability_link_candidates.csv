@@ -29,7 +29,7 @@ FM-001,api,POST /auth/tenants @ services/auth/routers/tenants.py:40,5,applied
 FM-001,api,GET /auth/users @ services/auth/routers/users.py:22,3,applied
 FM-001,api,PATCH /auth/users/{user_id}/role @ services/auth/routers/users.py:31,3,applied
 FM-001,api,PATCH /auth/users/{user_id}/deactivate @ services/auth/routers/users.py:73,3,applied
-FM-001,api,POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2579,2,applied
+FM-001,api,POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2575,2,applied
 FM-001,api,GET /analytics/{tenant_id} @ services/mcp_servers/market_server.py:691,2,applied
 FM-001,api,POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:47,2,applied
 FM-001,api,GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:91,2,applied
@@ -129,22 +129,22 @@ FM-002,test,services/sahool-platform/tests/test_farm_ledger.py,3,applied
 FM-002,test,tests_v9/test_farm_memory.py,3,applied
 FM-002,mobile,mobile/sahool_app/lib/screens/farms_screen.dart,2,applied
 FM-003,service,services/field-management-service/main.py,10,applied
-FM-003,api,GET /v1/fields/{field_id}/lineage @ services/decision-service/main.py:1040,4,applied
-FM-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2121,2,applied
-FM-003,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2171,2,applied
-FM-003,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2212,2,applied
-FM-003,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2258,2,applied
-FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2295,2,applied
-FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2331,2,applied
-FM-003,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2368,2,applied
-FM-003,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2400,2,applied
-FM-003,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2439,2,applied
-FM-003,api,POST /v1/learning/monitoring-snapshots @ services/decision-service/main.py:2476,2,applied
-FM-003,api,POST /v1/learning/retraining-requests @ services/decision-service/main.py:2512,2,applied
-FM-003,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2633,2,applied
-FM-003,api,POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2674,2,applied
-FM-003,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2722,2,applied
-FM-003,api,POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2769,2,applied
+FM-003,api,GET /v1/fields/{field_id}/lineage @ services/decision-service/main.py:1036,4,applied
+FM-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2117,2,applied
+FM-003,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2167,2,applied
+FM-003,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2208,2,applied
+FM-003,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2254,2,applied
+FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2291,2,applied
+FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2327,2,applied
+FM-003,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2364,2,applied
+FM-003,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2396,2,applied
+FM-003,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2435,2,applied
+FM-003,api,POST /v1/learning/monitoring-snapshots @ services/decision-service/main.py:2472,2,applied
+FM-003,api,POST /v1/learning/retraining-requests @ services/decision-service/main.py:2508,2,applied
+FM-003,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2629,2,applied
+FM-003,api,POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2670,2,applied
+FM-003,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2718,2,applied
+FM-003,api,POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2765,2,applied
 FM-003,api,GET /healthz @ services/field-management-service/main.py:184,3,applied
 FM-003,api,GET /health @ services/field-management-service/main.py:189,3,applied
 FM-003,api,GET /readyz @ services/field-management-service/main.py:194,3,applied
@@ -315,6 +315,9 @@ FM-003,api,GET /api/v1/fields/{field_id}/water-efficiency @ services/sahool-plat
 FM-003,api,POST /api/v1/fields/{field_id}/water-twin @ services/sahool-platform/api/routers/water_twin.py:146,4,applied
 FM-003,api,GET /api/v1/weather/field-weather-summary @ services/sahool-platform/api/routers/weather.py:2510,2,applied
 FM-003,api,POST /api/v1/fields/{field_id}/yield-interval @ services/sahool-platform/api/routers/yield_interval.py:49,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:83,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:254,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:288,4,applied
 FM-003,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,2,applied
 FM-003,api,POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
@@ -668,21 +671,21 @@ FM-008,test,tests_v9/test_v9_odoo_rls_hardening_static.py,3,applied
 FM-008,test,tests_v9/test_erp_bridge_healthcheck_guard.py,3,applied
 FM-008,test,tests_v9/test_odoo_bridge_tenant_honesty.py,3,applied
 GIS-001,service,services/field-management-service/main.py,10,applied
-GIS-001,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2121,2,applied
-GIS-001,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2171,2,applied
-GIS-001,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2212,2,applied
-GIS-001,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2258,2,applied
-GIS-001,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2295,2,applied
-GIS-001,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2331,2,applied
-GIS-001,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2368,2,applied
-GIS-001,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2400,2,applied
-GIS-001,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2439,2,applied
-GIS-001,api,POST /v1/learning/monitoring-snapshots @ services/decision-service/main.py:2476,2,applied
-GIS-001,api,POST /v1/learning/retraining-requests @ services/decision-service/main.py:2512,2,applied
-GIS-001,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2633,2,applied
-GIS-001,api,POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2674,2,applied
-GIS-001,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2722,2,applied
-GIS-001,api,POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2769,2,applied
+GIS-001,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2117,2,applied
+GIS-001,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2167,2,applied
+GIS-001,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2208,2,applied
+GIS-001,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2254,2,applied
+GIS-001,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2291,2,applied
+GIS-001,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2327,2,applied
+GIS-001,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2364,2,applied
+GIS-001,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2396,2,applied
+GIS-001,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2435,2,applied
+GIS-001,api,POST /v1/learning/monitoring-snapshots @ services/decision-service/main.py:2472,2,applied
+GIS-001,api,POST /v1/learning/retraining-requests @ services/decision-service/main.py:2508,2,applied
+GIS-001,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2629,2,applied
+GIS-001,api,POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2670,2,applied
+GIS-001,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2718,2,applied
+GIS-001,api,POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2765,2,applied
 GIS-001,api,POST /v1/fields/{field_id}/geometry/versions @ services/raster-service/routers/fields.py:695,2,applied
 GIS-001,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,2,applied
 GIS-001,api,POST /api/v1/fields/{field_id}/boundary/score @ services/sahool-platform/api/routers/boundaries.py:79,2,applied
@@ -743,17 +746,22 @@ GIS-002,api,POST /phase6/prescriptions/generate @ services/sahool-platform/api/r
 GIS-002,api,POST /phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:728,2,applied
 GIS-002,api,GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47,4,applied
 GIS-002,api,GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2085,2,applied
+GIS-002,api,POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:83,2,applied
+GIS-002,api,GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:254,2,applied
+GIS-002,api,GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:288,2,applied
 GIS-002,test,services/gis-workflow-service/tests/test_map_layout.py,3,applied
 GIS-002,test,services/gis-workflow-service/tests/test_publication_map_render.py,3,applied
 GIS-002,test,services/raster-service/test_raster_map_deep_hardening_static.py,3,applied
 GIS-002,test,services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py,3,applied
 GIS-002,test,services/sahool-platform/tests/test_map_layer.py,5,applied
 GIS-002,test,services/sahool-platform/tests/test_weather_engine_disease_window_layers.py,3,applied
+GIS-002,test,services/sahool-platform/tests/test_yield_map_ingestion.py,3,applied
 GIS-002,test,services/sahool-platform/tests/test_weather_engine_agronomic_risk_layers.py,3,applied
 GIS-002,test,tests_v9/test_a6_print_map.py,3,applied
 GIS-002,test,tests_v9/test_terrain_layers_v31_6.py,3,applied
 GIS-002,test,tests_v9/test_layer_evict_v30_9.py,3,applied
 GIS-002,test,tests_v9/test_soil_layer_v31_7.py,3,applied
+GIS-002,test,tests_v9/test_v215_yield_map_ingestion_static.py,3,applied
 GIS-002,test,tests_v9/test_evidence_map_shape.py,3,applied
 GIS-002,mobile,mobile/sahool_app/lib/widgets/offline_field_map.dart,2,applied
 GIS-003,service,services/raster-service/main.py,10,applied
@@ -783,13 +791,13 @@ GIS-004,test,services/sahool-platform/tests/test_spatial_geometry_integrity.py,3
 GIS-004,test,tests_v9/test_spatial_e2e_smoke.py,3,applied
 GIS-004,test,tests_v9/test_geospatial.py,3,applied
 SAT-001,service,services/raster-service/main.py,10,applied
-SAT-001,api,POST /v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1629,4,applied
-SAT-001,api,POST /v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1642,4,applied
-SAT-001,api,POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1661,4,applied
-SAT-001,api,POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1676,4,applied
-SAT-001,api,GET /v1/activation/satellite_cdse @ services/decision-service/main.py:1689,4,applied
-SAT-001,api,GET /v1/activation/satellite_cdse/source @ services/decision-service/main.py:1696,4,applied
-SAT-001,api,GET /v1/activation/satellite_cdse/probe @ services/decision-service/main.py:1705,4,applied
+SAT-001,api,POST /v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1625,4,applied
+SAT-001,api,POST /v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1638,4,applied
+SAT-001,api,POST /v1/activation/satellite_cdse/revoke @ services/decision-service/main.py:1657,4,applied
+SAT-001,api,POST /v1/activation/satellite_cdse/reset @ services/decision-service/main.py:1672,4,applied
+SAT-001,api,GET /v1/activation/satellite_cdse @ services/decision-service/main.py:1685,4,applied
+SAT-001,api,GET /v1/activation/satellite_cdse/source @ services/decision-service/main.py:1692,4,applied
+SAT-001,api,GET /v1/activation/satellite_cdse/probe @ services/decision-service/main.py:1701,4,applied
 SAT-001,api,GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:42,3,applied
 SAT-001,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:117,3,applied
 SAT-001,api,GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:167,3,applied
@@ -1065,6 +1073,7 @@ SAT-009,test,services/raster-service/test_cdse_process_rate_limit.py,3,applied
 SAT-009,test,services/raster-service/test_router_no_main_import_static.py,3,applied
 SAT-009,test,services/raster-service/test_raster_runtime_certification.py,3,applied
 SAT-009,test,services/raster-service/test_backfill_scene_policy.py,3,applied
+SAT-009,test,services/raster-service/test_rgba_cog_photometric.py,5,applied
 SAT-009,test,services/raster-service/test_change_detection_grid.py,3,applied
 SAT-009,test,services/raster-service/test_object_store.py,3,applied
 SAT-009,test,services/raster-service/test_raster_indicator_product.py,3,applied
@@ -1150,6 +1159,7 @@ SAT-009,test,tests_v9/test_raster_assets_dedup_traceability_v142.py,3,applied
 SAT-009,test,tests_v9/test_raster_tile_http_cookie_runtime_fix_20260715.py,5,applied
 SAT-009,test,tests_v9/raster_route_source.py,2,applied
 SAT-009,test,tests_v9/test_raster_validated_product_guard.py,3,applied
+SAT-009,test,tests_v9/test_raster_asset_date_binding.py,3,applied
 SAT-009,test,tests_v9/test_raster_scene_model_v63.py,3,applied
 SAT-009,test,tests_v9/test_raster_assets_lifecycle_lineage_v29_9.py,3,applied
 SAT-009,test,tests_v9/test_mcp_raster_status_relay_v58.py,3,applied
@@ -1259,7 +1269,7 @@ IRR-004,test,services/sahool-platform/tests/test_irrigation_depletion_trigger.py
 IRR-004,test,services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py,3,applied
 IRR-004,test,tests_v9/test_h5_water_balance_auto.py,5,applied
 IRR-005,service,services/sahool-platform/api/main.py,10,applied
-IRR-005,api,POST /v1/recommendation-outcomes @ services/decision-service/main.py:941,2,applied
+IRR-005,api,POST /v1/recommendation-outcomes @ services/decision-service/main.py:937,2,applied
 IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303,3,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:320,3,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:500,3,applied
@@ -1283,7 +1293,7 @@ IRR-005,test,tests_v9/test_v152_recommendation_feedback_deprecation_static.py,3,
 IRR-005,test,tests_v9/test_irrigation_recommendation_policy.py,7,applied
 IRR-005,test,tests_v9/test_recommendation_enriched_passthrough.py,3,applied
 IRR-006,service,services/sahool-platform/api/main.py,10,applied
-IRR-006,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2722,2,applied
+IRR-006,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2718,2,applied
 IRR-006,api,POST /api/v1/irrigation/schedules @ services/sahool-platform/api/routers/irrigation.py:236,3,applied
 IRR-006,api,DELETE /api/v1/irrigation/schedules/{schedule_id} @ services/sahool-platform/api/routers/irrigation.py:357,3,applied
 IRR-006,api,POST /v1/fields/{field_id}/post-execution-observations @ services/vegetation-analysis-service/routers/outcomes.py:45,2,applied
@@ -1296,11 +1306,11 @@ IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,appl
 IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
 IRR-007,api,GET /idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
-IRR-007,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2171,2,applied
-IRR-007,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2212,2,applied
-IRR-007,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2258,2,applied
-IRR-007,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2295,2,applied
-IRR-007,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2331,2,applied
+IRR-007,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2167,2,applied
+IRR-007,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2208,2,applied
+IRR-007,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2254,2,applied
+IRR-007,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2291,2,applied
+IRR-007,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2327,2,applied
 IRR-007,api,POST /verify-loop @ services/sahool-platform/api/phase9_autonomous_farm_os.py:207,3,applied
 IRR-007,api,GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31,3,applied
 IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:831,3,applied
@@ -1366,6 +1376,11 @@ PA-002,test,tests_v9/test_canonical_vri_prescription.py,3,applied
 PA-002,test,tests_v9/test_vra_prescription_engine_v62.py,5,applied
 PA-002,test,tests_v9/test_prescription_shapefile.py,3,applied
 PA-002,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied
+PA-003,api,POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:83,4,applied
+PA-003,api,GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:254,4,applied
+PA-003,api,GET /api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:288,4,applied
+PA-003,test,services/sahool-platform/tests/test_yield_map_ingestion.py,5,applied
+PA-003,test,tests_v9/test_v215_yield_map_ingestion_static.py,5,applied
 PA-004,test,tests_v9/test_canonical_as_applied_irrigation.py,5,applied
 PA-005,api,POST /iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251,2,applied
 PA-005,api,POST /api/v1/devices/{device_id}/telemetry @ services/sahool-platform/api/routers/devices.py:123,2,applied
@@ -1481,11 +1496,11 @@ OPS-007,api,GET /api/v1/equipment/{equipment_id}/maintenance @ services/sahool-p
 OPS-008,service,services/auth/main.py,10,applied
 OPS-008,test,services/decision-service/tests/test_worker_identity_binding.py,5,applied
 DEC-001,service,services/decision-service/main.py,10,applied
-DEC-001,api,POST /v1/evidence/vegetation-snapshots @ services/decision-service/main.py:590,3,applied
-DEC-001,api,GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1092,3,applied
-DEC-001,api,POST /v1/activation/evidence-receipts @ services/decision-service/main.py:1394,3,applied
-DEC-001,api,POST /v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1468,3,applied
-DEC-001,api,POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2769,3,applied
+DEC-001,api,POST /v1/evidence/vegetation-snapshots @ services/decision-service/main.py:586,3,applied
+DEC-001,api,GET /v1/decisions/{decision_id}/agronomic-evidence @ services/decision-service/main.py:1088,3,applied
+DEC-001,api,POST /v1/activation/evidence-receipts @ services/decision-service/main.py:1390,3,applied
+DEC-001,api,POST /v1/activation/evidence-receipts/{evidence_id}/revoke @ services/decision-service/main.py:1464,3,applied
+DEC-001,api,POST /v1/learning/reconcile-evidence @ services/decision-service/main.py:2765,3,applied
 DEC-001,api,POST /api/v1/calibration/{region}/evidence @ services/sahool-platform/api/routers/calibration.py:124,2,applied
 DEC-001,api,GET /api/v1/calibration/{region}/evidence/persisted @ services/sahool-platform/api/routers/calibration.py:144,2,applied
 DEC-001,api,POST /api/v1/calibration/{region}/adapt-from-evidence @ services/sahool-platform/api/routers/calibration.py:247,2,applied
@@ -1523,8 +1538,10 @@ DEC-001,test,tests_v9/test_evidence_contract_v62_3.py,3,applied
 DEC-001,test,tests_v9/test_evidence_graph_nodes_migration_v149.py,3,applied
 DEC-001,test,tests_v9/test_evidence_registry.py,3,applied
 DEC-001,test,tests_v9/test_evidence_persistence.py,3,applied
+DEC-001,test,tests/architecture/test_runtime_evidence_ingestion.py,3,applied
+DEC-001,test,tests/architecture/test_capability_evidence_maturity_engine.py,3,applied
 DEC-002,service,services/decision-service/main.py,10,applied
-DEC-002,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:709,3,applied
+DEC-002,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:705,3,applied
 DEC-002,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:352,2,applied
 DEC-002,api,POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:107,2,applied
 DEC-002,test,services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py,3,applied
@@ -1532,9 +1549,9 @@ DEC-002,test,services/sahool-platform/tests/test_candidate_generator.py,3,applie
 DEC-002,test,services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py,3,applied
 DEC-003,service,services/decision-service/main.py,10,applied
 DEC-003,api,POST /approvals/approve @ services/ai_agronomist/main.py:146,2,applied
-DEC-003,api,GET /v1/decisions/review-queue @ services/decision-service/main.py:673,3,applied
-DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:709,3,applied
-DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2121,3,applied
+DEC-003,api,GET /v1/decisions/review-queue @ services/decision-service/main.py:669,3,applied
+DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:705,3,applied
+DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2117,3,applied
 DEC-003,api,POST /approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:36,2,applied
 DEC-003,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,2,applied
 DEC-003,api,GET /api/v1/decisions/review-queue @ services/sahool-platform/api/routers/decision_review.py:45,2,applied
@@ -1569,11 +1586,11 @@ DEC-003,test,tests_v9/test_ai_approval_endpoints_v58.py,3,applied
 DEC-003,test,tests_v9/test_decision_review_backfill_verify.py,3,applied
 DEC-003,test,tests_v9/test_decision_review_boundary_guard.py,3,applied
 DEC-004,service,services/decision-service/main.py,10,applied
-DEC-004,api,GET /v1/execution-requests @ services/decision-service/main.py:1736,5,applied
-DEC-004,api,GET /v1/execution-requests/recovery @ services/decision-service/main.py:1765,5,applied
-DEC-004,api,POST /v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:1787,5,applied
-DEC-004,api,POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:1819,5,applied
-DEC-004,api,POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1865,5,applied
+DEC-004,api,GET /v1/execution-requests @ services/decision-service/main.py:1732,5,applied
+DEC-004,api,GET /v1/execution-requests/recovery @ services/decision-service/main.py:1761,5,applied
+DEC-004,api,POST /v1/execution-requests/{execution_request_id}/claim @ services/decision-service/main.py:1783,5,applied
+DEC-004,api,POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:1815,5,applied
+DEC-004,api,POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1861,5,applied
 DEC-004,api,POST /api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/sahool-platform/api/routers/decision_review.py:393,4,applied
 DEC-004,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:460,4,applied
 DEC-004,api,POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:67,4,applied
@@ -1581,12 +1598,12 @@ DEC-004,test,services/decision-service/tests/test_execution_request_feed.py,5,ap
 DEC-004,test,services/decision-service/tests/test_wx10_11_execution_request.py,5,applied
 DEC-004,test,tests_v9/test_wx10_11_execution_request_contract.py,5,applied
 DEC-005,service,services/decision-service/main.py,10,applied
-DEC-005,api,POST /v1/dispatch/decisions @ services/decision-service/main.py:842,3,applied
-DEC-005,api,GET /v1/dispatch/decisions @ services/decision-service/main.py:901,3,applied
-DEC-005,api,POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1137,3,applied
-DEC-005,api,POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1205,7,applied
-DEC-005,api,POST /v1/reservation-dispatch-intents @ services/decision-service/main.py:1264,3,applied
-DEC-005,api,POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2674,3,applied
+DEC-005,api,POST /v1/dispatch/decisions @ services/decision-service/main.py:838,3,applied
+DEC-005,api,GET /v1/dispatch/decisions @ services/decision-service/main.py:897,3,applied
+DEC-005,api,POST /v1/execution-plans/{execution_plan_id}/authorize-dispatch @ services/decision-service/main.py:1133,3,applied
+DEC-005,api,POST /v1/dispatch-authorizations/{dispatch_authorization_id}/execute @ services/decision-service/main.py:1201,7,applied
+DEC-005,api,POST /v1/reservation-dispatch-intents @ services/decision-service/main.py:1260,3,applied
+DEC-005,api,POST /v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2670,3,applied
 DEC-005,api,POST /iot/dispatch/preview @ services/sahool-platform/api/phase9_autonomous_farm_os.py:217,2,applied
 DEC-005,api,POST /iot/dispatch/simulate @ services/sahool-platform/api/phase9_autonomous_farm_os.py:230,2,applied
 DEC-005,api,POST /api/v1/decision/unified @ services/sahool-platform/api/routers/decision_dispatch.py:126,2,applied
@@ -1616,14 +1633,14 @@ DEC-005,test,tests_v9/test_command_dispatch_race_v65.py,3,applied
 DEC-005,test,tests/irrigation/test_gate_b_dispatch_relay_worker.py,3,applied
 DEC-005,test,tests/irrigation/test_gate_b_dispatch_relay_and_contract.py,3,applied
 DEC-006,service,services/decision-service/main.py,10,applied
-DEC-006,api,POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:1819,5,applied
+DEC-006,api,POST /v1/execution-requests/{execution_request_id}/receipt @ services/decision-service/main.py:1815,5,applied
 DEC-006,test,services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py,3,applied
 DEC-006,test,tests_v9/test_wx10_11b_execution_delivery_receipt_contract.py,3,applied
 DEC-007,service,services/decision-service/main.py,10,applied
-DEC-007,api,POST /v1/outcomes/record @ services/decision-service/main.py:915,3,applied
-DEC-007,api,POST /v1/recommendation-outcomes @ services/decision-service/main.py:941,3,applied
-DEC-007,api,POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1865,3,applied
-DEC-007,api,POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1923,3,applied
+DEC-007,api,POST /v1/outcomes/record @ services/decision-service/main.py:911,3,applied
+DEC-007,api,POST /v1/recommendation-outcomes @ services/decision-service/main.py:937,3,applied
+DEC-007,api,POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1861,3,applied
+DEC-007,api,POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1919,3,applied
 DEC-007,api,POST /api/v1/decision/ledger @ services/sahool-platform/api/routers/decision_dispatch.py:564,2,applied
 DEC-007,api,POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:430,2,applied
 DEC-007,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome @ services/sahool-platform/api/routers/decision_review.py:460,2,applied
@@ -1640,14 +1657,14 @@ DEC-007,test,services/sahool-platform/tests/test_outcome_reconciler.py,3,applied
 DEC-007,test,services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py,3,applied
 DEC-007,test,tests_v9/test_outcome_measurement.py,3,applied
 DEC-008,service,services/decision-service/main.py,10,applied
-DEC-008,api,POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1923,7,applied
+DEC-008,api,POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1919,7,applied
 DEC-008,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,6,applied
 DEC-008,api,POST /v1/fields/{field_id}/soil/learning-attributions @ services/soil-service/routers/p4_workflow.py:114,4,applied
 DEC-008,api,POST /v1/outcomes/{outcome_id}/remote-sensing-attribution @ services/vegetation-analysis-service/routers/outcomes.py:88,2,applied
 DEC-008,test,services/decision-service/tests/test_wx10_13_learning_attribution.py,7,applied
 DEC-009,service,services/decision-service/main.py,10,applied
-DEC-009,api,GET /v1/learning/calibration-dataset @ services/decision-service/main.py:1957,3,applied
-DEC-009,api,POST /v1/learning/evaluation-runs @ services/decision-service/main.py:1992,3,applied
+DEC-009,api,GET /v1/learning/calibration-dataset @ services/decision-service/main.py:1953,3,applied
+DEC-009,api,POST /v1/learning/evaluation-runs @ services/decision-service/main.py:1988,3,applied
 DEC-009,api,GET /api/v1/calibration @ services/sahool-platform/api/routers/calibration.py:95,2,applied
 DEC-009,api,GET /api/v1/calibration/{region} @ services/sahool-platform/api/routers/calibration.py:106,2,applied
 DEC-009,api,POST /api/v1/calibration/{region}/evidence @ services/sahool-platform/api/routers/calibration.py:124,2,applied
@@ -1679,11 +1696,11 @@ DEC-009,test,tests_v9/test_calibration_ingest.py,3,applied
 DEC-009,test,tests_v9/test_calibration.py,3,applied
 DEC-009,test,tests_v9/test_calibration_override.py,3,applied
 DEC-010,service,services/decision-service/main.py,10,applied
-DEC-010,api,POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2042,3,applied
-DEC-010,api,POST /v1/learning/activation-requests @ services/decision-service/main.py:2078,5,applied
-DEC-010,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2258,3,applied
-DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2295,3,applied
-DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2331,3,applied
+DEC-010,api,POST /v1/learning/promotion-decisions @ services/decision-service/main.py:2038,3,applied
+DEC-010,api,POST /v1/learning/activation-requests @ services/decision-service/main.py:2074,5,applied
+DEC-010,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2254,3,applied
+DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2291,3,applied
+DEC-010,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2327,3,applied
 DEC-010,api,POST /models/promote @ services/sahool-platform/api/phase10_continuous_learning.py:162,2,applied
 DEC-010,api,POST /models/serving/rollback @ services/sahool-platform/api/phase10_continuous_learning.py:291,2,applied
 DEC-010,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684,2,applied
@@ -1747,6 +1764,7 @@ SEC-005,test,tests_v9/test_calibration_audit_events.py,3,applied
 SEC-005,test,tests_v9/test_ai_provider_native_multiround_audit_v58.py,3,applied
 SEC-005,test,tests_v9/test_tenant_query_audit.py,3,applied
 SEC-005,test,tests_v9/test_compose_security_audit.py,3,applied
+SEC-005,test,tests/architecture/test_execution_dependency_audit.py,3,applied
 SEC-006,service,services/auth/main.py,10,applied
 SEC-006,test,services/decision-service/tests/test_service_token_guard.py,5,applied
 SEC-006,test,tests_v9/test_sensing_adapter_service_token.py,5,applied

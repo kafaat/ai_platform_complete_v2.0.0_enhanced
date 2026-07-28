@@ -472,6 +472,8 @@ sahool-platform.fields.field_id.wind,mixed,sahool-platform,GET /api/v1/fields/{f
 sahool-platform.fields.field_id.workspace,query,sahool-platform,GET /api/v1/fields/{field_id}/workspace,frontend,route,False
 sahool-platform.fields.field_id.yield-estimate,command,sahool-platform,POST /api/v1/fields/{field_id}/yield-estimate,frontend,route,False
 sahool-platform.fields.field_id.yield-interval,command,sahool-platform,POST /api/v1/fields/{field_id}/yield-interval,frontend,route,False
+sahool-platform.fields.field_id.yield-map-records,query,sahool-platform,GET /api/v1/fields/{field_id}/yield-map-records,frontend,route,False
+sahool-platform.fields.field_id.yield-maps,mixed,sahool-platform,GET /api/v1/fields/{field_id}/yield-maps/ingestions|POST /api/v1/fields/{field_id}/yield-maps/ingestions,frontend,route,False
 sahool-platform.fields.field_id.zone-sampling-plan,command,sahool-platform,POST /api/v1/fields/{field_id}/zone-sampling-plan,frontend,route,False
 sahool-platform.fields.field_id.zones,command,sahool-platform,POST /api/v1/fields/{field_id}/zones,frontend,route,False
 sahool-platform.fields.import,command,sahool-platform,POST /api/v1/fields/import,frontend,route,False
@@ -659,6 +661,7 @@ sahool-platform.retraining.plan,command,sahool-platform,POST /retraining/plan,fr
 sahool-platform.rotation.evaluate,query,sahool-platform,GET /api/v1/rotation/evaluate,frontend,route,False
 sahool-platform.rotation.principles,query,sahool-platform,GET /api/v1/rotation/principles,frontend,route,False
 sahool-platform.rotation.suggest,query,sahool-platform,GET /api/v1/rotation/suggest,frontend,route,False
+sahool-platform.runtime-identity,query,sahool-platform,GET /runtime-identity,frontend,route,False
 sahool-platform.runtime.authority-envelope,command,sahool-platform,POST /runtime/authority-envelope,frontend,route,False
 sahool-platform.runtime.event-envelope,command,sahool-platform,POST /runtime/event-envelope,frontend,route,False
 sahool-platform.runtime.reputation.update,command,sahool-platform,POST /runtime/reputation/update,frontend,route,False
@@ -776,6 +779,7 @@ scout-ingest-service.internal.scouting.external-observations,query,scout-ingest-
 scout-ingest-service.internal.seasons,mixed,scout-ingest-service,GET /internal/seasons|POST /internal/seasons,,route,False
 scout-ingest-service.internal.seasons.season_id,mixed,scout-ingest-service,GET /internal/seasons/{season_id}/detail|GET /internal/seasons/{season_id}/logbook|PATCH /internal/seasons/{season_id}|POST /internal/seasons/{season_id}/accept|POST /internal/seasons/{season_id}/costs|POST /internal/seasons/{season_id}/events|POST /internal/seasons/{season_id}/harvest|POST /internal/seasons/{season_id}/logbook,,route,False
 soil-service.fields.field_id.soil,mixed,soil-service,GET /v1/fields/{field_id}/soil/analog-estimate|GET /v1/fields/{field_id}/soil/bare-soil-composite|GET /v1/fields/{field_id}/soil/closed-loop|GET /v1/fields/{field_id}/soil/drainage-assessment|GET /v1/fields/{field_id}/soil/hydraulic-profile|GET /v1/fields/{field_id}/soil/mobile-images/latest|GET /v1/fields/{field_id}/soil/observations|GET /v1/fields/{field_id}/soil/profile|GET /v1/fields/{field_id}/soil/profile/history|GET /v1/fields/{field_id}/soil/reclamation-assessment|GET /v1/fields/{field_id}/soil/reclamation-economics|GET /v1/fields/{field_id}/soil/salinity-assessment|GET /v1/fields/{field_id}/soil/sampling-plans/current|GET /v1/fields/{field_id}/soil/soilgrids-spatial|GET /v1/fields/{field_id}/soil/terrain-derivatives|GET /v1/fields/{field_id}/soil/texture-probability|POST /v1/fields/{field_id}/soil/actions/{action_type}/evaluate|POST /v1/fields/{field_id}/soil/analog-estimate|POST /v1/fields/{field_id}/soil/bare-soil-composite|POST /v1/fields/{field_id}/soil/drainage-assessment|POST /v1/fields/{field_id}/soil/evidence|POST /v1/fields/{field_id}/soil/executions|POST /v1/fields/{field_id}/soil/hydraulic-profile/rebuild|POST /v1/fields/{field_id}/soil/learning-attributions|POST /v1/fields/{field_id}/soil/mobile-images/analyze|POST /v1/fields/{field_id}/soil/outcomes|POST /v1/fields/{field_id}/soil/profile/rebuild|POST /v1/fields/{field_id}/soil/reclamation-assessment|POST /v1/fields/{field_id}/soil/reclamation-economics|POST /v1/fields/{field_id}/soil/salinity-assessment|POST /v1/fields/{field_id}/soil/sampling-plans|POST /v1/fields/{field_id}/soil/soilgrids-spatial|POST /v1/fields/{field_id}/soil/terrain-derivatives|POST /v1/fields/{field_id}/soil/texture-probability|POST /v1/fields/{field_id}/soil/validations|POST /v1/fields/{field_id}/soil/verifications,frontend,route,False
+soil-service.runtime-identity,query,soil-service,GET /runtime-identity,frontend,route,False
 soil-service.soil.action-policies,query,soil-service,GET /v1/soil/action-policies,frontend,route,False
 soil-service.soil.calibrations.build,command,soil-service,POST /v1/soil/calibrations/build,frontend,route,False
 soil-service.soil.calibrations.calibration_id,command,soil-service,POST /v1/soil/calibrations/{calibration_id}/evaluate,frontend,route,False
@@ -825,6 +829,7 @@ video-processor.streams,mixed,video-processor,GET /streams|POST /streams,fronten
 video-processor.streams.stream_id,mixed,video-processor,DELETE /streams/{stream_id}|GET /streams/{stream_id},frontend,route,False
 video-processor.streams.stream_id.record,command,video-processor,POST /streams/{stream_id}/record/start|POST /streams/{stream_id}/record/stop,frontend,route,False
 video-processor.streams.stream_id.snapshot,mixed,video-processor,GET /streams/{stream_id}/snapshot|POST /streams/{stream_id}/snapshot,frontend,route,False
+weather-service.runtime-identity,query,weather-service,GET /runtime-identity,frontend,route,False
 weather-service.weather.agro.canonical-state,command,weather-service,POST /v1/weather/agro/canonical-state,frontend,route,False
 weather-service.weather.agro.et0,command,weather-service,POST /v1/weather/agro/et0|POST /v1/weather/agro/et0/series,frontend,route,False
 weather-service.weather.agro.etc,command,weather-service,POST /v1/weather/agro/etc/hourly,frontend,route,False

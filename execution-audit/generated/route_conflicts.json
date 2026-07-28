@@ -1,6 +1,6 @@
 {
   "analysis_kind": "static_repository_evidence",
-  "cross_scope_candidate_count": 18,
+  "cross_scope_candidate_count": 19,
   "cross_scope_candidates": [
     {
       "classification": "review_only_distinct_module_or_router",
@@ -413,7 +413,7 @@
         },
         {
           "function": "healthz",
-          "line": 21,
+          "line": 31,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/healthz",
@@ -579,7 +579,7 @@
         },
         {
           "function": "metrics",
-          "line": 28,
+          "line": 38,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/metrics",
@@ -817,7 +817,7 @@
         },
         {
           "function": "readyz",
-          "line": 49,
+          "line": 59,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
           "path": "/readyz",
@@ -878,6 +878,37 @@
           "module": "services/video-processor/routers/health.py",
           "path": "/readyz",
           "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/runtime-identity",
+      "registrations": [
+        {
+          "function": "runtime_evidence_identity",
+          "line": 24,
+          "method": "GET",
+          "module": "services/sahool-platform/api/routers/platform_health.py",
+          "path": "/runtime-identity",
+          "receiver": "router"
+        },
+        {
+          "function": "runtime_evidence_identity",
+          "line": 198,
+          "method": "GET",
+          "module": "services/soil-service/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        },
+        {
+          "function": "runtime_evidence_identity",
+          "line": 55,
+          "method": "GET",
+          "module": "services/weather-service/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
         }
       ]
     },
@@ -1132,8 +1163,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1082,
-  "route_inventory_sha256": "dfc8b89b72c0423496c62cf98b75733f58bcd5f261fbadbecf305a429c3769ef",
+  "route_count": 1088,
+  "route_inventory_sha256": "a483e45cf3071cead36f48a2c570f4d7ef29d88634cb8a6458208f4de84925ac",
   "runtime_verified": false,
   "schema_version": 1
 }

@@ -150,7 +150,7 @@ medium,sahool-platform,class,EmitEventExecutionRequestPort,services/sahool-platf
 medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/api/irrigation_path_query.py,63,0,review_before_delete,False
 medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,96,0,review_before_delete,False
-medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,895,0,review_before_delete,False
+medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,898,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,53,0,review_before_delete,False
 medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,235,0,review_before_delete,False
 medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,261,0,review_before_delete,False
@@ -193,7 +193,6 @@ medium,sahool-platform,function,state_explanation_ar,services/sahool-platform/co
 medium,sahool-platform,class,ConfidenceComposer,services/sahool-platform/core/guardrails.py,267,0,review_before_delete,False
 medium,sahool-platform,function,evaluate_harvest_feedback,services/sahool-platform/core/harvest_feedback.py,48,0,review_before_delete,False
 medium,sahool-platform,function,identity_summary,services/sahool-platform/core/identity.py,236,0,review_before_delete,False
-medium,sahool-platform,function,export_taskdata_xml,services/sahool-platform/core/isoxml_vrt.py,124,0,review_before_delete,False
 medium,sahool-platform,function,validate_machine_task,services/sahool-platform/core/isoxml_vrt.py,182,0,review_before_delete,False
 medium,sahool-platform,function,explain_matrix_ar,services/sahool-platform/core/knowledge_levels.py,158,0,review_before_delete,False
 medium,sahool-platform,function,calibration_method_used,services/sahool-platform/core/learning/calibration_loop.py,95,0,review_before_delete,False

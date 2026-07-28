@@ -30,9 +30,18 @@ SUBSTANTIVE_PREFIXES = (
     "bots/",
     "scripts/ci/",
     "tests_v9/",
+    # Architecture/guard tests live under tests/ (not tests_v9/). A test is exactly
+    # the "test" category this guard's own message invites; without this prefix a PR
+    # that adds real tests here + regenerates the bundle is wrongly blocked.
+    "tests/",
     ".github/workflows/",
     "docs/runbooks/",
     "certification/evidence/",
+    # runtime-verification/ holds functional probe PLANS and the identity-bridge map —
+    # behavioural governance specs (what gets verified, how evidence propagates), not
+    # reports. Changing them is substantive. (Live evidence under
+    # runtime-verification/functional_evidence/ is gitignored and never committed.)
+    "runtime-verification/",
     # SQL migrations are schema/data code — a migration-only fix (e.g. making a
     # DDL statement idempotent) is substantive, not a report. Without this, any
     # PR that only touches migrations/ + regenerates the release bundle would be
@@ -45,6 +54,14 @@ SUBSTANTIVE_EXACT = {"requirements.services.direct.lock", "REPORT_INDEX.md"}
 def is_report_like(path: str) -> bool:
     p = Path(path)
     if p.suffix not in REPORT_SUFFIXES:
+        return False
+    # The sahool-brain/ knowledge base is mandated documentation (CLAUDE.md contributor
+    # protocol, strict per-fact sourcing), NOT a certification/progress report — even when
+    # a file name matches a report hint (e.g. the brain's own gaps/registry.md). Treating
+    # it as docs lets the required end-of-session brain maintenance land without contriving
+    # an unrelated code change; the guard still blocks the capabilities/ certification
+    # registry and generated release reports.
+    if path.startswith("sahool-brain/"):
         return False
     upper = p.name.upper()
     if any(hint in upper for hint in REPORT_NAME_HINTS):

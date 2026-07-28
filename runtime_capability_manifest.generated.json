@@ -323,7 +323,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 551,
+      "capability_count": 554,
       "component_id": "sahool-platform",
       "domain": "platform-core",
       "status": {
@@ -365,7 +365,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 19,
+      "capability_count": 20,
       "component_id": "soil-service",
       "domain": "soil",
       "status": {
@@ -449,7 +449,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 21,
+      "capability_count": 22,
       "component_id": "weather-service",
       "domain": "weather-truth",
       "status": {
@@ -477,7 +477,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "984e7083a0d27a534bedf08a7395b5935341ce0218292e162e5401f067ea6013",
+  "fingerprint": "2fdccc6614355ae78475b49892815f9c7fc94d50e27a749ef13d0083199f8a59",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

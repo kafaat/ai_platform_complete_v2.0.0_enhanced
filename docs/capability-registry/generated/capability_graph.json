@@ -154,7 +154,7 @@
       "id": "INT-004",
       "domain": "precision",
       "title": "External machinery integrations",
-      "maturity": 1
+      "maturity": 3
     },
     {
       "id": "IRR-001",

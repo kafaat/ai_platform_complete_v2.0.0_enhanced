@@ -1,0 +1,4 @@
+schema_version: 1.0.0
+levels: [leader, parity, behind, missing, differentiator, emerging_differentiator, unassessed]
+regression_policy: block_when_verified_score_decreases
+unverified_external_benchmark_is_authoritative: false

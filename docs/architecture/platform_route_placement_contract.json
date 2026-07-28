@@ -1,0 +1,61 @@
+{
+  "routes": [
+    {
+      "classification": "infrastructure",
+      "domain_budget_counted": false,
+      "forbidden_sources": [
+        "services/sahool-platform/api/main.py"
+      ],
+      "method": "GET",
+      "owner": "sahool-platform",
+      "path": "/healthz",
+      "required_function": "healthz",
+      "required_source": "services/sahool-platform/api/routers/platform_health.py",
+      "subclassification": "health",
+      "uniqueness": "exactly_one"
+    },
+    {
+      "classification": "infrastructure",
+      "domain_budget_counted": false,
+      "forbidden_sources": [
+        "services/sahool-platform/api/main.py"
+      ],
+      "method": "GET",
+      "owner": "sahool-platform",
+      "path": "/metrics",
+      "required_function": "metrics",
+      "required_source": "services/sahool-platform/api/routers/platform_health.py",
+      "subclassification": "observability",
+      "uniqueness": "exactly_one"
+    },
+    {
+      "classification": "infrastructure",
+      "domain_budget_counted": false,
+      "forbidden_sources": [
+        "services/sahool-platform/api/main.py"
+      ],
+      "method": "GET",
+      "owner": "sahool-platform",
+      "path": "/readyz",
+      "required_function": "readyz",
+      "required_source": "services/sahool-platform/api/routers/platform_health.py",
+      "subclassification": "health",
+      "uniqueness": "exactly_one"
+    },
+    {
+      "classification": "infrastructure",
+      "domain_budget_counted": false,
+      "forbidden_sources": [
+        "services/sahool-platform/api/main.py"
+      ],
+      "method": "GET",
+      "owner": "sahool-platform",
+      "path": "/runtime-identity",
+      "required_function": "runtime_evidence_identity",
+      "required_source": "services/sahool-platform/api/routers/platform_health.py",
+      "subclassification": "provenance",
+      "uniqueness": "exactly_one"
+    }
+  ],
+  "schema_version": "sahool.platform-route-placement-contract.v1"
+}

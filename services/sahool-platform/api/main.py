@@ -681,6 +681,9 @@ CRITICAL_EVENT_TYPES: frozenset[str] = frozenset(
         # ملحوظة: قيد التدقيق CALIBRATION_AUDIT_RECORDED مقصودٌ best-effort (يُصدَر داخل
         # ``_append_calibration_audit`` ذي savepoint+ابتلاع صريح) فلا يُدرَج هنا.
         "CALIBRATION_OVERRIDE_SET",
+        # قياسات خرائط الغلّة (PA-003) دليل حقليّ ثابت؛ استمرار بلا حدث نَسَب outbox
+        # المرافق ليس التزاماً جزئيّاً مقبولاً.
+        "YIELD_MAP_INGESTED",
     }
 )
 

@@ -3,13 +3,13 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `984e7083a0d27a534bedf08a7395b5935341ce0218292e162e5401f067ea6013`
+- fingerprint: `2fdccc6614355ae78475b49892815f9c7fc94d50e27a749ef13d0083199f8a59`
 - components: **34** (backend: 32)
-- route rows: **1098** → unique method/path: **986**
-- capabilities (derived, uncurated): **847**
-- cross-service duplicate method/paths: **14**
+- route rows: **1104** → unique method/path: **990**
+- capabilities (derived, uncurated): **852**
+- cross-service duplicate method/paths: **15**
 - ownership conflicts (incl. TBD/alias): **0**
-- UI waivers pending U4 classification: **49**
+- UI waivers pending U4 classification: **51**
 
 ## Components
 
@@ -38,7 +38,7 @@
 | raster-service | service | remote-sensing-truth | sahool-raster-service | 14 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
-| sahool-platform | service | platform-core | — | 182 | True |
+| sahool-platform | service | platform-core | — | 186 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
 | scout-ingest-service | service | ground-ingest | — | 11 | True |
 | soil-service | service | soil | sahool-soil-service | 32 | True |
@@ -71,5 +71,6 @@
 | `POST` | `/query` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/readyz` | `standard_readiness` | `service-local` | `permanent` |
 | `POST` | `/recommend` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
+| `GET` | `/runtime-identity` | `standard_observability` | `service-local` | `permanent` |
 | `GET` | `/stac` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
 | `GET` | `/stac/collections` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |

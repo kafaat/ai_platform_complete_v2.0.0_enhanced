@@ -33,7 +33,7 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
 PINNED_BACKEND_COMPONENTS = 32
-PINNED_UNIQUE_METHOD_PATH = 986  # +1: platform imagery process-date proxy route (V8-05 PR2)
+PINNED_UNIQUE_METHOD_PATH = 990  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity)
 
 
 def _catalog() -> dict:
@@ -125,7 +125,7 @@ def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
     الواجهات القديمة تسمّي مالكاً قانونيّاً وواجهةً مختلفَين وكلاهما عضو المجموعة."""
     cat = _catalog()
     groups = cat["cross_service_duplicate_method_paths"]
-    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 14
+    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 15
     for g in groups:
         assert g["classified"] is True, g
         assert g["classification"], g
@@ -149,11 +149,11 @@ def test_u4_ui_waivers_governed() -> None:
     """U4: كلّ الإعفاءات محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
     + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى.
 
-    العدد 49 (كان 50): أُزيل إعفاء WX-10.6 لـ/api/v1/crop-twin/decision-candidate بعد نقله
-    إلى core_endpoints بتغطية downstream فعليّة (طابور مراجعة مركز القرار + E2E)."""
+    العدد 51 (كان 49): أُضيف إعفاءا PA-003 لمسارَي استيعاب/سجلّات خرائط الغلّة
+    (مستوى بيانات خلفيّ/مكتبيّ بلا شاشة مستخدم نهائيّ)."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 49
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 51
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 

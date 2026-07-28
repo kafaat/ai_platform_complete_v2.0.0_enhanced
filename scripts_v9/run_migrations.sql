@@ -583,5 +583,9 @@
 \i migrations/v213_backfill_runs_single_scene.sql
 \echo '═══ 219. v214_field_irrigation_source_assignments.sql ═══'
 \i migrations/v214_field_irrigation_source_assignments.sql
-\echo '═══ 220. v206_rls_final_hardening.sql ═══'
+\echo '═══ 220. v215_yield_map_ingestion.sql ═══'
+\i migrations/v215_yield_map_ingestion.sql
+\echo '═══ 221. v216_machinery_export.sql ═══'
+\i migrations/v216_machinery_export.sql
+\echo '═══ 222. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

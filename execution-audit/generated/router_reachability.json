@@ -33,7 +33,7 @@
     "services.video-processor.main:app",
     "services.weather-service.main:app"
   ],
-  "definition_count": 257,
+  "definition_count": 258,
   "definitions": [
     {
       "kind": "app",
@@ -1606,7 +1606,7 @@
       "line": 17,
       "module": "services.sahool-platform.api.routers.platform_health",
       "node_id": "services.sahool-platform.api.routers.platform_health:router",
-      "route_count": 3,
+      "route_count": 4,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -1648,7 +1648,7 @@
     },
     {
       "kind": "router",
-      "line": 49,
+      "line": 63,
       "module": "services.sahool-platform.api.routers.prescriptions",
       "node_id": "services.sahool-platform.api.routers.prescriptions:router",
       "route_count": 3,
@@ -2043,6 +2043,15 @@
       "symbol": "router"
     },
     {
+      "kind": "router",
+      "line": 35,
+      "module": "services.sahool-platform.api.routers.yield_map_ingestion",
+      "node_id": "services.sahool-platform.api.routers.yield_map_ingestion:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
       "kind": "app",
       "line": 10,
       "module": "services.sahool-platform.tests.test_phase11_runtime_api",
@@ -2092,7 +2101,7 @@
       "line": 87,
       "module": "services.soil-service.main",
       "node_id": "services.soil-service.main:app",
-      "route_count": 0,
+      "route_count": 1,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -2344,7 +2353,7 @@
       "line": 13,
       "module": "services.weather-service.main",
       "node_id": "services.weather-service.main:app",
-      "route_count": 0,
+      "route_count": 1,
       "statically_reachable": true,
       "symbol": "app"
     }
@@ -2577,8 +2586,8 @@
       "target": null
     }
   ],
-  "inventory_sha256": "f3d4620eb1f8495c1e40ab3eb4080c3fc6052ba64f2079b16a86b2b24129473f",
-  "orphan_candidate_count": 225,
+  "inventory_sha256": "cd4eac3f4805124f34c65676a5ca03e03b97ff5414314fab7188b70338585524",
+  "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
       "classification": "review_only_not_statically_reachable",
@@ -4116,7 +4125,7 @@
       "line": 17,
       "module": "services.sahool-platform.api.routers.platform_health",
       "node_id": "services.sahool-platform.api.routers.platform_health:router",
-      "route_count": 3,
+      "route_count": 4,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -4163,7 +4172,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 49,
+      "line": 63,
       "module": "services.sahool-platform.api.routers.prescriptions",
       "node_id": "services.sahool-platform.api.routers.prescriptions:router",
       "route_count": 3,
@@ -4603,6 +4612,16 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
+      "line": 35,
+      "module": "services.sahool-platform.api.routers.yield_map_ingestion",
+      "node_id": "services.sahool-platform.api.routers.yield_map_ingestion:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
       "line": 11,
       "module": "services.soil-service.routers.canonical",
       "node_id": "services.soil-service.routers.canonical:router",
@@ -4834,7 +4853,7 @@
   "production_certified": false,
   "reachable_node_count": 32,
   "resolved_include_edge_count": 2,
-  "router_with_routes_count": 227,
+  "router_with_routes_count": 228,
   "runtime_verified": false,
   "safe_automatic_deletions": 0,
   "schema_version": 1,

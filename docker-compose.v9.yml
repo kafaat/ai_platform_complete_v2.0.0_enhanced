@@ -518,6 +518,11 @@ services:
     build: &id003
       context: .
       dockerfile: services/sahool-platform/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     mem_limit: 1g
     security_opt:
     - no-new-privileges:true
@@ -1292,6 +1297,11 @@ services:
     build:
       context: .
       dockerfile: services/weather-service/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -2035,6 +2045,11 @@ services:
     build:
       context: .
       dockerfile: services/soil-service/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     container_name: sahool-v9-soil-service
     security_opt:
     - no-new-privileges:true

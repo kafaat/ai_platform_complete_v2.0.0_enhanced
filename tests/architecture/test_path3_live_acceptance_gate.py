@@ -14,7 +14,8 @@ def test_live_acceptance_gate_is_fail_closed_and_never_certifies_production():
 def test_runtime_workflow_uploads_attestations_and_uses_secret():
     text = (ROOT / ".github/workflows/path3-runtime-verification.yml").read_text()
     assert "PATH3_ATTESTATION_KEY: ${{ secrets.PATH3_ATTESTATION_KEY }}" in text
-    assert "runtime-verification/attestations/*.json" in text
+    assert "path3-attested-evidence-${{ github.sha }}" in text
+    assert "Attest evidence bundle in trusted signer boundary" in text
 
 
 def test_live_acceptance_enforces_freshness_policy():
