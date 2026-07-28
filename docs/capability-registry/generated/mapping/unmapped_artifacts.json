@@ -5376,6 +5376,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_immutable_build_script.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_impact_measurement.py",
     "kind": "tests"
   },

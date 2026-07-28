@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1818,
+    "python_files_parsed": 1819,
     "route_handlers": 1042,
-    "call_edges": 71098,
+    "call_edges": 71100,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -382443,6 +382443,20 @@
       "source": "test_scan_all_scans_field_older_than_window",
       "target": "scan_all",
       "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_immutable_build_script.py",
+      "source": "test_script_resolves_tested_sha_from_exact_head",
+      "target": "read_text",
+      "line": 8
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_immutable_build_script.py",
+      "source": "test_script_refuses_dirty_tree_and_invalid_sha",
+      "target": "read_text",
+      "line": 16
     },
     {
       "owner": "sahool-platform",
