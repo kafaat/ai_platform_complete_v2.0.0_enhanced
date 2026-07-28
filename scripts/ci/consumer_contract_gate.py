@@ -14,11 +14,14 @@ tokens are absent on the executable path. Value-strings are kept (so "et0_view"/
 literals are still seen).
 
 Contracts enforced (all currently landed by WS-A..D; this locks them):
-  WS-C.1  Canonical-weather-state Views carry lineage (et0_view/vpd_view/weather_state_report/
-          gdd_view expose derived_from|reads_from + canonical_state_id/version + source_snapshot_id).
+  WS-C.1  Canonical-weather-state Views carry lineage (et0_view/vpd_view/current_view/
+          weather_state_report/gdd_view expose derived_from|reads_from + canonical_state_id/version
+          + source_snapshot_id).
   WS-C.2  weather_runtime consumer handlers delegate to the Views and do NOT call the raw kernels
           (et0_agro_product/compute_vpd/gdd_agro_product) directly — the engine is reached only
           through build_canonical_weather_state/build_canonical_daily_series.
+  WS-C.3  current_weather returns the "current" View, not the provider payload — the base
+          observation is a state slot like every derived product (WX-10.4).
   WS-A    the vegetation consumer reads the ValidatedIndicatorProduct envelope
           (indicator_product + quality_score + provenance), not bare stats.mean alone. The
           three-container boundary (20260712) routes this through a single validated
@@ -118,6 +121,7 @@ def collect_violations() -> list[str]:
     # WS-C.1 — Views carry lineage.
     _check_func(violations, CWS, cws, "et0_view", required=LINEAGE_KEYS)
     _check_func(violations, CWS, cws, "vpd_view", required=LINEAGE_KEYS)
+    _check_func(violations, CWS, cws, "current_view", required=LINEAGE_KEYS)
     _check_func(violations, CWS, cws, "weather_state_report", required=("reads_from", "state_id"))
     _check_func(
         violations,
@@ -158,6 +162,15 @@ def collect_violations() -> list[str]:
         wrt,
         "agro_weather_state_report",
         required=("weather_state_report",),
+    )
+    # WS-C.3 (WX-10.4) — "current" is a state slot, not a provider passthrough. The edge handler
+    # may still fetch (I/O belongs at the edge) but must return the View, never the raw payload.
+    _check_func(
+        violations,
+        WRUNTIME,
+        wrt,
+        "current_weather",
+        required=("build_canonical_weather_state", "current_view"),
     )
 
     # WS-A — vegetation consumer reads the ValidatedIndicatorProduct envelope, not bare stats.mean.

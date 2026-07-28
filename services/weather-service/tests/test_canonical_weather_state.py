@@ -22,6 +22,7 @@ from canonical_weather_state import (  # noqa: E402
     STATE_SLOTS,
     STATE_VERSION,
     build_canonical_weather_state,
+    current_view,
     et0_view,
     vpd_view,
     weather_state_report,
@@ -96,9 +97,122 @@ def test_full_inputs_make_composed_products_available():
 
 def test_deferred_slots_are_declared_unavailable_not_fabricated():
     s = build_canonical_weather_state(**_FULL)
-    for slot in ("current", "forecast", "historical", "operation_windows"):
+    for slot in ("forecast", "historical", "operation_windows"):
         assert s["availability"][slot] is False
         assert any(slot in lim for lim in s["limitations"])
+
+
+# ── WX-10.4: خانة «الآن» ─────────────────────────────────────────────────────
+_OBS = {
+    "location": {"lat": 24.7, "lon": 46.7},
+    "temperature_c": 31.4,
+    "humidity_pct": 18.0,
+    "wind_speed_ms": 3.2,
+    "wind_direction_deg": 310,
+    "wind_gusts_ms": 6.1,
+    "precipitation_mm": 0,
+    "cloud_cover_pct": 12,
+    "surface_pressure_hpa": 1004.2,
+    "weather_code": 1,
+    "is_day": True,
+    "time": "2026-07-28T09:00",
+    "source": "open-meteo",
+    "timezone": "Asia/Riyadh",
+}
+
+
+def test_current_slot_absent_observation_is_unavailable_not_fabricated():
+    """بلا مشاهدة تبقى الخانة غير متوفّرة بقيد صريح — لا قيمة مُختلقة (سلوك ما قبل WX-10.4)."""
+    s = build_canonical_weather_state(**_FULL)
+    assert s["availability"]["current"] is False
+    assert any("current" in lim for lim in s["limitations"])
+    assert s["products"]["current"]["quality_status"] == "insufficient"
+
+
+def test_current_slot_composes_a_full_observation():
+    s = build_canonical_weather_state(**_FULL, current_observation=_OBS)
+    assert s["availability"]["current"] is True
+    cur = s["products"]["current"]
+    assert cur["quality_status"] == "validated"
+    assert cur["temperature_c"] == 31.4
+    assert cur["missing_fields"] == []
+    assert s["provenance"]["current"]["quality_status"] == "validated"
+
+
+def test_current_slot_missing_expected_fields_degrades_and_names_them():
+    """الغياب يُسمّى ولا يُسقَط صامتاً، والجودة تنزل إلى degraded — لا ترقية مجّانيّة."""
+    partial = {k: v for k, v in _OBS.items() if k not in ("humidity_pct", "cloud_cover_pct")}
+    s = build_canonical_weather_state(**_FULL, current_observation=partial)
+    cur = s["products"]["current"]
+    assert s["availability"]["current"] is True
+    assert cur["quality_status"] == "degraded"
+    assert set(cur["missing_fields"]) == {"humidity_pct", "cloud_cover_pct"}
+    assert any("missing expected fields" in lim for lim in cur["limitations"])
+
+
+def test_current_slot_optional_field_absence_is_named_but_does_not_degrade():
+    """حقل اختياريّ يُغفِله المزوّد يُذكَر ولا يُنزِل الجودة — لا ضجيج جودة كاذب."""
+    no_optional = {k: v for k, v in _OBS.items() if k not in ("weather_code", "is_day")}
+    cur = build_canonical_weather_state(current_observation=no_optional)["products"]["current"]
+    assert cur["quality_status"] == "validated"
+    assert set(cur["optional_missing_fields"]) == {"weather_code", "is_day"}
+    assert any("omits optional fields" in lim for lim in cur["limitations"])
+
+
+def test_current_slot_preserves_every_normalizer_field_not_in_the_quality_list():
+    """الحارس الحقيقيّ ضدّ فقدان البيانات: قائمة الجودة تقيس ولا تُرشِّح المخرَج.
+
+    حمولة المُطبِّع الحقيقيّة تحمل حقولاً خارج قائمة الجودة (`wind_speed_10m_kmh`,
+    `soil_*`, `timestamp`, …) — إسقاطها كان سيكسر المستهلكين صامتاً.
+    """
+    rich = {
+        **_OBS,
+        "wind_speed_10m_kmh": 11.5,
+        "wind_direction_10m_deg": 310,
+        "wind_gusts_10m_kmh": 22.0,
+        "soil_temperature_6cm_c": 20.0,
+        "soil_moisture_1_to_3cm_m3m3": 0.18,
+        "timestamp": "2026-07-28T09:00",
+    }
+    cur = build_canonical_weather_state(current_observation=rich)["products"]["current"]
+    for key, value in rich.items():
+        assert cur[key] == value, f"normalizer field {key} was dropped by the state slot"
+
+
+def test_current_slot_envelope_wins_over_a_conflicting_observation_key():
+    """مشاهدة تحمل مفتاح غلاف محجوزاً: الغلاف يسود ويُعلَن التعارض، لا يُبتلع صامتاً."""
+    cur = build_canonical_weather_state(
+        current_observation={**_OBS, "quality_status": "validated", "product": "spoofed"}
+    )["products"]["current"]
+    assert cur["product"] == "current"
+    assert any("reserved envelope keys" in lim for lim in cur["limitations"])
+
+
+def test_current_slot_without_core_temperature_is_insufficient():
+    """درجة الحرارة هي الحدّ الأدنى؛ غيابها ⇒ insufficient مهما توفّر غيرها (fail-closed)."""
+    no_temp = {k: v for k, v in _OBS.items() if k != "temperature_c"}
+    s = build_canonical_weather_state(**_FULL, current_observation=no_temp)
+    assert s["availability"]["current"] is False
+    assert s["products"]["current"]["quality_status"] == "insufficient"
+
+
+def test_current_slot_declares_the_upstream_zero_coercion_honestly():
+    """صدق صريح: التطبيع الأعلى يُسقِط الغياب إلى صفر ⇒ القيد يُعلَن ولا يُدَّعى الرصد."""
+    cur = build_canonical_weather_state(current_observation=_OBS)["products"]["current"]
+    assert any("indistinguishable from an absent reading" in lim for lim in cur["limitations"])
+
+
+def test_current_view_carries_state_lineage_and_is_a_superset():
+    s = build_canonical_weather_state(**_FULL, current_observation=_OBS)
+    view = current_view(s)
+    assert view["derived_from"] == "canonical_weather_state"
+    assert view["canonical_state_id"] == s["state_id"]
+    assert view["canonical_state_version"] == s["state_version"]
+    assert view["source_snapshot_id"] == s["source_snapshot_id"]
+    assert view["weather_snapshot_id"] == s["source_snapshot_id"]
+    # توافقيّ للخلف: كلّ حقول المشاهدة المُطبَّعة تبقى في مستواها الأعلى.
+    for key in ("temperature_c", "humidity_pct", "wind_speed_ms", "weather_code", "is_day"):
+        assert view[key] == _OBS[key]
 
 
 # ── fail-closed: لا اختلاق ───────────────────────────────────────────────────

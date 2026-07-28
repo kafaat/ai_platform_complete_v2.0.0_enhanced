@@ -29879,11 +29879,11 @@
           "score": 12
         },
         {
-          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:41",
+          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:44",
           "score": 12
         },
         {
-          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:40",
+          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:43",
           "score": 12
         },
         {
@@ -30063,15 +30063,15 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:42",
+          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:45",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:270",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:384",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:411",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:525",
           "score": 12
         },
         {
@@ -31191,23 +31191,23 @@
       "database": [],
       "events": [
         {
-          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:41",
+          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:44",
           "score": 12
         },
         {
-          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:40",
+          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:43",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:42",
+          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:45",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:270",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:384",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:411",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:525",
           "score": 12
         },
         {
@@ -32232,11 +32232,11 @@
           "score": 12
         },
         {
-          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:41",
+          "value": "canonical_daily_weather_series.py @ scripts/ci/consumer_contract_gate.py:44",
           "score": 12
         },
         {
-          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:40",
+          "value": "canonical_weather_state.py @ scripts/ci/consumer_contract_gate.py:43",
           "score": 12
         },
         {
@@ -32284,15 +32284,15 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:42",
+          "value": "weather_runtime.py @ scripts/ci/consumer_contract_gate.py:45",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:270",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:384",
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:411",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:525",
           "score": 12
         },
         {
@@ -33308,11 +33308,11 @@
       "database": [],
       "events": [
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:270",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:384",
           "score": 14
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:411",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:525",
           "score": 14
         }
       ],

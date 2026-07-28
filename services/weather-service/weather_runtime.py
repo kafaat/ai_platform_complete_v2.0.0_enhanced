@@ -9,6 +9,7 @@ from cache import stats as cache_stats
 from canonical_daily_weather_series import build_canonical_daily_series, gdd_view
 from canonical_weather_state import (
     build_canonical_weather_state,
+    current_view,
     et0_view,
     vpd_view,
     weather_state_report,
@@ -218,10 +219,22 @@ async def current_weather(
     lon: float = Query(..., ge=-180, le=180),
     model: str = "best_match",
 ):
+    """WX-10.4 — «الآن» تُقرأ من CanonicalWeatherState لا من حمولة المزوّد مباشرةً.
+
+    الجلب (I/O) يبقى عند الحافّة، ثمّ تُمرَّر المشاهدة المُطبَّعة إلى المُجمِّع النقيّ ويُقرأ
+    الناتج عبر `current_view` — فيحمل الردّ نَسَب الحالة وما رُصِد فعلاً وما غاب. توافقيّ
+    للخلف: مجموعة فائقة من الردّ السابق (كلّ حقول المشاهدة تبقى في مستواها الأعلى).
+    """
     try:
-        return await _facade_attr("fetch_current")(lat, lon, model=model)
+        observation = await _facade_attr("fetch_current")(lat, lon, model=model)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Open-Meteo current: {exc}") from exc
+    state = build_canonical_weather_state(
+        lat_deg=lat,
+        valid_time=(observation or {}).get("time") or (observation or {}).get("timestamp"),
+        current_observation=observation,
+    )
+    return current_view(state)
 
 
 async def forecast_weather(
