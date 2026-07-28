@@ -32,12 +32,18 @@ async def _require_field(field_id: str) -> None:
 def _state_response(state: str, *, body: bytes = TRANSPARENT_PNG, **headers: str) -> Response:
     """استجابة مصغّرة تحمل حالتها صراحةً في ``X-Imagery-State``.
 
-    الحالة تُعلَن ولا تُستنتج من فراغ الصورة: ``ready`` مع تاريخ الالتقاط الفعليّ،
-    و``unavailable`` حين لا أصل جاهز. البدن يبقى PNG شفّافاً توافقاً مع ``<img>``
-    القائم؛ الواجهة تستهلك الترويسة حين تصل حالات UI الصريحة (شريحة مستقلّة).
+    ``unavailable`` يعود بـ**404** لا 200: عنصر ``<img>`` **لا يقرأ ترويسات الاستجابة**،
+    فترويسة وحدها فوق 200 + PNG شفّاف تُنتج بالضبط ما جئنا نُنهيه — مربّعاً فارغاً بلا
+    تفسير. رمز 404 هو الإشارة الوحيدة التي تصل الواجهة عبر ``onError``، وهو صادق: المورد
+    المُعلَن غير قابل للتقديم. الترويسة تبقى للفاحص البرمجيّ (curl/اختبار).
+
+    ``ready`` يبقى 200 مع تاريخ الالتقاط الفعليّ. المسار الحيّ (``auto``) لا يمرّ من هنا
+    ولم يتغيّر عقده.
     """
+    status = 404 if state == "unavailable" else 200
     return Response(
         content=body,
+        status_code=status,
         media_type="image/png",
         headers={"X-Imagery-State": state, **headers},
     )

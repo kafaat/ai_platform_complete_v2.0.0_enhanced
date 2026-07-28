@@ -1826,7 +1826,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/cdse_tiles.py",
-    "line": 110,
+    "line": 116,
     "method": "GET",
     "path": "/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png",
     "function": "field_cdse_tile"
@@ -1834,7 +1834,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/cdse_tiles.py",
-    "line": 185,
+    "line": 191,
     "method": "GET",
     "path": "/v1/fields/{field_id}/cdse-thumbnail.png",
     "function": "field_cdse_thumbnail"
@@ -1842,7 +1842,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/cdse_tiles.py",
-    "line": 249,
+    "line": 255,
     "method": "GET",
     "path": "/v1/fields/{field_id}/cdse-tilejson",
     "function": "field_cdse_tilejson"

@@ -420,6 +420,14 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/components/maphub/ImageryTimelineThumb.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/ImageryTimelineThumb.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",
     "kind": "tests"
   },

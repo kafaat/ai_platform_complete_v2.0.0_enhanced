@@ -1767,7 +1767,7 @@
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
-      "line": 110,
+      "line": 116,
       "handler": "field_cdse_tile",
       "method": "GET",
       "path": "/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png"
@@ -1775,7 +1775,7 @@
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
-      "line": 185,
+      "line": 191,
       "handler": "field_cdse_thumbnail",
       "method": "GET",
       "path": "/v1/fields/{field_id}/cdse-thumbnail.png"
@@ -1783,7 +1783,7 @@
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
-      "line": 249,
+      "line": 255,
       "handler": "field_cdse_tilejson",
       "method": "GET",
       "path": "/v1/fields/{field_id}/cdse-tilejson"
@@ -122413,112 +122413,105 @@
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_state_response",
       "target": "Response",
-      "line": 39
+      "line": 44
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_persisted_thumbnail",
       "target": "get",
-      "line": 54
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "_persisted_thumbnail",
-      "target": "get",
-      "line": 56
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "_persisted_thumbnail",
-      "target": "fetch_latest_asset",
-      "line": 58
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "_persisted_thumbnail",
-      "target": "warning",
       "line": 60
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_persisted_thumbnail",
+      "target": "get",
+      "line": 62
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "_persisted_thumbnail",
+      "target": "fetch_latest_asset",
+      "line": 64
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "_persisted_thumbnail",
+      "target": "warning",
+      "line": 66
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "_persisted_thumbnail",
       "target": "_state_response",
-      "line": 61
+      "line": 67
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_persisted_thumbnail",
       "target": "get",
-      "line": 63
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "_persisted_thumbnail",
-      "target": "_state_response",
-      "line": 65
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "_persisted_thumbnail",
-      "target": "exists_locally",
       "line": 69
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_persisted_thumbnail",
-      "target": "warning",
+      "target": "_state_response",
       "line": 71
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_persisted_thumbnail",
-      "target": "_state_response",
-      "line": 72
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "_persisted_thumbnail",
-      "target": "get",
-      "line": 74
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "_persisted_thumbnail",
-      "target": "str",
-      "line": 74
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "_persisted_thumbnail",
-      "target": "render_cog_thumbnail_png",
-      "line": 80
+      "target": "exists_locally",
+      "line": 75
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_persisted_thumbnail",
       "target": "warning",
-      "line": 82
+      "line": 77
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_persisted_thumbnail",
       "target": "_state_response",
-      "line": 83
+      "line": 78
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "_persisted_thumbnail",
+      "target": "get",
+      "line": 80
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "_persisted_thumbnail",
+      "target": "str",
+      "line": 80
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "_persisted_thumbnail",
+      "target": "render_cog_thumbnail_png",
+      "line": 86
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "_persisted_thumbnail",
+      "target": "warning",
+      "line": 88
     },
     {
       "owner": "raster-service",
@@ -122532,63 +122525,28 @@
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_persisted_thumbnail",
       "target": "_state_response",
-      "line": 96
+      "line": 95
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "_persisted_thumbnail",
+      "target": "_state_response",
+      "line": 102
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "_ensure_field_cog",
       "target": "ensure_field_cog",
-      "line": 106
+      "line": 112
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "get",
-      "line": 109
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tile",
-      "target": "Query",
       "line": 115
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tile",
-      "target": "Query",
-      "line": 116
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tile",
-      "target": "Query",
-      "line": 117
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tile",
-      "target": "Query",
-      "line": 118
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tile",
-      "target": "Query",
-      "line": 119
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tile",
-      "target": "Query",
-      "line": 120
     },
     {
       "owner": "raster-service",
@@ -122601,141 +122559,141 @@
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
-      "target": "_require_field",
+      "target": "Query",
+      "line": 122
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tile",
+      "target": "Query",
+      "line": 123
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tile",
+      "target": "Query",
       "line": 124
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
-      "target": "_normalize_cdse_request",
+      "target": "Query",
+      "line": 125
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tile",
+      "target": "Query",
       "line": 126
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
-      "target": "Response",
+      "target": "Query",
+      "line": 127
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tile",
+      "target": "_require_field",
       "line": 130
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
+      "target": "_normalize_cdse_request",
+      "line": 132
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tile",
+      "target": "Response",
+      "line": 136
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tile",
       "target": "tile_bounds_3857",
-      "line": 139
+      "line": 145
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "_tb",
-      "line": 140
+      "line": 146
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "Response",
-      "line": 143
+      "line": 149
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "_ensure_field_cog",
-      "line": 147
+      "line": 153
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "Response",
-      "line": 158
+      "line": 164
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "render_tile_png",
-      "line": 163
+      "line": 169
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "Response",
-      "line": 165
+      "line": 171
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "info",
-      "line": 170
+      "line": 176
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "warning",
-      "line": 179
+      "line": 185
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tile",
       "target": "Response",
-      "line": 181
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "get",
-      "line": 184
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "Query",
       "line": 187
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_thumbnail",
-      "target": "Query",
-      "line": 188
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "Query",
-      "line": 189
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "Query",
+      "target": "get",
       "line": 190
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "Query",
-      "line": 191
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "Query",
-      "line": 192
     },
     {
       "owner": "raster-service",
@@ -122762,35 +122720,63 @@
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_thumbnail",
+      "target": "Query",
+      "line": 196
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
+      "target": "Query",
+      "line": 197
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
+      "target": "Query",
+      "line": 198
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
+      "target": "Query",
+      "line": 199
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
+      "target": "Query",
+      "line": 200
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
+      "target": "Query",
+      "line": 201
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
       "target": "_require_field",
-      "line": 204
+      "line": 210
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_thumbnail",
       "target": "_persisted_thumbnail",
-      "line": 211
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "_normalize_cdse_request",
-      "line": 213
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "Response",
       "line": 217
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_thumbnail",
-      "target": "_ensure_field_cog",
+      "target": "_normalize_cdse_request",
       "line": 219
     },
     {
@@ -122798,84 +122784,56 @@
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_thumbnail",
       "target": "Response",
-      "line": 230
+      "line": 223
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
+      "target": "_ensure_field_cog",
+      "line": 225
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
+      "target": "Response",
+      "line": 236
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_thumbnail",
       "target": "render_cog_thumbnail_png",
-      "line": 235
+      "line": 241
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_thumbnail",
       "target": "Response",
-      "line": 237
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_thumbnail",
-      "target": "warning",
       "line": 243
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_thumbnail",
+      "target": "warning",
+      "line": 249
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_thumbnail",
       "target": "Response",
-      "line": 245
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "get",
-      "line": 248
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "Query",
       "line": 251
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "Query",
-      "line": 252
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "Query",
-      "line": 253
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "Query",
+      "target": "get",
       "line": 254
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "Query",
-      "line": 255
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "Query",
-      "line": 256
     },
     {
       "owner": "raster-service",
@@ -122888,78 +122846,64 @@
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "_require_field",
+      "target": "Query",
+      "line": 258
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "Query",
+      "line": 259
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "Query",
       "line": 260
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "_parse_poly",
-      "line": 264
+      "target": "Query",
+      "line": 261
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "isinstance",
-      "line": 264
+      "target": "Query",
+      "line": 262
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "bbox_from_geom",
+      "target": "Query",
+      "line": 263
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "_require_field",
       "line": 266
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "all",
-      "line": 268
+      "target": "_parse_poly",
+      "line": 270
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
       "target": "isinstance",
-      "line": 268
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "float",
-      "line": 269
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "float",
-      "line": 269
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "float",
-      "line": 269
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "float",
-      "line": 269
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "fetch_field_geometry",
-      "line": 271
+      "line": 270
     },
     {
       "owner": "raster-service",
@@ -122972,14 +122916,63 @@
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "get",
-      "line": 279
+      "target": "all",
+      "line": 274
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "str",
+      "target": "isinstance",
+      "line": 274
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "float",
+      "line": 275
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "float",
+      "line": 275
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "float",
+      "line": 275
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "float",
+      "line": 275
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "fetch_field_geometry",
+      "line": 277
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "bbox_from_geom",
+      "line": 278
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "get",
       "line": 285
     },
     {
@@ -122987,70 +122980,77 @@
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
       "target": "str",
-      "line": 286
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "str",
-      "line": 287
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "str",
-      "line": 288
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "urlencode",
-      "line": 289
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/cdse_tiles.py",
-      "source": "field_cdse_tilejson",
-      "target": "is_configured",
       "line": 291
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
-      "target": "_tilejson_availability",
+      "target": "str",
       "line": 292
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
+      "target": "str",
+      "line": 293
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "str",
+      "line": 294
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "urlencode",
+      "line": 295
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "is_configured",
+      "line": 297
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
+      "target": "_tilejson_availability",
+      "line": 298
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/cdse_tiles.py",
+      "source": "field_cdse_tilejson",
       "target": "enforce_enabled",
-      "line": 299
+      "line": 305
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
       "target": "resolve_active_source",
-      "line": 300
+      "line": 306
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
       "target": "round",
-      "line": 324
+      "line": 330
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/cdse_tiles.py",
       "source": "field_cdse_tilejson",
       "target": "round",
-      "line": 325
+      "line": 331
     },
     {
       "owner": "raster-service",
@@ -142363,112 +142363,112 @@
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_ready_card_renders_from_the_persisted_asset",
       "target": "len",
-      "line": 95
+      "line": 96
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_missing_asset_never_falls_back_to_cdse",
       "target": "setattr",
-      "line": 106
+      "line": 107
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_missing_asset_never_falls_back_to_cdse",
       "target": "field_cdse_thumbnail",
-      "line": 108
+      "line": 109
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_asset_row_without_file_on_disk_is_unavailable",
       "target": "_asset",
-      "line": 122
+      "line": 124
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_asset_row_without_file_on_disk_is_unavailable",
       "target": "setattr",
-      "line": 122
+      "line": 124
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_asset_row_without_file_on_disk_is_unavailable",
       "target": "setattr",
-      "line": 123
+      "line": 125
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_asset_row_without_file_on_disk_is_unavailable",
       "target": "field_cdse_thumbnail",
-      "line": 125
+      "line": 127
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_corrupt_persisted_asset_is_unavailable_not_blank",
       "target": "write_bytes",
-      "line": 140
+      "line": 143
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_corrupt_persisted_asset_is_unavailable_not_blank",
       "target": "_asset",
-      "line": 141
+      "line": 144
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_corrupt_persisted_asset_is_unavailable_not_blank",
       "target": "setattr",
-      "line": 141
+      "line": 144
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_corrupt_persisted_asset_is_unavailable_not_blank",
       "target": "str",
-      "line": 141
+      "line": 144
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_corrupt_persisted_asset_is_unavailable_not_blank",
       "target": "field_cdse_thumbnail",
-      "line": 143
+      "line": 146
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_the_requested_date_reaches_the_asset_query_unwidened",
       "target": "setattr",
-      "line": 165
+      "line": 169
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_the_requested_date_reaches_the_asset_query_unwidened",
       "target": "field_cdse_thumbnail",
-      "line": 167
+      "line": 171
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_auto_source_keeps_the_previous_live_behaviour",
       "target": "setattr",
-      "line": 182
+      "line": 186
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/test_persisted_thumbnail_path.py",
       "source": "test_auto_source_keeps_the_previous_live_behaviour",
       "target": "field_cdse_thumbnail",
-      "line": 184
+      "line": 188
     },
     {
       "owner": "raster-service",

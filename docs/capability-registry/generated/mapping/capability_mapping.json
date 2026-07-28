@@ -15,7 +15,7 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4775,
+    "files_scanned": 4777,
     "files_by_kind": {
       "backend": 1190,
       "database": 266,
@@ -23,9 +23,9 @@
       "mobile": 51,
       "other": 1246,
       "tests": 1518,
-      "web": 446
+      "web": 448
     },
-    "unmapped_artifacts": 1946,
+    "unmapped_artifacts": 1948,
     "ambiguous_artifacts": 390
   },
   "capabilities": [
@@ -15807,15 +15807,15 @@
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:184",
+          "value": "/v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:190",
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:248",
+          "value": "/v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:254",
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:109",
+          "value": "/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:115",
           "score": 17
         },
         {
@@ -33953,6 +33953,14 @@
     {
       "path": "frontend/src/components/maphub/ImageryDateWiring.static.test.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/ImageryTimelineThumb.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/ImageryTimelineThumb.tsx",
+      "kind": "web"
     },
     {
       "path": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",
