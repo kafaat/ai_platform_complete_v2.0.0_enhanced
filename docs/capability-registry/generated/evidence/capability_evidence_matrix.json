@@ -1170,7 +1170,8 @@
       "runtime_verified": false,
       "title": "External machinery integrations",
       "unit_test_paths": [
-        "services/sahool-platform/tests/test_machinery_export.py"
+        "services/sahool-platform/tests/test_machinery_export.py",
+        "services/sahool-platform/tests/test_yield_intelligence_wiring.py"
       ]
     },
     {

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "520b7dd625d0ebae93191fda886a34f6bea91cedc08d05b0561b1a84ea7ed906",
+  "inventory_sha256": "2cd42e01e479315293d7dc3ff628d5d6c560b7a676a41df7e5385f041ba699ca",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "77e2d523ba0c6dd54c5db3e540550b920e29bdb102fea00c074fd540b36ba0ab"
+    "policy_sha256": "2cdef798177148d08abb942344a1e4bb18bdeca6e4dc1764b5fe76c369f4ebd2"
   },
   "routes": [
     {
@@ -1426,7 +1426,7 @@
     {
       "classification": "domain",
       "function": "query_yield_map_records",
-      "line": 287,
+      "line": 288,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-map-records",
       "source": "api/routers/yield_map_ingestion.py"
@@ -1434,7 +1434,7 @@
     {
       "classification": "domain",
       "function": "list_yield_map_ingestions",
-      "line": 250,
+      "line": 251,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
       "source": "api/routers/yield_map_ingestion.py"
@@ -3770,7 +3770,7 @@
     {
       "classification": "domain",
       "function": "ingest_yield_map",
-      "line": 78,
+      "line": 79,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
       "source": "api/routers/yield_map_ingestion.py"

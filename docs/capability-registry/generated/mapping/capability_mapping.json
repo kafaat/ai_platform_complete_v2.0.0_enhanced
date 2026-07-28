@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4765,
+    "files_scanned": 4766,
     "files_by_kind": {
       "backend": 1190,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1242,
-      "tests": 1512,
+      "tests": 1513,
       "web": 446
     },
     "unmapped_artifacts": 1945,
@@ -11372,6 +11372,14 @@
         {
           "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:503",
           "score": 20
+        },
+        {
+          "value": "canonical_field_state.v1 @ docs/architecture/capability_core_consumption_registry.json:19",
+          "score": 20
+        },
+        {
+          "value": "sahool.capability-core-consumption.v1 @ docs/architecture/capability_core_consumption_registry.json:2",
+          "score": 20
         }
       ],
       "web": [],
@@ -11384,10 +11392,24 @@
             "content:john deere",
             "explicit_id"
           ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_yield_intelligence_wiring.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
         }
       ],
       "governance": [],
       "other_evidence": [
+        {
+          "path": "docs/architecture/capability_core_consumption_registry.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
         {
           "path": "docs/implementation/FULL_CAPABILITY_PLAN_EXECUTION_20260728.md",
           "score": 20,
@@ -11404,12 +11426,12 @@
         "backend": 3,
         "routes": 7,
         "database": 8,
-        "events": 6,
+        "events": 8,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 2,
         "governance": 0,
-        "other_evidence": 1
+        "other_evidence": 2
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -14937,15 +14959,15 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:287",
+          "value": "/api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:288",
           "score": 48
         },
         {
-          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:250",
+          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:251",
           "score": 48
         },
         {
-          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:78",
+          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:79",
           "score": 48
         }
       ],
@@ -15000,7 +15022,7 @@
       ],
       "events": [
         {
-          "value": "api.routers.yield_map_ingestion._assert_field_in_tenant @ services/sahool-platform/tests/test_yield_map_ingestion.py:354",
+          "value": "api.routers.yield_map_ingestion._assert_field_in_tenant @ services/sahool-platform/tests/test_yield_map_ingestion.py:360",
           "score": 48
         },
         {

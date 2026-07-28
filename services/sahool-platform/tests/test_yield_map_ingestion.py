@@ -320,12 +320,17 @@ async def test_query_endpoint_returns_geojson_feature_collection(monkeypatch):
         bbox="44,15,45,16",
         limit=100,
         offset=0,
+        # Called directly, so FastAPI never resolves the parameter defaults and an
+        # unpassed `summary` would arrive as the truthy Query(False) object itself.
+        summary=False,
         user=_USER,
     )
     assert result["type"] == "FeatureCollection"
     assert result["features"][0]["geometry"]["coordinates"] == [44.2, 15.4]
     assert result["features"][0]["properties"]["yield_kg_ha"] == 4200
     assert result["query"]["returned"] == 1
+    # The summary is opt-in: the default response shape carries no extra key.
+    assert "intelligence" not in result
 
 
 async def test_query_endpoint_rejects_invalid_bbox():
@@ -339,6 +344,7 @@ async def test_query_endpoint_rejects_invalid_bbox():
             bbox="44,15,43,16",
             limit=100,
             offset=0,
+            summary=False,
             user=_USER,
         )
     assert error.value.status_code == 422

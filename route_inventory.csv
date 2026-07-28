@@ -936,9 +936,9 @@ sahool-platform,services/sahool-platform/api/routers/wofost.py,27,GET,/api/v1/wo
 sahool-platform,services/sahool-platform/api/routers/wofost.py,33,GET,/api/v1/wofost/adaptation-guidance,wofost_adaptation_endpoint
 sahool-platform,services/sahool-platform/api/routers/yield_analysis.py,39,GET,/api/v1/analysis/yield,yield_analysis_endpoint
 sahool-platform,services/sahool-platform/api/routers/yield_interval.py,49,POST,/api/v1/fields/{field_id}/yield-interval,field_yield_interval_endpoint
-sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,83,POST,/api/v1/fields/{field_id}/yield-maps/ingestions,ingest_yield_map
-sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,254,GET,/api/v1/fields/{field_id}/yield-maps/ingestions,list_yield_map_ingestions
-sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,288,GET,/api/v1/fields/{field_id}/yield-map-records,query_yield_map_records
+sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,84,POST,/api/v1/fields/{field_id}/yield-maps/ingestions,ingest_yield_map
+sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,255,GET,/api/v1/fields/{field_id}/yield-maps/ingestions,list_yield_map_ingestions
+sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,289,GET,/api/v1/fields/{field_id}/yield-map-records,query_yield_map_records
 sahool-platform,services/sahool-platform/tests/test_correlation_middleware.py,18,GET,/probe,probe
 sam2-inference,services/sam2-inference/main.py,24,POST,/predict,predict
 sam2-inference,services/sam2-inference/main.py,105,GET,/healthz,healthz
