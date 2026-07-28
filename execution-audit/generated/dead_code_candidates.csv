@@ -6,6 +6,7 @@ high,raster-service,function,_bbox_from_geom,services/raster-service/raster_main
 high,raster-service,function,_evict_field_layers,services/raster-service/raster_main_runtime.py,46,0,review_before_delete,False
 high,raster-service,function,_require_layer_tenant,services/raster-service/raster_main_runtime.py,89,0,review_before_delete,False
 high,raster-service,function,_require_layer_tenant_authorized,services/raster-service/raster_main_runtime.py,93,0,review_before_delete,False
+high,raster-service,function,_clean_cache,services/raster-service/test_cdse_empty_raster_not_cached.py,70,0,review_before_delete,False
 high,sahool-platform,function,_apply_tenant_guc,services/sahool-platform/api/main.py,645,0,review_before_delete,False
 high,sahool-platform,function,_record_to_json,services/sahool-platform/api/routers/field_ai_context.py,59,0,review_before_delete,False
 high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1235,0,review_before_delete,False
