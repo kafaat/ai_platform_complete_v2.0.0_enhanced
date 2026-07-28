@@ -11454,6 +11454,20 @@
           "signals": [
             "explicit_id"
           ]
+        },
+        {
+          "path": "scripts/ci/brain_commit_claim_guard.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "scripts/ci/brain_deferral_registry_guard.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
         }
       ],
       "ambiguous": [],
@@ -11469,7 +11483,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 4
       },
       "coverage_dimensions": 5,
       "mapped": true
