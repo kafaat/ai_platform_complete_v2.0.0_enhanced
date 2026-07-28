@@ -3744,10 +3744,6 @@
     "kind": "backend"
   },
   {
-    "path": "services/sahool-platform/api/routers/internal_service.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/sahool-platform/api/routers/introduction.py",
     "kind": "backend"
   },

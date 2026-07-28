@@ -1,0 +1,122 @@
+"""canonical_field_state موصولة بمستهلك إنتاجيّ — وتقول الحقيقة عن نواقصها.
+
+النواة تشترط ``weather`` و``water`` و``soil``. المنصّة تُنتِج **الماء** فقط من الثلاثة.
+فالربط اليوم لا يُنتِج حالة صالحة تشغيليّاً — وهذا **هو المطلوب**: أن تُسمّى المنتَجات
+الغائبة بأسمائها بدل اختلاق واحدٍ منها لإرضاء العقد.
+
+الفشل الذي تمنعه هذه الاختبارات: منتَج بمخطّط صحيح ومحتوى مُلفَّق يجعل
+``operational_eligible=true`` فتبدو الحالة صالحة وهي ليست كذلك.
+"""
+
+from __future__ import annotations
+
+import ast
+from pathlib import Path
+
+import pytest
+from core.canonical_field_state import SCHEMA_VERSION, compose_canonical_field_state
+
+pytestmark = pytest.mark.unit
+
+ROUTER = Path(__file__).resolve().parents[1] / "api" / "routers" / "internal_service.py"
+
+_WATER = {"schema_version": "canonical_water_state.v1", "depletion_mm": 60, "taw_mm": 100}
+
+
+def _compose(**kw):
+    return compose_canonical_field_state(
+        field_id="f1", season_id=None, as_of_time="2026-07-28T00:00:00Z", **kw
+    )
+
+
+# ── الحقيقة الحاليّة: الماء وحده متاح ───────────────────────────────────────
+def test_water_only_names_every_missing_required_product():
+    state = _compose(water=_WATER)
+    assert state.schema_version == SCHEMA_VERSION
+    assert state.availability == {
+        "weather": False,
+        "water": True,
+        "soil": False,
+        "spectral": False,
+    }
+    assert "required_weather_unavailable" in state.limitations
+    assert "required_soil_unavailable" in state.limitations
+    assert "required_water_unavailable" not in state.limitations
+    assert state.operational_eligible is False
+
+
+def test_absent_product_is_named_missing_not_silently_dropped():
+    state = _compose(water=_WATER)
+    assert "weather_missing" in state.limitations
+    assert "soil_missing" in state.limitations
+
+
+def test_a_wrong_schema_is_rejected_rather_than_accepted_as_canonical():
+    """منتَج بمخطّط غير كنسيّ لا يُقبَل لمجرّد أنّه dict."""
+    state = _compose(water={"schema_version": "something_else.v1", "depletion_mm": 60})
+    assert "water_noncanonical_schema" in state.limitations
+    assert state.availability["water"] is False
+
+
+def test_eligibility_requires_all_three_and_never_a_subset():
+    """الضمانة الجوهريّة: لا يُرفَع operational_eligible بمنتَجين من ثلاثة."""
+    partial = _compose(water=_WATER, soil={"schema_version": "canonical_soil_state.v1"})
+    assert partial.operational_eligible is False
+    complete = _compose(
+        water=_WATER,
+        soil={"schema_version": "canonical_soil_state.v1"},
+        weather={"schema_version": "canonical_weather_state.v1"},
+    )
+    assert complete.operational_eligible is True
+
+
+def test_digest_is_deterministic_so_the_state_is_comparable():
+    assert _compose(water=_WATER).state_digest == _compose(water=_WATER).state_digest
+
+
+# ── المستهلك الإنتاجيّ ──────────────────────────────────────────────────────
+def test_router_consumes_the_core():
+    tree = ast.parse(ROUTER.read_text(encoding="utf-8"))
+    imported = {
+        alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and node.module == "core.canonical_field_state"
+        for alias in node.names
+    }
+    assert "compose_canonical_field_state" in imported
+
+
+def test_no_new_route_was_spent():
+    """السقف لم يُمسّ: الربط معامل على مسار قائم (سابقة INT-004A)."""
+    tree = ast.parse(ROUTER.read_text(encoding="utf-8"))
+    paths = [
+        d.args[0].value
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        for d in node.decorator_list
+        if isinstance(d, ast.Call) and d.args and isinstance(d.args[0], ast.Constant)
+    ]
+    assert sorted(paths) == ["/internal/events/ai-advice", "/internal/fields/{field_id}/state"]
+
+
+def test_consumer_passes_missing_products_as_none_and_fabricates_nothing():
+    """الفحص على AST: تمرير weather/soil كـNone صراحةً، لا حمولة مُختلَقة."""
+    tree = ast.parse(ROUTER.read_text(encoding="utf-8"))
+    fn = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "_compose_canonical"
+    )
+    call = next(
+        n
+        for n in ast.walk(fn)
+        if isinstance(n, ast.Call)
+        and isinstance(n.func, ast.Name)
+        and n.func.id == "compose_canonical_field_state"
+    )
+    passed = {kw.arg: kw.value for kw in call.keywords}
+    for absent in ("weather", "soil"):
+        assert absent in passed, f"{absent} يجب أن يُمرَّر صراحةً لا أن يُحذَف"
+        assert isinstance(passed[absent], ast.Constant) and passed[absent].value is None, (
+            f"{absent} يجب أن يكون None — أيّ حمولة هنا اختلاق"
+        )

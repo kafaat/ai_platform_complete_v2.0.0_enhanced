@@ -5506,7 +5506,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 25,
+    "line": 26,
     "method": "GET",
     "path": "/internal/fields/{field_id}/state",
     "function": "internal_field_state"
@@ -5514,7 +5514,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 45,
+    "line": 70,
     "method": "POST",
     "path": "/internal/events/ai-advice",
     "function": "internal_ai_advice_event"

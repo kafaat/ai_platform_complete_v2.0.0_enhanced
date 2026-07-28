@@ -13,11 +13,11 @@
     },
     {
       "module": "services/sahool-platform/core/canonical_field_state.py",
-      "status": "pending_wiring",
-      "consumer": null,
-      "consumed_symbol": null,
+      "status": "wired",
+      "consumer": "services/sahool-platform/api/routers/internal_service.py",
+      "consumed_symbol": "compose_canonical_field_state",
       "contract": "canonical_field_state.v1",
-      "note": "BLOCKER CORRECTED 2026-07-28. The recorded blocker (duplicate implementation vs core/field_twin.assemble_twin) was a misdiagnosis: they are different layers and core/field_twin.py:30 already declares itself DERIVED_VIEW with CanonicalFieldState authoritative. assemble_twin consumes DB rows; this core consumes schema-versioned state products. The real blocker is missing producers: of required=(weather, water, soil), only water has one (api/canonical_water_state.py::resolve_canonical_water_state). No producer emits canonical_soil_state./soil-profile. anywhere in the tree, and no platform module emits wx10/canonical-weather-state/. spectral is available (core.crop_intelligence.build_canonical_spectral_state) but is not required. Wiring today would therefore yield operational_eligible=false permanently, making the ratchet witness an empty state rather than a used capability. Unblocking needs a soil and a weather product producer, not plumbing."
+      "note": "Consumed by internal_field_state via ?canonical=true; no domain route spent (INT-004A). HONESTY BOUND, recorded because it is not a defect: the contract requires weather+water+soil and this service produces only water (api/canonical_water_state.py). Nothing in the tree emits canonical_soil_state./soil-profile. or wx10/canonical-weather-state/, so the state returns operational_eligible=false with required_weather_unavailable and required_soil_unavailable named. Wired on owner instruction to declare the gaps explicitly rather than leave the core orphaned; the alternative -- fabricating a schema-valid product -- would make an unusable state look valid. Eligibility becomes true only when a soil producer and a weather product producer exist."
     },
     {
       "module": "services/sahool-platform/core/yield_intelligence.py",

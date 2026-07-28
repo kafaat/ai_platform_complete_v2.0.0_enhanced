@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4766,
+    "files_scanned": 4767,
     "files_by_kind": {
       "backend": 1190,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1242,
-      "tests": 1513,
+      "tests": 1514,
       "web": 446
     },
-    "unmapped_artifacts": 1945,
+    "unmapped_artifacts": 1944,
     "ambiguous_artifacts": 390
   },
   "capabilities": [
@@ -11274,6 +11274,13 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/routers/internal_service.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/routers/prescriptions.py",
           "score": 20,
           "signals": [
@@ -11308,6 +11315,14 @@
         },
         {
           "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:337",
+          "score": 20
+        },
+        {
+          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:69",
+          "score": 20
+        },
+        {
+          "value": "/internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:25",
           "score": 20
         }
       ],
@@ -11378,6 +11393,22 @@
           "score": 20
         },
         {
+          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:63",
+          "score": 20
+        },
+        {
+          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:67",
+          "score": 20
+        },
+        {
+          "value": "canonical_weather_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:68",
+          "score": 20
+        },
+        {
+          "value": "core.canonical_field_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:83",
+          "score": 20
+        },
+        {
           "value": "sahool.capability-core-consumption.v1 @ docs/architecture/capability_core_consumption_registry.json:2",
           "score": 20
         }
@@ -11390,6 +11421,13 @@
           "score": 25,
           "signals": [
             "content:john deere",
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+          "score": 20,
+          "signals": [
             "explicit_id"
           ]
         },
@@ -11423,13 +11461,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 3,
-        "routes": 7,
+        "backend": 4,
+        "routes": 9,
         "database": 8,
-        "events": 8,
+        "events": 12,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 2
       },
@@ -37207,10 +37245,6 @@
     },
     {
       "path": "services/sahool-platform/api/routers/indices.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/sahool-platform/api/routers/internal_service.py",
       "kind": "backend"
     },
     {
