@@ -3863,7 +3863,7 @@
       "function": "internal_field_state",
       "method": "GET",
       "path": "/internal/fields/{field_id}/state",
-      "line": 24,
+      "line": 25,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/internal_service.py::GET /internal/fields/{field_id}/state::internal_field_state"
@@ -3873,7 +3873,7 @@
       "function": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice",
-      "line": 44,
+      "line": 69,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/internal_service.py::POST /internal/events/ai-advice::internal_ai_advice_event"

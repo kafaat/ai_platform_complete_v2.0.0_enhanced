@@ -17405,7 +17405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ef2ff77dd9f0772b14afd29680ae387543f475072368f397508055262f62125"
+          "content": "48a7ad7b5bce04c5ac3435b8e050c8b409ed39803eede06ad7c72f48a788640b"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -22909,6 +22909,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_candidate_generator.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc6f619b9613f6ab2e38eeadd864c02ea084bd260d0e12989986ddbc5fe4d4e0"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "type": "file"
     },
     {

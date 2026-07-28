@@ -6,6 +6,7 @@ routes remain service-token protected and preserve their paths/contracts.
 
 from __future__ import annotations
 
+from core.canonical_field_state import compose_canonical_field_state
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api import main
@@ -25,20 +26,44 @@ router = APIRouter()
 async def internal_field_state(
     field_id: str,
     tenant_id: str = Query(..., description="معرّف المستأجِر الصريح (خدمة-لخدمة)"),
+    canonical: bool = Query(
+        False,
+        description=(
+            "أرفِق canonical_field_state.v1 المُركَّب من المنتَجات المتاحة. "
+            "يعود operational_eligible=false ما دام لا مُنتِج للتربة/الطقس."
+        ),
+    ),
     _: None = Depends(_require_service_token),
 ):
-    """الحالة القانونيّة للحقل لقنوات الخدمة (supervisor→guardrails)."""
+    """الحالة القانونيّة للحقل لقنوات الخدمة (supervisor→guardrails).
+
+    مع ``canonical=true`` يُرفَق ``canonical_field_state.v1`` المُركَّب من **منتَجات الحالة
+    المتاحة فعلاً** في المنصّة، بلا مسار جديد (سابقة INT-004A).
+
+    حدّ صدق صريح: العقد يشترط ``weather`` و``water`` و``soil``؛ والمنصّة تُنتِج **الماء**
+    (``api/canonical_water_state.py``) و**الطيف** (غير مشترط) فقط. لا مُنتِج في الشجرة
+    يُصدِر ``canonical_soil_state.``/``soil-profile.`` ولا ``wx10/canonical-weather-state/``.
+    لذلك يعود ``operational_eligible=false`` مع تسمية الناقص — وهي **الحقيقة**، لا عيب،
+    ولا يجوز اختلاق منتَج لإرضاء العقد.
+    """
     from api.field_state_projection import recompute_field_state
 
     try:
         async with main.tenant_connection_for(tenant_id) as conn:
             await main._assert_field_in_tenant(conn, field_id)
             result = await recompute_field_state(conn, field_id)
+            canonical_state = (
+                await _compose_canonical(conn, tenant_id=tenant_id, field_id=field_id)
+                if canonical
+                else None
+            )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise main._db_unavailable("قراءة الحالة القانونيّة (خدمة)", e) from e
-    return result["state"]
+    if canonical_state is None:
+        return result["state"]
+    return {"state": result["state"], "canonical_field_state": canonical_state}
 
 
 @router.post("/internal/events/ai-advice")
@@ -84,3 +109,32 @@ async def internal_ai_advice_event(
         "event_type": "ai.suggestion.generated",
         "entity_id": req.field_id or req.tenant_id,
     }
+
+
+async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
+    """يُركّب canonical_field_state من المنتَجات المتاحة فعلاً — ولا يختلق الغائب.
+
+    المنتَج الغائب يُمرَّر ``None`` فتُسمّيه النواة في ``limitations`` وتُسقِط
+    ``operational_eligible``. البديل الوحيد المرفوض هو تلفيق منتَج بمخطّط صحيح ومحتوى
+    مُختلَق لإرضاء العقد — وهو ما يجعل الحالة تبدو صالحة وهي ليست كذلك.
+    """
+    from datetime import UTC, datetime
+
+    from api.canonical_water_state import resolve_canonical_water_state
+
+    water = await resolve_canonical_water_state(conn, tenant_id=tenant_id, field_id=field_id)
+    water_payload = water if isinstance(water, dict) else water.to_dict()
+    if str(water_payload.get("schema_version") or "") == "":
+        water_payload = None  # حمولة محجوبة بلا مخطّط ⇒ غياب مُعلَن لا قبول صامت
+
+    state = compose_canonical_field_state(
+        field_id=field_id,
+        season_id=None,
+        as_of_time=datetime.now(UTC).isoformat(),
+        water=water_payload,
+        # لا مُنتِج لهما في هذه الخدمة — يُعلَنان غائبَين بالاسم.
+        weather=None,
+        soil=None,
+        spectral=None,
+    )
+    return state.to_dict()

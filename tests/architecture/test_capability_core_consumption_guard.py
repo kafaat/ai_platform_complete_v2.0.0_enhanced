@@ -105,11 +105,18 @@ def test_downgrading_a_wired_core_to_pending_fails(restore_tree):
 
 
 def test_claiming_wired_without_a_consumer_fails(restore_tree):
-    """The inverse bluff: declaring wired with nothing to point at."""
+    """The inverse bluff: declaring wired with nothing to point at.
+
+    Synthesises the state rather than requiring a pending core to exist. Once every core
+    is wired there is none left to borrow, and a test that silently stops exercising its
+    case is worse than no test.
+    """
     registry = restore_tree(REGISTRY)
     document = json.loads(registry.read_text(encoding="utf-8"))
-    pending = next(c for c in document["cores"] if c["status"] == "pending_wiring")
-    pending["status"] = "wired"
+    bluffing = document["cores"][0]
+    bluffing["status"] = "wired"
+    bluffing["consumer"] = None
+    bluffing["consumed_symbol"] = None
     registry.write_text(json.dumps(document, indent=2), encoding="utf-8")
     result = _run()
     assert result.returncode == 1
