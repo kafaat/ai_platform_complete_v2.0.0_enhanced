@@ -408,3 +408,25 @@
 - **المستهلك — بمسار جديد بقرار المالك:** `POST /api/v1/scenario/economics` على راوتر السيناريو. **أُنفِق مسار واحد من ثلاثة عمداً**: نقطة `feasibility` تأخذ نموذج مدخلات مختلفاً كلّيّاً (`area_ha`/`price_per_t`) فطيّها فيه كان سيكون قسراً. **الميزانية 626 ⇒ 627 ≤ 629، والهامش 3 ⇒ 2.**
 - **ضريبة تسجيل مسار جديد (تُذكَر للمرّات القادمة):** المسار الجديد لا يكفيه الكود — يجب تسجيله في `platform_extraction_map.json` بمالك وتصنيف، **وإدراجه أزاح أرقام أسطر أربعة مسارات تحته** فأسقط `platform_route_ownership_guard`. صُحّحت الأرقام **باشتقاقها من AST** لا يدويّاً. وظهر مولِّد سادس وأربعون لا ينكشف إلّا بإضافة مسار: `route_mount_contract_guard`.
 - **الحارس:** `capability_core_consumption_guard` انتقل **1/4 ⇒ 2/4**. المتبقّي: `canonical_field_state` (محجوب بتعارض التوأم) و`yield_intelligence` (يحتاج فحص تداخل مع `yield_map_ingestion`).
+
+### عيبان كشفهما إيقاظ الاختبارات الخامدة (2026-07-28) — لم يُحدِثهما الفرع
+
+إيقاظ ~479 اختباراً أخرج عيبين **قائمين سلفاً** كان الخمود يُخفيهما. وُسِما `xfail` بسبب
+مُعلَّل ومُتتبَّع — لا `skip` صامتاً — فيبقيان مرئيَّين في تقرير CI.
+
+- **`MCP-PREAUTH-STATUS-01` — مفتوح.** طلب بلا توكن على `POST /mcp/v1/tools/call` يُجاب
+  بـ**400** بدل 401. **التخويل موصول فعلاً**: `services/mcp_servers/weather_server.py:147`
+  يُعلن `dependencies=[Depends(require_scope("weather:read"))]`، و
+  `services/mcp_servers/shared/oauth_middleware.py:43-44` يرفع `401 Missing token` عند غياب
+  الاعتماد. إذن طبقة **سابقة للحارس** تُجيب أوّلاً. العيب في الترتيب ورمز الحالة لا في غياب
+  الحماية — لكنّه يجعل استجابة غير المُخوَّل تتغيّر بتغيّر الجسم. المصدر:
+  `tests_v9/test_mcp_functional.py:317`.
+- **`CI-RLS-SUPERUSER-ROLE-01` — مفتوح.** خدمة auth ترفض الإقلاع في وظيفة التكامل لأنّ
+  قاعدة الاختبار تتّصل بـ`sahool_test` وهو superuser، فيَفشل `assert_db_role_rls_safe`
+  مغلقاً (`shared/db_role_guard.py:97`) — **وهذا صحيح**. و`.github/workflows/ci.yml:626`
+  يُقرّ بالدور صراحةً. الإصلاح دور مقيَّد (`NOSUPERUSER NOBYPASSRLS`) لقاعدة الاختبار؛
+  **لا** `SAHOOL_ALLOW_RLS_BYPASS_ROLE=1` لأنّه يُعطّل الحارس في CI. المصدر:
+  `tests_v9/test_mfa_hardening_integration_v29_5.py:182`.
+- **تصحيح على قياس «صفر إصلاح»:** القياس كان مقصوراً على `-m unit`. تعديل
+  `requirements-test.txt` يُصيب كلّ وظيفة تُثبّته ومنها `-m integration` (`ci.yml:624`)،
+  وهناك ظهر الفشلان أعلاه وثالثٌ أُصلِح (تصادم `routers` في `test_services_functional`).
