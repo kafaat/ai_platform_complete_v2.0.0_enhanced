@@ -17,14 +17,20 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 BRAIN = ROOT / "sahool-brain"
 REGISTRY = ROOT / "capabilities" / "registry" / "capabilities.json"
+PLATFORM_ROOT = ROOT / "services" / "sahool-platform"
 
 # "<field><spaces>[:=]<spaces><digits>" — a numeric state assertion, nothing else.
 _NUMERIC_CLAIM = re.compile(r"\b(runtime_verified|production_certified)\s*[:=]\s*(\d+)\b")
+
+# The brain writes the three-layer route count in one canonical Arabic shape:
+#   "خام 630 · بنية 4 · نطاق 626"   (separator may also be "/")
+_ROUTE_LAYERS = re.compile(r"خام\s+(\d+)\s*[·/]\s*بنية\s+(\d+)\s*[·/]\s*نطاق\s+(\d+)")
 
 
 def _registry_counts() -> dict[str, int]:
@@ -61,4 +67,45 @@ def test_brain_numeric_state_claims_match_registry():
                     )
     assert violations == [], (
         "brain states a verified/certified count the registry denies:\n" + "\n".join(violations)
+    )
+
+
+def _route_layer_counts() -> tuple[int, int, int]:
+    """(raw, infrastructure, domain) measured from the source, not from a report."""
+    sys.path.insert(0, str(ROOT / "scripts" / "ci"))
+    try:
+        from platform_route_classification import collect_platform_routes, partition_routes
+    finally:
+        sys.path.pop(0)
+    routes = collect_platform_routes(PLATFORM_ROOT)
+    infrastructure, domain = partition_routes(routes)
+    return len(routes), len(infrastructure), len(domain)
+
+
+def test_brain_route_layer_counts_match_the_measured_surface():
+    """The brain's raw/infrastructure/domain triple is falsifiable against the code.
+
+    The three-layer count is a governance claim: it is what justifies excluding four
+    infrastructure endpoints from the domain ratchet without raising the budget. Left
+    as prose it would rot the moment a route moves, and a stale triple in the brain
+    reads as if the exclusion were larger than it is.
+    """
+    expected = _route_layer_counts()
+    violations: list[str] = []
+    found = 0
+    for path in sorted(BRAIN.rglob("*.md")):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            for raw, infra, domain in _ROUTE_LAYERS.findall(line):
+                found += 1
+                stated = (int(raw), int(infra), int(domain))
+                if stated != expected:
+                    rel = path.relative_to(ROOT)
+                    violations.append(f"{rel}:{lineno}: states {stated} but measured {expected}")
+    assert violations == [], (
+        "brain states a route-layer count the platform source denies "
+        "(raw, infrastructure, domain):\n" + "\n".join(violations)
+    )
+    assert found > 0, (
+        "no route-layer claim found in the brain — the counts must stay documented "
+        "in the canonical 'خام N · بنية N · نطاق N' shape so this test can check them"
     )

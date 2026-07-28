@@ -14,7 +14,11 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from scripts.ci.platform_route_classification import normalize_route_path  # noqa: E402
+from scripts.ci.platform_route_classification import (  # noqa: E402
+    INFRASTRUCTURE_ROUTES,
+    normalize_route_method,
+    normalize_route_path,
+)
 from scripts.ci.platform_route_ownership_guard import collect_surface  # noqa: E402
 
 CONTRACT_PATH = REPO / "docs/architecture/platform_route_placement_contract.json"
@@ -46,9 +50,38 @@ def verify_placement(*, repo: Path = REPO, contract_path: Path | None = None) ->
     surface = collect_surface(platform_root)
     evidence: list[dict[str, Any]] = []
 
-    for rule in contract["routes"]:
-        method = str(rule["method"]).strip().upper()
-        path = normalize_route_path(str(rule["path"]))
+    placement_pairs: list[tuple[str, str]] = []
+    for index, rule in enumerate(contract["routes"]):
+        if not isinstance(rule, dict):
+            raise AssertionError(f"placement contract route #{index} must be an object")
+        try:
+            method = normalize_route_method(str(rule["method"]))
+            path = normalize_route_path(str(rule["path"]))
+        except (KeyError, TypeError, ValueError) as exc:
+            raise AssertionError(f"invalid placement contract route #{index}: {exc}") from exc
+        placement_pairs.append((method, path))
+
+    duplicate_pairs = sorted(
+        pair for pair in set(placement_pairs) if placement_pairs.count(pair) > 1
+    )
+    if duplicate_pairs:
+        raise AssertionError(
+            "Platform route placement contract contains duplicate method/path entries: "
+            f"{duplicate_pairs}"
+        )
+
+    placement_pair_set = frozenset(placement_pairs)
+    if placement_pair_set != INFRASTRUCTURE_ROUTES:
+        missing_rules = sorted(INFRASTRUCTURE_ROUTES - placement_pair_set)
+        stale_rules = sorted(placement_pair_set - INFRASTRUCTURE_ROUTES)
+        raise AssertionError(
+            "Platform route placement contract must exactly cover the infrastructure "
+            "allowlist:\n"
+            f"  missing placement rules: {missing_rules}\n"
+            f"  non-infrastructure placement rules: {stale_rules}"
+        )
+
+    for rule, (method, path) in zip(contract["routes"], placement_pairs, strict=True):
         required_source = str(rule["required_source"])
         required_relative = Path(required_source).relative_to("services/sahool-platform").as_posix()
         required_function = str(rule.get("required_function") or "")
