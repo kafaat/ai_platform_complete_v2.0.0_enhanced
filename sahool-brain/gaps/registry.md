@@ -407,26 +407,72 @@
 - **الصفر مقابل الغياب:** `water_price_per_m3=0` يُقيَّم عاديّاً؛ وتكلفة كلّيّة صفر ⇒ `roi_pct=None` + `roi_undefined_zero_total_cost` بدل نسبة لانهائيّة أو مُختلقة. والقيمة المشوّهة (`nan`/سالب/`bool`/نصّ) **تُرمى** لا تُهمَل — إسقاطها صامتاً كان سيجعل خطأ المستدعي يبدو كإغفال.
 - **المستهلك — بمسار جديد بقرار المالك:** `POST /api/v1/scenario/economics` على راوتر السيناريو. **أُنفِق مسار واحد من ثلاثة عمداً**: نقطة `feasibility` تأخذ نموذج مدخلات مختلفاً كلّيّاً (`area_ha`/`price_per_t`) فطيّها فيه كان سيكون قسراً. **الميزانية 626 ⇒ 627 ≤ 629، والهامش 3 ⇒ 2.**
 - **ضريبة تسجيل مسار جديد (تُذكَر للمرّات القادمة):** المسار الجديد لا يكفيه الكود — يجب تسجيله في `platform_extraction_map.json` بمالك وتصنيف، **وإدراجه أزاح أرقام أسطر أربعة مسارات تحته** فأسقط `platform_route_ownership_guard`. صُحّحت الأرقام **باشتقاقها من AST** لا يدويّاً. وظهر مولِّد سادس وأربعون لا ينكشف إلّا بإضافة مسار: `route_mount_contract_guard`.
-- **الحارس:** `capability_core_consumption_guard` انتقل **1/4 ⇒ 2/4**. المتبقّي: `canonical_field_state` (محجوب بتعارض التوأم) و`yield_intelligence` (يحتاج فحص تداخل مع `yield_map_ingestion`).
+- **الحارس:** `capability_core_consumption_guard` انتقل **1/4 ⇒ 2/4** عند هذه الشريحة، ثمّ **3/4** (`yield_intelligence`، `4eded7a`) ثمّ **4/4** (`canonical_field_state`، `247c69c`). تصحيح لِما كُتب هنا: حاجز التوأم كان **تشخيصاً خاطئاً** — `core/field_twin.py:30` يُعلن نفسه `DERIVED_VIEW` وCanonicalFieldState مرجعاً؛ والحاجز الحقيقيّ غياب مُنتِجَي التربة والطقس (`FIELD-STATE-PRODUCERS-MISSING-01`). وتداخل الغلّة فُحِص ووجد نظيفاً: `calibration_factor` له مالك واحد. **المرجع هو الحارس لا هذا النصّ** — وقد تأخّر تحديثه، وهو ما يُصلحه `BRAIN-CLAIM-UNVERIFIED-01` أدناه.
 
 ### عيبان كشفهما إيقاظ الاختبارات الخامدة (2026-07-28) — لم يُحدِثهما الفرع
 
 إيقاظ ~479 اختباراً أخرج عيبين **قائمين سلفاً** كان الخمود يُخفيهما. وُسِما `xfail` بسبب
 مُعلَّل ومُتتبَّع — لا `skip` صامتاً — فيبقيان مرئيَّين في تقرير CI.
 
-- **`MCP-PREAUTH-STATUS-01` — مفتوح.** طلب بلا توكن على `POST /mcp/v1/tools/call` يُجاب
-  بـ**400** بدل 401. **التخويل موصول فعلاً**: `services/mcp_servers/weather_server.py:147`
-  يُعلن `dependencies=[Depends(require_scope("weather:read"))]`، و
-  `services/mcp_servers/shared/oauth_middleware.py:43-44` يرفع `401 Missing token` عند غياب
-  الاعتماد. إذن طبقة **سابقة للحارس** تُجيب أوّلاً. العيب في الترتيب ورمز الحالة لا في غياب
-  الحماية — لكنّه يجعل استجابة غير المُخوَّل تتغيّر بتغيّر الجسم. المصدر:
-  `tests_v9/test_mcp_functional.py:317`.
-- **`CI-RLS-SUPERUSER-ROLE-01` — مفتوح.** خدمة auth ترفض الإقلاع في وظيفة التكامل لأنّ
-  قاعدة الاختبار تتّصل بـ`sahool_test` وهو superuser، فيَفشل `assert_db_role_rls_safe`
-  مغلقاً (`shared/db_role_guard.py:97`) — **وهذا صحيح**. و`.github/workflows/ci.yml:626`
-  يُقرّ بالدور صراحةً. الإصلاح دور مقيَّد (`NOSUPERUSER NOBYPASSRLS`) لقاعدة الاختبار؛
-  **لا** `SAHOOL_ALLOW_RLS_BYPASS_ROLE=1` لأنّه يُعطّل الحارس في CI. المصدر:
-  `tests_v9/test_mfa_hardening_integration_v29_5.py:182`.
+- **دور superuser في CI ⇒ لا معرّف جديد.** المفهوم مسجَّل سلفاً باسم **`AUTH-E2E-UNDER-RESTRICTED-ROLE`**
+  (`registry.md:166` — LIVE-CERTIFIED/CLOSED @ `9a3ce99`). سككتُ له معرّفاً جديداً (محذوف الآن) دون البحث في
+  السجلّ — خطأ تكرّر ثالث مرّة في الجلسة. **الفرع المفتوح تحت المعرّف القائم:** الإغلاق أثبت
+  عمل التطبيق تحت `sahool_app`، لكنّه **لم يُغيّر وظيفة CI** — `ci.yml:626` ما زال يتّصل
+  بـ`sahool_test` superuser، فسقطت ثلاثة اختبارات 2026-07-28 بنفس الحارس
+  (`shared/db_role_guard.py:97`). الإصلاح دور مقيَّد، **لا** `SAHOOL_ALLOW_RLS_BYPASS_ROLE=1`.
 - **تصحيح على قياس «صفر إصلاح»:** القياس كان مقصوراً على `-m unit`. تعديل
   `requirements-test.txt` يُصيب كلّ وظيفة تُثبّته ومنها `-m integration` (`ci.yml:624`)،
   وهناك ظهر الفشلان أعلاه وثالثٌ أُصلِح (تصادم `routers` في `test_services_functional`).
+
+## APP-ROUTES-EMPTY-01 — OPEN (P1) 2026-07-28
+
+- **الأثر:** ١١ اختباراً في `tests_v9` تفحص `app.routes` ترى تطبيقاً فيه المسارات الافتراضيّة فقط `{None, /openapi.json, /docs, /docs/oauth2-redirect, /redoc}`.
+- **ليس عيب تسجيل صامتاً — مُثبَت:** `api/router_registry.py:39-47` يستورد `api.routers.*` **مؤهَّلاً بالكامل** عبر `importlib.import_module` بلا ابتلاع استثناء، و`register_routers(app)` يُستدعى وقت استيراد `api.main` (`api/main.py:2553`). فالمُرجَّح **حالة وحدة**: `api.main` مُهيَّأ جزئيّاً أو مُكرَّر.
+- **المصدر:** `-m unit` في CI 2026-07-28 (11 failed · 3471 passed)؛ ظهر فقط بعد إتاحة `fastapi` فخرجت الاختبارات من الخمود.
+- **الحالة:** يحتاج تشغيل `tests_v9` للتشخيص — متعذّر في بيئة الوكيل (`conftest` يستورد `cryptography` فينهار pyo3).
+
+## UNIT-TEST-DORMANCY-01 — OPEN (P1) 2026-07-28
+
+- **الأثر:** ~479 اختبار وحدة لا يُنفَّذ في بوّابة الدمج لاستبعاد `fastapi` من `requirements-test.txt`؛ منها ١٢ ملفّاً في `tests_v9` تفحص `app.routes`.
+- **القرار الأصليّ ومبرّره البائت:** `hot.md` (#590) + `tests_v9/requirements-field-forms.txt:2-3`. الشرط «يفشل في البيئة الدنيا» **تآكل**: لم يبقَ ناقصاً إلّا `scipy` و`pillow`، و`scipy` مثبَّتة أصلاً في `api/requirements.txt:20`.
+- **قياس المالك:** 3478 نجح · 26 تخطٍّ · صفر فشل — **على `-m unit` وحدها**. CI أظهر ١١ فشلاً في الوحدة و٣ في التكامل.
+- **محجوب بـ:** `APP-ROUTES-EMPTY-01` و`AUTH-E2E-UNDER-RESTRICTED-ROLE` (فرع CI).
+
+## IMAGERY-BLANK-THUMBNAIL-01 — OPEN (P1) 2026-07-28
+
+- **الأثر:** بطاقات السجلّ الزمنيّ التاريخيّة تعرض مصغّرات فارغة.
+- **كان يتيماً:** أُجِّل في `hot.md` (#660) بعبارة «blank-thumbnail بند مستقل» ثمّ لم يدخل السجلّ قطّ، و`git grep blank-thumbnail` صفر في الكود — مخالفة مباشرة لقاعدة CLAUDE.md «لا فجوة بلا مصدر + حالة».
+- **تشخيص مُتحقَّق منه:** نافذة CDSE تنهار إلى ٢٤ ساعة للتواريخ التاريخيّة (`raster_cdse_tile_runtime.py:75-77`) ودورة Sentinel-2 ~٥ أيّام · `nginx.v9.conf:261` مهلة 60s مقابل `cdse_client.py:468` 120s · `MapHub.tsx:2484` يُخفي الفشل بـ`display:none`.
+- **تصحيحان على تقرير المالك:** الفشل **لا يُخزَّن** في الكاش (`return None` قبل سطر التخزين 201) — العيب أنّ نتيجة **ناجحة لكن فارغة** تُخزَّن ساعة، فيتغيّر الإصلاح إلى فحص فراغ قبل التخزين. وسابقة `CDSE_CLIENT_ID:?` في BUG-7 **غير موجودة**؛ `docker-compose.v9.yml:745` يخصّ `SH_CLIENT_ID`.
+- **حدّ نطاق:** إصلاح الكاتب لا يُصلح COGs المعطوبة القائمة؛ يلزم إعادة معالجة.
+
+## FIELD-STATE-PRODUCERS-MISSING-01 — OPEN (P1) 2026-07-28
+
+- **الأثر:** `canonical_field_state` موصولة (`247c69c`) وتُعيد `operational_eligible=false` **دائماً**.
+- **السبب:** من `required=(weather, water, soil)` مُنتِج واحد فقط — الماء (`api/canonical_water_state.py:21`). لا مُنتِج لـ`canonical_soil_state.`/`soil-profile.` (البادئة ترد في قائمة قبول النواة نفسها: `core/canonical_field_state.py:77`) ولا لـ`wx10/canonical-weather-state/`.
+- **لماذا مُسجَّل رغم إغلاق الفجوة الأمّ:** الراتشِت يقول 4/4 بصدق (مستهلكون يستوردون الرموز بفحص AST) لكنّه **لا يقول** إنّ الأربع تُنتِج قيمة. فجوة مُغلقة بتحفّظ غير مكتوب هي أوّل خطوة نحو سجلّ يكذب.
+
+## BRAIN-DEFERRAL-LEAK-01 — FIXED_IN_CODE (2026-07-28)
+
+- **العلّة الجذريّة:** `hot.md` يمتصّ التأجيلات ولا شيء يجبرها على الهجرة إلى هذا السجلّ. حارس `tests/architecture/test_brain_state_consistency.py` يفرض **الادّعاءات العدديّة فقط**، فالتسرّب مسموح تصميميّاً.
+- **الدليل:** ثلاثة مفاهيم أُجِّلت في `hot.md` ولم تصل السجلّ؛ اثنان بقيا يتيمَين حتّى 2026-07-28 (`IMAGERY-BLANK-THUMBNAIL-01` منذ #660، و`UNIT-TEST-DORMANCY-01` منذ #590 ومبرّره سقط دون أن يوقظه شيء).
+- **الإصلاح:** `scripts/ci/brain_deferral_registry_guard.py` — كلّ سطر تأجيل في `hot.md` يجب أن يحمل معرّف فجوة **موجوداً فعلاً** في هذا السجلّ. الأسطر القائمة في أساس مُجمَّد يتقلّص ولا ينمو: تأجيل **جديد** بلا معرّف يُسقِط CI.
+
+## BRAIN-CLAIM-UNVERIFIED-01 — FIXED_IN_CODE (2026-07-28)
+
+- **العلّة:** رسالة الالتزام تحمل ادّعاءً **لا يفرضه أيّ حارس**. المستودع يفرض تطابق الأرقام (`test_brain_state_consistency`)، وموضع المسارات (عقد JSON)، واستهلاك النوى (`capability_core_consumption_guard`) — ولا شيء يتحقّق من أنّ **فجوة أُعلِن تسجيلها قد سُجِّلت فعلاً**.
+- **الدليل (مرّتان):** رسالة #683 أعلنت تسجيل أربع فجوات؛ اثنتان فقط وصلتا الشجرة. و`APP-ROUTES-EMPTY-*` — وهي **حاجب الشرائح الثلاث الباقية** — كانت إحدى الغائبتين. السبب الميكانيكيّ: سكربت إعادة البناء طبع `-1` (لم يُعثَر) وتُجوهِل.
+- **الإصلاح:** `scripts/ci/brain_commit_claim_guard.py` — يستخرج معرّفات الفجوات من رسائل الالتزام في نطاق الـPR ويطالب كلّاً منها بعنوان `## ` في `gaps/registry.md`، بنفس آليّة `pr_capability_impact_gate` مع سطر `Capability-Impact:`.
+- **المصدر:** مراجعة المالك 2026-07-28 (تحقّق مزدوج: `git grep` على `origin/main` + grep على الأرشيف المفكوك).
+
+## MCP-PREAUTH-STATUS-01 — OPEN (P2) 2026-07-28
+
+- **الأثر:** طلب بلا توكن على `POST /mcp/v1/tools/call` يُجاب بـ**400** بدل 401.
+- **ليس غياب حماية — مُثبَت:** `services/mcp_servers/weather_server.py:147` يُعلن
+  `dependencies=[Depends(require_scope("weather:read"))]`، و
+  `services/mcp_servers/shared/oauth_middleware.py:43-44` يرفع `401 Missing token` عند
+  غياب الاعتماد. إذن **طبقة سابقة للحارس تُجيب أوّلاً**. العيب في الترتيب ورمز الحالة.
+- **لماذا يهمّ رغم ذلك:** استجابة غير المُخوَّل تتغيّر بتغيّر جسم الطلب.
+- **تصحيح على تقديري الأوّل:** وصفتُه «ثغرة تخويل محتملة» قبل الفحص — كان أشدّ ممّا تحتمله
+  الأدلّة. المصدر: `tests_v9/test_mcp_functional.py:317`.
+
