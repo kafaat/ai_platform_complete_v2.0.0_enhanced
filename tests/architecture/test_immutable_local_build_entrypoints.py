@@ -50,3 +50,19 @@ def test_makefile_exposes_immutable_build_entrypoints():
     assert "build-immutable:" in text
     assert "build-immutable-gpu:" in text
     assert "./scripts/build-immutable.sh --gpu" in text
+
+
+def test_env_example_declares_build_id_but_leaves_it_empty():
+    """`local` is no more a build identity than it was a source SHA.
+
+    Same reasoning as TESTED_SHA: declared so compose_env_contract_gate is satisfied,
+    empty so ``${SAHOOL_BUILD_ID:?...}`` still refuses. Leaving `local` here would stamp
+    an image with an identity derived from nothing, while the wrapper derives
+    ``local-<sha12>`` from HEAD.
+    """
+    assignments = [
+        line
+        for line in (ROOT / ".env.example").read_text().splitlines()
+        if line.strip().startswith("SAHOOL_BUILD_ID=")
+    ]
+    assert assignments == ["SAHOOL_BUILD_ID="], assignments
