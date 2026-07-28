@@ -199,7 +199,19 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
         "evidence_ids": list(
             dict.fromkeys([*inp.source_ids, *canonical_phenology["evidence_ids"]])
         ),
-        "canonical_input_sources": {"weather": canonical_phenology["source"]},
+        "canonical_input_sources": {
+            "weather": canonical_phenology["source"],
+            "crop_knowledge": "governed_knowledge_layer"
+            if canonical_phenology.get("knowledge_digest")
+            else "unavailable",
+        },
+        "knowledge_provenance": {
+            "knowledge_digest": canonical_phenology.get("knowledge_digest"),
+            "evidence_ids": canonical_phenology.get("knowledge_evidence_ids") or [],
+            "schema": "crop_knowledge_snapshot.v1"
+            if canonical_phenology.get("knowledge_digest")
+            else None,
+        },
         "evidence_missing": evidence_missing,
         "limitations": list(dict.fromkeys(limitations)),
         "ownership": {

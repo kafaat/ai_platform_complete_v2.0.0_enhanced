@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4757,
+    "files_scanned": 4760,
     "files_by_kind": {
-      "backend": 1189,
+      "backend": 1190,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1239,
-      "tests": 1508,
+      "other": 1240,
+      "tests": 1509,
       "web": 446
     },
     "unmapped_artifacts": 1943,
@@ -29907,6 +29907,10 @@
           "score": 12
         },
         {
+          "value": "crop_knowledge_snapshot.v1 @ services/sahool-platform/core/crop_intelligence/engine.py:211",
+          "score": 12
+        },
+        {
           "value": "crop_water_state.v1 @ services/sahool-platform/core/crop_intelligence/crop_water.py:6",
           "score": 12
         },
@@ -31001,7 +31005,7 @@
         "backend": 60,
         "routes": 52,
         "database": 0,
-        "events": 77,
+        "events": 78,
         "web": 19,
         "mobile": 0,
         "tests": 57,
@@ -31562,6 +31566,14 @@
         },
         {
           "path": "services/sahool-platform/core/crop_intelligence/engine.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -32280,6 +32292,14 @@
           "score": 12
         },
         {
+          "value": "crop_knowledge_snapshot.v1 @ services/sahool-platform/core/crop_intelligence/engine.py:211",
+          "score": 12
+        },
+        {
+          "value": "crop_knowledge_snapshot.v1 @ services/sahool-platform/core/crop_intelligence/knowledge_layer.py:17",
+          "score": 12
+        },
+        {
           "value": "crop_phenology_state.v1 @ services/sahool-platform/core/crop_intelligence/phenology.py:6",
           "score": 12
         },
@@ -32318,6 +32338,14 @@
         {
           "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:527",
           "score": 12
+        },
+        {
+          "value": "crop_knowledge_snapshot.v1 @ services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py:12",
+          "score": 10
+        },
+        {
+          "value": "crop_knowledge_snapshot.v1 @ services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py:91",
+          "score": 10
         },
         {
           "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_capability_plan_closures.py:24",
@@ -32765,6 +32793,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "tests_v9/test_crop_model_uncertainty_v64.py",
           "score": 10,
           "signals": [
@@ -32958,13 +32994,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 80,
+        "backend": 81,
         "routes": 25,
         "database": 26,
-        "events": 22,
+        "events": 26,
         "web": 15,
         "mobile": 0,
-        "tests": 40,
+        "tests": 41,
         "governance": 0,
         "other_evidence": 19
       },

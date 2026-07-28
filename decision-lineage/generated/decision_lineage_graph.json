@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 504,
+      "evidence_count": 505,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -352,6 +352,7 @@
         "services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py",
         "services/sahool-platform/tests/test_crop_intelligence_canonical_inputs.py",
         "services/sahool-platform/tests/test_crop_intelligence_engine.py",
+        "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
         "services/sahool-platform/tests/test_crop_intelligence_phase3.py",
         "services/sahool-platform/tests/test_crop_intelligence_phase4.py",
         "services/sahool-platform/tests/test_crop_intelligence_phase5.py",
@@ -2214,7 +2215,7 @@
         "services/sahool-platform/core/field_digital_twin.py",
         "services/sahool-platform/core/field_event_sourcing.py"
       ],
-      "source_evidence_count": 504,
+      "source_evidence_count": 505,
       "target_evidence_count": 455,
       "static_supported": true,
       "runtime_verified": false
@@ -2565,5 +2566,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "73643d90f83329538ab864ae9868fdb524d62938ce6ba4761073beedee43c035"
+  "content_sha256": "a3b8cdb7d36c8dec6592d8afc6db3906a430e406cbb0745663ad9bac859e94e4"
 }
