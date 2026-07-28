@@ -11,6 +11,8 @@ from canonical_weather_state import (
     build_canonical_weather_state,
     current_view,
     et0_view,
+    forecast_view,
+    historical_view,
     vpd_view,
     weather_state_report,
 )
@@ -243,10 +245,21 @@ async def forecast_weather(
     days: int = 7,
     model: str = "best_match",
 ):
+    """WX-10.5 — التوقّع يُقرأ من CanonicalWeatherState لا من حمولة المزوّد مباشرةً.
+
+    الجلب عند الحافّة ثمّ المُجمِّع النقيّ ثمّ `forecast_view`. توافقيّ للخلف: مجموعة فائقة
+    (`days`/`range`/`model`/`timezone` كما هي) مضافاً إليها الجودة والنَّسَب.
+    """
     try:
-        return await _facade_attr("fetch_forecast")(lat, lon, days=days, model=model)
+        series = await _facade_attr("fetch_forecast")(lat, lon, days=days, model=model)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Open-Meteo forecast: {exc}") from exc
+    state = build_canonical_weather_state(
+        lat_deg=lat,
+        valid_time=((series or {}).get("range") or {}).get("start"),
+        forecast_series=series,
+    )
+    return forecast_view(state)
 
 
 async def historical_weather(
@@ -255,12 +268,22 @@ async def historical_weather(
     start_date: str = Query(...),
     end_date: str = Query(...),
 ):
+    """WX-10.5 — الأرشيف يُقرأ من CanonicalWeatherState لا من حمولة المزوّد مباشرةً.
+
+    نفس مسار التوقّع بالضبط (المُنتِج واحد)، عبر `historical_view`. توافقيّ للخلف.
+    """
     try:
-        return await _facade_attr("fetch_historical")(
+        series = await _facade_attr("fetch_historical")(
             lat, lon, start_date=start_date, end_date=end_date
         )
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Open-Meteo historical: {exc}") from exc
+    state = build_canonical_weather_state(
+        lat_deg=lat,
+        valid_time=((series or {}).get("range") or {}).get("start"),
+        historical_series=series,
+    )
+    return historical_view(state)
 
 
 async def _cached_sample(lat: float, lon: float, time: str, model: str, key_prefix: str = "sample"):

@@ -24,6 +24,8 @@ from canonical_weather_state import (  # noqa: E402
     build_canonical_weather_state,
     current_view,
     et0_view,
+    forecast_view,
+    historical_view,
     vpd_view,
     weather_state_report,
 )
@@ -97,7 +99,7 @@ def test_full_inputs_make_composed_products_available():
 
 def test_deferred_slots_are_declared_unavailable_not_fabricated():
     s = build_canonical_weather_state(**_FULL)
-    for slot in ("forecast", "historical", "operation_windows"):
+    for slot in ("heat_load", "chill_hours", "frost_risk", "operation_windows"):
         assert s["availability"][slot] is False
         assert any(slot in lim for lim in s["limitations"])
 
@@ -528,3 +530,133 @@ def test_agro_vpd_body_has_no_direct_computation_path_outside_composer():
     body = _top_level_func_body(src, "agro_vpd")
     assert "compute_vpd" not in body, "agro_vpd يجب ألّا يستدعي نواة VPD مباشرةً"
     assert "build_canonical_weather_state" in body and "vpd_view" in body
+
+
+# ── WX-10.5: خانتا التوقّع والأرشيف ──────────────────────────────────────────
+def _day(**overrides):
+    base = {
+        "date": "2026-07-28",
+        "temp_max_c": 41.2,
+        "temp_min_c": 27.8,
+        "precipitation_mm": 0.0,
+        "et0_mm": 8.1,
+        "sunshine_hours": 12.4,
+        "wind_max_ms": 5.5,
+        "wind_max_kmh": 19.8,
+        "weather_code": 0,
+        "sunrise": "2026-07-28T05:31",
+        "sunset": "2026-07-28T18:52",
+        "daylight_hours": 13.35,
+        "solar_radiation_mj_m2": 28.4,
+    }
+    base.update(overrides)
+    return base
+
+
+def _series(days, **overrides):
+    base = {
+        "location": {"lat": 24.7, "lon": 46.7},
+        "range": {"start": days[0]["date"], "end": days[-1]["date"]},
+        "days": days,
+        "source": "open-meteo",
+        "model": "best_match",
+        "timezone": "Asia/Riyadh",
+    }
+    base.update(overrides)
+    return base
+
+
+@pytest.mark.parametrize("slot", ["forecast", "historical"])
+def test_daily_slot_absent_series_is_unavailable_not_fabricated(slot):
+    s = build_canonical_weather_state(**_FULL)
+    assert s["availability"][slot] is False
+    assert s["products"][slot]["quality_status"] == "insufficient"
+    assert s["products"][slot]["day_count"] == 0
+
+
+@pytest.mark.parametrize(
+    "slot,kwarg", [("forecast", "forecast_series"), ("historical", "historical_series")]
+)
+def test_daily_slot_composes_a_full_series(slot, kwarg):
+    s = build_canonical_weather_state(**{kwarg: _series([_day(), _day(date="2026-07-29")])})
+    prod = s["products"][slot]
+    assert s["availability"][slot] is True
+    assert prod["quality_status"] == "validated"
+    assert prod["day_count"] == 2
+    assert prod["days_missing_fields"] == []
+    # مجموعة فائقة: بنية السلسلة الأصليّة سليمة.
+    assert len(prod["days"]) == 2
+    assert prod["range"]["end"] == "2026-07-29"
+    assert prod["model"] == "best_match"
+
+
+def test_daily_slot_empty_days_is_insufficient_not_validated():
+    """سلسلة بلا أيّام ليست «سليمة فارغة» — لا شيء رُصِد ⇒ fail-closed."""
+    s = build_canonical_weather_state(forecast_series=_series([_day()]) | {"days": []})
+    assert s["availability"]["forecast"] is False
+    assert s["products"]["forecast"]["quality_status"] == "insufficient"
+
+
+def test_daily_slot_missing_expected_field_in_any_day_degrades():
+    """يوم واحد ناقص يكفي لإنزال الجودة — لا يُخفيه متوسّط الأيّام السليمة."""
+    s = build_canonical_weather_state(
+        forecast_series=_series([_day(), _day(date="2026-07-29", et0_mm=None)])
+    )
+    prod = s["products"]["forecast"]
+    assert prod["quality_status"] == "degraded"
+    assert "et0_mm" in prod["days_missing_fields"]
+
+
+def test_historical_absence_of_forecast_only_fields_does_not_degrade():
+    """الأرشيف لا يطلب sunshine/sunrise/…: غيابها يُذكَر ولا يُنزِل الجودة."""
+    archive_day = {
+        k: v
+        for k, v in _day().items()
+        if k
+        not in ("sunshine_hours", "sunrise", "sunset", "daylight_hours", "solar_radiation_mj_m2")
+    }
+    s = build_canonical_weather_state(
+        historical_series=_series([archive_day], source="open-meteo-archive", model="ERA5")
+    )
+    prod = s["products"]["historical"]
+    assert prod["quality_status"] == "validated"
+    assert prod["days_missing_fields"] == []
+    assert "sunrise" in prod["optional_missing_fields"]
+
+
+def test_daily_slots_declare_the_upstream_zero_coercion_honestly():
+    s = build_canonical_weather_state(
+        forecast_series=_series([_day()]), historical_series=_series([_day()])
+    )
+    for slot in ("forecast", "historical"):
+        assert any(
+            "indistinguishable from an absent reading" in lim
+            for lim in s["products"][slot]["limitations"]
+        )
+
+
+@pytest.mark.parametrize(
+    "slot,kwarg,view",
+    [
+        ("forecast", "forecast_series", forecast_view),
+        ("historical", "historical_series", historical_view),
+    ],
+)
+def test_daily_views_carry_state_lineage_and_stay_supersets(slot, kwarg, view):
+    series = _series([_day()])
+    s = build_canonical_weather_state(**{kwarg: series})
+    v = view(s)
+    assert v["derived_from"] == "canonical_weather_state"
+    assert v["canonical_state_id"] == s["state_id"]
+    assert v["canonical_state_version"] == s["state_version"]
+    assert v["source_snapshot_id"] == s["source_snapshot_id"]
+    assert v["weather_snapshot_id"] == s["source_snapshot_id"]
+    for key in ("location", "range", "days", "source", "model", "timezone"):
+        assert v[key] == series[key], f"normalizer field {key} was dropped by the {slot} slot"
+
+
+def test_forecast_and_historical_are_independent_slots():
+    """تمرير إحداهما لا يجعل الأخرى متوفّرة — لا تسرّب بين الخانتين."""
+    s = build_canonical_weather_state(forecast_series=_series([_day()]))
+    assert s["availability"]["forecast"] is True
+    assert s["availability"]["historical"] is False

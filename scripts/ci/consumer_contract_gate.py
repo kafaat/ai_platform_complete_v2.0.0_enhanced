@@ -22,6 +22,8 @@ Contracts enforced (all currently landed by WS-A..D; this locks them):
           through build_canonical_weather_state/build_canonical_daily_series.
   WS-C.3  current_weather returns the "current" View, not the provider payload — the base
           observation is a state slot like every derived product (WX-10.4).
+  WS-C.4  forecast_weather/historical_weather likewise return their Views, so no base weather
+          slot reaches a consumer as an unwrapped provider payload (WX-10.5).
   WS-A    the vegetation consumer reads the ValidatedIndicatorProduct envelope
           (indicator_product + quality_score + provenance), not bare stats.mean alone. The
           three-container boundary (20260712) routes this through a single validated
@@ -122,6 +124,10 @@ def collect_violations() -> list[str]:
     _check_func(violations, CWS, cws, "et0_view", required=LINEAGE_KEYS)
     _check_func(violations, CWS, cws, "vpd_view", required=LINEAGE_KEYS)
     _check_func(violations, CWS, cws, "current_view", required=LINEAGE_KEYS)
+    # forecast_view/historical_view delegate lineage to _slot_view — assert it there, once.
+    _check_func(violations, CWS, cws, "_slot_view", required=LINEAGE_KEYS)
+    _check_func(violations, CWS, cws, "forecast_view", required=("_slot_view", "forecast"))
+    _check_func(violations, CWS, cws, "historical_view", required=("_slot_view", "historical"))
     _check_func(violations, CWS, cws, "weather_state_report", required=("reads_from", "state_id"))
     _check_func(
         violations,
@@ -171,6 +177,20 @@ def collect_violations() -> list[str]:
         wrt,
         "current_weather",
         required=("build_canonical_weather_state", "current_view"),
+    )
+    _check_func(
+        violations,
+        WRUNTIME,
+        wrt,
+        "forecast_weather",
+        required=("build_canonical_weather_state", "forecast_view"),
+    )
+    _check_func(
+        violations,
+        WRUNTIME,
+        wrt,
+        "historical_weather",
+        required=("build_canonical_weather_state", "historical_view"),
     )
 
     # WS-A — vegetation consumer reads the ValidatedIndicatorProduct envelope, not bare stats.mean.
