@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1814,
+    "python_files_parsed": 1816,
     "route_handlers": 1041,
-    "call_edges": 70836,
+    "call_edges": 70924,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -294360,126 +294360,126 @@
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "_finite_non_negative",
       "target": "isinstance",
-      "line": 18
+      "line": 21
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "_finite_non_negative",
       "target": "isinstance",
-      "line": 18
+      "line": 21
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "_finite_non_negative",
       "target": "float",
-      "line": 20
+      "line": 23
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "_finite_non_negative",
       "target": "isfinite",
-      "line": 21
+      "line": 24
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
       "target": "dict",
-      "line": 38
+      "line": 41
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
       "target": "_finite_non_negative",
-      "line": 42
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "load_crop_card",
-      "line": 44
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "_finite_non_negative",
-      "line": 45
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 45
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 45
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "append",
       "line": 47
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
-      "target": "get",
+      "target": "build_crop_knowledge_snapshot",
       "line": 50
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 60
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 61
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 61
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 62
+      "target": "resolve_thermal_knowledge",
+      "line": 51
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
       "target": "_finite_non_negative",
-      "line": 72
+      "line": 52
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
       "target": "get",
-      "line": 72
+      "line": 52
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "append",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "extend",
+      "line": 55
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 55
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "append",
+      "line": 58
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "fromkeys",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "list",
+      "line": 68
     },
     {
       "owner": "sahool-platform",
@@ -294492,14 +294492,14 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
-      "target": "append",
+      "target": "get",
       "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
-      "target": "str",
+      "target": "get",
       "line": 74
     },
     {
@@ -294513,78 +294513,162 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
-      "target": "append",
-      "line": 76
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "str",
-      "line": 76
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
       "target": "fromkeys",
-      "line": 83
+      "line": 82
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
       "target": "list",
-      "line": 83
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "get",
-      "line": 84
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
-      "source": "resolve_phenology_inputs",
-      "target": "append",
-      "line": 88
+      "line": 82
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
       "source": "resolve_phenology_inputs",
       "target": "_finite_non_negative",
+      "line": 87
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 87
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "append",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "str",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
       "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "append",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "str",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "fromkeys",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "list",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "fromkeys",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "list",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "get",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "append",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "_finite_non_negative",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "fromkeys",
+      "line": 112
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
+      "source": "resolve_phenology_inputs",
+      "target": "list",
+      "line": 112
     },
     {
       "owner": "sahool-platform",
@@ -295402,15 +295486,421 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/engine.py",
       "source": "build_crop_intelligence_state",
+      "target": "get",
+      "line": 205
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/engine.py",
+      "source": "build_crop_intelligence_state",
+      "target": "get",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/engine.py",
+      "source": "build_crop_intelligence_state",
+      "target": "get",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/engine.py",
+      "source": "build_crop_intelligence_state",
+      "target": "get",
+      "line": 212
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/engine.py",
+      "source": "build_crop_intelligence_state",
       "target": "fromkeys",
-      "line": 204
+      "line": 216
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/crop_intelligence/engine.py",
       "source": "build_crop_intelligence_state",
       "target": "list",
-      "line": 204
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_digest",
+      "target": "dumps",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_digest",
+      "target": "encode",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_digest",
+      "target": "hexdigest",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_digest",
+      "target": "sha256",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_collect_card_sources",
+      "target": "get",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_collect_card_sources",
+      "target": "get",
+      "line": 51
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_collect_card_sources",
+      "target": "isinstance",
+      "line": 51
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_collect_card_sources",
+      "target": "append",
+      "line": 52
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_collect_card_sources",
+      "target": "str",
+      "line": 52
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_collect_card_sources",
+      "target": "fromkeys",
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_collect_card_sources",
+      "target": "list",
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_validate_annotations",
+      "target": "tuple",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_validate_annotations",
+      "target": "count",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_validate_annotations",
+      "target": "sorted",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_validate_annotations",
+      "target": "ValueError",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_validate_annotations",
+      "target": "ValueError",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_validate_annotations",
+      "target": "ValueError",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_validate_annotations",
+      "target": "ValueError",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "_validate_annotations",
+      "target": "ValueError",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "load_crop_card",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "ValueError",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "validate_crop_card",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "ValueError",
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "load_variety_card",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "ValueError",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "validate_variety_card",
+      "line": 92
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "ValueError",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "get",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "ValueError",
+      "line": 96
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "_validate_annotations",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "_collect_card_sources",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "extend",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "append",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "append",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "append",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "fuse_confidence",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "get",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "get",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "get",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "get",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "get",
+      "line": 119
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "get",
+      "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "get",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "fromkeys",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "list",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "build_crop_knowledge_snapshot",
+      "target": "_digest",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "resolve_thermal_knowledge",
+      "target": "get",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "resolve_thermal_knowledge",
+      "target": "ValueError",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "resolve_thermal_knowledge",
+      "target": "get",
+      "line": 152
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "resolve_thermal_knowledge",
+      "target": "get",
+      "line": 152
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "resolve_thermal_knowledge",
+      "target": "get",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "resolve_thermal_knowledge",
+      "target": "get",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "resolve_thermal_knowledge",
+      "target": "get",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/crop_intelligence/knowledge_layer.py",
+      "source": "resolve_thermal_knowledge",
+      "target": "get",
+      "line": 157
     },
     {
       "owner": "sahool-platform",
@@ -352881,6 +353371,132 @@
       "source": "test_unknown_crop_is_explicitly_limited",
       "target": "CropIntelligenceInput",
       "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_builds_versioned_deterministic_crop_knowledge_snapshot",
+      "target": "build_crop_knowledge_snapshot",
+      "line": 10
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_builds_versioned_deterministic_crop_knowledge_snapshot",
+      "target": "build_crop_knowledge_snapshot",
+      "line": 11
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_variety_must_match_parent_crop",
+      "target": "raises",
+      "line": 19
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_variety_must_match_parent_crop",
+      "target": "build_crop_knowledge_snapshot",
+      "line": 20
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_unverified_regional_annotation_fails_closed",
+      "target": "KnowledgeAnnotation",
+      "line": 24
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_unverified_regional_annotation_fails_closed",
+      "target": "raises",
+      "line": 33
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_unverified_regional_annotation_fails_closed",
+      "target": "build_crop_knowledge_snapshot",
+      "line": 34
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_verified_annotation_is_provenanced_and_caps_confidence",
+      "target": "KnowledgeAnnotation",
+      "line": 38
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_verified_annotation_is_provenanced_and_caps_confidence",
+      "target": "build_crop_knowledge_snapshot",
+      "line": 47
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_community_knowledge_never_becomes_governing_high_confidence",
+      "target": "KnowledgeAnnotation",
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_community_knowledge_never_becomes_governing_high_confidence",
+      "target": "build_crop_knowledge_snapshot",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_duplicate_annotation_ids_fail_closed",
+      "target": "KnowledgeAnnotation",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_duplicate_annotation_ids_fail_closed",
+      "target": "raises",
+      "line": 69
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_duplicate_annotation_ids_fail_closed",
+      "target": "build_crop_knowledge_snapshot",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_thermal_resolution_requires_canonical_snapshot",
+      "target": "raises",
+      "line": 74
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_thermal_resolution_requires_canonical_snapshot",
+      "target": "resolve_thermal_knowledge",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_crop_engine_surfaces_knowledge_provenance_without_polluting_weather_evidence",
+      "target": "build_crop_intelligence_state",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
+      "source": "test_crop_engine_surfaces_knowledge_provenance_without_polluting_weather_evidence",
+      "target": "CropIntelligenceInput",
+      "line": 83
     },
     {
       "owner": "sahool-platform",
@@ -511997,7 +512613,7 @@
         {
           "file": "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
           "symbol": "_finite_non_negative",
-          "line": 17,
+          "line": 20,
           "owner": "sahool-platform"
         },
         {

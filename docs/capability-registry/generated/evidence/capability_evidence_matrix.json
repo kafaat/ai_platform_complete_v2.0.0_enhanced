@@ -3576,6 +3576,7 @@
         "services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py",
         "services/sahool-platform/tests/test_crop_intelligence_canonical_inputs.py",
         "services/sahool-platform/tests/test_crop_intelligence_engine.py",
+        "services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py",
         "services/sahool-platform/tests/test_crop_intelligence_phase3.py",
         "services/sahool-platform/tests/test_crop_intelligence_phase5.py",
         "services/sahool-platform/tests/test_crop_twin_compose_endpoint.py",

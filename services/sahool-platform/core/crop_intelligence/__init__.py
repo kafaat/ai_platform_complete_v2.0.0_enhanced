@@ -27,3 +27,9 @@ __all__ = [
     "default_policy_packs",
     "evaluate_crop_policy",
 ]
+
+from core.crop_intelligence.knowledge_layer import (
+    KnowledgeAnnotation,
+    build_crop_knowledge_snapshot,
+    resolve_thermal_knowledge,
+)

@@ -9,7 +9,10 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from core.crop_cards.loader import load_crop_card
+from core.crop_intelligence.knowledge_layer import (
+    build_crop_knowledge_snapshot,
+    resolve_thermal_knowledge,
+)
 
 CANONICAL_WEATHER_PRODUCT_ID = "canonical_weather_state"
 
@@ -38,13 +41,21 @@ def resolve_phenology_inputs(
     state = dict(weather_state or {})
     limitations: list[str] = []
     evidence_ids: list[str] = []
+    knowledge_evidence_ids: list[str] = []
+    knowledge_digest: str | None = None
 
     maturity = _finite_non_negative(legacy_gdd_to_maturity)
     if maturity is None and crop:
-        card = load_crop_card(crop)
-        maturity = _finite_non_negative((card or {}).get("thermal", {}).get("gdd_to_maturity"))
-        if maturity is not None:
-            limitations.append("gdd_to_maturity_resolved_from_versioned_crop_knowledge")
+        try:
+            knowledge = build_crop_knowledge_snapshot(crop_id=crop)
+            thermal = resolve_thermal_knowledge(knowledge)
+            maturity = _finite_non_negative(thermal.get("gdd_to_maturity"))
+            if maturity is not None:
+                limitations.append("gdd_to_maturity_resolved_from_governed_knowledge_layer")
+                knowledge_evidence_ids.extend(thermal.get("source_ids") or [])
+                knowledge_digest = thermal.get("knowledge_digest")
+        except ValueError:
+            limitations.append("governed_crop_knowledge_unavailable")
 
     if state:
         if state.get("product_id") != CANONICAL_WEATHER_PRODUCT_ID:
@@ -54,6 +65,8 @@ def resolve_phenology_inputs(
                 "method": None,
                 "formula_version": None,
                 "evidence_ids": evidence_ids,
+                "knowledge_evidence_ids": list(dict.fromkeys(knowledge_evidence_ids)),
+                "knowledge_digest": knowledge_digest,
                 "limitations": [*limitations, "weather_state_is_not_canonical_weather_state"],
                 "source": "canonical_weather_state_invalid",
             }
@@ -66,6 +79,8 @@ def resolve_phenology_inputs(
                 "method": None,
                 "formula_version": None,
                 "evidence_ids": evidence_ids,
+                "knowledge_evidence_ids": list(dict.fromkeys(knowledge_evidence_ids)),
+                "knowledge_digest": knowledge_digest,
                 "limitations": [*limitations, "canonical_weather_gdd_unavailable"],
                 "source": "canonical_weather_state",
             }
@@ -81,6 +96,8 @@ def resolve_phenology_inputs(
             or "canonical_weather_gdd",
             "formula_version": product.get("calculation_version") or product.get("formula_version"),
             "evidence_ids": list(dict.fromkeys(evidence_ids)),
+            "knowledge_evidence_ids": list(dict.fromkeys(knowledge_evidence_ids)),
+            "knowledge_digest": knowledge_digest,
             "limitations": [*limitations, *(product.get("limitations") or [])],
             "source": "canonical_weather_state",
         }
@@ -92,6 +109,8 @@ def resolve_phenology_inputs(
         "method": None,
         "formula_version": None,
         "evidence_ids": [],
+        "knowledge_evidence_ids": list(dict.fromkeys(knowledge_evidence_ids)),
+        "knowledge_digest": knowledge_digest,
         "limitations": limitations,
         "source": "legacy_scalar_compatibility",
     }
