@@ -38,11 +38,23 @@ _NOT_GAP_IDS = {
 
 
 def registry_ids() -> set[str]:
-    """المعرّفات المُعلَنة كعناوين أقسام — لا أيّ ذكر عابر في النثر."""
+    """المعرّفات المُعلَنة رسميّاً — عنواناً أو **عمود معرّف في الجدول**.
+
+    السجلّ يستعمل شكلين للتسجيل: قسم `## ` وصفّ جدول يبدأ عموده الأوّل بالمعرّف. قصر
+    الفحص على العناوين وحدها أنتج **إيجابيّة كاذبة**: ٢٢ فجوة مسجَّلة كصفوف تُعامَل كغير
+    مسجَّلة، فتسقط أيّ PR تذكرها برسالة تطالب بتسجيل ما هو مسجَّل سلفاً. مُثبَت على تاريخ
+    مدموج (`37c3b56` يذكر `CAP-INT-004-INTEGRATION`).
+
+    ما يبقى مرفوضاً: الذكر العابر في النثر — لأنّه لا يُنشئ مدخلاً ولا حالة.
+    """
     ids: set[str] = set()
     for line in REGISTRY.read_text(encoding="utf-8").splitlines():
         if line.startswith("## "):
             ids.update(_GAP_ID.findall(line))
+        elif line.startswith("|"):
+            # عمود المعرّف الأوّل فقط — لا بقيّة خلايا الصفّ (وصف/مصدر/حالة).
+            first_cell = line.split("|")[1] if line.count("|") >= 2 else ""
+            ids.update(_GAP_ID.findall(first_cell))
     return ids
 
 
@@ -73,14 +85,15 @@ def check(base: str, head: str) -> int:
                 continue
             claimed += 1
             if gid not in known:
-                violations.append(f"{sha}: يذكر {gid} — لا عنوان '## {gid}' في السجلّ")
+                violations.append(f"{sha}: يذكر {gid} — لا قسم '## {gid}' ولا صفّ جدول يبدأ به")
     if violations:
         print("brain commit claim guard: FAIL")
         for v in sorted(set(violations)):
             print(f"  ✗ {v}")
         print(
             "\nذكر معرّف فجوة في رسالة التزام ادّعاءُ وجودها. سجّلها في "
-            "sahool-brain/gaps/registry.md كعنوان '## ' بمصدرها وحالتها، أو احذف الذكر."
+            "sahool-brain/gaps/registry.md **بأحد الشكلين المقبولين** — قسم '## المعرّف' "
+            "أو صفّ جدول يبدأ عموده الأوّل بالمعرّف — بمصدرها وحالتها، أو احذف الذكر."
         )
         return 1
     print(f"brain commit claim guard: PASS ({claimed} ادّعاء معرّف مُتحقَّق منه)")

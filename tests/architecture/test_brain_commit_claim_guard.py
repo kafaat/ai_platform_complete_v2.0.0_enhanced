@@ -56,8 +56,31 @@ def test_a_registered_id_is_accepted(tmp_path: Path):
     assert "CI-RLS-SUPERUSER-ROLE-01" not in known, "المعرّف المكرّر عاد"
 
 
-def test_registry_ids_come_from_headings_not_prose():
-    """ذكر معرّف داخل فقرة لا يُنشئ فجوة — العنوان وحده يفعل."""
+def test_table_row_ids_count_as_registered():
+    """الإيجابيّة الكاذبة التي شُحنت ثمّ صُحّحت.
+
+    السجلّ يسجّل بشكلين: قسم `## ` وصفّ جدول. قصر الفحص على العناوين جعل ٢٢ فجوة
+    مسجَّلة تُعامَل كغير مسجَّلة، فتسقط أيّ PR تذكرها برسالة تطالبها بتسجيل ما هو
+    مسجَّل. أسوأ من ثغرة: حارس يعاقب على الامتثال.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    known = mod.registry_ids()
+    assert "CAP-INT-004-INTEGRATION" in known, "معرّف صفّ جدول يُعامَل كغير مسجَّل"
+    assert "DEPS-DEPENDABOT-4" in known
+
+
+def test_the_false_positive_is_gone_on_merged_history():
+    """37c3b56 مدموج ويذكر معرّف صفّ جدول — كان يسقط، ويجب أن يمرّ."""
+    result = _run("37c3b56~1", "37c3b56")
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_prose_mentions_still_do_not_register_a_gap():
+    """التصحيح لم يوسّع القبول إلى النثر — وإلّا فقد الحارس معناه."""
     import importlib.util
 
     spec = importlib.util.spec_from_file_location("g", GUARD)
@@ -65,6 +88,9 @@ def test_registry_ids_come_from_headings_not_prose():
     spec.loader.exec_module(mod)
     registry = (ROOT / "sahool-brain/gaps/registry.md").read_text(encoding="utf-8")
     for gid in mod.registry_ids():
-        assert any(line.startswith("## ") and gid in line for line in registry.splitlines()), (
-            f"{gid} لم يأتِ من عنوان قسم"
+        declared = any(
+            (line.startswith("## ") and gid in line)
+            or (line.startswith("|") and gid in line.split("|")[1])
+            for line in registry.splitlines()
         )
+        assert declared, f"{gid} لم يأتِ من عنوان ولا من عمود معرّف"
