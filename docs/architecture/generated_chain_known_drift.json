@@ -27,26 +27,6 @@
       "why_not_regenerate": "إعادة التوليد لا تُثبّت الأداة: الانحراف من عدم تماثل الأداة نفسها لا من بيانات بائتة، فتشغيلها يُنتج انحرافاً جديداً.",
       "to_close": "تصليب capability_linker ليكون توليده متماثلاً (idempotent)، أو إسقاط --check منه صراحةً بدل إبقاء علم يفشل دائماً."
     },
-    "scripts/ci/compose_runtime_target_resolver.py": {
-      "drifts": true,
-      "check_flag": "--check",
-      "kind": "stale_artifact",
-      "watcher": "tests/architecture/test_compose_runtime_target_resolver.py",
-      "why_the_watcher_is_silent": "الاختبار خارج testpaths: pytest.ini يحصر الجمع في tests_v9، وtests/architecture لا يُجمَع في أيّ تشغيل — مُسجَّل في ARCH-TESTS-UNLISTED-IN-CI-01. تشغيله يدويّاً يفشل فعلاً.",
-      "evidence": "مُتحقَّق مرّتين — بالسكربت وبالاختبار: runtime_probe_plan.json يُعلن plan_sha256=f82e9be9…، بينما compose_runtime_targets.json يسجّل source_plan_sha256=07820538… (وtargets_sha256 ee1643ec… مقابل 9bb4c8ec… المحسوبة). بصمة خطّة أقدم: تغيّرت الخطّة ولم يُعَد توليد المُحلِّل.",
-      "why_not_regenerate": "ليس بصمة بيئة بل أثر بائت — لكنّ إعادة توليده تُغيّر مُدخَل path3 أدناه، فيُحسم الاثنان معاً بقرار مالك لا بأمر آليّ.",
-      "to_close": "قرار المالك المُسجَّل في PATH3-READINESS-CLAIM-UNBACKED-01 (#692): إمّا تصحيح بصمة الخطّة فتعود المطابقة صادقةً، أو قبول BLOCKED_STATIC_READINESS وإعادة التوليد. الاثنان يُحسمان معاً — هذا المدخل والمدخل التالي أثر واحد بخطوتين."
-    },
-    "scripts/ci/path3_runtime_readiness_closure.py": {
-      "drifts": true,
-      "check_flag": "--check",
-      "kind": "governance_state_would_flip",
-      "watcher": "tests/architecture/test_path3_runtime_readiness_closure.py",
-      "why_the_watcher_is_silent": "خارج testpaths كسابقه (ARCH-TESTS-UNLISTED-IN-CI-01). تشغيله يدويّاً يفشل في اختبارين لا واحد.",
-      "evidence": "الأثر المُلتزَم يدّعي جاهزيّةً؛ إعادة التوليد على الشجرة نفسها تقلبها إلى محجوبة، لأنّها تقرأ بصمة الخطّة البائتة أعلاه.",
-      "why_not_regenerate": "هذا **تغيير حالة حوكمة** لا تحديث بصمة. لا يُقلَب بأمر آليّ ولا بقرار وكيل — أثر مُلتزَم يدّعي جاهزيّة لا تسندها الشجرة، وتصحيحه قرار مالك صريح.",
-      "to_close": "قرار المالك نفسه: PATH3-READINESS-CLAIM-UNBACKED-01 (P0، #692) يحمل الحالة كاملةً والخيارين. قلب الحالة قرار مالك لا أمر آليّ."
-    },
     "scripts/ci/runtime_environment_preflight.py": {
       "drifts": true,
       "check_flag": "--check",

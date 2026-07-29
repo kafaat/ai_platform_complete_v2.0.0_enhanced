@@ -124,7 +124,11 @@ def test_every_uncovered_generator_in_the_tree_is_classified():
 def test_the_classifier_actually_finds_the_uncovered_set():
     """أرضيّة تمنع كشفاً منهاراً يمرّ خضراء بلا تصنيف شيء."""
     found = MOD.uncovered()
-    assert len(found) >= 5, f"كشف مُنهار: {found}"
+    # الأرضيّة نزلت 5 ⇒ 4 بإغلاق PATH3-READINESS-CLAIM-UNBACKED-01 (2026-07-29):
+    # `compose_runtime_target_resolver` و`path3_runtime_readiness_closure` خرجا من
+    # غير المُغطّى بإدراج اختباريهما. النزول **مكسوب** لا انهيار — والأرضيّة تُخفَّض
+    # بسبب مكتوب لا لتمرير اختبار.
+    assert len(found) >= 4, f"كشف مُنهار: {found}"
     for script in found:
         assert (ROOT / script).is_file(), f"مصنَّف غير موجود: {script}"
 
@@ -211,7 +215,10 @@ def test_generators_no_workflow_mentions_are_reported_not_hidden():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     blind = mod.unreferenced_generators()
-    assert "scripts/ci/path3_runtime_readiness_closure.py" in blind, (
+    # كان التوقّع على `path3_runtime_readiness_closure`؛ أُغلِق سببه
+    # (PATH3-READINESS-CLAIM-UNBACKED-01) وأُدرِج اختباره، فحُدِّث التوقّع بوعي بدل
+    # حذفه — الكشف نفسه ما زال مطلوباً، والعيّنة تغيّرت لا القاعدة.
+    assert "scripts/ci/runtime_environment_preflight.py" in blind, (
         "إمّا صار مذكوراً في workflow — فاحذف هذا التوقّع بوعي — أو كُسر الكشف"
     )
     for script in blind:

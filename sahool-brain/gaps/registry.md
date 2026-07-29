@@ -774,7 +774,15 @@
   لاحقاً كقبول صامت لاثنين وعشرين مساراً.
 - **المصدر:** `scripts/ci/api_versioning_policy_guard.py:68` (المُصنِّف) · `:104-113`
   (الاشتقاق) · `:126-135` (المقارنة) · قياس على `82ba88ad`.
-## PATH3-READINESS-CLAIM-UNBACKED-01 — OPEN (P0) 2026-07-28 — يحتاج قرار مالك
+## PATH3-READINESS-CLAIM-UNBACKED-01 — FIXED_IN_CODE (2026-07-29) — **وتصويب على تشخيصي**
+
+- **التشخيص الأوّل كان مقلوباً، وأعلنتُه ثلاث مرّات:** قلتُ إنّ الأثر المُلتزَم «يدّعي جاهزيّةً لا تسندها الشجرة». **العكس هو الصحيح** — الشجرة تسندها، و**الإنذار** هو الذي كان كاذباً.
+- **ما فحصتُه أخيراً ولم أفحصه أوّلاً — أيّ الجانبين بائت:** `runtime_probe_plan.json` تغيّر **أربع مرّات** (`cae51f7` ⇒ `6ca361d` ⇒ `4fa8014` ⇒ `fce91a9`/#678، كلّها 2026-07-28)، بينما `compose_runtime_targets.json` لم يُعَد توليده منذ `0dad1a1`/#670. فالمُشتقّ متخلّف عن مصدره، لا الحالة منقلبة.
+- **البرهان:** إعادة توليد المُحلِّل ثمّ `path3` ⇒ `closed=true` · `READY_FOR_LIVE_EXECUTION` · `target_plan_hash_matches=true`، و**ملفّ واحد فقط تغيّر** (`compose_runtime_targets.json`). أثر `path3` المُلتزَم لم يتغيّر بحرف — أي أنّه كان **صحيحاً طوال الوقت**.
+- **لماذا بقي بائتاً شهراً:** لا workflow يذكر المُحلِّل (الزاوية العمياء، `GENERATED-ARTIFACT-SWEEP-01`). أربع شرائح غيّرت الخطّة ولم يُعِد أيّ منها توليد ما يشتقّ منها.
+- **الأثر على الأساسين:** `arch_test_ci_coverage_baseline` تقلّص **3 ⇒ 1**، و`tests_tree_baseline` تقلّص **10 ⇒ 8**، وأُدرِج الاختباران في `capability-governance.yml`. الحرّاس: arch **55/56** · tests-tree **106/114 يُشغَّل**.
+- **الدرس الذي دفعتُ ثمنه:** عرضتُ على المالك «قرارين ولا ثالث» — وكان الثالث موجوداً ولم أبحث عنه: **أيّ الجانبين بائت**. صياغة الخيارات بديلٌ رديء عن إتمام التشخيص، وقد أوقفتُ عملاً بانتظار قرار لم يكن لازماً.
+- **يبقى مُعفى واحد:** `test_runtime_environment_preflight` — بصمة بيئة حقيقيّة، علاجها تصميميّ (`docker_reachable` بدل نصّ خطأ العميل).
 
 - **الأثر:** `governance/path3-generated/PATH3_RUNTIME_READINESS_CLOSURE.json` المُلتزَم يقول `target_plan_hash_matches=true` · `closed=true` · `status=READY_FOR_LIVE_EXECUTION`. إعادة توليده **على الشجرة نفسها بلا أيّ تغيير** تقول `false` · `false` · `BLOCKED_STATIC_READINESS`.
 - **السبب المُثبَت (سلسلة من خطوتين):** `runtime-verification/generated/runtime_probe_plan.json` يُعلن `plan_sha256=f82e9be9…`، بينما `runtime-verification/generated/compose_runtime_targets.json` يسجّل `source_plan_sha256=07820538…` — بصمة خطّة **أقدم**. تغيّرت الخطّة ولم يُعَد توليد المُحلِّل، فورث `path3` مقارنةً كاذبة.
