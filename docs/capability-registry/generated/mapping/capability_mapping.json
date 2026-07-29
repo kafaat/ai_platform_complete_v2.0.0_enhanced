@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4783,
+    "files_scanned": 4786,
     "files_by_kind": {
       "backend": 1190,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1251,
-      "tests": 1519,
+      "other": 1253,
+      "tests": 1520,
       "web": 448
     },
-    "unmapped_artifacts": 1949,
+    "unmapped_artifacts": 1950,
     "ambiguous_artifacts": 391
   },
   "capabilities": [
@@ -39913,6 +39913,10 @@
     },
     {
       "path": "tests/ci/test_phase16_ci_cd_gates.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/ci/test_tests_tree_coverage_guard.py",
       "kind": "tests"
     },
     {

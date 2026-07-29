@@ -192,6 +192,42 @@ def _sort_key(step: tuple[str, list[str]]) -> tuple[int, str]:
     return (1 if name in _LATE else 0, step[0])
 
 
+def tree_state() -> str:
+    """حالة الملفّات المتتبَّعة — الإشارة الوحيدة التي لا يملك الحارس تزييفها."""
+    out = subprocess.run(  # noqa: S603 — أمر ثابت
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return "\n".join(sorted(out.splitlines()))
+
+
+def unreferenced_generators() -> list[str]:
+    """مولِّدات في الشجرة **لا يذكرها أيّ workflow** — عمياء عن الاكتشاف.
+
+    الاكتشاف من الـworkflows يرى ما يُشغّله CI بدقّة، ويعمى بالتعريف عمّا **نسيه**.
+    والقياس يقول إنّ هذه ليست حالة نظريّة: أربعة مولِّدات خارج كلّ workflow، وثلاثة
+    منها منحرفة على `main` — وفيها `path3_runtime_readiness_closure` الذي يُعلن
+    جاهزيّةً لا تسندها الشجرة (`PATH3-READINESS-CLAIM-UNBACKED-01`).
+
+    تُذكر ولا تُشغَّل: تشغيلها هنا يوسّع العقد بلا قرار، وكتمانها يجعل الأداة تدّعي
+    شمولاً لا تملكه.
+    """
+    writes = re.compile(r'"(--(?:generate|write)[a-z-]*)"')
+    referenced: set[str] = set()
+    for wf in sorted(WORKFLOWS.glob("*.yml")):
+        referenced.update(
+            re.findall(r"(scripts/(?:ci|release)/[a-z0-9_]+\.py)", wf.read_text(encoding="utf-8"))
+        )
+    found: set[str] = set()
+    for folder in ("scripts/ci", "scripts/release"):
+        for script in sorted((ROOT / folder).glob("*.py")):
+            if writes.search(script.read_text(encoding="utf-8", errors="ignore")):
+                found.add(f"{folder}/{script.name}")
+    return sorted(found - referenced)
+
+
 def check_all(steps) -> list[tuple[str, str]]:
     """يُعيد قائمة (الخطوة، آخر سطر) لكلّ فحص فاشل."""
     failures: list[tuple[str, str]] = []
@@ -268,7 +304,20 @@ def main() -> int:
             print("\nلم تثبت المصنوعات بعد الحدّ الأقصى للدورات.")
             return 1
     else:
-        if check_all(steps):
+        # CHECK-STEPS-MUTATE-THE-TREE-01: ستّة حرّاس يكتبون في وضع «فحص فقط»، فيُصلحون
+        # الانحراف صامتاً ويُعيدون صفراً. مُثبَت: إفساد `service_inventory.csv` ثمّ
+        # الفحص ⇒ يختفي الإفساد وتُعلَن السلامة. فرمز الخروج وحده **أخضر كاذب**،
+        # والحدّ الصادق أنّ حالة الشجرة قبل الفحص = حالتها بعده.
+        before = tree_state()
+        failed = bool(check_all(steps))
+        after = tree_state()
+        if before != after:
+            print("\n  ✗ حارس كتب أثناء الفحص — الشجرة تغيّرت بين بدايته ونهايته:")
+            for line in sorted(set(after.splitlines()) ^ set(before.splitlines())):
+                print(f"      {line}")
+            print("      انحراف أُصلِح صامتاً وضاع دليله قبل أن يُقرأ في git diff.")
+            failed = True
+        if failed:
             print("\nانحراف في المصنوعات المولَّدة — شغّل --fix ثمّ راجع الفرق قبل الالتزام.")
             return 1
 
@@ -283,13 +332,23 @@ def main() -> int:
         for script in manual:
             print(f"  · {script}")
 
+    # التقاء شريحتين على الزاوية نفسها (#693 و#690): `unreferenced_generators` يُبلِّغ
+    # المجموعة، و`classify_uncovered` أعلاه **يفرض** أن يحمل كلّ عضو فيها مدخلاً مُبرَّراً.
+    # يبقى الإبلاغ لأنّه يُسمّي الحدّ في المخرَج، والفرض هو ما يمنع اتّساعه صامتاً.
+    blind = unreferenced_generators()
+    if blind:
+        print("\nمولِّدات لا يذكرها أيّ workflow ⇒ خارج الاكتشاف (مُصنَّفة في الأساس، غير مُنفَّذة هنا):")
+        for script in blind:
+            print(f"  · {script}")
+        print("  انظر PATH3-READINESS-CLAIM-UNBACKED-01 — ثلاثة منها منحرفة على main.")
+
     if args.uncovered:
         print("\n— المولّدات غير المُغطّاة (تنفيذ صريح؛ راجع `git status` بعده):")
         if run_uncovered(entries):
             print("\nحالة مولّد غير مُغطّى تخالف الأساس — حدِّث الأساس أو أصلح السبب.")
             return 1
 
-    print("\n✅ كلّ المصنوعات المولَّدة متّسقة.")
+    print("\n✅ كلّ المصنوعات المولَّدة المُكتشَفة متّسقة.")
     return 0
 
 

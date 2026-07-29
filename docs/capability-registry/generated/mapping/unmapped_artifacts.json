@@ -6356,6 +6356,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/ci/test_tests_tree_coverage_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/deploy/test_phase15_deployment_readiness_contracts.py",
     "kind": "tests"
   },
