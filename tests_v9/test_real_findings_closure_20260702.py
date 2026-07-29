@@ -1,6 +1,9 @@
 from pathlib import Path
 
+import pytest
 import yaml
+
+pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -9,8 +12,21 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
+def read_service(service: str) -> str:
+    """كلّ وحدات الخدمة مضمومة — التأكيد على **الخدمة** لا على ملفّ بعينه.
+
+    الملفّات تتحرّك بالتفكيك (P1/P2)، والقاعدة التي يحرسها الاختبار لا تتحرّك معها.
+    قطعُ ملفّ واحد بالاسم يجعل التفكيك يُسقِط الحارس بينما القاعدة قائمة — وهو ما
+    حدث فعلاً هنا: انتقلت الأسطر من ``main.py`` إلى ``ai_evidence_runtime.py``.
+    يبقى هذا تأكيداً نصّيّاً، لكنّه لم يعد مقيّداً بموضع.
+    """
+    return "\n".join(
+        path.read_text(encoding="utf-8") for path in sorted((ROOT / service).glob("*.py"))
+    )
+
+
 def test_ai_rejects_client_supplied_current_field_state_without_service_token():
-    src = read("services/ai_agronomist/main.py")
+    src = read_service("services/ai_agronomist")
     assert "current_field_state_requires_service_token" in src
     assert "service_token_ok(x_agent_token" in src
     assert "field_state = req.current_field_state" in src
@@ -18,7 +34,7 @@ def test_ai_rejects_client_supplied_current_field_state_without_service_token():
 
 
 def test_ai_forwards_trusted_tenant_to_kg_and_rag():
-    src = read("services/ai_agronomist/main.py")
+    src = read_service("services/ai_agronomist")
     assert 'headers={"X-Tenant-Id": tenant_id}' in src
     assert "resolve_trusted_tenant(x_tenant_id, req.tenant_id)" in src
 
