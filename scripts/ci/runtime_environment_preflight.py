@@ -86,7 +86,9 @@ def docker_daemon_state() -> dict[str, Any]:
             timeout=15,
             check=False,
         )
-    except Exception as exc:
+    except Exception:  # noqa: BLE001 — الاستثناء لا يُلتقَط عمداً: نصّه هويّة آلة
+        # لا `as exc`: التقاطه يُغري بنقل نصّه إلى الأثر، وهو ما جاءت هذه الشريحة
+        # لإزالته. السبب يُصنَّف ولا يُنقَل — و`probe_failed` مستقلّ عن المُشغِّل.
         return {"reachable": False, "reason": "probe_failed"}
     if proc.returncode != 0:
         # نصّ خطأ عميل Docker يختلف حرفيّاً بين إصداراته لنفس السبب، فيصير الأثر
