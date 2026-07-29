@@ -20,7 +20,7 @@ _SCRIPT = ROOT / "scripts" / "ci" / "test_marker_coverage_guard.py"
 _BASELINE = ROOT / "docs" / "testing" / "unmarked_tests_baseline.json"
 
 # سقف راتشِت لا هدف: يُخفَض بوسم ملفّ أو حذفه، ولا يُرفَع لتمرير بوّابة.
-_MAX_UNMARKED = 14
+_MAX_UNMARKED = 9
 
 
 def _load():
