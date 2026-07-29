@@ -1,0 +1,33 @@
+{
+  "$comment": "أساس مُجمَّد لـarch_test_ci_coverage_guard: اختبارات في tests/architecture/ لا يُشغّلها أيّ workflow لأنّها **تفشل لسبب مُسجَّل**، لا لأنّ إدراجها نُسي. القائمة تتقلّص ولا تنمو، ويفرض ذلك اختبار. اختبار جديد يُدرَج في workflow — لا يُضاف هنا.",
+  "gap": "ARCH-TESTS-UNLISTED-IN-CI-01",
+  "measured_on": "3b7f837c (origin/main, 2026-07-28)",
+  "measurement": "54 اختباراً في tests/architecture/ · 37 مُدرَجاً قبل هذه الشريحة · 17 خارج CI. منها 14 تمرّ نظيفة وأُدرِجت، و3 تفشل لسبب مُسجَّل ومُعفاة أدناه.",
+  "exempt": {
+    "test_compose_runtime_target_resolver.py": {
+      "gap": "PATH3-READINESS-CLAIM-UNBACKED-01",
+      "failing": [
+        "test_generated_artifacts_match"
+      ],
+      "evidence": "الأثر المُلتزَم compose_runtime_targets.json يسجّل source_plan_sha256=07820538… بينما runtime_probe_plan.json يُعلن f82e9be9… — بصمة خطّة أقدم.",
+      "to_close": "قرار المالك في PATH3-READINESS-CLAIM-UNBACKED-01، ثمّ يُدرَج الملفّ."
+    },
+    "test_path3_runtime_readiness_closure.py": {
+      "gap": "PATH3-READINESS-CLAIM-UNBACKED-01",
+      "failing": [
+        "test_path3_static_readiness_is_closed_without_runtime_claims",
+        "test_generated_closure_matches"
+      ],
+      "evidence": "الأثر المُلتزَم يقول closed=true · READY_FOR_LIVE_EXECUTION؛ إعادة التوليد على الشجرة نفسها تقول false · BLOCKED_STATIC_READINESS. الاختبار يفشل لأنّه صادق، لا لأنّه معطوب.",
+      "to_close": "نفس القرار — إمّا تصحيح بصمة الخطّة أو قبول BLOCKED_STATIC_READINESS."
+    },
+    "test_runtime_environment_preflight.py": {
+      "gap": "GENERATED-CHAIN-UNDOCUMENTED-01",
+      "failing": [
+        "test_generated_artifact_matches_current_environment"
+      ],
+      "evidence": "الاختبار يؤكّد أنّ الأثر يطابق **بيئة المُشغِّل**: الأثر يحمل Python 3.12.3 ونصّ خطأ Docker الخاصّ بعميل من ولّده، فيفشل على أيّ آلة أخرى — بما فيها عدّاء CI ما لم يطابق بيئة التوليد صدفةً.",
+      "to_close": "يسجّل الأثر **قدرةً** (docker_reachable: false) لا نصّ خطأ عميل؛ عندها يصير الاختبار مستقلّاً عن الآلة ويُدرَج."
+    }
+  }
+}
