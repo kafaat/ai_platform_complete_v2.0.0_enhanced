@@ -36,7 +36,9 @@ COMPOSE_CANDIDATES = (
 def command_version(name: str) -> dict[str, Any]:
     path = shutil.which(name)
     if not path:
-        return {"available": False, "path": None, "version": None}
+        # نفس شكل الفرع الناجح: `available` وحده. إبقاء `path`/`version` هنا كان يجعل
+        # **عدد مفاتيح السجلّ** نفسه يتغيّر بتغيّر الآلة — بصمة آلة في الشكل لا في القيمة.
+        return {"available": False}
     commands = {
         "docker": [name, "--version"],
         "psql": [name, "--version"],
@@ -188,6 +190,57 @@ def normalized(payload: dict[str, Any]) -> dict[str, Any]:
     return copy
 
 
+def capability_scope(payload: dict[str, Any]) -> dict[str, Any]:
+    """البيئة التي **يصفها** الأثر — لا هويّتها، بل قدراتها التي تُغيّر إجابته.
+
+    الأثر يقيس «هذا الـcheckout» بنصّ docstring الملفّ. فمقارنته بآلة أخرى ليست كشف
+    انحراف بل ادّعاءً بأنّ الآلات كلّها آلة واحدة: عدّاء GitHub يملك Docker فيولّد
+    RUNNABLE، وصندوق بلا خفيّ يولّد BLOCKED_ENVIRONMENT — والاثنان صادقان.
+
+    ولذلك يُعلَن النطاق في الأثر بدل أن يُفترَض. المساواة الكاملة تُفرَض حين يتطابق
+    النطاق؛ وخارجه يُفحَص **الشكل والاتّساق** — وهو ما لا يعتمد على آلة أصلاً.
+    """
+    return {
+        "docker_daemon_reachable": bool(payload.get("docker_daemon", {}).get("reachable")),
+        "loopback_bind_available": bool(payload.get("loopback_bind_available")),
+        "compose_candidates": list(payload.get("compose_candidates") or []),
+    }
+
+
+_REASON_VOCABULARY = {
+    "docker_cli_missing",
+    "daemon_unreachable",
+    "daemon_permission_denied",
+    "daemon_error",
+    "probe_failed",
+}
+
+
+def shape_problems(payload: dict[str, Any]) -> list[str]:
+    """ما يبقى صحيحاً على **أيّ** آلة — فيُفحَص في كلّ مكان لا حيث تتطابق البيئة فقط.
+
+    هذه ليست تعويضاً عن المقارنة بل الطبقة التي لا تملك أيّ بيئة أن تُعفي منها: أثر
+    يدّعي جاهزيّةً وهو يحمل حاجباً، أو يدّعي تحقّقاً تشغيليّاً، أو يحمل سبباً خارج
+    المفردات المُصنَّفة — كلّها كذب مهما كانت الآلة.
+    """
+    problems: list[str] = []
+    if payload.get("runtime_verified") or payload.get("production_certified"):
+        problems.append("preflight must never assert runtime verification or certification")
+    runnable = bool(payload.get("runnable"))
+    blockers = payload.get("blockers") or []
+    if runnable != (not blockers):
+        problems.append("state/blockers disagree: RUNNABLE requires an empty blocker list")
+    if payload.get("state") != ("RUNNABLE" if runnable else "BLOCKED_ENVIRONMENT"):
+        problems.append("state does not follow from runnable")
+    reason = payload.get("docker_daemon", {}).get("reason")
+    if reason is not None and reason not in _REASON_VOCABULARY:
+        problems.append(f"unclassified daemon reason (machine text leaks back in): {reason!r}")
+    for name, tool in (payload.get("tools") or {}).items():
+        if set(tool) - {"available"}:
+            problems.append(f"tool record carries machine identity beyond availability: {name}")
+    return problems
+
+
 def write() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     payload, report = build()
@@ -201,16 +254,31 @@ def check(require_runnable: bool) -> int:
         return 1
     current, report = build()
     stored = json.loads(OUT_JSON.read_text(encoding="utf-8"))
-    if normalized(stored) != normalized(current):
-        print("runtime environment preflight drift")
+
+    problems = shape_problems(stored)
+    if problems:
+        print("runtime environment preflight is internally false:")
+        for line in problems:
+            print(f"  - {line}")
         return 1
-    # Generated time is intentionally excluded; report itself is deterministic.
-    if OUT_MD.read_text(encoding="utf-8") != report:
-        print("runtime environment preflight report drift")
-        return 1
-    if stored.get("runtime_verified") or stored.get("production_certified"):
-        print("preflight must never assert runtime verification or production certification")
-        return 1
+
+    stored_scope = capability_scope(stored)
+    if stored_scope == capability_scope(current):
+        if normalized(stored) != normalized(current):
+            print("runtime environment preflight drift")
+            return 1
+        # Generated time is intentionally excluded; report itself is deterministic.
+        if OUT_MD.read_text(encoding="utf-8") != report:
+            print("runtime environment preflight report drift")
+            return 1
+    else:
+        # صدق: يُقال ما لم يُفحَص، ولا يُقرأ النجاح تغطيةً لا يملكها.
+        print(
+            "preflight scope differs from this machine "
+            f"(stored docker_reachable={stored_scope['docker_daemon_reachable']}, "
+            f"here={capability_scope(current)['docker_daemon_reachable']}) — "
+            "shape and consistency verified, value comparison skipped"
+        )
     if require_runnable and not current["runnable"]:
         print("PATH-3 environment BLOCKED: " + ", ".join(b["code"] for b in current["blockers"]))
         return 2

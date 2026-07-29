@@ -16,7 +16,7 @@
     "reachable": false,
     "reason": "daemon_unreachable"
   },
-  "generated_at": "2026-07-29T16:29:41.799852+00:00",
+  "generated_at": "2026-07-29T17:50:18.725497+00:00",
   "loopback_bind_available": true,
   "platform": {
     "machine": "x86_64",
@@ -38,9 +38,7 @@
       "available": true
     },
     "nats": {
-      "available": false,
-      "path": null,
-      "version": null
+      "available": false
     },
     "psql": {
       "available": true
