@@ -1,6 +1,10 @@
 import subprocess
 import sys
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 
 def _run(*paths):
     return subprocess.run(

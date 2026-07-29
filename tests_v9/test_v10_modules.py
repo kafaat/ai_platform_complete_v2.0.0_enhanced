@@ -17,6 +17,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/sahool-p
 
 import asyncio
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 
 # Avoid asyncpg dependency at import time
 def test_lifecycle_state_machine():

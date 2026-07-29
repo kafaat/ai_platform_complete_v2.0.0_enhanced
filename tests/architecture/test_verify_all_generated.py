@@ -109,7 +109,7 @@ def test_unknown_steps_are_reported_not_skipped():
 _BASELINE = ROOT / "docs" / "architecture" / "generated_chain_known_drift.json"
 
 # سقف راتشِت لا هدف: الأساس يتقلّص بإغلاق الأسباب. رفعه لتمرير CI يُبطل معناه.
-_MAX_DRIFTING = 5
+_MAX_DRIFTING = 4
 
 
 def _baseline() -> dict:

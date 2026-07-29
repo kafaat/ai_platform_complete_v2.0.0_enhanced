@@ -25,6 +25,8 @@ from shared.contracts.forms.condition_v1 import (
     validate_condition,
 )
 
+pytestmark = pytest.mark.unit
+
 CORPUS = (
     Path(__file__).resolve().parents[1] / "shared" / "contracts" / "forms" / "condition_corpus.json"
 )

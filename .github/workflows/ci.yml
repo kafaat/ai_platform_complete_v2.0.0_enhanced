@@ -502,16 +502,23 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       - run: pip install -r tests_v9/requirements-test.txt
+      # TESTS-UNMARKED-DESELECTED-01: ملفّ بلا علامة يستبعده `-m` في **كلّ** وظيفة،
+      # فيبدو حيّاً محلّيّاً وهو ميت في البوّابة. الحارس يمنع وُلود خامد جديد؛ الأساس
+      # المُجمَّد (١٥ ملفّاً بأسبابها المقيسة) يتقلّص ولا ينمو.
+      - run: python scripts/ci/test_marker_coverage_guard.py --check
       - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
       # بوّابة تغطية حقيقيّة (A1): راتشِت غير-كاسر يمنع الانحدار ويصعد فقط.
       # UNIT-TEST-DORMANCY-01 (2026-07-28): بعد إيقاظ ٤٧٩ اختباراً خامداً (fastapi
       # وscipy وpillow صارت في `requirements-test.txt`) صار المقيس **46%** بأمر CI
       # نفسه — كان ~44.55% في البيئة الدنيا. الأرضيّة تصعد 40→42 بنفس هامش
       # الاتّفاقيّة (~٤ نقاط دون المقيس).
-      # ratchet: 20→40 (2026-07) → 42 (2026-07-28)؛ ارفعها نحو 55 مع نموّ التغطية.
+      # TESTS-UNMARKED-DESELECTED-01 (2026-07-28): وُسِم ٥٤ ملفّاً خامداً (٢٤٠ اختباراً)
+      # فصار المقيس **47%** بنفس الأمر. الأرضيّة تصعد 42→43 بنفس القاعدة (~٤ نقاط دون
+      # المقيس). لم تقفز أكثر لأنّ الإيقاظ يرفع البسط والمقام معاً.
+      # ratchet: 20→40 (2026-07) → 42 → 43 (2026-07-28)؛ ارفعها نحو 55 مع نموّ التغطية.
       # راجع docs/testing/coverage_ratchet.md للخطّة المرحليّة والتفصيل حسب النطاق.
       - name: Coverage gate (fail-under)
-        run: pytest -m unit --cov=services --cov-fail-under=42 -q || (echo "التغطية انهارت دون الأرضيّة 42%" && exit 1)
+        run: pytest -m unit --cov=services --cov-fail-under=43 -q || (echo "التغطية انهارت دون الأرضيّة 43%" && exit 1)
       - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with: {files: coverage.xml}
       # ثلاثة من هذه الأربعة بلا `pytestmark = unit` ⇒ يستبعدها `-m unit`؛ تُشغَّل

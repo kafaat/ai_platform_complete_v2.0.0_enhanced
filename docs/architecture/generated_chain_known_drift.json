@@ -3,19 +3,19 @@
   "gap": "GENERATED-ARTIFACT-SWEEP-01",
   "origin": "الزاوية مُستخرَجة من claude/verify-all-generated (GENERATED-CHAIN-UNDOCUMENTED-01): «مولّد موجود لا يشغّله أيّ workflow» — زاوية لا تمسكها المكنسة لأنّها تكتشف من الـworkflows. أُعيد القياس على main الحاليّ بدل نقل نتائجه، فاختلف العدد والتفسير.",
   "measured_on": "780d0544 (origin/main, 2026-07-28)",
-  "measurement": "٦١ سكربتاً في scripts/{ci,architecture,release} يُعلن علم --check كسلسلة نصّيّة في مصدره (٥٨ ci + ١ architecture + ٢ release)؛ ٦ منها لا يذكر اسمَها أيّ workflow. من الستّة: واحد سليم (exit=0) وخمسة منحرفة.",
+  "measurement": "٦١ سكربتاً في scripts/{ci,architecture,release} يُعلن علم --check كسلسلة نصّيّة في مصدره (٥٨ ci + ١ architecture + ٢ release)؛ ٦ منها لا يذكر اسمَها أيّ workflow. من الستّة: **اثنان** سليمان (exit=0) وأربعة منحرفة — كان الميزان ١/٥ عند القياس، وأُغلِق api_versioning_policy_guard في 2026-07-28 بإعادة توليد جرده.",
   "correction": "قياس أوّليّ في هذه الجلسة عدّ api_versioning_policy_guard سليماً؛ كان خطأ قياس — رمز الخروج قُرئ بعد أنبوب `| tail` فعاد رمز tail لا رمز السكربت. القياس الصحيح: exit=1 لخمسة من الستّة.",
   "why_the_sweep_does_not_execute_these": "خمسة من الستّة تكتب ملفّات متعقَّبة أثناء --check نفسه (CHECK-STEPS-MUTATE-THE-TREE-01). تشغيلها ضمن المكنسة الافتراضيّة يُوسّخ شجرة المستخدم بلا طلبه، فالافتراضيّ **تصنيف** لا تنفيذ: يفشل إن ظهر مولّد غير مصنَّف. التنفيذ صريح بـ--uncovered على شجرة نظيفة.",
   "uncovered": {
     "scripts/ci/api_versioning_policy_guard.py": {
-      "drifts": true,
+      "drifts": false,
       "check_flag": "--check",
-      "kind": "stale_artifact",
+      "kind": "clean",
       "watcher": "tests_v9/test_api_versioning_policy_guard.py",
-      "why_the_watcher_is_silent": "الاختبار بلا علامة (marker). كلّ وظائف CI تنتقي بـ-m (unit/integration/security)، وpytest يستبعد ما لا علامة له من كلّ واحدة منها ⇒ الاختبار لا يعمل في أيّ وظيفة. ٦٩ ملفّاً من ٥٩٢ في tests_v9 بلا علامة — مُسجَّل في TESTS-UNMARKED-DESELECTED-01.",
-      "evidence": "python scripts/ci/api_versioning_policy_guard.py --check ⇒ exit=1 «api versioning inventory drift». الفرق أرقام أسطر انزاحت في المصدر: agriai-engine/main.py /metrics ٨٥→٩٠ وأخواتها. الجرد المُلتزَم يصف شجرةً سابقة.",
-      "why_not_regenerate": "قابل لإعادة التوليد فعلاً — لكنّ إعادته هنا تُخفي السبب: الحارس موجود ولا يعمل. تُصلَح العلامة أوّلاً كي يُمسَك الانحراف القادم في CI لا في مكنسة يدويّة.",
-      "to_close": "وسم الاختبار بـunit (فيُمسِك CI الانحراف) ثمّ إعادة توليد الجرد في الشريحة نفسها."
+      "why_the_watcher_is_silent": "لم يعد صامتاً: وُسِم الاختبار بـunit في 2026-07-28 فصار يعمل في وظيفة Unit Tests. يبقى المدخل هنا للتصنيف فقط — السكربت ما زال لا يذكره أيّ workflow مباشرةً، وحارسه اختبار لا خطوة.",
+      "evidence": "أُعيد توليد الجرد البائت في الشريحة نفسها ⇒ --check يخرج بصفر. الانحراف السابق كان أرقام أسطر انزاحت (agriai-engine/main.py /metrics ٨٥→٩٠). تحقّق شرط الإغلاق المُعلَن.",
+      "why_not_regenerate": "لا انحراف.",
+      "to_close": "يُحذف المدخل عند وصل السكربت بـworkflow. تنبيه مُسجَّل في API-VERSIONING-GUARD-IS-A-MIRROR-01: الحارس كاشف انحراف لا بوّابة سياسة، فخضرته لا تعني أنّ كلّ مسار غير مُصدَّر مأذون."
     },
     "scripts/ci/capability_linker.py": {
       "drifts": true,
