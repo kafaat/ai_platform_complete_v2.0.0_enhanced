@@ -27,16 +27,6 @@
       "why_not_regenerate": "إعادة التوليد لا تُثبّت الأداة: الانحراف من عدم تماثل الأداة نفسها لا من بيانات بائتة، فتشغيلها يُنتج انحرافاً جديداً.",
       "to_close": "تصليب capability_linker ليكون توليده متماثلاً (idempotent)، أو إسقاط --check منه صراحةً بدل إبقاء علم يفشل دائماً."
     },
-    "scripts/ci/runtime_environment_preflight.py": {
-      "drifts": true,
-      "check_flag": "--check",
-      "kind": "environment_stamp",
-      "watcher": "tests/architecture/test_runtime_environment_preflight.py",
-      "why_the_watcher_is_silent": "خارج testpaths كسابقيه (ARCH-TESTS-UNLISTED-IN-CI-01).",
-      "evidence": "الأثر المُلتزَم يحمل نصّ خطأ عميل Docker الخاصّ بمن ولّده؛ التوليد على آلة أخرى يكتب نصّاً مختلفاً حرفيّاً لنفس السبب. مُقاس: «Cannot connect to the Docker daemon at unix:///var/run/docker.sock…» مقابل «failed to connect to the docker API… no such file or directory» — حقيقة واحدة بنصّين.",
-      "why_not_regenerate": "إعادة التوليد تبصم بيئة من يُشغّلها، فيصير الأثر وصفاً لآلة لا للمنصّة.",
-      "to_close": "يسجّل الأثر **قدرةً** (docker_reachable: false) لا **نصّ خطأ العميل**، فيصير مستقلّاً عن الآلة."
-    },
     "scripts/release/platform_route_release_binding.py": {
       "drifts": false,
       "check_flag": "--check-source",

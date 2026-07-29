@@ -152,6 +152,7 @@ jobs:
             tests/architecture/test_runtime_probe_batch.py \
             tests/architecture/test_runtime_verification_apply.py \
             tests/architecture/test_runtime_verification_promotion_workflow.py \
+            tests/architecture/test_runtime_environment_preflight.py \
             tests/architecture/test_compose_runtime_target_resolver.py \
             tests/architecture/test_path3_runtime_readiness_closure.py
       # ARCH-TESTS-UNLISTED-IN-CI-01: القائمة أعلاه **يدويّة**، وكانت تبيت بصمت —

@@ -109,7 +109,9 @@ def test_unknown_steps_are_reported_not_skipped():
 _BASELINE = ROOT / "docs" / "architecture" / "generated_chain_known_drift.json"
 
 # سقف راتشِت لا هدف: الأساس يتقلّص بإغلاق الأسباب. رفعه لتمرير CI يُبطل معناه.
-_MAX_DRIFTING = 4
+# نزل 4 ⇒ 1 بإغلاق RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01 (2026-07-29):
+# الأثر صار يسجّل قدرةً لا هويّة آلة، فخرج من المنحرفين. بقي capability_linker وحده.
+_MAX_DRIFTING = 1
 
 
 def _baseline() -> dict:
@@ -128,7 +130,9 @@ def test_the_classifier_actually_finds_the_uncovered_set():
     # `compose_runtime_target_resolver` و`path3_runtime_readiness_closure` خرجا من
     # غير المُغطّى بإدراج اختباريهما. النزول **مكسوب** لا انهيار — والأرضيّة تُخفَّض
     # بسبب مكتوب لا لتمرير اختبار.
-    assert len(found) >= 4, f"كشف مُنهار: {found}"
+    # الأرضيّة 4 ⇒ 3: خرج runtime_environment_preflight من غير المُغطّى بإدراج
+    # اختباره في capability-governance.yml. نزول **مكسوب** بسبب مكتوب.
+    assert len(found) >= 3, f"كشف مُنهار: {found}"
     for script in found:
         assert (ROOT / script).is_file(), f"مصنَّف غير موجود: {script}"
 

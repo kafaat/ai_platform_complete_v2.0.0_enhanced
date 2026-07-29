@@ -6,7 +6,6 @@
 
 ## Environment
 
-- Python: **3.12.3**
 - Docker CLI: **available**
 - Docker daemon: **unreachable**
 - Loopback bind: **available**
@@ -14,7 +13,7 @@
 
 ## Blockers
 
-- `DOCKER_DAEMON_UNREACHABLE` — Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+- `DOCKER_DAEMON_UNREACHABLE` — daemon_unreachable
 
 ## Truth boundary
 

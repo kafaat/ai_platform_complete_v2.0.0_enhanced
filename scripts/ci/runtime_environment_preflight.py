@@ -36,7 +36,9 @@ COMPOSE_CANDIDATES = (
 def command_version(name: str) -> dict[str, Any]:
     path = shutil.which(name)
     if not path:
-        return {"available": False, "path": None, "version": None}
+        # نفس شكل الفرع الناجح: `available` وحده. إبقاء `path`/`version` هنا كان يجعل
+        # **عدد مفاتيح السجلّ** نفسه يتغيّر بتغيّر الآلة — بصمة آلة في الشكل لا في القيمة.
+        return {"available": False}
     commands = {
         "docker": [name, "--version"],
         "psql": [name, "--version"],
@@ -51,7 +53,28 @@ def command_version(name: str) -> dict[str, Any]:
         first = (proc.stdout or proc.stderr).splitlines()[0] if (proc.stdout or proc.stderr) else ""
     except Exception as exc:  # pragma: no cover - defensive environment boundary
         first = type(exc).__name__
-    return {"available": True, "path": path, "version": first}
+    # `path` و`version` هويّة آلة: مسار مطلق ورقم إصدار يختلفان بين العدّاءات.
+    # المطلوب من الأثر أن يقول **هل الأداة متاحة**، لا أين هي وأيّ نسخة.
+    del first
+    return {"available": True}
+
+
+def _classify_daemon_error(text: str) -> str:
+    """سبب مُصنَّف بدل نصّ العميل — قدرة لا هويّة آلة.
+
+    `RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01`: الأثر المُلتزَم كان يحمل نصّ خطأ
+    عميل Docker حرفيّاً، وهو يختلف بين إصدارات العميل لنفس السبب («Cannot connect to
+    the Docker daemon…» مقابل «failed to connect to the docker API…»). فكان `--check`
+    يفشل على كلّ آلة غير المولِّدة — لا لانحراف بل لاختلاف صياغة.
+    """
+    low = (text or "").lower()
+    if "permission denied" in low:
+        return "daemon_permission_denied"
+    if "no such file" in low or "cannot connect" in low or "failed to connect" in low:
+        return "daemon_unreachable"
+    if not low.strip():
+        return "daemon_unreachable"
+    return "daemon_error"
 
 
 def docker_daemon_state() -> dict[str, Any]:
@@ -65,10 +88,14 @@ def docker_daemon_state() -> dict[str, Any]:
             timeout=15,
             check=False,
         )
-    except Exception as exc:
-        return {"reachable": False, "reason": type(exc).__name__}
+    except Exception:  # noqa: BLE001 — الاستثناء لا يُلتقَط عمداً: نصّه هويّة آلة
+        # لا `as exc`: التقاطه يُغري بنقل نصّه إلى الأثر، وهو ما جاءت هذه الشريحة
+        # لإزالته. السبب يُصنَّف ولا يُنقَل — و`probe_failed` مستقلّ عن المُشغِّل.
+        return {"reachable": False, "reason": "probe_failed"}
     if proc.returncode != 0:
-        return {"reachable": False, "reason": (proc.stderr or proc.stdout).strip()[:500]}
+        # نصّ خطأ عميل Docker يختلف حرفيّاً بين إصداراته لنفس السبب، فيصير الأثر
+        # وصفاً لآلة لا للمنصّة. يُصنَّف السبب ولا يُنقَل نصّه.
+        return {"reachable": False, "reason": _classify_daemon_error(proc.stderr or proc.stdout)}
     return {"reachable": True, "server_version": proc.stdout.strip().strip('"')}
 
 
@@ -114,9 +141,9 @@ def build() -> tuple[dict[str, Any], str]:
         "production_certified": False,
         "platform": {
             "system": platform.system(),
-            "release": platform.release(),
+            # لا `release` ولا `python`: يصفان **آلة المُشغِّل** لا قدرة المنصّة،
+            # وتباينهما بين العدّاءات كان يُفشِل الفحص بلا انحراف حقيقيّ.
             "machine": platform.machine(),
-            "python": platform.python_version(),
         },
         "tools": tools,
         "docker_daemon": daemon,
@@ -134,7 +161,6 @@ def build() -> tuple[dict[str, Any], str]:
         "",
         "## Environment",
         "",
-        f"- Python: **{payload['platform']['python']}**",
         f"- Docker CLI: **{'available' if tools['docker']['available'] else 'missing'}**",
         f"- Docker daemon: **{'reachable' if daemon.get('reachable') else 'unreachable'}**",
         f"- Loopback bind: **{'available' if payload['loopback_bind_available'] else 'unavailable'}**",
@@ -164,6 +190,57 @@ def normalized(payload: dict[str, Any]) -> dict[str, Any]:
     return copy
 
 
+def capability_scope(payload: dict[str, Any]) -> dict[str, Any]:
+    """البيئة التي **يصفها** الأثر — لا هويّتها، بل قدراتها التي تُغيّر إجابته.
+
+    الأثر يقيس «هذا الـcheckout» بنصّ docstring الملفّ. فمقارنته بآلة أخرى ليست كشف
+    انحراف بل ادّعاءً بأنّ الآلات كلّها آلة واحدة: عدّاء GitHub يملك Docker فيولّد
+    RUNNABLE، وصندوق بلا خفيّ يولّد BLOCKED_ENVIRONMENT — والاثنان صادقان.
+
+    ولذلك يُعلَن النطاق في الأثر بدل أن يُفترَض. المساواة الكاملة تُفرَض حين يتطابق
+    النطاق؛ وخارجه يُفحَص **الشكل والاتّساق** — وهو ما لا يعتمد على آلة أصلاً.
+    """
+    return {
+        "docker_daemon_reachable": bool(payload.get("docker_daemon", {}).get("reachable")),
+        "loopback_bind_available": bool(payload.get("loopback_bind_available")),
+        "compose_candidates": list(payload.get("compose_candidates") or []),
+    }
+
+
+_REASON_VOCABULARY = {
+    "docker_cli_missing",
+    "daemon_unreachable",
+    "daemon_permission_denied",
+    "daemon_error",
+    "probe_failed",
+}
+
+
+def shape_problems(payload: dict[str, Any]) -> list[str]:
+    """ما يبقى صحيحاً على **أيّ** آلة — فيُفحَص في كلّ مكان لا حيث تتطابق البيئة فقط.
+
+    هذه ليست تعويضاً عن المقارنة بل الطبقة التي لا تملك أيّ بيئة أن تُعفي منها: أثر
+    يدّعي جاهزيّةً وهو يحمل حاجباً، أو يدّعي تحقّقاً تشغيليّاً، أو يحمل سبباً خارج
+    المفردات المُصنَّفة — كلّها كذب مهما كانت الآلة.
+    """
+    problems: list[str] = []
+    if payload.get("runtime_verified") or payload.get("production_certified"):
+        problems.append("preflight must never assert runtime verification or certification")
+    runnable = bool(payload.get("runnable"))
+    blockers = payload.get("blockers") or []
+    if runnable != (not blockers):
+        problems.append("state/blockers disagree: RUNNABLE requires an empty blocker list")
+    if payload.get("state") != ("RUNNABLE" if runnable else "BLOCKED_ENVIRONMENT"):
+        problems.append("state does not follow from runnable")
+    reason = payload.get("docker_daemon", {}).get("reason")
+    if reason is not None and reason not in _REASON_VOCABULARY:
+        problems.append(f"unclassified daemon reason (machine text leaks back in): {reason!r}")
+    for name, tool in (payload.get("tools") or {}).items():
+        if set(tool) - {"available"}:
+            problems.append(f"tool record carries machine identity beyond availability: {name}")
+    return problems
+
+
 def write() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     payload, report = build()
@@ -177,16 +254,31 @@ def check(require_runnable: bool) -> int:
         return 1
     current, report = build()
     stored = json.loads(OUT_JSON.read_text(encoding="utf-8"))
-    if normalized(stored) != normalized(current):
-        print("runtime environment preflight drift")
+
+    problems = shape_problems(stored)
+    if problems:
+        print("runtime environment preflight is internally false:")
+        for line in problems:
+            print(f"  - {line}")
         return 1
-    # Generated time is intentionally excluded; report itself is deterministic.
-    if OUT_MD.read_text(encoding="utf-8") != report:
-        print("runtime environment preflight report drift")
-        return 1
-    if stored.get("runtime_verified") or stored.get("production_certified"):
-        print("preflight must never assert runtime verification or production certification")
-        return 1
+
+    stored_scope = capability_scope(stored)
+    if stored_scope == capability_scope(current):
+        if normalized(stored) != normalized(current):
+            print("runtime environment preflight drift")
+            return 1
+        # Generated time is intentionally excluded; report itself is deterministic.
+        if OUT_MD.read_text(encoding="utf-8") != report:
+            print("runtime environment preflight report drift")
+            return 1
+    else:
+        # صدق: يُقال ما لم يُفحَص، ولا يُقرأ النجاح تغطيةً لا يملكها.
+        print(
+            "preflight scope differs from this machine "
+            f"(stored docker_reachable={stored_scope['docker_daemon_reachable']}, "
+            f"here={capability_scope(current)['docker_daemon_reachable']}) — "
+            "shape and consistency verified, value comparison skipped"
+        )
     if require_runnable and not current["runnable"]:
         print("PATH-3 environment BLOCKED: " + ", ".join(b["code"] for b in current["blockers"]))
         return 2
