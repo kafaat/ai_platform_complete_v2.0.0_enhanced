@@ -11,6 +11,7 @@ from __future__ import annotations
 import ast
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -64,8 +65,15 @@ def _routes(path: Path):
     return rows
 
 
+# مقطع إصدار في البادئة: `/v1/...` أو `/api/v1/...`. المُصنِّف الأوّل عرف الأوّل
+# وحده، بينما عرف المنصّة الفعليّ هو الثاني — فصُنِّف **٥١٧ مساراً مُصدَّراً** بوصفه
+# «قديماً غير مُصدَّر». لم يكن خطأ بيانات بل خطأ **تعريف**: قاعدة كُتبت من عرف
+# مُتخيَّل لا من الشجرة. (API-VERSIONING-GUARD-IS-A-MIRROR-01)
+_VERSIONED = re.compile(r"^(?:/api)?/v[0-9]+(?:/|$)")
+
+
 def _classify(path: str) -> str:
-    if path.startswith("/v1/") or path == "/v1":
+    if _VERSIONED.match(path):
         return "versioned"
     if path.startswith("/internal/"):
         return "internal_s2s"
