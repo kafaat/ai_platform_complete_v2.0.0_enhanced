@@ -534,6 +534,27 @@ jobs:
             tests_v9/test_field_forms_device_rotation_grace.py \
             tests_v9/test_erp_bridge_fail_closed.py
 
+  repository-tests:
+    name: Repository Tests (tests/)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with: {python-version: "3.12"}
+      - run: pip install -r tests_v9/requirements-test.txt
+      # ARCH-TESTS-UNLISTED-IN-CI-01: pytest.ini يحصر testpaths في tests_v9، فكان كلّ ما
+      # تحت tests/ يُشغَّل بقائمة مسارات صريحة — وأيّ ملفّ جديد يقع خارجها صامتاً (٦٦ من
+      # ١١٢ عند القياس). الشجرة تُشغَّل هنا **كاملةً**، والاستثناءات **تُشتقّ** من
+      # docs/testing/tests_tree_baseline.json لا تُكتب هنا: استثناء بلا مدخل مُبرَّر مستحيل،
+      # وملفّ جديد مُغطّى تلقائيّاً.
+      - run: python scripts/ci/tests_tree_coverage_guard.py --check
+      - name: Run the tests/ tree minus the justified baseline
+        run: |
+          ignores="$(python scripts/ci/tests_tree_coverage_guard.py --pytest-ignores)"
+          echo "excluded: $ignores"
+          # shellcheck disable=SC2086
+          pytest tests -q -p no:cacheprovider $ignores
+
   platform-unit-tests:
     name: Platform Unit Tests
     runs-on: ubuntu-24.04
