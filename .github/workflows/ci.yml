@@ -539,6 +539,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        # تاريخ كامل: الشجرة تحوي حرّاساً يقرؤون تاريخ git نفسه
+        # (`test_brain_commit_claim_guard` يشغّل `git log origin/main..HEAD` وعلى مدايات
+        # تاريخيّة مسمّاة). لم يكشفه شيء قبل هذه الوظيفة لأنّه لم يكن يعمل في أيّ مكان —
+        # وهو بالضبط ما كانت `ARCH-TESTS-UNLISTED-IN-CI-01` تُخفيه.
+        with: {fetch-depth: 0}
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       - run: pip install -r tests_v9/requirements-test.txt

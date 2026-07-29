@@ -33,7 +33,7 @@ _CRS = "EPSG:32638"
 def _write(path, array, *, dtype, count, nodata=None, alpha_band=False, mask=None):
     """يكتب GeoTIFF حقيقيّاً على القرص ويُعيد مساره.
 
-    ``mask``: قناع داخليّ (‏``write_mask``) — سلطة صلاحيّة **ثالثة** غير ألفا وغير
+    ``mask``: قناع داخليّ (``write_mask``) — سلطة صلاحيّة **ثالثة** غير ألفا وغير
     ``nodata``. لا يكتبه ``_index``/``_rgba`` أعلاه، ولذلك يُمرَّر صراحةً في الحالات
     التي تقيسه.
     """
@@ -155,7 +155,7 @@ def test_rgb_without_an_alpha_band_is_observable(tmp_path):
 def test_rgb_masked_out_entirely_is_not_observable(tmp_path):
     """نفس الملفّ بقناع داخليّ كلّه صفر ⇒ لا بكسل صالح، ولو كانت الألوان «معقولة».
 
-    بلا هذه الحالة يبقى مسار RGB (‏٣ نطاقات) بلا أيّ قياس: الفرع الوحيد المكتوب
+    بلا هذه الحالة يبقى مسار RGB (٣ نطاقات) بلا أيّ قياس: الفرع الوحيد المكتوب
     صراحةً هو RGBA بأربعة نطاقات uint8.
     """
     arr = np.full((3, 32, 32), 80, dtype="uint8")

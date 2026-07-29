@@ -14175,7 +14175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ead378e4844e382d17908c88d107016bab5962d4a19c8acb3144ea1c4957c02f"
+          "content": "3d4757069f2a108f9c60022860b3665cef7499ab0397c2d1efeb30a920245006"
         }
       ],
       "name": "services/raster-service/test_raster_observable_content.py",
