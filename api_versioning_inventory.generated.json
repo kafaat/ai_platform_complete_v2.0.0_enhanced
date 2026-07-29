@@ -3255,7 +3255,7 @@
     "method": "GET",
     "path": "/api/v1/admin/events/dead-letter",
     "handler": "admin_events_dead_letter",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3264,7 +3264,7 @@
     "method": "POST",
     "path": "/api/v1/admin/events/dead-letter/{outbox_id}/requeue",
     "handler": "admin_requeue_dead_letter",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3273,7 +3273,7 @@
     "method": "POST",
     "path": "/api/v1/admin/events/dead-letter/requeue-all",
     "handler": "admin_requeue_all_dead_letter",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3282,7 +3282,7 @@
     "method": "GET",
     "path": "/api/v1/admin/outbox/dead-letter",
     "handler": "admin_outbox_dead_letter",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3291,7 +3291,7 @@
     "method": "POST",
     "path": "/api/v1/admin/outbox/dead-letter/requeue",
     "handler": "admin_outbox_requeue_dead_letter",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3300,7 +3300,7 @@
     "method": "GET",
     "path": "/api/v1/agricultural-proverbs/for-date",
     "handler": "agricultural_proverbs_for_date",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3309,7 +3309,7 @@
     "method": "GET",
     "path": "/api/v1/agricultural-proverbs",
     "handler": "agricultural_proverbs",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3318,7 +3318,7 @@
     "method": "POST",
     "path": "/api/v1/agro/crop-risk",
     "handler": "crop_risk_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3327,7 +3327,7 @@
     "method": "POST",
     "path": "/api/v1/agro/plant-soil-feedback",
     "handler": "plant_soil_feedback_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3336,7 +3336,7 @@
     "method": "POST",
     "path": "/api/v1/agro/plant-soil-feedback/trend",
     "handler": "plant_soil_feedback_trend_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3345,7 +3345,7 @@
     "method": "POST",
     "path": "/api/v1/agro/crop-rotation",
     "handler": "crop_rotation_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3354,7 +3354,7 @@
     "method": "POST",
     "path": "/api/v1/agro/season-comparison",
     "handler": "season_comparison_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3363,7 +3363,7 @@
     "method": "POST",
     "path": "/api/v1/agro/decision-playbook",
     "handler": "decision_playbook_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3372,7 +3372,7 @@
     "method": "POST",
     "path": "/api/v1/work-orders/from-recommendation",
     "handler": "work_order_from_recommendation_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3381,7 +3381,7 @@
     "method": "GET",
     "path": "/api/v1/agro-zones/list",
     "handler": "agro_zones_list_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3390,7 +3390,7 @@
     "method": "GET",
     "path": "/api/v1/agro-zones/profile",
     "handler": "agro_zone_profile_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3399,7 +3399,7 @@
     "method": "GET",
     "path": "/api/v1/agro-zones/identify",
     "handler": "agro_zone_identify_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3408,7 +3408,7 @@
     "method": "GET",
     "path": "/api/v1/agro-zones/suited-crops",
     "handler": "agro_zone_suited_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3417,7 +3417,7 @@
     "method": "GET",
     "path": "/api/v1/agro-zones/by-elevation",
     "handler": "agro_zone_elevation_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3426,7 +3426,7 @@
     "method": "GET",
     "path": "/api/v1/agro-zones/identify-smart",
     "handler": "agro_zone_identify_smart_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3435,7 +3435,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/agronomic-replay",
     "handler": "agronomic_replay_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3444,7 +3444,7 @@
     "method": "GET",
     "path": "/api/v1/ai/models",
     "handler": "list_ai_models",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3453,7 +3453,7 @@
     "method": "GET",
     "path": "/api/v1/alerts",
     "handler": "list_alerts",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3462,7 +3462,7 @@
     "method": "POST",
     "path": "/api/v1/alerts",
     "handler": "create_alert",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3471,7 +3471,7 @@
     "method": "PATCH",
     "path": "/api/v1/alerts/{alert_id}/acknowledge",
     "handler": "acknowledge_alert",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3480,7 +3480,7 @@
     "method": "GET",
     "path": "/api/v1/analytics/costs",
     "handler": "analytics_costs",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3489,7 +3489,7 @@
     "method": "GET",
     "path": "/api/v1/analytics/costs/by-field",
     "handler": "analytics_costs_by_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3498,7 +3498,7 @@
     "method": "GET",
     "path": "/api/v1/aromatic-crops/list",
     "handler": "aromatic_crops_list_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3507,7 +3507,7 @@
     "method": "GET",
     "path": "/api/v1/astronomical-timing/stars",
     "handler": "astronomical_stars",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3516,7 +3516,7 @@
     "method": "POST",
     "path": "/api/v1/astronomical-timing/cross-check",
     "handler": "astronomical_cross_check",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3525,7 +3525,7 @@
     "method": "POST",
     "path": "/api/v1/auth/login",
     "handler": "login",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3534,7 +3534,7 @@
     "method": "GET",
     "path": "/api/v1/auth/me",
     "handler": "auth_me",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3543,7 +3543,7 @@
     "method": "POST",
     "path": "/api/v1/auth/logout",
     "handler": "auth_logout",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3552,7 +3552,7 @@
     "method": "POST",
     "path": "/api/v1/auth/signup",
     "handler": "auth_signup",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3561,7 +3561,7 @@
     "method": "GET",
     "path": "/api/v1/automation/scheduler-status",
     "handler": "scheduler_status_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3570,7 +3570,7 @@
     "method": "GET",
     "path": "/api/v1/automation/runs",
     "handler": "automation_runs_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3579,7 +3579,7 @@
     "method": "POST",
     "path": "/api/v1/automation/weather/register",
     "handler": "weather_register_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3588,7 +3588,7 @@
     "method": "GET",
     "path": "/api/v1/automation/weather/cached",
     "handler": "weather_cached_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3597,7 +3597,7 @@
     "method": "GET",
     "path": "/api/v1/automation/weather/status",
     "handler": "weather_automation_status_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3606,7 +3606,7 @@
     "method": "POST",
     "path": "/api/v1/automation/imagery/register-field",
     "handler": "imagery_register_field_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3615,7 +3615,7 @@
     "method": "GET",
     "path": "/api/v1/automation/imagery/status",
     "handler": "imagery_automation_status_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3624,7 +3624,7 @@
     "method": "POST",
     "path": "/api/v1/automation/alerts/run",
     "handler": "automation_run_alerts_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3633,7 +3633,7 @@
     "method": "PATCH",
     "path": "/api/v1/fields/{field_id}/boundary/review",
     "handler": "review_field_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3642,7 +3642,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/boundary/score",
     "handler": "score_field_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3651,7 +3651,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/boundary/clean",
     "handler": "clean_field_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3660,7 +3660,7 @@
     "method": "POST",
     "path": "/api/v1/fields/boundary-graph/rebuild",
     "handler": "rebuild_boundary_graph",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3669,7 +3669,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/boundary-graph",
     "handler": "get_field_boundary_graph",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3678,7 +3678,7 @@
     "method": "POST",
     "path": "/api/v1/admin/break-glass",
     "handler": "request_break_glass",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3687,7 +3687,7 @@
     "method": "GET",
     "path": "/api/v1/admin/break-glass/{token}/fields",
     "handler": "break_glass_read_fields",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3696,7 +3696,7 @@
     "method": "DELETE",
     "path": "/api/v1/admin/break-glass/{grant_id}",
     "handler": "revoke_break_glass",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3705,7 +3705,7 @@
     "method": "GET",
     "path": "/api/v1/calendars/today",
     "handler": "calendars_today",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3714,7 +3714,7 @@
     "method": "GET",
     "path": "/api/v1/calendars/lunar-mansions",
     "handler": "calendars_lunar_mansions",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3723,7 +3723,7 @@
     "method": "GET",
     "path": "/api/v1/calendars/himyarite-months",
     "handler": "calendars_himyarite_months",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3732,7 +3732,7 @@
     "method": "GET",
     "path": "/api/v1/calendars/regional-profiles",
     "handler": "calendars_regional_profiles",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3741,7 +3741,7 @@
     "method": "GET",
     "path": "/api/v1/calendars/context",
     "handler": "calendars_context",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3750,7 +3750,7 @@
     "method": "GET",
     "path": "/api/v1/calibration",
     "handler": "list_calibration",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3759,7 +3759,7 @@
     "method": "GET",
     "path": "/api/v1/calibration/{region}",
     "handler": "get_region_calibration",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3768,7 +3768,7 @@
     "method": "POST",
     "path": "/api/v1/calibration/{region}/evidence",
     "handler": "compute_region_evidence",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3777,7 +3777,7 @@
     "method": "GET",
     "path": "/api/v1/calibration/{region}/evidence/persisted",
     "handler": "get_persisted_region_evidence",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3786,7 +3786,7 @@
     "method": "POST",
     "path": "/api/v1/calibration/feedback",
     "handler": "compute_learning_feedback",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3795,7 +3795,7 @@
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt",
     "handler": "propose_region_adaptation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3804,7 +3804,7 @@
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt-from-evidence",
     "handler": "propose_region_adaptation_from_evidence",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3813,7 +3813,7 @@
     "method": "POST",
     "path": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
     "handler": "apply_region_adaptation_from_evidence",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3822,7 +3822,7 @@
     "method": "POST",
     "path": "/api/v1/calibration/{region}/propose-values",
     "handler": "propose_region_values",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3831,7 +3831,7 @@
     "method": "POST",
     "path": "/api/v1/calibration/{region}/override",
     "handler": "set_region_override",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3840,7 +3840,7 @@
     "method": "GET",
     "path": "/api/v1/calibration/{region}/resolved",
     "handler": "get_resolved_region_calibration",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3849,7 +3849,7 @@
     "method": "GET",
     "path": "/api/v1/calibration/overrides/all",
     "handler": "list_region_overrides",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3858,7 +3858,7 @@
     "method": "DELETE",
     "path": "/api/v1/calibration/{region}/override",
     "handler": "delete_region_override",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3867,7 +3867,7 @@
     "method": "GET",
     "path": "/api/v1/calibration/{region}/audit",
     "handler": "get_region_calibration_audit",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3876,7 +3876,7 @@
     "method": "POST",
     "path": "/api/v1/cameras/register",
     "handler": "cameras_register",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3885,7 +3885,7 @@
     "method": "POST",
     "path": "/api/v1/cameras/snapshot-evidence",
     "handler": "cameras_snapshot_evidence",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3894,7 +3894,7 @@
     "method": "GET",
     "path": "/api/v1/capabilities",
     "handler": "list_capabilities",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3903,7 +3903,7 @@
     "method": "POST",
     "path": "/api/v1/chemical-safety/check",
     "handler": "chemical_safety_check",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3912,7 +3912,7 @@
     "method": "GET",
     "path": "/api/v1/chemical-safety/banned",
     "handler": "chemical_safety_banned",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3921,7 +3921,7 @@
     "method": "GET",
     "path": "/api/v1/climate-analogs/list",
     "handler": "climate_analogs_list_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3930,7 +3930,7 @@
     "method": "GET",
     "path": "/api/v1/climate-analogs/detail",
     "handler": "climate_analogs_detail_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3939,7 +3939,7 @@
     "method": "GET",
     "path": "/api/v1/climate-analogs/desert-crops",
     "handler": "climate_analogs_crops_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3948,7 +3948,7 @@
     "method": "GET",
     "path": "/api/v1/climate-analogs/strategic-tiers",
     "handler": "climate_analogs_strategic_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3957,7 +3957,7 @@
     "method": "GET",
     "path": "/api/v1/climate-analogs/strategy",
     "handler": "climate_analogs_strategy_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3966,7 +3966,7 @@
     "method": "GET",
     "path": "/api/v1/coffee/site-suitability",
     "handler": "coffee_site_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3975,7 +3975,7 @@
     "method": "GET",
     "path": "/api/v1/coffee/guide",
     "handler": "coffee_guide_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3984,7 +3984,7 @@
     "method": "GET",
     "path": "/api/v1/coffee/varieties",
     "handler": "coffee_varieties_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -3993,7 +3993,7 @@
     "method": "GET",
     "path": "/api/v1/coffee/pests",
     "handler": "coffee_pests_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4002,7 +4002,7 @@
     "method": "GET",
     "path": "/api/v1/commands/{command_id}",
     "handler": "get_command",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4074,7 +4074,7 @@
     "method": "POST",
     "path": "/api/v1/confidence/ndvi",
     "handler": "ndvi_confidence",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4083,7 +4083,7 @@
     "method": "POST",
     "path": "/api/v1/confidence/irrigation",
     "handler": "irrigation_rec_confidence",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4092,7 +4092,7 @@
     "method": "POST",
     "path": "/api/v1/confidence-gate",
     "handler": "confidence_gate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4101,7 +4101,7 @@
     "method": "GET",
     "path": "/api/v1/consistency/irrigation",
     "handler": "consistency_irrigation_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4110,7 +4110,7 @@
     "method": "GET",
     "path": "/api/v1/consistency/freshness",
     "handler": "consistency_freshness_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4119,7 +4119,7 @@
     "method": "GET",
     "path": "/api/v1/crop-cards",
     "handler": "crop_cards_index",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4128,7 +4128,7 @@
     "method": "GET",
     "path": "/api/v1/crop-cards/crop/{crop_id}",
     "handler": "crop_card_detail",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4137,7 +4137,7 @@
     "method": "GET",
     "path": "/api/v1/crop-cards/variety/{variety_id}",
     "handler": "variety_card_detail",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4146,7 +4146,7 @@
     "method": "GET",
     "path": "/api/v1/crop-cards/variety/{variety_id}/salinity-suitability",
     "handler": "variety_salinity_suitability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4155,7 +4155,7 @@
     "method": "GET",
     "path": "/api/v1/crop-cards/variety/{variety_id}/expected-harvest",
     "handler": "variety_expected_harvest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4164,7 +4164,7 @@
     "method": "GET",
     "path": "/api/v1/crop-cards/variety/{variety_id}/disease-watch",
     "handler": "variety_disease_watch_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4173,7 +4173,7 @@
     "method": "GET",
     "path": "/api/v1/crops/{crop_id}/operations-calendar",
     "handler": "crop_operations_calendar_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4182,7 +4182,7 @@
     "method": "POST",
     "path": "/api/v1/crop-suitability",
     "handler": "crop_suitability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4191,7 +4191,7 @@
     "method": "POST",
     "path": "/api/v1/crop-twin/compose",
     "handler": "compose_crop_twin",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4200,7 +4200,7 @@
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "handler": "crop_decision_candidate_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4209,7 +4209,7 @@
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "handler": "crop_decision_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4218,7 +4218,7 @@
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "handler": "profit_aware_decision_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4227,7 +4227,7 @@
     "method": "GET",
     "path": "/api/v1/crops/drought-resilience",
     "handler": "crop_drought_resilience",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4236,7 +4236,7 @@
     "method": "GET",
     "path": "/api/v1/crops/compare-drought-resilience",
     "handler": "compare_drought_resilience",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4245,7 +4245,7 @@
     "method": "GET",
     "path": "/api/v1/cultural-calendar",
     "handler": "cultural_calendar",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4254,7 +4254,7 @@
     "method": "POST",
     "path": "/api/v1/data-readiness",
     "handler": "data_readiness",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4263,7 +4263,7 @@
     "method": "GET",
     "path": "/api/v1/decision/for-location",
     "handler": "decision_for_location_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4272,7 +4272,7 @@
     "method": "GET",
     "path": "/api/v1/decision/explain",
     "handler": "decision_explain_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4281,7 +4281,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/decision-confidence",
     "handler": "decision_confidence_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4290,7 +4290,7 @@
     "method": "POST",
     "path": "/api/v1/decision/unified",
     "handler": "unified_decision_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4299,7 +4299,7 @@
     "method": "POST",
     "path": "/api/v1/decision/dispatch/evaluate",
     "handler": "evaluate_dispatch_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4308,7 +4308,7 @@
     "method": "POST",
     "path": "/api/v1/decision/dispatch/execute",
     "handler": "execute_dispatch_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4317,7 +4317,7 @@
     "method": "POST",
     "path": "/api/v1/decision/dispatch/consume",
     "handler": "consume_dispatch_queue",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4326,7 +4326,7 @@
     "method": "GET",
     "path": "/api/v1/decision/dispatch/decisions",
     "handler": "list_dispatch_decisions",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4335,7 +4335,7 @@
     "method": "GET",
     "path": "/api/v1/decision/dispatch/queue",
     "handler": "list_dispatch_queue",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4344,7 +4344,7 @@
     "method": "POST",
     "path": "/api/v1/decision/ledger",
     "handler": "record_execution_outcome",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4353,7 +4353,7 @@
     "method": "GET",
     "path": "/api/v1/decision/ledger",
     "handler": "list_execution_ledger",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4362,7 +4362,7 @@
     "method": "GET",
     "path": "/api/v1/decision/{decision_id}/explain",
     "handler": "explain_decision_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4371,7 +4371,7 @@
     "method": "GET",
     "path": "/api/v1/decision/impact",
     "handler": "get_impact",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4380,7 +4380,7 @@
     "method": "GET",
     "path": "/api/v1/decision/learning",
     "handler": "get_learning",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4389,7 +4389,7 @@
     "method": "GET",
     "path": "/api/v1/decision/economics",
     "handler": "get_decision_economics",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4398,7 +4398,7 @@
     "method": "POST",
     "path": "/api/v1/decision/policies",
     "handler": "create_policy",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4407,7 +4407,7 @@
     "method": "GET",
     "path": "/api/v1/decision/policies",
     "handler": "list_policies",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4416,7 +4416,7 @@
     "method": "POST",
     "path": "/api/v1/decision/policies/resolve",
     "handler": "resolve_policy_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4425,7 +4425,7 @@
     "method": "POST",
     "path": "/api/v1/decision/record",
     "handler": "record_decision",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4434,7 +4434,7 @@
     "method": "POST",
     "path": "/api/v1/outcome/record",
     "handler": "record_outcome",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4443,7 +4443,7 @@
     "method": "GET",
     "path": "/api/v1/decision/{decision_id}/lineage",
     "handler": "get_decision_lineage",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4452,7 +4452,7 @@
     "method": "GET",
     "path": "/api/v1/decision/records",
     "handler": "list_decision_records",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4461,7 +4461,7 @@
     "method": "GET",
     "path": "/api/v1/field/{field_id}/lineage",
     "handler": "get_field_lineage",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4470,7 +4470,7 @@
     "method": "GET",
     "path": "/api/v1/decisions/review-queue",
     "handler": "get_decision_review_queue",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4479,7 +4479,7 @@
     "method": "GET",
     "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
     "handler": "get_decision_agronomic_evidence_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4488,7 +4488,7 @@
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/review",
     "handler": "review_decision_candidate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4497,7 +4497,7 @@
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/execution-plan",
     "handler": "create_decision_execution_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4506,7 +4506,7 @@
     "method": "POST",
     "path": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
     "handler": "authorize_execution_plan_dispatch",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4515,7 +4515,7 @@
     "method": "POST",
     "path": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
     "handler": "create_authorized_execution_request",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4524,7 +4524,7 @@
     "method": "POST",
     "path": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
     "handler": "verify_execution_outcome_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4533,7 +4533,7 @@
     "method": "POST",
     "path": "/api/v1/outcomes/{outcome_id}/learning-attribution",
     "handler": "create_learning_attribution_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4542,7 +4542,7 @@
     "method": "GET",
     "path": "/api/v1/learning/calibration-dataset",
     "handler": "read_calibration_dataset_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4551,7 +4551,7 @@
     "method": "POST",
     "path": "/api/v1/learning/evaluation-runs",
     "handler": "register_model_evaluation_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4560,7 +4560,7 @@
     "method": "POST",
     "path": "/api/v1/learning/promotion-decisions",
     "handler": "register_model_promotion_decision_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4569,7 +4569,7 @@
     "method": "POST",
     "path": "/api/v1/learning/activation-requests",
     "handler": "register_model_activation_request_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4578,7 +4578,7 @@
     "method": "POST",
     "path": "/api/v1/learning/activation-requests/{activation_request_id}/review",
     "handler": "review_model_activation_request_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4587,7 +4587,7 @@
     "method": "POST",
     "path": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
     "handler": "claim_registry_activation_command_bff",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4596,7 +4596,7 @@
     "method": "POST",
     "path": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
     "handler": "record_registry_activation_receipt_bff",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4605,7 +4605,7 @@
     "method": "POST",
     "path": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
     "handler": "create_registry_rollback_command_bff",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4614,7 +4614,7 @@
     "method": "GET",
     "path": "/api/v1/devices/twin",
     "handler": "device_twin_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4623,7 +4623,7 @@
     "method": "POST",
     "path": "/api/v1/devices",
     "handler": "register_device",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4632,7 +4632,7 @@
     "method": "GET",
     "path": "/api/v1/devices",
     "handler": "list_devices",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4641,7 +4641,7 @@
     "method": "POST",
     "path": "/api/v1/devices/{device_id}/telemetry",
     "handler": "ingest_telemetry",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4650,7 +4650,7 @@
     "method": "GET",
     "path": "/api/v1/devices/{device_id}/telemetry",
     "handler": "list_telemetry",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4659,7 +4659,7 @@
     "method": "GET",
     "path": "/api/v1/devices/fleet-health",
     "handler": "devices_fleet_health",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4668,7 +4668,7 @@
     "method": "POST",
     "path": "/api/v1/diagnose",
     "handler": "diagnose_symptoms",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4677,7 +4677,7 @@
     "method": "GET",
     "path": "/api/v1/diagnose/symptoms",
     "handler": "diagnosis_symptom_catalog",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4686,7 +4686,7 @@
     "method": "GET",
     "path": "/api/v1/districts",
     "handler": "districts_index",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4695,7 +4695,7 @@
     "method": "GET",
     "path": "/api/v1/districts/{district_id}",
     "handler": "district_detail",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4704,7 +4704,7 @@
     "method": "GET",
     "path": "/api/v1/districts/{district_id}/active-pests",
     "handler": "district_active_pests",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4713,7 +4713,7 @@
     "method": "POST",
     "path": "/api/v1/documents",
     "handler": "register_document",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4722,7 +4722,7 @@
     "method": "GET",
     "path": "/api/v1/documents",
     "handler": "list_documents",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4731,7 +4731,7 @@
     "method": "GET",
     "path": "/api/v1/documents/{doc_id}",
     "handler": "get_document",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4740,7 +4740,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/drawing-features",
     "handler": "list_field_drawing_features",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4749,7 +4749,7 @@
     "method": "POST",
     "path": "/api/v1/drawing-features/validate",
     "handler": "validate_drawing_feature_topology",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4758,7 +4758,7 @@
     "method": "POST",
     "path": "/api/v1/drawing-features",
     "handler": "create_drawing_feature",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4767,7 +4767,7 @@
     "method": "PATCH",
     "path": "/api/v1/drawing-features/{feature_id}",
     "handler": "update_drawing_feature",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4776,7 +4776,7 @@
     "method": "DELETE",
     "path": "/api/v1/drawing-features/{feature_id}",
     "handler": "delete_drawing_feature",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4785,7 +4785,7 @@
     "method": "GET",
     "path": "/api/v1/economics/cost-categories",
     "handler": "economics_categories_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4794,7 +4794,7 @@
     "method": "POST",
     "path": "/api/v1/economics/feasibility",
     "handler": "economics_feasibility_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4803,7 +4803,7 @@
     "method": "GET",
     "path": "/api/v1/economics/break-even",
     "handler": "economics_break_even_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4812,7 +4812,7 @@
     "method": "POST",
     "path": "/api/v1/edge/sync",
     "handler": "edge_sync_receive",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4830,7 +4830,7 @@
     "method": "POST",
     "path": "/api/v1/equipment",
     "handler": "create_equipment",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4839,7 +4839,7 @@
     "method": "GET",
     "path": "/api/v1/equipment",
     "handler": "list_equipment",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4848,7 +4848,7 @@
     "method": "POST",
     "path": "/api/v1/equipment/{equipment_id}/maintenance",
     "handler": "log_maintenance",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4857,7 +4857,7 @@
     "method": "GET",
     "path": "/api/v1/equipment/{equipment_id}/maintenance",
     "handler": "list_maintenance",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4866,7 +4866,7 @@
     "method": "POST",
     "path": "/api/v1/escalation/assess",
     "handler": "escalation_assess",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4875,7 +4875,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/etc-dual",
     "handler": "field_etc_dual",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4884,7 +4884,7 @@
     "method": "GET",
     "path": "/api/v1/events/{entity_type}/{entity_id}",
     "handler": "entity_events",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4893,7 +4893,7 @@
     "method": "POST",
     "path": "/api/v1/evidence/corroborate",
     "handler": "evidence_corroborate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4902,7 +4902,7 @@
     "method": "GET",
     "path": "/api/v1/evidence/map",
     "handler": "evidence_map_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4911,7 +4911,7 @@
     "method": "GET",
     "path": "/api/v1/execution/feedback",
     "handler": "execution_feedback_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4920,7 +4920,7 @@
     "method": "POST",
     "path": "/api/v1/lineage/link",
     "handler": "link_lineage_ref",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4929,7 +4929,7 @@
     "method": "GET",
     "path": "/api/v1/lineage/{lineage_id}",
     "handler": "get_lineage_chain",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4938,7 +4938,7 @@
     "method": "POST",
     "path": "/api/v1/failures/check",
     "handler": "check_failures",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4947,7 +4947,7 @@
     "method": "POST",
     "path": "/api/v1/farm-ledger/operations",
     "handler": "create_operation_ledger_record",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4956,7 +4956,7 @@
     "method": "GET",
     "path": "/api/v1/farm-ledger/operations",
     "handler": "list_operation_ledger_records",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4965,7 +4965,7 @@
     "method": "GET",
     "path": "/api/v1/farm-ledger/summary",
     "handler": "farm_ledger_summary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4974,7 +4974,7 @@
     "method": "POST",
     "path": "/api/v1/farm-ledger/budgets",
     "handler": "upsert_season_budget_lines",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4983,7 +4983,7 @@
     "method": "GET",
     "path": "/api/v1/farm-ledger/budgets/{season_id}",
     "handler": "get_season_budget",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -4992,7 +4992,7 @@
     "method": "POST",
     "path": "/api/v1/farm-ledger/revenues",
     "handler": "create_revenue_record",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5001,7 +5001,7 @@
     "method": "GET",
     "path": "/api/v1/farm-ledger/variance/{season_id}",
     "handler": "get_budget_variance",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5010,7 +5010,7 @@
     "method": "GET",
     "path": "/api/v1/farm-ledger/profitability/{season_id}",
     "handler": "get_season_profitability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5019,7 +5019,7 @@
     "method": "GET",
     "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
     "handler": "get_erp_projection",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5028,7 +5028,7 @@
     "method": "POST",
     "path": "/api/v1/farm-ledger/autowrite-preview",
     "handler": "operation_autowrite_preview",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5037,7 +5037,7 @@
     "method": "GET",
     "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
     "handler": "get_inventory_projection",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5046,7 +5046,7 @@
     "method": "GET",
     "path": "/api/v1/farm-ledger/economic-state/{season_id}",
     "handler": "get_economic_state",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5055,7 +5055,7 @@
     "method": "POST",
     "path": "/api/v1/farms",
     "handler": "create_farm",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5064,7 +5064,7 @@
     "method": "GET",
     "path": "/api/v1/farms",
     "handler": "list_farms",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5073,7 +5073,7 @@
     "method": "GET",
     "path": "/api/v1/farms/{farm_id}/fields",
     "handler": "list_farm_fields",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5082,7 +5082,7 @@
     "method": "GET",
     "path": "/api/v1/features",
     "handler": "get_features",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5091,7 +5091,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/ai-context-pack",
     "handler": "field_ai_context_pack",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5100,7 +5100,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/data-completeness",
     "handler": "field_data_completeness",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5109,7 +5109,7 @@
     "method": "POST",
     "path": "/api/v1/field-intelligence/analyze",
     "handler": "field_intelligence_analyze",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5118,7 +5118,7 @@
     "method": "GET",
     "path": "/api/v1/field-intelligence/analyze/jobs/{job_id}",
     "handler": "field_intelligence_analyze_job_status",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5127,7 +5127,7 @@
     "method": "POST",
     "path": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
     "handler": "field_intelligence_analyze_job_cancel",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5136,7 +5136,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/evidence-graph/latest",
     "handler": "field_evidence_graph_latest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5145,7 +5145,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/evidence-graph/timeline",
     "handler": "field_evidence_graph_timeline",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5154,7 +5154,7 @@
     "method": "GET",
     "path": "/api/v1/evidence-graph/analytics",
     "handler": "evidence_graph_analytics",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5163,7 +5163,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/evidence-graph/nodes",
     "handler": "field_evidence_graph_nodes",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5172,7 +5172,7 @@
     "method": "POST",
     "path": "/api/v1/field-portfolio/optimize",
     "handler": "optimize_portfolio",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5181,7 +5181,7 @@
     "method": "POST",
     "path": "/api/v1/field-portfolio/allocate",
     "handler": "allocate_portfolio_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5190,7 +5190,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/priority-queue",
     "handler": "field_priority_queue",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5199,7 +5199,7 @@
     "method": "GET",
     "path": "/api/v1/farms/{farm_id}/priority-queue",
     "handler": "farm_priority_queue",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5208,7 +5208,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/readiness",
     "handler": "field_readiness",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5217,7 +5217,7 @@
     "method": "GET",
     "path": "/api/v1/field/operational-state",
     "handler": "field_operational_state_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5226,7 +5226,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/twin",
     "handler": "get_field_twin",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5235,7 +5235,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/available-dates",
     "handler": "field_imagery_available_dates_facade",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5244,7 +5244,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/imagery/timeline",
     "handler": "field_imagery_timeline_facade",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5253,7 +5253,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/unified-timeline",
     "handler": "field_unified_timeline_facade",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5262,7 +5262,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/thermal-stress",
     "handler": "field_weather_thermal_stress",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5271,7 +5271,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/crop-stress",
     "handler": "field_weather_crop_stress",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5280,7 +5280,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/operation-windows",
     "handler": "field_weather_operation_windows",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5289,7 +5289,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
     "handler": "field_irrigation_advice_facade",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5298,7 +5298,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/disease-risk",
     "handler": "field_disease_risk_facade",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5307,7 +5307,7 @@
     "method": "GET",
     "path": "/api/v1/fields",
     "handler": "list_fields",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5316,7 +5316,7 @@
     "method": "POST",
     "path": "/api/v1/fields",
     "handler": "create_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5325,7 +5325,7 @@
     "method": "POST",
     "path": "/api/v1/fields/import",
     "handler": "import_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5334,7 +5334,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/imagery/process-date",
     "handler": "field_imagery_process_date_proxy",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5343,7 +5343,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/imagery/refresh",
     "handler": "refresh_field_imagery",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5352,7 +5352,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/imagery/backfill",
     "handler": "field_imagery_backfill_proxy",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5361,7 +5361,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
     "handler": "field_imagery_backfill_status_proxy",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5370,7 +5370,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}",
     "handler": "get_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5379,7 +5379,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/terrain",
     "handler": "get_field_terrain",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5388,7 +5388,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/workspace",
     "handler": "get_field_workspace",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5397,7 +5397,7 @@
     "method": "PUT",
     "path": "/api/v1/fields/{field_id}",
     "handler": "update_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5406,7 +5406,7 @@
     "method": "PATCH",
     "path": "/api/v1/fields/{field_id}",
     "handler": "update_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5415,7 +5415,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/geometry/history",
     "handler": "field_geometry_history",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5424,7 +5424,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/geometry/revert/{revision}",
     "handler": "revert_field_geometry",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5433,7 +5433,7 @@
     "method": "DELETE",
     "path": "/api/v1/fields/{field_id}",
     "handler": "delete_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5442,7 +5442,7 @@
     "method": "POST",
     "path": "/api/v1/fields/merge",
     "handler": "merge_fields",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5451,7 +5451,7 @@
     "method": "POST",
     "path": "/api/v1/fields/split",
     "handler": "split_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5460,7 +5460,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/seasons",
     "handler": "create_season",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5469,7 +5469,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/seasons",
     "handler": "list_seasons",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5478,7 +5478,7 @@
     "method": "PATCH",
     "path": "/api/v1/fields/{field_id}/seasons/{season_id}",
     "handler": "update_season",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5487,7 +5487,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/soil-moisture",
     "handler": "field_soil_moisture",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5496,7 +5496,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/wind/prevailing",
     "handler": "field_wind_prevailing",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5505,7 +5505,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/wind/drift-risk",
     "handler": "field_wind_drift_risk",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5514,7 +5514,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/recommendations",
     "handler": "field_recommendations",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5523,7 +5523,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/activities",
     "handler": "create_activity",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5532,7 +5532,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/activities",
     "handler": "list_field_activities",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5541,7 +5541,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/input-traceability",
     "handler": "field_input_traceability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5550,7 +5550,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/growth-narrative",
     "handler": "field_growth_narrative",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5559,7 +5559,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests",
     "handler": "create_soil_lab_test",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5568,7 +5568,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests",
     "handler": "list_soil_lab_tests",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5577,7 +5577,7 @@
     "method": "PATCH",
     "path": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
     "handler": "update_soil_lab_test",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5586,7 +5586,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/alerts/evaluate",
     "handler": "evaluate_field_alerts_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5595,7 +5595,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/rotations",
     "handler": "add_crop_rotation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5604,7 +5604,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/rotations",
     "handler": "list_crop_rotations",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5613,7 +5613,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/trueup",
     "handler": "apply_trueup",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5622,7 +5622,7 @@
     "method": "POST",
     "path": "/api/v1/fields/validate-geometry",
     "handler": "validate_geometry",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5631,7 +5631,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
     "handler": "prescribe_nitrogen",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5640,7 +5640,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/yield-estimate",
     "handler": "estimate_field_yield",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5649,7 +5649,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/timeline",
     "handler": "field_timeline",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5658,7 +5658,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/history",
     "handler": "field_history",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5667,7 +5667,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/pins",
     "handler": "create_pin",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5676,7 +5676,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan",
     "handler": "field_walk_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5685,7 +5685,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/walk-plan/pdf",
     "handler": "field_walk_plan_pdf",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5694,7 +5694,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/zones",
     "handler": "field_zones",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5703,7 +5703,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-stress-spectral",
     "handler": "field_water_stress_spectral",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5712,7 +5712,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state",
     "handler": "field_canonical_state",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5721,7 +5721,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/alerts/derived",
     "handler": "field_alerts_derived",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5730,7 +5730,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/state/full",
     "handler": "field_state_full",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5739,7 +5739,7 @@
     "method": "GET",
     "path": "/api/v1/fodder-alternatives/list",
     "handler": "fodder_alternatives_list_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5748,7 +5748,7 @@
     "method": "POST",
     "path": "/api/v1/gdd/track",
     "handler": "gdd_track",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5757,7 +5757,7 @@
     "method": "GET",
     "path": "/api/v1/geo/reverse",
     "handler": "geo_reverse_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5766,7 +5766,7 @@
     "method": "GET",
     "path": "/api/v1/geo-locate/field",
     "handler": "geo_locate_field_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5775,7 +5775,7 @@
     "method": "GET",
     "path": "/api/v1/geo-locate/recommend",
     "handler": "geo_locate_recommend_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6054,7 +6054,7 @@
     "method": "POST",
     "path": "/api/v1/gis/buffer",
     "handler": "gis_buffer",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6063,7 +6063,7 @@
     "method": "POST",
     "path": "/api/v1/gis/union",
     "handler": "gis_union",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6072,7 +6072,7 @@
     "method": "POST",
     "path": "/api/v1/gis/split",
     "handler": "gis_split",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6081,7 +6081,7 @@
     "method": "POST",
     "path": "/api/v1/gis/validate",
     "handler": "gis_validate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6090,7 +6090,7 @@
     "method": "POST",
     "path": "/api/v1/harvest-lots",
     "handler": "create_harvest_lot",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6099,7 +6099,7 @@
     "method": "GET",
     "path": "/api/v1/harvest-lots",
     "handler": "list_harvest_lots",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6108,7 +6108,7 @@
     "method": "GET",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}",
     "handler": "get_harvest_lot",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6117,7 +6117,7 @@
     "method": "POST",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
     "handler": "add_custody_event",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6126,7 +6126,7 @@
     "method": "GET",
     "path": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
     "handler": "get_traceability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6135,7 +6135,7 @@
     "method": "GET",
     "path": "/api/v1/high-value-crops/list",
     "handler": "high_value_crops_list_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6144,7 +6144,7 @@
     "method": "GET",
     "path": "/api/v1/high-value-crops/detail",
     "handler": "high_value_crops_detail_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6153,7 +6153,7 @@
     "method": "GET",
     "path": "/api/v1/indicators/catalog",
     "handler": "indicators_catalog",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6162,7 +6162,7 @@
     "method": "GET",
     "path": "/api/v1/indicators/map-layers",
     "handler": "indicators_map_layers",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6171,7 +6171,7 @@
     "method": "GET",
     "path": "/api/v1/indicators/dashboard",
     "handler": "indicators_dashboard",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6180,7 +6180,7 @@
     "method": "GET",
     "path": "/api/v1/indices/coverage-report",
     "handler": "indices_coverage_report",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6207,7 +6207,7 @@
     "method": "GET",
     "path": "/api/v1/introduction/candidates",
     "handler": "introduction_candidates_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6216,7 +6216,7 @@
     "method": "GET",
     "path": "/api/v1/introduction/card",
     "handler": "introduction_card_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6225,7 +6225,7 @@
     "method": "POST",
     "path": "/api/v1/introduction/field-fit",
     "handler": "introduction_field_fit_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6234,7 +6234,7 @@
     "method": "POST",
     "path": "/api/v1/inventory/items",
     "handler": "create_inventory_item",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6243,7 +6243,7 @@
     "method": "GET",
     "path": "/api/v1/inventory/items",
     "handler": "list_inventory_items",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6252,7 +6252,7 @@
     "method": "POST",
     "path": "/api/v1/inventory/items/{item_id}/batches",
     "handler": "add_inventory_batch",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6261,7 +6261,7 @@
     "method": "GET",
     "path": "/api/v1/inventory/expiring",
     "handler": "list_expiring_batches",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6270,7 +6270,7 @@
     "method": "GET",
     "path": "/api/v1/ipm/pests",
     "handler": "ipm_pests_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6279,7 +6279,7 @@
     "method": "GET",
     "path": "/api/v1/ipm/plan",
     "handler": "ipm_plan_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6288,7 +6288,7 @@
     "method": "GET",
     "path": "/api/v1/ipm/crop-pests",
     "handler": "ipm_crop_pests_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6297,7 +6297,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation/valves",
     "handler": "register_valve",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6306,7 +6306,7 @@
     "method": "GET",
     "path": "/api/v1/irrigation/valves",
     "handler": "list_valves",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6315,7 +6315,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation/valves/{valve_id}/state",
     "handler": "set_valve_state",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6324,7 +6324,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation/schedules",
     "handler": "create_schedule",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6333,7 +6333,7 @@
     "method": "GET",
     "path": "/api/v1/irrigation/schedules",
     "handler": "list_schedules",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6342,7 +6342,7 @@
     "method": "DELETE",
     "path": "/api/v1/irrigation/schedules/{schedule_id}",
     "handler": "delete_schedule",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6351,7 +6351,7 @@
     "method": "GET",
     "path": "/api/v1/irrigation/soil-types",
     "handler": "irrigation_soil_types_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6360,7 +6360,7 @@
     "method": "GET",
     "path": "/api/v1/irrigation/moisture-decision",
     "handler": "irrigation_moisture_decision_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6369,7 +6369,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation/water-analysis",
     "handler": "irrigation_water_analysis",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6486,7 +6486,7 @@
     "method": "GET",
     "path": "/api/v1/irrigation-method",
     "handler": "list_methods",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6495,7 +6495,7 @@
     "method": "GET",
     "path": "/api/v1/irrigation-method/{method}",
     "handler": "get_method",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6504,7 +6504,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation-method/gross",
     "handler": "compute_gross",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6513,7 +6513,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/plan",
     "handler": "irrigation_mpc_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6522,7 +6522,7 @@
     "method": "GET",
     "path": "/api/v1/irrigation/mpc/capabilities",
     "handler": "irrigation_mpc_capabilities",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6531,7 +6531,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/simulate",
     "handler": "irrigation_mpc_simulate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6540,7 +6540,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
     "handler": "irrigation_mpc_recommendation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6549,7 +6549,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
     "handler": "irrigation_mpc_hourly_recommendation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6558,7 +6558,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation/executions/reconcile",
     "handler": "reconcile_irrigation_execution",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6567,7 +6567,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation/network/feasibility",
     "handler": "network_feasibility_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6576,7 +6576,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation-plan",
     "handler": "irrigation_plan_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6585,7 +6585,7 @@
     "method": "POST",
     "path": "/api/v1/irrigation-recommendation",
     "handler": "irrigation_recommendation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6594,7 +6594,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
     "handler": "field_irrigation_recommendation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6603,7 +6603,7 @@
     "method": "POST",
     "path": "/api/v1/agro/kc-timeseries",
     "handler": "persist_kc",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6612,7 +6612,7 @@
     "method": "GET",
     "path": "/api/v1/agro/kc-timeseries/{field_id}",
     "handler": "list_kc",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6621,7 +6621,7 @@
     "method": "GET",
     "path": "/api/v1/agro/kc-timeseries/{field_id}/compare",
     "handler": "compare_kc",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6630,7 +6630,7 @@
     "method": "POST",
     "path": "/api/v1/learning/external-prior-blend",
     "handler": "external_prior_blend",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6639,7 +6639,7 @@
     "method": "GET",
     "path": "/api/v1/learning/activation-status",
     "handler": "learning_activation_status",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6648,7 +6648,7 @@
     "method": "GET",
     "path": "/api/v1/learning/prediction-calibration",
     "handler": "prediction_calibration_status",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6657,7 +6657,7 @@
     "method": "GET",
     "path": "/api/v1/learning/summary",
     "handler": "get_learning_summary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6666,7 +6666,7 @@
     "method": "POST",
     "path": "/api/v1/lifecycle/validate-transition",
     "handler": "validate_transition",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6675,7 +6675,7 @@
     "method": "GET",
     "path": "/api/v1/lineage/{entity_type}/{entity_id}",
     "handler": "entity_lineage",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6684,7 +6684,7 @@
     "method": "GET",
     "path": "/api/v1/market/crop-gap",
     "handler": "market_crop_gap",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6693,7 +6693,7 @@
     "method": "GET",
     "path": "/api/v1/market/crop-classification-readiness",
     "handler": "crop_classification_readiness_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6702,7 +6702,7 @@
     "method": "POST",
     "path": "/api/v1/master-data",
     "handler": "create_master_data",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6711,7 +6711,7 @@
     "method": "GET",
     "path": "/api/v1/master-data",
     "handler": "list_master_data",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6720,7 +6720,7 @@
     "method": "GET",
     "path": "/api/v1/me",
     "handler": "me",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6729,7 +6729,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/ndvi-analysis",
     "handler": "field_ndvi_analysis",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6738,7 +6738,7 @@
     "method": "GET",
     "path": "/api/v1/niche-crops/list",
     "handler": "niche_crops_list_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6747,7 +6747,7 @@
     "method": "GET",
     "path": "/api/v1/niche-crops/detail",
     "handler": "niche_crops_detail_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6756,7 +6756,7 @@
     "method": "POST",
     "path": "/api/v1/nl-gis/query",
     "handler": "nl_gis_query_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6765,7 +6765,7 @@
     "method": "POST",
     "path": "/api/v1/nl-sql",
     "handler": "nl_sql_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6774,7 +6774,7 @@
     "method": "GET",
     "path": "/api/v1/notifications/preferences",
     "handler": "get_notification_preferences",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6783,7 +6783,7 @@
     "method": "PUT",
     "path": "/api/v1/notifications/preferences",
     "handler": "update_notification_preferences",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6792,7 +6792,7 @@
     "method": "POST",
     "path": "/api/v1/notifications/delivery",
     "handler": "upsert_notification_delivery",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6801,7 +6801,7 @@
     "method": "POST",
     "path": "/api/v1/nutrients/4r-plan",
     "handler": "nutrient_4r_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6810,7 +6810,7 @@
     "method": "POST",
     "path": "/api/v1/observations",
     "handler": "observations",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6819,7 +6819,7 @@
     "method": "GET",
     "path": "/api/v1/onboarding/questionnaire",
     "handler": "onboarding_questionnaire",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6828,7 +6828,7 @@
     "method": "POST",
     "path": "/api/v1/onboarding/responses",
     "handler": "submit_onboarding",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6837,7 +6837,7 @@
     "method": "GET",
     "path": "/api/v1/onboarding/responses",
     "handler": "list_onboarding",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6846,7 +6846,7 @@
     "method": "POST",
     "path": "/api/v1/weather/history/records",
     "handler": "ingest_historical_weather",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6855,7 +6855,7 @@
     "method": "GET",
     "path": "/api/v1/weather/history/records",
     "handler": "read_historical_weather",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6864,7 +6864,7 @@
     "method": "GET",
     "path": "/api/v1/weather/history/coverage",
     "handler": "historical_weather_coverage",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6873,7 +6873,7 @@
     "method": "POST",
     "path": "/api/v1/erp/reconciliations",
     "handler": "record_erp_reconciliation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6882,7 +6882,7 @@
     "method": "GET",
     "path": "/api/v1/erp/reconciliations",
     "handler": "list_erp_reconciliations",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6891,7 +6891,7 @@
     "method": "GET",
     "path": "/api/v1/operations/summary",
     "handler": "operations_summary_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6900,7 +6900,7 @@
     "method": "GET",
     "path": "/api/v1/orchard/plan",
     "handler": "orchard_plan_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6909,7 +6909,7 @@
     "method": "GET",
     "path": "/api/v1/orchard/economics",
     "handler": "orchard_economics_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6918,7 +6918,7 @@
     "method": "POST",
     "path": "/api/v1/outcome/measure",
     "handler": "measure_decision_outcome",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6927,7 +6927,7 @@
     "method": "POST",
     "path": "/api/v1/pest-escalation/run",
     "handler": "pest_escalation_run",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6936,7 +6936,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/phenology",
     "handler": "field_phenology",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6945,7 +6945,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/stage-actions",
     "handler": "field_stage_actions",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6954,7 +6954,7 @@
     "method": "GET",
     "path": "/api/v1/planting/crops",
     "handler": "planting_crops_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6963,7 +6963,7 @@
     "method": "GET",
     "path": "/api/v1/planting/window",
     "handler": "planting_window_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6972,7 +6972,7 @@
     "method": "GET",
     "path": "/api/v1/planting/check",
     "handler": "planting_check_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7017,7 +7017,7 @@
     "method": "GET",
     "path": "/api/v1/policy-learning/threshold-suggestions",
     "handler": "threshold_suggestions",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7026,7 +7026,7 @@
     "method": "POST",
     "path": "/api/v1/portfolio/command",
     "handler": "portfolio_command_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7035,7 +7035,7 @@
     "method": "GET",
     "path": "/api/v1/postharvest/moisture-check",
     "handler": "postharvest_moisture_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7044,7 +7044,7 @@
     "method": "GET",
     "path": "/api/v1/postharvest/pests",
     "handler": "postharvest_pests_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7053,7 +7053,7 @@
     "method": "GET",
     "path": "/api/v1/postharvest/best-practices",
     "handler": "postharvest_practices_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7062,7 +7062,7 @@
     "method": "GET",
     "path": "/api/v1/practices/list",
     "handler": "practices_list_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7071,7 +7071,7 @@
     "method": "GET",
     "path": "/api/v1/practices/guide",
     "handler": "practices_guide_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7080,7 +7080,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/prescriptions",
     "handler": "create_prescription",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7089,7 +7089,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/prescriptions",
     "handler": "list_prescriptions",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7098,7 +7098,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
     "handler": "export_prescription",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7107,7 +7107,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/productivity-zones",
     "handler": "productivity_zones_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7116,7 +7116,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/zone-sampling-plan",
     "handler": "zone_sampling_plan_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7125,7 +7125,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/daily-ai-brief",
     "handler": "daily_ai_brief_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7134,7 +7134,7 @@
     "method": "GET",
     "path": "/api/v1/propagation/methods",
     "handler": "propagation_methods_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7143,7 +7143,7 @@
     "method": "GET",
     "path": "/api/v1/propagation/method-guide",
     "handler": "propagation_method_guide_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7152,7 +7152,7 @@
     "method": "GET",
     "path": "/api/v1/propagation/crop",
     "handler": "propagation_crop_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7161,7 +7161,7 @@
     "method": "GET",
     "path": "/api/v1/propagation/rootstock",
     "handler": "propagation_rootstock_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7170,7 +7170,7 @@
     "method": "GET",
     "path": "/api/v1/queue/status",
     "handler": "queue_status",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7179,7 +7179,7 @@
     "method": "GET",
     "path": "/api/v1/rbac/who-can",
     "handler": "rbac_who_can",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7188,7 +7188,7 @@
     "method": "GET",
     "path": "/api/v1/rbac/permission-matrix",
     "handler": "rbac_permission_matrix",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7197,7 +7197,7 @@
     "method": "GET",
     "path": "/api/v1/rbac/preview-role-change",
     "handler": "rbac_preview_role_change",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7206,7 +7206,7 @@
     "method": "GET",
     "path": "/api/v1/admin/readiness",
     "handler": "production_readiness",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7215,7 +7215,7 @@
     "method": "POST",
     "path": "/api/v1/recommendations",
     "handler": "recommendations",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7224,7 +7224,7 @@
     "method": "POST",
     "path": "/api/v1/recommendations/for-field",
     "handler": "recommendations_for_field",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7233,7 +7233,7 @@
     "method": "GET",
     "path": "/api/v1/recommendations/engines",
     "handler": "recommendation_engines",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7242,7 +7242,7 @@
     "method": "POST",
     "path": "/api/v1/recommendations/economic-adaptation",
     "handler": "economic_adaptation_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7251,7 +7251,7 @@
     "method": "GET",
     "path": "/api/v1/recommendations/capacity-profiles",
     "handler": "capacity_profiles_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7260,7 +7260,7 @@
     "method": "POST",
     "path": "/api/v1/recommendations/candidates",
     "handler": "generate_crop_candidates",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7269,7 +7269,7 @@
     "method": "POST",
     "path": "/api/v1/recommendations/outcomes",
     "handler": "record_recommendation_outcome",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7278,7 +7278,7 @@
     "method": "GET",
     "path": "/api/v1/recommendations/{rec_id}",
     "handler": "get_recommendation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7287,7 +7287,7 @@
     "method": "GET",
     "path": "/api/v1/regional/bulletin",
     "handler": "regional_bulletin",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7296,7 +7296,7 @@
     "method": "GET",
     "path": "/api/v1/regional-calendar",
     "handler": "regional_calendar",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7305,7 +7305,7 @@
     "method": "GET",
     "path": "/api/v1/registry/report-fields",
     "handler": "list_registry_report_fields",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7314,7 +7314,7 @@
     "method": "GET",
     "path": "/api/v1/registry/workflows",
     "handler": "list_registry_workflows",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7323,7 +7323,7 @@
     "method": "GET",
     "path": "/api/v1/registry/indices",
     "handler": "registry_indices",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7332,7 +7332,7 @@
     "method": "GET",
     "path": "/api/v1/registry/device-types",
     "handler": "registry_device_types",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7341,7 +7341,7 @@
     "method": "GET",
     "path": "/api/v1/registry/events",
     "handler": "registry_events",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7350,7 +7350,7 @@
     "method": "GET",
     "path": "/api/v1/registry/cost-profiles",
     "handler": "registry_cost_profiles",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7359,7 +7359,7 @@
     "method": "GET",
     "path": "/api/v1/registry/data-quality-rules",
     "handler": "registry_data_quality_rules",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7368,7 +7368,7 @@
     "method": "POST",
     "path": "/api/v1/replay/reconstruct",
     "handler": "replay_reconstruct",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7377,7 +7377,7 @@
     "method": "GET",
     "path": "/api/v1/reports/farm-summary",
     "handler": "report_farm_summary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7386,7 +7386,7 @@
     "method": "GET",
     "path": "/api/v1/reports/field/{field_id}/summary",
     "handler": "report_field_summary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7395,7 +7395,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/sustainability",
     "handler": "field_sustainability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7404,7 +7404,7 @@
     "method": "GET",
     "path": "/api/v1/reports/season/{season_id}/summary",
     "handler": "report_season_summary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7413,7 +7413,7 @@
     "method": "POST",
     "path": "/api/v1/reports/operation",
     "handler": "operation_report_csv",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7422,7 +7422,7 @@
     "method": "POST",
     "path": "/api/v1/reports/build",
     "handler": "build_report",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7431,7 +7431,7 @@
     "method": "GET",
     "path": "/api/v1/rotation/principles",
     "handler": "rotation_principles_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7440,7 +7440,7 @@
     "method": "GET",
     "path": "/api/v1/rotation/evaluate",
     "handler": "rotation_evaluate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7449,7 +7449,7 @@
     "method": "GET",
     "path": "/api/v1/rotation/suggest",
     "handler": "rotation_suggest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7458,7 +7458,7 @@
     "method": "POST",
     "path": "/api/v1/salinity/assess",
     "handler": "salinity_assess_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7467,7 +7467,7 @@
     "method": "GET",
     "path": "/api/v1/sampling/strategy",
     "handler": "sampling_strategy",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7476,7 +7476,7 @@
     "method": "POST",
     "path": "/api/v1/scenario/economics",
     "handler": "scenario_economics",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7485,7 +7485,7 @@
     "method": "POST",
     "path": "/api/v1/scenario/water-twin",
     "handler": "scenario_water_twin",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7494,7 +7494,7 @@
     "method": "POST",
     "path": "/api/v1/scenario/temperature",
     "handler": "scenario_temperature",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7503,7 +7503,7 @@
     "method": "POST",
     "path": "/api/v1/scenario/planting-date",
     "handler": "scenario_planting_date",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7512,7 +7512,7 @@
     "method": "POST",
     "path": "/api/v1/scenario/rainfall",
     "handler": "scenario_rainfall",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7521,7 +7521,7 @@
     "method": "GET",
     "path": "/api/v1/scouting/pins",
     "handler": "list_scouting_pins",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7530,7 +7530,7 @@
     "method": "GET",
     "path": "/api/v1/scouting/taxonomy",
     "handler": "scouting_taxonomy",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7539,7 +7539,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/season-workspace",
     "handler": "season_workspace",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7548,7 +7548,7 @@
     "method": "GET",
     "path": "/api/v1/seasonal-risk/calendar",
     "handler": "seasonal_risk_calendar_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7557,7 +7557,7 @@
     "method": "GET",
     "path": "/api/v1/seasonal-risk/stage-check",
     "handler": "seasonal_risk_stage_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7566,7 +7566,7 @@
     "method": "GET",
     "path": "/api/v1/seasonal-risk/chill-hours",
     "handler": "seasonal_risk_chill_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7575,7 +7575,7 @@
     "method": "POST",
     "path": "/api/v1/seasons/{season_id}/simulate",
     "handler": "simulate_season_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7584,7 +7584,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
     "handler": "field_season_state_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7593,7 +7593,7 @@
     "method": "GET",
     "path": "/api/v1/admin/security/denials",
     "handler": "security_denials",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7602,7 +7602,7 @@
     "method": "GET",
     "path": "/api/v1/seed/criteria",
     "handler": "seed_criteria_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7611,7 +7611,7 @@
     "method": "POST",
     "path": "/api/v1/seed/evaluate-source",
     "handler": "seed_evaluate_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7620,7 +7620,7 @@
     "method": "GET",
     "path": "/api/v1/seed/germination-rate",
     "handler": "seed_germination_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7629,7 +7629,7 @@
     "method": "GET",
     "path": "/api/v1/seed/storage-check",
     "handler": "seed_storage_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7638,7 +7638,7 @@
     "method": "GET",
     "path": "/api/v1/seed/sowing-depth",
     "handler": "seed_sowing_depth_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7647,7 +7647,7 @@
     "method": "PUT",
     "path": "/api/v1/settings",
     "handler": "upsert_setting",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7656,7 +7656,7 @@
     "method": "GET",
     "path": "/api/v1/settings",
     "handler": "list_settings",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7665,7 +7665,7 @@
     "method": "POST",
     "path": "/api/v1/sharing/generate-key",
     "handler": "generate_share_key",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7674,7 +7674,7 @@
     "method": "POST",
     "path": "/api/v1/sharing/keys",
     "handler": "create_sharing_key",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7683,7 +7683,7 @@
     "method": "GET",
     "path": "/api/v1/sharing/keys",
     "handler": "list_sharing_keys",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7692,7 +7692,7 @@
     "method": "POST",
     "path": "/api/v1/farm-book/parties",
     "handler": "create_party",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7701,7 +7701,7 @@
     "method": "GET",
     "path": "/api/v1/farm-book/parties",
     "handler": "list_parties",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7710,7 +7710,7 @@
     "method": "POST",
     "path": "/api/v1/farm-book/entries",
     "handler": "create_entry",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7719,7 +7719,7 @@
     "method": "GET",
     "path": "/api/v1/farm-book/entries",
     "handler": "list_entries",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7728,7 +7728,7 @@
     "method": "GET",
     "path": "/api/v1/farm-book/monthly",
     "handler": "monthly_report",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7737,7 +7737,7 @@
     "method": "GET",
     "path": "/api/v1/farm-book/balances",
     "handler": "book_balances",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7746,7 +7746,7 @@
     "method": "GET",
     "path": "/api/v1/farm-book/export",
     "handler": "export_book",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7755,7 +7755,7 @@
     "method": "POST",
     "path": "/api/v1/simulate/what-if",
     "handler": "simulate_what_if",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7764,7 +7764,7 @@
     "method": "GET",
     "path": "/api/v1/soil-sampling/subsamples",
     "handler": "soil_subsamples_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7773,7 +7773,7 @@
     "method": "GET",
     "path": "/api/v1/soil-sampling/depth",
     "handler": "soil_depth_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7782,7 +7782,7 @@
     "method": "GET",
     "path": "/api/v1/soil-sampling/protocol",
     "handler": "soil_protocol_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7791,7 +7791,7 @@
     "method": "GET",
     "path": "/api/v1/lab/samples",
     "handler": "list_lab_samples",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7800,7 +7800,7 @@
     "method": "POST",
     "path": "/api/v1/lab/samples",
     "handler": "create_lab_sample",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7809,7 +7809,7 @@
     "method": "POST",
     "path": "/api/v1/lab/soil-results",
     "handler": "submit_soil_lab_result",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7818,7 +7818,7 @@
     "method": "POST",
     "path": "/api/v1/lab/water-results",
     "handler": "submit_water_lab_result",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7827,7 +7827,7 @@
     "method": "POST",
     "path": "/api/v1/lab/samples/{sample_id}/transition",
     "handler": "transition_lab_sample",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7836,7 +7836,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/lab-context",
     "handler": "field_lab_context",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7845,7 +7845,7 @@
     "method": "GET",
     "path": "/api/v1/sync/manifest",
     "handler": "sync_manifest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7854,7 +7854,7 @@
     "method": "GET",
     "path": "/api/v1/sync/status",
     "handler": "sync_status",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7863,7 +7863,7 @@
     "method": "POST",
     "path": "/api/v1/sync",
     "handler": "sync",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7872,7 +7872,7 @@
     "method": "GET",
     "path": "/api/v1/tasks",
     "handler": "list_tasks",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7881,7 +7881,7 @@
     "method": "PATCH",
     "path": "/api/v1/tasks/{task_id}",
     "handler": "update_task",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7890,7 +7890,7 @@
     "method": "POST",
     "path": "/api/v1/temporal/check",
     "handler": "temporal_check",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7899,7 +7899,7 @@
     "method": "POST",
     "path": "/api/v1/temporal/coherence",
     "handler": "temporal_coherence",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7908,7 +7908,7 @@
     "method": "GET",
     "path": "/api/v1/tenant/config",
     "handler": "get_tenant_config",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7917,7 +7917,7 @@
     "method": "POST",
     "path": "/api/v1/trials/analyze",
     "handler": "analyze_trial",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7926,7 +7926,7 @@
     "method": "GET",
     "path": "/api/v1/varieties/food-grains",
     "handler": "food_grain_varieties_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7935,7 +7935,7 @@
     "method": "GET",
     "path": "/api/v1/varieties/food-grains/{variety_id}",
     "handler": "food_grain_variety_detail_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7944,7 +7944,7 @@
     "method": "POST",
     "path": "/api/v1/water-balance",
     "handler": "compute_water_balance",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7953,7 +7953,7 @@
     "method": "GET",
     "path": "/api/v1/water-harvesting/potential",
     "handler": "water_potential_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7962,7 +7962,7 @@
     "method": "GET",
     "path": "/api/v1/water-harvesting/methods",
     "handler": "water_methods_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7971,7 +7971,7 @@
     "method": "GET",
     "path": "/api/v1/water-harvesting/method-guide",
     "handler": "water_method_guide_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7980,7 +7980,7 @@
     "method": "GET",
     "path": "/api/v1/water-harvesting/upstream-flood",
     "handler": "water_upstream_flood_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7989,7 +7989,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/water-ledger",
     "handler": "upsert_water_ledger",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -7998,7 +7998,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-ledger",
     "handler": "list_water_ledger",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8007,7 +8007,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/water-efficiency",
     "handler": "field_water_efficiency",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8016,7 +8016,7 @@
     "method": "GET",
     "path": "/api/v1/water-sensitivity/crops",
     "handler": "water_sensitivity_crops",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8025,7 +8025,7 @@
     "method": "GET",
     "path": "/api/v1/water-sensitivity/calendar",
     "handler": "water_sensitivity_calendar",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8034,7 +8034,7 @@
     "method": "GET",
     "path": "/api/v1/water-sensitivity/wheat-calendar",
     "handler": "water_sensitivity_wheat_calendar",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8043,7 +8043,7 @@
     "method": "POST",
     "path": "/api/v1/water-sensitivity/stress-risk",
     "handler": "water_sensitivity_stress",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8052,7 +8052,7 @@
     "method": "POST",
     "path": "/api/v1/water-sensitivity/integrated-advice",
     "handler": "water_sensitivity_integrated",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8061,7 +8061,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/water-twin",
     "handler": "field_water_twin",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8070,7 +8070,7 @@
     "method": "GET",
     "path": "/api/v1/weather/health",
     "handler": "weather_health",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8079,7 +8079,7 @@
     "method": "GET",
     "path": "/api/v1/weather/readyz",
     "handler": "weather_readyz",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8088,7 +8088,7 @@
     "method": "GET",
     "path": "/api/v1/weather/self-test",
     "handler": "weather_self_test",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8097,7 +8097,7 @@
     "method": "GET",
     "path": "/api/v1/weather/wind-source-selftest",
     "handler": "weather_wind_source_selftest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8106,7 +8106,7 @@
     "method": "GET",
     "path": "/api/v1/weather/runtime-contract",
     "handler": "weather_runtime_contract",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8115,7 +8115,7 @@
     "method": "GET",
     "path": "/api/v1/weather/env-doctor",
     "handler": "weather_env_doctor",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8124,7 +8124,7 @@
     "method": "GET",
     "path": "/api/v1/weather/runtime-smoke-plan",
     "handler": "weather_runtime_smoke_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8133,7 +8133,7 @@
     "method": "GET",
     "path": "/api/v1/weather/current",
     "handler": "weather_current",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8142,7 +8142,7 @@
     "method": "GET",
     "path": "/api/v1/weather/forecast",
     "handler": "weather_forecast",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8151,7 +8151,7 @@
     "method": "GET",
     "path": "/api/v1/weather/historical",
     "handler": "weather_historical",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8160,7 +8160,7 @@
     "method": "GET",
     "path": "/api/v1/weather/layers",
     "handler": "weather_layers_manifest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8169,7 +8169,7 @@
     "method": "GET",
     "path": "/api/v1/weather/tile-cache/backend",
     "handler": "weather_tile_cache_backend",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8178,7 +8178,7 @@
     "method": "GET",
     "path": "/api/v1/weather/rate-limit/backend",
     "handler": "weather_rate_limit_backend",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8187,7 +8187,7 @@
     "method": "GET",
     "path": "/api/v1/weather/tile-cache/stats",
     "handler": "weather_tile_cache_stats",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8196,7 +8196,7 @@
     "method": "GET",
     "path": "/api/v1/weather/observability",
     "handler": "weather_observability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8205,7 +8205,7 @@
     "method": "GET",
     "path": "/api/v1/weather/metrics.prom",
     "handler": "weather_metrics_prometheus",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8214,7 +8214,7 @@
     "method": "POST",
     "path": "/api/v1/weather/tile-cache/prune",
     "handler": "weather_tile_cache_prune",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8223,7 +8223,7 @@
     "method": "GET",
     "path": "/api/v1/weather/tile-data/{z}/{x}/{y}",
     "handler": "weather_tile_data",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8232,7 +8232,7 @@
     "method": "GET",
     "path": "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",
     "handler": "weather_operation_tile_data",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8241,7 +8241,7 @@
     "method": "GET",
     "path": "/api/v1/weather/probe",
     "handler": "weather_probe",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8250,7 +8250,7 @@
     "method": "GET",
     "path": "/api/v1/weather/operation-window",
     "handler": "weather_operation_window",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8259,7 +8259,7 @@
     "method": "GET",
     "path": "/api/v1/weather/field-weather-summary",
     "handler": "weather_field_summary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8268,7 +8268,7 @@
     "method": "GET",
     "path": "/api/v1/weather/operation-plan",
     "handler": "weather_operation_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8277,7 +8277,7 @@
     "method": "GET",
     "path": "/api/v1/weather/action-recommendation",
     "handler": "weather_action_recommendation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8286,7 +8286,7 @@
     "method": "GET",
     "path": "/api/v1/weather/alerts",
     "handler": "weather_alerts",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8295,7 +8295,7 @@
     "method": "POST",
     "path": "/api/v1/weather/alerts/notify",
     "handler": "weather_alerts_notify",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8304,7 +8304,7 @@
     "method": "POST",
     "path": "/api/v1/weather/tasks/from-operation-plan",
     "handler": "weather_create_task_from_operation_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8313,7 +8313,7 @@
     "method": "POST",
     "path": "/api/v1/weather/recommendations/from-operation-plan",
     "handler": "weather_recommendation_from_operation_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8322,7 +8322,7 @@
     "method": "GET",
     "path": "/api/v1/weather/tile-series/{z}/{x}/{y}",
     "handler": "weather_tile_series",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8331,7 +8331,7 @@
     "method": "POST",
     "path": "/api/v1/weather-analytics/analyze",
     "handler": "weather_analyze_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8340,7 +8340,7 @@
     "method": "POST",
     "path": "/api/v1/weather-analytics/planting-guide",
     "handler": "weather_planting_guide_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8349,7 +8349,7 @@
     "method": "GET",
     "path": "/api/v1/wofost/crop-types",
     "handler": "wofost_crop_types_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8358,7 +8358,7 @@
     "method": "GET",
     "path": "/api/v1/wofost/adaptation-guidance",
     "handler": "wofost_adaptation_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8367,7 +8367,7 @@
     "method": "GET",
     "path": "/api/v1/analysis/yield",
     "handler": "yield_analysis_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8376,7 +8376,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/yield-interval",
     "handler": "field_yield_interval_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8385,7 +8385,7 @@
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
     "handler": "ingest_yield_map",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8394,7 +8394,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
     "handler": "list_yield_map_ingestions",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -8403,7 +8403,7 @@
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/yield-map-records",
     "handler": "query_yield_map_records",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
