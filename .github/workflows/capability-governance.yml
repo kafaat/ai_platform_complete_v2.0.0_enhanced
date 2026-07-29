@@ -135,7 +135,27 @@ jobs:
             tests/architecture/test_path3_attestation_policy.py \
             tests/architecture/test_path3_live_acceptance_gate.py \
             tests/architecture/test_static_governance_closure.py \
-            tests/architecture/test_verify_all_generated.py
+            tests/architecture/test_verify_all_generated.py \
+            tests/architecture/test_arch_test_ci_coverage_guard.py \
+            tests/architecture/test_brain_commit_claim_guard.py \
+            tests/architecture/test_brain_deferral_registry_guard.py \
+            tests/architecture/test_brain_state_consistency.py \
+            tests/architecture/test_brain_state_transition_guard.py \
+            tests/architecture/test_capability_core_consumption_guard.py \
+            tests/architecture/test_immutable_build_wrapper_behaviour.py \
+            tests/architecture/test_immutable_local_build_entrypoints.py \
+            tests/architecture/test_phase21_legacy_quarantine.py \
+            tests/architecture/test_phase21_source_of_truth.py \
+            tests/architecture/test_platform_route_placement_guard.py \
+            tests/architecture/test_provenance_receipt_and_replay.py \
+            tests/architecture/test_runtime_probe_batch.py \
+            tests/architecture/test_runtime_verification_apply.py \
+            tests/architecture/test_runtime_verification_promotion_workflow.py
+      # ARCH-TESTS-UNLISTED-IN-CI-01: القائمة أعلاه **يدويّة**، وكانت تبيت بصمت —
+      # ١٧ من ٥٤ اختباراً خارجها، منها حرّاس بُنيت في اليوم نفسه. هذا الحارس يقارنها
+      # بمحتوى المجلّد، فملفّ جديد غير مُدرَج يُسقِط CI بدل أن يمرّ غير منفَّذ.
+      - name: Every architecture test must be run by a workflow
+        run: python scripts/ci/arch_test_ci_coverage_guard.py
       # المكنسة (#691) لم تكن موصولة بأيّ workflow — لا هي ولا اختبارها. أداة تُشغَّل
       # يدويّاً لا تحرس شيئاً؛ وهي الحالة الثالثة اليوم لـARCH-TESTS-UNLISTED-IN-CI-01.
       # تعمل **أخيراً**: تُعيد فحص ما سبق، وتلتقط ما لا يلتقطه أيّ فحص منفرد —
