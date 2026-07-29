@@ -51,7 +51,28 @@ def command_version(name: str) -> dict[str, Any]:
         first = (proc.stdout or proc.stderr).splitlines()[0] if (proc.stdout or proc.stderr) else ""
     except Exception as exc:  # pragma: no cover - defensive environment boundary
         first = type(exc).__name__
-    return {"available": True, "path": path, "version": first}
+    # `path` و`version` هويّة آلة: مسار مطلق ورقم إصدار يختلفان بين العدّاءات.
+    # المطلوب من الأثر أن يقول **هل الأداة متاحة**، لا أين هي وأيّ نسخة.
+    del first
+    return {"available": True}
+
+
+def _classify_daemon_error(text: str) -> str:
+    """سبب مُصنَّف بدل نصّ العميل — قدرة لا هويّة آلة.
+
+    `RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01`: الأثر المُلتزَم كان يحمل نصّ خطأ
+    عميل Docker حرفيّاً، وهو يختلف بين إصدارات العميل لنفس السبب («Cannot connect to
+    the Docker daemon…» مقابل «failed to connect to the docker API…»). فكان `--check`
+    يفشل على كلّ آلة غير المولِّدة — لا لانحراف بل لاختلاف صياغة.
+    """
+    low = (text or "").lower()
+    if "permission denied" in low:
+        return "daemon_permission_denied"
+    if "no such file" in low or "cannot connect" in low or "failed to connect" in low:
+        return "daemon_unreachable"
+    if not low.strip():
+        return "daemon_unreachable"
+    return "daemon_error"
 
 
 def docker_daemon_state() -> dict[str, Any]:
@@ -66,9 +87,11 @@ def docker_daemon_state() -> dict[str, Any]:
             check=False,
         )
     except Exception as exc:
-        return {"reachable": False, "reason": type(exc).__name__}
+        return {"reachable": False, "reason": "probe_failed"}
     if proc.returncode != 0:
-        return {"reachable": False, "reason": (proc.stderr or proc.stdout).strip()[:500]}
+        # نصّ خطأ عميل Docker يختلف حرفيّاً بين إصداراته لنفس السبب، فيصير الأثر
+        # وصفاً لآلة لا للمنصّة. يُصنَّف السبب ولا يُنقَل نصّه.
+        return {"reachable": False, "reason": _classify_daemon_error(proc.stderr or proc.stdout)}
     return {"reachable": True, "server_version": proc.stdout.strip().strip('"')}
 
 
@@ -114,9 +137,9 @@ def build() -> tuple[dict[str, Any], str]:
         "production_certified": False,
         "platform": {
             "system": platform.system(),
-            "release": platform.release(),
+            # لا `release` ولا `python`: يصفان **آلة المُشغِّل** لا قدرة المنصّة،
+            # وتباينهما بين العدّاءات كان يُفشِل الفحص بلا انحراف حقيقيّ.
             "machine": platform.machine(),
-            "python": platform.python_version(),
         },
         "tools": tools,
         "docker_daemon": daemon,
@@ -134,7 +157,6 @@ def build() -> tuple[dict[str, Any], str]:
         "",
         "## Environment",
         "",
-        f"- Python: **{payload['platform']['python']}**",
         f"- Docker CLI: **{'available' if tools['docker']['available'] else 'missing'}**",
         f"- Docker daemon: **{'reachable' if daemon.get('reachable') else 'unreachable'}**",
         f"- Loopback bind: **{'available' if payload['loopback_bind_available'] else 'unavailable'}**",

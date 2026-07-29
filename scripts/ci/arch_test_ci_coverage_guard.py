@@ -88,6 +88,8 @@ def check() -> int:
         print(f"  {len(waived)} معفى بسبب مُسجَّل — الأساس يتقلّص ولا ينمو:")
         for name, entry in sorted(waived.items()):
             print(f"    · {name} — {entry['gap']}")
+    else:
+        print("  لا إعفاء: كلّ اختبار معماريّ يُشغّله workflow.")
     return 0
 
 

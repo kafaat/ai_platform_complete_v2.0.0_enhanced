@@ -62,8 +62,12 @@ def test_a_workflow_naming_a_missing_file_is_caught():
 
 def test_every_exemption_carries_a_gap_evidence_and_a_closing_condition():
     """«معفى» بلا سبب وشرط إغلاق ليس تسجيلاً بل إعفاءً صامتاً."""
+    if not _BASELINE.exists():
+        # حالة النجاح النهائيّة: لا اختبار معماريّ خارج CI، فلا أساس. حُذِف الملفّ
+        # عند إغلاق آخر إعفاء (runtime_environment_preflight) — والقاعدة المكتوبة
+        # فيه كانت «الأساس فارغ ⇒ احذف الملفّ بدل تركه هيكلاً».
+        return
     data = json.loads(_BASELINE.read_text(encoding="utf-8"))
-    assert data["exempt"], "الأساس فارغ — احذف الملفّ بدل تركه هيكلاً"
     for name, entry in data["exempt"].items():
         assert (ROOT / "tests" / "architecture" / name).exists(), f"إعفاء بائت: {name}"
         for field in ("gap", "failing", "evidence", "to_close"):
@@ -76,8 +80,12 @@ def test_the_baseline_never_silently_grows():
     اختبار جديد يُدرَج في workflow. لا يُضاف هنا إلّا إن كان **يفشل لسبب مُسجَّل**،
     وعندها يلزم قرار — لا تمريرة.
     """
+    if not _BASELINE.exists():
+        return  # صفر إعفاء — الحدّ الأدنى الذي لا يُتجاوَز نزولاً
     data = json.loads(_BASELINE.read_text(encoding="utf-8"))
-    assert len(data["exempt"]) <= 3, "أساس الإعفاء نما — يتقلّص ولا ينمو. أدرِج الاختبار بدل إعفائه."
+    assert len(data["exempt"]) <= 1, (
+        "أساس الإعفاء نما — يتقلّص ولا ينمو (السقف 1 بعد إغلاق preflight)."
+    )
 
 
 def test_exempted_files_are_not_also_listed():
