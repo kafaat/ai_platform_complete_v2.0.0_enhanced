@@ -2,9 +2,9 @@
   "$comment": "ملفّات tests_v9 بلا علامة (marker). كلّ وظائف CI تنتقي بـ-m، وpytest يستبعد ما لا علامة له من كلّ واحدة منها — فملفّ بلا علامة ولا مسار صريح في workflow لا يعمل في أيّ مكان. هذا الأساس مُجمَّد: يتقلّص ولا ينمو. ملفّ اختبار **جديد** بلا علامة يُسقِط CI؛ ومدخل هنا يُحذف عند وسمه أو حذفه — لا يُضاف مدخل لتمرير بوّابة.",
   "gap": "TESTS-UNMARKED-DESELECTED-01",
   "measured_on": "82ba88ad (claude/project-exploration-dtjw3p, 2026-07-28)",
-  "measurement": "٦٩ ملفّاً بلا علامة عند الاكتشاف؛ ٤ منها تُشغَّل بمسار صريح في ci.yml و٦٥ لا تعمل في أيّ مكان. شُغِّلت الـ٦٥ في venv نظيفة مطابقة لوظيفة Unit Tests (‏requirements-test.txt وحدها): **٤١٥ نجح · ١٣ فشل · صفر تخطٍّ**. وُسِمت ٥٥ ملفّاً بـunit (٢٤١ اختباراً) — ٥٤ خضراء أصلاً وواحد أُغلِق سببه في هذه الشريحة (api_versioning_policy_guard: أُعيد توليد جرده البائت فصار --check يخرج بصفر)، وبقي ١٤ هنا.",
+  "measurement": "٦٩ ملفّاً بلا علامة عند الاكتشاف؛ ٤ منها تُشغَّل بمسار صريح في ci.yml و٦٥ لا تعمل في أيّ مكان. شُغِّلت الـ٦٥ في venv نظيفة مطابقة لوظيفة Unit Tests (‏requirements-test.txt وحدها): **٤١٥ نجح · ١٣ فشل · صفر تخطٍّ**. وُسِمت ٥٥ ملفّاً بـunit (٢٤١ اختباراً) — ٥٤ خضراء أصلاً وواحد أُغلِق سببه في هذه الشريحة (api_versioning_policy_guard: أُعيد توليد جرده البائت فصار --check يخرج بصفر)، وبقي ١٤ هنا. **تحديث 2026-07-29:** أُغلِقت خمسة مداخل بتحويل تأكيداتها من نصّ مصدر إلى مرساة لا تتحرّك بالتفكيك (كائن الراوتر · دالّة بالاسم عبر AST · وحدات الخدمة مضمومة). الأساس ١٤ ⇒ **٩**.",
   "why_not_mark_the_rest": "وسم ملفّ فيه فشل يُحمِّر الدمج، ووسم فشله بـxfail يُخفيه — وهو ما رُفض صراحةً في decisions/ledger.md (#681⇒#683). كلّ مدخل أدناه يحمل سبب بقائه مقيساً لا مُقدَّراً.",
-  "pattern_observed": "سبعة من التسعة الفاشلة تؤكّد **نصّاً حرفيّاً في ملفّ مصدر** انتقل بتفكيك لاحق (main.py صار خالياً من المسارات بالعقد · تفكيك P2 لخدمة SAM2 · نقل سطر في qdrant_snapshot_manager). أي أنّها لا تكشف انحداراً بل بايتت هي نفسها — وبيّتَها الخمول ذاته. هذه هي الكلفة الثانية للاختبار الخامد: لا يفوت الانحدار فحسب، بل يتعفّن إلى إنذار كاذب فيبدو إيقاظه لاحقاً كسراً.",
+  "pattern_observed": "سبعة من التسعة الفاشلة تؤكّد **نصّاً حرفيّاً في ملفّ مصدر** انتقل بتفكيك لاحق (main.py صار خالياً من المسارات بالعقد · تفكيك P2 لخدمة SAM2 · نقل سطر في qdrant_snapshot_manager). أي أنّها لا تكشف انحداراً بل بايتت هي نفسها — وبيّتَها الخمول ذاته. هذه هي الكلفة الثانية للاختبار الخامد: لا يفوت الانحدار فحسب، بل يتعفّن إلى إنذار كاذب فيبدو إيقاظه لاحقاً كسراً. **وقد ثبت بالمعالجة:** الخمسة كلّها كانت قواعدَ قائمة انتقل موضعها — لا انحداراً واحداً بينها. الأسطر المُؤكَّدة موجودة حرفيّاً، في ملفّ آخر.",
   "unmarked": {
     "tests_v9/test_docker_build_matrix_verifier_static.py": {
       "reason": "runs_by_explicit_path",
@@ -30,26 +30,6 @@
       "reason": "not_a_pytest_module",
       "evidence": "‏pytest يجمع منه **صفر** اختبار — سكربت تدفّق يستدعي المحرّكات مباشرةً بلا دوالّ test_*."
     },
-    "tests_v9/test_p3_legacy_routes_and_indicator_ui.py": {
-      "reason": "stale_source_text_assertion",
-      "evidence": "يؤكّد وجود `@app.get(\"/api/indicators/readyz\")` **داخل** api/main.py، بينما main.py خالٍ من المسارات **بالعقد** (‏p1_main_decomposition_guard يرفض أيّ مُزخرِف مسار فيه). الاختبار يصف بنيةً نُقِضت عمداً.",
-      "to_close": "توجيه التأكيد إلى api/routers/ حيث المسار الآن، أو حذفه إن صار حارس التفكيك يغطّيه."
-    },
-    "tests_v9/test_qdrant_snapshot_manager.py": {
-      "reason": "stale_source_text_assertion",
-      "evidence": "يؤكّد سطر `if target.startswith(DRILL_PREFIX)` نصّاً في السكربت؛ السطر انتقل/أُعيدت صياغته. السلوك المقصود (حصر الحذف في بادئة محجوزة) قد يكون قائماً — التأكيد على النصّ لا على السلوك.",
-      "to_close": "استبدال تأكيد النصّ بتأكيد سلوكيّ يستدعي الدالّة بمسار خارج البادئة ويتوقّع الرفض."
-    },
-    "tests_v9/test_real_findings_closure_20260702.py": {
-      "reason": "stale_source_text_assertion",
-      "evidence": "تأكيدان على نصّين حرفيّين في مصدر خدمة الذكاء (`current_field_state_requires_service_token` و`headers={\"X-Tenant-Id\": tenant_id}`) غير موجودين بعد إعادة الصياغة.",
-      "to_close": "تحويلهما إلى تأكيد سلوكيّ على الطلب المُرسَل بدل نصّ المصدر."
-    },
-    "tests_v9/test_v9_gpu_enablement_20260702.py": {
-      "reason": "stale_source_text_assertion",
-      "evidence": "يؤكّد ورود `weights_missing` في مصدر خدمة SAM2؛ الخدمة فُكِّكت (‏P2 decomposition shell) فانتقل المحتوى إلى وحدات شقيقة.",
-      "to_close": "توجيه التأكيد إلى الوحدة التي تحمل reason_code الآن."
-    },
     "tests_v9/test_tool_contracts.py": {
       "reason": "stale_registry_expectation",
       "evidence": "يتوقّع `ndvi.compute` في سجلّ الأدوات الافتراضيّ، والسجلّ الآن `['actuator.pump.start', 'ndvi.read_observation', 'weather.forecast']` — الاسم تغيّر (`compute` ⇒ `read_observation`).",
@@ -59,11 +39,6 @@
       "reason": "assertion_fails_needs_judgement",
       "evidence": "‏test_water_stress_escalation_requires_physics_and_spectral_observation ⇒ assert False is True. ليس نصّاً حرفيّاً بل ادّعاء سلوكيّ — يحتاج تشخيصاً لا وسماً.",
       "to_close": "تشخيص مستقلّ: هل تصعيد إجهاد الماء يشترط فعلاً مشاهدة فيزيائيّة وطيفيّة؟ إن لا، فهو انحدار حوكمة لا اختبار بائت."
-    },
-    "tests_v9/test_fields_put_and_mfa_api_contract_20260626.py": {
-      "reason": "stale_source_text_assertion",
-      "evidence": "‏test_layer_tenant_fallback_fails_closed_without_tenant ⇒ ValueError: substring not found — يقطع مصدراً حول نصّ لم يعد موجوداً (فشل في **إعداد** التأكيد لا في التأكيد نفسه).",
-      "to_close": "استبدال القصّ النصّيّ بتأكيد سلوكيّ على المسار."
     },
     "tests_v9/test_roadmap_phase23.py": {
       "reason": "module_and_api_drift",
