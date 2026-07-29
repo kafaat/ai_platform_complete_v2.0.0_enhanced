@@ -35,4 +35,8 @@ def test_jobs_database_env_present_and_migrations_continue_idempotently():
     assert "JOBS_DB_PASSWORD" in env
     assert "JOBS_DATABASE_URL" in env
     script = (ROOT / "migrations" / "apply_in_compose.sh").read_text(encoding="utf-8")
-    assert "ON_ERROR_STOP=0" in script
+    # Idempotency comes from repeat-safe migrations; errors must still stop the job.
+    assert "psql_exec() { psql -v ON_ERROR_STOP=1" in script
+    assert "done < <(grep -vE" in script
+    assert "idempotent — آمنة على التكرار" in script
+    assert "ON_ERROR_STOP=0" not in script

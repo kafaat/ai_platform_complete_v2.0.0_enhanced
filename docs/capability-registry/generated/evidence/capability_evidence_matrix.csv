@@ -79,4 +79,4 @@ WX-006,GDD,weather,3,3,aligned,8,True,True,True,True,True,True,False,True,True,F
 WX-007,Frost and heat risk,weather,3,1,declared_above_evidence,2,True,True,False,False,False,False,False,False,False,False,False,False
 WX-008,Operation windows,weather,3,2,declared_above_evidence,5,True,True,True,False,True,False,False,True,False,False,False,False
 WX-009,Disease weather models,weather,3,2,declared_above_evidence,5,True,True,True,False,False,True,False,True,False,False,False,False
-WX-010,Weather provenance and quality,weather,3,1,declared_above_evidence,4,True,True,False,False,True,False,False,True,False,False,False,False
+WX-010,Weather provenance and quality,weather,3,1,declared_above_evidence,5,True,True,False,False,True,False,False,True,False,True,False,False

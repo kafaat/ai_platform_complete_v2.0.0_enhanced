@@ -1,3 +1,5 @@
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -73,9 +75,22 @@ def test_mobile_client_uses_ai_agronomist_and_sync_endpoints():
 
 
 def test_mobile_sync_smoke_script_is_fail_closed():
-    body = read("scripts/mobile/mobile_sync_smoke.sh")
-    assert "SAHOOL_JWT is required" in body
-    assert "TENANT_ID is required" in body
+    script = ROOT / "scripts/mobile/mobile_sync_smoke.sh"
+    body = script.read_text(encoding="utf-8")
+    env = os.environ.copy()
+    env.pop("SAHOOL_JWT", None)
+    proc = subprocess.run(
+        ["bash", str(script)],
+        cwd=ROOT,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        timeout=10,
+        check=False,
+    )
+    assert proc.returncode != 0
+    assert "SAHOOL_JWT is required" in proc.stdout
     assert "/api/v1/sync/manifest" in body
     assert "/api/v1/sync/status" in body
     assert "00000000-0000-7000-8000-000000000112" in body

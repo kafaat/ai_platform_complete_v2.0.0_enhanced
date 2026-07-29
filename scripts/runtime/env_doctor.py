@@ -142,7 +142,8 @@ def load_env_file(path: Path) -> dict[str, str]:
 def merged_env(root: Path) -> dict[str, str]:
     vals = load_env_file(root / ".env.example")
     vals.update(load_env_file(root / ".env"))
-    vals.update({k: v for k, v in os.environ.items() if k in REQUIRED_ENV or k.endswith("_URL")})
+    runtime_keys = set(REQUIRED_ENV) | {"S3_ACCESS_KEY"}
+    vals.update({k: v for k, v in os.environ.items() if k in runtime_keys or k.endswith("_URL")})
     return vals
 
 

@@ -200,10 +200,19 @@ def capability_scope(payload: dict[str, Any]) -> dict[str, Any]:
     ولذلك يُعلَن النطاق في الأثر بدل أن يُفترَض. المساواة الكاملة تُفرَض حين يتطابق
     النطاق؛ وخارجه يُفحَص **الشكل والاتّساق** — وهو ما لا يعتمد على آلة أصلاً.
     """
+    daemon = payload.get("docker_daemon", {}) or {}
     return {
-        "docker_daemon_reachable": bool(payload.get("docker_daemon", {}).get("reachable")),
+        # Tool availability is capability, not machine identity.  Two hosts where one has
+        # the Docker/psql CLI and the other does not are not the same preflight scope and
+        # must not be compared byte-for-byte merely because both are currently blocked.
+        "tools_available": {
+            name: bool(record.get("available"))
+            for name, record in sorted((payload.get("tools") or {}).items())
+        },
+        "docker_daemon_reachable": bool(daemon.get("reachable")),
+        "docker_daemon_reason": daemon.get("reason"),
         "loopback_bind_available": bool(payload.get("loopback_bind_available")),
-        "compose_candidates": list(payload.get("compose_candidates") or []),
+        "compose_candidates": sorted(payload.get("compose_candidates") or []),
     }
 
 

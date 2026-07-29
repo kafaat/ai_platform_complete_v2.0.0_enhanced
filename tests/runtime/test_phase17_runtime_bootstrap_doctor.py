@@ -26,6 +26,37 @@ def safe_env() -> dict[str, str]:
             "NATS_URL": "nats://sahool-nats:4222",
             "MINIO_ROOT_USER": "sahool-minio",
             "MINIO_ROOT_PASSWORD": "strong-minio-password",
+            "MINIO_ACCESS_KEY": "sahool-minio",
+            "MINIO_SECRET_KEY": "strong-minio-password",
+            "S3_ACCESS_KEY": "sahool-minio",
+            # docker-compose.v9.yml requires each of these (`${VAR:?...}`); the
+            # docker-compose-config check runs `docker compose config` with this exact
+            # subprocess env and no `.env` file (gitignored), so every required
+            # interpolation must be set here or the check fails on any clean machine.
+            "SH_CLIENT_ID": "sahool-sh-client-id",
+            "SH_CLIENT_SECRET": "sahool-sh-client-secret",
+            "RASTER_S3_ACCESS_KEY": "sahool-raster-s3-access-key",
+            "RASTER_S3_SECRET_KEY": "sahool-raster-s3-secret-key",
+            "SCOUT_INGEST_S3_ACCESS_KEY": "sahool-scout-s3-access-key",
+            "SCOUT_INGEST_S3_SECRET_KEY": "sahool-scout-s3-secret-key",
+            "QDRANT_API_KEY": "sahool-qdrant-api-key",
+            "MQTT_USERNAME": "sahool-mqtt",
+            "MQTT_PASSWORD": "sahool-mqtt-password",
+            "EDGE_SYNC_TOKEN": "sahool-edge-sync-token",
+            "FIELD_SERVICE_TENANT_ASSERTION_KEY": "sahool-field-service-key",
+            "SAHOOL_AGENT_TOKEN": "strong-token-value-for-contract-tests",
+            "SAHOOL_BUILD_ID": "test-build",
+            "TESTED_SHA": "0000000000000000000000000000000000000",
+            "ZLMEDIAKIT_IMAGE": "zlmediakit/zlmediakit:master",
+            "APP_DB_PASSWORD": "strong-pass",
+            "DB_PASSWORD": "strong-pass",
+            "INGEST_DB_PASSWORD": "strong-pass",
+            "JOBS_DB_PASSWORD": "strong-pass",
+            "JWT_SECRET": "strong-jwt-secret",
+            "REDIS_PASSWORD": "strong-pass",
+            "ADMIN_PASSWORD": "strong-admin-pass",
+            "GRAFANA_PASSWORD": "strong-grafana-pass",
+            "TELEGRAM_WEBHOOK_SECRET": "strong-telegram-secret",
         }
     )
     return env

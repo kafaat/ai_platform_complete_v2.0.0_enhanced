@@ -109,9 +109,9 @@ def test_unknown_steps_are_reported_not_skipped():
 _BASELINE = ROOT / "docs" / "architecture" / "generated_chain_known_drift.json"
 
 # سقف راتشِت لا هدف: الأساس يتقلّص بإغلاق الأسباب. رفعه لتمرير CI يُبطل معناه.
-# نزل 4 ⇒ 1 بإغلاق RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01 (2026-07-29):
-# الأثر صار يسجّل قدرةً لا هويّة آلة، فخرج من المنحرفين. بقي capability_linker وحده.
-_MAX_DRIFTING = 1
+# نزل 4 ⇒ 1 بإغلاق RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01، ثم 1 ⇒ 0
+# بإغلاق capability_linker: --check صار نقيّاً ومتماثلاً وموصولاً بالـworkflow.
+_MAX_DRIFTING = 0
 
 
 def _baseline() -> dict:
@@ -123,18 +123,28 @@ def test_every_uncovered_generator_in_the_tree_is_classified():
     assert not MOD.classify_uncovered()
 
 
-def test_the_classifier_actually_finds_the_uncovered_set():
-    """أرضيّة تمنع كشفاً منهاراً يمرّ خضراء بلا تصنيف شيء."""
-    found = MOD.uncovered()
-    # الأرضيّة نزلت 5 ⇒ 4 بإغلاق PATH3-READINESS-CLAIM-UNBACKED-01 (2026-07-29):
-    # `compose_runtime_target_resolver` و`path3_runtime_readiness_closure` خرجا من
-    # غير المُغطّى بإدراج اختباريهما. النزول **مكسوب** لا انهيار — والأرضيّة تُخفَّض
-    # بسبب مكتوب لا لتمرير اختبار.
-    # الأرضيّة 4 ⇒ 3: خرج runtime_environment_preflight من غير المُغطّى بإدراج
-    # اختباره في capability-governance.yml. نزول **مكسوب** بسبب مكتوب.
-    assert len(found) >= 3, f"كشف مُنهار: {found}"
-    for script in found:
-        assert (ROOT / script).is_file(), f"مصنَّف غير موجود: {script}"
+def test_the_uncovered_detector_catches_a_new_unwired_generator():
+    """صفر غير مُغطّى نتيجة صحيحة؛ نحرس الكاشف بمسبار اصطناعي لا بأرضية تاريخية.
+
+    فرض حد أدنى دائم لمولدات غير موصولة يحوّل الدين المغلق إلى شرط نجاح. بدل ذلك
+    ننشئ سكربتًا مؤقتًا يعلن ``--check`` ولا يذكره أي workflow، ونثبت أن الاكتشاف
+    يلتقطه، ثم نحذفه حتمياً.
+    """
+    probe = ROOT / "scripts" / "ci" / "_uncovered_detector_probe.py"
+    assert not probe.exists()
+    probe.write_text(
+        "import argparse\n"
+        "p = argparse.ArgumentParser()\n"
+        'p.add_argument("--check", action="store_true")\n',
+        encoding="utf-8",
+    )
+    try:
+        found = MOD.uncovered()
+        assert "scripts/ci/_uncovered_detector_probe.py" in found
+    finally:
+        probe.unlink(missing_ok=True)
+
+    assert MOD.uncovered() == [], "الشجرة الملتزمة يجب أن تبقى بلا مولدات غير موصولة"
 
 
 def test_each_baseline_entry_carries_evidence_and_a_closing_condition():
@@ -207,23 +217,51 @@ def test_a_guard_that_repairs_during_check_is_caught_not_trusted():
 
 
 def test_generators_no_workflow_mentions_are_reported_not_hidden():
-    """حدّ الاكتشاف مُعلَن: ما لا يذكره workflow لا تراه المكنسة.
+    """الصفر حالة صحيّة؛ نحرس كاشف مولّدات الكتابة بمسبار غير موصول.
 
-    الاكتشاف من الـworkflows يرى ما يُشغّله CI بدقّة، ويعمى عمّا **نسيه**. والقياس
-    يقول إنّ ذلك ليس نظريّاً: أربعة مولِّدات خارج كلّ workflow، ثلاثة منها منحرفة
-    على ``main`` — وفيها `PATH3-READINESS-CLAIM-UNBACKED-01`.
+    لا ينبغي إبقاء سكربت معروف خارج workflow كي يظل الاختبار أخضر. ننشئ مولّدًا
+    مؤقتًا يعلن علم كتابة ولا نذكره في أي workflow، ونثبت أن الكاشف يراه، ثم نحذفه.
     """
     import importlib.util
 
     spec = importlib.util.spec_from_file_location("v", _SCRIPT)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    blind = mod.unreferenced_generators()
-    # كان التوقّع على `path3_runtime_readiness_closure`؛ أُغلِق سببه
-    # (PATH3-READINESS-CLAIM-UNBACKED-01) وأُدرِج اختباره، فحُدِّث التوقّع بوعي بدل
-    # حذفه — الكشف نفسه ما زال مطلوباً، والعيّنة تغيّرت لا القاعدة.
-    assert "scripts/ci/runtime_environment_preflight.py" in blind, (
-        "إمّا صار مذكوراً في workflow — فاحذف هذا التوقّع بوعي — أو كُسر الكشف"
+
+    probe = ROOT / "scripts" / "ci" / "_unreferenced_generator_probe.py"
+    assert not probe.exists()
+    probe.write_text(
+        "import argparse\n"
+        "p = argparse.ArgumentParser()\n"
+        'p.add_argument("--generate", action="store_true")\n',
+        encoding="utf-8",
     )
-    for script in blind:
-        assert (ROOT / script).exists()
+    try:
+        blind = mod.unreferenced_generators()
+        assert "scripts/ci/_unreferenced_generator_probe.py" in blind
+    finally:
+        probe.unlink(missing_ok=True)
+
+    assert mod.unreferenced_generators() == [], "كل مولّد كتابة ملتزم يجب أن يكون مذكورًا في workflow"
+
+
+def test_regeneration_flags_match_the_generator_clis():
+    """The sweep must call each writer through the flag it actually exposes."""
+    assert MOD._GENERATE_FLAG["build_service_dependency_bundle.py"] == ""
+    assert MOD._GENERATE_FLAG["capability_runtime_evidence.py"] == "--apply"
+    assert MOD._GENERATE_FLAG["generate_indicator_artifacts.py"] == ""
+    assert MOD._GENERATE_FLAG["generate_indicators_frontend_manifest.py"] == ""
+
+
+def test_each_step_has_a_diagnosable_timeout(monkeypatch, tmp_path):
+    """A hung guard fails by name instead of consuming the whole workflow silently."""
+    probe = ROOT / "scripts" / "ci" / "_generated_sweep_timeout_probe.py"
+    probe.write_text("import time\ntime.sleep(10)\n", encoding="utf-8")
+    monkeypatch.setattr(MOD, "STEP_TIMEOUT_SECONDS", 0.05)
+    try:
+        code, output = MOD._run([str(probe.relative_to(ROOT))])
+    finally:
+        probe.unlink(missing_ok=True)
+    assert code == 124
+    assert "TIMEOUT after" in output
+    assert "_generated_sweep_timeout_probe.py" in output
