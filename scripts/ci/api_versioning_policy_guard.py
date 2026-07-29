@@ -132,6 +132,26 @@ def main():
             raise SystemExit(
                 "api versioning inventory drift; rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
             )
+        # API-VERSIONING-GUARD-IS-A-MIRROR-01: المقارنة أعلاه تكشف الانحراف، لكنّ
+        # علاجها المُوثَّق «أعِد التوليد» — فمسار غير مُصدَّر **جديد** يُقبَل بمجرّد
+        # الالتزام بالقائمة الجديدة. كاشف انحراف لا بوّابة سياسة. الراتشِت أدناه
+        # يمنع **النموّ**: التقلّص مسموح ومطلوب، والزيادة تُسقِط CI.
+        import json as _json
+
+        baseline = ROOT / "docs" / "architecture" / "api_versioning_legacy_baseline.json"
+        if baseline.exists():
+            ceiling = _json.loads(baseline.read_text(encoding="utf-8"))["ceiling"]
+            current = len(
+                _json.loads(ALLOW.read_text(encoding="utf-8"))["legacy_unversioned_business_routes"]
+            )
+            if current > ceiling:
+                raise SystemExit(
+                    f"قائمة السماح نمت {ceiling} ⇒ {current}. مسار عمل جديد بلا إصدار "
+                    "لا يُقبَل بإعادة التوليد — أصدِره تحت /api/v1/ أو صنّفه بحقّه. "
+                    f"الأساس: {baseline.relative_to(ROOT)} (يتقلّص ولا ينمو)."
+                )
+            if current < ceiling:
+                print(f"  قائمة السماح تقلّصت {ceiling} ⇒ {current} — حدّث ceiling في الأساس.")
         print("api_versioning_policy_check_ok")
     else:
         counts = {}
