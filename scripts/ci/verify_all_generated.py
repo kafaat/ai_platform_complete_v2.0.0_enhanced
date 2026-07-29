@@ -340,7 +340,9 @@ def main() -> int:
         print("\nمولِّدات لا يذكرها أيّ workflow ⇒ خارج الاكتشاف (مُصنَّفة في الأساس، غير مُنفَّذة هنا):")
         for script in blind:
             print(f"  · {script}")
-        print("  انظر PATH3-READINESS-CLAIM-UNBACKED-01 — ثلاثة منها منحرفة على main.")
+        print(
+            "  مُصنَّفة بسببها في docs/architecture/generated_chain_known_drift.json — القائمة تتقلّص ولا تنمو."
+        )
 
     if args.uncovered:
         print("\n— المولّدات غير المُغطّاة (تنفيذ صريح؛ راجع `git status` بعده):")
