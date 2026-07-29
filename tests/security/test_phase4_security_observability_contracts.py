@@ -46,13 +46,15 @@ def test_security_audit_script_covers_secret_and_role_guards() -> None:
 
 
 def test_ai_agronomist_fails_closed_for_missing_field_context_and_exposes_metrics() -> None:
-    src = read("services/ai_agronomist/main.py")
-    assert '@app.get("/metrics")' in src
-    assert "sahool_ai_agronomist_evidence_only 1" in src
-    assert "field-specific advice fails closed" in src
-    assert "canonical-field-state" in src
-    assert 'field_state.get("status") in {"unavailable", "not_found"}' in src
-    ast.parse(src)
+    api_src = read("services/ai_agronomist/main.py")
+    runtime_src = read("services/ai_agronomist/ai_evidence_runtime.py")
+    assert '@app.get("/metrics")' in api_src
+    assert "sahool_ai_agronomist_evidence_only 1" in api_src
+    assert "field-specific advice fails closed" in runtime_src
+    assert "canonical-field-state" in runtime_src
+    assert 'field_state.get("status") in {"unavailable", "not_found"}' in runtime_src
+    ast.parse(api_src)
+    ast.parse(runtime_src)
 
 
 def test_rag_and_knowledge_graph_have_readyz_and_metrics() -> None:
@@ -95,4 +97,9 @@ def test_compose_uses_restricted_application_roles_and_ai_readiness() -> None:
     assert "SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}" in compose
     for service in ["sahool-rag-retrieval", "sahool-knowledge-graph", "sahool-ai-agronomist"]:
         assert re.search(rf"^\s{{2}}{service}:", compose, re.M), service
-    assert "http://localhost:8000/readyz" in compose
+    # The service exposes /readyz at the gateway, while the container healthcheck
+    # intentionally probes the lighter /healthz endpoint. Assert the actual
+    # compose readiness dependency rather than a stale literal.
+    assert "http://localhost:8000/healthz" in compose
+    assert "sahool-ai-agronomist:" in compose
+    assert "condition: service_healthy" in compose

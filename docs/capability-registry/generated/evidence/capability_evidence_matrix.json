@@ -3747,11 +3747,11 @@
         "mobile": false,
         "production": false,
         "runtime": false,
-        "runtime_instrumentation": false,
+        "runtime_instrumentation": true,
         "unit_tests": true,
         "web": false
       },
-      "evidence_score": 4,
+      "evidence_score": 5,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",

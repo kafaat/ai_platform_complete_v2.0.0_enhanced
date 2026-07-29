@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import io
 import json
 import re
 from pathlib import Path
@@ -344,6 +345,7 @@ def discover_files() -> list[str]:
         if any(part in EXCLUDED_DIRS for part in rel.parts):
             continue
         results.append(rel.as_posix())
+    results.sort()
     return results
 
 
@@ -524,9 +526,8 @@ def main() -> int:
                 cap["confidence"] = "medium"
             else:
                 cap["confidence"] = "low"
-            if tests and cap["maturity"] == 3:
-                cap["status"] = "behavioral_test_linked_runtime_unverified"
-                cap["evidence_level"] = max(cap["evidence_level"], 3)
+            # Linkage is traceability, not certification. Never promote or downgrade
+            # maturity/status/evidence_level from repository-shape matches alone.
             cap["rationale"] = (
                 f"Capability linkage generated conservatively from repository inventories: "
                 f"services={len(cap['services'])}, apis={len(cap['apis'])}, tests={len(cap['tests'])}, "
@@ -534,21 +535,45 @@ def main() -> int:
                 "Runtime and production certification remain manual evidence gates."
             )
 
-    GENERATED.mkdir(parents=True, exist_ok=True)
-    cand_path = GENERATED / "capability_link_candidates.csv"
-    with cand_path.open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(
-            f, fieldnames=["capability_id", "kind", "value", "score", "decision"]
+    registry_rendered = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+    candidate_buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(
+        candidate_buffer,
+        fieldnames=["capability_id", "kind", "value", "score", "decision"],
+    )
+    writer.writeheader()
+    candidates.sort(
+        key=lambda row: (
+            str(row["capability_id"]),
+            str(row["kind"]),
+            str(row["value"]),
+            int(row["score"]),
+            str(row["decision"]),
         )
-        writer.writeheader()
-        writer.writerows(candidates)
+    )
+    writer.writerows(candidates)
+    candidates_rendered = candidate_buffer.getvalue()
+    cand_path = GENERATED / "capability_link_candidates.csv"
 
-    if args.check and data != original:
-        print("capability_linkage_drift_detected")
-        return 1
+    if args.check:
+        drift: list[str] = []
+        if registry_rendered != REGISTRY.read_text(encoding="utf-8"):
+            drift.append(str(REGISTRY.relative_to(ROOT)))
+        if cand_path.exists():
+            with cand_path.open(encoding="utf-8", newline="") as handle:
+                existing_candidates = handle.read()
+        else:
+            existing_candidates = None
+        if candidates_rendered != existing_candidates:
+            drift.append(str(cand_path.relative_to(ROOT)))
+        if drift:
+            print("capability_linkage_drift_detected: " + ", ".join(drift))
+            return 1
 
     if args.apply:
-        REGISTRY.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        GENERATED.mkdir(parents=True, exist_ok=True)
+        REGISTRY.write_text(registry_rendered, encoding="utf-8")
+        cand_path.write_text(candidates_rendered, encoding="utf-8")
 
     print(
         json.dumps(

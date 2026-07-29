@@ -45,7 +45,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -76,7 +78,7 @@ _GENERATE_FLAG = {
     "capability_evidence_maturity_engine.py": "--generate",
     "capability_parity_investment_engine.py": "--generate",
     "capability_release_history.py": "--generate",
-    "capability_runtime_evidence.py": "--generate",
+    "capability_runtime_evidence.py": "--apply",
     "execution_dependency_audit.py": "--generate",
     "decision_lineage_graph.py": "--generate",
     "database_contract_graph.py": "--generate",
@@ -85,11 +87,11 @@ _GENERATE_FLAG = {
     "route_conflict_guard.py": "--generate",
     "router_reachability_guard.py": "--generate",
     "runtime_contract_generator.py": "--generate",
-    "generate_indicator_artifacts.py": "--write",
-    "generate_indicators_frontend_manifest.py": "--write",
+    "generate_indicator_artifacts.py": "",
+    "generate_indicators_frontend_manifest.py": "",
     "pr_capability_impact_gate.py": "--generate-index",
     "build_platform_catalog.py": "",  # بلا علم — التشغيل العاري يكتب
-    "build_service_dependency_bundle.py": "--generate",
+    "build_service_dependency_bundle.py": "",
     "static_governance_closure.py": "--generate",
 }
 
@@ -101,6 +103,7 @@ _RELEASE_BUILD = "scripts/release/build_release_bundle.py"
 _RELEASE_VALIDATE = "scripts/release/validate_release_package.py"
 
 MAX_PASSES = 3
+STEP_TIMEOUT_SECONDS = 180
 
 
 def discover() -> list[tuple[str, list[str]]]:
@@ -181,10 +184,33 @@ def run_uncovered(entries: dict[str, dict]) -> list[tuple[str, str]]:
 
 
 def _run(argv: list[str]) -> tuple[int, str]:
-    proc = subprocess.run(  # noqa: S603 — أوامر من الـworkflows لا من مُدخَل مستخدم
-        [sys.executable, *argv], cwd=ROOT, capture_output=True, text=True
+    """Run one discovered step with a hard, diagnosable deadline.
+
+    A generated-artifact guard must not be able to consume an entire CI job without naming
+    the stalled step. Each command runs in its own process group so descendants are also
+    terminated on timeout.
+    """
+    cmd = [sys.executable, *argv]
+    proc = subprocess.Popen(  # noqa: S603 — أوامر من الـworkflows لا من مُدخَل مستخدم
+        cmd,
+        cwd=ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
     )
-    return proc.returncode, (proc.stdout + proc.stderr).strip()
+    try:
+        stdout, stderr = proc.communicate(timeout=STEP_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            proc.kill()
+        stdout, stderr = proc.communicate()
+        partial = ((stdout or "") + (stderr or "")).strip()
+        detail = f"TIMEOUT after {STEP_TIMEOUT_SECONDS}s: {' '.join(argv)}"
+        return 124, (partial + "\n" + detail).strip()
+    return proc.returncode, ((stdout or "") + (stderr or "")).strip()
 
 
 def _sort_key(step: tuple[str, list[str]]) -> tuple[int, str]:

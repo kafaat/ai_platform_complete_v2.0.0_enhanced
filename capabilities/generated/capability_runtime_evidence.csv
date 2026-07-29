@@ -29,7 +29,7 @@ WX-006,GDD,0,0,0,0,0,False
 WX-007,Frost and heat risk,0,0,0,0,0,False
 WX-008,Operation windows,0,0,0,0,0,False
 WX-009,Disease weather models,0,0,0,0,0,False
-WX-010,Weather provenance and quality,0,0,0,0,0,False
+WX-010,Weather provenance and quality,0,0,1,0,1,False
 SOIL-001,Soil profile,0,0,0,0,0,False
 SOIL-002,Soil sampling,0,0,0,0,0,False
 SOIL-003,Laboratory results,0,0,0,0,0,False
@@ -67,7 +67,7 @@ DEC-006,Execution receipt,0,0,3,0,1,False
 DEC-007,Outcome recording,0,0,18,0,1,False
 DEC-008,Learning attribution,0,0,3,0,1,False
 DEC-009,Model calibration,0,0,0,0,0,False
-DEC-010,Model lifecycle and activation,0,0,3,0,1,False
+DEC-010,Model lifecycle and activation,0,0,4,0,1,False
 SEC-001,Tenant RLS,0,0,0,0,0,False
 SEC-002,Signed tenant assertion,0,0,0,0,0,False
 SEC-003,Worker identity binding,3,0,0,0,1,False
