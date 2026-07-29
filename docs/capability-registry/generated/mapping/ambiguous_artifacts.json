@@ -9516,15 +9516,6 @@
         ]
       },
       {
-        "capability_id": "SEC-004",
-        "score": 15,
-        "signals": [
-          "content:MFA",
-          "content:mfa",
-          "content:totp"
-        ]
-      },
-      {
         "capability_id": "SEC-001",
         "score": 15,
         "signals": [
