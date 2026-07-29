@@ -12,6 +12,8 @@ from shared.contracts.forms.schema_v1 import (
     visible_fields,
 )
 
+pytestmark = pytest.mark.unit
+
 SCHEMA = {
     "fields": [
         {"key": "crop", "field_type": "select", "options": ["wheat", "barley"], "required": True},

@@ -75,7 +75,11 @@ def _clean_cache():
 
 
 async def _run(monkeypatch, values, date: str = "2026-06-18"):
-    client = _StubClient(_geotiff_bytes(values))
+    return await _run_payload(monkeypatch, _geotiff_bytes(values), date)
+
+
+async def _run_payload(monkeypatch, payload: bytes, date: str = "2026-06-18"):
+    client = _StubClient(payload)
     monkeypatch.setattr(runtime._cdse, "get_client", lambda: client)
     monkeypatch.setattr(runtime._cdse, "is_truecolor", lambda _index: False)
     result = await runtime.ensure_field_cog(
@@ -129,6 +133,26 @@ async def test_a_real_observation_is_still_cached(monkeypatch):
 
     assert result is not None, "مشاهدة صالحة يجب أن تُعاد"
     assert len(cdse_singleflight.cdse_tile_cache) == 1, "المشاهدة الصالحة تُخزَّن كالمعتاد"
+
+
+@pytest.mark.asyncio
+async def test_a_corrupt_response_is_not_cached(monkeypatch):
+    """بايتات ليست GeoTIFF أصلاً ⇒ لا نتيجة ولا كاش على المسار الموصول.
+
+    بقيّة الحالات تُغذّي ملفّات **سليمة البنية** فتقيس فرع «قرأتُ ولم أجد مشاهدة»؛
+    هنا يفشل الفتح نفسه.
+
+    **حدّ مقيس، لا مُفترَض:** هذه الحالة **لا** تحرس مظروف ``try/except`` حول فحص
+    المحتوى داخل ``ensure_field_cog`` — إزالته تُبقيها خضراء، لأنّ ``except`` الخارجيّ
+    للدالّة يبتلع الاستثناء ويُعيد ``None`` على أيّ حال (مُثبَت بالتكذيب). ما تحرسه
+    فعلاً: أنّ فشل الفتح لا ينتهي بمدخل كاش. الفشل المفتوح في الفحص نفسه يُمسَك في
+    ``test_unreadable_file_is_not_observable``.
+    """
+    result, client = await _run_payload(monkeypatch, b"II*\x00 not a real tiff")
+
+    assert client.calls == 1
+    assert result is None
+    assert cdse_singleflight.cdse_tile_cache == {}
 
 
 @pytest.mark.asyncio

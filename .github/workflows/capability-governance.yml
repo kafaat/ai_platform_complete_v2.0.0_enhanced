@@ -136,6 +136,7 @@ jobs:
             tests/architecture/test_path3_live_acceptance_gate.py \
             tests/architecture/test_static_governance_closure.py \
             tests/architecture/test_verify_all_generated.py \
+            tests/architecture/test_marker_coverage_guard.py \
             tests/architecture/test_arch_test_ci_coverage_guard.py \
             tests/architecture/test_brain_commit_claim_guard.py \
             tests/architecture/test_brain_deferral_registry_guard.py \

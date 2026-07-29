@@ -2104,6 +2104,10 @@
     "kind": "tests"
   },
   {
+    "path": "scripts/ci/test_marker_coverage_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "scripts/irr_f01/bootstrap.sql",
     "kind": "database"
   },
@@ -6349,6 +6353,10 @@
   },
   {
     "path": "tests/ci/test_phase16_ci_cd_gates.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests/ci/test_tests_tree_coverage_guard.py",
     "kind": "tests"
   },
   {

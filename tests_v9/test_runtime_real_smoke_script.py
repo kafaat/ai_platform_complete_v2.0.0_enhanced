@@ -1,5 +1,9 @@
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 
 def test_runtime_real_smoke_script_has_core_guards():
     text = Path("scripts/ci/runtime_real_smoke.sh").read_text(encoding="utf-8")

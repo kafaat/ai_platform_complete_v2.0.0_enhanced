@@ -9,6 +9,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 SQL = (ROOT / "migrations" / "v9_odoo_bridge.sql").read_text(encoding="utf-8")
 

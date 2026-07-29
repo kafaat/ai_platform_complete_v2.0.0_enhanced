@@ -13775,7 +13775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "949fbe15c2d44ac386e677cc3cf0948add1da7b064cd0068f281040cc0909e4d"
+          "content": "ea833ebd4f265848a3790ced71386717c76f4e29ca2e41dbeb586936480c988b"
         }
       ],
       "name": "services/raster-service/test_cdse_empty_raster_not_cached.py",
@@ -14175,7 +14175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac99a5736d8c70deb59c772cd12fa7a180c12bb7c67df9d402ff94ca40808708"
+          "content": "3d4757069f2a108f9c60022860b3665cef7499ab0397c2d1efeb30a920245006"
         }
       ],
       "name": "services/raster-service/test_raster_observable_content.py",

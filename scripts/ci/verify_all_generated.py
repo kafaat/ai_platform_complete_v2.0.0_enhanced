@@ -21,11 +21,22 @@
 **fail-closed على المجهول:** خطوة ``--check`` بلا علم بكيفيّة إعادة توليدها تُبلَّغ
 كـ«يدويّة» ولا تُتخطّى صامتةً — فلا يُقرأ نجاح الأداة كتغطية لا تملكها.
 
+**والاكتشاف من الـworkflows يترك ثقباً بحدّ تعريفه:** مولّد يدعم ``--check`` ولا يذكره
+أيّ workflow خارج المدى تماماً — لا يراه CI ولا تراه هذه المكنسة. تُغلَق الزاوية بتصنيف
+صريح: كلّ سكربت في ``scripts/{ci,architecture,release}`` يُعلن علم ``--check`` ولا اسم له
+في أيّ workflow **يجب** أن يكون مُدرَجاً في ``docs/architecture/generated_chain_known_drift.json``
+بحارسه وسبب صمته ودليله وشرط إغلاقه. مولّد جديد يدخل بلا تصنيف ⇒ فشل.
+
+التصنيف **لا ينفّذ**: خمسة من الستّة تكتب ملفّات متعقَّبة أثناء ``--check`` نفسه
+(``CHECK-STEPS-MUTATE-THE-TREE-01``)، فتشغيلها ضمن المكنسة الافتراضيّة يُوسّخ شجرة من
+يُشغّلها بلا طلبه. التنفيذ صريح بـ``--uncovered`` وعلى شجرة نظيفة.
+
     git add -A                                          # ← لازم أوّلاً، انظر أدناه
     python scripts/ci/verify_all_generated.py           # افحص فقط
     python scripts/ci/verify_all_generated.py --fix     # أعد التوليد ثمّ افحص
+    python scripts/ci/verify_all_generated.py --uncovered  # شغّل غير المُغطّى (يكتب!)
 
-**‏`git add` قبل التشغيل ضرورة لا عادة:** المولّدات تمسح `git ls-files` (مُتعقَّب فقط —
+**`git add` قبل التشغيل ضرورة لا عادة:** المولّدات تمسح `git ls-files` (مُتعقَّب فقط —
 قرار #660 لمنع التقاط ملفّات محلّيّة غائبة عن checkout الـCI). فملفّ جديد غير مُدرَج في
 الفهرس **لا يراه أيّ مولّد**، وتمرّ المكنسة خضراء بينما CI سيرصد الانحراف بعد الالتزام.
 """
@@ -33,6 +44,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -40,6 +52,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
+KNOWN_DRIFT = ROOT / "docs" / "architecture" / "generated_chain_known_drift.json"
+
+# أدلّة السكربتات التي قد تحمل مولّدات — نفسها التي يطابقها `_STEP` في الـworkflows.
+_SCRIPT_DIRS = ("scripts/ci", "scripts/architecture", "scripts/release")
+
+# «يدعم --check» = يُعلن العلم كسلسلة نصّيّة في مصدره (argparse)، لا مجرّد ذكره في شرح.
+# التمييز ليس شكليّاً: `verify_all_generated` نفسه يذكر `--check` في docstring ولا يملكه.
+_DECLARES_CHECK = re.compile(r"""["']--check[a-z-]*["']""")
 
 # خطوة فحص في workflow: `python scripts/<dir>/<name>.py … --check[-suffix]`
 # مقصور على **سطر واحد**: `\s` يبتلع الأسطر الجديدة فيلتهم كتلة YAML كاملة ويُنتج
@@ -92,6 +112,72 @@ def discover() -> list[tuple[str, list[str]]]:
             argv = tuple(a for a in args.split() if a)
             seen.setdefault((script, argv), None)
     return [(s, list(a)) for (s, a) in seen]
+
+
+def uncovered() -> list[str]:
+    """السكربتات التي تُعلن ``--check`` ولا يذكرها أيّ workflow — خارج مدى CI والمكنسة."""
+    named = "\n".join(wf.read_text(encoding="utf-8") for wf in WORKFLOWS.glob("*.yml"))
+    found: list[str] = []
+    for directory in _SCRIPT_DIRS:
+        for path in sorted((ROOT / directory).glob("*.py")):
+            if not _DECLARES_CHECK.search(path.read_text(encoding="utf-8")):
+                continue
+            if path.name in named:
+                continue
+            found.append(f"{directory}/{path.name}")
+    return found
+
+
+def load_known_drift() -> dict[str, dict]:
+    """أساس التصنيف. غيابه ليس «لا شيء معروف» بل عطب — لا يُقرأ كخضرة."""
+    if not KNOWN_DRIFT.exists():
+        raise FileNotFoundError(f"أساس التصنيف مفقود: {KNOWN_DRIFT.relative_to(ROOT)}")
+    return json.loads(KNOWN_DRIFT.read_text(encoding="utf-8"))["uncovered"]
+
+
+def classify_uncovered() -> list[str]:
+    """يُطابق ما في الشجرة بما في الأساس. يُعيد أسطر الأخطاء (فارغة = متّسق).
+
+    الاتّجاهان يفشلان: مولّد جديد بلا تصنيف (ثقب يتّسع صامتاً)، ومدخل بائت في الأساس
+    (سكربت وُصِل بـworkflow أو حُذِف — «معروف» صار وصفاً لماضٍ). القائمة تتقلّص ولا تنمو.
+    """
+    in_tree = set(uncovered())
+    in_baseline = set(load_known_drift())
+    problems: list[str] = []
+    for script in sorted(in_tree - in_baseline):
+        problems.append(
+            f"مولّد يدعم --check ولا يذكره workflow ولا يصنّفه الأساس: {script}"
+            f" — صنّفه في {KNOWN_DRIFT.relative_to(ROOT)} أو صِله بـworkflow."
+        )
+    for script in sorted(in_baseline - in_tree):
+        problems.append(f"مدخل بائت في الأساس: {script} — لم يعد غير مُغطّى (أو حُذِف). احذف المدخل.")
+    return problems
+
+
+def run_uncovered(entries: dict[str, dict]) -> list[tuple[str, str]]:
+    """يشغّل غير المُغطّى بعلمه المُصرَّح ويقارن النتيجة بالمُعلَن في الأساس.
+
+    يكتب ملفّات متعقَّبة (``CHECK-STEPS-MUTATE-THE-TREE-01``) — ولذلك لا يعمل افتراضيّاً.
+    الفشل هنا ليس «انحرف» بل «انحرافه غير ما يقوله الأساس»: سليم صار منحرفاً (انحدار
+    جديد)، أو منحرف صار سليماً (شرط إغلاقه تحقّق ⇒ يُحذف مدخله).
+    """
+    surprises: list[tuple[str, str]] = []
+    for script, entry in sorted(entries.items()):
+        code, out = _run([script, entry["check_flag"]])
+        drifted = code != 0
+        tail = out.splitlines()[-1] if out.splitlines() else f"exit {code}"
+        if drifted == bool(entry["drifts"]):
+            state = "منحرف كما هو مُعلَن" if drifted else "سليم كما هو مُعلَن"
+            print(f"  ✓ {script} — {state}")
+            continue
+        note = (
+            "الأساس يقول سليم وقد انحرف — انحدار جديد"
+            if drifted
+            else "الأساس يقول منحرف وقد سلُم — تحقّق شرط الإغلاق، احذف المدخل"
+        )
+        surprises.append((script, f"{note}: {tail}"))
+        print(f"  ✗ {script}\n      {note}\n      {tail}")
+    return surprises
 
 
 def _run(argv: list[str]) -> tuple[int, str]:
@@ -181,10 +267,30 @@ def regenerate(steps) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fix", action="store_true", help="أعد التوليد حتّى الثبات ثمّ افحص")
+    parser.add_argument(
+        "--uncovered",
+        action="store_true",
+        help="شغّل المولّدات غير المُغطّاة وقارنها بالأساس (يكتب ملفّات متعقَّبة — شجرة نظيفة)",
+    )
     args = parser.parse_args()
 
     steps = discover()
     print(f"اكتُشفت {len(steps)} خطوة --check من {len(list(WORKFLOWS.glob('*.yml')))} workflow\n")
+
+    # التصنيف أوّلاً: يقيس مدى الأداة نفسها. مولّد خارج كلّ workflow لا يظهر في أيّ فحص
+    # أدناه، فالسكوت عنه يُحوّل نجاح المكنسة إلى ادّعاء تغطية لا تملكها.
+    unclassified = classify_uncovered()
+    if unclassified:
+        print("خلل في تصنيف المولّدات غير المُغطّاة:")
+        for line in unclassified:
+            print(f"  ✗ {line}")
+        return 1
+    entries = load_known_drift()
+    drifting = [s for s, e in entries.items() if e["drifts"]]
+    print(
+        f"غير مُغطّى بأيّ workflow: {len(entries)} مولّد "
+        f"({len(drifting)} منها منحرف بأساس موثَّق) — خارج مدى هذه المكنسة بالتصميم.\n"
+    )
 
     manual: list[str] = []
     if args.fix:
@@ -226,13 +332,21 @@ def main() -> int:
         for script in manual:
             print(f"  · {script}")
 
+    # التقاء شريحتين على الزاوية نفسها (#693 و#690): `unreferenced_generators` يُبلِّغ
+    # المجموعة، و`classify_uncovered` أعلاه **يفرض** أن يحمل كلّ عضو فيها مدخلاً مُبرَّراً.
+    # يبقى الإبلاغ لأنّه يُسمّي الحدّ في المخرَج، والفرض هو ما يمنع اتّساعه صامتاً.
     blind = unreferenced_generators()
     if blind:
-        # صدق: الأداة لا تدّعي تغطية لا تملكها — وهذا حدّ **الاكتشاف** لا حدّ التنفيذ.
-        print("\nمولِّدات لا يذكرها أيّ workflow ⇒ خارج الاكتشاف (لم تُفحَص هنا):")
+        print("\nمولِّدات لا يذكرها أيّ workflow ⇒ خارج الاكتشاف (مُصنَّفة في الأساس، غير مُنفَّذة هنا):")
         for script in blind:
             print(f"  · {script}")
         print("  انظر PATH3-READINESS-CLAIM-UNBACKED-01 — ثلاثة منها منحرفة على main.")
+
+    if args.uncovered:
+        print("\n— المولّدات غير المُغطّاة (تنفيذ صريح؛ راجع `git status` بعده):")
+        if run_uncovered(entries):
+            print("\nحالة مولّد غير مُغطّى تخالف الأساس — حدِّث الأساس أو أصلح السبب.")
+            return 1
 
     print("\n✅ كلّ المصنوعات المولَّدة المُكتشَفة متّسقة.")
     return 0

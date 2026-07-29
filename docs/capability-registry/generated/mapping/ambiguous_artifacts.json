@@ -1715,6 +1715,29 @@
     ]
   },
   {
+    "path": "docs/testing/unmarked_tests_baseline.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 9,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
     "kind": "other",
     "candidates": [

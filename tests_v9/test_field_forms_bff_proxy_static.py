@@ -10,6 +10,10 @@ from __future__ import annotations
 
 import pathlib
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PROXY = ROOT / "services/sahool-platform/api/routers/service_proxy.py"
 COMPOSE = ROOT / "docker-compose.v9.yml"

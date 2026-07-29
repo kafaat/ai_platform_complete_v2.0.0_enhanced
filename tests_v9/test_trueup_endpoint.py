@@ -20,7 +20,10 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/sahool-platform"))
 
+import pytest
 from api.trueup import TrueUpEngine, TrueUpInput, TrueUpStatus
+
+pytestmark = pytest.mark.unit
 
 
 # نحاكي منطق الـendpoint (apply_trueup في main.py) بدون fastapi
