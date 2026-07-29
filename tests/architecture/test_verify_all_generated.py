@@ -9,11 +9,16 @@
   * المطابقة **مقصورة على السطر** — أوّل نسخة عبرت الأسطر فابتلعت كتلة YAML وأنتجت
     «خطوة» وهميّة تمرّ خضراء بلا تنفيذ شيء. هذا الحارس يمنع عودته.
   * الترتيب حقيقة تبعيّة: ما يبصم غيره يأتي بعده.
+
+وللاكتشاف حدّ بحدّ تعريفه: مولّد لا يذكره أيّ workflow خارج المدى تماماً. تلك الزاوية
+تُغلَق بأساس تصنيف مُلتزَم، وهذه الاختبارات تحرسه كما تحرس الاكتشاف: لا مولّد بلا تصنيف،
+ولا مدخل بلا دليل وشرط إغلاق، ولا نموّ صامت للأساس.
 """
 
 from __future__ import annotations
 
 import importlib.util
+import json
 import re
 from pathlib import Path
 
@@ -97,6 +102,76 @@ def test_unknown_steps_are_reported_not_skipped():
     source = _SCRIPT.read_text(encoding="utf-8")
     assert "manual.append(script)" in source
     assert "ولا تُولَّد آليّاً" in source
+
+
+# ── الزاوية العمياء: مولّد لا يذكره أيّ workflow ──────────────────────────────
+
+_BASELINE = ROOT / "docs" / "architecture" / "generated_chain_known_drift.json"
+
+# سقف راتشِت لا هدف: الأساس يتقلّص بإغلاق الأسباب. رفعه لتمرير CI يُبطل معناه.
+_MAX_DRIFTING = 4
+
+
+def _baseline() -> dict:
+    return json.loads(_BASELINE.read_text(encoding="utf-8"))["uncovered"]
+
+
+def test_every_uncovered_generator_in_the_tree_is_classified():
+    """الثابت: لا مولّد خارج كلّ workflow وخارج الأساس معاً — وإلّا اتّسع الثقب صامتاً."""
+    assert not MOD.classify_uncovered()
+
+
+def test_the_classifier_actually_finds_the_uncovered_set():
+    """أرضيّة تمنع كشفاً منهاراً يمرّ خضراء بلا تصنيف شيء."""
+    found = MOD.uncovered()
+    assert len(found) >= 5, f"كشف مُنهار: {found}"
+    for script in found:
+        assert (ROOT / script).is_file(), f"مصنَّف غير موجود: {script}"
+
+
+def test_each_baseline_entry_carries_evidence_and_a_closing_condition():
+    """«معروف» بلا سبب ودليل وشرط إغلاق ليس معرفةً بل قائمة تجاهُل."""
+    for script, entry in _baseline().items():
+        for field in (
+            "drifts",
+            "kind",
+            "watcher",
+            "why_the_watcher_is_silent",
+            "evidence",
+            "why_not_regenerate",
+            "to_close",
+            "check_flag",
+        ):
+            assert field in entry, f"{script}: ينقصه {field}"
+        assert isinstance(entry["drifts"], bool), f"{script}: drifts ليس منطقيّاً"
+        for field in ("evidence", "why_the_watcher_is_silent", "to_close"):
+            assert len(entry[field].strip()) >= 30, f"{script}: {field} أقصر من أن يكون تفسيراً"
+        assert entry["check_flag"].startswith("--check"), f"{script}: علم فحص غير مُصرَّح"
+
+
+def test_the_baseline_never_silently_grows():
+    """راتشِت: عدد المنحرفين لا يتجاوز السقف المُثبَّت — يُخفَض بالإغلاق لا يُرفَع بالتمرير."""
+    drifting = [s for s, e in _baseline().items() if e["drifts"]]
+    assert len(drifting) <= _MAX_DRIFTING, f"نما الأساس: {sorted(drifting)}"
+
+
+def test_a_silent_watcher_is_named_not_hidden():
+    """قيمة المدخل في تسمية **سبب** الصمت: حارس غائب أو غير مجموع أو غير موسوم."""
+    for script, entry in _baseline().items():
+        watcher = entry["watcher"]
+        reason = entry["why_the_watcher_is_silent"]
+        if watcher is None:
+            assert "لا حارس" in reason, f"{script}: بلا حارس وبلا تصريح بذلك"
+        else:
+            assert (ROOT / watcher).is_file(), f"{script}: حارس مُعلَن غير موجود — {watcher}"
+
+
+def test_the_default_sweep_does_not_execute_the_uncovered_generators():
+    """أكثرها يكتب ملفّات متعقَّبة أثناء --check؛ تشغيلها افتراضيّاً يُوسّخ شجرة المستخدم."""
+    source = _SCRIPT.read_text(encoding="utf-8")
+    body = source[source.index("def main()") :]
+    assert "if args.uncovered:" in body, "التنفيذ غير مشروط بعلم صريح"
+    assert body.index("classify_uncovered()") < body.index("if args.uncovered:")
 
 
 def test_a_guard_that_repairs_during_check_is_caught_not_trusted():

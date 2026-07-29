@@ -4,6 +4,10 @@ import sys
 from datetime import UTC, datetime, timezone
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "services/soil-service"))

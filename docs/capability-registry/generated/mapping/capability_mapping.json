@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4780,
+    "files_scanned": 4785,
     "files_by_kind": {
       "backend": 1190,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1249,
-      "tests": 1518,
+      "other": 1253,
+      "tests": 1519,
       "web": 448
     },
-    "unmapped_artifacts": 1948,
-    "ambiguous_artifacts": 390
+    "unmapped_artifacts": 1949,
+    "ambiguous_artifacts": 391
   },
   "capabilities": [
     {
@@ -3368,7 +3368,7 @@
       ],
       "events": [
         {
-          "value": "field.created @ tests_v9/test_notification_tenant_isolation.py:48",
+          "value": "field.created @ tests_v9/test_notification_tenant_isolation.py:50",
           "score": 14
         },
         {
@@ -6452,7 +6452,7 @@
           "score": 14
         },
         {
-          "value": "/api/v1/seasons/{season_id}/simulate @ tests_v9/test_historical_season_bridge_static.py:45",
+          "value": "/api/v1/seasons/{season_id}/simulate @ tests_v9/test_historical_season_bridge_static.py:49",
           "score": 14
         },
         {
@@ -6591,7 +6591,7 @@
           "score": 16
         },
         {
-          "value": "IF @ tests_v9/test_historical_season_bridge_static.py:34",
+          "value": "IF @ tests_v9/test_historical_season_bridge_static.py:38",
           "score": 14
         },
         {
@@ -12995,15 +12995,15 @@
       ],
       "events": [
         {
-          "value": "field.created @ tests_v9/test_roadmap_phase1.py:22",
+          "value": "field.created @ tests_v9/test_roadmap_phase1.py:26",
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_roadmap_phase1.py:68",
+          "value": "field.created @ tests_v9/test_roadmap_phase1.py:72",
           "score": 12
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase1.py:32",
+          "value": "operation.irrigation.completed @ tests_v9/test_roadmap_phase1.py:36",
           "score": 12
         },
         {
@@ -13778,21 +13778,21 @@
           ]
         },
         {
-          "value": "IF @ tests_v9/test_v204_field_forms_static.py:25",
+          "value": "IF @ tests_v9/test_v204_field_forms_static.py:29",
           "score": 27
         },
         {
-          "value": "field_submissions @ tests_v9/test_v204_field_forms_static.py:99",
+          "value": "field_submissions @ tests_v9/test_v204_field_forms_static.py:103",
           "score": 27
         }
       ],
       "events": [
         {
-          "value": "v204_field_forms.sql @ tests_v9/test_v204_field_forms_static.py:113",
+          "value": "v204_field_forms.sql @ tests_v9/test_v204_field_forms_static.py:117",
           "score": 27
         },
         {
-          "value": "v204_field_forms.sql @ tests_v9/test_v204_field_forms_static.py:13",
+          "value": "v204_field_forms.sql @ tests_v9/test_v204_field_forms_static.py:17",
           "score": 27
         },
         {
@@ -13800,7 +13800,7 @@
           "score": 26
         },
         {
-          "value": "field_forms_api.py @ tests_v9/test_field_forms_api_static_p0.py:12",
+          "value": "field_forms_api.py @ tests_v9/test_field_forms_api_static_p0.py:16",
           "score": 25
         },
         {
@@ -13821,6 +13821,10 @@
         },
         {
           "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:391",
+          "score": 12
+        },
+        {
+          "value": "weather.forecast @ docs/testing/unmarked_tests_baseline.json:55",
           "score": 12
         }
       ],
@@ -14175,6 +14179,14 @@
           ]
         },
         {
+          "path": "docs/testing/unmarked_tests_baseline.json",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "scripts/ci/env_compose_drift_allowlist.json",
           "score": 12,
           "signals": [
@@ -14199,12 +14211,12 @@
         "backend": 3,
         "routes": 12,
         "database": 15,
-        "events": 9,
+        "events": 10,
         "web": 0,
         "mobile": 12,
         "tests": 20,
         "governance": 1,
-        "other_evidence": 4
+        "other_evidence": 5
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -16051,7 +16063,7 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_imagery_auto_process_real_activation.py:80",
+          "value": "field.created @ tests_v9/test_imagery_auto_process_real_activation.py:82",
           "score": 10
         },
         {
@@ -18279,19 +18291,19 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_event_replay.py:122",
+          "value": "field.created @ tests_v9/test_event_replay.py:126",
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_event_replay.py:146",
+          "value": "field.created @ tests_v9/test_event_replay.py:150",
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_event_replay.py:22",
+          "value": "field.created @ tests_v9/test_event_replay.py:26",
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_wired_endpoints.py:204",
+          "value": "field.created @ tests_v9/test_wired_endpoints.py:208",
           "score": 12
         },
         {
@@ -18315,7 +18327,7 @@
           "score": 12
         },
         {
-          "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:203",
+          "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:207",
           "score": 12
         },
         {
@@ -18523,27 +18535,27 @@
           "score": 12
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_event_replay.py:149",
+          "value": "operation.irrigation.completed @ tests_v9/test_event_replay.py:153",
           "score": 12
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_event_replay.py:37",
+          "value": "operation.irrigation.completed @ tests_v9/test_event_replay.py:41",
           "score": 12
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_event_replay.py:42",
+          "value": "operation.irrigation.completed @ tests_v9/test_event_replay.py:46",
           "score": 12
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_v10_modules.py:279",
+          "value": "operation.irrigation.completed @ tests_v9/test_v10_modules.py:283",
           "score": 12
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_v10_modules.py:280",
+          "value": "operation.irrigation.completed @ tests_v9/test_v10_modules.py:284",
           "score": 12
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_wired_endpoints.py:214",
+          "value": "operation.irrigation.completed @ tests_v9/test_wired_endpoints.py:218",
           "score": 12
         },
         {
@@ -23386,7 +23398,7 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_notification_tenant_isolation.py:48",
+          "value": "field.created @ tests_v9/test_notification_tenant_isolation.py:50",
           "score": 11
         },
         {
@@ -28557,7 +28569,7 @@
           "score": 13
         },
         {
-          "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:203",
+          "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:207",
           "score": 12
         },
         {
@@ -28642,6 +28654,10 @@
         },
         {
           "value": "sahool.weather_automation @ services/sahool-platform/api/weather_automation.py:26",
+          "score": 9
+        },
+        {
+          "value": "weather.forecast @ docs/testing/unmarked_tests_baseline.json:55",
           "score": 9
         },
         {
@@ -29061,6 +29077,15 @@
           ]
         },
         {
+          "path": "docs/testing/unmarked_tests_baseline.json",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
+          ]
+        },
+        {
           "path": "event_publish_contracts.yaml",
           "score": 9,
           "signals": [
@@ -29096,12 +29121,12 @@
         "backend": 23,
         "routes": 51,
         "database": 9,
-        "events": 55,
+        "events": 56,
         "web": 9,
         "mobile": 0,
         "tests": 21,
         "governance": 0,
-        "other_evidence": 18
+        "other_evidence": 19
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -30023,7 +30048,7 @@
           "score": 12
         },
         {
-          "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:203",
+          "value": "field.polygon_invalid @ tests_v9/test_v13_refinements.py:207",
           "score": 12
         },
         {
@@ -30155,15 +30180,15 @@
           "score": 12
         },
         {
-          "value": "soil.invalid_range @ tests_v9/test_confidence_failures.py:138",
+          "value": "soil.invalid_range @ tests_v9/test_confidence_failures.py:142",
           "score": 12
         },
         {
-          "value": "soil.no_recent_lab @ tests_v9/test_confidence_failures.py:142",
+          "value": "soil.no_recent_lab @ tests_v9/test_confidence_failures.py:146",
           "score": 12
         },
         {
-          "value": "weather.stale @ tests_v9/test_confidence_failures.py:147",
+          "value": "weather.stale @ tests_v9/test_confidence_failures.py:151",
           "score": 12
         },
         {
@@ -30195,15 +30220,15 @@
           "score": 12
         },
         {
-          "value": "field.created @ tests_v9/test_wired_endpoints.py:204",
+          "value": "field.created @ tests_v9/test_wired_endpoints.py:208",
           "score": 10
         },
         {
-          "value": "operation.irrigation.completed @ tests_v9/test_wired_endpoints.py:214",
+          "value": "operation.irrigation.completed @ tests_v9/test_wired_endpoints.py:218",
           "score": 10
         },
         {
-          "value": "soil.invalid_range @ tests_v9/test_wired_endpoints.py:124",
+          "value": "soil.invalid_range @ tests_v9/test_wired_endpoints.py:128",
           "score": 10
         },
         {
@@ -35636,6 +35661,10 @@
     },
     {
       "path": "mobile/sahool_app/test/resilience_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "scripts/ci/test_marker_coverage_guard.py",
       "kind": "tests"
     },
     {
@@ -43039,6 +43068,29 @@
           "signals": [
             "content:Scouting",
             "content:scouting"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/testing/unmarked_tests_baseline.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "OPS-004",
+          "score": 12,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
+          "capability_id": "WX-002",
+          "score": 9,
+          "signals": [
+            "content:Weather forecast",
+            "content:forecast",
+            "content:weather forecast"
           ]
         }
       ]

@@ -11,6 +11,10 @@ from __future__ import annotations
 
 import importlib
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 
 def test_shared_governance_module_is_importable():
     mod = importlib.import_module("shared.governance.chemical_lineage")

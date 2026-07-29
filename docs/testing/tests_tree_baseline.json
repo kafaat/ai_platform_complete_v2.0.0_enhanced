@@ -1,0 +1,60 @@
+{
+  "$comment": "الملفّات المستثناة من وظيفة *Repository Tests* التي تشغّل شجرة tests/ كاملةً. الاستثناء يُشتقّ من هنا لا يُكتب في الـYAML: خطوة CI تسأل السكربت عن --ignore، فلا يمكن استثناء ملفّ بلا مدخل مُبرَّر هنا. القائمة تتقلّص ولا تنمو.",
+  "gap": "ARCH-TESTS-UNLISTED-IN-CI-01",
+  "measured_on": "bb53981e (claude/project-exploration-dtjw3p, 2026-07-28)",
+  "measurement": "١١٢ ملفّ اختبار مُتعقَّب تحت tests/ (‏١٥ في الجذر و٩٧ في أدلّة فرعيّة)؛ **٦٦** منها لا يذكر اسمَها أيّ workflow — بينها الخمسة عشر في الجذر كلّها. تشغيل الشجرة كاملةً في venv نظيفة (‏requirements-test.txt وحدها): **٥٥٦ نجح · ١٣ فشل · ٨ تخطٍّ**، والفشل موزّع على العشرة أدناه.",
+  "why_a_whole_tree_job_not_a_longer_list": "العلّة المُسجَّلة في ARCH-TESTS-UNLISTED-IN-CI-01 هي **قائمة سماح يدويّة**: capability-governance.yml يسمّي ٣٥ ملفّاً اسماً اسماً، وأيّ ملفّ جديد يقع خارجها صامتاً. إطالة القائمة تُعيد إنتاج العلّة. الوظيفة الجديدة تشغّل `pytest tests` كاملةً ناقص هذا الأساس، فالملفّ الجديد **مُغطّى تلقائيّاً** ولا يحتاج أحداً أن يتذكّره.",
+  "pattern_observed": "خمسة من العشرة تؤكّد **نصّاً حرفيّاً** في مصدر (سكربت bash أو ملفّ بايثون) تغيّرت صياغته، بينما **المقصد قائم**: riv_p0_consumer_truth_guard يطلب `LEGACY_DIRECT_SENTINEL_ENABLED = False` والمصدر يُعلن `\"direct_provider_fetch\": False` و`runtime_role: compatibility-only`. أي أنّ الحارس يفشل والحقيقة التي يحرسها **صادقة** — نفس نمط tests_v9 (‏TESTS-UNMARKED-DESELECTED-01) بعيّنة ثانية مستقلّة.",
+  "excluded": {
+    "tests/architecture/test_compose_runtime_target_resolver.py": {
+      "reason": "guards_a_known_drifting_generator",
+      "evidence": "يفشل بمطابقة بصمة: source_plan_sha256=07820538… في الأثر مقابل f82e9be9… في الخطّة. الانحراف نفسه مُسجَّل في docs/architecture/generated_chain_known_drift.json — الاختبار صادق والأثر بائت.",
+      "to_close": "يُرفع الاستثناء لحظة إعادة توليد المُحلِّل (مع path3 في الشريحة نفسها) — لا قبل."
+    },
+    "tests/architecture/test_path3_runtime_readiness_closure.py": {
+      "reason": "guards_a_known_drifting_generator",
+      "evidence": "اختباران يفشلان: الأثر المُلتزَم يدّعي جاهزيّةً تنقلب محجوبةً عند إعادة التوليد، لأنّه يقرأ بصمة الخطّة البائتة أعلاه.",
+      "to_close": "قرار مالك مُسجَّل في generated_chain_known_drift.json — قلب حالة حوكمة لا تحديث بصمة."
+    },
+    "tests/architecture/test_runtime_environment_preflight.py": {
+      "reason": "asserts_on_the_generating_machine",
+      "evidence": "يقارن نصّ خطأ عميل Docker المُلتزَم بنصّ الآلة الحاليّة: «Cannot connect to the Docker daemon…» مقابل «failed to connect to the docker API…». حقيقة واحدة بنصّين ⇒ يفشل على أيّ آلة غير المولِّدة، ومنها runner الـCI.",
+      "to_close": "يسجّل الأثر قدرةً (docker_reachable: false) لا نصّ خطأ — عندها يمرّ على أيّ آلة."
+    },
+    "tests/e2e_runtime/test_phase3_runtime_integration_contracts.py": {
+      "reason": "requires_compose_environment",
+      "evidence": "‏docker compose config يفشل: «required variable SAHOOL_AGENT_TOKEN is missing a value». يحتاج بيئة compose مُهيّأة بأسرار، لا وظيفة اختبار نقيّة.",
+      "to_close": "وظيفة تكامل بأسرار مُصرَّحة، أو تحويل التأكيد إلى ما لا يتطلّب استيفاء المتغيّرات."
+    },
+    "tests/security/test_phase4_security_observability_contracts.py": {
+      "reason": "requires_compose_environment",
+      "evidence": "اختباران؛ أحدهما يشغّل `docker compose config` فيفشل على نفس المتغيّر المفقود.",
+      "to_close": "كسابقه: بيئة compose مُصرَّحة أو تأكيد لا يعتمد على الاستيفاء."
+    },
+    "tests/runtime/test_phase17_runtime_bootstrap_doctor.py": {
+      "reason": "requires_docker_daemon",
+      "evidence": "‏test_runtime_doctor_preflight_json_contract يقارن عقد JSON يحمل حالة الـdaemon؛ بلا docker تختلف الحمولة.",
+      "to_close": "فصل عقد الشكل عن قيمة القدرة: يُتحقَّق من المفاتيح لا من نصّ سبب التعذّر."
+    },
+    "tests/mobile/test_phase11_mobile_offline_sync_runtime.py": {
+      "reason": "stale_source_text_assertion",
+      "evidence": "يطلب النصّ `TENANT_ID is required` في سكربت الدخان؛ السكربت يفرض `SAHOOL_JWT` بـ`:?` ولا يذكر تلك العبارة. الشرط قد يكون قائماً بصيغة أخرى.",
+      "to_close": "تأكيد على **سلوك** السكربت (يخرج بغير صفر بلا المتغيّر) بدل نصّ رسالته."
+    },
+    "tests/test_fields_create_contract_static.py": {
+      "reason": "stale_source_text_assertion",
+      "evidence": "‏test_jobs_database_env_present_and_migrations_continue_idempotently يطلب `ON_ERROR_STOP=0` في apply_in_compose.sh؛ السكربت أُعيدت صياغته ولا يحمل العبارة حرفيّاً.",
+      "to_close": "تأكيد على خاصّيّة الإدامة (idempotency) بدل علم psql نصّاً."
+    },
+    "tests/test_riv_p0_consumer_truth_guard.py": {
+      "reason": "stale_source_text_assertion",
+      "evidence": "يطلب `LEGACY_DIRECT_SENTINEL_ENABLED = False` نصّاً؛ المصدر يُعلن الحقيقة نفسها بصيغة أخرى (`\"direct_provider_fetch\": False` و`runtime_role: compatibility-only`). **المقصد قائم والتأكيد بائت** — ولذلك لا يُحذَف الاختبار بل يُعاد توجيهه.",
+      "to_close": "تأكيد على العلم المُعلَن في العقد (direct_provider_fetch) لا على اسم ثابت داخليّ."
+    },
+    "tests/test_riv_p0_indicator_ownership_guard.py": {
+      "reason": "stale_source_text_assertion",
+      "evidence": "يطلب `\"runtime_role\": \"contract-only\"` نصّاً في indicators-service؛ الخدمة تُعلن الحدّ نفسه في docstring وحمولة مختلفة الصياغة. نفس الحالة: الحقيقة صادقة والنصّ تغيّر.",
+      "to_close": "تأكيد على حمولة العقد المُعادة فعلاً لا على سلسلة في المصدر."
+    }
+  }
+}

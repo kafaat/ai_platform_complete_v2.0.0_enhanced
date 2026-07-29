@@ -15,6 +15,10 @@ from __future__ import annotations
 
 import pathlib
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "migrations/MANIFEST.txt"
 V206 = ROOT / "migrations/v206_rls_final_hardening.sql"

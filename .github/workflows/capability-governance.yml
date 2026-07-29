@@ -150,7 +150,9 @@ jobs:
             tests/architecture/test_provenance_receipt_and_replay.py \
             tests/architecture/test_runtime_probe_batch.py \
             tests/architecture/test_runtime_verification_apply.py \
-            tests/architecture/test_runtime_verification_promotion_workflow.py
+            tests/architecture/test_runtime_verification_promotion_workflow.py \
+            tests/architecture/test_marker_coverage_guard.py \
+            tests/architecture/test_tests_tree_coverage_guard.py
       # ARCH-TESTS-UNLISTED-IN-CI-01: القائمة أعلاه **يدويّة**، وكانت تبيت بصمت —
       # ١٧ من ٥٤ اختباراً خارجها، منها حرّاس بُنيت في اليوم نفسه. هذا الحارس يقارنها
       # بمحتوى المجلّد، فملفّ جديد غير مُدرَج يُسقِط CI بدل أن يمرّ غير منفَّذ.

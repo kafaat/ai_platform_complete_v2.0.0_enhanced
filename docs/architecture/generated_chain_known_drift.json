@@ -1,0 +1,71 @@
+{
+  "$comment": "المولّدات التي تدعم --check ولا يذكرها أيّ workflow. المكنسة تكتشف خطواتها من الـworkflows، فما ليس في workflow خارج مداها بالتصميم — وهذه هي القائمة التي تجعل ذلك الخارج مرئيّاً بدل أن يكون صمتاً. القائمة تتقلّص ولا تنمو: مدخل يُحذف عند وصل السكربت بالبوّابة أو إصلاح سببه، ولا يُضاف مدخل لتمرير CI. كلّ مدخل يحمل حارسه (إن وُجد) وسبب عدم عمل الحارس ودليل الانحراف وشرط الإغلاق.",
+  "gap": "GENERATED-ARTIFACT-SWEEP-01",
+  "origin": "الزاوية مُستخرَجة من claude/verify-all-generated (GENERATED-CHAIN-UNDOCUMENTED-01): «مولّد موجود لا يشغّله أيّ workflow» — زاوية لا تمسكها المكنسة لأنّها تكتشف من الـworkflows. أُعيد القياس على main الحاليّ بدل نقل نتائجه، فاختلف العدد والتفسير.",
+  "measured_on": "780d0544 (origin/main, 2026-07-28)",
+  "measurement": "٦١ سكربتاً في scripts/{ci,architecture,release} يُعلن علم --check كسلسلة نصّيّة في مصدره (٥٨ ci + ١ architecture + ٢ release)؛ ٦ منها لا يذكر اسمَها أيّ workflow. من الستّة: **اثنان** سليمان (exit=0) وأربعة منحرفة — كان الميزان ١/٥ عند القياس، وأُغلِق api_versioning_policy_guard في 2026-07-28 بإعادة توليد جرده.",
+  "correction": "قياس أوّليّ في هذه الجلسة عدّ api_versioning_policy_guard سليماً؛ كان خطأ قياس — رمز الخروج قُرئ بعد أنبوب `| tail` فعاد رمز tail لا رمز السكربت. القياس الصحيح: exit=1 لخمسة من الستّة.",
+  "why_the_sweep_does_not_execute_these": "خمسة من الستّة تكتب ملفّات متعقَّبة أثناء --check نفسه (CHECK-STEPS-MUTATE-THE-TREE-01). تشغيلها ضمن المكنسة الافتراضيّة يُوسّخ شجرة المستخدم بلا طلبه، فالافتراضيّ **تصنيف** لا تنفيذ: يفشل إن ظهر مولّد غير مصنَّف. التنفيذ صريح بـ--uncovered على شجرة نظيفة.",
+  "uncovered": {
+    "scripts/ci/api_versioning_policy_guard.py": {
+      "drifts": false,
+      "check_flag": "--check",
+      "kind": "clean",
+      "watcher": "tests_v9/test_api_versioning_policy_guard.py",
+      "why_the_watcher_is_silent": "لم يعد صامتاً: وُسِم الاختبار بـunit في 2026-07-28 فصار يعمل في وظيفة Unit Tests. يبقى المدخل هنا للتصنيف فقط — السكربت ما زال لا يذكره أيّ workflow مباشرةً، وحارسه اختبار لا خطوة.",
+      "evidence": "أُعيد توليد الجرد البائت في الشريحة نفسها ⇒ --check يخرج بصفر. الانحراف السابق كان أرقام أسطر انزاحت (agriai-engine/main.py /metrics ٨٥→٩٠). تحقّق شرط الإغلاق المُعلَن.",
+      "why_not_regenerate": "لا انحراف.",
+      "to_close": "يُحذف المدخل عند وصل السكربت بـworkflow. تنبيه مُسجَّل في API-VERSIONING-GUARD-IS-A-MIRROR-01: الحارس كاشف انحراف لا بوّابة سياسة، فخضرته لا تعني أنّ كلّ مسار غير مُصدَّر مأذون."
+    },
+    "scripts/ci/capability_linker.py": {
+      "drifts": true,
+      "check_flag": "--check",
+      "kind": "tool_not_idempotent",
+      "watcher": null,
+      "why_the_watcher_is_silent": "لا حارس البتّة: لا workflow ولا اختبار يذكر السكربت.",
+      "evidence": "--check يُعيد capability_linkage_drift_detected (exit=1) على شجرة main نظيفة، ويكتب capabilities/generated/capability_link_candidates.csv أثناء الفحص. القيد مُسجَّل سلفاً في سجلّ الجلسات بوصفه «--check غير idempotent بعد --apply (قيد أداة المؤلّفين)».",
+      "why_not_regenerate": "إعادة التوليد لا تُثبّت الأداة: الانحراف من عدم تماثل الأداة نفسها لا من بيانات بائتة، فتشغيلها يُنتج انحرافاً جديداً.",
+      "to_close": "تصليب capability_linker ليكون توليده متماثلاً (idempotent)، أو إسقاط --check منه صراحةً بدل إبقاء علم يفشل دائماً."
+    },
+    "scripts/ci/compose_runtime_target_resolver.py": {
+      "drifts": true,
+      "check_flag": "--check",
+      "kind": "stale_artifact",
+      "watcher": "tests/architecture/test_compose_runtime_target_resolver.py",
+      "why_the_watcher_is_silent": "الاختبار خارج testpaths: pytest.ini يحصر الجمع في tests_v9، وtests/architecture لا يُجمَع في أيّ تشغيل — مُسجَّل في ARCH-TESTS-UNLISTED-IN-CI-01. تشغيله يدويّاً يفشل فعلاً.",
+      "evidence": "مُتحقَّق مرّتين — بالسكربت وبالاختبار: runtime_probe_plan.json يُعلن plan_sha256=f82e9be9…، بينما compose_runtime_targets.json يسجّل source_plan_sha256=07820538… (وtargets_sha256 ee1643ec… مقابل 9bb4c8ec… المحسوبة). بصمة خطّة أقدم: تغيّرت الخطّة ولم يُعَد توليد المُحلِّل.",
+      "why_not_regenerate": "ليس بصمة بيئة بل أثر بائت — لكنّ إعادة توليده تُغيّر مُدخَل path3 أدناه، فيُحسم الاثنان معاً بقرار مالك لا بأمر آليّ.",
+      "to_close": "إعادة توليد بعد تأكيد أنّ الخطّة الحاليّة هي المقصودة، مع path3 في الشريحة نفسها."
+    },
+    "scripts/ci/path3_runtime_readiness_closure.py": {
+      "drifts": true,
+      "check_flag": "--check",
+      "kind": "governance_state_would_flip",
+      "watcher": "tests/architecture/test_path3_runtime_readiness_closure.py",
+      "why_the_watcher_is_silent": "خارج testpaths كسابقه (ARCH-TESTS-UNLISTED-IN-CI-01). تشغيله يدويّاً يفشل في اختبارين لا واحد.",
+      "evidence": "الأثر المُلتزَم يدّعي جاهزيّةً؛ إعادة التوليد على الشجرة نفسها تقلبها إلى محجوبة، لأنّها تقرأ بصمة الخطّة البائتة أعلاه.",
+      "why_not_regenerate": "هذا **تغيير حالة حوكمة** لا تحديث بصمة. لا يُقلَب بأمر آليّ ولا بقرار وكيل — أثر مُلتزَم يدّعي جاهزيّة لا تسندها الشجرة، وتصحيحه قرار مالك صريح.",
+      "to_close": "قرار المالك: إمّا تصحيح بصمة الخطّة أعلاه فتعود المطابقة صادقةً، أو قبول الحالة المحجوبة بوصفها الحقيقة وإعادة التوليد."
+    },
+    "scripts/ci/runtime_environment_preflight.py": {
+      "drifts": true,
+      "check_flag": "--check",
+      "kind": "environment_stamp",
+      "watcher": "tests/architecture/test_runtime_environment_preflight.py",
+      "why_the_watcher_is_silent": "خارج testpaths كسابقيه (ARCH-TESTS-UNLISTED-IN-CI-01).",
+      "evidence": "الأثر المُلتزَم يحمل نصّ خطأ عميل Docker الخاصّ بمن ولّده؛ التوليد على آلة أخرى يكتب نصّاً مختلفاً حرفيّاً لنفس السبب. مُقاس: «Cannot connect to the Docker daemon at unix:///var/run/docker.sock…» مقابل «failed to connect to the docker API… no such file or directory» — حقيقة واحدة بنصّين.",
+      "why_not_regenerate": "إعادة التوليد تبصم بيئة من يُشغّلها، فيصير الأثر وصفاً لآلة لا للمنصّة.",
+      "to_close": "يسجّل الأثر **قدرةً** (docker_reachable: false) لا **نصّ خطأ العميل**، فيصير مستقلّاً عن الآلة."
+    },
+    "scripts/release/platform_route_release_binding.py": {
+      "drifts": false,
+      "check_flag": "--check-source",
+      "kind": "clean",
+      "watcher": "tests/release/test_platform_route_release_binding.py",
+      "why_the_watcher_is_silent": "خارج testpaths (tests/release) — لكنّه يمرّ: ٧ اختبارات خضراء عند التشغيل اليدويّ.",
+      "evidence": "--check-source ⇒ exit=0 «platform route release binding: PASS». ملاحظة: --check العاري ملتبس (يطابق --check-source و--check-archive-binding) فيخرج بـ2، ولذلك يُصرَّح العلم هنا بدل تخمينه.",
+      "why_not_regenerate": "لا انحراف.",
+      "to_close": "مدخل سليم يبقى للتصنيف فقط: يُحذف عند وصل السكربت بـworkflow، أو عند إدراج tests/release في مسارات الجمع."
+    }
+  }
+}

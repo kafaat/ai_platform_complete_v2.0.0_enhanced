@@ -30,8 +30,13 @@ _TRANSFORM = from_origin(500000.0, 2800000.0, 10.0, 10.0)
 _CRS = "EPSG:32638"
 
 
-def _write(path, array, *, dtype, count, nodata=None, alpha_band=False):
-    """يكتب GeoTIFF حقيقيّاً على القرص ويُعيد مساره."""
+def _write(path, array, *, dtype, count, nodata=None, alpha_band=False, mask=None):
+    """يكتب GeoTIFF حقيقيّاً على القرص ويُعيد مساره.
+
+    ``mask``: قناع داخليّ (``write_mask``) — سلطة صلاحيّة **ثالثة** غير ألفا وغير
+    ``nodata``. لا يكتبه ``_index``/``_rgba`` أعلاه، ولذلك يُمرَّر صراحةً في الحالات
+    التي تقيسه.
+    """
     profile = {
         "driver": "GTiff",
         "height": array.shape[-2],
@@ -52,6 +57,8 @@ def _write(path, array, *, dtype, count, nodata=None, alpha_band=False):
         else:
             for band in range(count):
                 dst.write(array[band], band + 1)
+        if mask is not None:
+            dst.write_mask(mask.astype("uint8"))
     return str(path)
 
 
@@ -127,6 +134,56 @@ def test_unreadable_file_is_not_observable(tmp_path):
 def test_missing_file_is_not_observable(tmp_path):
     """ملفّ غائب ⇒ False بلا استثناء يتسرّب إلى المُستدعي."""
     assert tile_render.raster_has_observable_content(str(tmp_path / "nope.tif")) is False
+
+
+# ── القناع الداخليّ وRGB بلا ألفا ────────────────────────────────────────────
+# الحالات أدناه صحيحة في التنفيذ الحاليّ لكنّها كانت **بلا حارس**: صحّتها تأتي من
+# دلالة القراءة المُقنَّعة (``read(1, masked=True)`` يطبّق قناع المجموعة) لا من فرع
+# مكتوب لها. أي أنّ «تبسيطاً» لاحقاً للفرع قد يكسرها بصمت وكلّ الاختبارات خضراء.
+# رُصِدت بمقارنة مع تنفيذ مستقلّ للفحص نفسه (لقطة 2026-07-28) يمرّ عبر
+# ``dataset_mask()`` صراحةً؛ التنفيذان يتّفقان على النتائج، والفارق أنّ حالاتها كانت
+# مُغطّاة وحالاتنا لا.
+
+
+def test_rgb_without_an_alpha_band_is_observable(tmp_path):
+    """ثلاثة نطاقات بلا ألفا: لا سلطة ألفا تُسأل، والقناع كلّه صالح ⇒ مشاهدة."""
+    arr = np.full((3, 32, 32), 80, dtype="uint8")
+    path = _write(tmp_path / "rgb.tif", arr, dtype="uint8", count=3)
+    assert tile_render.raster_has_observable_content(path) is True
+
+
+def test_rgb_masked_out_entirely_is_not_observable(tmp_path):
+    """نفس الملفّ بقناع داخليّ كلّه صفر ⇒ لا بكسل صالح، ولو كانت الألوان «معقولة».
+
+    بلا هذه الحالة يبقى مسار RGB (٣ نطاقات) بلا أيّ قياس: الفرع الوحيد المكتوب
+    صراحةً هو RGBA بأربعة نطاقات uint8.
+    """
+    arr = np.full((3, 32, 32), 80, dtype="uint8")
+    path = _write(
+        tmp_path / "rgb_masked.tif",
+        arr,
+        dtype="uint8",
+        count=3,
+        mask=np.zeros((32, 32)),
+    )
+    assert tile_render.raster_has_observable_content(path) is False
+
+
+def test_finite_values_behind_a_fully_invalid_mask_are_not_observable(tmp_path):
+    """قيم محدودة تماماً خلف قناع داخليّ كلّه صفر ⇒ لا مشاهدة.
+
+    ``nodata``/NaN ليسا سلطة الصلاحيّة الوحيدة؛ القناع الداخليّ سلطة مستقلّة، وبقيّة
+    الحالات هنا تكتب NaN فقط فلا تقيسه.
+    """
+    values = np.ones((32, 32), dtype="float32")
+    path = _write(
+        tmp_path / "masked_index.tif",
+        values,
+        dtype="float32",
+        count=1,
+        mask=np.zeros((32, 32)),
+    )
+    assert tile_render.raster_has_observable_content(path) is False
 
 
 def test_check_does_not_modify_the_raster(tmp_path):

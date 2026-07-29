@@ -1,5 +1,9 @@
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / "services" / "sahool-platform" / "api" / "main.py"
 REGISTRY = ROOT / "services" / "sahool-platform" / "api" / "router_registry.py"

@@ -13,6 +13,10 @@ import os
 import re
 import sys
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/sahool-platform"))
 
 
