@@ -93,8 +93,8 @@ duplicate_route_classifications:
   - {method: POST, path: /plan, classification: legacy_bff_facade,
      canonical_owner: agriai-engine, facade: sahool-platform, expires_on: "2026-12-31",
      decision: "agriai يملك حوسبة التخطيط؛ المنصّة تُنسِّق أو تُمرِّر ولا تُعيد تنفيذها."}
-  - {method: POST, path: /recommend, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "تقييم agriai وتوصية المرشد عقدان مختلفان خلف نطاقَي خدمة منفصلَين."}
+  - {method: POST, path: /v1/query, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "استعلام المرشد الزراعيّ (ai_agronomist) واستعلام RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/query عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والرابعة، 2026-07-30)."}
 
 extra_components:
   # واجهات الاستهلاك — ليست في service_inventory (ليست خدمات backend) لكنّها مكوّنات

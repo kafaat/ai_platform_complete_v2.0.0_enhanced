@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "16c4802f76434e56c5fdb378256e9881156b0de54f4be9cc6da977c260c63e0f"
+          "content": "fc36cce2cb95bba33e16e41f7d7a15587a972341b0cc78dd609d8e7e2b0064b3"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -10105,7 +10105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e426100a056fdfcd830e0cc1d75585d3883553d9a8fb4bbcee408ecd3ae8e4b"
+          "content": "92176d08b88824060366196fadbc22cd9d379fdddd0369ea33940f6788a33120"
         }
       ],
       "name": "services/ai_agronomist/main.py",

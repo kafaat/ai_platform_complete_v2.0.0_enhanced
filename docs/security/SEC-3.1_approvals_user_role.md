@@ -20,7 +20,7 @@ as response headers from the already-JWT-verified payload.
 
 ## 1. Goal (the follow-up to SEC-3)
 
-SEC-3 made `/approvals/approve|deny|resume` on `ai_agronomist` require the
+SEC-3 made `/v1/approvals/approve|deny|resume` on `ai_agronomist` require the
 gateway-authenticated `X-Tenant-Id` (closing the spoofable-body-tenant gap).
 
 Approvals are **human governance decisions**, so they should *additionally*
@@ -93,7 +93,7 @@ In the `/api/ai-agronomist/` location (`nginx/nginx.v9.conf:308-314`), mirror th
 location /api/ai-agronomist/ {
     limit_req zone=agent_limit burst=10 nodelay;
     auth_request /_auth_verify;
-    proxy_pass http://ai_agronomist_backend/;
+    proxy_pass http://ai_agronomist_backend/v1/;
     include    /etc/nginx/proxy_params.conf;                 # clears client X-Tenant-Id / X-User-Id first
     auth_request_set $tenant $upstream_http_x_tenant_id;
     proxy_set_header X-Tenant-Id $tenant;
@@ -143,11 +143,11 @@ def require_authenticated_user(
 ```
 
 Layer it onto each approval endpoint in `services/ai_agronomist/main.py`
-(`/approvals/approve` L135, `/approvals/deny` L182, `/approvals/resume` L223),
+(`/v1/approvals/approve` L135, `/v1/approvals/deny` L182, `/v1/approvals/resume` L223),
 **in addition to** `require_trusted_tenant` (do not weaken SEC-3):
 
 ```python
-@app.post("/approvals/approve")
+@app.post("/v1/approvals/approve")
 async def approve_tool_request(
     req: ApprovalDecisionRequest,
     _tenant: str = Depends(require_trusted_tenant),

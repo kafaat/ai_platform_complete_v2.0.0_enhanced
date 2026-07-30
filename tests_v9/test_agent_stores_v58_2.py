@@ -3,7 +3,7 @@
 - ``InMemory*Store`` سلوك صحيح (save/get/list_pending/append/recent).
 - ``build_*_store`` الافتراضيّ = memory؛ ``redis`` بلا اتّصال ⇒ سقوط آمن للذاكرة.
 - ``RedisApprovalStore`` يعمل مع عميل مزيّف (يثبت مسار الاستمرار).
-- نقطة ``/approvals/resume``: تقرأ الموافقة المخزَّنة، تتطلّب حالة approved، وتُعيد
+- نقطة ``/v1/approvals/resume``: تقرأ الموافقة المخزَّنة، تتطلّب حالة approved، وتُعيد
   مغلّف تنفيذ (لا تنفّذ داخل الـruntime) — مجهول/غير-موافَق ⇒ fail-closed.
 
 منطق صرف عدا نقطة الـHTTP (importorskip) — وظيفة Unit Tests.
@@ -24,7 +24,7 @@ if str(ROOT) not in sys.path:
 
 from services.ai_agronomist import agent_stores as S  # noqa: E402
 
-# SEC-3: /approvals/* now require the trusted internal service token
+# SEC-3: /v1/approvals/* now require the trusted internal service token
 # (X-Agent-Token == SAHOOL_AGENT_TOKEN). The resume-endpoint tests provision the
 # secret and send the header — the correct new contract, assertions unchanged.
 _AGENT_TOKEN = "test-agent-token-sec3"
@@ -96,7 +96,7 @@ def test_redis_approval_store_with_fake_client():
     assert st.list_pending() == []
 
 
-# ── /approvals/resume endpoint (fastapi-guarded) ────────────────────────────
+# ── /v1/approvals/resume endpoint (fastapi-guarded) ────────────────────────────
 def test_resume_endpoint_reads_stored_approved_and_hands_off(monkeypatch):
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
@@ -115,13 +115,13 @@ def test_resume_endpoint_reads_stored_approved_and_hands_off(monkeypatch):
     }
     # approve first (stores the approved record) ...
     ok = client.post(
-        "/approvals/approve",
+        "/v1/approvals/approve",
         json={"approval": approval_obj, "approver": "u1"},
         headers=_AUTH_HEADERS,
     )
     assert ok.status_code == 200
     # ... then resume by id.
-    r = client.post("/approvals/resume", json={"approval_id": "req-xyz"}, headers=_AUTH_HEADERS)
+    r = client.post("/v1/approvals/resume", json={"approval_id": "req-xyz"}, headers=_AUTH_HEADERS)
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "resumed"
@@ -137,6 +137,6 @@ def test_resume_endpoint_fails_closed_on_unknown_id(monkeypatch):
 
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
     r = TestClient(M.app).post(
-        "/approvals/resume", json={"approval_id": "nope-404"}, headers=_AUTH_HEADERS
+        "/v1/approvals/resume", json={"approval_id": "nope-404"}, headers=_AUTH_HEADERS
     )
     assert r.status_code == 404

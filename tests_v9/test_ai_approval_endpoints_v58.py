@@ -20,7 +20,7 @@ if str(ROOT) not in sys.path:
 
 from services.ai_agronomist.main import app  # noqa: E402
 
-# SEC-3: /approvals/* are now internal write endpoints guarded by the trusted
+# SEC-3: /v1/approvals/* are now internal write endpoints guarded by the trusted
 # service token (X-Agent-Token == SAHOOL_AGENT_TOKEN). Tests provision the secret
 # and send the header — the correct new contract, assertions unchanged.
 _AGENT_TOKEN = "test-agent-token-sec3"
@@ -55,7 +55,7 @@ def _pending_request():
 def test_approval_endpoint_normalizes_decision_without_executing_tool():
     client = TestClient(app)
     resp = client.post(
-        "/approvals/approve",
+        "/v1/approvals/approve",
         json={"approval": _pending_request(), "approver": "user-1"},
         headers=_AUTH_HEADERS,
     )
@@ -70,7 +70,7 @@ def test_approval_endpoint_normalizes_decision_without_executing_tool():
 def test_deny_endpoint_normalizes_decision_without_executing_tool():
     client = TestClient(app)
     resp = client.post(
-        "/approvals/deny",
+        "/v1/approvals/deny",
         json={"approval": _pending_request(), "approver": "user-1", "reason": "not_now"},
         headers=_AUTH_HEADERS,
     )

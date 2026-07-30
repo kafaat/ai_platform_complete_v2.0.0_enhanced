@@ -148,45 +148,45 @@
     "file": "services/ai_agronomist/main.py",
     "line": 126,
     "method": "GET",
-    "path": "/approvals/pending",
+    "path": "/v1/approvals/pending",
     "handler": "list_pending_approvals",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
     "line": 146,
     "method": "POST",
-    "path": "/approvals/approve",
+    "path": "/v1/approvals/approve",
     "handler": "approve_tool_request",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
     "line": 198,
     "method": "POST",
-    "path": "/approvals/deny",
+    "path": "/v1/approvals/deny",
     "handler": "deny_tool_request",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
     "line": 244,
     "method": "POST",
-    "path": "/approvals/resume",
+    "path": "/v1/approvals/resume",
     "handler": "resume_approved_tool",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
     "line": 288,
     "method": "POST",
-    "path": "/prescription/export-preview",
+    "path": "/v1/prescription/export-preview",
     "handler": "prescription_export_preview",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
@@ -211,36 +211,36 @@
     "file": "services/ai_agronomist/main.py",
     "line": 360,
     "method": "POST",
-    "path": "/query",
+    "path": "/v1/query",
     "handler": "query",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
     "line": 371,
     "method": "POST",
-    "path": "/chat",
+    "path": "/v1/chat",
     "handler": "chat",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
     "line": 382,
     "method": "POST",
-    "path": "/explain",
+    "path": "/v1/explain",
     "handler": "explain",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
     "line": 393,
     "method": "POST",
-    "path": "/recommend",
+    "path": "/v1/recommend",
     "handler": "recommend",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",

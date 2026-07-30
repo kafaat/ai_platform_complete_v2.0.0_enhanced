@@ -138,7 +138,7 @@
       "line": 126,
       "handler": "list_pending_approvals",
       "method": "GET",
-      "path": "/approvals/pending"
+      "path": "/v1/approvals/pending"
     },
     {
       "owner": "ai-agronomist",
@@ -146,7 +146,7 @@
       "line": 146,
       "handler": "approve_tool_request",
       "method": "POST",
-      "path": "/approvals/approve"
+      "path": "/v1/approvals/approve"
     },
     {
       "owner": "ai-agronomist",
@@ -154,7 +154,7 @@
       "line": 198,
       "handler": "deny_tool_request",
       "method": "POST",
-      "path": "/approvals/deny"
+      "path": "/v1/approvals/deny"
     },
     {
       "owner": "ai-agronomist",
@@ -162,7 +162,7 @@
       "line": 244,
       "handler": "resume_approved_tool",
       "method": "POST",
-      "path": "/approvals/resume"
+      "path": "/v1/approvals/resume"
     },
     {
       "owner": "ai-agronomist",
@@ -170,7 +170,7 @@
       "line": 288,
       "handler": "prescription_export_preview",
       "method": "POST",
-      "path": "/prescription/export-preview"
+      "path": "/v1/prescription/export-preview"
     },
     {
       "owner": "ai-agronomist",
@@ -194,7 +194,7 @@
       "line": 360,
       "handler": "query",
       "method": "POST",
-      "path": "/query"
+      "path": "/v1/query"
     },
     {
       "owner": "ai-agronomist",
@@ -202,7 +202,7 @@
       "line": 371,
       "handler": "chat",
       "method": "POST",
-      "path": "/chat"
+      "path": "/v1/chat"
     },
     {
       "owner": "ai-agronomist",
@@ -210,7 +210,7 @@
       "line": 382,
       "handler": "explain",
       "method": "POST",
-      "path": "/explain"
+      "path": "/v1/explain"
     },
     {
       "owner": "ai-agronomist",
@@ -218,7 +218,7 @@
       "line": 393,
       "handler": "recommend",
       "method": "POST",
-      "path": "/recommend"
+      "path": "/v1/recommend"
     },
     {
       "owner": "auth",
