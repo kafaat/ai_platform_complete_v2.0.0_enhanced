@@ -1004,7 +1004,7 @@
     "file": "services/edge-inference/main.py",
     "line": 200,
     "method": "POST",
-    "path": "/inference/pest-detect",
+    "path": "/v1/inference/pest-detect",
     "function": "detect_pest"
   },
   {
@@ -1012,7 +1012,7 @@
     "file": "services/edge-inference/main.py",
     "line": 262,
     "method": "POST",
-    "path": "/inference/yield-estimate",
+    "path": "/v1/inference/yield-estimate",
     "function": "estimate_yield"
   },
   {
@@ -1020,7 +1020,7 @@
     "file": "services/edge-inference/main.py",
     "line": 328,
     "method": "POST",
-    "path": "/sync/trigger",
+    "path": "/v1/sync/trigger",
     "function": "trigger_sync"
   },
   {
@@ -1300,7 +1300,7 @@
     "file": "services/knowledge-graph/main.py",
     "line": 120,
     "method": "POST",
-    "path": "/nodes",
+    "path": "/v1/nodes",
     "function": "upsert_node"
   },
   {
@@ -1308,7 +1308,7 @@
     "file": "services/knowledge-graph/main.py",
     "line": 128,
     "method": "POST",
-    "path": "/edges",
+    "path": "/v1/edges",
     "function": "upsert_edge"
   },
   {
@@ -1316,7 +1316,7 @@
     "file": "services/knowledge-graph/main.py",
     "line": 137,
     "method": "GET",
-    "path": "/edges",
+    "path": "/v1/edges",
     "function": "edges"
   },
   {

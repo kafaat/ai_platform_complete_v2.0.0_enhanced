@@ -71,7 +71,7 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
     }
   }
 
-  // H06: Image picker + real pest detection (multipart → /api/edge/inference/pest-detect)
+  // H06: Image picker + real pest detection (multipart → /api/edge/v1/inference/pest-detect)
   Future<void> _sendImage() async {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.camera,

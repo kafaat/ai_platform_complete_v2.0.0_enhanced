@@ -43,9 +43,9 @@
   "edge-inference": {
     "routes": [
       "GET /healthz",
-      "POST /inference/pest-detect",
-      "POST /inference/yield-estimate",
-      "POST /sync/trigger",
+      "POST /v1/inference/pest-detect",
+      "POST /v1/inference/yield-estimate",
+      "POST /v1/sync/trigger",
       "GET /readyz"
     ],
     "routers": 0

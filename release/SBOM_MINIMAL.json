@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30db74294b86647c738a898d99a94177399866829f8a4aad9a1ed7c42beb98b5"
+          "content": "5b068b878429528b8dc3f030d94b0bd59411d7a133a1361b7f258c0dd0792c1c"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -9085,7 +9085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29be0e88528c14e9b6b4691c9a09dc7ffff34134f3c2933834ff3b1547268f12"
+          "content": "2a002c62e7643b5f2101a96231c1fa7b9c1804fb0dd81cb3a2318bfecbbae30b"
         }
       ],
       "name": "mobile/sahool_app/lib/screens/advisor_screen.dart",
@@ -9285,7 +9285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e76726cdf676475e3374ea72ca520f4cac34c27cf1762ec8cc84f0c93d453c2c"
+          "content": "10251a1301bc348b9566f65ed8346d8157e821f95ff2522a1f2cff5627365a82"
         }
       ],
       "name": "mobile/sahool_app/lib/services/api_service.dart",
@@ -9935,7 +9935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e5a7b25592c4812ebfa5251d772fa2d38aab65e65b7a4a431b1f6a630da9000"
+          "content": "fb059a526bb1eb3b56f2c539c4395793a00a121c9cd7fee673f19f563f8f3d09"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -11605,7 +11605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3fa53f78910c164244e4a032cd3765d0c4b64d611272cfaf5ef365ceaf5d455f"
+          "content": "82fb598e1ee06bb32e138c94c59ea53877e53faced074e926279254bceca111e"
         }
       ],
       "name": "services/edge-inference/main.py",
@@ -11685,7 +11685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02adb597bc2d338177c8c56e4a006544a05308f6d18b8833edd4db48633d8e9b"
+          "content": "d5fdf183c8cda13a25f3fc758e692115bfc3434c04e7be5aaed2260aeb9528a4"
         }
       ],
       "name": "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
@@ -12315,7 +12315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "860535e8fe2a8937a4406bd20fbf4cf816f91555f84882b3d959f6e1cbaf907a"
+          "content": "8c8adc45d019e7bc8782618d00e073dbb13b4b1eaa97798cf8f62b17b049fa8a"
         }
       ],
       "name": "services/knowledge-graph/main.py",
@@ -28525,7 +28525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "325d1fb01967288bf9901552857c02c5a1e7ab2d8891fe42c357b8ada01a4319"
+          "content": "2e010c9b58ec1744b4c38611d1f6192ece7dc003f25e1fbfff92e0ca98951748"
         }
       ],
       "name": "services/video-processor/main.py",

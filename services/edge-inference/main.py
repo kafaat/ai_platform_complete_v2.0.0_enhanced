@@ -196,7 +196,7 @@ def _require_service_token(x_agent_token: str = Header(None)) -> None:
         raise HTTPException(401, "توكن خدمة غير صالح")
 
 
-@app.post("/inference/pest-detect")
+@app.post("/v1/inference/pest-detect")
 async def detect_pest(
     file: UploadFile = File(...),
     field_id: str = Form("unknown"),
@@ -258,7 +258,7 @@ async def detect_pest(
     return {**result, "alert_ar": alert, "sync_status": "synced" if not OFFLINE_MODE else "queued"}
 
 
-@app.post("/inference/yield-estimate")
+@app.post("/v1/inference/yield-estimate")
 async def estimate_yield(
     files: list[UploadFile] = File(...),
     field_id: str = Form("unknown"),
@@ -324,7 +324,7 @@ async def estimate_yield(
     return {**result, "sync_status": "synced" if not OFFLINE_MODE else "queued"}
 
 
-@app.post("/sync/trigger")
+@app.post("/v1/sync/trigger")
 async def trigger_sync(x_agent_token: str = Header(None)):
     _require_service_token(x_agent_token)
     if OFFLINE_MODE:

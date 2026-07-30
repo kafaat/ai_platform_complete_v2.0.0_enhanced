@@ -69,7 +69,7 @@ def test_strict_readyz_returns_503_when_models_are_absent(monkeypatch):
 def test_wrong_or_missing_agent_token_is_rejected(monkeypatch):
     module = _load_edge(monkeypatch)
     client = TestClient(module.app)
-    response = client.post("/sync/trigger", headers={"X-Agent-Token": "wrong"})
+    response = client.post("/v1/sync/trigger", headers={"X-Agent-Token": "wrong"})
     assert response.status_code == 401
 
 

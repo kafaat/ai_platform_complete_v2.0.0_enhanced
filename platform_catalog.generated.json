@@ -1574,7 +1574,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /inference/pest-detect"
+        "POST /v1/inference/pest-detect"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -1591,7 +1591,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /inference/yield-estimate"
+        "POST /v1/inference/yield-estimate"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -1608,7 +1608,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /sync/trigger"
+        "POST /v1/sync/trigger"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -1932,8 +1932,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /edges",
-        "POST /edges"
+        "GET /v1/edges",
+        "POST /v1/edges"
       ],
       "idempotency_required": false,
       "kind": "mixed",
@@ -1963,7 +1963,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /nodes"
+        "POST /v1/nodes"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -17752,7 +17752,7 @@
       "path": "/v1/products"
     }
   ],
-  "fingerprint": "f7b3d5941d69db249d218c1a2790d840ea9a66ea94db1502800f577a5c7ab0d7",
+  "fingerprint": "5cbcfb9c95bb301fbe67f66b6531cd63fd7bd47292b7c2e6c71ee0b9fce065ee",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

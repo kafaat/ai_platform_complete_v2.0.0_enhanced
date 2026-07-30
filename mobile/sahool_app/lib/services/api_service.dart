@@ -462,7 +462,7 @@ class ApiService {
   }
 
   /// H06: كشف الآفات بالصورة — رفع multipart إلى خدمة الاستدلال الحافيّة عبر
-  /// البوّابة (/api/edge/ → inference/pest-detect). يستخدم نفس Dio (توكن، إعادة
+  /// البوّابة (/api/edge/ → v1/inference/pest-detect). يستخدم نفس Dio (توكن، إعادة
   /// محاولة، كشف انقطاع). صدق: يردّ استجابة الخادم كما هي (detections/alert_ar)
   /// أو يرمي خطأً صريحاً ليعرض الـUI حالة فشل واضحة — لا كشف مُلفَّق.
   Future<Map<String, dynamic>> analyzePestImage(
@@ -477,7 +477,7 @@ class ApiService {
       'crop': crop,
     });
     final r = await _dio.post(
-      '/api/edge/inference/pest-detect',
+      '/api/edge/v1/inference/pest-detect',
       data: form,
       options: Options(contentType: 'multipart/form-data'),
     );

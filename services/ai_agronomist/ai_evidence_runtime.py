@@ -620,7 +620,7 @@ async def build_evidence_response(
         if rag_resp.status_code >= 400:
             raise HTTPException(502, {"dependency": "rag-retrieval", "detail": rag_resp.text})
         kg_resp = await client.get(
-            f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/edges",
+            f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
             params={"subject_id": req.crop} if req.crop else {},
             # C2: forward the trusted tenant so knowledge-graph enforces its C5 read
             # guard (require_trusted_tenant) on this internal service-to-service call.

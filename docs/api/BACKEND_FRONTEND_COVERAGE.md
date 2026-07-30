@@ -11,7 +11,7 @@
 | admin | 19 | 9 |
 | agronomist | 184 | 172 |
 | farmer | 219 | 197 |
-| internal | 412 | 140 |
+| internal | 413 | 138 |
 | manager | 55 | 51 |
 
 العقد الملزِم (core): 467 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
@@ -21,11 +21,6 @@
 | المسار | الجمهور | مغطّى |
 |---|---|---|
 | `/` | internal | — |
-| `/agent/actuator-audit` | internal | — |
-| `/agent/journal/{invocation_id}` | internal | — |
-| `/agent/optimize` | internal | ✅ |
-| `/agent/query` | internal | ✅ |
-| `/agent/tools` | internal | — |
 | `/agents/propose` | internal | — |
 | `/ai-boundary/plan` | internal | ✅ |
 | `/analytics/{tenant_id}` | internal | ✅ |
@@ -514,7 +509,6 @@
 | `/approvals/deny` | internal | — |
 | `/approvals/pending` | internal | ✅ |
 | `/approvals/resume` | internal | — |
-| `/approve/{workflow_id}` | internal | — |
 | `/auth/change-password` | farmer | ✅ |
 | `/auth/edge-sign` | farmer | — |
 | `/auth/invitations` | farmer | ✅ |
@@ -557,7 +551,6 @@
 | `/dataset` | internal | — |
 | `/developer-portal/index` | internal | — |
 | `/drift` | internal | — |
-| `/edges` | internal | — |
 | `/editing-sessions` | internal | ✅ |
 | `/editing-sessions/undo-redo` | internal | ✅ |
 | `/erp/provider` | internal | — |
@@ -577,20 +570,10 @@
 | `/gis/admin-boundaries` | internal | — |
 | `/graphql` | internal | — |
 | `/graphql/schema` | internal | — |
-| `/imagery/best` | internal | — |
-| `/imagery/dem` | internal | — |
-| `/imagery/search` | internal | — |
-| `/imagery/search/landsat` | internal | — |
-| `/imagery/search/landsat-thermal` | internal | — |
-| `/imagery/search/radar` | internal | — |
-| `/imagery/search/recent` | internal | — |
-| `/imagery/search/season` | internal | — |
 | `/imagery/timeseries` | internal | — |
 | `/imagery/timeseries/analyze` | internal | — |
 | `/imagery/timeseries/parallel` | internal | — |
 | `/indices` | internal | — |
-| `/inference/pest-detect` | internal | ✅ |
-| `/inference/yield-estimate` | internal | — |
 | `/info/{layer_id}` | internal | — |
 | `/ingest` | internal | — |
 | `/interactive-calculate` | internal | ✅ |
@@ -640,7 +623,6 @@
 | `/models/serving/{alias:path}` | internal | — |
 | `/mosaicjson` | internal | — |
 | `/network-calculate` | internal | ✅ |
-| `/nodes` | internal | — |
 | `/offline/packs` | internal | — |
 | `/offline/packs/{pack_name}` | internal | — |
 | `/ogc` | internal | — |
@@ -714,7 +696,6 @@
 | `/suppliers` | internal | — |
 | `/suppliers/{supplier_id}` | internal | — |
 | `/sync` | internal | — |
-| `/sync/trigger` | internal | — |
 | `/terrain/slope` | internal | — |
 | `/tile-cache-plan` | internal | ✅ |
 | `/tiles/{layer_id}/{z}/{x}/{y}.png` | internal | — |
@@ -741,6 +722,11 @@
 | `/v1/activation/satellite_cdse/reset` | internal | — |
 | `/v1/activation/satellite_cdse/revoke` | internal | — |
 | `/v1/activation/satellite_cdse/source` | internal | — |
+| `/v1/agent/actuator-audit` | internal | — |
+| `/v1/agent/journal/{invocation_id}` | internal | — |
+| `/v1/agent/optimize` | internal | — |
+| `/v1/agent/query` | internal | — |
+| `/v1/agent/tools` | internal | — |
 | `/v1/all_fields` | internal | ✅ |
 | `/v1/analyze` | internal | ✅ |
 | `/v1/anomalies/{anomaly_ref:path}/decision-referrals` | internal | — |
@@ -748,6 +734,7 @@
 | `/v1/anomalies/{anomaly_ref:path}/transition` | internal | — |
 | `/v1/anomalies/{anomaly_ref:path}/verification-requests` | internal | — |
 | `/v1/anomalies/{anomaly_ref:path}/verification-results` | internal | — |
+| `/v1/approve/{workflow_id}` | internal | — |
 | `/v1/cog/registry/preview` | internal | — |
 | `/v1/command` | internal | ✅ |
 | `/v1/commands` | internal | ✅ |
@@ -764,6 +751,7 @@
 | `/v1/dispatch-authorizations/{dispatch_authorization_id}/execute` | internal | — |
 | `/v1/dispatch/decisions` | internal | — |
 | `/v1/edge/sync` | internal | — |
+| `/v1/edges` | internal | — |
 | `/v1/elevation/hillshade/{z}/{x}/{y}.png` | internal | ✅ |
 | `/v1/evidence/vegetation-snapshots` | internal | — |
 | `/v1/execution-plans/{execution_plan_id}/authorize-dispatch` | internal | — |
@@ -833,14 +821,24 @@
 | `/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png` | internal | ✅ |
 | `/v1/fields/{field_id}/timeseries` | internal | ✅ |
 | `/v1/imagery/backfill/policy` | internal | ✅ |
+| `/v1/imagery/best` | internal | — |
+| `/v1/imagery/dem` | internal | — |
 | `/v1/imagery/mosaic/plan` | internal | — |
 | `/v1/imagery/quality/policy` | internal | — |
 | `/v1/imagery/scenes/rank` | internal | — |
+| `/v1/imagery/search` | internal | — |
+| `/v1/imagery/search/landsat` | internal | — |
+| `/v1/imagery/search/landsat-thermal` | internal | — |
+| `/v1/imagery/search/radar` | internal | — |
+| `/v1/imagery/search/recent` | internal | — |
+| `/v1/imagery/search/season` | internal | — |
 | `/v1/indicators/catalog` | internal | ✅ |
 | `/v1/indicators/compute` | internal | — |
 | `/v1/indicators/ownership` | internal | — |
 | `/v1/indicators/registry` | internal | ✅ |
 | `/v1/indicators/registry/{name}` | internal | ✅ |
+| `/v1/inference/pest-detect` | internal | ✅ |
+| `/v1/inference/yield-estimate` | internal | — |
 | `/v1/learning/activation-commands/{activation_command_id}/claim` | internal | — |
 | `/v1/learning/activation-commands/{activation_command_id}/receipt` | internal | — |
 | `/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command` | internal | — |
@@ -868,6 +866,7 @@
 | `/v1/mcp/tools/call` | internal | — |
 | `/v1/mcp/tools/list` | internal | — |
 | `/v1/ndvi/current/{field_id}` | internal | ✅ |
+| `/v1/nodes` | internal | — |
 | `/v1/outcomes/reconciled` | internal | — |
 | `/v1/outcomes/record` | internal | — |
 | `/v1/outcomes/{outcome_id}/learning-attribution` | internal | — |
@@ -878,6 +877,7 @@
 | `/v1/recommendation-outcomes` | internal | — |
 | `/v1/reservation-dispatch-intents` | internal | — |
 | `/v1/scenes/quality-score` | internal | — |
+| `/v1/segment` | internal | ✅ |
 | `/v1/slope/{z}/{x}/{y}.png` | internal | ✅ |
 | `/v1/soil/action-policies` | internal | — |
 | `/v1/soil/calibrations/build` | internal | — |
@@ -896,16 +896,17 @@
 | `/v1/soil/sampling-plans/{plan_id}/approve` | internal | — |
 | `/v1/soil/tilejson` | internal | ✅ |
 | `/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png` | internal | ✅ |
+| `/v1/sync/trigger` | internal | — |
 | `/v1/terrain/status` | internal | — |
 | `/v1/terrain/tilejson` | internal | ✅ |
 | `/v1/tile-cache/stats` | internal | — |
 | `/v1/tiles/observability` | internal | — |
 | `/v1/timeseries/{field_id}` | internal | ✅ |
-| `/validate` | internal | ✅ |
+| `/v1/validate` | internal | ✅ |
+| `/v1/workflow/{workflow_id}` | internal | — |
 | `/verify` | internal | — |
 | `/verify-loop` | internal | — |
 | `/webhook/odoo` | internal | — |
 | `/webhooks` | internal | — |
 | `/webhooks/delivery-plan` | internal | — |
-| `/workflow/{workflow_id}` | internal | ✅ |
 | `/zones/classify` | internal | — |

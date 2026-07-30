@@ -258,3 +258,54 @@ def test_guardrails_and_supervisor_agent_routes_are_versioned():
         present = {r["path"] for r in rows if r["file"] == f}
         leaked_old = present & old
         assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+
+
+def test_edge_inference_and_knowledge_graph_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, Agent D slice 2 (2026-07-30): edge-inference's
+    three routes (POST /inference/pest-detect, POST /inference/yield-estimate, POST
+    /sync/trigger) and knowledge-graph's three routes (POST /nodes, POST /edges, GET
+    /edges) declare their routers with no ``prefix=`` and are mounted flat (bare @app.*
+    decorators), so the decorator literal is the real runtime path. All six moved to a
+    leading /v1/ prefix. Falsified by construction: reverting any decorator to its old
+    bare path makes this fail by naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_files = (
+        "services/edge-inference/main.py",
+        "services/knowledge-graph/main.py",
+    )
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/edge-inference/main.py": {
+            "/inference/pest-detect",
+            "/inference/yield-estimate",
+            "/sync/trigger",
+        },
+        "services/knowledge-graph/main.py": {"/nodes", "/edges"},
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        "services/edge-inference/main.py": {
+            ("POST", "/v1/inference/pest-detect"),
+            ("POST", "/v1/inference/yield-estimate"),
+            ("POST", "/v1/sync/trigger"),
+        },
+        "services/knowledge-graph/main.py": {
+            ("POST", "/v1/nodes"),
+            ("POST", "/v1/edges"),
+            ("GET", "/v1/edges"),
+        },
+    }
+    for f, expected in new_paths.items():
+        present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
+        missing = expected - present
+        assert not missing, f"{f} missing expected migrated route(s): {missing}"
