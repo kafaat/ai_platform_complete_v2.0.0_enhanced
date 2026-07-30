@@ -791,7 +791,7 @@
       "file": "services/sam2-inference/main.py",
       "line": 24,
       "method": "POST",
-      "path": "/predict",
+      "path": "/v1/predict",
       "function": "predict"
     },
     {

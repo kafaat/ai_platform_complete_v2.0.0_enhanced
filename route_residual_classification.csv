@@ -137,7 +137,7 @@ rag-retrieval,services/rag-retrieval/main.py,115,POST,/search,search,business_en
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,33,GET,/healthz,healthz,health
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,38,GET,/readyz,readyz,readiness
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,69,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,business_endpoint
-sam2-inference,services/sam2-inference/main.py,24,POST,/predict,predict,business_endpoint
+sam2-inference,services/sam2-inference/main.py,24,POST,/v1/predict,predict,business_endpoint
 sam2-inference,services/sam2-inference/main.py,105,GET,/healthz,healthz,health
 sam2-inference,services/sam2-inference/main.py,110,GET,/health,legacy_health,health
 sam2-inference,services/sam2-inference/main.py,115,GET,/readyz,readyz,readiness

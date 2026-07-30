@@ -7298,7 +7298,7 @@
       "line": 24,
       "handler": "predict",
       "method": "POST",
-      "path": "/predict"
+      "path": "/v1/predict"
     },
     {
       "owner": "sam2-inference",

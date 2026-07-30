@@ -183,7 +183,6 @@
     "POST /plugins/runtime/validate-output",
     "POST /plugins/sandbox-policy",
     "POST /plugins/validate",
-    "POST /predict",
     "POST /prescription/export-preview",
     "POST /process",
     "POST /process/batch",
