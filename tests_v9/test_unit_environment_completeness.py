@@ -18,7 +18,11 @@ pytestmark = pytest.mark.unit
 
 # (وحدة الاستيراد، ما تُوقِظه) — التبرير في requirements-test.txt.
 _REQUIRED = {
-    "fastapi": "اختبارات تبني api.main عبر TestClient، ومنها 12 ملفّاً تفحص app.routes",
+    "fastapi": (
+        "اختبارات تبني api.main عبر TestClient، ومنها ملفّات تفحص المسارات "
+        "المُسجَّلة عبر app.openapi()['paths'] (conftest.registered_paths/"
+        "registered_methods — APP-ROUTES-INTROSPECTION-COUPLING-01)"
+    ),
     "scipy": "core.spatial (مثبَّتة أصلاً في api/requirements.txt:20)",
     "PIL": "تصيير الصور في اختبارات raster/bivariate",
 }

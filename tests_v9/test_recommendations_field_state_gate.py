@@ -66,5 +66,6 @@ def test_recommendations_route_through_canonical_state():
 def test_recommendations_endpoint_registered(core_on_path):
     import api.main as m
 
-    paths = {getattr(r, "path", None) for r in m.app.routes}
-    assert "/api/v1/fields/{field_id}/recommendations" in paths
+    from conftest import registered_paths
+
+    assert "/api/v1/fields/{field_id}/recommendations" in registered_paths(m.app)

@@ -226,9 +226,11 @@ def _load_main():
     def _is_tts_main_with_status(mod) -> bool:
         # ليست أيّ نسخة tts تكفي: يجب أن تحمل مسار ``/tts/status`` الجديد (نسخة قديمة
         # حمّلها اختبار آخر قد لا تملكه إن سبق تسجيل راوترها). نتحقّق من المسار فعليّاً.
+        from conftest import registered_paths
+
         if mod is None or not hasattr(mod, "app") or not hasattr(mod, "VOICES"):
             return False
-        return any(getattr(r, "path", None) == "/tts/status" for r in mod.app.routes)
+        return "/tts/status" in registered_paths(mod.app)
 
     # أعِد استعمال نسخة tts محمّلة **تملك المسار** (تُميَّز بـ``VOICES`` — لا تخلطها مع
     # ``main`` خدمة أخرى مثل video-processor في التشغيل الكامل للسويت).
@@ -255,8 +257,10 @@ def _load_main():
         sys.modules.pop(name, None)
     import main
 
+    from conftest import registered_paths
+
     assert hasattr(main, "VOICES"), "استُورِد ``main`` خدمة أخرى بدل tts (تصادم اسم الوحدة)"
-    assert any(getattr(r, "path", None) == "/tts/status" for r in main.app.routes), (
+    assert "/tts/status" in registered_paths(main.app), (
         "لم يُسجَّل مسار /tts/status على التطبيق الطازج (راوترات شقيقة مُخزَّنة قديمة)"
     )
     return main

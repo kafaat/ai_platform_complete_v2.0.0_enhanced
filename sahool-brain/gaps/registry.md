@@ -464,14 +464,27 @@
   FastAPI الداخليّ. تحويلهم إلى `app.openapi()["paths"]` يجعل الترقية ممكنة بدل تجميد
   الإصدار أبداً.
 
-## APP-ROUTES-INTROSPECTION-COUPLING-01 — OPEN (P2) 2026-07-28
+## APP-ROUTES-INTROSPECTION-COUPLING-01 — CLOSED (2026-07-30)
 
-- **الأثر:** ١١ اختباراً تقرأ `app.routes` — تمثيل FastAPI **الداخليّ** — فتنكسر عند أيّ
-  تغيير في بنيته، كما حدث في 0.140 (`_IncludedRouter`).
-- **العلاج:** مساعِد واحد يقرأ `app.openapi()["paths"]` — سطح **عامّ ومستقرّ بالعقد**.
-  عندها يصير التثبيت اختياراً لا ضرورة.
-- **لماذا مؤجَّل عن هذه الشريحة:** التثبيت يرفع الحاجب فوراً؛ وتحويل ١١ اختباراً تغيير
-  أوسع يستحقّ مراجعة مستقلّة. مسجَّل كي لا يصير التثبيت تجميداً دائماً بالتقادم.
+- **الأثر (كان):** ١٢ ملفّاً (لا ١١ — العدّ الأصليّ كان تقريبيّاً) يقرأ `app.routes` —
+  تمثيل FastAPI **الداخليّ** — فينكسر عند أيّ تغيير في بنيته، كما حدث في 0.140
+  (`_IncludedRouter`، `APP-ROUTES-EMPTY-01`).
+- **الإصلاح:** مساعِدان في `tests_v9/conftest.py` — `registered_paths(app)` و
+  `registered_methods(app, path)` — يقرآن `app.openapi()["paths"]` بدل `app.routes`؛
+  سطح **عامّ ومستقرّ بالعقد** لا داخليّ. كلّ الاثني عشر ملفّاً حُوِّلت:
+  `test_alerts_derived_from_state.py` · `test_alerts_field_state_route.py` ·
+  `test_calendars_today.py` · `test_disease_field_state_feed.py` ·
+  `test_field_state_gateway.py` · `test_internal_field_read_channel.py` (موضعان) ·
+  `test_internal_field_state_channel.py` · `test_recommendations_field_state_gate.py` ·
+  `test_soil_lab_field_state_emit.py` · `test_tasks_endpoints.py` (موضعان) ·
+  `test_tts_providers_20260702.py` (موضعان) · `test_yield_field_state_feed.py`.
+- **مُثبَت:** ٨٤ اختباراً عبر الملفّات الأربعة عشر (بما فيها `test_unit_environment_completeness.py`
+  الذي كان يذكر «١٢ ملفّاً تفحص `app.routes`» في تبريره — حُدِّث ليصف `registered_paths`)
+  تمرّ كاملةً؛ `-m unit` الكامل 3750 نجح بلا انحدار؛ `ruff check`/`format --check` نظيفان.
+- **لماذا لم يُترَك تعليق `app.routes` وحيداً في `test_tts_providers_20260702.py:190`:**
+  ذلك تعليق يشرح آليّة `include_router` الداخليّة لـFastAPI (لماذا `dependency_overrides`
+  لا يُستشار) لا كيف يقرأ الاختبار المسارات — يبقى صادقاً بعد الإصلاح ولا علاقة له
+  بالاقتران المُغلَق هنا.
 ## UNIT-TEST-DORMANCY-01 — FIXED_IN_CODE (2026-07-28) — كان OPEN (P1) في اليوم نفسه
 
 - **الأثر:** ~479 اختبار وحدة لا يُنفَّذ في بوّابة الدمج لاستبعاد `fastapi` من `requirements-test.txt`؛ منها ١٢ ملفّاً في `tests_v9` تفحص `app.routes`.
