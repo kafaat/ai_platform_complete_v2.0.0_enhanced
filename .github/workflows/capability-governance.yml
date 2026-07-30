@@ -163,6 +163,7 @@ jobs:
             tests/architecture/test_runtime_environment_preflight.py \
             tests/architecture/test_compose_runtime_target_resolver.py \
             tests/architecture/test_path3_runtime_readiness_closure.py \
+            tests/architecture/test_generate_service_inventory.py \
             tests/release/test_platform_route_release_binding.py
       # ARCH-TESTS-UNLISTED-IN-CI-01: القائمة أعلاه **يدويّة**، وكانت تبيت بصمت —
       # ١٧ من ٥٤ اختباراً خارجها، منها حرّاس بُنيت في اليوم نفسه. هذا الحارس يقارنها
