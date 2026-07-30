@@ -1144,7 +1144,7 @@
       "file": "services/local-ai-rag/main.py",
       "line": 420,
       "method": "POST",
-      "path": "/query",
+      "path": "/v1/query",
       "function": "query_endpoint",
       "classification": "business_endpoint"
     },
@@ -1153,7 +1153,7 @@
       "file": "services/local-ai-rag/main.py",
       "line": 430,
       "method": "POST",
-      "path": "/ingest",
+      "path": "/v1/ingest",
       "function": "ingest_endpoint",
       "classification": "business_endpoint"
     },

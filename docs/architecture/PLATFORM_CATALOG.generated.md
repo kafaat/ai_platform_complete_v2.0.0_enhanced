@@ -3,11 +3,11 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `5cbcfb9c95bb301fbe67f66b6531cd63fd7bd47292b7c2e6c71ee0b9fce065ee`
+- fingerprint: `c34855ad42bf8f686ae2e0a5c918e2c5d5bb0b616d6448c4394756f188332ebc`
 - components: **34** (backend: 32)
-- route rows: **1105** → unique method/path: **991**
+- route rows: **1105** → unique method/path: **993**
 - capabilities (derived, uncurated): **853**
-- cross-service duplicate method/paths: **15**
+- cross-service duplicate method/paths: **13**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **52**
 
@@ -64,10 +64,8 @@
 | `GET` | `/contract` | `standard_service_contract` | `service-local` | `permanent` |
 | `GET` | `/health` | `standard_health_alias` | `service-local` | `2026-12-31` |
 | `GET` | `/healthz` | `standard_liveness` | `service-local` | `permanent` |
-| `POST` | `/ingest` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/metrics` | `standard_observability` | `service-local` | `permanent` |
 | `POST` | `/plan` | `legacy_bff_facade` | `agriai-engine` | `2026-12-31` |
-| `POST` | `/query` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/readyz` | `standard_readiness` | `service-local` | `permanent` |
 | `POST` | `/recommend` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/runtime-identity` | `standard_observability` | `service-local` | `permanent` |

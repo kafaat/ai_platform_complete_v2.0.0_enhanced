@@ -33,7 +33,7 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
 PINNED_BACKEND_COMPONENTS = 32
-PINNED_UNIQUE_METHOD_PATH = 991  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring)
+PINNED_UNIQUE_METHOD_PATH = 993  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each
 
 
 def _catalog() -> dict:
@@ -122,10 +122,17 @@ def test_u3_wired_is_evidence_driven() -> None:
 
 def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
     """U4: كلّ مجموعة تكرار مقاسة مصنَّفة بقرار له سبب؛ المؤقّت يحمل انتهاءً؛
-    الواجهات القديمة تسمّي مالكاً قانونيّاً وواجهةً مختلفَين وكلاهما عضو المجموعة."""
+    الواجهات القديمة تسمّي مالكاً قانونيّاً وواجهةً مختلفَين وكلاهما عضو المجموعة.
+
+    15 ⇒ 13 (2026-07-30، API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل D الثالثة):
+    ``POST /query`` (agriai-advisor مقابل local-ai-rag) و``POST /ingest`` (rag-retrieval
+    مقابل local-ai-rag) لم يعودا مجموعتَي تكرار بعد أن انتقل جانب local-ai-rag إلى
+    ``/v1/query``/``/v1/ingest`` — عضو واحد متبقٍّ لكلّ نصّ، فلا حاجة لقرار تصنيف تكرار.
+    قرارا `config/platform_catalog_overrides.yml` المقابلان أُزيلا (لا أُعيد ربطهما بمسار
+    جديد كما حدث مع ``/products`` سابقاً، إذ لم يبقَ عضوان يتشاركان النصّ نفسه)."""
     cat = _catalog()
     groups = cat["cross_service_duplicate_method_paths"]
-    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 15
+    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 13
     for g in groups:
         assert g["classified"] is True, g
         assert g["classification"], g

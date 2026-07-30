@@ -90,13 +90,9 @@ duplicate_route_classifications:
   - {method: GET, path: /stac/collections, classification: legacy_bff_facade,
      canonical_owner: raster-service, facade: sahool-platform, expires_on: "2026-12-31",
      decision: "raster-service يملك مجموعات STAC؛ مسار المنصّة واجهة توافق فقط."}
-  - {method: POST, path: /ingest, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "ابتلاع RAG المحلّيّ وابتلاع الاسترجاع محدودان بخدمتَيهما؛ لا مسار بوّابة مشترك يدمجهما."}
   - {method: POST, path: /plan, classification: legacy_bff_facade,
      canonical_owner: agriai-engine, facade: sahool-platform, expires_on: "2026-12-31",
      decision: "agriai يملك حوسبة التخطيط؛ المنصّة تُنسِّق أو تُمرِّر ولا تُعيد تنفيذها."}
-  - {method: POST, path: /query, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "استعلام المرشد الزراعيّ واستعلام RAG المحلّيّ مختلفان ويحتفظان بفضائَي بوّابة منفصلَين."}
   - {method: POST, path: /recommend, classification: service_scoped_semantics, expires_on: "2026-12-31",
      decision: "تقييم agriai وتوصية المرشد عقدان مختلفان خلف نطاقَي خدمة منفصلَين."}
 

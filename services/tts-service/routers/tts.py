@@ -17,7 +17,7 @@ from fastapi.responses import Response, StreamingResponse
 router = APIRouter()
 
 
-@router.get("/tts/voices", response_model=main.VoicesResponse)
+@router.get("/v1/tts/voices", response_model=main.VoicesResponse)
 async def list_voices(_user: dict = Depends(main.get_current_user)) -> dict:
     """List all available voices + provider availability snapshot."""
     return {
@@ -27,7 +27,7 @@ async def list_voices(_user: dict = Depends(main.get_current_user)) -> dict:
     }
 
 
-@router.get("/tts/status")
+@router.get("/v1/tts/status")
 async def tts_status(_user: dict = Depends(main.get_current_user)) -> dict:
     """حالة مزوّدي TTS: لكلٍّ الاسم والتوفّر وهل هو الافتراضيّ.
 
@@ -40,7 +40,7 @@ async def tts_status(_user: dict = Depends(main.get_current_user)) -> dict:
     }
 
 
-@router.post("/tts/synthesize")
+@router.post("/v1/tts/synthesize")
 async def synthesize(
     req: main.TTSRequest,
     user: dict = Depends(main.get_current_user),
@@ -121,7 +121,7 @@ async def synthesize(
     )
 
 
-@router.post("/tts/stream")
+@router.post("/v1/tts/stream")
 async def stream(
     req: main.TTSRequest,
     user: dict = Depends(main.get_current_user),

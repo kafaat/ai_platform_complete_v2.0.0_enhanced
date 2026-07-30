@@ -309,3 +309,58 @@ def test_edge_inference_and_knowledge_graph_routes_are_versioned():
         present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
         missing = expected - present
         assert not missing, f"{f} missing expected migrated route(s): {missing}"
+
+
+def test_tts_service_and_local_ai_rag_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, Agent D slice 3 (2026-07-30): tts-service's
+    router (services/tts-service/routers/tts.py) declares ``router = APIRouter()`` with
+    no prefix, and local-ai-rag's routes are bare ``@app.*`` decorators -- in both cases
+    the decorator literal is the real runtime path. All six moved to a leading /v1/
+    prefix. local-ai-rag's POST /query and POST /ingest keep their bare-text siblings in
+    the allowlist (ai_agronomist's own POST /query, rag-retrieval's own POST /ingest are
+    untouched, out of this slice's scope) -- this test only asserts local-ai-rag's own
+    file no longer declares the old bare paths, not that the shared text vanishes from
+    the allowlist entirely. Falsified by construction: reverting any decorator to its
+    old bare path makes this fail by naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_files = (
+        "services/tts-service/routers/tts.py",
+        "services/local-ai-rag/main.py",
+    )
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/tts-service/routers/tts.py": {
+            "/tts/voices",
+            "/tts/status",
+            "/tts/synthesize",
+            "/tts/stream",
+        },
+        "services/local-ai-rag/main.py": {"/query", "/ingest"},
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        "services/tts-service/routers/tts.py": {
+            ("GET", "/v1/tts/voices"),
+            ("GET", "/v1/tts/status"),
+            ("POST", "/v1/tts/synthesize"),
+            ("POST", "/v1/tts/stream"),
+        },
+        "services/local-ai-rag/main.py": {
+            ("POST", "/v1/query"),
+            ("POST", "/v1/ingest"),
+        },
+    }
+    for f, expected in new_paths.items():
+        present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
+        missing = expected - present
+        assert not missing, f"{f} missing expected migrated route(s): {missing}"

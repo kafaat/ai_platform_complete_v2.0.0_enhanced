@@ -1498,18 +1498,18 @@
     "file": "services/local-ai-rag/main.py",
     "line": 420,
     "method": "POST",
-    "path": "/query",
+    "path": "/v1/query",
     "handler": "query_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
     "line": 430,
     "method": "POST",
-    "path": "/ingest",
+    "path": "/v1/ingest",
     "handler": "ingest_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "local-ai-rag",
@@ -9310,36 +9310,36 @@
     "file": "services/tts-service/routers/tts.py",
     "line": 21,
     "method": "GET",
-    "path": "/tts/voices",
+    "path": "/v1/tts/voices",
     "handler": "list_voices",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
     "line": 31,
     "method": "GET",
-    "path": "/tts/status",
+    "path": "/v1/tts/status",
     "handler": "tts_status",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
     "line": 44,
     "method": "POST",
-    "path": "/tts/synthesize",
+    "path": "/v1/tts/synthesize",
     "handler": "synthesize",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "tts-service",
     "file": "services/tts-service/routers/tts.py",
     "line": 125,
     "method": "POST",
-    "path": "/tts/stream",
+    "path": "/v1/tts/stream",
     "handler": "stream",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "vegetation-analysis-service",

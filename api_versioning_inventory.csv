@@ -165,8 +165,8 @@ knowledge-graph,services/knowledge-graph/main.py,120,POST,/v1/nodes,upsert_node,
 knowledge-graph,services/knowledge-graph/main.py,128,POST,/v1/edges,upsert_edge,versioned
 knowledge-graph,services/knowledge-graph/main.py,137,GET,/v1/edges,edges,versioned
 knowledge-graph,services/knowledge-graph/main.py,151,POST,/graphql,graphql,graphql_facade
-local-ai-rag,services/local-ai-rag/main.py,420,POST,/query,query_endpoint,legacy_unversioned_business
-local-ai-rag,services/local-ai-rag/main.py,430,POST,/ingest,ingest_endpoint,legacy_unversioned_business
+local-ai-rag,services/local-ai-rag/main.py,420,POST,/v1/query,query_endpoint,versioned
+local-ai-rag,services/local-ai-rag/main.py,430,POST,/v1/ingest,ingest_endpoint,versioned
 local-ai-rag,services/local-ai-rag/main.py,482,GET,/healthz,healthz,infra
 local-ai-rag,services/local-ai-rag/main.py,500,GET,/health,legacy_health,infra
 local-ai-rag,services/local-ai-rag/main.py,505,GET,/readyz,readyz,infra
@@ -1033,10 +1033,10 @@ tts-service,services/tts-service/routers/health.py,22,GET,/healthz,health,infra
 tts-service,services/tts-service/routers/health.py,22,GET,/health,health,infra
 tts-service,services/tts-service/routers/health.py,27,GET,/readyz,readyz,infra
 tts-service,services/tts-service/routers/health.py,43,GET,/metrics,metrics,infra
-tts-service,services/tts-service/routers/tts.py,21,GET,/tts/voices,list_voices,legacy_unversioned_business
-tts-service,services/tts-service/routers/tts.py,31,GET,/tts/status,tts_status,legacy_unversioned_business
-tts-service,services/tts-service/routers/tts.py,44,POST,/tts/synthesize,synthesize,legacy_unversioned_business
-tts-service,services/tts-service/routers/tts.py,125,POST,/tts/stream,stream,legacy_unversioned_business
+tts-service,services/tts-service/routers/tts.py,21,GET,/v1/tts/voices,list_voices,versioned
+tts-service,services/tts-service/routers/tts.py,31,GET,/v1/tts/status,tts_status,versioned
+tts-service,services/tts-service/routers/tts.py,44,POST,/v1/tts/synthesize,synthesize,versioned
+tts-service,services/tts-service/routers/tts.py,125,POST,/v1/tts/stream,stream,versioned
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,22,GET,/v1/analyze,analyze,versioned
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,46,GET,/v1/timeseries/{field_id},timeseries,versioned
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,91,GET,/v1/ndvi/current/{field_id},current_ndvi,versioned

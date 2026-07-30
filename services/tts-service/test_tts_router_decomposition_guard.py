@@ -92,9 +92,9 @@ def test_no_app_route_decorators_in_main():
 # ─── حُرّاس انحدار دائمون بعد التفكيك (قفل الثوابت) ────────────────────────
 # مسارات tts الحرجة التي يجب ألّا تختفي بعد التفكيك.
 _CRITICAL_ROUTES = (
-    "/tts/voices",
-    "/tts/synthesize",
-    "/tts/stream",
+    "/v1/tts/voices",
+    "/v1/tts/synthesize",
+    "/v1/tts/stream",
 )
 
 

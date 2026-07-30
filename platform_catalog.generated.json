@@ -1978,7 +1978,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /ingest"
+        "POST /v1/ingest"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -1993,7 +1993,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /query"
+        "POST /v1/query"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -14684,7 +14684,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /tts/status"
+        "GET /v1/tts/status"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -14701,7 +14701,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /tts/stream"
+        "POST /v1/tts/stream"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -14718,7 +14718,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /tts/synthesize"
+        "POST /v1/tts/synthesize"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -14735,7 +14735,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /tts/voices"
+        "GET /v1/tts/voices"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -17455,13 +17455,13 @@
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 458,
     "components": 34,
-    "cross_service_duplicate_method_paths": 15,
-    "duplicate_groups_classified": 15,
+    "cross_service_duplicate_method_paths": 13,
+    "duplicate_groups_classified": 13,
     "indicator_products": 34,
     "ownership_conflicts": 0,
     "route_rows": 1105,
     "ui_waivers": 52,
-    "unique_method_path": 991
+    "unique_method_path": 993
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17578,20 +17578,6 @@
     },
     {
       "canonical_owner": null,
-      "classification": "service_scoped_semantics",
-      "classified": true,
-      "components": [
-        "local-ai-rag",
-        "rag-retrieval"
-      ],
-      "decision": "ابتلاع RAG المحلّيّ وابتلاع الاسترجاع محدودان بخدمتَيهما؛ لا مسار بوّابة مشترك يدمجهما.",
-      "expires_on": "2026-12-31",
-      "facade": null,
-      "method": "POST",
-      "path": "/ingest"
-    },
-    {
-      "canonical_owner": null,
       "classification": "standard_observability",
       "classified": true,
       "components": [
@@ -17627,20 +17613,6 @@
       "facade": "sahool-platform",
       "method": "POST",
       "path": "/plan"
-    },
-    {
-      "canonical_owner": null,
-      "classification": "service_scoped_semantics",
-      "classified": true,
-      "components": [
-        "ai_agronomist",
-        "local-ai-rag"
-      ],
-      "decision": "استعلام المرشد الزراعيّ واستعلام RAG المحلّيّ مختلفان ويحتفظان بفضائَي بوّابة منفصلَين.",
-      "expires_on": "2026-12-31",
-      "facade": null,
-      "method": "POST",
-      "path": "/query"
     },
     {
       "canonical_owner": null,
@@ -17752,7 +17724,7 @@
       "path": "/v1/products"
     }
   ],
-  "fingerprint": "5cbcfb9c95bb301fbe67f66b6531cd63fd7bd47292b7c2e6c71ee0b9fce065ee",
+  "fingerprint": "c34855ad42bf8f686ae2e0a5c918e2c5d5bb0b616d6448c4394756f188332ebc",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

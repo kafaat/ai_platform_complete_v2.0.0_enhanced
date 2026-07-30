@@ -194,7 +194,7 @@ async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
-                f"{TTS_URL}/tts/synthesize",
+                f"{TTS_URL}/v1/tts/synthesize",
                 json={"text": text[:1000], "voice": voice},
                 headers={"Authorization": f"Bearer {TTS_TOKEN}"},
             )
