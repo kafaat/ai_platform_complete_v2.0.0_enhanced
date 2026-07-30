@@ -8,6 +8,7 @@ computation.
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -18,7 +19,7 @@ def _read(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
 
 
-def check() -> dict:
+def build_payload() -> dict:
     errors: list[str] = []
     models = _read("services/raster-service/raster_api_models.py")
     runtime = _read("services/raster-service/raster_processing_runtime.py")
@@ -49,14 +50,27 @@ def check() -> dict:
         "endpoint": "POST /raw/process",
         "owner": "services/raster-service/raw_data_processing.py",
     }
-    (ROOT / "raw_data_processing_contract.generated.json").write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
     if errors:
         raise SystemExit("raw_data_processing_contract_failed: " + ", ".join(errors))
     print("raw_data_processing_contract_ok")
     return payload
 
 
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    payload = build_payload()
+    rendered = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    output = ROOT / "raw_data_processing_contract.generated.json"
+    if args.check:
+        if not output.exists() or output.read_text(encoding="utf-8") != rendered:
+            print("raw_data_processing_contract drift; rerun without --check")
+            return 1
+    else:
+        output.write_text(rendered, encoding="utf-8")
+    return 0
+
+
 if __name__ == "__main__":
-    check()
+    raise SystemExit(main())

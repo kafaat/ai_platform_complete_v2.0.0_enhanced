@@ -192,27 +192,21 @@ def test_the_default_sweep_does_not_execute_the_uncovered_generators():
     assert body.index("classify_uncovered()") < body.index("if args.uncovered:")
 
 
-def test_a_guard_that_repairs_during_check_is_caught_not_trusted():
-    """`CHECK-STEPS-MUTATE-THE-TREE-01` صار **مُنفَذاً** لا مُسجَّلاً فقط.
+def test_a_guard_that_mutates_during_check_is_still_caught_as_defense_in_depth():
+    """The sweep retains a repository-state backstop even after the six guards became pure.
 
-    ستّة حرّاس يكتبون في وضع «فحص فقط»: يُصلحون الانحراف صامتاً ويُعيدون صفراً.
-    مُثبَت على المكنسة نفسها قبل هذا التعديل: إفساد ``service_inventory.csv`` ثمّ
-    الفحص ⇒ اختفى الإفساد وأُعلنت السلامة. فالاعتماد على رموز الخروج أخضر كاذب.
-
-    الحدّ الصادق هنا: حالة الشجرة قبل الفحص = حالتها بعده — إشارة لا يملك الحارس
-    تزييفها لأنّها ليست مخرَجه.
+    Individual regression tests now prove their owned outputs are immutable during
+    ``--check``.  The outer tree-state comparison remains defense in depth for a future
+    guard that violates the same contract.
     """
     import importlib.util
 
     spec = importlib.util.spec_from_file_location("v", _SCRIPT)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    assert hasattr(mod, "tree_state"), "أُزيلت إشارة حالة الشجرة — يعود الأخضر الكاذب"
+    assert hasattr(mod, "tree_state")
     body = _SCRIPT.read_text(encoding="utf-8")
-    assert "before = tree_state()" in body and "after = tree_state()" in body, (
-        "الإشارة معرَّفة ولا تُستدعى حول الفحص — وجودها بلا استدعاء لا يحرس شيئاً"
-    )
-    # وتُقاس على المتتبَّع فقط: ملفّ جديد غير مُدرَج ليس كتابةَ حارس.
+    assert "before = tree_state()" in body and "after = tree_state()" in body
     assert "--untracked-files=no" in body
 
 
