@@ -8406,15 +8406,6 @@
     "classification": "versioned"
   },
   {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/tests/test_correlation_middleware.py",
-    "line": 18,
-    "method": "GET",
-    "path": "/probe",
-    "handler": "probe",
-    "classification": "legacy_unversioned_business"
-  },
-  {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
     "line": 24,

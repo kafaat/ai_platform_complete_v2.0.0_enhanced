@@ -933,7 +933,6 @@ sahool-platform,services/sahool-platform/api/routers/yield_interval.py,49,POST,/
 sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,84,POST,/api/v1/fields/{field_id}/yield-maps/ingestions,ingest_yield_map,versioned
 sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,255,GET,/api/v1/fields/{field_id}/yield-maps/ingestions,list_yield_map_ingestions,versioned
 sahool-platform,services/sahool-platform/api/routers/yield_map_ingestion.py,289,GET,/api/v1/fields/{field_id}/yield-map-records,query_yield_map_records,versioned
-sahool-platform,services/sahool-platform/tests/test_correlation_middleware.py,18,GET,/probe,probe,legacy_unversioned_business
 sam2-inference,services/sam2-inference/main.py,24,POST,/v1/predict,predict,versioned
 sam2-inference,services/sam2-inference/main.py,105,GET,/healthz,healthz,infra
 sam2-inference,services/sam2-inference/main.py,110,GET,/health,legacy_health,infra
