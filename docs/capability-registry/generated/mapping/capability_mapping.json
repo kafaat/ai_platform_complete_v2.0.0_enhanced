@@ -26,7 +26,7 @@
       "web": 448
     },
     "unmapped_artifacts": 1950,
-    "ambiguous_artifacts": 391
+    "ambiguous_artifacts": 392
   },
   "capabilities": [
     {
@@ -16633,6 +16633,14 @@
           ]
         },
         {
+          "path": "docs/architecture/api_versioning_legacy_baseline.json",
+          "score": 10,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "docs/audits/CODE_REVIEW_REPORT.md",
           "score": 10,
           "signals": [
@@ -16765,7 +16773,7 @@
         "mobile": 0,
         "tests": 40,
         "governance": 0,
-        "other_evidence": 32
+        "other_evidence": 33
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -42243,6 +42251,28 @@
             "content:cog",
             "content:raster tile",
             "content:tilejson"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:terrain"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/api_versioning_legacy_baseline.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 10,
+          "signals": [
+            "content:sentinel",
+            "content:stac"
           ]
         },
         {

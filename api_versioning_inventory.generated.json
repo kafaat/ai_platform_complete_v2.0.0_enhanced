@@ -2740,513 +2740,513 @@
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 147,
     "method": "POST",
-    "path": "/feature-schema",
+    "path": "/v1/phase10/learning/feature-schema",
     "handler": "feature_schema",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 152,
     "method": "POST",
-    "path": "/dataset",
+    "path": "/v1/phase10/learning/dataset",
     "handler": "dataset",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 162,
     "method": "POST",
-    "path": "/models/promote",
+    "path": "/v1/phase10/learning/models/promote",
     "handler": "model_promotion",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 172,
     "method": "POST",
-    "path": "/online-update",
+    "path": "/v1/phase10/learning/online-update",
     "handler": "online_update",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 182,
     "method": "POST",
-    "path": "/experiments/evaluate",
+    "path": "/v1/phase10/learning/experiments/evaluate",
     "handler": "experiment_evaluation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 192,
     "method": "POST",
-    "path": "/scenario",
+    "path": "/v1/phase10/learning/scenario",
     "handler": "scenario",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 197,
     "method": "POST",
-    "path": "/cycle",
+    "path": "/v1/phase10/learning/cycle",
     "handler": "learning_cycle",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 209,
     "method": "POST",
-    "path": "/drift",
+    "path": "/v1/phase10/learning/drift",
     "handler": "drift",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 218,
     "method": "POST",
-    "path": "/retraining/plan",
+    "path": "/v1/phase10/learning/retraining/plan",
     "handler": "retraining_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 225,
     "method": "POST",
-    "path": "/champion-challenger",
+    "path": "/v1/phase10/learning/champion-challenger",
     "handler": "champion_challenger",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 237,
     "method": "POST",
-    "path": "/feature-store/register",
+    "path": "/v1/phase10/learning/feature-store/register",
     "handler": "feature_store_register",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 244,
     "method": "POST",
-    "path": "/feature-store/offline-dataset",
+    "path": "/v1/phase10/learning/feature-store/offline-dataset",
     "handler": "feature_store_offline_dataset",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 254,
     "method": "POST",
-    "path": "/feature-store/online-materialization",
+    "path": "/v1/phase10/learning/feature-store/online-materialization",
     "handler": "feature_store_online_materialization",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 262,
     "method": "POST",
-    "path": "/feature-store/point-in-time",
+    "path": "/v1/phase10/learning/feature-store/point-in-time",
     "handler": "feature_store_point_in_time",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 269,
     "method": "POST",
-    "path": "/models/register",
+    "path": "/v1/phase10/learning/models/register",
     "handler": "model_register",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 284,
     "method": "POST",
-    "path": "/models/serving/promote",
+    "path": "/v1/phase10/learning/models/serving/promote",
     "handler": "model_serving_promote",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 291,
     "method": "POST",
-    "path": "/models/serving/rollback",
+    "path": "/v1/phase10/learning/models/serving/rollback",
     "handler": "model_serving_rollback",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 301,
     "method": "GET",
-    "path": "/models/serving/{alias:path}",
+    "path": "/v1/phase10/learning/models/serving/{alias:path}",
     "handler": "model_serving_resolve",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 115,
     "method": "POST",
-    "path": "/context",
+    "path": "/v1/phase11/federation/context",
     "handler": "context",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 125,
     "method": "POST",
-    "path": "/agents/propose",
+    "path": "/v1/phase11/federation/agents/propose",
     "handler": "agents_propose",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 132,
     "method": "POST",
-    "path": "/consensus",
+    "path": "/v1/phase11/federation/consensus",
     "handler": "consensus",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 142,
     "method": "POST",
-    "path": "/operation-plan",
+    "path": "/v1/phase11/federation/operation-plan",
     "handler": "operation_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 152,
     "method": "POST",
-    "path": "/experiments/shadow",
+    "path": "/v1/phase11/federation/experiments/shadow",
     "handler": "shadow_experiment",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 166,
     "method": "POST",
-    "path": "/quality",
+    "path": "/v1/phase11/federation/quality",
     "handler": "quality",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 171,
     "method": "POST",
-    "path": "/cycle",
+    "path": "/v1/phase11/federation/cycle",
     "handler": "cycle",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 195,
     "method": "POST",
-    "path": "/runtime/resolve",
+    "path": "/v1/phase11/federation/runtime/resolve",
     "handler": "runtime_resolve",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 206,
     "method": "POST",
-    "path": "/runtime/authority-envelope",
+    "path": "/v1/phase11/federation/runtime/authority-envelope",
     "handler": "runtime_authority_envelope",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 213,
     "method": "POST",
-    "path": "/runtime/reputation/update",
+    "path": "/v1/phase11/federation/runtime/reputation/update",
     "handler": "runtime_reputation_update",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase11_federated_agents.py",
     "line": 224,
     "method": "POST",
-    "path": "/runtime/event-envelope",
+    "path": "/v1/phase11/federation/runtime/event-envelope",
     "handler": "runtime_event_envelope",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 133,
     "method": "POST",
-    "path": "/plugins/validate",
+    "path": "/v1/ecosystem/plugins/validate",
     "handler": "validate_plugin",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 137,
     "method": "POST",
-    "path": "/marketplace/apps",
+    "path": "/v1/ecosystem/marketplace/apps",
     "handler": "create_marketplace_app",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 143,
     "method": "POST",
-    "path": "/marketplace/installations",
+    "path": "/v1/ecosystem/marketplace/installations",
     "handler": "install_app",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 155,
     "method": "POST",
-    "path": "/plugins/sandbox-policy",
+    "path": "/v1/ecosystem/plugins/sandbox-policy",
     "handler": "sandbox_policy",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 159,
     "method": "POST",
-    "path": "/webhooks",
+    "path": "/v1/ecosystem/webhooks",
     "handler": "create_webhook",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 167,
     "method": "POST",
-    "path": "/webhooks/delivery-plan",
+    "path": "/v1/ecosystem/webhooks/delivery-plan",
     "handler": "webhook_delivery_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 171,
     "method": "POST",
-    "path": "/connectors/descriptor",
+    "path": "/v1/ecosystem/connectors/descriptor",
     "handler": "connector_descriptor",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 185,
     "method": "GET",
-    "path": "/sdk/manifest",
+    "path": "/v1/ecosystem/sdk/manifest",
     "handler": "sdk_manifest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 189,
     "method": "GET",
-    "path": "/graphql/schema",
+    "path": "/v1/ecosystem/graphql/schema",
     "handler": "graphql_schema",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 193,
     "method": "GET",
-    "path": "/developer-portal/index",
+    "path": "/v1/ecosystem/developer-portal/index",
     "handler": "developer_portal_index",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 197,
     "method": "POST",
-    "path": "/usage",
+    "path": "/v1/ecosystem/usage",
     "handler": "usage_record",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 207,
     "method": "POST",
-    "path": "/quota/check",
+    "path": "/v1/ecosystem/quota/check",
     "handler": "quota_check",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 211,
     "method": "POST",
-    "path": "/plugins/runtime/plan",
+    "path": "/v1/ecosystem/plugins/runtime/plan",
     "handler": "plugin_runtime_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 222,
     "method": "POST",
-    "path": "/plugins/runtime/validate-output",
+    "path": "/v1/ecosystem/plugins/runtime/validate-output",
     "handler": "plugin_runtime_validate_output",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 226,
     "method": "POST",
-    "path": "/plugins/runtime/event-envelope",
+    "path": "/v1/ecosystem/plugins/runtime/event-envelope",
     "handler": "plugin_runtime_event_envelope",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 235,
     "method": "POST",
-    "path": "/plugins/runtime/report",
+    "path": "/v1/ecosystem/plugins/runtime/report",
     "handler": "plugin_runtime_report",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
     "line": 239,
     "method": "POST",
-    "path": "/cycle",
+    "path": "/v1/ecosystem/cycle",
     "handler": "ecosystem_cycle",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 112,
     "method": "POST",
-    "path": "/plan",
+    "path": "/v1/phase9/autonomy/plan",
     "handler": "create_execution_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 134,
     "method": "POST",
-    "path": "/verify",
+    "path": "/v1/phase9/autonomy/verify",
     "handler": "verify_execution",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 148,
     "method": "POST",
-    "path": "/cycle",
+    "path": "/v1/phase9/autonomy/cycle",
     "handler": "run_cycle",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 175,
     "method": "POST",
-    "path": "/models/register",
+    "path": "/v1/phase9/autonomy/models/register",
     "handler": "register_model",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 189,
     "method": "POST",
-    "path": "/experiments/assign",
+    "path": "/v1/phase9/autonomy/experiments/assign",
     "handler": "assign_variant",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 196,
     "method": "POST",
-    "path": "/events/from-plan",
+    "path": "/v1/phase9/autonomy/events/from-plan",
     "handler": "events_from_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 202,
     "method": "POST",
-    "path": "/events/replay",
+    "path": "/v1/phase9/autonomy/events/replay",
     "handler": "replay_events",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 207,
     "method": "POST",
-    "path": "/verify-loop",
+    "path": "/v1/phase9/autonomy/verify-loop",
     "handler": "command_verification_loop",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 217,
     "method": "POST",
-    "path": "/iot/dispatch/preview",
+    "path": "/v1/phase9/autonomy/iot/dispatch/preview",
     "handler": "preview_iot_dispatch",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 230,
     "method": "POST",
-    "path": "/iot/dispatch/simulate",
+    "path": "/v1/phase9/autonomy/iot/dispatch/simulate",
     "handler": "simulate_iot_dispatch",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
     "line": 251,
     "method": "POST",
-    "path": "/iot/telemetry/verify",
+    "path": "/v1/phase9/autonomy/iot/telemetry/verify",
     "handler": "verify_iot_telemetry",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -5782,270 +5782,270 @@
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 179,
     "method": "GET",
-    "path": "/stac",
+    "path": "/api/v1/gis/cloud-native/stac",
     "handler": "stac_root",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 186,
     "method": "GET",
-    "path": "/stac/conformance",
+    "path": "/api/v1/gis/cloud-native/stac/conformance",
     "handler": "stac_conformance",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 193,
     "method": "GET",
-    "path": "/stac/queryables",
+    "path": "/api/v1/gis/cloud-native/stac/queryables",
     "handler": "get_stac_queryables",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 200,
     "method": "GET",
-    "path": "/stac/collections",
+    "path": "/api/v1/gis/cloud-native/stac/collections",
     "handler": "list_stac_collections",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 215,
     "method": "POST",
-    "path": "/stac/search",
+    "path": "/api/v1/gis/cloud-native/stac/search",
     "handler": "stac_search_post",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 245,
     "method": "GET",
-    "path": "/scene-ranking",
+    "path": "/api/v1/gis/cloud-native/scene-ranking",
     "handler": "scene_ranking",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 262,
     "method": "GET",
-    "path": "/scene-processing-plan",
+    "path": "/api/v1/gis/cloud-native/scene-processing-plan",
     "handler": "scene_processing_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 279,
     "method": "GET",
-    "path": "/tile-cache-plan",
+    "path": "/api/v1/gis/cloud-native/tile-cache-plan",
     "handler": "get_tile_cache_plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 295,
     "method": "GET",
-    "path": "/ogc",
+    "path": "/api/v1/gis/cloud-native/ogc",
     "handler": "ogc_root",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 302,
     "method": "GET",
-    "path": "/ogc/conformance",
+    "path": "/api/v1/gis/cloud-native/ogc/conformance",
     "handler": "ogc_conformance",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 309,
     "method": "GET",
-    "path": "/ogc/collections",
+    "path": "/api/v1/gis/cloud-native/ogc/collections",
     "handler": "get_ogc_collections",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 316,
     "method": "GET",
-    "path": "/ogc/collections/fields/items",
+    "path": "/api/v1/gis/cloud-native/ogc/collections/fields/items",
     "handler": "ogc_field_items",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 342,
     "method": "POST",
-    "path": "/ai-boundary/plan",
+    "path": "/api/v1/gis/cloud-native/ai-boundary/plan",
     "handler": "plan_ai_boundary_extraction",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 352,
     "method": "POST",
-    "path": "/management-zones/summary",
+    "path": "/api/v1/gis/cloud-native/management-zones/summary",
     "handler": "summarize_management_zones",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 360,
     "method": "POST",
-    "path": "/editing-sessions/undo-redo",
+    "path": "/api/v1/gis/cloud-native/editing-sessions/undo-redo",
     "handler": "editing_session_undo_redo",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 420,
     "method": "POST",
-    "path": "/cog-registry",
+    "path": "/api/v1/gis/cloud-native/cog-registry",
     "handler": "register_cog",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 476,
     "method": "GET",
-    "path": "/stac/search",
+    "path": "/api/v1/gis/cloud-native/stac/search",
     "handler": "stac_search",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 497,
     "method": "GET",
-    "path": "/stac/collections/{collection_id}",
+    "path": "/api/v1/gis/cloud-native/stac/collections/{collection_id}",
     "handler": "get_collection",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 513,
     "method": "GET",
-    "path": "/mosaicjson",
+    "path": "/api/v1/gis/cloud-native/mosaicjson",
     "handler": "mosaicjson",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 532,
     "method": "GET",
-    "path": "/rasters/{raster_id}/tilejson.json",
+    "path": "/api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json",
     "handler": "raster_tilejson",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 557,
     "method": "POST",
-    "path": "/editing-sessions",
+    "path": "/api/v1/gis/cloud-native/editing-sessions",
     "handler": "upsert_editing_session",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 592,
     "method": "POST",
-    "path": "/locks",
+    "path": "/api/v1/gis/cloud-native/locks",
     "handler": "acquire_geometry_lock",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 628,
     "method": "DELETE",
-    "path": "/locks/{field_id}",
+    "path": "/api/v1/gis/cloud-native/locks/{field_id}",
     "handler": "release_geometry_lock",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 646,
     "method": "POST",
-    "path": "/geoparquet/export",
+    "path": "/api/v1/gis/cloud-native/geoparquet/export",
     "handler": "export_geoparquet",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 672,
     "method": "POST",
-    "path": "/phase6/boundaries/extract",
+    "path": "/api/v1/gis/cloud-native/phase6/boundaries/extract",
     "handler": "phase6_extract_boundary",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 691,
     "method": "POST",
-    "path": "/phase6/management-zones/generate",
+    "path": "/api/v1/gis/cloud-native/phase6/management-zones/generate",
     "handler": "phase6_generate_management_zones",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 707,
     "method": "POST",
-    "path": "/phase6/prescriptions/generate",
+    "path": "/api/v1/gis/cloud-native/phase6/prescriptions/generate",
     "handler": "phase6_generate_prescription_map",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 720,
     "method": "POST",
-    "path": "/phase6/yield-stability",
+    "path": "/api/v1/gis/cloud-native/phase6/yield-stability",
     "handler": "phase6_yield_stability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 728,
     "method": "POST",
-    "path": "/phase6/profitability-map",
+    "path": "/api/v1/gis/cloud-native/phase6/profitability-map",
     "handler": "phase6_profitability_map",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/gis_cloud_native.py",
     "line": 740,
     "method": "POST",
-    "path": "/phase6/digital-twin/snapshot",
+    "path": "/api/v1/gis/cloud-native/phase6/digital-twin/snapshot",
     "handler": "phase6_digital_twin_snapshot",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
@@ -6376,108 +6376,108 @@
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 62,
     "method": "POST",
-    "path": "/calculate",
+    "path": "/api/v1/irrigation/engineering/calculate",
     "handler": "calculate_engineering",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 73,
     "method": "POST",
-    "path": "/interactive-calculate",
+    "path": "/api/v1/irrigation/engineering/interactive-calculate",
     "handler": "calculate_interactive_engineering",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 86,
     "method": "POST",
-    "path": "/network-calculate",
+    "path": "/api/v1/irrigation/engineering/network-calculate",
     "handler": "calculate_network_engineering",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 111,
     "method": "POST",
-    "path": "/commissioning/certificates",
+    "path": "/api/v1/irrigation/engineering/commissioning/certificates",
     "handler": "issue_commissioning_certificate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 176,
     "method": "GET",
-    "path": "/commissioning/systems/{system_id}/current",
+    "path": "/api/v1/irrigation/engineering/commissioning/systems/{system_id}/current",
     "handler": "get_current_commissioning_certificate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 200,
     "method": "POST",
-    "path": "/commissioning/authorize",
+    "path": "/api/v1/irrigation/engineering/commissioning/authorize",
     "handler": "evaluate_execution_authorization",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 237,
     "method": "GET",
-    "path": "/manual-executions",
+    "path": "/api/v1/irrigation/engineering/manual-executions",
     "handler": "list_manual_executions",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 275,
     "method": "POST",
-    "path": "/manual-executions",
+    "path": "/api/v1/irrigation/engineering/manual-executions",
     "handler": "create_manual_execution",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 354,
     "method": "POST",
-    "path": "/manual-executions/{execution_id}/transition",
+    "path": "/api/v1/irrigation/engineering/manual-executions/{execution_id}/transition",
     "handler": "transition_manual_execution_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 426,
     "method": "POST",
-    "path": "/manual-executions/{execution_id}/confirm",
+    "path": "/api/v1/irrigation/engineering/manual-executions/{execution_id}/confirm",
     "handler": "confirm_manual_execution",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 489,
     "method": "POST",
-    "path": "/manual-executions/{execution_id}/verify",
+    "path": "/api/v1/irrigation/engineering/manual-executions/{execution_id}/verify",
     "handler": "verify_manual_execution",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
     "line": 575,
     "method": "POST",
-    "path": "/manual-executions/{execution_id}/reconcile",
+    "path": "/api/v1/irrigation/engineering/manual-executions/{execution_id}/reconcile",
     "handler": "reconcile_manual_execution_to_water_ledger",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sahool-platform",

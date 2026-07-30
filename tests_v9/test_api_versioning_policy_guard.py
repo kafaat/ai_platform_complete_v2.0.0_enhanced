@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import subprocess
 import sys
 from pathlib import Path
@@ -51,6 +52,72 @@ def test_runtime_identity_is_infra_not_legacy_business():
         r for r in rows if r["path"] == "/runtime-identity" and r["classification"] != "infra"
     ]
     assert leaked == [], f"/runtime-identity leaked into a non-infra classification: {leaked}"
+
+
+def test_router_prefix_is_composed_with_route_path():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01: collect() read only the literal decorator
+    string (``@router.get("/plan")``), never composing it with the router's own
+    ``APIRouter(prefix="/v1/phase9/autonomy")`` declared in the same file -- so a route
+    genuinely served at ``/v1/phase9/autonomy/plan`` was classified legacy_unversioned_business
+    because its bare decorator text doesn't start with a version segment. A repo-wide search
+    found no ``include_router(..., prefix=...)`` usage anywhere -- the only prefix mechanism
+    actually used is same-file ``APIRouter(prefix=...)``, so the fix composes locally, with
+    no cross-file router-mount tracing needed."""
+    src = (
+        "from fastapi import APIRouter\n"
+        "router = APIRouter(prefix='/v1/phase9/autonomy')\n"
+        "\n"
+        "@router.post('/plan')\n"
+        "def create_execution_plan():\n"
+        "    ...\n"
+        "\n"
+        "@app.get('/health')\n"
+        "def health():\n"
+        "    ...\n"
+    )
+    prefixes = guard._router_prefixes(ast.parse(src))
+    assert prefixes == {"router": "/v1/phase9/autonomy"}
+
+    # _routes() requires a real path under ROOT (_service_for does path.relative_to(ROOT)),
+    # so exercise it against a throwaway fixture file rather than a bare AST.
+    real_file = guard.ROOT / "services" / "_fixture_router_prefix_test.py"
+    real_file.write_text(src, encoding="utf-8")
+    try:
+        rows = guard._routes(real_file)
+    finally:
+        real_file.unlink()
+    by_path = {(r["method"], r["path"]) for r in rows}
+    assert ("POST", "/v1/phase9/autonomy/plan") in by_path, (
+        f"prefix not composed into route path: {by_path}"
+    )
+    assert ("GET", "/health") in by_path, "unprefixed @app route must stay unprefixed"
+    composed = next(r for r in rows if r["path"] == "/v1/phase9/autonomy/plan")
+    assert guard._classify(composed["path"]) == "versioned"
+
+
+def test_known_prefixed_sahool_platform_routers_classify_as_versioned():
+    """The six sahool-platform router files that declare APIRouter(prefix="/v1/...")
+    or APIRouter(prefix="/api/v1/...") in the same file must have every one of their
+    routes classified versioned once the prefix is composed -- these are the concrete
+    99 positions this fix reclassifies, previously counted as legacy_unversioned_business
+    purely because collect() couldn't see same-file router prefixes."""
+    prefixed_files = (
+        "services/sahool-platform/api/phase9_autonomous_farm_os.py",
+        "services/sahool-platform/api/phase10_continuous_learning.py",
+        "services/sahool-platform/api/phase11_federated_agents.py",
+        "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
+        "services/sahool-platform/api/routers/gis_cloud_native.py",
+        "services/sahool-platform/api/routers/irrigation_engineering.py",
+    )
+    rows = guard.collect()
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in prefixed_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], (
+        f"routes in prefix-declaring router files still misclassified: {still_legacy}"
+    )
 
 
 def test_mcp_protocol_atomic_contract_migrated_to_versioned_prefix():
