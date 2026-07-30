@@ -1078,18 +1078,18 @@ IRR-006,service,services/sahool-platform/api/main.py,10,applied
 IRR-006,test,tests_v9/test_irrigation_schedule_conflict_v29_5_op.py,7,applied
 IRR-007,api,GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178,2,applied
 IRR-007,api,GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31,3,applied
-IRR-007,api,GET /commands @ services/actuator-service/routers/commands.py:70,3,applied
 IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,applied
-IRR-007,api,GET /idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
+IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:70,3,applied
+IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:179,3,applied
 IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/claim @ services/sahool-platform/api/routers/decision_review.py:831,3,applied
 IRR-007,api,POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:868,3,applied
 IRR-007,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:900,3,applied
 IRR-007,api,POST /api/v1/portfolio/command @ services/sahool-platform/api/routers/portfolio_command.py:70,3,applied
-IRR-007,api,POST /command @ services/actuator-service/routers/commands.py:25,5,applied
+IRR-007,api,POST /v1/command @ services/actuator-service/routers/commands.py:25,5,applied
 IRR-007,api,POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2167,2,applied
 IRR-007,api,POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2208,2,applied
 IRR-007,api,POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2254,2,applied

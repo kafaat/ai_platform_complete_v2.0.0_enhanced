@@ -4,7 +4,7 @@
     "file": "services/actuator-service/routers/commands.py",
     "line": 25,
     "method": "POST",
-    "path": "/command",
+    "path": "/v1/command",
     "function": "send_command"
   },
   {
@@ -12,7 +12,7 @@
     "file": "services/actuator-service/routers/commands.py",
     "line": 70,
     "method": "GET",
-    "path": "/commands",
+    "path": "/v1/commands",
     "function": "list_commands"
   },
   {
@@ -44,7 +44,7 @@
     "file": "services/actuator-service/routers/metrics.py",
     "line": 18,
     "method": "GET",
-    "path": "/idempotency/metrics",
+    "path": "/v1/idempotency/metrics",
     "function": "idempotency_metrics"
   },
   {

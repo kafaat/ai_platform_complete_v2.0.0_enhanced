@@ -50,7 +50,7 @@
           "/healthz"
         ],
         "metrics": [
-          "/idempotency/metrics"
+          "/v1/idempotency/metrics"
         ],
         "readiness": [
           "/readyz"

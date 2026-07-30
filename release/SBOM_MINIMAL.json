@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "901e80a8fb477172e4d71abfdcfda7d2b76ba6363c6f893c4040eed8df8dedaa"
+          "content": "8daa054dca14573f772d03ba887deffb54054451b74c9c577da43e8a021aa53c"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -9625,7 +9625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10989f312570a2d4fad6b9dd14e507ef341c081ce22dd25d9835b033d04c8ec4"
+          "content": "c24987eead383966f36d3d5d4d8a9027b6800b04de2061aed55b1b0488783671"
         }
       ],
       "name": "services/actuator-service/routers/commands.py",
@@ -9645,7 +9645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ced805e340c84e9e624d32faae00f2de2a3761dd0872203f27c7d34b802e621d"
+          "content": "58c485555960558919e7e4184595a50504dce9d84de63a292037370e68b1f51c"
         }
       ],
       "name": "services/actuator-service/routers/metrics.py",
@@ -9655,7 +9655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30f96237eaac565111f3c2e6c16f34ac8f4b9cbc951bf95dee62bc0d4ea23d58"
+          "content": "43b0c26f08c744a8d2623e4cbe8939686af2b9c2b68474aa93ddfcb3d5690cc8"
         }
       ],
       "name": "services/actuator-service/test_actuator_router_decomposition_guard.py",
@@ -9665,7 +9665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "002801429a8b2d21a7832a63ee2d85045d301bbe4798616a1822cc12ba52d3bd"
+          "content": "f1bb96f69a57b96552520e886384af22a17ab1b116c41d4f66218f0465e472ae"
         }
       ],
       "name": "services/actuator-service/test_actuator_safety.py",

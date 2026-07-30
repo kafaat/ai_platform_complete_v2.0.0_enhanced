@@ -417,10 +417,10 @@ capabilities:
   apis:
   - GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178
   - GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31
-  - GET /commands @ services/actuator-service/routers/commands.py:70
+  - GET /v1/commands @ services/actuator-service/routers/commands.py:70
   - GET /health @ services/actuator-service/routers/health.py:20
   - GET /healthz @ services/actuator-service/routers/health.py:20
-  - GET /idempotency/metrics @ services/actuator-service/routers/metrics.py:18
+  - GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18
   - GET /readyz @ services/actuator-service/routers/health.py:32
   - POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100
   - POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:179
@@ -428,7 +428,7 @@ capabilities:
   - POST /api/v1/learning/activation-commands/{activation_command_id}/receipt @ services/sahool-platform/api/routers/decision_review.py:868
   - POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:900
   - POST /api/v1/portfolio/command @ services/sahool-platform/api/routers/portfolio_command.py:70
-  - POST /command @ services/actuator-service/routers/commands.py:25
+  - POST /v1/command @ services/actuator-service/routers/commands.py:25
   - POST /v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2171
   - POST /v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2212
   - POST /v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2258

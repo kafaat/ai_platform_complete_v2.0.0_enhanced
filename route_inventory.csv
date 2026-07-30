@@ -1,10 +1,10 @@
 service,file,line,method,path,function
-actuator-service,services/actuator-service/routers/commands.py,25,POST,/command,send_command
-actuator-service,services/actuator-service/routers/commands.py,70,GET,/commands,list_commands
+actuator-service,services/actuator-service/routers/commands.py,25,POST,/v1/command,send_command
+actuator-service,services/actuator-service/routers/commands.py,70,GET,/v1/commands,list_commands
 actuator-service,services/actuator-service/routers/health.py,20,GET,/healthz,health
 actuator-service,services/actuator-service/routers/health.py,20,GET,/health,health
 actuator-service,services/actuator-service/routers/health.py,32,GET,/readyz,readyz
-actuator-service,services/actuator-service/routers/metrics.py,18,GET,/idempotency/metrics,idempotency_metrics
+actuator-service,services/actuator-service/routers/metrics.py,18,GET,/v1/idempotency/metrics,idempotency_metrics
 agriai-engine,services/agriai-engine/main.py,55,GET,/healthz,healthz
 agriai-engine,services/agriai-engine/main.py,60,GET,/health,legacy_health
 agriai-engine,services/agriai-engine/main.py,65,GET,/readyz,readyz

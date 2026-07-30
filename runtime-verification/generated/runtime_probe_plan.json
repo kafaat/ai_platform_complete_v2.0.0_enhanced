@@ -1,6 +1,6 @@
 {
   "fail_closed": true,
-  "plan_sha256": "3b4fceddd4e326ed445121f85a3db4c44a05c3e3f3e67c4dc030c46a22308d9e",
+  "plan_sha256": "96b1f30d0392b28ffdfed8a1bfb5e4ebdfc5c105055aec990016807b1fff8e37",
   "schema_version": "1.0",
   "services": [
     {
@@ -19,7 +19,7 @@
         {
           "kind": "metrics",
           "method": "GET",
-          "path": "/idempotency/metrics"
+          "path": "/v1/idempotency/metrics"
         },
         {
           "kind": "readiness",
@@ -1157,5 +1157,5 @@
       "source_service": "weather-signal-engine"
     }
   ],
-  "source_contract_sha256": "bf468f40e4c1c1e24c457e9bbf33f877ead02a86cd69872a33cae59fa202352e"
+  "source_contract_sha256": "8d7df565ea465737da64a4b9b1dfe16671b8a65fbf3f880a0d001a849ddc989e"
 }

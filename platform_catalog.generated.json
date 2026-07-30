@@ -9,7 +9,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /command"
+        "POST /v1/command"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -26,7 +26,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /commands"
+        "GET /v1/commands"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -43,7 +43,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /idempotency/metrics"
+        "GET /v1/idempotency/metrics"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -17752,7 +17752,7 @@
       "path": "/v1/products"
     }
   ],
-  "fingerprint": "9dd82e062a3f53edca171f04a97ef51fe4d20d40e5753a73d337fad320e65f63",
+  "fingerprint": "2c75fa5a7749ca88a8ab52260a006b3cc2ed0c3e89ad1d9211f43e7018f5d236",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
