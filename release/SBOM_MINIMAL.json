@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09932a8a367175dd53555a69b1832f15a22ee9df631f4b5d4a0daf9d7ec84dfd"
+          "content": "901e80a8fb477172e4d71abfdcfda7d2b76ba6363c6f893c4040eed8df8dedaa"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12435,7 +12435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88ceefd6fae3695e6c3ad0678398fc3fefbe95b89d4bd65346a0b758886ff6ab"
+          "content": "406917d744aea89554b8ba7d77878652569c6d8d96a5399cb0c1e9213d115cc6"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -12675,7 +12675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9cabb3c0b40d5c6232efdf9fb098a4164a7c0ad50435d0ad7b605918541fec1c"
+          "content": "1ec1948c4d84785ade03dd77b2749917decc6d396ba5c3032422aebc168ed6bb"
         }
       ],
       "name": "services/odoo-bridge/routers/catalog.py",

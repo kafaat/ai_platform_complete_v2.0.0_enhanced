@@ -67,7 +67,7 @@ async def get_logs(
     return {"logs": [dict(r) for r in rows]}
 
 
-@router.get("/products")
+@router.get("/v1/products")
 async def list_erp_products(limit: int = 20, _auth: dict = Depends(main.require_auth)):
     provider = main.get_active_erp_provider()
     products = await provider.list_products()

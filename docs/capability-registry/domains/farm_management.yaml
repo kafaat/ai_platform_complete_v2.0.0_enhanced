@@ -790,7 +790,7 @@ capabilities:
   - GET /health @ services/odoo-bridge/routers/health.py:31
   - GET /healthz @ services/odoo-bridge/routers/health.py:31
   - GET /logs @ services/odoo-bridge/routers/catalog.py:50
-  - GET /products @ services/odoo-bridge/routers/catalog.py:71
+  - GET /v1/products @ services/odoo-bridge/routers/catalog.py:71
   - GET /readyz @ services/odoo-bridge/routers/health.py:41
   - GET /readyz/capabilities @ services/odoo-bridge/routers/health.py:76
   - GET /suppliers @ services/odoo-bridge/routers/catalog.py:78

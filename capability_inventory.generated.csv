@@ -104,7 +104,7 @@ edge-inference.sync.trigger,command,edge-inference,POST /sync/trigger,frontend,r
 erp-bridge.config,query,erp-bridge,GET /config,,route,False
 erp-bridge.erp.provider,query,erp-bridge,GET /erp/provider,,route,False
 erp-bridge.logs,query,erp-bridge,GET /logs,,route,False
-erp-bridge.products,query,erp-bridge,GET /products,,route,False
+erp-bridge.products,query,erp-bridge,GET /v1/products,,route,False
 erp-bridge.readyz.capabilities,query,erp-bridge,GET /readyz/capabilities,,route,False
 erp-bridge.suppliers,query,erp-bridge,GET /suppliers,,route,False
 erp-bridge.sync,command,erp-bridge,POST /sync,,route,False
@@ -133,7 +133,7 @@ mcp_servers.mcp.tools.list,query,mcp_servers,GET /v1/mcp/tools/list,,route,False
 mcp_servers.price-history.category,query,mcp_servers,GET /price-history/{category},,route,False
 mcp_servers.procurement,command,mcp_servers,POST /procurement,,route,False
 mcp_servers.procurement.order_id,query,mcp_servers,GET /procurement/{order_id},,route,False
-mcp_servers.products,query,mcp_servers,GET /products,,route,False
+mcp_servers.products,query,mcp_servers,GET /v1/products,,route,False
 mcp_servers.sales,mixed,mcp_servers,GET /sales|POST /sales,,route,False
 mcp_servers.suppliers.supplier_id,query,mcp_servers,GET /suppliers/{supplier_id},,route,False
 rag-retrieval.ingest,command,rag-retrieval,POST /ingest,,route,False

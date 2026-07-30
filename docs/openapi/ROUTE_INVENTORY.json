@@ -81,7 +81,7 @@
       "POST /sync",
       "POST /webhook/odoo",
       "GET /logs",
-      "GET /products",
+      "GET /v1/products",
       "GET /suppliers",
       "GET /readyz"
     ],

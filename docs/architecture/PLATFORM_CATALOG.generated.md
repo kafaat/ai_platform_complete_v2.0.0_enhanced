@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `04068dd9c1730a4a548af1233e018ebb1a0ff6bcef01e3e2baa97a8bfdda3b0d`
+- fingerprint: `9dd82e062a3f53edca171f04a97ef51fe4d20d40e5753a73d337fad320e65f63`
 - components: **34** (backend: 32)
 - route rows: **1105** → unique method/path: **991**
 - capabilities (derived, uncurated): **853**
@@ -67,10 +67,10 @@
 | `POST` | `/ingest` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/metrics` | `standard_observability` | `service-local` | `permanent` |
 | `POST` | `/plan` | `legacy_bff_facade` | `agriai-engine` | `2026-12-31` |
-| `GET` | `/products` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `POST` | `/query` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/readyz` | `standard_readiness` | `service-local` | `permanent` |
 | `POST` | `/recommend` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/runtime-identity` | `standard_observability` | `service-local` | `permanent` |
 | `GET` | `/stac` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
 | `GET` | `/stac/collections` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
+| `GET` | `/v1/products` | `service_scoped_semantics` | `service-local` | `2026-12-31` |

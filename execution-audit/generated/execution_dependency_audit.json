@@ -1410,7 +1410,7 @@
       "line": 632,
       "handler": "api_search_products",
       "method": "GET",
-      "path": "/products"
+      "path": "/v1/products"
     },
     {
       "owner": "mcp-servers",
@@ -1610,7 +1610,7 @@
       "line": 71,
       "handler": "list_erp_products",
       "method": "GET",
-      "path": "/products"
+      "path": "/v1/products"
     },
     {
       "owner": "odoo-bridge",

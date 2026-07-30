@@ -583,29 +583,6 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "GET",
-      "path": "/products",
-      "registrations": [
-        {
-          "function": "api_search_products",
-          "line": 632,
-          "method": "GET",
-          "module": "services/mcp_servers/market_server.py",
-          "path": "/products",
-          "receiver": "app"
-        },
-        {
-          "function": "list_erp_products",
-          "line": 71,
-          "method": "GET",
-          "module": "services/odoo-bridge/routers/catalog.py",
-          "path": "/products",
-          "receiver": "router"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "GET",
       "path": "/readyz",
       "registrations": [
         {
@@ -960,6 +937,29 @@
     },
     {
       "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/v1/products",
+      "registrations": [
+        {
+          "function": "api_search_products",
+          "line": 632,
+          "method": "GET",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/v1/products",
+          "receiver": "app"
+        },
+        {
+          "function": "list_erp_products",
+          "line": 71,
+          "method": "GET",
+          "module": "services/odoo-bridge/routers/catalog.py",
+          "path": "/v1/products",
+          "receiver": "router"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
       "method": "POST",
       "path": "/cycle",
       "registrations": [
@@ -1164,7 +1164,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "228da03b4d41c64709f82534a0d28e9ee72d957a59e838e38c05b039a591208e",
+  "route_inventory_sha256": "9f49fec9165cde07e30e3eb271a28e5dde3100229d0f811178400e900a80224a",
   "runtime_verified": false,
   "schema_version": 1
 }

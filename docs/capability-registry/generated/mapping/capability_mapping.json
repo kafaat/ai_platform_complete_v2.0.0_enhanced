@@ -8101,10 +8101,6 @@
           "score": 12
         },
         {
-          "value": "/products @ services/mcp_servers/market_server.py:631",
-          "score": 12
-        },
-        {
           "value": "/readyz @ services/mcp_servers/market_server.py:714",
           "score": 12
         },
@@ -8126,6 +8122,10 @@
         },
         {
           "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:545",
+          "score": 12
+        },
+        {
+          "value": "/v1/products @ services/mcp_servers/market_server.py:631",
           "score": 12
         },
         {
@@ -8508,10 +8508,6 @@
           "score": 10
         },
         {
-          "value": "/products @ services/mcp_servers/market_server.py:631",
-          "score": 10
-        },
-        {
           "value": "/readyz @ services/mcp_servers/market_server.py:714",
           "score": 10
         },
@@ -8536,6 +8532,10 @@
           "score": 10
         },
         {
+          "value": "/v1/products @ services/mcp_servers/market_server.py:631",
+          "score": 10
+        },
+        {
           "value": "/config @ services/odoo-bridge/routers/catalog.py:32",
           "score": 8
         },
@@ -8548,11 +8548,11 @@
           "score": 8
         },
         {
-          "value": "/products @ services/odoo-bridge/routers/catalog.py:70",
+          "value": "/suppliers @ services/odoo-bridge/routers/catalog.py:77",
           "score": 8
         },
         {
-          "value": "/suppliers @ services/odoo-bridge/routers/catalog.py:77",
+          "value": "/v1/products @ services/odoo-bridge/routers/catalog.py:70",
           "score": 8
         },
         {
@@ -22741,10 +22741,6 @@
           "score": 9
         },
         {
-          "value": "/products @ services/mcp_servers/market_server.py:631",
-          "score": 9
-        },
-        {
           "value": "/readyz @ services/mcp_servers/market_server.py:714",
           "score": 9
         },
@@ -22766,6 +22762,10 @@
         },
         {
           "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:545",
+          "score": 9
+        },
+        {
+          "value": "/v1/products @ services/mcp_servers/market_server.py:631",
           "score": 9
         },
         {

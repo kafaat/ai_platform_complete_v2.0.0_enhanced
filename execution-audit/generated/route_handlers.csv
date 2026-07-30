@@ -173,7 +173,7 @@ mcp-servers,GET,/v1/mcp/tools,list_tools,services/mcp_servers/generic_context_se
 mcp-servers,POST,/v1/mcp/tools/call,call_tool,services/mcp_servers/generic_context_server.py,151
 mcp-servers,GET,/v1/mcp/tools/list,mcp_tools_list,services/mcp_servers/market_server.py,546
 mcp-servers,POST,/v1/mcp/tools/call,mcp_tools_call,services/mcp_servers/market_server.py,578
-mcp-servers,GET,/products,api_search_products,services/mcp_servers/market_server.py,632
+mcp-servers,GET,/v1/products,api_search_products,services/mcp_servers/market_server.py,632
 mcp-servers,GET,/suppliers/{supplier_id},api_get_supplier,services/mcp_servers/market_server.py,644
 mcp-servers,POST,/procurement,api_create_procurement,services/mcp_servers/market_server.py,649
 mcp-servers,GET,/procurement/{order_id},api_get_procurement,services/mcp_servers/market_server.py,655
@@ -198,7 +198,7 @@ mcp-servers,GET,/readyz,readyz,services/mcp_servers/wofost_server.py,288
 odoo-bridge,GET,/erp/provider,erp_provider_status,services/odoo-bridge/routers/catalog.py,17
 odoo-bridge,GET,/config,get_config,services/odoo-bridge/routers/catalog.py,33
 odoo-bridge,GET,/logs,get_logs,services/odoo-bridge/routers/catalog.py,50
-odoo-bridge,GET,/products,list_erp_products,services/odoo-bridge/routers/catalog.py,71
+odoo-bridge,GET,/v1/products,list_erp_products,services/odoo-bridge/routers/catalog.py,71
 odoo-bridge,GET,/suppliers,list_erp_suppliers,services/odoo-bridge/routers/catalog.py,78
 odoo-bridge,GET,/healthz,healthz,services/odoo-bridge/routers/health.py,31
 odoo-bridge,GET,/readyz,readyz,services/odoo-bridge/routers/health.py,41

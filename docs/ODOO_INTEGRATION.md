@@ -204,7 +204,7 @@ curl "http://localhost:8126/logs?entity=product.product&limit=20"
 ### 4. استعراض منتجات Odoo
 
 ```bash
-curl http://localhost:8126/products?limit=10
+curl http://localhost:8126/v1/products?limit=10
 ```
 
 ---
