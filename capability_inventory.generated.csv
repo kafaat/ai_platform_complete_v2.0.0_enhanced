@@ -222,7 +222,6 @@ sahool-platform.admin.outbox.dead-letter,mixed,sahool-platform,GET /api/v1/admin
 sahool-platform.admin.readiness,query,sahool-platform,GET /api/v1/admin/readiness,frontend,route,False
 sahool-platform.admin.security.denials,query,sahool-platform,GET /api/v1/admin/security/denials,frontend,route,False
 sahool-platform.agent.health,query,sahool-platform,GET /api/agent/health,frontend,route,False
-sahool-platform.agents.propose,command,sahool-platform,POST /agents/propose,frontend,route,False
 sahool-platform.agricultural-proverbs,query,sahool-platform,GET /api/v1/agricultural-proverbs,frontend,route,False
 sahool-platform.agricultural-proverbs.for-date,query,sahool-platform,GET /api/v1/agricultural-proverbs/for-date,frontend,route,False
 sahool-platform.agro-zones.by-elevation,query,sahool-platform,GET /api/v1/agro-zones/by-elevation,frontend,route,False
@@ -239,7 +238,6 @@ sahool-platform.agro.kc-timeseries.field_id,query,sahool-platform,GET /api/v1/ag
 sahool-platform.agro.plant-soil-feedback,command,sahool-platform,POST /api/v1/agro/plant-soil-feedback,frontend,route,False
 sahool-platform.agro.plant-soil-feedback.trend,command,sahool-platform,POST /api/v1/agro/plant-soil-feedback/trend,frontend,route,False
 sahool-platform.agro.season-comparison,command,sahool-platform,POST /api/v1/agro/season-comparison,frontend,route,False
-sahool-platform.ai-boundary.plan,command,sahool-platform,POST /ai-boundary/plan,frontend,route,False
 sahool-platform.ai.models,query,sahool-platform,GET /api/v1/ai/models,frontend,route,False
 sahool-platform.alerts,mixed,sahool-platform,GET /api/v1/alerts|POST /api/v1/alerts,frontend,route,False
 sahool-platform.alerts.alert_id.acknowledge,command,sahool-platform,PATCH /api/v1/alerts/{alert_id}/acknowledge,frontend,route,False
@@ -261,7 +259,6 @@ sahool-platform.automation.scheduler-status,query,sahool-platform,GET /api/v1/au
 sahool-platform.automation.weather.cached,query,sahool-platform,GET /api/v1/automation/weather/cached,frontend,route,False
 sahool-platform.automation.weather.register,command,sahool-platform,POST /api/v1/automation/weather/register,frontend,route,False
 sahool-platform.automation.weather.status,query,sahool-platform,GET /api/v1/automation/weather/status,frontend,route,False
-sahool-platform.calculate,command,sahool-platform,POST /calculate,frontend,route,False
 sahool-platform.calendars.context,query,sahool-platform,GET /api/v1/calendars/context,frontend,route,False
 sahool-platform.calendars.himyarite-months,query,sahool-platform,GET /api/v1/calendars/himyarite-months,frontend,route,False
 sahool-platform.calendars.lunar-mansions,query,sahool-platform,GET /api/v1/calendars/lunar-mansions,frontend,route,False
@@ -281,7 +278,6 @@ sahool-platform.calibration.region.resolved,query,sahool-platform,GET /api/v1/ca
 sahool-platform.cameras.register,command,sahool-platform,POST /api/v1/cameras/register,frontend,route,False
 sahool-platform.cameras.snapshot-evidence,command,sahool-platform,POST /api/v1/cameras/snapshot-evidence,frontend,route,False
 sahool-platform.capabilities,query,sahool-platform,GET /api/v1/capabilities,frontend,route,False
-sahool-platform.champion-challenger,command,sahool-platform,POST /champion-challenger,frontend,route,False
 sahool-platform.chat,command,sahool-platform,POST /api/chat,frontend,route,False
 sahool-platform.chemical-safety.banned,query,sahool-platform,GET /api/v1/chemical-safety/banned,frontend,route,False
 sahool-platform.chemical-safety.check,command,sahool-platform,POST /api/v1/chemical-safety/check,frontend,route,False
@@ -294,19 +290,12 @@ sahool-platform.coffee.guide,query,sahool-platform,GET /api/v1/coffee/guide,fron
 sahool-platform.coffee.pests,query,sahool-platform,GET /api/v1/coffee/pests,frontend,route,False
 sahool-platform.coffee.site-suitability,query,sahool-platform,GET /api/v1/coffee/site-suitability,frontend,route,False
 sahool-platform.coffee.varieties,query,sahool-platform,GET /api/v1/coffee/varieties,frontend,route,False
-sahool-platform.cog-registry,command,sahool-platform,POST /cog-registry,frontend,route,False
 sahool-platform.commands.command_id,query,sahool-platform,GET /api/v1/commands/{command_id},frontend,route,False
-sahool-platform.commissioning.authorize,command,sahool-platform,POST /commissioning/authorize,frontend,route,False
-sahool-platform.commissioning.certificates,command,sahool-platform,POST /commissioning/certificates,frontend,route,False
-sahool-platform.commissioning.systems.system_id,query,sahool-platform,GET /commissioning/systems/{system_id}/current,frontend,route,False
 sahool-platform.confidence-gate,command,sahool-platform,POST /api/v1/confidence-gate,frontend,route,False
 sahool-platform.confidence.irrigation,command,sahool-platform,POST /api/v1/confidence/irrigation,frontend,route,False
 sahool-platform.confidence.ndvi,command,sahool-platform,POST /api/v1/confidence/ndvi,frontend,route,False
-sahool-platform.connectors.descriptor,command,sahool-platform,POST /connectors/descriptor,frontend,route,False
-sahool-platform.consensus,command,sahool-platform,POST /consensus,frontend,route,False
 sahool-platform.consistency.freshness,query,sahool-platform,GET /api/v1/consistency/freshness,frontend,route,False
 sahool-platform.consistency.irrigation,query,sahool-platform,GET /api/v1/consistency/irrigation,frontend,route,False
-sahool-platform.context,command,sahool-platform,POST /context,frontend,route,False
 sahool-platform.crop-cards,query,sahool-platform,GET /api/v1/crop-cards,frontend,route,False
 sahool-platform.crop-cards.crop.crop_id,query,sahool-platform,GET /api/v1/crop-cards/crop/{crop_id},frontend,route,False
 sahool-platform.crop-cards.variety.variety_id,query,sahool-platform,GET /api/v1/crop-cards/variety/{variety_id}|GET /api/v1/crop-cards/variety/{variety_id}/disease-watch|GET /api/v1/crop-cards/variety/{variety_id}/expected-harvest|GET /api/v1/crop-cards/variety/{variety_id}/salinity-suitability,frontend,route,False
@@ -319,9 +308,7 @@ sahool-platform.crops.compare-drought-resilience,query,sahool-platform,GET /api/
 sahool-platform.crops.crop_id.operations-calendar,query,sahool-platform,GET /api/v1/crops/{crop_id}/operations-calendar,frontend,route,False
 sahool-platform.crops.drought-resilience,query,sahool-platform,GET /api/v1/crops/drought-resilience,frontend,route,False
 sahool-platform.cultural-calendar,query,sahool-platform,GET /api/v1/cultural-calendar,frontend,route,False
-sahool-platform.cycle,command,sahool-platform,POST /cycle,frontend,route,False
 sahool-platform.data-readiness,command,sahool-platform,POST /api/v1/data-readiness,frontend,route,False
-sahool-platform.dataset,command,sahool-platform,POST /dataset,frontend,route,False
 sahool-platform.decision.decision_id.explain,query,sahool-platform,GET /api/v1/decision/{decision_id}/explain,frontend,route,False
 sahool-platform.decision.decision_id.lineage,query,sahool-platform,GET /api/v1/decision/{decision_id}/lineage,frontend,route,False
 sahool-platform.decision.dispatch.consume,command,sahool-platform,POST /api/v1/decision/dispatch/consume,frontend,route,False
@@ -344,7 +331,6 @@ sahool-platform.decisions.decision_id.agronomic-evidence,query,sahool-platform,G
 sahool-platform.decisions.decision_id.execution-plan,command,sahool-platform,POST /api/v1/decisions/{decision_id}/execution-plan,frontend,route,False
 sahool-platform.decisions.decision_id.review,command,sahool-platform,POST /api/v1/decisions/{decision_id}/review,frontend,route,False
 sahool-platform.decisions.review-queue,query,sahool-platform,GET /api/v1/decisions/review-queue,frontend,route,False
-sahool-platform.developer-portal.index,query,sahool-platform,GET /developer-portal/index,frontend,route,False
 sahool-platform.devices,mixed,sahool-platform,GET /api/v1/devices|POST /api/v1/devices,frontend,route,False
 sahool-platform.devices.device_id.telemetry,mixed,sahool-platform,GET /api/v1/devices/{device_id}/telemetry|POST /api/v1/devices/{device_id}/telemetry,frontend,route,False
 sahool-platform.devices.fleet-health,query,sahool-platform,GET /api/v1/devices/fleet-health,frontend,route,False
@@ -360,30 +346,36 @@ sahool-platform.documents.doc_id,query,sahool-platform,GET /api/v1/documents/{do
 sahool-platform.drawing-features,command,sahool-platform,POST /api/v1/drawing-features,frontend,route,False
 sahool-platform.drawing-features.feature_id,command,sahool-platform,DELETE /api/v1/drawing-features/{feature_id}|PATCH /api/v1/drawing-features/{feature_id},frontend,route,False
 sahool-platform.drawing-features.validate,command,sahool-platform,POST /api/v1/drawing-features/validate,frontend,route,False
-sahool-platform.drift,command,sahool-platform,POST /drift,frontend,route,False
 sahool-platform.economics.break-even,query,sahool-platform,GET /api/v1/economics/break-even,frontend,route,False
 sahool-platform.economics.cost-categories,query,sahool-platform,GET /api/v1/economics/cost-categories,frontend,route,False
 sahool-platform.economics.feasibility,command,sahool-platform,POST /api/v1/economics/feasibility,frontend,route,False
+sahool-platform.ecosystem.connectors.descriptor,command,sahool-platform,POST /v1/ecosystem/connectors/descriptor,frontend,route,False
+sahool-platform.ecosystem.cycle,command,sahool-platform,POST /v1/ecosystem/cycle,frontend,route,False
+sahool-platform.ecosystem.developer-portal.index,query,sahool-platform,GET /v1/ecosystem/developer-portal/index,frontend,route,False
+sahool-platform.ecosystem.graphql.schema,query,sahool-platform,GET /v1/ecosystem/graphql/schema,frontend,route,False
+sahool-platform.ecosystem.marketplace.apps,command,sahool-platform,POST /v1/ecosystem/marketplace/apps,frontend,route,False
+sahool-platform.ecosystem.marketplace.installations,command,sahool-platform,POST /v1/ecosystem/marketplace/installations,frontend,route,False
+sahool-platform.ecosystem.plugins.runtime,command,sahool-platform,POST /v1/ecosystem/plugins/runtime/event-envelope|POST /v1/ecosystem/plugins/runtime/plan|POST /v1/ecosystem/plugins/runtime/report|POST /v1/ecosystem/plugins/runtime/validate-output,frontend,route,False
+sahool-platform.ecosystem.plugins.sandbox-policy,command,sahool-platform,POST /v1/ecosystem/plugins/sandbox-policy,frontend,route,False
+sahool-platform.ecosystem.plugins.validate,command,sahool-platform,POST /v1/ecosystem/plugins/validate,frontend,route,False
+sahool-platform.ecosystem.quota.check,command,sahool-platform,POST /v1/ecosystem/quota/check,frontend,route,False
+sahool-platform.ecosystem.sdk.manifest,query,sahool-platform,GET /v1/ecosystem/sdk/manifest,frontend,route,False
+sahool-platform.ecosystem.usage,command,sahool-platform,POST /v1/ecosystem/usage,frontend,route,False
+sahool-platform.ecosystem.webhooks,command,sahool-platform,POST /v1/ecosystem/webhooks,frontend,route,False
+sahool-platform.ecosystem.webhooks.delivery-plan,command,sahool-platform,POST /v1/ecosystem/webhooks/delivery-plan,frontend,route,False
 sahool-platform.edge.path:path,command,sahool-platform,ANY /api/edge/{path:path},frontend,route,False
 sahool-platform.edge.sync,command,sahool-platform,POST /api/v1/edge/sync|POST /v1/edge/sync,frontend,route,False
-sahool-platform.editing-sessions,command,sahool-platform,POST /editing-sessions,frontend,route,False
-sahool-platform.editing-sessions.undo-redo,command,sahool-platform,POST /editing-sessions/undo-redo,frontend,route,False
 sahool-platform.equipment,mixed,sahool-platform,GET /api/v1/equipment|POST /api/v1/equipment,frontend,route,False
 sahool-platform.equipment.equipment_id.maintenance,mixed,sahool-platform,GET /api/v1/equipment/{equipment_id}/maintenance|POST /api/v1/equipment/{equipment_id}/maintenance,frontend,route,False
 sahool-platform.erp.reconciliations,mixed,sahool-platform,GET /api/v1/erp/reconciliations|POST /api/v1/erp/reconciliations,frontend,route,False
 sahool-platform.escalation.assess,command,sahool-platform,POST /api/v1/escalation/assess,frontend,route,False
 sahool-platform.events.entity_type.entity_id,query,sahool-platform,GET /api/v1/events/{entity_type}/{entity_id},frontend,route,False
-sahool-platform.events.from-plan,command,sahool-platform,POST /events/from-plan,frontend,route,False
-sahool-platform.events.replay,command,sahool-platform,POST /events/replay,frontend,route,False
 sahool-platform.evidence-graph.analytics,query,sahool-platform,GET /api/v1/evidence-graph/analytics,frontend,route,False
 sahool-platform.evidence.corroborate,command,sahool-platform,POST /api/v1/evidence/corroborate,frontend,route,False
 sahool-platform.evidence.map,query,sahool-platform,GET /api/v1/evidence/map,frontend,route,False
 sahool-platform.execution-plans.execution_plan_id.authorize-dispatch,command,sahool-platform,POST /api/v1/execution-plans/{execution_plan_id}/authorize-dispatch,frontend,route,False
 sahool-platform.execution-requests.execution_request_id.verify-outcome,command,sahool-platform,POST /api/v1/execution-requests/{execution_request_id}/verify-outcome,frontend,route,False
 sahool-platform.execution.feedback,query,sahool-platform,GET /api/v1/execution/feedback,frontend,route,False
-sahool-platform.experiments.assign,command,sahool-platform,POST /experiments/assign,frontend,route,False
-sahool-platform.experiments.evaluate,command,sahool-platform,POST /experiments/evaluate,frontend,route,False
-sahool-platform.experiments.shadow,command,sahool-platform,POST /experiments/shadow,frontend,route,False
 sahool-platform.failures.check,command,sahool-platform,POST /api/v1/failures/check,frontend,route,False
 sahool-platform.farm-book.balances,query,sahool-platform,GET /api/v1/farm-book/balances,frontend,route,False
 sahool-platform.farm-book.entries,mixed,sahool-platform,GET /api/v1/farm-book/entries|POST /api/v1/farm-book/entries,frontend,route,False
@@ -404,11 +396,6 @@ sahool-platform.farm-ledger.variance.season_id,query,sahool-platform,GET /api/v1
 sahool-platform.farms,mixed,sahool-platform,GET /api/v1/farms|POST /api/v1/farms,frontend,route,False
 sahool-platform.farms.farm_id.fields,query,sahool-platform,GET /api/v1/farms/{farm_id}/fields,frontend,route,False
 sahool-platform.farms.farm_id.priority-queue,query,sahool-platform,GET /api/v1/farms/{farm_id}/priority-queue,frontend,route,False
-sahool-platform.feature-schema,command,sahool-platform,POST /feature-schema,frontend,route,False
-sahool-platform.feature-store.offline-dataset,command,sahool-platform,POST /feature-store/offline-dataset,frontend,route,False
-sahool-platform.feature-store.online-materialization,command,sahool-platform,POST /feature-store/online-materialization,frontend,route,False
-sahool-platform.feature-store.point-in-time,command,sahool-platform,POST /feature-store/point-in-time,frontend,route,False
-sahool-platform.feature-store.register,command,sahool-platform,POST /feature-store/register,frontend,route,False
 sahool-platform.features,query,sahool-platform,GET /api/v1/features,frontend,route,False
 sahool-platform.field-forms.path:path,command,sahool-platform,ANY /api/field-forms/{path:path},frontend,route,False
 sahool-platform.field-intelligence.analyze,command,sahool-platform,POST /api/v1/field-intelligence/analyze,frontend,route,False
@@ -485,12 +472,24 @@ sahool-platform.gdd.track,command,sahool-platform,POST /api/v1/gdd/track,fronten
 sahool-platform.geo-locate.field,query,sahool-platform,GET /api/v1/geo-locate/field,frontend,route,False
 sahool-platform.geo-locate.recommend,query,sahool-platform,GET /api/v1/geo-locate/recommend,frontend,route,False
 sahool-platform.geo.reverse,query,sahool-platform,GET /api/v1/geo/reverse,frontend,route,False
-sahool-platform.geoparquet.export,command,sahool-platform,POST /geoparquet/export,frontend,route,False
 sahool-platform.gis.buffer,command,sahool-platform,POST /api/v1/gis/buffer,frontend,route,False
+sahool-platform.gis.cloud-native.ai-boundary,command,sahool-platform,POST /api/v1/gis/cloud-native/ai-boundary/plan,frontend,route,False
+sahool-platform.gis.cloud-native.cog-registry,command,sahool-platform,POST /api/v1/gis/cloud-native/cog-registry,frontend,route,False
+sahool-platform.gis.cloud-native.editing-sessions,command,sahool-platform,POST /api/v1/gis/cloud-native/editing-sessions|POST /api/v1/gis/cloud-native/editing-sessions/undo-redo,frontend,route,False
+sahool-platform.gis.cloud-native.geoparquet,command,sahool-platform,POST /api/v1/gis/cloud-native/geoparquet/export,frontend,route,False
+sahool-platform.gis.cloud-native.locks,command,sahool-platform,DELETE /api/v1/gis/cloud-native/locks/{field_id}|POST /api/v1/gis/cloud-native/locks,frontend,route,False
+sahool-platform.gis.cloud-native.management-zones,command,sahool-platform,POST /api/v1/gis/cloud-native/management-zones/summary,frontend,route,False
+sahool-platform.gis.cloud-native.mosaicjson,query,sahool-platform,GET /api/v1/gis/cloud-native/mosaicjson,frontend,route,False
+sahool-platform.gis.cloud-native.ogc,query,sahool-platform,GET /api/v1/gis/cloud-native/ogc|GET /api/v1/gis/cloud-native/ogc/collections|GET /api/v1/gis/cloud-native/ogc/collections/fields/items|GET /api/v1/gis/cloud-native/ogc/conformance,frontend,route,False
+sahool-platform.gis.cloud-native.phase6,command,sahool-platform,POST /api/v1/gis/cloud-native/phase6/boundaries/extract|POST /api/v1/gis/cloud-native/phase6/digital-twin/snapshot|POST /api/v1/gis/cloud-native/phase6/management-zones/generate|POST /api/v1/gis/cloud-native/phase6/prescriptions/generate|POST /api/v1/gis/cloud-native/phase6/profitability-map|POST /api/v1/gis/cloud-native/phase6/yield-stability,frontend,route,False
+sahool-platform.gis.cloud-native.rasters,query,sahool-platform,GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json,frontend,route,False
+sahool-platform.gis.cloud-native.scene-processing-plan,query,sahool-platform,GET /api/v1/gis/cloud-native/scene-processing-plan,frontend,route,False
+sahool-platform.gis.cloud-native.scene-ranking,query,sahool-platform,GET /api/v1/gis/cloud-native/scene-ranking,frontend,route,False
+sahool-platform.gis.cloud-native.stac,mixed,sahool-platform,GET /api/v1/gis/cloud-native/stac|GET /api/v1/gis/cloud-native/stac/collections|GET /api/v1/gis/cloud-native/stac/collections/{collection_id}|GET /api/v1/gis/cloud-native/stac/conformance|GET /api/v1/gis/cloud-native/stac/queryables|GET /api/v1/gis/cloud-native/stac/search|POST /api/v1/gis/cloud-native/stac/search,frontend,route,False
+sahool-platform.gis.cloud-native.tile-cache-plan,query,sahool-platform,GET /api/v1/gis/cloud-native/tile-cache-plan,frontend,route,False
 sahool-platform.gis.split,command,sahool-platform,POST /api/v1/gis/split,frontend,route,False
 sahool-platform.gis.union,command,sahool-platform,POST /api/v1/gis/union,frontend,route,False
 sahool-platform.gis.validate,command,sahool-platform,POST /api/v1/gis/validate,frontend,route,False
-sahool-platform.graphql.schema,query,sahool-platform,GET /graphql/schema,frontend,route,False
 sahool-platform.harvest-lots,mixed,sahool-platform,GET /api/v1/harvest-lots|POST /api/v1/harvest-lots,frontend,route,False
 sahool-platform.harvest-lots.harvest_lot_id,query,sahool-platform,GET /api/v1/harvest-lots/{harvest_lot_id},frontend,route,False
 sahool-platform.harvest-lots.harvest_lot_id.custody-events,command,sahool-platform,POST /api/v1/harvest-lots/{harvest_lot_id}/custody-events,frontend,route,False
@@ -502,7 +501,6 @@ sahool-platform.indicators.dashboard,query,sahool-platform,GET /api/v1/indicator
 sahool-platform.indicators.map-layers,query,sahool-platform,GET /api/v1/indicators/map-layers,frontend,route,False
 sahool-platform.indicators.readyz,query,sahool-platform,GET /api/indicators/readyz,frontend,route,False
 sahool-platform.indices.coverage-report,query,sahool-platform,GET /api/v1/indices/coverage-report,frontend,route,False
-sahool-platform.interactive-calculate,command,sahool-platform,POST /interactive-calculate,frontend,route,False
 sahool-platform.internal.events.ai-advice,command,sahool-platform,POST /internal/events/ai-advice,frontend,route,False
 sahool-platform.internal.fields.field_id,query,sahool-platform,GET /internal/fields/{field_id}/state,frontend,route,False
 sahool-platform.introduction.candidates,query,sahool-platform,GET /api/v1/introduction/candidates,frontend,route,False
@@ -511,9 +509,6 @@ sahool-platform.introduction.field-fit,command,sahool-platform,POST /api/v1/intr
 sahool-platform.inventory.expiring,query,sahool-platform,GET /api/v1/inventory/expiring,frontend,route,False
 sahool-platform.inventory.items,mixed,sahool-platform,GET /api/v1/inventory/items|POST /api/v1/inventory/items,frontend,route,False
 sahool-platform.inventory.items.item_id,command,sahool-platform,POST /api/v1/inventory/items/{item_id}/batches,frontend,route,False
-sahool-platform.iot.dispatch.preview,command,sahool-platform,POST /iot/dispatch/preview,frontend,route,False
-sahool-platform.iot.dispatch.simulate,command,sahool-platform,POST /iot/dispatch/simulate,frontend,route,False
-sahool-platform.iot.telemetry.verify,command,sahool-platform,POST /iot/telemetry/verify,frontend,route,False
 sahool-platform.ipm.crop-pests,query,sahool-platform,GET /api/v1/ipm/crop-pests,frontend,route,False
 sahool-platform.ipm.pests,query,sahool-platform,GET /api/v1/ipm/pests,frontend,route,False
 sahool-platform.ipm.plan,query,sahool-platform,GET /api/v1/ipm/plan,frontend,route,False
@@ -522,6 +517,11 @@ sahool-platform.irrigation-method.gross,command,sahool-platform,POST /api/v1/irr
 sahool-platform.irrigation-method.method,query,sahool-platform,GET /api/v1/irrigation-method/{method},frontend,route,False
 sahool-platform.irrigation-plan,command,sahool-platform,POST /api/v1/irrigation-plan,frontend,route,False
 sahool-platform.irrigation-recommendation,command,sahool-platform,POST /api/v1/irrigation-recommendation,frontend,route,False
+sahool-platform.irrigation.engineering.calculate,command,sahool-platform,POST /api/v1/irrigation/engineering/calculate,frontend,route,False
+sahool-platform.irrigation.engineering.commissioning,mixed,sahool-platform,GET /api/v1/irrigation/engineering/commissioning/systems/{system_id}/current|POST /api/v1/irrigation/engineering/commissioning/authorize|POST /api/v1/irrigation/engineering/commissioning/certificates,frontend,route,False
+sahool-platform.irrigation.engineering.interactive-calculate,command,sahool-platform,POST /api/v1/irrigation/engineering/interactive-calculate,frontend,route,False
+sahool-platform.irrigation.engineering.manual-executions,mixed,sahool-platform,GET /api/v1/irrigation/engineering/manual-executions|POST /api/v1/irrigation/engineering/manual-executions|POST /api/v1/irrigation/engineering/manual-executions/{execution_id}/confirm|POST /api/v1/irrigation/engineering/manual-executions/{execution_id}/reconcile|POST /api/v1/irrigation/engineering/manual-executions/{execution_id}/transition|POST /api/v1/irrigation/engineering/manual-executions/{execution_id}/verify,frontend,route,False
+sahool-platform.irrigation.engineering.network-calculate,command,sahool-platform,POST /api/v1/irrigation/engineering/network-calculate,frontend,route,False
 sahool-platform.irrigation.executions.reconcile,command,sahool-platform,POST /api/v1/irrigation/executions/reconcile,frontend,route,False
 sahool-platform.irrigation.moisture-decision,query,sahool-platform,GET /api/v1/irrigation/moisture-decision,frontend,route,False
 sahool-platform.irrigation.mpc.capabilities,query,sahool-platform,GET /api/v1/irrigation/mpc/capabilities,frontend,route,False
@@ -553,27 +553,10 @@ sahool-platform.lifecycle.validate-transition,command,sahool-platform,POST /api/
 sahool-platform.lineage.entity_type.entity_id,query,sahool-platform,GET /api/v1/lineage/{entity_type}/{entity_id},frontend,route,False
 sahool-platform.lineage.lineage_id,query,sahool-platform,GET /api/v1/lineage/{lineage_id},frontend,route,False
 sahool-platform.lineage.link,command,sahool-platform,POST /api/v1/lineage/link,frontend,route,False
-sahool-platform.locks,command,sahool-platform,POST /locks,frontend,route,False
-sahool-platform.locks.field_id,command,sahool-platform,DELETE /locks/{field_id},frontend,route,False
-sahool-platform.management-zones.summary,command,sahool-platform,POST /management-zones/summary,frontend,route,False
-sahool-platform.manual-executions,mixed,sahool-platform,GET /manual-executions|POST /manual-executions,frontend,route,False
-sahool-platform.manual-executions.execution_id.confirm,command,sahool-platform,POST /manual-executions/{execution_id}/confirm,frontend,route,False
-sahool-platform.manual-executions.execution_id.reconcile,command,sahool-platform,POST /manual-executions/{execution_id}/reconcile,frontend,route,False
-sahool-platform.manual-executions.execution_id.transition,command,sahool-platform,POST /manual-executions/{execution_id}/transition,frontend,route,False
-sahool-platform.manual-executions.execution_id.verify,command,sahool-platform,POST /manual-executions/{execution_id}/verify,frontend,route,False
 sahool-platform.market.crop-classification-readiness,query,sahool-platform,GET /api/v1/market/crop-classification-readiness,frontend,route,False
 sahool-platform.market.crop-gap,query,sahool-platform,GET /api/v1/market/crop-gap,frontend,route,False
-sahool-platform.marketplace.apps,command,sahool-platform,POST /marketplace/apps,frontend,route,False
-sahool-platform.marketplace.installations,command,sahool-platform,POST /marketplace/installations,frontend,route,False
 sahool-platform.master-data,mixed,sahool-platform,GET /api/v1/master-data|POST /api/v1/master-data,frontend,route,False
 sahool-platform.me,query,sahool-platform,GET /api/v1/me,frontend,route,False
-sahool-platform.models.promote,command,sahool-platform,POST /models/promote,frontend,route,False
-sahool-platform.models.register,command,sahool-platform,POST /models/register,frontend,route,False
-sahool-platform.models.serving.alias:path,query,sahool-platform,GET /models/serving/{alias:path},frontend,route,False
-sahool-platform.models.serving.promote,command,sahool-platform,POST /models/serving/promote,frontend,route,False
-sahool-platform.models.serving.rollback,command,sahool-platform,POST /models/serving/rollback,frontend,route,False
-sahool-platform.mosaicjson,query,sahool-platform,GET /mosaicjson,frontend,route,False
-sahool-platform.network-calculate,command,sahool-platform,POST /network-calculate,frontend,route,False
 sahool-platform.niche-crops.detail,query,sahool-platform,GET /api/v1/niche-crops/detail,frontend,route,False
 sahool-platform.niche-crops.list,query,sahool-platform,GET /api/v1/niche-crops/list,frontend,route,False
 sahool-platform.nl-gis.query,command,sahool-platform,POST /api/v1/nl-gis/query,frontend,route,False
@@ -583,14 +566,8 @@ sahool-platform.notifications.preferences,mixed,sahool-platform,GET /api/v1/noti
 sahool-platform.notifications.ws,command,sahool-platform,WEBSOCKET /api/v1/notifications/ws,frontend,route,False
 sahool-platform.nutrients.4r-plan,command,sahool-platform,POST /api/v1/nutrients/4r-plan,frontend,route,False
 sahool-platform.observations,command,sahool-platform,POST /api/v1/observations,frontend,route,False
-sahool-platform.ogc,query,sahool-platform,GET /ogc,frontend,route,False
-sahool-platform.ogc.collections,query,sahool-platform,GET /ogc/collections,frontend,route,False
-sahool-platform.ogc.collections.fields,query,sahool-platform,GET /ogc/collections/fields/items,frontend,route,False
-sahool-platform.ogc.conformance,query,sahool-platform,GET /ogc/conformance,frontend,route,False
 sahool-platform.onboarding.questionnaire,query,sahool-platform,GET /api/v1/onboarding/questionnaire,frontend,route,False
 sahool-platform.onboarding.responses,mixed,sahool-platform,GET /api/v1/onboarding/responses|POST /api/v1/onboarding/responses,frontend,route,False
-sahool-platform.online-update,command,sahool-platform,POST /online-update,frontend,route,False
-sahool-platform.operation-plan,command,sahool-platform,POST /operation-plan,frontend,route,False
 sahool-platform.operations.summary,query,sahool-platform,GET /api/v1/operations/summary,frontend,route,False
 sahool-platform.orchard.economics,query,sahool-platform,GET /api/v1/orchard/economics,frontend,route,False
 sahool-platform.orchard.plan,query,sahool-platform,GET /api/v1/orchard/plan,frontend,route,False
@@ -598,22 +575,36 @@ sahool-platform.outcome.measure,command,sahool-platform,POST /api/v1/outcome/mea
 sahool-platform.outcome.record,command,sahool-platform,POST /api/v1/outcome/record,frontend,route,False
 sahool-platform.outcomes.outcome_id.learning-attribution,command,sahool-platform,POST /api/v1/outcomes/{outcome_id}/learning-attribution,frontend,route,False
 sahool-platform.pest-escalation.run,command,sahool-platform,POST /api/v1/pest-escalation/run,frontend,route,False
-sahool-platform.phase6.boundaries.extract,command,sahool-platform,POST /phase6/boundaries/extract,frontend,route,False
-sahool-platform.phase6.digital-twin.snapshot,command,sahool-platform,POST /phase6/digital-twin/snapshot,frontend,route,False
-sahool-platform.phase6.management-zones.generate,command,sahool-platform,POST /phase6/management-zones/generate,frontend,route,False
-sahool-platform.phase6.prescriptions.generate,command,sahool-platform,POST /phase6/prescriptions/generate,frontend,route,False
-sahool-platform.phase6.profitability-map,command,sahool-platform,POST /phase6/profitability-map,frontend,route,False
-sahool-platform.phase6.yield-stability,command,sahool-platform,POST /phase6/yield-stability,frontend,route,False
-sahool-platform.plan,command,sahool-platform,POST /plan,frontend,route,False
+sahool-platform.phase10.learning.champion-challenger,command,sahool-platform,POST /v1/phase10/learning/champion-challenger,frontend,route,False
+sahool-platform.phase10.learning.cycle,command,sahool-platform,POST /v1/phase10/learning/cycle,frontend,route,False
+sahool-platform.phase10.learning.dataset,command,sahool-platform,POST /v1/phase10/learning/dataset,frontend,route,False
+sahool-platform.phase10.learning.drift,command,sahool-platform,POST /v1/phase10/learning/drift,frontend,route,False
+sahool-platform.phase10.learning.experiments,command,sahool-platform,POST /v1/phase10/learning/experiments/evaluate,frontend,route,False
+sahool-platform.phase10.learning.feature-schema,command,sahool-platform,POST /v1/phase10/learning/feature-schema,frontend,route,False
+sahool-platform.phase10.learning.feature-store,command,sahool-platform,POST /v1/phase10/learning/feature-store/offline-dataset|POST /v1/phase10/learning/feature-store/online-materialization|POST /v1/phase10/learning/feature-store/point-in-time|POST /v1/phase10/learning/feature-store/register,frontend,route,False
+sahool-platform.phase10.learning.models,mixed,sahool-platform,GET /v1/phase10/learning/models/serving/{alias:path}|POST /v1/phase10/learning/models/promote|POST /v1/phase10/learning/models/register|POST /v1/phase10/learning/models/serving/promote|POST /v1/phase10/learning/models/serving/rollback,frontend,route,False
+sahool-platform.phase10.learning.online-update,command,sahool-platform,POST /v1/phase10/learning/online-update,frontend,route,False
+sahool-platform.phase10.learning.retraining,command,sahool-platform,POST /v1/phase10/learning/retraining/plan,frontend,route,False
+sahool-platform.phase10.learning.scenario,command,sahool-platform,POST /v1/phase10/learning/scenario,frontend,route,False
+sahool-platform.phase11.federation.agents,command,sahool-platform,POST /v1/phase11/federation/agents/propose,frontend,route,False
+sahool-platform.phase11.federation.consensus,command,sahool-platform,POST /v1/phase11/federation/consensus,frontend,route,False
+sahool-platform.phase11.federation.context,command,sahool-platform,POST /v1/phase11/federation/context,frontend,route,False
+sahool-platform.phase11.federation.cycle,command,sahool-platform,POST /v1/phase11/federation/cycle,frontend,route,False
+sahool-platform.phase11.federation.experiments,command,sahool-platform,POST /v1/phase11/federation/experiments/shadow,frontend,route,False
+sahool-platform.phase11.federation.operation-plan,command,sahool-platform,POST /v1/phase11/federation/operation-plan,frontend,route,False
+sahool-platform.phase11.federation.quality,command,sahool-platform,POST /v1/phase11/federation/quality,frontend,route,False
+sahool-platform.phase11.federation.runtime,command,sahool-platform,POST /v1/phase11/federation/runtime/authority-envelope|POST /v1/phase11/federation/runtime/event-envelope|POST /v1/phase11/federation/runtime/reputation/update|POST /v1/phase11/federation/runtime/resolve,frontend,route,False
+sahool-platform.phase9.autonomy.cycle,command,sahool-platform,POST /v1/phase9/autonomy/cycle,frontend,route,False
+sahool-platform.phase9.autonomy.events,command,sahool-platform,POST /v1/phase9/autonomy/events/from-plan|POST /v1/phase9/autonomy/events/replay,frontend,route,False
+sahool-platform.phase9.autonomy.experiments,command,sahool-platform,POST /v1/phase9/autonomy/experiments/assign,frontend,route,False
+sahool-platform.phase9.autonomy.iot,command,sahool-platform,POST /v1/phase9/autonomy/iot/dispatch/preview|POST /v1/phase9/autonomy/iot/dispatch/simulate|POST /v1/phase9/autonomy/iot/telemetry/verify,frontend,route,False
+sahool-platform.phase9.autonomy.models,command,sahool-platform,POST /v1/phase9/autonomy/models/register,frontend,route,False
+sahool-platform.phase9.autonomy.plan,command,sahool-platform,POST /v1/phase9/autonomy/plan,frontend,route,False
+sahool-platform.phase9.autonomy.verify,command,sahool-platform,POST /v1/phase9/autonomy/verify,frontend,route,False
+sahool-platform.phase9.autonomy.verify-loop,command,sahool-platform,POST /v1/phase9/autonomy/verify-loop,frontend,route,False
 sahool-platform.planting.check,query,sahool-platform,GET /api/v1/planting/check,frontend,route,False
 sahool-platform.planting.crops,query,sahool-platform,GET /api/v1/planting/crops,frontend,route,False
 sahool-platform.planting.window,query,sahool-platform,GET /api/v1/planting/window,frontend,route,False
-sahool-platform.plugins.runtime.event-envelope,command,sahool-platform,POST /plugins/runtime/event-envelope,frontend,route,False
-sahool-platform.plugins.runtime.plan,command,sahool-platform,POST /plugins/runtime/plan,frontend,route,False
-sahool-platform.plugins.runtime.report,command,sahool-platform,POST /plugins/runtime/report,frontend,route,False
-sahool-platform.plugins.runtime.validate-output,command,sahool-platform,POST /plugins/runtime/validate-output,frontend,route,False
-sahool-platform.plugins.sandbox-policy,command,sahool-platform,POST /plugins/sandbox-policy,frontend,route,False
-sahool-platform.plugins.validate,command,sahool-platform,POST /plugins/validate,frontend,route,False
 sahool-platform.policy-learning.threshold-suggestions,query,sahool-platform,GET /api/v1/policy-learning/threshold-suggestions,frontend,route,False
 sahool-platform.portfolio.command,command,sahool-platform,POST /api/v1/portfolio/command,frontend,route,False
 sahool-platform.postharvest.best-practices,query,sahool-platform,GET /api/v1/postharvest/best-practices,frontend,route,False
@@ -626,11 +617,8 @@ sahool-platform.propagation.crop,query,sahool-platform,GET /api/v1/propagation/c
 sahool-platform.propagation.method-guide,query,sahool-platform,GET /api/v1/propagation/method-guide,frontend,route,False
 sahool-platform.propagation.methods,query,sahool-platform,GET /api/v1/propagation/methods,frontend,route,False
 sahool-platform.propagation.rootstock,query,sahool-platform,GET /api/v1/propagation/rootstock,frontend,route,False
-sahool-platform.quality,command,sahool-platform,POST /quality,frontend,route,False
 sahool-platform.queue.status,query,sahool-platform,GET /api/v1/queue/status,frontend,route,False
-sahool-platform.quota.check,command,sahool-platform,POST /quota/check,frontend,route,False
 sahool-platform.raster.path:path,query,sahool-platform,GET /api/raster/{path:path},frontend,route,False
-sahool-platform.rasters.raster_id.tilejson.json,query,sahool-platform,GET /rasters/{raster_id}/tilejson.json,frontend,route,False
 sahool-platform.rbac.permission-matrix,query,sahool-platform,GET /api/v1/rbac/permission-matrix,frontend,route,False
 sahool-platform.rbac.preview-role-change,query,sahool-platform,GET /api/v1/rbac/preview-role-change,frontend,route,False
 sahool-platform.rbac.who-can,query,sahool-platform,GET /api/v1/rbac/who-can,frontend,route,False
@@ -657,28 +645,19 @@ sahool-platform.reports.farm-summary,query,sahool-platform,GET /api/v1/reports/f
 sahool-platform.reports.field.field_id,query,sahool-platform,GET /api/v1/reports/field/{field_id}/summary,frontend,route,False
 sahool-platform.reports.operation,command,sahool-platform,POST /api/v1/reports/operation,frontend,route,False
 sahool-platform.reports.season.season_id,query,sahool-platform,GET /api/v1/reports/season/{season_id}/summary,frontend,route,False
-sahool-platform.retraining.plan,command,sahool-platform,POST /retraining/plan,frontend,route,False
 sahool-platform.rotation.evaluate,query,sahool-platform,GET /api/v1/rotation/evaluate,frontend,route,False
 sahool-platform.rotation.principles,query,sahool-platform,GET /api/v1/rotation/principles,frontend,route,False
 sahool-platform.rotation.suggest,query,sahool-platform,GET /api/v1/rotation/suggest,frontend,route,False
 sahool-platform.runtime-identity,query,sahool-platform,GET /runtime-identity,frontend,route,False
-sahool-platform.runtime.authority-envelope,command,sahool-platform,POST /runtime/authority-envelope,frontend,route,False
-sahool-platform.runtime.event-envelope,command,sahool-platform,POST /runtime/event-envelope,frontend,route,False
-sahool-platform.runtime.reputation.update,command,sahool-platform,POST /runtime/reputation/update,frontend,route,False
-sahool-platform.runtime.resolve,command,sahool-platform,POST /runtime/resolve,frontend,route,False
 sahool-platform.salinity.assess,command,sahool-platform,POST /api/v1/salinity/assess,frontend,route,False
 sahool-platform.sampling.strategy,query,sahool-platform,GET /api/v1/sampling/strategy,frontend,route,False
-sahool-platform.scenario,command,sahool-platform,POST /scenario,frontend,route,False
 sahool-platform.scenario.economics,command,sahool-platform,POST /api/v1/scenario/economics,frontend,route,False
 sahool-platform.scenario.planting-date,command,sahool-platform,POST /api/v1/scenario/planting-date,frontend,route,False
 sahool-platform.scenario.rainfall,command,sahool-platform,POST /api/v1/scenario/rainfall,frontend,route,False
 sahool-platform.scenario.temperature,command,sahool-platform,POST /api/v1/scenario/temperature,frontend,route,False
 sahool-platform.scenario.water-twin,command,sahool-platform,POST /api/v1/scenario/water-twin,frontend,route,False
-sahool-platform.scene-processing-plan,query,sahool-platform,GET /scene-processing-plan,frontend,route,False
-sahool-platform.scene-ranking,query,sahool-platform,GET /scene-ranking,frontend,route,False
 sahool-platform.scouting.pins,query,sahool-platform,GET /api/v1/scouting/pins,frontend,route,False
 sahool-platform.scouting.taxonomy,query,sahool-platform,GET /api/v1/scouting/taxonomy,frontend,route,False
-sahool-platform.sdk.manifest,query,sahool-platform,GET /sdk/manifest,frontend,route,False
 sahool-platform.seasonal-risk.calendar,query,sahool-platform,GET /api/v1/seasonal-risk/calendar,frontend,route,False
 sahool-platform.seasonal-risk.chill-hours,query,sahool-platform,GET /api/v1/seasonal-risk/chill-hours,frontend,route,False
 sahool-platform.seasonal-risk.stage-check,query,sahool-platform,GET /api/v1/seasonal-risk/stage-check,frontend,route,False
@@ -697,12 +676,6 @@ sahool-platform.soil-sampling.depth,query,sahool-platform,GET /api/v1/soil-sampl
 sahool-platform.soil-sampling.protocol,query,sahool-platform,GET /api/v1/soil-sampling/protocol,frontend,route,False
 sahool-platform.soil-sampling.subsamples,query,sahool-platform,GET /api/v1/soil-sampling/subsamples,frontend,route,False
 sahool-platform.soil.path:path,command,sahool-platform,ANY /api/soil/{path:path},frontend,route,False
-sahool-platform.stac,query,sahool-platform,GET /stac,frontend,route,False
-sahool-platform.stac.collections,query,sahool-platform,GET /stac/collections,frontend,route,False
-sahool-platform.stac.collections.collection_id,query,sahool-platform,GET /stac/collections/{collection_id},frontend,route,False
-sahool-platform.stac.conformance,query,sahool-platform,GET /stac/conformance,frontend,route,False
-sahool-platform.stac.queryables,query,sahool-platform,GET /stac/queryables,frontend,route,False
-sahool-platform.stac.search,mixed,sahool-platform,GET /stac/search|POST /stac/search,frontend,route,False
 sahool-platform.sync,command,sahool-platform,POST /api/v1/sync,frontend,route,False
 sahool-platform.sync.manifest,query,sahool-platform,GET /api/v1/sync/manifest,frontend,route,False
 sahool-platform.sync.status,query,sahool-platform,GET /api/v1/sync/status,frontend,route,False
@@ -711,16 +684,12 @@ sahool-platform.tasks.task_id,command,sahool-platform,PATCH /api/v1/tasks/{task_
 sahool-platform.temporal.check,command,sahool-platform,POST /api/v1/temporal/check,frontend,route,False
 sahool-platform.temporal.coherence,command,sahool-platform,POST /api/v1/temporal/coherence,frontend,route,False
 sahool-platform.tenant.config,query,sahool-platform,GET /api/v1/tenant/config,frontend,route,False
-sahool-platform.tile-cache-plan,query,sahool-platform,GET /tile-cache-plan,frontend,route,False
 sahool-platform.trials.analyze,command,sahool-platform,POST /api/v1/trials/analyze,frontend,route,False
-sahool-platform.usage,command,sahool-platform,POST /usage,frontend,route,False
 sahool-platform.varieties.food-grains,query,sahool-platform,GET /api/v1/varieties/food-grains,frontend,route,False
 sahool-platform.varieties.food-grains.variety_id,query,sahool-platform,GET /api/v1/varieties/food-grains/{variety_id},frontend,route,False
 sahool-platform.vegetation.all_fields,query,sahool-platform,GET /api/vegetation/v1/all_fields,frontend,route,False
 sahool-platform.vegetation.analyze,query,sahool-platform,GET /api/vegetation/v1/analyze,frontend,route,False
 sahool-platform.vegetation.readyz,query,sahool-platform,GET /api/vegetation/readyz,frontend,route,False
-sahool-platform.verify,command,sahool-platform,POST /verify,frontend,route,False
-sahool-platform.verify-loop,command,sahool-platform,POST /verify-loop,frontend,route,False
 sahool-platform.water-balance,command,sahool-platform,POST /api/v1/water-balance,frontend,route,False
 sahool-platform.water-harvesting.method-guide,query,sahool-platform,GET /api/v1/water-harvesting/method-guide,frontend,route,False
 sahool-platform.water-harvesting.methods,query,sahool-platform,GET /api/v1/water-harvesting/methods,frontend,route,False
@@ -764,8 +733,6 @@ sahool-platform.weather.tile-cache.stats,query,sahool-platform,GET /api/v1/weath
 sahool-platform.weather.tile-data.z,query,sahool-platform,GET /api/v1/weather/tile-data/{z}/{x}/{y},frontend,route,False
 sahool-platform.weather.tile-series.z,query,sahool-platform,GET /api/v1/weather/tile-series/{z}/{x}/{y},frontend,route,False
 sahool-platform.weather.wind-source-selftest,query,sahool-platform,GET /api/v1/weather/wind-source-selftest,frontend,route,False
-sahool-platform.webhooks,command,sahool-platform,POST /webhooks,frontend,route,False
-sahool-platform.webhooks.delivery-plan,command,sahool-platform,POST /webhooks/delivery-plan,frontend,route,False
 sahool-platform.wofost.adaptation-guidance,query,sahool-platform,GET /api/v1/wofost/adaptation-guidance,frontend,route,False
 sahool-platform.wofost.crop-types,query,sahool-platform,GET /api/v1/wofost/crop-types,frontend,route,False
 sahool-platform.work-orders.from-recommendation,command,sahool-platform,POST /api/v1/work-orders/from-recommendation,frontend,route,False

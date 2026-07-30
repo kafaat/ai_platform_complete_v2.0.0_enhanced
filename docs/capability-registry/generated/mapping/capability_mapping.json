@@ -8077,6 +8077,10 @@
           "score": 14
         },
         {
+          "value": "/plan @ scripts/ci/generate_service_inventory.py:111",
+          "score": 14
+        },
+        {
           "value": "/analytics/{tenant_id} @ services/mcp_servers/market_server.py:690",
           "score": 12
         },
@@ -8365,7 +8369,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 8,
-        "routes": 18,
+        "routes": 19,
         "database": 8,
         "events": 0,
         "web": 1,

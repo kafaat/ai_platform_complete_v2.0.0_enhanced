@@ -106,6 +106,63 @@ def python_loc(files: Iterable[Path]) -> int:
     return total
 
 
+# APIRouter(prefix=...) العمى: هذا المولِّد مصدر route_inventory.generated.json الذي
+# يقرأه build_platform_catalog.py لكشف التكرار عبر الخدمات — كان يقرأ نصّ الديكوريتر
+# وحده (@router.get("/plan")) بلا تركيب بادئة الراوتر (`router = APIRouter(prefix=
+# "/v1/phase9/autonomy")`) المُصرَّحة في نفس الملفّ، فمسار مُصدَّر فعلاً
+# (/v1/phase9/autonomy/plan) يُسجَّل زوراً كمسار خام (/plan) في الجرد. نفس العمى
+# المُصلَح في api_versioning_policy_guard.py (PR #717) — هذا مولِّد شقيق منفصل، لم
+# يُصلَح هناك. تحقّق قبل الإصلاح: صفر استخدام لـ`include_router(..., prefix=...)` أو
+# راوتر مُستورَد عبر ملفّات (`grep -rn "include_router(" services/ bots/`، ومطابقة
+# استخدام أسماء ديكوريتر المسارات بتعريفاتها المحليّة) — فالتركيب محليّ الملفّ بحت.
+# (API-VERSIONING-GUARD-IS-A-MIRROR-01)
+def router_prefixes(tree: ast.AST) -> dict[str, str]:
+    prefixes: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        call = node.value
+        if not (
+            isinstance(call, ast.Call)
+            and isinstance(call.func, ast.Name)
+            and call.func.id == "APIRouter"
+        ):
+            continue
+        prefix = None
+        for kw in call.keywords:
+            if (
+                kw.arg == "prefix"
+                and isinstance(kw.value, ast.Constant)
+                and isinstance(kw.value.value, str)
+            ):
+                prefix = kw.value.value
+        if prefix is None:
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                prefixes[target.id] = prefix
+    return prefixes
+
+
+def _decorator_object_name(dec: ast.AST) -> str | None:
+    if (
+        isinstance(dec, ast.Call)
+        and isinstance(dec.func, ast.Attribute)
+        and isinstance(dec.func.value, ast.Name)
+    ):
+        return dec.func.value.id
+    return None
+
+
+def _compose(prefixes: dict[str, str], object_name: str | None, path: str) -> str:
+    if object_name is None or path == "<dynamic>":
+        return path
+    prefix = prefixes.get(object_name)
+    if not prefix:
+        return path
+    return prefix.rstrip("/") + path
+
+
 def decorator_route(dec: ast.AST) -> tuple[str, str] | None:
     if not isinstance(dec, ast.Call):
         return None
@@ -170,6 +227,7 @@ def routes_for_file(service: str, path: Path) -> list[RouteRow]:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"))
     except SyntaxError:
         return []
+    prefixes = router_prefixes(tree)
     rows: list[RouteRow] = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -177,6 +235,7 @@ def routes_for_file(service: str, path: Path) -> list[RouteRow]:
                 route = decorator_route(dec)
                 if route:
                     method, route_path = route
+                    route_path = _compose(prefixes, _decorator_object_name(dec), route_path)
                     rows.append(
                         RouteRow(
                             service,
@@ -191,6 +250,15 @@ def routes_for_file(service: str, path: Path) -> list[RouteRow]:
         route = registration_call_route(node)
         if route:
             method, route_path, handler = route
+            inner = node.func if isinstance(node, ast.Call) else None
+            object_name = (
+                inner.func.value.id
+                if isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Attribute)
+                and isinstance(inner.func.value, ast.Name)
+                else None
+            )
+            route_path = _compose(prefixes, object_name, route_path)
             rows.append(
                 RouteRow(
                     service, rel(path), getattr(node, "lineno", 0), method, route_path, handler

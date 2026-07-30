@@ -36,7 +36,7 @@
 | FM-004 | farm_management | 30 | 82 | 86 | 54 | 12 | 1 | 33 | 7 |
 | FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 5 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
-| FM-007 | farm_management | 8 | 18 | 8 | 0 | 1 | 1 | 4 | 6 |
+| FM-007 | farm_management | 8 | 19 | 8 | 0 | 1 | 1 | 4 | 6 |
 | FM-008 | farm_management | 10 | 24 | 5 | 1 | 0 | 0 | 7 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 3 | 0 | 0 | 2 | 0 | 2 | 4 |

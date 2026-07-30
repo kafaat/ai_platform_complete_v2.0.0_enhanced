@@ -33,7 +33,7 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
 PINNED_BACKEND_COMPONENTS = 32
-PINNED_UNIQUE_METHOD_PATH = 992  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each; -1: Agent D slice 5 (2026-07-30) -- rag-retrieval's POST /search and agriai-engine's POST /simulate + POST /replay/verify moved to /v1/* net-neutral (bare text disappears, versioned text appears); rag-retrieval's POST /ingest and agriai-engine's POST /recommend moved into already-existing /v1/ingest and /v1/recommend texts (local-ai-rag's, ai_agronomist's), so their bare texts simply vanish (-2); agriai-engine's POST /plan moved to /v1/plan (+1 new text) but bare /plan does NOT vanish -- generate_service_inventory.py has the same APIRouter(prefix=...) composition blind spot fixed in api_versioning_policy_guard.py (PR #717) but never patched here, so sahool-platform's phase9 /plan (really /v1/phase9/autonomy/plan) still misreports as bare /plan in route_inventory.generated.json, keeping bare /plan alive as a phantom single-owner text (net 0 for /plan, not -1); tracked as a new gap, not fixed in this slice
+PINNED_UNIQUE_METHOD_PATH = 998  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each; -1: Agent D slice 5 (2026-07-30) -- rag-retrieval's POST /search and agriai-engine's POST /simulate + POST /replay/verify moved to /v1/* net-neutral (bare text disappears, versioned text appears); rag-retrieval's POST /ingest and agriai-engine's POST /recommend moved into already-existing /v1/ingest and /v1/recommend texts (local-ai-rag's, ai_agronomist's), so their bare texts simply vanish (-2); agriai-engine's POST /plan moved to /v1/plan (+1 new text) but bare /plan does NOT vanish -- generate_service_inventory.py has the same APIRouter(prefix=...) composition blind spot fixed in api_versioning_policy_guard.py (PR #717) but never patched here, so sahool-platform's phase9 /plan (really /v1/phase9/autonomy/plan) still misreports as bare /plan in route_inventory.generated.json, keeping bare /plan alive as a phantom single-owner text (net 0 for /plan, not -1); tracked as a new gap, not fixed in this slice; +6: Option B (2026-07-30) -- generate_service_inventory.py's own APIRouter(prefix=...) blind spot finally fixed (matching PR #717's sibling fix), composing all 99 routes across the six sahool-platform prefixed files to their real served paths. Bare /plan now genuinely vanishes (sahool-platform's phase9 route composes to /v1/phase9/autonomy/plan, closing the previously-tracked phantom -- net 0, one new text replaces one vanishing text); +2 from GET /stac and GET /stac/collections splitting away from raster-service's real routes of the same bare text into sahool-platform's own composed /api/v1/gis/cloud-native/stac[/collections] (raster's unique entry survives unchanged, sahool's composed path is new); +4 from bare texts that were shared *within* the six prefixed files themselves before composition -- POST /cycle (phase9, phase10, phase11, phase12/ecosystem: 4 rows collapsed into 1 unique bare text pre-fix, now 4 distinct prefixed texts, +3) and POST /models/register (phase9, phase10: 2 rows collapsed into 1 pre-fix, now 2 distinct texts, +1)
 
 
 def _catalog() -> dict:
@@ -136,10 +136,19 @@ def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
     agriai-engine؛ العضو الآخر المُتبقّي ظاهريّاً هو مصدر خطأ تصنيفيّ سابق الوجود في
     ``generate_service_inventory.py``، غير مُصلَح هنا). أُضيف قراران جديدان: ``POST
     /v1/ingest`` (rag-retrieval × local-ai-rag) و``POST /v1/recommend`` (agriai-engine ×
-    ai_agronomist) — تطابقا نصّيّاً عرضاً بعد هجرات مستقلّة."""
+    ai_agronomist) — تطابقا نصّيّاً عرضاً بعد هجرات مستقلّة.
+
+    14 ⇒ 12 (2026-07-30، Option B): مصدر الخطأ التصنيفيّ ذاته المذكور أعلاه صار مُصلَحاً
+    الآن في ``generate_service_inventory.py`` (يطابق إصلاح PR #717 للمولِّد الشقيق
+    ``api_versioning_policy_guard.py`` تماماً) — ``GET /stac`` و``GET /stac/collections``
+    باتا ``stale decision`` معاً: عضوهما الوحيد الحقيقيّ الباقي هو raster-service بعد أن
+    صارت مسارات ``gis_cloud_native.py`` بسحول-بلاتفورم تُقرَأ بصيغتها المركَّبة الحقيقيّة
+    (``/api/v1/gis/cloud-native/stac``[``/collections``]) بدل النصّ الخام المُضلِّل. حُذف
+    القراران المقابلان من ``config/platform_catalog_overrides.yml`` نهائيّاً (لا إعادة ربط
+    — لم يبقَ عضوان يتشاركان النصّ نفسه)."""
     cat = _catalog()
     groups = cat["cross_service_duplicate_method_paths"]
-    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 14
+    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 12
     for g in groups:
         assert g["classified"] is True, g
         assert g["classification"], g
@@ -154,11 +163,15 @@ def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
         for g in groups
         if g["classification"] == "legacy_bff_facade"
     }
-    # فصل الحقيقة عن الواجهة: raster يملك STAC — المنصّة واجهة فقط.
     # (POST /plan لم يعد legacy_bff_facade هنا -- انظر شرح ٩٩٢/١٤ أعلاه: بعد هجرة
     # agriai-engine إلى /v1/plan، العضو الوحيد الحقيقيّ المتبقّي لبادئة /plan الخام هو
     # agriai-engine نفسه [الذي هاجر]، فلم يعد عقداً مُكرَّراً يحتاج قرار واجهة/مالك.)
-    assert facades[("GET", "/stac")] == "raster-service"
+    # (GET /stac و GET /stac/collections لم يعودا legacy_bff_facade هنا أيضاً -- انظر شرح
+    # ١٤⇒١٢ أعلاه: بعد إصلاح Option B لـgenerate_service_inventory.py، raster-service هو
+    # العضو الوحيد الحقيقيّ الباقي لكلا النصّين، فلم يعودا عقدين مُكرَّرين يحتاجان قرار
+    # واجهة/مالك -- لم يُعد أيّهما في facades إطلاقاً.)
+    assert ("GET", "/stac") not in facades
+    assert ("GET", "/stac/collections") not in facades
 
 
 def test_u4_ui_waivers_governed() -> None:

@@ -3,11 +3,11 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `ee1967e23faf454bb17861c342a626ecf998332022d6703b7b42712c0d6fcc63`
+- fingerprint: `1b3c2926e6785cf929a2f6eaae355a62c88fb9624345cc207697fd9f34bc2bb3`
 - components: **34** (backend: 32)
-- route rows: **1105** → unique method/path: **992**
-- capabilities (derived, uncurated): **853**
-- cross-service duplicate method/paths: **14**
+- route rows: **1105** → unique method/path: **998**
+- capabilities (derived, uncurated): **820**
+- cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **52**
 
@@ -67,8 +67,6 @@
 | `GET` | `/metrics` | `standard_observability` | `service-local` | `permanent` |
 | `GET` | `/readyz` | `standard_readiness` | `service-local` | `permanent` |
 | `GET` | `/runtime-identity` | `standard_observability` | `service-local` | `permanent` |
-| `GET` | `/stac` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
-| `GET` | `/stac/collections` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
 | `POST` | `/v1/ingest` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/v1/products` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `POST` | `/v1/query` | `service_scoped_semantics` | `service-local` | `2026-12-31` |

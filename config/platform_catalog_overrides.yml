@@ -84,12 +84,6 @@ duplicate_route_classifications:
      decision: "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما. (كان /products قبل API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل A الثانية، 2026-07-30 — نُقل المسار لا الحكم.)"}
   - {method: GET, path: /readyz, classification: standard_readiness,
      decision: "عقد جاهزيّة محلّيّ بالخدمة؛ قيمته تبقى مشتقّة وقت التشغيل."}
-  - {method: GET, path: /stac, classification: legacy_bff_facade,
-     canonical_owner: raster-service, facade: sahool-platform, expires_on: "2026-12-31",
-     decision: "raster-service يملك STAC؛ مسار المنصّة واجهة توافق واعية بالمستأجِر فقط."}
-  - {method: GET, path: /stac/collections, classification: legacy_bff_facade,
-     canonical_owner: raster-service, facade: sahool-platform, expires_on: "2026-12-31",
-     decision: "raster-service يملك مجموعات STAC؛ مسار المنصّة واجهة توافق فقط."}
   - {method: POST, path: /v1/ingest, classification: service_scoped_semantics, expires_on: "2026-12-31",
      decision: "ابتلاع rag-retrieval وابتلاع RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/ingest عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والخامسة، 2026-07-30)."}
   - {method: POST, path: /v1/query, classification: service_scoped_semantics, expires_on: "2026-12-31",
