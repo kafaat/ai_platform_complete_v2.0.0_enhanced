@@ -480,45 +480,6 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "GET",
-      "path": "/mcp/v1/tools",
-      "registrations": [
-        {
-          "function": "list_tools",
-          "line": 134,
-          "method": "GET",
-          "module": "services/mcp_servers/generic_context_server.py",
-          "path": "/mcp/v1/tools",
-          "receiver": "app"
-        },
-        {
-          "function": "list_tools",
-          "line": 199,
-          "method": "GET",
-          "module": "services/mcp_servers/sentinel_hub_server.py",
-          "path": "/mcp/v1/tools",
-          "receiver": "app"
-        },
-        {
-          "function": "list_tools",
-          "line": 85,
-          "method": "GET",
-          "module": "services/mcp_servers/weather_server.py",
-          "path": "/mcp/v1/tools",
-          "receiver": "app"
-        },
-        {
-          "function": "list_tools",
-          "line": 51,
-          "method": "GET",
-          "module": "services/mcp_servers/wofost_server.py",
-          "path": "/mcp/v1/tools",
-          "receiver": "app"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "GET",
       "path": "/metrics",
       "registrations": [
         {
@@ -960,6 +921,45 @@
     },
     {
       "classification": "review_only_distinct_module_or_router",
+      "method": "GET",
+      "path": "/v1/mcp/tools",
+      "registrations": [
+        {
+          "function": "list_tools",
+          "line": 134,
+          "method": "GET",
+          "module": "services/mcp_servers/generic_context_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
+        },
+        {
+          "function": "list_tools",
+          "line": 199,
+          "method": "GET",
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
+        },
+        {
+          "function": "list_tools",
+          "line": 85,
+          "method": "GET",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
+        },
+        {
+          "function": "list_tools",
+          "line": 51,
+          "method": "GET",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
       "method": "POST",
       "path": "/cycle",
       "registrations": [
@@ -1016,53 +1016,6 @@
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/ingest",
-          "receiver": "app"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "POST",
-      "path": "/mcp/v1/tools/call",
-      "registrations": [
-        {
-          "function": "call_tool",
-          "line": 151,
-          "method": "POST",
-          "module": "services/mcp_servers/generic_context_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        },
-        {
-          "function": "mcp_tools_call",
-          "line": 578,
-          "method": "POST",
-          "module": "services/mcp_servers/market_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        },
-        {
-          "function": "call_tool",
-          "line": 286,
-          "method": "POST",
-          "module": "services/mcp_servers/sentinel_hub_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        },
-        {
-          "function": "call_tool",
-          "line": 148,
-          "method": "POST",
-          "module": "services/mcp_servers/weather_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        },
-        {
-          "function": "call_tool",
-          "line": 114,
-          "method": "POST",
-          "module": "services/mcp_servers/wofost_server.py",
-          "path": "/mcp/v1/tools/call",
           "receiver": "app"
         }
       ]
@@ -1158,13 +1111,60 @@
           "receiver": "app"
         }
       ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/v1/mcp/tools/call",
+      "registrations": [
+        {
+          "function": "call_tool",
+          "line": 151,
+          "method": "POST",
+          "module": "services/mcp_servers/generic_context_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "mcp_tools_call",
+          "line": 578,
+          "method": "POST",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 286,
+          "method": "POST",
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 148,
+          "method": "POST",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 114,
+          "method": "POST",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        }
+      ]
     }
   ],
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "7bf352773c598bee241aab49fd9297e8caf8c050ecfe4a445e95b7d999e7494d",
+  "route_inventory_sha256": "228da03b4d41c64709f82534a0d28e9ee72d957a59e838e38c05b039a591208e",
   "runtime_verified": false,
   "schema_version": 1
 }

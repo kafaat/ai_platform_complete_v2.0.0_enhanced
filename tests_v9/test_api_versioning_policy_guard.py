@@ -51,3 +51,37 @@ def test_runtime_identity_is_infra_not_legacy_business():
         r for r in rows if r["path"] == "/runtime-identity" and r["classification"] != "infra"
     ]
     assert leaked == [], f"/runtime-identity leaked into a non-infra classification: {leaked}"
+
+
+def test_mcp_protocol_atomic_contract_migrated_to_versioned_prefix():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, Agent A slice 1 (2026-07-30): the MCP
+    protocol surface (``GET /mcp/v1/tools`` across generic_context_server.py,
+    sentinel_hub_server.py, weather_server.py, wofost_server.py; ``POST
+    /mcp/v1/tools/call`` across those four plus market_server.py; ``GET
+    /mcp/v1/tools/list`` in market_server.py alone) moved to a leading version
+    prefix (``/v1/mcp/tools``, ``/v1/mcp/tools/call``, ``/v1/mcp/tools/list``) so
+    the classifier's ``^(?:/api)?/v[0-9]+`` prefix rule recognizes it as versioned.
+    Falsified by construction: re-introducing the pre-migration ``/mcp/v1/...``
+    path on any decorator makes this fail by naming the exact leaked path."""
+    rows = guard.collect()
+    mcp_server_rows = [r for r in rows if r["service"] == "mcp_servers"]
+
+    old_prefix_leaks = [r for r in mcp_server_rows if r["path"].startswith("/mcp/v1/tools")]
+    assert old_prefix_leaks == [], (
+        f"pre-migration /mcp/v1/tools* path still present: {old_prefix_leaks}"
+    )
+
+    new_paths = {(r["method"], r["path"]) for r in mcp_server_rows}
+    for expected in (
+        ("GET", "/v1/mcp/tools"),
+        ("POST", "/v1/mcp/tools/call"),
+        ("GET", "/v1/mcp/tools/list"),
+    ):
+        assert expected in new_paths, f"expected migrated route {expected} not found in inventory"
+
+    for r in mcp_server_rows:
+        if r["path"].startswith("/v1/mcp/tools"):
+            assert r["classification"] == "versioned", (
+                f"{r['method']} {r['path']} ({r['file']}:{r['line']}) did not classify as "
+                f"versioned: {r['classification']}"
+            )

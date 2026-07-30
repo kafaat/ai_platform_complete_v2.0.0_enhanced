@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca7f0cb3f795f0689fbdb5faecbe40aa74928d9ec0826d77808c882b2012b8b6"
+          "content": "09932a8a367175dd53555a69b1832f15a22ee9df631f4b5d4a0daf9d7ec84dfd"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12415,7 +12415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "811cb2e3c2f6032874a752fbb231a01d64808a974797f2319cf79710af80c1fe"
+          "content": "b4d8144d060ff23d471e6b8b3294e43f3bd7aa784c602e51b24eaa1345f9c259"
         }
       ],
       "name": "services/mcp_servers/generic_context_server.py",
@@ -12435,7 +12435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c6337e37b42234d8e6f037f7c32b1d7b333bcba707c88ae56961dd52afc70df"
+          "content": "88ceefd6fae3695e6c3ad0678398fc3fefbe95b89d4bd65346a0b758886ff6ab"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -12455,7 +12455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ceb41b985b9a7dcd4d67d878bc38e58f03e762db36a43e8057da75a9be543c2d"
+          "content": "bba55ce8c1a99224fb30865f5273ed0e83239033c43ddad7964f31b4550e4c53"
         }
       ],
       "name": "services/mcp_servers/sentinel_hub_server.py",
@@ -12485,7 +12485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3ab1006b97676cbcc804b2de3b2ffaf728ca9f990888127ddadb35532d08b64"
+          "content": "1fc1c2af70a9ca006c7d763e5ea4632ed637b2d270a9651a69eb38943ab1f7ec"
         }
       ],
       "name": "services/mcp_servers/shared/streamable_http.py",
@@ -12505,7 +12505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59b38dad4315dfb17d03e74e03461147e1d0f7ceb27d3181a24c60f54bc9e192"
+          "content": "805fa32ff4ec0bda2f4ccaa1255f73758e00ea9364bb64320cc1c10788a65e14"
         }
       ],
       "name": "services/mcp_servers/weather_server.py",
@@ -12515,7 +12515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5e38183da65d1ff1edbe4204169c85d42c9fa7985184951bffb5ee6f0a0c8a6f"
+          "content": "2134578ceea105c56edd4e970675cbab738f70db56b64f48c9771734cd97c7ca"
         }
       ],
       "name": "services/mcp_servers/wofost_server.py",
@@ -21365,7 +21365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c4d21c863e91134f726efc6bb8e3fde158dc52ac6e5eaf6e1021c6c4559e60a7"
+          "content": "139bc81ce8d897cf730d25b3d08c25a69e7c9054c70fcf2cc8777aa1b2cce640"
         }
       ],
       "name": "services/sahool-platform/core/mcp/independent_servers.py",
@@ -27755,7 +27755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "24cb5d3e918798a1a12d929e5d3107d31faa2651b622af3718db0904416970ca"
+          "content": "2f1db79cc01dee1ddb45ad362502cd11b9c4accc82656ba3d4e2b1b6d0aab914"
         }
       ],
       "name": "services/supervisor-agent/mcp_client.py",

@@ -62,7 +62,7 @@ class MCPClient:
             return self._tool_cache[server_name]
 
         client = await self._get_client(server_name)
-        resp = await retry_request(client.get, "/mcp/v1/tools")
+        resp = await retry_request(client.get, "/v1/mcp/tools")
         resp.raise_for_status()
 
         tools = resp.json().get("tools", [])
@@ -94,7 +94,7 @@ class MCPClient:
             payload["request_id"] = request_id
 
         try:
-            resp = await retry_request(client.post, "/mcp/v1/tools/call", json=payload)
+            resp = await retry_request(client.post, "/v1/mcp/tools/call", json=payload)
             resp.raise_for_status()
         except Exception:
             breaker.record_failure()  # سجّل الفشل (قد يفتح القاطع)

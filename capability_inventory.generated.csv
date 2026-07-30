@@ -127,9 +127,9 @@ local-ai-rag.ingest,command,local-ai-rag,POST /ingest,,route,False
 local-ai-rag.query,command,local-ai-rag,POST /query,,route,False
 mcp_servers.<dynamic>,command,mcp_servers,POST <dynamic>,,route,False
 mcp_servers.analytics.tenant_id,query,mcp_servers,GET /analytics/{tenant_id},,route,False
-mcp_servers.mcp.tools,query,mcp_servers,GET /mcp/v1/tools,,route,False
-mcp_servers.mcp.tools.call,command,mcp_servers,POST /mcp/v1/tools/call,,route,False
-mcp_servers.mcp.tools.list,query,mcp_servers,GET /mcp/v1/tools/list,,route,False
+mcp_servers.mcp.tools,query,mcp_servers,GET /v1/mcp/tools,,route,False
+mcp_servers.mcp.tools.call,command,mcp_servers,POST /v1/mcp/tools/call,,route,False
+mcp_servers.mcp.tools.list,query,mcp_servers,GET /v1/mcp/tools/list,,route,False
 mcp_servers.price-history.category,query,mcp_servers,GET /price-history/{category},,route,False
 mcp_servers.procurement,command,mcp_servers,POST /procurement,,route,False
 mcp_servers.procurement.order_id,query,mcp_servers,GET /procurement/{order_id},,route,False

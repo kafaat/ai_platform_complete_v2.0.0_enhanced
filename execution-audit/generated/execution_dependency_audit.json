@@ -1378,7 +1378,7 @@
       "line": 134,
       "handler": "list_tools",
       "method": "GET",
-      "path": "/mcp/v1/tools"
+      "path": "/v1/mcp/tools"
     },
     {
       "owner": "mcp-servers",
@@ -1386,7 +1386,7 @@
       "line": 151,
       "handler": "call_tool",
       "method": "POST",
-      "path": "/mcp/v1/tools/call"
+      "path": "/v1/mcp/tools/call"
     },
     {
       "owner": "mcp-servers",
@@ -1394,7 +1394,7 @@
       "line": 546,
       "handler": "mcp_tools_list",
       "method": "GET",
-      "path": "/mcp/v1/tools/list"
+      "path": "/v1/mcp/tools/list"
     },
     {
       "owner": "mcp-servers",
@@ -1402,7 +1402,7 @@
       "line": 578,
       "handler": "mcp_tools_call",
       "method": "POST",
-      "path": "/mcp/v1/tools/call"
+      "path": "/v1/mcp/tools/call"
     },
     {
       "owner": "mcp-servers",
@@ -1490,7 +1490,7 @@
       "line": 199,
       "handler": "list_tools",
       "method": "GET",
-      "path": "/mcp/v1/tools"
+      "path": "/v1/mcp/tools"
     },
     {
       "owner": "mcp-servers",
@@ -1498,7 +1498,7 @@
       "line": 286,
       "handler": "call_tool",
       "method": "POST",
-      "path": "/mcp/v1/tools/call"
+      "path": "/v1/mcp/tools/call"
     },
     {
       "owner": "mcp-servers",
@@ -1522,7 +1522,7 @@
       "line": 85,
       "handler": "list_tools",
       "method": "GET",
-      "path": "/mcp/v1/tools"
+      "path": "/v1/mcp/tools"
     },
     {
       "owner": "mcp-servers",
@@ -1530,7 +1530,7 @@
       "line": 148,
       "handler": "call_tool",
       "method": "POST",
-      "path": "/mcp/v1/tools/call"
+      "path": "/v1/mcp/tools/call"
     },
     {
       "owner": "mcp-servers",
@@ -1554,7 +1554,7 @@
       "line": 51,
       "handler": "list_tools",
       "method": "GET",
-      "path": "/mcp/v1/tools"
+      "path": "/v1/mcp/tools"
     },
     {
       "owner": "mcp-servers",
@@ -1562,7 +1562,7 @@
       "line": 114,
       "handler": "call_tool",
       "method": "POST",
-      "path": "/mcp/v1/tools/call"
+      "path": "/v1/mcp/tools/call"
     },
     {
       "owner": "mcp-servers",

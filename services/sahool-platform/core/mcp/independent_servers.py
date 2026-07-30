@@ -1,7 +1,7 @@
 """Contracts for independent MCP service servers.
 
 Each MCP server is an independently deployable FastAPI app exposing the same
-/mcp/v1/tools and /mcp/v1/tools/call surface. Outputs are restricted to
+/v1/mcp/tools and /v1/mcp/tools/call surface. Outputs are restricted to
 observation/signal/annotation, never recommendations or prescriptions.
 """
 

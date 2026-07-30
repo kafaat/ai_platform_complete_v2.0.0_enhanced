@@ -22,8 +22,8 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Market MCP Server (:8094)                                  │
-│  ├─ /mcp/v1/tools/list   — 8 tools (MCP Protocol)          │
-│  ├─ /mcp/v1/tools/call   — تنفيذ الأدوات                   │
+│  ├─ /v1/mcp/tools/list   — 8 tools (MCP Protocol)          │
+│  ├─ /v1/mcp/tools/call   — تنفيذ الأدوات                   │
 │  ├─ /products            — REST: بحث منتجات                  │
 │  ├─ /suppliers/{id}      — REST: تفاصيل مورد               │
 │  ├─ /procurement         — REST: إنشاء طلب شراء            │
@@ -103,7 +103,7 @@ docker compose -f docker-compose.light.yml up -d market-mcp
 
 # فحص
  curl http://localhost:8094/healthz
- curl http://localhost:8094/mcp/v1/tools/list
+ curl http://localhost:8094/v1/mcp/tools/list
 ```
 
 ### 3. اختبار REST API

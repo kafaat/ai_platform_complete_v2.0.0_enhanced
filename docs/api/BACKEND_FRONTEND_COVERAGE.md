@@ -541,9 +541,9 @@
 | `/management-zones/summary` | internal | ✅ |
 | `/marketplace/apps` | internal | — |
 | `/marketplace/installations` | internal | — |
-| `/mcp/v1/tools` | internal | — |
-| `/mcp/v1/tools/call` | internal | — |
-| `/mcp/v1/tools/list` | internal | — |
+| `/v1/mcp/tools` | internal | — |
+| `/v1/mcp/tools/call` | internal | — |
+| `/v1/mcp/tools/list` | internal | — |
 | `/models/promote` | internal | — |
 | `/models/register` | internal | — |
 | `/models/serving/promote` | internal | — |

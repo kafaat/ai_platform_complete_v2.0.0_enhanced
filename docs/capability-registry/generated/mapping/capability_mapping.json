@@ -8089,14 +8089,6 @@
           "score": 12
         },
         {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/market_server.py:577",
-          "score": 12
-        },
-        {
-          "value": "/mcp/v1/tools/list @ services/mcp_servers/market_server.py:545",
-          "score": 12
-        },
-        {
           "value": "/price-history/{category} @ services/mcp_servers/market_server.py:683",
           "score": 12
         },
@@ -8126,6 +8118,14 @@
         },
         {
           "value": "/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:643",
+          "score": 12
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:577",
+          "score": 12
+        },
+        {
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:545",
           "score": 12
         },
         {
@@ -8496,14 +8496,6 @@
           "score": 10
         },
         {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/market_server.py:577",
-          "score": 10
-        },
-        {
-          "value": "/mcp/v1/tools/list @ services/mcp_servers/market_server.py:545",
-          "score": 10
-        },
-        {
           "value": "/price-history/{category} @ services/mcp_servers/market_server.py:683",
           "score": 10
         },
@@ -8533,6 +8525,14 @@
         },
         {
           "value": "/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:643",
+          "score": 10
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:577",
+          "score": 10
+        },
+        {
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:545",
           "score": 10
         },
         {
@@ -15803,14 +15803,6 @@
           "score": 17
         },
         {
-          "value": "/mcp/v1/tools @ services/mcp_servers/sentinel_hub_server.py:198",
-          "score": 17
-        },
-        {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/sentinel_hub_server.py:285",
-          "score": 17
-        },
-        {
           "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:420",
           "score": 17
         },
@@ -15840,6 +15832,14 @@
         },
         {
           "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:403",
+          "score": 17
+        },
+        {
+          "value": "/v1/mcp/tools @ services/mcp_servers/sentinel_hub_server.py:198",
+          "score": 17
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/sentinel_hub_server.py:285",
           "score": 17
         },
         {
@@ -17937,14 +17937,6 @@
           "score": 8
         },
         {
-          "value": "/mcp/v1/tools @ services/mcp_servers/generic_context_server.py:133",
-          "score": 8
-        },
-        {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/generic_context_server.py:150",
-          "score": 8
-        },
-        {
           "value": "/process @ services/raster-service/routers/processing.py:27",
           "score": 8
         },
@@ -17982,6 +17974,14 @@
         },
         {
           "value": "/v1/indicators/ownership @ services/indicators-service/main.py:86",
+          "score": 8
+        },
+        {
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:133",
+          "score": 8
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:150",
           "score": 8
         }
       ],
@@ -20718,15 +20718,15 @@
           "score": 8
         },
         {
-          "value": "/mcp/v1/tools @ services/mcp_servers/generic_context_server.py:133",
-          "score": 8
-        },
-        {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/generic_context_server.py:150",
-          "score": 8
-        },
-        {
           "value": "/readyz @ services/mcp_servers/generic_context_server.py:126",
+          "score": 8
+        },
+        {
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:133",
+          "score": 8
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:150",
           "score": 8
         }
       ],
@@ -22729,14 +22729,6 @@
           "score": 9
         },
         {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/market_server.py:577",
-          "score": 9
-        },
-        {
-          "value": "/mcp/v1/tools/list @ services/mcp_servers/market_server.py:545",
-          "score": 9
-        },
-        {
           "value": "/price-history/{category} @ services/mcp_servers/market_server.py:683",
           "score": 9
         },
@@ -22766,6 +22758,14 @@
         },
         {
           "value": "/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:643",
+          "score": 9
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/market_server.py:577",
+          "score": 9
+        },
+        {
+          "value": "/v1/mcp/tools/list @ services/mcp_servers/market_server.py:545",
           "score": 9
         },
         {
@@ -28274,15 +28274,15 @@
           "score": 14
         },
         {
-          "value": "/mcp/v1/tools @ services/mcp_servers/weather_server.py:84",
-          "score": 14
-        },
-        {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/weather_server.py:147",
-          "score": 14
-        },
-        {
           "value": "/readyz @ services/mcp_servers/weather_server.py:339",
+          "score": 14
+        },
+        {
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:84",
+          "score": 14
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:147",
           "score": 14
         },
         {
@@ -29872,14 +29872,6 @@
           "score": 12
         },
         {
-          "value": "/mcp/v1/tools @ services/mcp_servers/weather_server.py:84",
-          "score": 12
-        },
-        {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/weather_server.py:147",
-          "score": 12
-        },
-        {
           "value": "/readyz @ services/mcp_servers/weather_server.py:339",
           "score": 12
         },
@@ -29897,6 +29889,14 @@
         },
         {
           "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "score": 12
+        },
+        {
+          "value": "/v1/mcp/tools @ services/mcp_servers/weather_server.py:84",
+          "score": 12
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/weather_server.py:147",
           "score": 12
         },
         {
@@ -29920,15 +29920,15 @@
           "score": 10
         },
         {
-          "value": "/mcp/v1/tools @ services/mcp_servers/wofost_server.py:50",
-          "score": 10
-        },
-        {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/wofost_server.py:113",
-          "score": 10
-        },
-        {
           "value": "/readyz @ services/mcp_servers/wofost_server.py:287",
+          "score": 10
+        },
+        {
+          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:50",
+          "score": 10
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:113",
           "score": 10
         },
         {
@@ -29948,15 +29948,15 @@
           "score": 8
         },
         {
-          "value": "/mcp/v1/tools @ services/mcp_servers/generic_context_server.py:133",
-          "score": 8
-        },
-        {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/generic_context_server.py:150",
-          "score": 8
-        },
-        {
           "value": "/readyz @ services/mcp_servers/generic_context_server.py:126",
+          "score": 8
+        },
+        {
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:133",
+          "score": 8
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:150",
           "score": 8
         }
       ],
@@ -32187,14 +32187,6 @@
           "score": 12
         },
         {
-          "value": "/mcp/v1/tools @ services/mcp_servers/wofost_server.py:50",
-          "score": 12
-        },
-        {
-          "value": "/mcp/v1/tools/call @ services/mcp_servers/wofost_server.py:113",
-          "score": 12
-        },
-        {
           "value": "/readyz @ services/mcp_servers/wofost_server.py:287",
           "score": 12
         },
@@ -32208,6 +32200,14 @@
         },
         {
           "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "score": 12
+        },
+        {
+          "value": "/v1/mcp/tools @ services/mcp_servers/wofost_server.py:50",
+          "score": 12
+        },
+        {
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/wofost_server.py:113",
           "score": 12
         },
         {

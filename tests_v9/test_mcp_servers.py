@@ -24,7 +24,7 @@ class TestSentinelHubMCP:
     async def test_list_tools(self, http_client: AsyncClient, mock_jwt_token: str):
         """TC-MCP-002: Tool discovery returns expected tools with valid auth."""
         response = await http_client.get(
-            "http://localhost:8091/mcp/v1/tools",
+            "http://localhost:8091/v1/mcp/tools",
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
@@ -51,7 +51,7 @@ class TestSentinelHubMCP:
             "request_id": "test-req-ndvi-001",
         }
         response = await http_client.post(
-            "http://localhost:8091/mcp/v1/tools/call",
+            "http://localhost:8091/v1/mcp/tools/call",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -72,13 +72,13 @@ class TestSentinelHubMCP:
         }
         # First call
         r1 = await http_client.post(
-            "http://localhost:8091/mcp/v1/tools/call",
+            "http://localhost:8091/v1/mcp/tools/call",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         # Second call (should be cached)
         r2 = await http_client.post(
-            "http://localhost:8091/mcp/v1/tools/call",
+            "http://localhost:8091/v1/mcp/tools/call",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -89,7 +89,7 @@ class TestSentinelHubMCP:
 
     async def test_unauthorized_no_token(self, http_client: AsyncClient):
         """TC-MCP-005: Missing auth token returns 401."""
-        response = await http_client.get("http://localhost:8091/mcp/v1/tools")
+        response = await http_client.get("http://localhost:8091/v1/mcp/tools")
         assert response.status_code == 401
 
     async def test_unauthorized_invalid_scope(self, http_client: AsyncClient):
@@ -111,7 +111,7 @@ class TestSentinelHubMCP:
             algorithm="HS256",
         )
         response = await http_client.get(
-            "http://localhost:8091/mcp/v1/tools", headers={"Authorization": f"Bearer {bad_token}"}
+            "http://localhost:8091/v1/mcp/tools", headers={"Authorization": f"Bearer {bad_token}"}
         )
         assert response.status_code == 403
 
@@ -124,7 +124,7 @@ class TestWeatherMCP:
     async def test_list_tools(self, http_client: AsyncClient, mock_jwt_token: str):
         """TC-MCP-007: Weather tool discovery."""
         response = await http_client.get(
-            "http://localhost:8092/mcp/v1/tools",
+            "http://localhost:8092/v1/mcp/tools",
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
@@ -147,7 +147,7 @@ class TestWeatherMCP:
             },
         }
         response = await http_client.post(
-            "http://localhost:8092/mcp/v1/tools/call",
+            "http://localhost:8092/v1/mcp/tools/call",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -162,7 +162,7 @@ class TestWeatherMCP:
         """TC-MCP-009: Hargreaves ET0 calculation returns numeric value."""
         payload = {"name": "calculate_hargreaves_et0", "arguments": mock_weather_data}
         response = await http_client.post(
-            "http://localhost:8092/mcp/v1/tools/call",
+            "http://localhost:8092/v1/mcp/tools/call",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -182,7 +182,7 @@ class TestWOFOSTMCP:
     async def test_list_tools(self, http_client: AsyncClient, mock_jwt_token: str):
         """TC-MCP-010: WOFOST tool discovery."""
         response = await http_client.get(
-            "http://localhost:8093/mcp/v1/tools",
+            "http://localhost:8093/v1/mcp/tools",
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
@@ -204,7 +204,7 @@ class TestWOFOSTMCP:
             },
         }
         response = await http_client.post(
-            "http://localhost:8093/mcp/v1/tools/call",
+            "http://localhost:8093/v1/mcp/tools/call",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -223,7 +223,7 @@ class TestWOFOSTMCP:
         for crop in ["wheat", "barley", "maize", "sorghum", "millet", "rice", "potato"]:
             payload = {"name": "get_crop_parameters", "arguments": {"crop": crop}}
             response = await http_client.post(
-                "http://localhost:8093/mcp/v1/tools/call",
+                "http://localhost:8093/v1/mcp/tools/call",
                 json=payload,
                 headers={"Authorization": f"Bearer {mock_jwt_token}"},
             )
@@ -241,7 +241,7 @@ class TestMarketMCP:
     async def test_list_tools(self, http_client: AsyncClient, mock_jwt_token: str):
         """TC-MCP-013: Market tool discovery."""
         response = await http_client.get(
-            "http://localhost:8094/mcp/v1/tools",
+            "http://localhost:8094/v1/mcp/tools",
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
@@ -260,7 +260,7 @@ class TestMarketMCP:
             "arguments": {"crop": mock_market_data["crop"], "market": mock_market_data["market"]},
         }
         response = await http_client.post(
-            "http://localhost:8094/mcp/v1/tools/call",
+            "http://localhost:8094/v1/mcp/tools/call",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -288,7 +288,7 @@ class TestMarketMCP:
             },
         }
         response = await http_client.post(
-            "http://localhost:8094/mcp/v1/tools/call",
+            "http://localhost:8094/v1/mcp/tools/call",
             json=payload,
             # create_forward_contract أداة كتابة الآن ⇒ تتطلّب market:write.
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
@@ -303,7 +303,7 @@ class TestMarketMCP:
         """TC-MCP-016: Price trend returns 30-day data."""
         payload = {"name": "get_price_trend", "arguments": {"crop": "wheat", "market": "sanaa"}}
         response = await http_client.post(
-            "http://localhost:8094/mcp/v1/tools/call",
+            "http://localhost:8094/v1/mcp/tools/call",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
