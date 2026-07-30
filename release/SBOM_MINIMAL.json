@@ -14835,6 +14835,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "72a317eec05358d589e567f094a76e15207bddeb565be6144f7786c587a5e5b6"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_soil_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ec729279710a857d80fb50e55a28e2d2c95af2f54aa71668a685e27564f22815"
         }
       ],
@@ -22979,6 +22989,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_schemas.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "38f5feded39e7ccb47f470e44b2715bbfb6c92dfe56096c25e0a1ea3f48d3cc0"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_soil_state.py",
       "type": "file"
     },
     {
