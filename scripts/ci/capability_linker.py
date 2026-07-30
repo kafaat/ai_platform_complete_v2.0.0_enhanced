@@ -305,6 +305,7 @@ DEPENDENCIES = {
 
 EXCLUDED_DIRS = {
     ".git",
+    ".claude",
     "node_modules",
     ".venv",
     "venv",

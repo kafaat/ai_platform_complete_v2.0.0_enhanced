@@ -105,7 +105,7 @@ field-management-service,services/field-management-service/main.py,266,GET,/inte
 field-segmentation,services/field-segmentation/main.py,370,GET,/healthz,healthz,health
 field-segmentation,services/field-segmentation/main.py,375,GET,/health,legacy_health,health
 field-segmentation,services/field-segmentation/main.py,380,GET,/readyz,readyz,readiness
-field-segmentation,services/field-segmentation/main.py,391,POST,/segment,segment,business_endpoint
+field-segmentation,services/field-segmentation/main.py,391,POST,/v1/segment,segment,business_endpoint
 indicators-service,services/indicators-service/main.py,63,GET,/healthz,healthz,health
 indicators-service,services/indicators-service/main.py,68,GET,/health,legacy_health,health
 indicators-service,services/indicators-service/main.py,73,GET,/readyz,ready,readiness

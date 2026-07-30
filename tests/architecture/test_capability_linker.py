@@ -135,6 +135,34 @@ def test_check_is_pure_and_detects_both_registry_and_candidate_drift(monkeypatch
     assert candidates.read_bytes() == drifted
 
 
+def test_discover_files_excludes_claude_worktree_directories(monkeypatch, tmp_path):
+    """CAPABILITY-LINKER-SCANS-AGENT-WORKTREES-01: discover_files() walked the raw
+    filesystem (Path.rglob) without excluding .claude, so any sibling agent worktree
+    checked out under .claude/worktrees/<id>/ (a real, gitignored directory nested
+    inside ROOT in multi-agent sessions) was scanned as if it were the repository
+    itself -- writing .claude/worktrees/... prefixed paths into the committed
+    capabilities/registry/capabilities.json and failing capability_registry_guard.py
+    plus tests/architecture/test_capability_traceability.py on the next CI run."""
+    module = _load_module()
+    registry, generated = _minimal_repo(tmp_path)
+    _configure(module, tmp_path, registry, generated)
+
+    worktree_test = tmp_path / ".claude/worktrees/agent-fake123/tests/test_tenant_auth.py"
+    worktree_test.parent.mkdir(parents=True)
+    worktree_test.write_text("def test_tenant_auth(): pass\n", encoding="utf-8")
+
+    discovered = module.discover_files()
+    assert not any(p.startswith(".claude/") for p in discovered), (
+        f".claude paths leaked into discover_files(): "
+        f"{[p for p in discovered if p.startswith('.claude/')]}"
+    )
+
+    monkeypatch.setattr(sys, "argv", [str(SCRIPT), "--apply"])
+    assert module.main() == 0
+    capability = json.loads(registry.read_text(encoding="utf-8"))["capabilities"][0]
+    assert capability["tests"] == ["tests/test_tenant_auth.py"], capability["tests"]
+
+
 def test_discovery_and_candidates_are_stable_when_filesystem_order_changes(monkeypatch, tmp_path):
     module = _load_module()
     registry, generated = _minimal_repo(tmp_path)

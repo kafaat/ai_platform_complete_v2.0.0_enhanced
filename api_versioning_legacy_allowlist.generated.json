@@ -195,7 +195,6 @@
     "POST /sar/rvi",
     "POST /scenario",
     "POST /search",
-    "POST /segment",
     "POST /simulate",
     "POST /soil/decode/modbus",
     "POST /soil/ingest",

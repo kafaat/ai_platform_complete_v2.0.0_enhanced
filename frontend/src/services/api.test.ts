@@ -173,7 +173,7 @@ describe('classifySegmentationError (تعامل صادق عند غياب الن�
   });
 });
 
-describe('segmentField (POST /api/segmentation/segment)', () => {
+describe('segmentField (POST /api/segmentation/v1/segment)', () => {
   it('يطلب المسار الصحيح بالحمولة (bbox/mode) ويُعيد الهندسة المُقترَحة', async () => {
     const result = {
       geometry: { type: 'Polygon', coordinates: [[[44, 15], [44.01, 15], [44.01, 15.01], [44, 15]]] },
@@ -184,7 +184,7 @@ describe('segmentField (POST /api/segmentation/segment)', () => {
     const payload = { mode: 'auto' as const, bbox: [44, 15, 44.01, 15.01] as [number, number, number, number] };
     const out = await segmentField(payload);
     // UI3: مهلة 90s صريحة للنداء الثقيل
-    expect(mockPost).toHaveBeenCalledWith('/api/segmentation/segment', payload, { timeout: 90000 });
+    expect(mockPost).toHaveBeenCalledWith('/api/segmentation/v1/segment', payload, { timeout: 90000 });
     expect(out).toEqual(result);
   });
 

@@ -137,7 +137,7 @@ field-management-service,GET,/internal/fields,internal_list_fields,services/fiel
 field-segmentation,GET,/healthz,healthz,services/field-segmentation/main.py,370
 field-segmentation,GET,/health,legacy_health,services/field-segmentation/main.py,375
 field-segmentation,GET,/readyz,readyz,services/field-segmentation/main.py,380
-field-segmentation,POST,/segment,segment,services/field-segmentation/main.py,391
+field-segmentation,POST,/v1/segment,segment,services/field-segmentation/main.py,391
 guardrails-engine,GET,/healthz,healthz,services/guardrails-engine/routers/health.py,22
 guardrails-engine,GET,/readyz,readyz,services/guardrails-engine/routers/health.py,27
 guardrails-engine,GET,/metrics,metrics_endpoint,services/guardrails-engine/routers/health.py,46

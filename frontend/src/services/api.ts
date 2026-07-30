@@ -554,7 +554,7 @@ export const createScoutingPin = (input: ScoutingPinCreateInput): Promise<Scouti
     )
     .then(r => r.data);
 
-// ── تقطيع الحقل المُساعَد (POST /api/segmentation/segment) — اقتراح حدّ لا فرضه ──
+// ── تقطيع الحقل المُساعَد (POST /api/segmentation/v1/segment) — اقتراح حدّ لا فرضه ──
 // خدمة تقطيع الحقول المُوكَّلة عبر البوّابة: تأخذ نطاق (bbox) ووضعاً (تلقائيّ/هجين)
 // فتقترح مضلّع حدود يُحمَّل في طبقة الرسم القابلة للتحرير ليؤكّده المستخدم أو يعدّله —
 // لا يُعتمَد بلا مراجعة بشريّة. صدق صارم: لا مضلّع مُفبرَك عند غياب النموذج. الخادم
@@ -624,11 +624,11 @@ export function classifySegmentationError(e: unknown): SegmentationErrorKind {
   return 'error';
 }
 
-/** يطلب تقطيعاً مُساعَداً لحدّ الحقل (POST /api/segmentation/segment) — اقتراح فقط.
+/** يطلب تقطيعاً مُساعَداً لحدّ الحقل (POST /api/segmentation/v1/segment) — اقتراح فقط.
  *  يرمي عند الخطأ ليصنّفه classifySegmentationError في الواجهة (503 نموذج غير مُهيَّأ
  *  ⇒ رسالة صريحة + رسم يدويّ؛ 404 غير منشورة ⇒ غير متاح بلطف). لا fallback مُفبرَك. */
 export const segmentField = (payload: SegmentFieldInput): Promise<SegmentFieldResult> =>
-  kongApi.post<SegmentFieldResult>('/api/segmentation/segment', payload, { timeout: 90_000 }).then(r => r.data);
+  kongApi.post<SegmentFieldResult>('/api/segmentation/v1/segment', payload, { timeout: 90_000 }).then(r => r.data);
 
 // ── مركز قيادة المحفظة (POST /api/v1/portfolio/command) ──
 // يقارن سياسات ريّ متعدّدة عبر حقول المزرعة تحت قيود مصادر الماء، فيُراكِب الربح×المخاطرة

@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8daa054dca14573f772d03ba887deffb54054451b74c9c577da43e8a021aa53c"
+          "content": "86127fe856324342af7a131daa33f00483bc19fb79e4f8759e73879ae566855a"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6425,7 +6425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0bd29e688b5011b53599de50e48a6a21f17983a908fcea1284815e75a01d09e2"
+          "content": "fc83c920fa5c0100b02eb600a83358e5920adb5a32ec18791cf5195a5ffc0888"
         }
       ],
       "name": "frontend/src/services/api.test.ts",
@@ -6435,7 +6435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e77e02b16a86e5f0afc2a6d0752d4dc20ba6e2f8642f1169a8c60b85c993a0b"
+          "content": "1637a5fcad866c4f365583e75121585168c93e0a912873194a1061361d78e19d"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -11775,7 +11775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b877546c8f2798f0620730c08462143ee3519175cfabd168b15dc14772a4dbcb"
+          "content": "e07f3688797ceb6ec4569de9f40e307fa7799ec330d3cc2fdb4131a2a7c504cb"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -11805,7 +11805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "667fc686a6b75212fa23b5adfb5334a16c38b7b1bb7bba6ea07490f4227142d0"
+          "content": "0a2f1018dc725218cd5fe25eb0d79d09aa911e29ba5620cc4f8ced732fe24377"
         }
       ],
       "name": "services/field-segmentation/test_segmentation.py",
