@@ -61,8 +61,9 @@ def sup_mod():
 
 # ── المنصّة: حماية + تسجيل النقطة الداخليّة ──
 def test_internal_state_route_registered(app_mod):
-    paths = {getattr(r, "path", None) for r in app_mod.app.routes}
-    assert "/internal/fields/{field_id}/state" in paths
+    from conftest import registered_paths
+
+    assert "/internal/fields/{field_id}/state" in registered_paths(app_mod.app)
 
 
 def test_require_service_token_fail_closed(app_mod, monkeypatch):

@@ -124,12 +124,9 @@ def test_main_source_has_no_bidi_chars():
 def test_diagnose_route_registered(core_on_path):
     import api.main as m
 
-    methods = {
-        meth
-        for r in m.app.routes
-        if getattr(r, "path", None) == "/api/v1/diagnose"
-        for meth in (getattr(r, "methods", set()) or set())
-    }
+    from conftest import registered_methods
+
+    methods = registered_methods(m.app, "/api/v1/diagnose")
     assert "POST" in methods, "نقطة POST /api/v1/diagnose غير مُسجَّلة"
 
 

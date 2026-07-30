@@ -71,10 +71,7 @@ def test_derived_alerts_route_registered(core_on_path):
     pytest.importorskip("fastapi")
     import api.main as m
 
-    methods = {
-        meth
-        for r in m.app.routes
-        if getattr(r, "path", None) == "/api/v1/fields/{field_id}/alerts/derived"
-        for meth in (getattr(r, "methods", set()) or set())
-    }
+    from conftest import registered_methods
+
+    methods = registered_methods(m.app, "/api/v1/fields/{field_id}/alerts/derived")
     assert "GET" in methods, "نقطة GET /api/v1/fields/{field_id}/alerts/derived غير مُسجَّلة"

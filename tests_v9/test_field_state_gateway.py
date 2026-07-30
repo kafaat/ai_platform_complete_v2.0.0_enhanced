@@ -102,11 +102,8 @@ def test_canonical_state_endpoint_registered(core_on_path):
     """نقطة /api/v1/fields/{field_id}/state مُسجَّلة GET (بوّابة مصدر الحقيقة)."""
     import api.main as m
 
-    routes = {
-        (getattr(r, "path", None), tuple(sorted(getattr(r, "methods", set()) or [])))
-        for r in m.app.routes
-    }
+    from conftest import registered_methods, registered_paths
+
     path = "/api/v1/fields/{field_id}/state"
-    methods = {meth for (p, ms) in routes if p == path for meth in ms}
-    assert path in {p for (p, _) in routes}, "canonical state route غير مُسجَّلة"
-    assert "GET" in methods
+    assert path in registered_paths(m.app), "canonical state route غير مُسجَّلة"
+    assert "GET" in registered_methods(m.app, path)

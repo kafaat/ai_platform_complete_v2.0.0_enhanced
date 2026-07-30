@@ -55,6 +55,27 @@ service_urls = {
 }
 
 
+_HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head", "trace"}
+
+
+def registered_paths(app) -> set[str]:
+    """Route paths from the app's public OpenAPI contract, not FastAPI's internal
+    ``app.routes`` representation (APP-ROUTES-INTROSPECTION-COUPLING-01): the
+    internal shape isn't stable across FastAPI versions — ``app.routes`` stopped
+    flattening included routers into path ``Route`` objects as of 0.140, wrapping
+    them in ``_IncludedRouter`` instead, which doesn't expose ``.path`` at all.
+    The OpenAPI surface is stable by contract.
+    """
+    return set(app.openapi().get("paths") or {})
+
+
+def registered_methods(app, path: str) -> set[str]:
+    """HTTP methods registered for ``path``, read the same stable way as
+    ``registered_paths`` (APP-ROUTES-INTROSPECTION-COUPLING-01)."""
+    operations = (app.openapi().get("paths") or {}).get(path) or {}
+    return {method.upper() for method in operations if method.lower() in _HTTP_METHODS}
+
+
 def make_token(
     user_id: int = 1, role: str = "farmer", tenant_id: str = None, expired: bool = False
 ) -> str:

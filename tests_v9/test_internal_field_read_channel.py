@@ -47,7 +47,9 @@ def app_mod():
 
 
 def test_platform_no_longer_hosts_internal_field_read(app_mod):
-    paths = {getattr(r, "path", None) for r in app_mod.app.routes}
+    from conftest import registered_paths
+
+    paths = registered_paths(app_mod.app)
     assert "/api/v1/internal/fields/{field_id}" not in paths
     assert "/api/v1/internal/fields" not in paths
 
@@ -74,7 +76,9 @@ def field_mod():
 
 
 def test_field_service_registers_internal_routes(field_mod):
-    paths = {getattr(r, "path", None) for r in field_mod.app.routes}
+    from conftest import registered_paths
+
+    paths = registered_paths(field_mod.app)
     assert "/internal/fields/{field_id}" in paths
     assert "/internal/fields" in paths
 
