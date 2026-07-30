@@ -65,7 +65,7 @@ def test_sam2_profile_has_default_inference_url_when_backend_enabled():
     data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
     env = data["services"]["sahool-field-segmentation"]["environment"]
     assert env["SEGMENTATION_BACKEND"] == "${SEGMENTATION_BACKEND:-}"
-    assert env["SEGMENTATION_INFERENCE_URL"].endswith("sahool-sam2-inference:8080/predict}")
+    assert env["SEGMENTATION_INFERENCE_URL"].endswith("sahool-sam2-inference:8080/v1/predict}")
 
 
 def test_unified_and_light_edge_ports_match_internal_8100():

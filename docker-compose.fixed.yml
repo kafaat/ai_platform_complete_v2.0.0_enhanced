@@ -1184,7 +1184,7 @@ services:
   #            sahool-sam2-inference
   #   ولتفعيل المسار من field-segmentation اضبط في .env:
   #     SEGMENTATION_BACKEND=sam2
-  #     SEGMENTATION_INFERENCE_URL=http://sahool-sam2-inference:8080/predict
+  #     SEGMENTATION_INFERENCE_URL=http://sahool-sam2-inference:8080/v1/predict
   # ═══════════════════════════════════════════════════════════════
   sahool-sam2-inference:
     build:

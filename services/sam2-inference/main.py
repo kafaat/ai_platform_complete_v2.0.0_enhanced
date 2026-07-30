@@ -20,7 +20,7 @@ async def _startup() -> None:
     rt._load_model()
 
 
-@app.post("/predict")
+@app.post("/v1/predict")
 async def predict(req: rt.PredictRequest, x_agent_token: str = Header(None)):
     """يشغّل SAM2 لإنتاج مضلّع الحقل. يطابق عقد field-segmentation تماماً."""
     started = time.perf_counter()

@@ -8419,9 +8419,9 @@
     "file": "services/sam2-inference/main.py",
     "line": 24,
     "method": "POST",
-    "path": "/predict",
+    "path": "/v1/predict",
     "handler": "predict",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "sam2-inference",

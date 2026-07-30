@@ -769,7 +769,7 @@ sahool-platform.webhooks.delivery-plan,command,sahool-platform,POST /webhooks/de
 sahool-platform.wofost.adaptation-guidance,query,sahool-platform,GET /api/v1/wofost/adaptation-guidance,frontend,route,False
 sahool-platform.wofost.crop-types,query,sahool-platform,GET /api/v1/wofost/crop-types,frontend,route,False
 sahool-platform.work-orders.from-recommendation,command,sahool-platform,POST /api/v1/work-orders/from-recommendation,frontend,route,False
-sam2-inference.predict,command,sam2-inference,POST /predict,,route,False
+sam2-inference.predict,command,sam2-inference,POST /v1/predict,,route,False
 scout-ingest-service.internal.field-forms.assignments,command,scout-ingest-service,POST /internal/field-forms/assignments,,route,False
 scout-ingest-service.internal.field-forms.definitions,command,scout-ingest-service,POST /internal/field-forms/definitions|POST /internal/field-forms/definitions/{code}/versions,,route,False
 scout-ingest-service.internal.field-forms.download,query,scout-ingest-service,GET /internal/field-forms/download,,route,False

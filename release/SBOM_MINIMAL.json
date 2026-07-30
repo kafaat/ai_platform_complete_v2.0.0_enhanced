@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c709b0d2333960da4aac4dc7abbdc9f603b4a929856094434f4c9b36c8fe1509"
+          "content": "21e278faa02a01cd50e70b3391e4955260298d6381f08802353514583ac5def3"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4259bc7311c836ea8517aa0fd0e46eae5fd251e54731ddb466f7fb173239d72f"
+          "content": "91a32fd81ee712ebbc656b9218cf4a8d4546cc7c2eed2e2b05237f8710cffd9f"
         }
       ],
       "name": "docker-compose.v9.gpu.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf31a78abd968db9029cea96a69320f45cda282bb6ba98ed673ec86446c52b84"
+          "content": "de6fc49aa188f450249d47a88027310f71c302b0786d11c42b56815ac2822060"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a57359e2b70b02633d723833955b8a3da7a1e7ce87668583970dbcffaf0d3bb"
+          "content": "ca7f0cb3f795f0689fbdb5faecbe40aa74928d9ec0826d77808c882b2012b8b6"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -27015,7 +27015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "237816c4177eb08c04ce4819ed8c23c21070cb63f36318bfa1022d7c09026ef6"
+          "content": "592984153fecc606582e066b0e5a7bedb3047ab2e380306b2108b16dd3e721dd"
         }
       ],
       "name": "services/sam2-inference/main.py",
@@ -27035,7 +27035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76834992ef73d9a04f7ffce1a2767b25dbd8d6855b71674819a41f38ef8eb5b6"
+          "content": "5938cd1ecbccdb4b11d778b409bd8c2589dda6affb066123201622d07ecd8efa"
         }
       ],
       "name": "services/sam2-inference/sam2_runtime.py",

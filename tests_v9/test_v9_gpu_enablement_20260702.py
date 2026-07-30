@@ -46,7 +46,7 @@ def test_gpu_overlay_enables_rtx5090_paths():
     assert env(services["sahool-edge"])["EDGE_DEVICE"] == "${EDGE_DEVICE:-rtx5090}"
     seg_env = env(services["sahool-field-segmentation"])
     assert seg_env["SEGMENTATION_BACKEND"] == "sam2"
-    assert seg_env["SEGMENTATION_INFERENCE_URL"] == "http://sahool-sam2-inference:8080/predict"
+    assert seg_env["SEGMENTATION_INFERENCE_URL"] == "http://sahool-sam2-inference:8080/v1/predict"
 
 
 def test_sam2_dockerfile_defaults_to_cuda_128_image():

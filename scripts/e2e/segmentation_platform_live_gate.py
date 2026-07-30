@@ -6,7 +6,7 @@ Validates the production trust boundary:
 
 By default this is a safe live contract gate: it requires a user JWT and calls the public
 platform route.  Set SEGMENTATION_REQUIRE_MODEL=true to require the SAM2 service to report
-model_loaded=true and to execute an auto/hybrid request that should reach /predict.
+model_loaded=true and to execute an auto/hybrid request that should reach /v1/predict.
 
 Environment:
   SAHOOL_BASE_URL=https://localhost
