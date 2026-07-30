@@ -3688,23 +3688,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.agents.propose",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /agents/propose"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.agricultural-proverbs",
       "consumers": [
         "frontend"
@@ -4008,23 +3991,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.ai-boundary.plan",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /ai-boundary/plan"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -4428,23 +4394,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.calculate",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /calculate"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.calendars.context",
       "consumers": [
         "frontend"
@@ -4809,23 +4758,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.champion-challenger",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /champion-challenger"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.chat",
       "consumers": [
         "frontend"
@@ -5054,23 +4986,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.cog-registry",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /cog-registry"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.commands.command_id",
       "consumers": [
         "frontend"
@@ -5087,57 +5002,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.commissioning.authorize",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /commissioning/authorize"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.commissioning.certificates",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /commissioning/certificates"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.commissioning.systems.system_id",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /commissioning/systems/{system_id}/current"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -5198,40 +5062,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.connectors.descriptor",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /connectors/descriptor"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.consensus",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /consensus"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.consistency.freshness",
       "consumers": [
         "frontend"
@@ -5267,23 +5097,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.context",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /context"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -5518,23 +5331,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.cycle",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /cycle"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.data-readiness",
       "consumers": [
         "frontend"
@@ -5551,23 +5347,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.dataset",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /dataset"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -5991,23 +5770,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.developer-portal.index",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /developer-portal/index"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.devices",
       "consumers": [
         "frontend"
@@ -6297,23 +6059,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.drift",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /drift"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.economics.break-even",
       "consumers": [
         "frontend"
@@ -6371,6 +6116,247 @@
     },
     {
       "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.connectors.descriptor",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/connectors/descriptor"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.cycle",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/cycle"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.developer-portal.index",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/ecosystem/developer-portal/index"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.graphql.schema",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/ecosystem/graphql/schema"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.marketplace.apps",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/marketplace/apps"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.marketplace.installations",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/marketplace/installations"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.plugins.runtime",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/plugins/runtime/event-envelope",
+        "POST /v1/ecosystem/plugins/runtime/plan",
+        "POST /v1/ecosystem/plugins/runtime/report",
+        "POST /v1/ecosystem/plugins/runtime/validate-output"
+      ],
+      "idempotency_required": true,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.plugins.sandbox-policy",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/plugins/sandbox-policy"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.plugins.validate",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/plugins/validate"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.quota.check",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/quota/check"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.sdk.manifest",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/ecosystem/sdk/manifest"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.usage",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/usage"
+      ],
+      "idempotency_required": true,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.webhooks",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/webhooks"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.ecosystem.webhooks.delivery-plan",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/ecosystem/webhooks/delivery-plan"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "sahool-platform.edge.path:path",
       "consumers": [
         "frontend"
@@ -6407,40 +6393,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.editing-sessions",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /editing-sessions"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.editing-sessions.undo-redo",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /editing-sessions/undo-redo"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -6539,40 +6491,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.events.from-plan",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /events/from-plan"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.events.replay",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /events/replay"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -6687,57 +6605,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.experiments.assign",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /experiments/assign"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.experiments.evaluate",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /experiments/evaluate"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.experiments.shadow",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /experiments/shadow"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -7128,91 +6995,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.feature-schema",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /feature-schema"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.feature-store.offline-dataset",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /feature-store/offline-dataset"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.feature-store.online-materialization",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /feature-store/online-materialization"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.feature-store.point-in-time",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /feature-store/point-in-time"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.feature-store.register",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /feature-store/register"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -8754,23 +8536,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.geoparquet.export",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /geoparquet/export"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.gis.buffer",
       "consumers": [
         "frontend"
@@ -8782,6 +8547,289 @@
       ],
       "idempotency_required": false,
       "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.ai-boundary",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/gis/cloud-native/ai-boundary/plan"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.cog-registry",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/gis/cloud-native/cog-registry"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.editing-sessions",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/gis/cloud-native/editing-sessions",
+        "POST /api/v1/gis/cloud-native/editing-sessions/undo-redo"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.geoparquet",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/gis/cloud-native/geoparquet/export"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.locks",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "DELETE /api/v1/gis/cloud-native/locks/{field_id}",
+        "POST /api/v1/gis/cloud-native/locks"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "field",
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.management-zones",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/gis/cloud-native/management-zones/summary"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.mosaicjson",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/gis/cloud-native/mosaicjson"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.ogc",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/gis/cloud-native/ogc",
+        "GET /api/v1/gis/cloud-native/ogc/collections",
+        "GET /api/v1/gis/cloud-native/ogc/collections/fields/items",
+        "GET /api/v1/gis/cloud-native/ogc/conformance"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.phase6",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/gis/cloud-native/phase6/boundaries/extract",
+        "POST /api/v1/gis/cloud-native/phase6/digital-twin/snapshot",
+        "POST /api/v1/gis/cloud-native/phase6/management-zones/generate",
+        "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate",
+        "POST /api/v1/gis/cloud-native/phase6/profitability-map",
+        "POST /api/v1/gis/cloud-native/phase6/yield-stability"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.rasters",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/gis/cloud-native/rasters/{raster_id}/tilejson.json"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.scene-processing-plan",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/gis/cloud-native/scene-processing-plan"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.scene-ranking",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/gis/cloud-native/scene-ranking"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.stac",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/gis/cloud-native/stac",
+        "GET /api/v1/gis/cloud-native/stac/collections",
+        "GET /api/v1/gis/cloud-native/stac/collections/{collection_id}",
+        "GET /api/v1/gis/cloud-native/stac/conformance",
+        "GET /api/v1/gis/cloud-native/stac/queryables",
+        "GET /api/v1/gis/cloud-native/stac/search",
+        "POST /api/v1/gis/cloud-native/stac/search"
+      ],
+      "idempotency_required": false,
+      "kind": "mixed",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.gis.cloud-native.tile-cache-plan",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/gis/cloud-native/tile-cache-plan"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
       "owner": "sahool-platform",
       "producer": "sahool-platform",
       "required_context": [
@@ -8844,23 +8892,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.graphql.schema",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /graphql/schema"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -9074,23 +9105,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.interactive-calculate",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /interactive-calculate"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.internal.events.ai-advice",
       "consumers": [
         "frontend"
@@ -9242,57 +9256,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.iot.dispatch.preview",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /iot/dispatch/preview"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.iot.dispatch.simulate",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /iot/dispatch/simulate"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.iot.telemetry.verify",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /iot/telemetry/verify"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.ipm.crop-pests",
       "consumers": [
         "frontend"
@@ -9434,6 +9397,108 @@
       "derived_from": "route",
       "entrypoints": [
         "POST /api/v1/irrigation-recommendation"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.irrigation.engineering.calculate",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/irrigation/engineering/calculate"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.irrigation.engineering.commissioning",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/irrigation/engineering/commissioning/systems/{system_id}/current",
+        "POST /api/v1/irrigation/engineering/commissioning/authorize",
+        "POST /api/v1/irrigation/engineering/commissioning/certificates"
+      ],
+      "idempotency_required": false,
+      "kind": "mixed",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.irrigation.engineering.interactive-calculate",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/irrigation/engineering/interactive-calculate"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.irrigation.engineering.manual-executions",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/irrigation/engineering/manual-executions",
+        "POST /api/v1/irrigation/engineering/manual-executions",
+        "POST /api/v1/irrigation/engineering/manual-executions/{execution_id}/confirm",
+        "POST /api/v1/irrigation/engineering/manual-executions/{execution_id}/reconcile",
+        "POST /api/v1/irrigation/engineering/manual-executions/{execution_id}/transition",
+        "POST /api/v1/irrigation/engineering/manual-executions/{execution_id}/verify"
+      ],
+      "idempotency_required": true,
+      "kind": "mixed",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.irrigation.engineering.network-calculate",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /api/v1/irrigation/engineering/network-calculate"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -10038,145 +10103,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.locks",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /locks"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.locks.field_id",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "DELETE /locks/{field_id}"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": [
-        "field"
-      ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.management-zones.summary",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /management-zones/summary"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.manual-executions",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /manual-executions",
-        "POST /manual-executions"
-      ],
-      "idempotency_required": true,
-      "kind": "mixed",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.manual-executions.execution_id.confirm",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /manual-executions/{execution_id}/confirm"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.manual-executions.execution_id.reconcile",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /manual-executions/{execution_id}/reconcile"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.manual-executions.execution_id.transition",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /manual-executions/{execution_id}/transition"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.manual-executions.execution_id.verify",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /manual-executions/{execution_id}/verify"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.market.crop-classification-readiness",
       "consumers": [
         "frontend"
@@ -10212,40 +10138,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.marketplace.apps",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /marketplace/apps"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.marketplace.installations",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /marketplace/installations"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -10285,125 +10177,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.models.promote",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /models/promote"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.models.register",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /models/register"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.models.serving.alias:path",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /models/serving/{alias:path}"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.models.serving.promote",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /models/serving/promote"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.models.serving.rollback",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /models/serving/rollback"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.mosaicjson",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /mosaicjson"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.network-calculate",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /network-calculate"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -10579,74 +10352,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.ogc",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /ogc"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.ogc.collections",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /ogc/collections"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.ogc.collections.fields",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /ogc/collections/fields/items"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.ogc.conformance",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /ogc/conformance"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.onboarding.questionnaire",
       "consumers": [
         "frontend"
@@ -10683,40 +10388,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.online-update",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /online-update"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.operation-plan",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /operation-plan"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -10853,14 +10524,14 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase6.boundaries.extract",
+      "capability_id": "sahool-platform.phase10.learning.champion-challenger",
       "consumers": [
         "frontend"
       ],
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /phase6/boundaries/extract"
+        "POST /v1/phase10/learning/champion-challenger"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -10870,14 +10541,14 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase6.digital-twin.snapshot",
+      "capability_id": "sahool-platform.phase10.learning.cycle",
       "consumers": [
         "frontend"
       ],
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /phase6/digital-twin/snapshot"
+        "POST /v1/phase10/learning/cycle"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -10887,14 +10558,14 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase6.management-zones.generate",
+      "capability_id": "sahool-platform.phase10.learning.dataset",
       "consumers": [
         "frontend"
       ],
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /phase6/management-zones/generate"
+        "POST /v1/phase10/learning/dataset"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -10904,14 +10575,14 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase6.prescriptions.generate",
+      "capability_id": "sahool-platform.phase10.learning.drift",
       "consumers": [
         "frontend"
       ],
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /phase6/prescriptions/generate"
+        "POST /v1/phase10/learning/drift"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -10921,14 +10592,14 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase6.profitability-map",
+      "capability_id": "sahool-platform.phase10.learning.experiments",
       "consumers": [
         "frontend"
       ],
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /phase6/profitability-map"
+        "POST /v1/phase10/learning/experiments/evaluate"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -10938,14 +10609,14 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.phase6.yield-stability",
+      "capability_id": "sahool-platform.phase10.learning.feature-schema",
       "consumers": [
         "frontend"
       ],
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /phase6/yield-stability"
+        "POST /v1/phase10/learning/feature-schema"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -10955,14 +10626,367 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.plan",
+      "capability_id": "sahool-platform.phase10.learning.feature-store",
       "consumers": [
         "frontend"
       ],
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /plan"
+        "POST /v1/phase10/learning/feature-store/offline-dataset",
+        "POST /v1/phase10/learning/feature-store/online-materialization",
+        "POST /v1/phase10/learning/feature-store/point-in-time",
+        "POST /v1/phase10/learning/feature-store/register"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase10.learning.models",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /v1/phase10/learning/models/serving/{alias:path}",
+        "POST /v1/phase10/learning/models/promote",
+        "POST /v1/phase10/learning/models/register",
+        "POST /v1/phase10/learning/models/serving/promote",
+        "POST /v1/phase10/learning/models/serving/rollback"
+      ],
+      "idempotency_required": false,
+      "kind": "mixed",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase10.learning.online-update",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase10/learning/online-update"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase10.learning.retraining",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase10/learning/retraining/plan"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase10.learning.scenario",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase10/learning/scenario"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase11.federation.agents",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase11/federation/agents/propose"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase11.federation.consensus",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase11/federation/consensus"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase11.federation.context",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase11/federation/context"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase11.federation.cycle",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase11/federation/cycle"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase11.federation.experiments",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase11/federation/experiments/shadow"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase11.federation.operation-plan",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase11/federation/operation-plan"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase11.federation.quality",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase11/federation/quality"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase11.federation.runtime",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase11/federation/runtime/authority-envelope",
+        "POST /v1/phase11/federation/runtime/event-envelope",
+        "POST /v1/phase11/federation/runtime/reputation/update",
+        "POST /v1/phase11/federation/runtime/resolve"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase9.autonomy.cycle",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase9/autonomy/cycle"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase9.autonomy.events",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase9/autonomy/events/from-plan",
+        "POST /v1/phase9/autonomy/events/replay"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase9.autonomy.experiments",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase9/autonomy/experiments/assign"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase9.autonomy.iot",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase9/autonomy/iot/dispatch/preview",
+        "POST /v1/phase9/autonomy/iot/dispatch/simulate",
+        "POST /v1/phase9/autonomy/iot/telemetry/verify"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase9.autonomy.models",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase9/autonomy/models/register"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase9.autonomy.plan",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase9/autonomy/plan"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase9.autonomy.verify",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase9/autonomy/verify"
+      ],
+      "idempotency_required": false,
+      "kind": "command",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.phase9.autonomy.verify-loop",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "POST /v1/phase9/autonomy/verify-loop"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -11026,108 +11050,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.plugins.runtime.event-envelope",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /plugins/runtime/event-envelope"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.plugins.runtime.plan",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /plugins/runtime/plan"
-      ],
-      "idempotency_required": true,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.plugins.runtime.report",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /plugins/runtime/report"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.plugins.runtime.validate-output",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /plugins/runtime/validate-output"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.plugins.sandbox-policy",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /plugins/sandbox-policy"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.plugins.validate",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /plugins/validate"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -11357,23 +11279,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.quality",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /quality"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.queue.status",
       "consumers": [
         "frontend"
@@ -11393,23 +11298,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.quota.check",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /quota/check"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.raster.path:path",
       "consumers": [
         "frontend"
@@ -11426,23 +11314,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.rasters.raster_id.tilejson.json",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /rasters/{raster_id}/tilejson.json"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -11942,23 +11813,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.retraining.plan",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /retraining/plan"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.rotation.evaluate",
       "consumers": [
         "frontend"
@@ -12033,74 +11887,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.runtime.authority-envelope",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /runtime/authority-envelope"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.runtime.event-envelope",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /runtime/event-envelope"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.runtime.reputation.update",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /runtime/reputation/update"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.runtime.resolve",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /runtime/resolve"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.salinity.assess",
       "consumers": [
         "frontend"
@@ -12136,23 +11922,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.scenario",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /scenario"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -12251,40 +12020,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.scene-processing-plan",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /scene-processing-plan"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.scene-ranking",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /scene-ranking"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.scouting.pins",
       "consumers": [
         "frontend"
@@ -12320,23 +12055,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.sdk.manifest",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /sdk/manifest"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -12685,109 +12403,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.stac",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /stac"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.stac.collections",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /stac/collections"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.stac.collections.collection_id",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /stac/collections/{collection_id}"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.stac.conformance",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /stac/conformance"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.stac.queryables",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /stac/queryables"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.stac.search",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /stac/search",
-        "POST /stac/search"
-      ],
-      "idempotency_required": false,
-      "kind": "mixed",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.sync",
       "consumers": [
         "frontend"
@@ -12940,23 +12555,6 @@
     },
     {
       "approval_required": false,
-      "capability_id": "sahool-platform.tile-cache-plan",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "GET /tile-cache-plan"
-      ],
-      "idempotency_required": false,
-      "kind": "query",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
       "capability_id": "sahool-platform.trials.analyze",
       "consumers": [
         "frontend"
@@ -12973,23 +12571,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.usage",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /usage"
-      ],
-      "idempotency_required": true,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -13085,40 +12666,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.verify",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /verify"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.verify-loop",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /verify-loop"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -13938,40 +13485,6 @@
       "required_context": [
         "tenant"
       ]
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.webhooks",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /webhooks"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
-    },
-    {
-      "approval_required": false,
-      "capability_id": "sahool-platform.webhooks.delivery-plan",
-      "consumers": [
-        "frontend"
-      ],
-      "curated": false,
-      "derived_from": "route",
-      "entrypoints": [
-        "POST /webhooks/delivery-plan"
-      ],
-      "idempotency_required": false,
-      "kind": "command",
-      "owner": "sahool-platform",
-      "producer": "sahool-platform",
-      "required_context": []
     },
     {
       "approval_required": false,
@@ -17448,20 +16961,20 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 853,
+    "capabilities": 820,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
     "capabilities_idempotent": 46,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 458,
+    "capabilities_tenant_scoped": 477,
     "components": 34,
-    "cross_service_duplicate_method_paths": 14,
-    "duplicate_groups_classified": 14,
+    "cross_service_duplicate_method_paths": 12,
+    "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
     "route_rows": 1105,
     "ui_waivers": 52,
-    "unique_method_path": 992
+    "unique_method_path": 998
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17654,34 +17167,6 @@
       "path": "/runtime-identity"
     },
     {
-      "canonical_owner": "raster-service",
-      "classification": "legacy_bff_facade",
-      "classified": true,
-      "components": [
-        "raster-service",
-        "sahool-platform"
-      ],
-      "decision": "raster-service يملك STAC؛ مسار المنصّة واجهة توافق واعية بالمستأجِر فقط.",
-      "expires_on": "2026-12-31",
-      "facade": "sahool-platform",
-      "method": "GET",
-      "path": "/stac"
-    },
-    {
-      "canonical_owner": "raster-service",
-      "classification": "legacy_bff_facade",
-      "classified": true,
-      "components": [
-        "raster-service",
-        "sahool-platform"
-      ],
-      "decision": "raster-service يملك مجموعات STAC؛ مسار المنصّة واجهة توافق فقط.",
-      "expires_on": "2026-12-31",
-      "facade": "sahool-platform",
-      "method": "GET",
-      "path": "/stac/collections"
-    },
-    {
       "canonical_owner": null,
       "classification": "service_scoped_semantics",
       "classified": true,
@@ -17738,7 +17223,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "ee1967e23faf454bb17861c342a626ecf998332022d6703b7b42712c0d6fcc63",
+  "fingerprint": "1b3c2926e6785cf929a2f6eaae355a62c88fb9624345cc207697fd9f34bc2bb3",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
