@@ -124,8 +124,8 @@ knowledge-graph,services/knowledge-graph/main.py,120,POST,/v1/nodes,upsert_node,
 knowledge-graph,services/knowledge-graph/main.py,128,POST,/v1/edges,upsert_edge,business_endpoint
 knowledge-graph,services/knowledge-graph/main.py,137,GET,/v1/edges,edges,business_endpoint
 knowledge-graph,services/knowledge-graph/main.py,151,POST,/graphql,graphql,business_endpoint
-local-ai-rag,services/local-ai-rag/main.py,420,POST,/query,query_endpoint,business_endpoint
-local-ai-rag,services/local-ai-rag/main.py,430,POST,/ingest,ingest_endpoint,business_endpoint
+local-ai-rag,services/local-ai-rag/main.py,420,POST,/v1/query,query_endpoint,business_endpoint
+local-ai-rag,services/local-ai-rag/main.py,430,POST,/v1/ingest,ingest_endpoint,business_endpoint
 local-ai-rag,services/local-ai-rag/main.py,482,GET,/healthz,healthz,health
 local-ai-rag,services/local-ai-rag/main.py,500,GET,/health,legacy_health,health
 local-ai-rag,services/local-ai-rag/main.py,505,GET,/readyz,readyz,readiness

@@ -123,8 +123,8 @@ indicators-service.indicators.ownership,query,indicators-service,GET /v1/indicat
 knowledge-graph.edges,mixed,knowledge-graph,GET /v1/edges|POST /v1/edges,,route,False
 knowledge-graph.graphql,command,knowledge-graph,POST /graphql,,route,False
 knowledge-graph.nodes,command,knowledge-graph,POST /v1/nodes,,route,False
-local-ai-rag.ingest,command,local-ai-rag,POST /ingest,,route,False
-local-ai-rag.query,command,local-ai-rag,POST /query,,route,False
+local-ai-rag.ingest,command,local-ai-rag,POST /v1/ingest,,route,False
+local-ai-rag.query,command,local-ai-rag,POST /v1/query,,route,False
 mcp_servers.<dynamic>,command,mcp_servers,POST <dynamic>,,route,False
 mcp_servers.analytics.tenant_id,query,mcp_servers,GET /analytics/{tenant_id},,route,False
 mcp_servers.mcp.tools,query,mcp_servers,GET /v1/mcp/tools,,route,False
@@ -805,10 +805,10 @@ supervisor-agent.agent.optimize,command,supervisor-agent,POST /v1/agent/optimize
 supervisor-agent.agent.query,command,supervisor-agent,POST /v1/agent/query,frontend,route,False
 supervisor-agent.agent.tools,query,supervisor-agent,GET /v1/agent/tools,frontend,route,False
 supervisor-agent.healthz.deps,query,supervisor-agent,GET /healthz/deps,frontend,route,False
-tts-service.tts.status,query,tts-service,GET /tts/status,frontend,route,False
-tts-service.tts.stream,command,tts-service,POST /tts/stream,frontend,route,False
-tts-service.tts.synthesize,command,tts-service,POST /tts/synthesize,frontend,route,False
-tts-service.tts.voices,query,tts-service,GET /tts/voices,frontend,route,False
+tts-service.tts.status,query,tts-service,GET /v1/tts/status,frontend,route,False
+tts-service.tts.stream,command,tts-service,POST /v1/tts/stream,frontend,route,False
+tts-service.tts.synthesize,command,tts-service,POST /v1/tts/synthesize,frontend,route,False
+tts-service.tts.voices,query,tts-service,GET /v1/tts/voices,frontend,route,False
 vegetation-analysis-service.all_fields,query,vegetation-analysis-service,GET /v1/all_fields,frontend,route,False
 vegetation-analysis-service.analyze,query,vegetation-analysis-service,GET /v1/analyze,frontend,route,False
 vegetation-analysis-service.anomalies.anomaly_ref:path.decision-referrals,command,vegetation-analysis-service,POST /v1/anomalies/{anomaly_ref:path}/decision-referrals,frontend,route,False

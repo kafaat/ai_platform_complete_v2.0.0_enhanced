@@ -416,7 +416,7 @@ def _require_ready() -> None:
         raise HTTPException(503, "الخدمة قيد التهيئة — النماذج تُحمَّل، أعد المحاولة لاحقاً")
 
 
-@app.post("/query", response_model=QueryResponse)
+@app.post("/v1/query", response_model=QueryResponse)
 async def query_endpoint(req: QueryRequest, user: dict = Depends(_get_rag_user)):
     _require_ready()
     # العزل من مصدر موثوق: tenant_id من الـJWT لا من جسم الطلب (يمنع قراءة مستأجِر آخر).
@@ -426,7 +426,7 @@ async def query_endpoint(req: QueryRequest, user: dict = Depends(_get_rag_user))
     return await query_rag(req.question, _validate_tenant_id(str(tenant_id)), req.k)
 
 
-@app.post("/ingest")
+@app.post("/v1/ingest")
 async def ingest_endpoint(
     files: list[UploadFile] = File(...),
     tenant_id: str = Form("default"),

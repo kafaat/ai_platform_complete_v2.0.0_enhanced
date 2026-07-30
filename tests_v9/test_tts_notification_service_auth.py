@@ -166,7 +166,7 @@ def test_cache_key_empty_tenant_normalized(monkeypatch):
 
 # ── (ج) Cache-Control = private (مصدريّ، يغطّي مساري HIT/MISS) ────────────────
 def test_cache_control_is_private_not_public():
-    # بعد تفكيك main.py إلى routers/، انتقل مُعالِج /tts/synthesize (مع رؤوس
+    # بعد تفكيك main.py إلى routers/، انتقل مُعالِج /v1/tts/synthesize (مع رؤوس
     # Cache-Control) إلى routers/tts.py. نمسح main.py + routers/*.py معاً عبر
     # المساعِد المُجمِّع كي يبقى المسح صحيحاً بلا إضعاف أيّ تأكيد (توسيع نطاق فقط).
     from tts_route_source import tts_combined_source

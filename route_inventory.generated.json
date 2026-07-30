@@ -1332,7 +1332,7 @@
     "file": "services/local-ai-rag/main.py",
     "line": 420,
     "method": "POST",
-    "path": "/query",
+    "path": "/v1/query",
     "function": "query_endpoint"
   },
   {
@@ -1340,7 +1340,7 @@
     "file": "services/local-ai-rag/main.py",
     "line": 430,
     "method": "POST",
-    "path": "/ingest",
+    "path": "/v1/ingest",
     "function": "ingest_endpoint"
   },
   {
@@ -8332,7 +8332,7 @@
     "file": "services/tts-service/routers/tts.py",
     "line": 21,
     "method": "GET",
-    "path": "/tts/voices",
+    "path": "/v1/tts/voices",
     "function": "list_voices"
   },
   {
@@ -8340,7 +8340,7 @@
     "file": "services/tts-service/routers/tts.py",
     "line": 31,
     "method": "GET",
-    "path": "/tts/status",
+    "path": "/v1/tts/status",
     "function": "tts_status"
   },
   {
@@ -8348,7 +8348,7 @@
     "file": "services/tts-service/routers/tts.py",
     "line": 44,
     "method": "POST",
-    "path": "/tts/synthesize",
+    "path": "/v1/tts/synthesize",
     "function": "synthesize"
   },
   {
@@ -8356,7 +8356,7 @@
     "file": "services/tts-service/routers/tts.py",
     "line": 125,
     "method": "POST",
-    "path": "/tts/stream",
+    "path": "/v1/tts/stream",
     "function": "stream"
   },
   {

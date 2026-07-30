@@ -162,8 +162,8 @@ knowledge-graph,POST,/v1/nodes,upsert_node,services/knowledge-graph/main.py,120
 knowledge-graph,POST,/v1/edges,upsert_edge,services/knowledge-graph/main.py,128
 knowledge-graph,GET,/v1/edges,edges,services/knowledge-graph/main.py,137
 knowledge-graph,POST,/graphql,graphql,services/knowledge-graph/main.py,151
-local-ai-rag,POST,/query,query_endpoint,services/local-ai-rag/main.py,420
-local-ai-rag,POST,/ingest,ingest_endpoint,services/local-ai-rag/main.py,430
+local-ai-rag,POST,/v1/query,query_endpoint,services/local-ai-rag/main.py,420
+local-ai-rag,POST,/v1/ingest,ingest_endpoint,services/local-ai-rag/main.py,430
 local-ai-rag,GET,/healthz,healthz,services/local-ai-rag/main.py,482
 local-ai-rag,GET,/health,legacy_health,services/local-ai-rag/main.py,500
 local-ai-rag,GET,/readyz,readyz,services/local-ai-rag/main.py,505
@@ -1006,10 +1006,10 @@ supervisor-agent,GET,/healthz/deps,healthz_deps,services/supervisor-agent/router
 tts-service,GET,/healthz,health,services/tts-service/routers/health.py,22
 tts-service,GET,/readyz,readyz,services/tts-service/routers/health.py,27
 tts-service,GET,/metrics,metrics,services/tts-service/routers/health.py,43
-tts-service,GET,/tts/voices,list_voices,services/tts-service/routers/tts.py,21
-tts-service,GET,/tts/status,tts_status,services/tts-service/routers/tts.py,31
-tts-service,POST,/tts/synthesize,synthesize,services/tts-service/routers/tts.py,44
-tts-service,POST,/tts/stream,stream,services/tts-service/routers/tts.py,125
+tts-service,GET,/v1/tts/voices,list_voices,services/tts-service/routers/tts.py,21
+tts-service,GET,/v1/tts/status,tts_status,services/tts-service/routers/tts.py,31
+tts-service,POST,/v1/tts/synthesize,synthesize,services/tts-service/routers/tts.py,44
+tts-service,POST,/v1/tts/stream,stream,services/tts-service/routers/tts.py,125
 vegetation-analysis-service,GET,/v1/analyze,analyze,services/vegetation-analysis-service/routers/analysis.py,22
 vegetation-analysis-service,GET,/v1/timeseries/{field_id},timeseries,services/vegetation-analysis-service/routers/analysis.py,46
 vegetation-analysis-service,GET,/v1/ndvi/current/{field_id},current_ndvi,services/vegetation-analysis-service/routers/analysis.py,91

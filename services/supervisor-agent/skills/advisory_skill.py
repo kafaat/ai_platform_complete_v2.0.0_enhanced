@@ -57,7 +57,7 @@ async def _query_local_rag(question: str, token: str | None) -> dict[str, Any] |
     try:
         async with httpx.AsyncClient(timeout=RAG_TIMEOUT_S) as client:
             resp = await client.post(
-                f"{LOCAL_AI_RAG_URL.rstrip('/')}/query",
+                f"{LOCAL_AI_RAG_URL.rstrip('/')}/v1/query",
                 json={"question": question},
                 headers=headers,
             )

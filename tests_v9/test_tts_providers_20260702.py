@@ -9,7 +9,7 @@ tts-service:
     لا طلب⇒الافتراضيّ — بمزوّدين وهميّين يتحكّمون بـ``available()``.
   • ``EdgeTTSProvider`` متاح؛ ``PiperProvider``/``XTTSProvider`` غير متاحين حين
     تغيب المكتبة/العلم (يُرقَّع عبر البيئة).
-  • مُعالِج ``/tts/status`` (importorskip fastapi) — شكل الخرج يُعدّد المزوّدين
+  • مُعالِج ``/v1/tts/status`` (importorskip fastapi) — شكل الخرج يُعدّد المزوّدين
     مع is_default.
 
 تُحمَّل الوحدتان النقيّتان (providers/arabic_normalizer) مباشرةً من مجلّد الخدمة
@@ -185,7 +185,7 @@ class TestProviderAvailability:
         assert reg[0].name == DEFAULT_PROVIDER_NAME
 
 
-# ── مُعالِج /tts/status و/tts/voices (يتطلّبان fastapi) ─────────────────────────
+# ── مُعالِج /v1/tts/status و/v1/tts/voices (يتطلّبان fastapi) ─────────────────────────
 # نمرّر توكن JWT حقيقيّاً (aud=sahool، مُصدِر مسموح) عبر رأس Bearer بدل تجاوز
 # التبعيّة: راوترات الخدمة تُضمَّن بتمديد app.routes مباشرةً (تسطيح) فلا يُضبَط
 # dependency_overrides_provider عليها ⇒ التجاوز لا يُستشار. التوكن الحقيقيّ أمتن.
@@ -224,13 +224,13 @@ def _load_main():
     """
 
     def _is_tts_main_with_status(mod) -> bool:
-        # ليست أيّ نسخة tts تكفي: يجب أن تحمل مسار ``/tts/status`` الجديد (نسخة قديمة
+        # ليست أيّ نسخة tts تكفي: يجب أن تحمل مسار ``/v1/tts/status`` الجديد (نسخة قديمة
         # حمّلها اختبار آخر قد لا تملكه إن سبق تسجيل راوترها). نتحقّق من المسار فعليّاً.
         from conftest import registered_paths
 
         if mod is None or not hasattr(mod, "app") or not hasattr(mod, "VOICES"):
             return False
-        return "/tts/status" in registered_paths(mod.app)
+        return "/v1/tts/status" in registered_paths(mod.app)
 
     # أعِد استعمال نسخة tts محمّلة **تملك المسار** (تُميَّز بـ``VOICES`` — لا تخلطها مع
     # ``main`` خدمة أخرى مثل video-processor في التشغيل الكامل للسويت).
@@ -241,7 +241,7 @@ def _load_main():
     # تحميل نظيف: صدّر مجلّد tts على sys.path، وأخلِ الوحدات الشقيقة المُخزَّنة (main +
     # router_registry + routers.* + الوحدات النقيّة) — سواء لخدمة أخرى بالاسم نفسه أو
     # لنسخة tts سابقة رُبِطت راوتراتها بتطبيق قديم — كي تُعاد ربطها بالتطبيق الطازج
-    # فيُسجَّل ``/tts/status``. المقاييس idempotent (``_metric`` في main) فلا تكرار prometheus.
+    # فيُسجَّل ``/v1/tts/status``. المقاييس idempotent (``_metric`` في main) فلا تكرار prometheus.
     while str(_SVC_DIR) in sys.path:
         sys.path.remove(str(_SVC_DIR))
     sys.path.insert(0, str(_SVC_DIR))
@@ -260,8 +260,8 @@ def _load_main():
     from conftest import registered_paths
 
     assert hasattr(main, "VOICES"), "استُورِد ``main`` خدمة أخرى بدل tts (تصادم اسم الوحدة)"
-    assert "/tts/status" in registered_paths(main.app), (
-        "لم يُسجَّل مسار /tts/status على التطبيق الطازج (راوترات شقيقة مُخزَّنة قديمة)"
+    assert "/v1/tts/status" in registered_paths(main.app), (
+        "لم يُسجَّل مسار /v1/tts/status على التطبيق الطازج (راوترات شقيقة مُخزَّنة قديمة)"
     )
     return main
 
@@ -275,7 +275,7 @@ def test_status_endpoint_shape():
     from fastapi.testclient import TestClient
 
     client = TestClient(main.app)
-    resp = client.get("/tts/status", headers=_bearer(main))
+    resp = client.get("/v1/tts/status", headers=_bearer(main))
     assert resp.status_code == 200
     body = resp.json()
     assert body["default"] == "edge_tts"
@@ -300,7 +300,7 @@ def test_voices_endpoint_includes_providers():
     from fastapi.testclient import TestClient
 
     client = TestClient(main.app)
-    resp = client.get("/tts/voices", headers=_bearer(main))
+    resp = client.get("/v1/tts/voices", headers=_bearer(main))
     assert resp.status_code == 200
     body = resp.json()
     assert body["default"] == main.DEFAULT_VOICE

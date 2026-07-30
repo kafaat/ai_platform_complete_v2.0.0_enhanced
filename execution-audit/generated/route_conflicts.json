@@ -1,6 +1,6 @@
 {
   "analysis_kind": "static_repository_evidence",
-  "cross_scope_candidate_count": 19,
+  "cross_scope_candidate_count": 17,
   "cross_scope_candidates": [
     {
       "classification": "review_only_distinct_module_or_router",
@@ -1000,29 +1000,6 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "POST",
-      "path": "/ingest",
-      "registrations": [
-        {
-          "function": "ingest_endpoint",
-          "line": 430,
-          "method": "POST",
-          "module": "services/local-ai-rag/main.py",
-          "path": "/ingest",
-          "receiver": "app"
-        },
-        {
-          "function": "ingest",
-          "line": 90,
-          "method": "POST",
-          "module": "services/rag-retrieval/main.py",
-          "path": "/ingest",
-          "receiver": "app"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "POST",
       "path": "/models/register",
       "registrations": [
         {
@@ -1063,29 +1040,6 @@
           "module": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
           "path": "/plan",
           "receiver": "router"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "POST",
-      "path": "/query",
-      "registrations": [
-        {
-          "function": "query",
-          "line": 360,
-          "method": "POST",
-          "module": "services/ai_agronomist/main.py",
-          "path": "/query",
-          "receiver": "app"
-        },
-        {
-          "function": "query_endpoint",
-          "line": 420,
-          "method": "POST",
-          "module": "services/local-ai-rag/main.py",
-          "path": "/query",
-          "receiver": "app"
         }
       ]
     },
@@ -1164,7 +1118,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "ae597ebaca0328baf36e7ac3b576b51a52418fc4f7994b37d42d6851db1e3baa",
+  "route_inventory_sha256": "aafc9b0d9d748d10f908f1e1f03ec48a7a655f15474d32ac58b4689848e06389",
   "runtime_verified": false,
   "schema_version": 1
 }

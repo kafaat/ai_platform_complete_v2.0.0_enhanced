@@ -1322,7 +1322,7 @@
       "line": 420,
       "handler": "query_endpoint",
       "method": "POST",
-      "path": "/query"
+      "path": "/v1/query"
     },
     {
       "owner": "local-ai-rag",
@@ -1330,7 +1330,7 @@
       "line": 430,
       "handler": "ingest_endpoint",
       "method": "POST",
-      "path": "/ingest"
+      "path": "/v1/ingest"
     },
     {
       "owner": "local-ai-rag",
@@ -8074,7 +8074,7 @@
       "line": 21,
       "handler": "list_voices",
       "method": "GET",
-      "path": "/tts/voices"
+      "path": "/v1/tts/voices"
     },
     {
       "owner": "tts-service",
@@ -8082,7 +8082,7 @@
       "line": 31,
       "handler": "tts_status",
       "method": "GET",
-      "path": "/tts/status"
+      "path": "/v1/tts/status"
     },
     {
       "owner": "tts-service",
@@ -8090,7 +8090,7 @@
       "line": 44,
       "handler": "synthesize",
       "method": "POST",
-      "path": "/tts/synthesize"
+      "path": "/v1/tts/synthesize"
     },
     {
       "owner": "tts-service",
@@ -8098,7 +8098,7 @@
       "line": 125,
       "handler": "stream",
       "method": "POST",
-      "path": "/tts/stream"
+      "path": "/v1/tts/stream"
     },
     {
       "owner": "vegetation-analysis-service",

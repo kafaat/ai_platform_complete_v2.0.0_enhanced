@@ -123,7 +123,7 @@ async def send_tts_voice(text: str, telegram_chat_id: int, voice: str = "yemeni_
 
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
-                f"{tts_url}/tts/synthesize",
+                f"{tts_url}/v1/tts/synthesize",
                 json={"text": text[:1000], "voice": voice},
                 # مصادقة خدمة-لخدمة: tts يتحقّق من السرّ المشترك X-Agent-Token
                 # (== SAHOOL_AGENT_TOKEN)، لا من حاملة Bearer لتوكن وكيل. كان
