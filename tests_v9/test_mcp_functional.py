@@ -224,14 +224,14 @@ def test_market_mcp_call_endpoint_enforces_scope():
 def test_market_rest_endpoint_requires_bearer():
     """The auth that IS enforced: market REST surface needs a Bearer token.
 
-    Confirms market_server is not auth-free everywhere — /products (and the other
+    Confirms market_server is not auth-free everywhere — /v1/products (and the other
     REST routes) use Depends(_get_current_user) and reject missing tokens with 401.
     """
     mod = _import_server("market_server")
     client = _test_client(mod.app)
-    resp = client.get("/products")
+    resp = client.get("/v1/products")
     assert resp.status_code == 401, (
-        f"market REST /products should require a Bearer token; got {resp.status_code}"
+        f"market REST /v1/products should require a Bearer token; got {resp.status_code}"
     )
 
 

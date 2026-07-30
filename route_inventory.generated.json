@@ -1420,7 +1420,7 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 632,
     "method": "GET",
-    "path": "/products",
+    "path": "/v1/products",
     "function": "api_search_products"
   },
   {
@@ -1660,7 +1660,7 @@
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 71,
     "method": "GET",
-    "path": "/products",
+    "path": "/v1/products",
     "function": "list_erp_products"
   },
   {

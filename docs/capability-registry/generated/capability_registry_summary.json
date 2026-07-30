@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "capabilities_total": 81,
   "domains_total": 10,
-  "registry_sha256": "0642d6a7c707f65d972372029ccc291f8dc4b75ac1285a997845271a98599ed7",
+  "registry_sha256": "7e3e2cd34adacdb11b33a637c4aedd05006db9ef75bdfa4a3b4c0df95a26732f",
   "by_domain": {
     "decision": 10,
     "farm_management": 10,

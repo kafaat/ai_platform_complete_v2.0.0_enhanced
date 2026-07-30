@@ -24,7 +24,7 @@
 │  Market MCP Server (:8094)                                  │
 │  ├─ /v1/mcp/tools/list   — 8 tools (MCP Protocol)          │
 │  ├─ /v1/mcp/tools/call   — تنفيذ الأدوات                   │
-│  ├─ /products            — REST: بحث منتجات                  │
+│  ├─ /v1/products         — REST: بحث منتجات                  │
 │  ├─ /suppliers/{id}      — REST: تفاصيل مورد               │
 │  ├─ /procurement         — REST: إنشاء طلب شراء            │
 │  ├─ /procurement/{id}    — REST: حالة الطلب                │
@@ -110,7 +110,7 @@ docker compose -f docker-compose.light.yml up -d market-mcp
 
 ```bash
 # بحث منتجات
-curl "http://localhost:8094/products?q=يوريا&limit=5"
+curl "http://localhost:8094/v1/products?q=يوريا&limit=5"
 
 # تفاصيل مورد
 curl http://localhost:8094/suppliers/11111111-1111-1111-1111-111111111111
@@ -193,7 +193,7 @@ class MarketService {
   final String baseUrl = "http://sahool-market-mcp:8000";
 
   Future<List<Product>> searchProducts(String query) async {
-    final res = await http.get(Uri.parse("$baseUrl/products?q=$query"));
+    final res = await http.get(Uri.parse("$baseUrl/v1/products?q=$query"));
     final data = jsonDecode(res.body);
     return (data['products'] as List).map((e) => Product.fromJson(e)).toList();
   }

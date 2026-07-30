@@ -628,7 +628,7 @@ async def mcp_tools_call(req: MCPCallRequest, user: dict = Depends(require_scope
 
 
 # ── REST Endpoints (FIXED: auth required) ────────────────────
-@app.get("/products")
+@app.get("/v1/products")
 async def api_search_products(
     q: str | None = None,
     category: str | None = None,

@@ -579,7 +579,7 @@
 | `/process/batch` | internal | — |
 | `/procurement` | internal | — |
 | `/procurement/{order_id}` | internal | — |
-| `/products` | internal | — |
+| `/v1/products` | internal | — |
 | `/quality` | internal | — |
 | `/query` | internal | — |
 | `/quota/check` | internal | — |

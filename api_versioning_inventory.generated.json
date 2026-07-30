@@ -1597,9 +1597,9 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 632,
     "method": "GET",
-    "path": "/products",
+    "path": "/v1/products",
     "handler": "api_search_products",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
@@ -1858,9 +1858,9 @@
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 71,
     "method": "GET",
-    "path": "/products",
+    "path": "/v1/products",
     "handler": "list_erp_products",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "odoo-bridge",

@@ -85,3 +85,29 @@ def test_mcp_protocol_atomic_contract_migrated_to_versioned_prefix():
                 f"{r['method']} {r['path']} ({r['file']}:{r['line']}) did not classify as "
                 f"versioned: {r['classification']}"
             )
+
+
+def test_products_cross_service_contract_migrated_to_versioned_prefix():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, Agent A slice 2 (2026-07-30): ``GET
+    /products`` collapsed two unrelated routes in two different services --
+    services/mcp_servers/market_server.py (MCP marketplace products, port 8094)
+    and services/odoo-bridge/routers/catalog.py (ERP products via Odoo, port
+    8126) -- into a single (method, path) string in the legacy allowlist. Both
+    moved together to ``GET /v1/products`` in the same slice/PR since the guard
+    dedups by (method, path) text, not by service. Falsified by construction:
+    reverting either decorator to ``/products`` makes this fail by naming the
+    exact service + file:line that leaked."""
+    rows = guard.collect()
+    old_path_leaks = [r for r in rows if r["path"] == "/products"]
+    assert old_path_leaks == [], f"pre-migration /products path still present: {old_path_leaks}"
+
+    new_rows = [r for r in rows if r["method"] == "GET" and r["path"] == "/v1/products"]
+    services_seen = {r["service"] for r in new_rows}
+    assert services_seen == {"mcp_servers", "odoo-bridge"}, (
+        f"expected GET /v1/products in both mcp_servers and odoo-bridge, found: {services_seen}"
+    )
+    for r in new_rows:
+        assert r["classification"] == "versioned", (
+            f"{r['method']} {r['path']} ({r['file']}:{r['line']}) did not classify as "
+            f"versioned: {r['classification']}"
+        )

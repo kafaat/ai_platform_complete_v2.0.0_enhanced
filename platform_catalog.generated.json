@@ -1668,7 +1668,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /products"
+        "GET /v1/products"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2128,7 +2128,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /products"
+        "GET /v1/products"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -17633,20 +17633,6 @@
       "classification": "service_scoped_semantics",
       "classified": true,
       "components": [
-        "erp-bridge",
-        "mcp_servers"
-      ],
-      "decision": "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما.",
-      "expires_on": "2026-12-31",
-      "facade": null,
-      "method": "GET",
-      "path": "/products"
-    },
-    {
-      "canonical_owner": null,
-      "classification": "service_scoped_semantics",
-      "classified": true,
-      "components": [
         "ai_agronomist",
         "local-ai-rag"
       ],
@@ -17750,9 +17736,23 @@
       "facade": "sahool-platform",
       "method": "GET",
       "path": "/stac/collections"
+    },
+    {
+      "canonical_owner": null,
+      "classification": "service_scoped_semantics",
+      "classified": true,
+      "components": [
+        "erp-bridge",
+        "mcp_servers"
+      ],
+      "decision": "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما. (كان /products قبل API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل A الثانية، 2026-07-30 — نُقل المسار لا الحكم.)",
+      "expires_on": "2026-12-31",
+      "facade": null,
+      "method": "GET",
+      "path": "/v1/products"
     }
   ],
-  "fingerprint": "04068dd9c1730a4a548af1233e018ebb1a0ff6bcef01e3e2baa97a8bfdda3b0d",
+  "fingerprint": "9dd82e062a3f53edca171f04a97ef51fe4d20d40e5753a73d337fad320e65f63",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
