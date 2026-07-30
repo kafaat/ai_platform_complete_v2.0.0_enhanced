@@ -377,17 +377,17 @@ _GR_AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
 def _require_service_token(x_agent_token: str = _Header(None)):
-    """يفرض توكن خدمة على /validate. صدق: بلا توكن مضبوط → فشل-مغلق.
+    """يفرض توكن خدمة على /v1/validate. صدق: بلا توكن مضبوط → فشل-مغلق.
 
-    منع باب خلفي: لا يُقبل /validate من أيّ جهة بلا توكن الخدمة الصحيح.
+    منع باب خلفي: لا يُقبل /v1/validate من أيّ جهة بلا توكن الخدمة الصحيح.
     """
     if not _GR_AGENT_TOKEN:
-        raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — /validate معطّل بأمان")
+        raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — /v1/validate معطّل بأمان")
     # L5 FIX: مقارنة بزمن ثابت (كـodoo-bridge) لإغلاق قناة توقيت جانبيّة.
     import hmac as _hmac
 
     if not x_agent_token or not _hmac.compare_digest(x_agent_token, _GR_AGENT_TOKEN):
-        raise HTTPException(401, "توكن خدمة غير صالح لـ/validate")
+        raise HTTPException(401, "توكن خدمة غير صالح لـ/v1/validate")
     return True
 
 

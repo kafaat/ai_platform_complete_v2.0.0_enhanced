@@ -415,7 +415,7 @@ capabilities:
   - services/actuator-service/main.py
   - services/sahool-platform/api/main.py
   apis:
-  - GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178
+  - GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178
   - GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31
   - GET /v1/commands @ services/actuator-service/routers/commands.py:70
   - GET /health @ services/actuator-service/routers/health.py:20

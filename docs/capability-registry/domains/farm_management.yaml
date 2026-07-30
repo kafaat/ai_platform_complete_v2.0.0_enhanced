@@ -168,7 +168,7 @@ capabilities:
   - GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:140
   - GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179
   - GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:41
-  - POST /agent/optimize @ services/supervisor-agent/routers/agent.py:89
+  - POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:89
   - POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:247
   - POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:130
   - POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:864

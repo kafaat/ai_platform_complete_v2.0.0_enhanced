@@ -244,7 +244,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 24,
       "module": "services.guardrails-engine.routers.validation",
       "node_id": "services.guardrails-engine.routers.validation:router",
       "route_count": 3,
@@ -2215,7 +2215,7 @@
     },
     {
       "kind": "router",
-      "line": 20,
+      "line": 27,
       "module": "services.supervisor-agent.routers.agent",
       "node_id": "services.supervisor-agent.routers.agent:router",
       "route_count": 5,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "0a935a68d4c05147b082d63e8fca25a66a1a5f3e7a27fe9cb4cb1c46b41d4e29",
+  "inventory_sha256": "44c18198d1a73e3e7fd0e66ad369036b07f7ef2e53ce8ed466a188fdbb5cfe2e",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2732,7 +2732,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 24,
       "module": "services.guardrails-engine.routers.validation",
       "node_id": "services.guardrails-engine.routers.validation:router",
       "route_count": 3,
@@ -4732,7 +4732,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 20,
+      "line": 27,
       "module": "services.supervisor-agent.routers.agent",
       "node_id": "services.supervisor-agent.routers.agent:router",
       "route_count": 5,

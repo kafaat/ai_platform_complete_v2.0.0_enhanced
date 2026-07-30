@@ -33,7 +33,7 @@ _REQUIRED = {
     "/api/vegetation/": "sahool-vegetation-analysis:8000/",
     "/api/indicators/": "sahool-platform:8000/api/v1/indicators/",
     "/api/weather/": "sahool-platform:8000/api/v1/weather/",
-    "/api/agent/": "sahool-supervisor-agent:8000/agent/",
+    "/api/agent/": "sahool-supervisor-agent:8000/v1/agent/",
     "/api/guardrails/": "sahool-guardrails-engine:8000/",
 }
 
@@ -59,7 +59,7 @@ def test_service_locations_present_and_before_catchall():
 
 
 def test_proxy_targets_match_v9_transforms():
-    """أهداف proxy_pass تطابق تحويلات الإنتاج (v1 للمؤشّرات/الطقس، /agent/ للوكيل)."""
+    """أهداف proxy_pass تطابق تحويلات الإنتاج (v1 للمؤشّرات/الطقس، /v1/agent/ للوكيل)."""
     src = _read(_FRONTEND_NGINX)
     for path, target in _REQUIRED.items():
         assert (
@@ -133,13 +133,15 @@ def test_raster_still_present_before_catchall():
 
 
 def test_v9_uses_same_path_transforms():
-    """تأكيد مرجعيّ: nginx.v9.conf يحوّل indicators/weather إلى /api/v1/ والوكيل إلى /agent/."""
+    """تأكيد مرجعيّ: nginx.v9.conf يحوّل indicators/weather إلى /api/v1/ والوكيل إلى /v1/agent/
+    (API-VERSIONING-GUARD-IS-A-MIRROR-01، شريحة 2026-07-30: خلفيّة supervisor-agent صارت
+    مُصدَّرة؛ البوّابة الخارجيّة /api/agent/* بقيت كما هي، فقط هدف proxy_pass الداخليّ تغيّر)."""
     if not os.path.exists(_V9_NGINX):
         pytest.skip("nginx.v9.conf غير موجود")
     v9 = _read(_V9_NGINX)
     assert "/api/v1/indicators/" in v9, "v9 لا يحوّل المؤشّرات إلى /api/v1/"
     assert "/api/v1/weather/" in v9, "v9 لا يحوّل الطقس إلى /api/v1/"
-    assert "supervisor_backend/agent/" in v9, "v9 لا يوكّل الوكيل إلى /agent/"
+    assert "supervisor_backend/v1/agent/" in v9, "v9 لا يوكّل الوكيل إلى /v1/agent/"
 
 
 def test_segmentation_routes_via_platform_with_long_timeout():

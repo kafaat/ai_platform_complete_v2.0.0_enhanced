@@ -147,3 +147,47 @@ def test_actuator_commands_migrated_to_versioned_prefix():
                 f"{r['method']} {r['path']} ({r['file']}:{r['line']}) did not classify as "
                 f"versioned: {r['classification']}"
             )
+
+
+def test_guardrails_and_supervisor_agent_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, slice 2026-07-30 (agent B): both
+    guardrails-engine/routers/validation.py and supervisor-agent/routers/agent.py
+    declare their routers with no ``prefix=`` and are mounted flat
+    (``register_routers`` docstrings in both files say so), so the decorator
+    literal *is* the real runtime path -- unlike phase9-12/gis_cloud_native.py/
+    irrigation_engineering.py, whose ``APIRouter(prefix=...)`` the classifier
+    cannot see (documented in api_versioning_legacy_baseline.json). These eight
+    routes were genuinely unversioned and are now migrated to /v1/*; none of
+    them may remain in collect()'s legacy_unversioned_business output, and
+    the old bare paths must not still be declared in either file.
+    """
+    rows = guard.collect()
+    migrated_files = (
+        "services/guardrails-engine/routers/validation.py",
+        "services/supervisor-agent/routers/agent.py",
+    )
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/guardrails-engine/routers/validation.py": {
+            "/validate",
+            "/approve/{workflow_id}",
+            "/workflow/{workflow_id}",
+        },
+        "services/supervisor-agent/routers/agent.py": {
+            "/agent/query",
+            "/agent/optimize",
+            "/agent/tools",
+            "/agent/journal/{invocation_id}",
+            "/agent/actuator-audit",
+        },
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"

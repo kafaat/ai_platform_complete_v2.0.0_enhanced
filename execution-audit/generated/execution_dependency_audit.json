@@ -1151,26 +1151,26 @@
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
-      "line": 22,
+      "line": 28,
       "handler": "validate_action",
       "method": "POST",
-      "path": "/validate"
+      "path": "/v1/validate"
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
-      "line": 36,
+      "line": 42,
       "handler": "approve_workflow",
       "method": "POST",
-      "path": "/approve/{workflow_id}"
+      "path": "/v1/approve/{workflow_id}"
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
-      "line": 56,
+      "line": 62,
       "handler": "get_workflow",
       "method": "GET",
-      "path": "/workflow/{workflow_id}"
+      "path": "/v1/workflow/{workflow_id}"
     },
     {
       "owner": "indicators-service",
@@ -7975,42 +7975,42 @@
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "line": 24,
+      "line": 31,
       "handler": "process_query",
       "method": "POST",
-      "path": "/agent/query"
+      "path": "/v1/agent/query"
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "line": 89,
+      "line": 96,
       "handler": "optimize_farm",
       "method": "POST",
-      "path": "/agent/optimize"
+      "path": "/v1/agent/optimize"
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "line": 132,
+      "line": 139,
       "handler": "list_tools",
       "method": "GET",
-      "path": "/agent/tools"
+      "path": "/v1/agent/tools"
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "line": 154,
+      "line": 161,
       "handler": "get_journal_replay",
       "method": "GET",
-      "path": "/agent/journal/{invocation_id}"
+      "path": "/v1/agent/journal/{invocation_id}"
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "line": 178,
+      "line": 185,
       "handler": "get_actuator_audit",
       "method": "GET",
-      "path": "/agent/actuator-audit"
+      "path": "/v1/agent/actuator-audit"
     },
     {
       "owner": "supervisor-agent",
@@ -85075,161 +85075,161 @@
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "validate_action",
       "target": "post",
-      "line": 21
+      "line": 27
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "validate_action",
       "target": "Depends",
-      "line": 23
+      "line": 29
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "validate_action",
       "target": "get_guardrails_engine",
-      "line": 31
+      "line": 37
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "validate_action",
       "target": "validate",
-      "line": 32
+      "line": 38
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "post",
-      "line": 35
+      "line": 41
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "Depends",
-      "line": 37
+      "line": 43
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "str",
-      "line": 45
+      "line": 51
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "get",
-      "line": 46
+      "line": 52
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "str",
-      "line": 46
+      "line": 52
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "get",
-      "line": 47
+      "line": 53
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "str",
-      "line": 47
+      "line": 53
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "HumanApprovalWorkflow",
-      "line": 48
+      "line": 54
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "approve",
-      "line": 50
+      "line": 56
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "approve_workflow",
       "target": "reject",
-      "line": 52
+      "line": 58
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "get",
-      "line": 55
+      "line": 61
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "Depends",
-      "line": 56
+      "line": 62
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "HumanApprovalWorkflow",
-      "line": 63
+      "line": 69
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "get_status",
-      "line": 64
+      "line": 70
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "get",
-      "line": 65
+      "line": 71
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "get",
-      "line": 65
+      "line": 71
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "str",
-      "line": 65
+      "line": 71
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "str",
-      "line": 65
+      "line": 71
     },
     {
       "owner": "guardrails-engine",
       "file": "services/guardrails-engine/routers/validation.py",
       "source": "get_workflow",
       "target": "HTTPException",
-      "line": 66
+      "line": 72
     },
     {
       "owner": "guardrails-engine",
@@ -448319,181 +448319,139 @@
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
       "target": "post",
-      "line": 23
+      "line": 30
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
       "target": "Depends",
-      "line": 25
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "now",
-      "line": 27
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "classify_intent",
-      "line": 28
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "get",
-      "line": 29
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "int",
-      "line": 31
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "now",
-      "line": 31
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "total_seconds",
-      "line": 31
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "AgentResponse",
       "line": 32
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
-      "target": "get",
-      "line": 39
+      "target": "now",
+      "line": 34
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "classify_intent",
+      "line": 35
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
       "target": "get",
-      "line": 39
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "get",
-      "line": 40
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "AsyncClient",
-      "line": 48
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "_fetch_field_state",
-      "line": 49
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "bind_field_context",
-      "line": 50
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "execute",
-      "line": 52
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "warning",
-      "line": 64
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "_degraded_response",
-      "line": 65
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "_format_arabic_response",
-      "line": 66
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "get",
-      "line": 69
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "get",
-      "line": 71
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "process_query",
-      "target": "_validate_actions_via_guardrails",
-      "line": 72
+      "line": 36
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
       "target": "int",
-      "line": 75
+      "line": 38
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
       "target": "now",
-      "line": 75
+      "line": 38
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
       "target": "total_seconds",
-      "line": 75
+      "line": 38
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
       "target": "AgentResponse",
+      "line": 39
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "get",
+      "line": 46
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "get",
+      "line": 46
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "get",
+      "line": 47
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "AsyncClient",
+      "line": 55
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "_fetch_field_state",
+      "line": 56
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "bind_field_context",
+      "line": 57
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "execute",
+      "line": 59
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "warning",
+      "line": 71
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "_degraded_response",
+      "line": 72
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "_format_arabic_response",
+      "line": 73
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "get",
       "line": 76
     },
     {
@@ -448507,274 +448465,316 @@
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
-      "target": "get",
+      "target": "_validate_actions_via_guardrails",
       "line": 79
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "process_query",
-      "target": "get",
+      "target": "int",
+      "line": 82
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "now",
+      "line": 82
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "total_seconds",
+      "line": 82
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "process_query",
+      "target": "AgentResponse",
       "line": 83
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "post",
-      "line": 88
+      "source": "process_query",
+      "target": "get",
+      "line": 85
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "Depends",
-      "line": 89
+      "source": "process_query",
+      "target": "get",
+      "line": 86
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "now",
+      "source": "process_query",
+      "target": "get",
       "line": 90
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "optimize_farm",
-      "target": "HTTPException",
-      "line": 92
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "get",
-      "line": 94
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "execute",
+      "target": "post",
       "line": 95
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "optimize_farm",
-      "target": "execute",
-      "line": 98
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "execute",
-      "line": 101
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "gather",
-      "line": 104
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "_generate_scenarios",
-      "line": 105
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "_pareto_optimal",
-      "line": 106
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "_select_balanced",
-      "line": 107
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "_validate_via_guardrails",
-      "line": 110
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "get",
-      "line": 115
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "optimize_farm",
-      "target": "int",
-      "line": 118
+      "target": "Depends",
+      "line": 96
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "optimize_farm",
       "target": "now",
-      "line": 118
+      "line": 97
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "HTTPException",
+      "line": 99
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "get",
+      "line": 101
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "execute",
+      "line": 102
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "execute",
+      "line": 105
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "execute",
+      "line": 108
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "gather",
+      "line": 111
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "_generate_scenarios",
+      "line": 112
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "_pareto_optimal",
+      "line": 113
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "_select_balanced",
+      "line": 114
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "_validate_via_guardrails",
+      "line": 117
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "get",
+      "line": 122
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "int",
+      "line": 125
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "optimize_farm",
+      "target": "now",
+      "line": 125
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "optimize_farm",
       "target": "total_seconds",
-      "line": 118
+      "line": 125
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "optimize_farm",
       "target": "_generate_tradeoff_arabic",
-      "line": 123
+      "line": 130
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "list_tools",
       "target": "get",
-      "line": 131
+      "line": 138
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "list_tools",
       "target": "Depends",
-      "line": 132
+      "line": 139
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "list_tools",
       "target": "get_contract",
-      "line": 136
+      "line": 143
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "list_tools",
       "target": "append",
-      "line": 137
+      "line": 144
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "list_tools",
       "target": "len",
-      "line": 150
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "get_journal_replay",
-      "target": "get",
-      "line": 153
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "get_journal_replay",
-      "target": "Depends",
-      "line": 154
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "get_journal_replay",
-      "target": "get",
-      "line": 156
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "get_journal_replay",
-      "target": "replay",
       "line": 157
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "get_journal_replay",
-      "target": "HTTPException",
+      "target": "get",
+      "line": 160
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "get_journal_replay",
+      "target": "Depends",
       "line": 161
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "source": "get_actuator_audit",
+      "source": "get_journal_replay",
       "target": "get",
-      "line": 177
+      "line": 163
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "source": "get_actuator_audit",
-      "target": "Depends",
-      "line": 178
+      "source": "get_journal_replay",
+      "target": "replay",
+      "line": 164
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
-      "source": "get_actuator_audit",
-      "target": "get",
-      "line": 183
-    },
-    {
-      "owner": "supervisor-agent",
-      "file": "services/supervisor-agent/routers/agent.py",
-      "source": "get_actuator_audit",
+      "source": "get_journal_replay",
       "target": "HTTPException",
+      "line": 168
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "get_actuator_audit",
+      "target": "get",
       "line": 184
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "get_actuator_audit",
-      "target": "get",
+      "target": "Depends",
       "line": 185
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "get_actuator_audit",
+      "target": "get",
+      "line": 190
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "get_actuator_audit",
+      "target": "HTTPException",
+      "line": 191
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "get_actuator_audit",
+      "target": "get",
+      "line": 192
+    },
+    {
+      "owner": "supervisor-agent",
+      "file": "services/supervisor-agent/routers/agent.py",
+      "source": "get_actuator_audit",
       "target": "get_entries",
-      "line": 186
+      "line": 193
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "get_actuator_audit",
       "target": "list_by_side_effect",
-      "line": 187
+      "line": 194
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "get_actuator_audit",
       "target": "set",
-      "line": 187
+      "line": 194
     },
     {
       "owner": "supervisor-agent",
       "file": "services/supervisor-agent/routers/agent.py",
       "source": "get_actuator_audit",
       "target": "len",
-      "line": 199
+      "line": 206
     },
     {
       "owner": "supervisor-agent",

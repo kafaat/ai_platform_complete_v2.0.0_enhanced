@@ -430,7 +430,7 @@ def guardrails_adapter(decision: dict, state, *, authorization: str | None = Non
         }
 
         result = _post_json(
-            f"{GUARDRAILS_URL}/validate",
+            f"{GUARDRAILS_URL}/v1/validate",
             payload,
             authorization=authorization,
             agent_token=AGENT_TOKEN,
@@ -438,7 +438,7 @@ def guardrails_adapter(decision: dict, state, *, authorization: str | None = Non
         if not result:
             return {
                 "status": "error",
-                "note": "تعذّر الوصول لمحرّك الحَوكمة (/validate) — استشاريّ فقط",
+                "note": "تعذّر الوصول لمحرّك الحَوكمة (/v1/validate) — استشاريّ فقط",
             }
         allowed = result.get("allowed")
         if allowed is True:

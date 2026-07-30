@@ -31,7 +31,7 @@ class TestSupervisorAgent:
             "context": {"date": "2026-05-18"},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -53,7 +53,7 @@ class TestSupervisorAgent:
             "context": {"crop": "wheat", "soil_moisture_30cm": 35},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -71,7 +71,7 @@ class TestSupervisorAgent:
             "context": {"crop": "wheat", "market": "sanaa"},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -89,7 +89,7 @@ class TestSupervisorAgent:
             "context": {"crop": "wheat"},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -106,7 +106,7 @@ class TestSupervisorAgent:
             "tenant_id": "test-tenant-001",
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -128,7 +128,7 @@ class TestSupervisorAgent:
             "preferred_objectives": ["balanced"],
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/optimize",
+            "http://localhost:8096/v1/agent/optimize",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -154,7 +154,7 @@ class TestSupervisorAgent:
             "preferred_objectives": ["max_yield"],
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/optimize",
+            "http://localhost:8096/v1/agent/optimize",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -176,7 +176,7 @@ class TestSupervisorAgent:
             "preferred_objectives": ["min_water"],
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/optimize",
+            "http://localhost:8096/v1/agent/optimize",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -197,7 +197,7 @@ class TestSupervisorAgent:
             "tenant_id": mock_field_data["tenant_id"],
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -221,7 +221,7 @@ class TestSupervisorAgent:
             "tenant_id": mock_field_data["tenant_id"],
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -248,7 +248,7 @@ class TestSupervisorRouter:
         for q in queries:
             payload = {"query": q, "user_id": "test", "tenant_id": "test"}
             response = await http_client.post(
-                "http://localhost:8096/agent/query",
+                "http://localhost:8096/v1/agent/query",
                 json=payload,
                 headers={"Authorization": f"Bearer {mock_jwt_token}"},
             )
@@ -265,7 +265,7 @@ class TestSupervisorRouter:
         for q in queries:
             payload = {"query": q, "user_id": "test", "tenant_id": "test"}
             response = await http_client.post(
-                "http://localhost:8096/agent/query",
+                "http://localhost:8096/v1/agent/query",
                 json=payload,
                 headers={"Authorization": f"Bearer {mock_jwt_token}"},
             )

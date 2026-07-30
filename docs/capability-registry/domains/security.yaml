@@ -304,7 +304,7 @@ capabilities:
   services:
   - services/auth/main.py
   apis:
-  - GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178
+  - GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178
   - GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19
   - GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:617
   ui_consumers: []

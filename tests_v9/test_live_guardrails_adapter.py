@@ -298,7 +298,7 @@ def test_validate_sends_agent_token_header(monkeypatch):
     gov = fia.guardrails_adapter(decision, _state_with_truths())
     assert gov["status"] == "approved"
     assert captured["X-Agent-Token"] == "secret-svc-token"
-    assert captured["url"].endswith("/validate")
+    assert captured["url"].endswith("/v1/validate")
 
 
 # ── الراية: التعطيل يُخفي guardrails_fn (رجوع آمن للاستشاريّ) ──
