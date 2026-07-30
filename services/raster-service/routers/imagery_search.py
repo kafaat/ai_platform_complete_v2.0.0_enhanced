@@ -20,7 +20,7 @@ from stac_search import stac_search, stac_search_dem, stac_search_landsat, stac_
 router = APIRouter()
 
 
-@router.get("/imagery/search/recent")
+@router.get("/v1/imagery/search/recent")
 async def imagery_search_recent(
     west: float,
     south: float,
@@ -39,7 +39,7 @@ async def imagery_search_recent(
         raise HTTPException(502, f"Earth Search: {e}") from e
 
 
-@router.get("/imagery/search/season")
+@router.get("/v1/imagery/search/season")
 async def imagery_search_season(
     west: float,
     south: float,
@@ -61,7 +61,7 @@ async def imagery_search_season(
         raise HTTPException(502, f"Earth Search: {e}") from e
 
 
-@router.get("/imagery/best")
+@router.get("/v1/imagery/best")
 async def imagery_best_scene(
     west: float,
     south: float,
@@ -116,7 +116,7 @@ async def imagery_best_scene(
     }
 
 
-@router.post("/imagery/search")
+@router.post("/v1/imagery/search")
 async def imagery_search(req: SearchRequest, x_agent_token: str = Header(None)):
     """بحث متقدّم بكلّ الخيارات."""
     require_service_token(x_agent_token)
@@ -128,7 +128,7 @@ async def imagery_search(req: SearchRequest, x_agent_token: str = Header(None)):
         raise HTTPException(502, f"Earth Search: {e}") from e
 
 
-@router.get("/imagery/search/radar")
+@router.get("/v1/imagery/search/radar")
 async def imagery_search_radar(
     west: float,
     south: float,
@@ -152,8 +152,8 @@ async def imagery_search_radar(
         raise HTTPException(502, f"Earth Search (radar): {e}") from e
 
 
-@router.get("/imagery/search/landsat")
-@router.get("/imagery/search/landsat-thermal")
+@router.get("/v1/imagery/search/landsat")
+@router.get("/v1/imagery/search/landsat-thermal")
 async def imagery_search_landsat(
     west: float,
     south: float,
@@ -182,7 +182,7 @@ async def imagery_search_landsat(
         raise HTTPException(502, f"Landsat thermal search: {e}") from e
 
 
-@router.get("/imagery/dem")
+@router.get("/v1/imagery/dem")
 async def imagery_dem(west: float, south: float, east: float, north: float):
     """نموذج الارتفاع الرقمي (Copernicus DEM 30م) لمنطقة — للانحدار/الصرف.
 

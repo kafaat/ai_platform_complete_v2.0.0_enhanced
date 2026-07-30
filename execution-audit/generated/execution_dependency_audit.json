@@ -1986,7 +1986,7 @@
       "line": 24,
       "handler": "imagery_search_recent",
       "method": "GET",
-      "path": "/imagery/search/recent"
+      "path": "/v1/imagery/search/recent"
     },
     {
       "owner": "raster-service",
@@ -1994,7 +1994,7 @@
       "line": 43,
       "handler": "imagery_search_season",
       "method": "GET",
-      "path": "/imagery/search/season"
+      "path": "/v1/imagery/search/season"
     },
     {
       "owner": "raster-service",
@@ -2002,7 +2002,7 @@
       "line": 65,
       "handler": "imagery_best_scene",
       "method": "GET",
-      "path": "/imagery/best"
+      "path": "/v1/imagery/best"
     },
     {
       "owner": "raster-service",
@@ -2010,7 +2010,7 @@
       "line": 120,
       "handler": "imagery_search",
       "method": "POST",
-      "path": "/imagery/search"
+      "path": "/v1/imagery/search"
     },
     {
       "owner": "raster-service",
@@ -2018,7 +2018,7 @@
       "line": 132,
       "handler": "imagery_search_radar",
       "method": "GET",
-      "path": "/imagery/search/radar"
+      "path": "/v1/imagery/search/radar"
     },
     {
       "owner": "raster-service",
@@ -2026,7 +2026,7 @@
       "line": 157,
       "handler": "imagery_search_landsat",
       "method": "GET",
-      "path": "/imagery/search/landsat"
+      "path": "/v1/imagery/search/landsat"
     },
     {
       "owner": "raster-service",
@@ -2034,7 +2034,7 @@
       "line": 186,
       "handler": "imagery_dem",
       "method": "GET",
-      "path": "/imagery/dem"
+      "path": "/v1/imagery/dem"
     },
     {
       "owner": "raster-service",

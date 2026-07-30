@@ -418,7 +418,7 @@ capabilities:
   - GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:512
   - GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:253
   - GET /auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
-  - GET /imagery/search/season @ services/raster-service/routers/imagery_search.py:43
+  - GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43
   - GET /internal/seasons @ services/scout-ingest-service/season_api.py:478
   - GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668
   - GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368

@@ -10468,6 +10468,14 @@
           ]
         },
         {
+          "path": "docs/architecture/api_versioning_legacy_baseline.json",
+          "score": 9,
+          "signals": [
+            "content:dem",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "docs/openapi/API_MAP.md",
           "score": 9,
           "signals": [
@@ -10523,7 +10531,7 @@
         "mobile": 0,
         "tests": 34,
         "governance": 0,
-        "other_evidence": 32
+        "other_evidence": 33
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -15889,35 +15897,35 @@
           "score": 14
         },
         {
-          "value": "/imagery/best @ services/raster-service/routers/imagery_search.py:64",
+          "value": "/v1/imagery/best @ services/raster-service/routers/imagery_search.py:64",
           "score": 11
         },
         {
-          "value": "/imagery/dem @ services/raster-service/routers/imagery_search.py:185",
+          "value": "/v1/imagery/dem @ services/raster-service/routers/imagery_search.py:185",
           "score": 11
         },
         {
-          "value": "/imagery/search @ services/raster-service/routers/imagery_search.py:119",
+          "value": "/v1/imagery/search @ services/raster-service/routers/imagery_search.py:119",
           "score": 11
         },
         {
-          "value": "/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:155",
+          "value": "/v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:155",
           "score": 11
         },
         {
-          "value": "/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:156",
+          "value": "/v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:156",
           "score": 11
         },
         {
-          "value": "/imagery/search/radar @ services/raster-service/routers/imagery_search.py:131",
+          "value": "/v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:131",
           "score": 11
         },
         {
-          "value": "/imagery/search/recent @ services/raster-service/routers/imagery_search.py:23",
+          "value": "/v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:23",
           "score": 11
         },
         {
-          "value": "/imagery/search/season @ services/raster-service/routers/imagery_search.py:42",
+          "value": "/v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:42",
           "score": 11
         },
         {
@@ -17851,35 +17859,35 @@
           "score": 10
         },
         {
-          "value": "/imagery/best @ services/raster-service/routers/imagery_search.py:64",
+          "value": "/v1/imagery/best @ services/raster-service/routers/imagery_search.py:64",
           "score": 10
         },
         {
-          "value": "/imagery/dem @ services/raster-service/routers/imagery_search.py:185",
+          "value": "/v1/imagery/dem @ services/raster-service/routers/imagery_search.py:185",
           "score": 10
         },
         {
-          "value": "/imagery/search @ services/raster-service/routers/imagery_search.py:119",
+          "value": "/v1/imagery/search @ services/raster-service/routers/imagery_search.py:119",
           "score": 10
         },
         {
-          "value": "/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:155",
+          "value": "/v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:155",
           "score": 10
         },
         {
-          "value": "/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:156",
+          "value": "/v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:156",
           "score": 10
         },
         {
-          "value": "/imagery/search/radar @ services/raster-service/routers/imagery_search.py:131",
+          "value": "/v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:131",
           "score": 10
         },
         {
-          "value": "/imagery/search/recent @ services/raster-service/routers/imagery_search.py:23",
+          "value": "/v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:23",
           "score": 10
         },
         {
-          "value": "/imagery/search/season @ services/raster-service/routers/imagery_search.py:42",
+          "value": "/v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:42",
           "score": 10
         },
         {

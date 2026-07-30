@@ -2707,7 +2707,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /imagery/best"
+        "GET /v1/imagery/best"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2724,7 +2724,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /imagery/dem"
+        "GET /v1/imagery/dem"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2792,7 +2792,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /imagery/search"
+        "POST /v1/imagery/search"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -2809,7 +2809,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /imagery/search/landsat"
+        "GET /v1/imagery/search/landsat"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2826,7 +2826,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /imagery/search/landsat-thermal"
+        "GET /v1/imagery/search/landsat-thermal"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2843,7 +2843,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /imagery/search/radar"
+        "GET /v1/imagery/search/radar"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2860,7 +2860,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /imagery/search/recent"
+        "GET /v1/imagery/search/recent"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2877,7 +2877,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /imagery/search/season"
+        "GET /v1/imagery/search/season"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -17752,7 +17752,7 @@
       "path": "/v1/products"
     }
   ],
-  "fingerprint": "8b6c51036bf087a410e9379938e324237cb69f4b15d022d2493035e435cc286f",
+  "fingerprint": "f7b3d5941d69db249d218c1a2790d840ea9a66ea94db1502800f577a5c7ab0d7",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

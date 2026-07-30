@@ -2044,7 +2044,7 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 24,
     "method": "GET",
-    "path": "/imagery/search/recent",
+    "path": "/v1/imagery/search/recent",
     "function": "imagery_search_recent"
   },
   {
@@ -2052,7 +2052,7 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 43,
     "method": "GET",
-    "path": "/imagery/search/season",
+    "path": "/v1/imagery/search/season",
     "function": "imagery_search_season"
   },
   {
@@ -2060,7 +2060,7 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 65,
     "method": "GET",
-    "path": "/imagery/best",
+    "path": "/v1/imagery/best",
     "function": "imagery_best_scene"
   },
   {
@@ -2068,7 +2068,7 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 120,
     "method": "POST",
-    "path": "/imagery/search",
+    "path": "/v1/imagery/search",
     "function": "imagery_search"
   },
   {
@@ -2076,7 +2076,7 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 132,
     "method": "GET",
-    "path": "/imagery/search/radar",
+    "path": "/v1/imagery/search/radar",
     "function": "imagery_search_radar"
   },
   {
@@ -2084,7 +2084,7 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 157,
     "method": "GET",
-    "path": "/imagery/search/landsat",
+    "path": "/v1/imagery/search/landsat",
     "function": "imagery_search_landsat"
   },
   {
@@ -2092,7 +2092,7 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 157,
     "method": "GET",
-    "path": "/imagery/search/landsat-thermal",
+    "path": "/v1/imagery/search/landsat-thermal",
     "function": "imagery_search_landsat"
   },
   {
@@ -2100,7 +2100,7 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 186,
     "method": "GET",
-    "path": "/imagery/dem",
+    "path": "/v1/imagery/dem",
     "function": "imagery_dem"
   },
   {
