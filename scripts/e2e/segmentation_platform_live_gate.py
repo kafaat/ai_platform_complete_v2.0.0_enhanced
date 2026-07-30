@@ -122,8 +122,8 @@ def main() -> int:
             [min_lon, min_lat],
         ]
 
-    status, body = post_json(f"{BASE_URL}/api/segmentation/segment", payload)
-    print("platform /api/segmentation/segment", status, body)
+    status, body = post_json(f"{BASE_URL}/api/segmentation/v1/segment", payload)
+    print("platform /api/segmentation/v1/segment", status, body)
     if status != 200:
         print(
             "segmentation-platform-live-gate: FAIL: platform segmentation request failed",

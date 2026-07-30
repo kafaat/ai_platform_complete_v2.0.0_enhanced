@@ -543,7 +543,6 @@ FM-003,api,POST /internal/field-forms/submissions @ services/scout-ingest-servic
 FM-003,api,POST /internal/field-forms/versions/{version_id}/publish @ services/scout-ingest-service/field_forms_api.py:278,2,applied
 FM-003,api,POST /internal/field-forms/versions/{version_id}/retire @ services/scout-ingest-service/field_forms_api.py:327,2,applied
 FM-003,api,POST /phase6/boundaries/extract @ services/sahool-platform/api/routers/gis_cloud_native.py:672,2,applied
-FM-003,api,POST /segment @ services/field-segmentation/main.py:391,2,applied
 FM-003,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:724,4,applied
 FM-003,api,POST /v1/fields/{field_id}/baseline-comparisons @ services/vegetation-analysis-service/routers/baselines.py:30,4,applied
 FM-003,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1129,4,applied
@@ -589,6 +588,7 @@ FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/claim @ ser
 FM-003,api,POST /v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2327,2,applied
 FM-003,api,POST /v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2629,2,applied
 FM-003,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2718,2,applied
+FM-003,api,POST /v1/segment @ services/field-segmentation/main.py:391,2,applied
 FM-003,api,PUT /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1270,4,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/contract/condition_v1.dart,2,applied
 FM-003,mobile,mobile/sahool_app/lib/features/field_forms/contract/form_schema.dart,2,applied

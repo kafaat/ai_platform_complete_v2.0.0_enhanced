@@ -139,7 +139,7 @@ field-management-service,services/field-management-service/main.py,266,GET,/inte
 field-segmentation,services/field-segmentation/main.py,370,GET,/healthz,healthz
 field-segmentation,services/field-segmentation/main.py,375,GET,/health,legacy_health
 field-segmentation,services/field-segmentation/main.py,380,GET,/readyz,readyz
-field-segmentation,services/field-segmentation/main.py,391,POST,/segment,segment
+field-segmentation,services/field-segmentation/main.py,391,POST,/v1/segment,segment
 guardrails-engine,services/guardrails-engine/routers/health.py,22,GET,/healthz,healthz
 guardrails-engine,services/guardrails-engine/routers/health.py,22,GET,/health,healthz
 guardrails-engine,services/guardrails-engine/routers/health.py,27,GET,/readyz,readyz

@@ -87,7 +87,7 @@
     "service": "field-segmentation",
     "domain": "Field Boundary AI",
     "python_files": 5,
-    "python_loc": 986,
+    "python_loc": 1000,
     "tests": 2,
     "routes": 4,
     "main": "services/field-segmentation/main.py",

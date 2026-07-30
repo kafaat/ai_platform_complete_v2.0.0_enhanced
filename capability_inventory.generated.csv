@@ -111,7 +111,7 @@ erp-bridge.sync,command,erp-bridge,POST /sync,,route,False
 erp-bridge.webhook.odoo,command,erp-bridge,POST /webhook/odoo,,route,False
 field-management-service.internal.fields,query,field-management-service,GET /internal/fields,,route,False
 field-management-service.internal.fields.field_id,query,field-management-service,GET /internal/fields/{field_id},,route,False
-field-segmentation.segment,command,field-segmentation,POST /segment,frontend,route,False
+field-segmentation.segment,command,field-segmentation,POST /v1/segment,frontend,route,False
 guardrails-engine.approve.workflow_id,command,guardrails-engine,POST /approve/{workflow_id},frontend,route,False
 guardrails-engine.validate,command,guardrails-engine,POST /validate,frontend,route,False
 guardrails-engine.workflow.workflow_id,query,guardrails-engine,GET /workflow/{workflow_id},frontend,route,False

@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1826,
     "route_handlers": 1042,
-    "call_edges": 71452,
+    "call_edges": 71456,
     "dead_code_candidates": 610,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -1122,7 +1122,7 @@
       "line": 391,
       "handler": "segment",
       "method": "POST",
-      "path": "/segment"
+      "path": "/v1/segment"
     },
     {
       "owner": "guardrails-engine",
@@ -77898,112 +77898,98 @@
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_segment_route_is_versioned_not_legacy",
+      "target": "post",
+      "line": 169
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_segment_route_is_versioned_not_legacy",
+      "target": "_hdr",
+      "line": 170
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_segment_route_is_versioned_not_legacy",
+      "target": "_hdr",
+      "line": 174
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_segment_route_is_versioned_not_legacy",
+      "target": "post",
+      "line": 174
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_readyz_reports_model_state",
       "target": "get",
-      "line": 163
+      "line": 181
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_readyz_reports_model_state",
       "target": "json",
-      "line": 165
+      "line": 183
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_configured",
       "target": "_load_app",
-      "line": 176
+      "line": 194
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_configured",
       "target": "TestClient",
-      "line": 177
+      "line": 195
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_fake_response",
       "target": "Response",
-      "line": 184
+      "line": 202
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_fake_response",
       "target": "Request",
-      "line": 187
+      "line": 205
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_configured_model_flag_true",
       "target": "_configured",
-      "line": 193
+      "line": 211
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_configured_model_flag_true",
       "target": "_model_configured",
-      "line": 194
+      "line": 212
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_configured_model_flag_true",
       "target": "get",
-      "line": 195
+      "line": 213
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_configured_model_flag_true",
-      "target": "json",
-      "line": 195
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_configured_backend_polygon_returns_200",
-      "target": "_configured",
-      "line": 199
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_configured_backend_polygon_returns_200",
-      "target": "setattr",
-      "line": 202
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_configured_backend_polygon_returns_200",
-      "target": "_fake_response",
-      "line": 205
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_configured_backend_polygon_returns_200",
-      "target": "_hdr",
-      "line": 211
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_configured_backend_polygon_returns_200",
-      "target": "post",
-      "line": 211
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_configured_backend_polygon_returns_200",
       "target": "json",
       "line": 213
     },
@@ -78011,596 +77997,638 @@
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_configured_backend_polygon_returns_200",
-      "target": "len",
+      "target": "_configured",
+      "line": 217
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_configured_backend_polygon_returns_200",
+      "target": "setattr",
       "line": 220
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_configured_backend_polygon_returns_200",
+      "target": "_fake_response",
+      "line": 223
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_configured_backend_polygon_returns_200",
+      "target": "_hdr",
+      "line": 229
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_configured_backend_polygon_returns_200",
+      "target": "post",
+      "line": 229
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_configured_backend_polygon_returns_200",
+      "target": "json",
+      "line": 231
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_configured_backend_polygon_returns_200",
+      "target": "len",
+      "line": 238
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_backend_confidence",
       "target": "_configured",
-      "line": 225
+      "line": 243
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_backend_confidence",
       "target": "setattr",
-      "line": 227
+      "line": 245
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_backend_confidence",
       "target": "_fake_response",
-      "line": 230
+      "line": 248
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_backend_confidence",
       "target": "_hdr",
-      "line": 236
+      "line": 254
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_backend_confidence",
       "target": "json",
-      "line": 236
+      "line": 254
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_backend_confidence",
       "target": "post",
-      "line": 236
+      "line": 254
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_upstream_metadata",
       "target": "_configured",
-      "line": 244
+      "line": 262
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_upstream_metadata",
       "target": "setattr",
-      "line": 246
+      "line": 264
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_upstream_metadata",
       "target": "_fake_response",
-      "line": 249
+      "line": 267
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_upstream_metadata",
       "target": "_hdr",
-      "line": 264
+      "line": 282
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_upstream_metadata",
       "target": "json",
-      "line": 264
+      "line": 282
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_surfaces_upstream_metadata",
       "target": "post",
-      "line": 264
+      "line": 282
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_confidence_none_when_backend_omits_it",
       "target": "_configured",
-      "line": 272
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_confidence_none_when_backend_omits_it",
-      "target": "setattr",
-      "line": 274
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_confidence_none_when_backend_omits_it",
-      "target": "_fake_response",
-      "line": 277
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_confidence_none_when_backend_omits_it",
-      "target": "_hdr",
-      "line": 281
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_confidence_none_when_backend_omits_it",
-      "target": "json",
-      "line": 281
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_confidence_none_when_backend_omits_it",
-      "target": "post",
-      "line": 281
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_manual_confidence_is_none",
-      "target": "_configured",
-      "line": 287
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_manual_confidence_is_none",
-      "target": "json",
-      "line": 289
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_manual_confidence_is_none",
-      "target": "post",
-      "line": 289
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_manual_confidence_is_none",
-      "target": "_hdr",
       "line": 290
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_confidence_none_when_backend_omits_it",
+      "target": "setattr",
+      "line": 292
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_confidence_none_when_backend_omits_it",
+      "target": "_fake_response",
+      "line": 295
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_confidence_none_when_backend_omits_it",
+      "target": "_hdr",
+      "line": 299
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_confidence_none_when_backend_omits_it",
+      "target": "json",
+      "line": 299
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_confidence_none_when_backend_omits_it",
+      "target": "post",
+      "line": 299
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_manual_confidence_is_none",
+      "target": "_configured",
+      "line": 305
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_manual_confidence_is_none",
+      "target": "json",
+      "line": 307
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_manual_confidence_is_none",
+      "target": "post",
+      "line": 307
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_manual_confidence_is_none",
+      "target": "_hdr",
+      "line": 308
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_hybrid_configured_bare_polygon_returns_200",
       "target": "_configured",
-      "line": 298
+      "line": 316
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_hybrid_configured_bare_polygon_returns_200",
       "target": "setattr",
-      "line": 300
+      "line": 318
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_hybrid_configured_bare_polygon_returns_200",
       "target": "_fake_response",
-      "line": 303
+      "line": 321
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_hybrid_configured_bare_polygon_returns_200",
       "target": "post",
-      "line": 310
+      "line": 328
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_hybrid_configured_bare_polygon_returns_200",
       "target": "_hdr",
-      "line": 313
+      "line": 331
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_hybrid_configured_bare_polygon_returns_200",
       "target": "json",
-      "line": 316
+      "line": 334
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_unreachable_returns_503",
       "target": "_configured",
-      "line": 320
+      "line": 338
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_boom",
       "target": "ConnectError",
-      "line": 324
+      "line": 342
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_unreachable_returns_503",
       "target": "ConnectError",
-      "line": 324
+      "line": 342
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_unreachable_returns_503",
       "target": "setattr",
-      "line": 326
+      "line": 344
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_unreachable_returns_503",
       "target": "_hdr",
-      "line": 327
+      "line": 345
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_unreachable_returns_503",
       "target": "post",
-      "line": 327
+      "line": 345
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_unreachable_returns_503",
       "target": "json",
-      "line": 329
+      "line": 347
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_timeout_returns_503",
       "target": "_configured",
-      "line": 333
+      "line": 351
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_slow",
       "target": "TimeoutException",
-      "line": 337
+      "line": 355
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_timeout_returns_503",
       "target": "TimeoutException",
-      "line": 337
+      "line": 355
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_timeout_returns_503",
       "target": "setattr",
-      "line": 339
+      "line": 357
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_timeout_returns_503",
       "target": "_hdr",
-      "line": 340
+      "line": 358
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_timeout_returns_503",
       "target": "post",
-      "line": 340
+      "line": 358
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_timeout_returns_503",
       "target": "json",
-      "line": 342
+      "line": 360
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_non_2xx_returns_502",
       "target": "_configured",
-      "line": 346
+      "line": 364
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_inference_non_2xx_returns_502",
       "target": "setattr",
-      "line": 347
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_non_2xx_returns_502",
-      "target": "_fake_response",
-      "line": 350
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_non_2xx_returns_502",
-      "target": "_hdr",
-      "line": 352
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_non_2xx_returns_502",
-      "target": "post",
-      "line": 352
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_non_2xx_returns_502",
-      "target": "json",
-      "line": 354
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_missing_geometry_returns_502",
-      "target": "_configured",
-      "line": 361
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_missing_geometry_returns_502",
-      "target": "setattr",
-      "line": 362
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_missing_geometry_returns_502",
-      "target": "_fake_response",
       "line": 365
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_missing_geometry_returns_502",
-      "target": "_hdr",
-      "line": 367
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_missing_geometry_returns_502",
-      "target": "post",
-      "line": 367
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_missing_geometry_returns_502",
-      "target": "json",
-      "line": 369
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_invalid_geometry_returns_502",
-      "target": "_configured",
-      "line": 374
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_invalid_geometry_returns_502",
-      "target": "setattr",
-      "line": 376
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_invalid_geometry_returns_502",
+      "source": "test_inference_non_2xx_returns_502",
       "target": "_fake_response",
+      "line": 368
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_non_2xx_returns_502",
+      "target": "_hdr",
+      "line": 370
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_non_2xx_returns_502",
+      "target": "post",
+      "line": 370
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_non_2xx_returns_502",
+      "target": "json",
+      "line": 372
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_missing_geometry_returns_502",
+      "target": "_configured",
       "line": 379
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_invalid_geometry_returns_502",
+      "source": "test_inference_missing_geometry_returns_502",
+      "target": "setattr",
+      "line": 380
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_missing_geometry_returns_502",
+      "target": "_fake_response",
+      "line": 383
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_missing_geometry_returns_502",
       "target": "_hdr",
       "line": 385
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_invalid_geometry_returns_502",
+      "source": "test_inference_missing_geometry_returns_502",
       "target": "post",
       "line": 385
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_inference_invalid_geometry_returns_502",
+      "source": "test_inference_missing_geometry_returns_502",
       "target": "json",
       "line": 387
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_invalid_geometry_returns_502",
+      "target": "_configured",
+      "line": 392
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_invalid_geometry_returns_502",
+      "target": "setattr",
+      "line": 394
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_invalid_geometry_returns_502",
+      "target": "_fake_response",
+      "line": 397
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_invalid_geometry_returns_502",
+      "target": "_hdr",
+      "line": 403
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_invalid_geometry_returns_502",
+      "target": "post",
+      "line": 403
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_inference_invalid_geometry_returns_502",
+      "target": "json",
+      "line": 405
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
       "source": "_png_b64_rgb_square",
       "target": "zeros",
-      "line": 398
+      "line": 416
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_png_b64_rgb_square",
       "target": "BytesIO",
-      "line": 401
+      "line": 419
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_png_b64_rgb_square",
       "target": "fromarray",
-      "line": 402
+      "line": 420
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_png_b64_rgb_square",
       "target": "save",
-      "line": 402
+      "line": 420
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_png_b64_rgb_square",
       "target": "b64encode",
-      "line": 403
+      "line": 421
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_png_b64_rgb_square",
       "target": "decode",
-      "line": 403
+      "line": 421
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "_png_b64_rgb_square",
       "target": "getvalue",
-      "line": 403
+      "line": 421
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_preprocesses_image_before_sam2",
       "target": "_configured",
-      "line": 407
+      "line": 425
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "fake_post",
       "target": "update",
-      "line": 412
+      "line": 430
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_preprocesses_image_before_sam2",
       "target": "update",
-      "line": 412
+      "line": 430
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "fake_post",
       "target": "_fake_response",
-      "line": 413
+      "line": 431
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_preprocesses_image_before_sam2",
       "target": "_fake_response",
-      "line": 413
+      "line": 431
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_preprocesses_image_before_sam2",
       "target": "setattr",
-      "line": 422
+      "line": 440
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_preprocesses_image_before_sam2",
       "target": "_png_b64_rgb_square",
-      "line": 423
+      "line": 441
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_preprocesses_image_before_sam2",
       "target": "post",
-      "line": 424
+      "line": 442
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_preprocesses_image_before_sam2",
       "target": "_hdr",
-      "line": 427
+      "line": 445
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_preprocesses_image_before_sam2",
       "target": "json",
-      "line": 430
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_exg_without_image_is_explicitly_skipped",
-      "target": "_configured",
-      "line": 441
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_exg_without_image_is_explicitly_skipped",
-      "target": "setattr",
-      "line": 444
-    },
-    {
-      "owner": "field-segmentation",
-      "file": "services/field-segmentation/test_segmentation.py",
-      "source": "test_auto_exg_without_image_is_explicitly_skipped",
-      "target": "update",
       "line": 448
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_without_image_is_explicitly_skipped",
+      "target": "_configured",
+      "line": 459
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_exg_without_image_is_explicitly_skipped",
+      "target": "setattr",
+      "line": 462
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_exg_without_image_is_explicitly_skipped",
+      "target": "update",
+      "line": 466
+    },
+    {
+      "owner": "field-segmentation",
+      "file": "services/field-segmentation/test_segmentation.py",
+      "source": "test_auto_exg_without_image_is_explicitly_skipped",
       "target": "_fake_response",
-      "line": 449
+      "line": 467
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_without_image_is_explicitly_skipped",
       "target": "_hdr",
-      "line": 456
+      "line": 474
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_without_image_is_explicitly_skipped",
       "target": "post",
-      "line": 456
+      "line": 474
     },
     {
       "owner": "field-segmentation",
       "file": "services/field-segmentation/test_segmentation.py",
       "source": "test_auto_exg_without_image_is_explicitly_skipped",
       "target": "json",
-      "line": 458
+      "line": 476
     },
     {
       "owner": "gis-workflow-service",

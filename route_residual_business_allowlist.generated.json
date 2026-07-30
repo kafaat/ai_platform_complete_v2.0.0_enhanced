@@ -671,7 +671,7 @@
       "file": "services/field-segmentation/main.py",
       "line": 391,
       "method": "POST",
-      "path": "/segment",
+      "path": "/v1/segment",
       "function": "segment"
     },
     {
