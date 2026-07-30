@@ -688,7 +688,7 @@ sahool-platform,services/sahool-platform/api/routers/indicators.py,47,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/indicators.py,60,GET,/api/v1/indicators/dashboard,indicators_dashboard
 sahool-platform,services/sahool-platform/api/routers/indices.py,22,GET,/api/v1/indices/coverage-report,indices_coverage_report
 sahool-platform,services/sahool-platform/api/routers/internal_service.py,26,GET,/internal/fields/{field_id}/state,internal_field_state
-sahool-platform,services/sahool-platform/api/routers/internal_service.py,70,POST,/internal/events/ai-advice,internal_ai_advice_event
+sahool-platform,services/sahool-platform/api/routers/internal_service.py,72,POST,/internal/events/ai-advice,internal_ai_advice_event
 sahool-platform,services/sahool-platform/api/routers/introduction.py,29,GET,/api/v1/introduction/candidates,introduction_candidates_endpoint
 sahool-platform,services/sahool-platform/api/routers/introduction.py,35,GET,/api/v1/introduction/card,introduction_card_endpoint
 sahool-platform,services/sahool-platform/api/routers/introduction.py,41,POST,/api/v1/introduction/field-fit,introduction_field_fit_endpoint

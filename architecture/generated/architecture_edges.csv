@@ -150,10 +150,12 @@ platform,sahool-postgres,compose-depends-on,docker-compose.v9.yml
 platform,sahool-redis,compose-depends-on,docker-compose.fixed.yml
 platform,sahool-redis,compose-depends-on,docker-compose.v9.yml
 platform,scout-ingest-service,code-reference,services/sahool-platform/api/routers/service_proxy.py
+platform,soil-service,code-reference,services/sahool-platform/api/canonical_soil_state.py
 platform,soil-service,code-reference,services/sahool-platform/api/routers/service_proxy.py
 platform,soil-service,code-reference,services/sahool-platform/api/soil_evidence_bridge.py
 platform,soil-service,code-reference,services/sahool-platform/api/soil_hydraulic_client.py
 platform,soil-service,code-reference,services/sahool-platform/core/field_intelligence_adapters.py
+platform,soil-service,code-reference,services/sahool-platform/tests/test_canonical_soil_state.py
 platform,start-period,compose-depends-on,docker-compose.fixed.yml
 platform,start-period,compose-depends-on,docker-compose.v9.yml
 platform,test,compose-depends-on,docker-compose.fixed.yml
