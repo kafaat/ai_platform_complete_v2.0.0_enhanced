@@ -6,16 +6,16 @@ agriai-engine.plan,command,agriai-engine,POST /plan,,route,False
 agriai-engine.recommend,command,agriai-engine,POST /recommend,,route,False
 agriai-engine.replay.verify,command,agriai-engine,POST /replay/verify,,route,False
 agriai-engine.simulate,command,agriai-engine,POST /simulate,,route,False
-ai_agronomist.approvals.approve,command,ai_agronomist,POST /approvals/approve,frontend,route,False
-ai_agronomist.approvals.deny,command,ai_agronomist,POST /approvals/deny,frontend,route,False
-ai_agronomist.approvals.pending,query,ai_agronomist,GET /approvals/pending,frontend,route,False
-ai_agronomist.approvals.resume,command,ai_agronomist,POST /approvals/resume,frontend,route,False
-ai_agronomist.chat,command,ai_agronomist,POST /chat,frontend,route,False
-ai_agronomist.explain,command,ai_agronomist,POST /explain,frontend,route,False
+ai_agronomist.approvals.approve,command,ai_agronomist,POST /v1/approvals/approve,frontend,route,False
+ai_agronomist.approvals.deny,command,ai_agronomist,POST /v1/approvals/deny,frontend,route,False
+ai_agronomist.approvals.pending,query,ai_agronomist,GET /v1/approvals/pending,frontend,route,False
+ai_agronomist.approvals.resume,command,ai_agronomist,POST /v1/approvals/resume,frontend,route,False
+ai_agronomist.chat,command,ai_agronomist,POST /v1/chat,frontend,route,False
+ai_agronomist.explain,command,ai_agronomist,POST /v1/explain,frontend,route,False
 ai_agronomist.healthz.ai-provider,query,ai_agronomist,GET /healthz/ai-provider,frontend,route,False
-ai_agronomist.prescription.export-preview,command,ai_agronomist,POST /prescription/export-preview,frontend,route,False
-ai_agronomist.query,command,ai_agronomist,POST /query,frontend,route,False
-ai_agronomist.recommend,command,ai_agronomist,POST /recommend,frontend,route,False
+ai_agronomist.prescription.export-preview,command,ai_agronomist,POST /v1/prescription/export-preview,frontend,route,False
+ai_agronomist.query,command,ai_agronomist,POST /v1/query,frontend,route,False
+ai_agronomist.recommend,command,ai_agronomist,POST /v1/recommend,frontend,route,False
 auth.auth.change-password,command,auth,POST /auth/change-password,frontend,route,False
 auth.auth.edge-sign,query,auth,GET /auth/edge-sign,frontend,route,False
 auth.auth.invitations,mixed,auth,GET /auth/invitations|POST /auth/invitations,frontend,route,False

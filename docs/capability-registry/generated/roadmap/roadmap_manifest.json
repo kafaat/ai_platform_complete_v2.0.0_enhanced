@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "inputs": {
-    "docs/capability-registry/generated/capability_registry.json": "7986d00528611aba7914d04519a30c5de305c826be2ba423e371c4e6c50e1ea3",
+    "docs/capability-registry/generated/capability_registry.json": "cd6b6a61b66b3044697eab650c503e580256356761e11d8840a66cdeb71a9d01",
     "docs/capability-registry/roadmap/roadmap_items.yaml": "a67bb6f7755787dc03b440cb4709d93d9f234124cdb93fb46527dbffd5811527",
     "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md": "32b76a1a639a60de74af3fb8efd8949292d3ed7e41c69bd89f3d3dc29f69ac7c"
   },

@@ -364,3 +364,57 @@ def test_tts_service_and_local_ai_rag_routes_are_versioned():
         present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
         missing = expected - present
         assert not missing, f"{f} missing expected migrated route(s): {missing}"
+
+
+def test_ai_agronomist_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, Agent D slice 4 (2026-07-30):
+    services/ai_agronomist/main.py declares all nine routes as bare ``@app.*``
+    decorators with no router prefix, so the decorator literal is the real runtime
+    path. All nine moved to a leading /v1/ prefix. POST /recommend's bare text was
+    shared with agriai-engine/main.py:237 (untouched, next slice), so it survives in
+    the allowlist under its bare text with one remaining member; POST /v1/query
+    coincidentally collides with local-ai-rag's own POST /v1/query (both moved
+    independently in sibling slices) -- a new duplicate-text governance decision was
+    added in config/platform_catalog_overrides.yml for that pairing. Falsified by
+    construction: reverting any decorator to its old bare path makes this fail by
+    naming the exact leaked path."""
+    rows = guard.collect()
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] == "services/ai_agronomist/main.py"
+        and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "/approvals/pending",
+        "/approvals/approve",
+        "/approvals/deny",
+        "/approvals/resume",
+        "/prescription/export-preview",
+        "/query",
+        "/chat",
+        "/explain",
+        "/recommend",
+    }
+    present = {r["path"] for r in rows if r["file"] == "services/ai_agronomist/main.py"}
+    leaked_old = present & old_paths
+    assert not leaked_old, f"ai_agronomist still declares old path(s): {leaked_old}"
+
+    expected = {
+        ("GET", "/v1/approvals/pending"),
+        ("POST", "/v1/approvals/approve"),
+        ("POST", "/v1/approvals/deny"),
+        ("POST", "/v1/approvals/resume"),
+        ("POST", "/v1/prescription/export-preview"),
+        ("POST", "/v1/query"),
+        ("POST", "/v1/chat"),
+        ("POST", "/v1/explain"),
+        ("POST", "/v1/recommend"),
+    }
+    present_pairs = {
+        (r["method"], r["path"]) for r in rows if r["file"] == "services/ai_agronomist/main.py"
+    }
+    missing = expected - present_pairs
+    assert not missing, f"ai_agronomist missing expected migrated route(s): {missing}"

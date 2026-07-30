@@ -419,7 +419,7 @@
         },
         {
           "selector": "/api/ai-agronomist/",
-          "proxy_pass": "http://ai_agronomist_backend/",
+          "proxy_pass": "http://ai_agronomist_backend/v1/",
           "upstream": "ai_agronomist_backend",
           "upstream_defined": true,
           "auth_request": true,
@@ -427,7 +427,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 227,
+          "line": 228,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -440,7 +440,7 @@
           "trusted_tenant_injected": false,
           "internal": true,
           "sensitive": false,
-          "line": 239,
+          "line": 240,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -453,7 +453,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 247,
+          "line": 248,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -492,7 +492,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 283,
+          "line": 284,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -505,7 +505,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 285,
+          "line": 286,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -544,7 +544,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 303,
+          "line": 304,
           "security_class": "public_or_service_enforced"
         }
       ],
@@ -1353,5 +1353,5 @@
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "34e4d34f0f2db3582e7057cb5af9db135bf8f8f4e172712857440aa0ca05d91e"
+  "content_sha256": "586b3c4c1f606b84729ab8f2450f99333c97a2ab1a23d6f297844af22e4d74f8"
 }

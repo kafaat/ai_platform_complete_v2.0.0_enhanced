@@ -120,7 +120,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /approvals/approve"
+        "POST /v1/approvals/approve"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -137,7 +137,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /approvals/deny"
+        "POST /v1/approvals/deny"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -154,7 +154,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /approvals/pending"
+        "GET /v1/approvals/pending"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -171,7 +171,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /approvals/resume"
+        "POST /v1/approvals/resume"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -188,7 +188,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /chat"
+        "POST /v1/chat"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -205,7 +205,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /explain"
+        "POST /v1/explain"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -239,7 +239,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /prescription/export-preview"
+        "POST /v1/prescription/export-preview"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -256,7 +256,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /query"
+        "POST /v1/query"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -273,7 +273,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /recommend"
+        "POST /v1/recommend"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -17654,20 +17654,6 @@
     },
     {
       "canonical_owner": null,
-      "classification": "service_scoped_semantics",
-      "classified": true,
-      "components": [
-        "agriai-engine",
-        "ai_agronomist"
-      ],
-      "decision": "تقييم agriai وتوصية المرشد عقدان مختلفان خلف نطاقَي خدمة منفصلَين.",
-      "expires_on": "2026-12-31",
-      "facade": null,
-      "method": "POST",
-      "path": "/recommend"
-    },
-    {
-      "canonical_owner": null,
       "classification": "standard_observability",
       "classified": true,
       "components": [
@@ -17722,9 +17708,23 @@
       "facade": null,
       "method": "GET",
       "path": "/v1/products"
+    },
+    {
+      "canonical_owner": null,
+      "classification": "service_scoped_semantics",
+      "classified": true,
+      "components": [
+        "ai_agronomist",
+        "local-ai-rag"
+      ],
+      "decision": "استعلام المرشد الزراعيّ (ai_agronomist) واستعلام RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/query عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والرابعة، 2026-07-30).",
+      "expires_on": "2026-12-31",
+      "facade": null,
+      "method": "POST",
+      "path": "/v1/query"
     }
   ],
-  "fingerprint": "c34855ad42bf8f686ae2e0a5c918e2c5d5bb0b616d6448c4394756f188332ebc",
+  "fingerprint": "11725e670943db9e4b0a800865282ce92e7b4a6cb076f1d7c202e2f3090b3551",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

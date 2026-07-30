@@ -3,7 +3,7 @@
 - ``runtime_evidence``: اشتقاق cloud_risk (صريح/نسبة/جاهز-إجماليّ)، تمرير ndvi_grid.
 - بوّابة VRA: مناطق مشتقّة من الهندسة فقط ⇒ ``zoning_evidence_backed=False`` + تحذير.
 - تتبّع الكنتور (rasterio) خلف راية صريحة — الافتراضيّ حتميّ.
-- نقطة ``/prescription/export-preview`` تُرجع معاينة غير قابلة للتنفيذ (محروسة fastapi).
+- نقطة ``/v1/prescription/export-preview`` تُرجع معاينة غير قابلة للتنفيذ (محروسة fastapi).
 
 منطق صرف عدا نقطة الـHTTP (importorskip) — وظيفة Unit Tests.
 """
@@ -115,7 +115,7 @@ def test_export_preview_endpoint_is_preview_only():
         ],
     }
     r = TestClient(app).post(
-        "/prescription/export-preview", json={"prescription": rx, "format": "geojson"}
+        "/v1/prescription/export-preview", json={"prescription": rx, "format": "geojson"}
     )
     assert r.status_code == 200
     body = r.json()

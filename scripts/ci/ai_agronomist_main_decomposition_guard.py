@@ -76,10 +76,10 @@ def main() -> None:
     if "save_pending_approval=_save_pending_approval" not in main_src:
         fail("main.py wrapper must inject approval store callback into evidence runtime")
     for route in (
-        '@app.post("/query")',
-        '@app.post("/chat")',
-        '@app.post("/explain")',
-        '@app.post("/recommend")',
+        '@app.post("/v1/query")',
+        '@app.post("/v1/chat")',
+        '@app.post("/v1/explain")',
+        '@app.post("/v1/recommend")',
     ):
         if route not in main_src:
             fail(f"missing route decorator {route}")

@@ -100,7 +100,7 @@ capabilities:
   - GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:294
   - POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:133
   - POST /phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707
-  - POST /prescription/export-preview @ services/ai_agronomist/main.py:288
+  - POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:288
   - POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050
   ui_consumers: []
   mobile_consumers: []

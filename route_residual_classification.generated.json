@@ -109,7 +109,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 126,
       "method": "GET",
-      "path": "/approvals/pending",
+      "path": "/v1/approvals/pending",
       "function": "list_pending_approvals",
       "classification": "business_endpoint"
     },
@@ -118,7 +118,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 146,
       "method": "POST",
-      "path": "/approvals/approve",
+      "path": "/v1/approvals/approve",
       "function": "approve_tool_request",
       "classification": "business_endpoint"
     },
@@ -127,7 +127,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 198,
       "method": "POST",
-      "path": "/approvals/deny",
+      "path": "/v1/approvals/deny",
       "function": "deny_tool_request",
       "classification": "business_endpoint"
     },
@@ -136,7 +136,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 244,
       "method": "POST",
-      "path": "/approvals/resume",
+      "path": "/v1/approvals/resume",
       "function": "resume_approved_tool",
       "classification": "business_endpoint"
     },
@@ -145,7 +145,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 288,
       "method": "POST",
-      "path": "/prescription/export-preview",
+      "path": "/v1/prescription/export-preview",
       "function": "prescription_export_preview",
       "classification": "business_endpoint"
     },
@@ -172,7 +172,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 360,
       "method": "POST",
-      "path": "/query",
+      "path": "/v1/query",
       "function": "query",
       "classification": "business_endpoint"
     },
@@ -181,7 +181,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 371,
       "method": "POST",
-      "path": "/chat",
+      "path": "/v1/chat",
       "function": "chat",
       "classification": "business_endpoint"
     },
@@ -190,7 +190,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 382,
       "method": "POST",
-      "path": "/explain",
+      "path": "/v1/explain",
       "function": "explain",
       "classification": "business_endpoint"
     },
@@ -199,7 +199,7 @@
       "file": "services/ai_agronomist/main.py",
       "line": 393,
       "method": "POST",
-      "path": "/recommend",
+      "path": "/v1/recommend",
       "function": "recommend",
       "classification": "business_endpoint"
     },

@@ -73,7 +73,7 @@ DEC-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/re
 DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633,2,applied
 DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684,2,applied
 DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,2,applied
-DEC-003,api,POST /approvals/approve @ services/ai_agronomist/main.py:146,2,applied
+DEC-003,api,POST /v1/approvals/approve @ services/ai_agronomist/main.py:146,2,applied
 DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:705,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2117,3,applied
@@ -1257,8 +1257,8 @@ PA-001,test,tests_v9/test_productivity_zones_v60.py,5,applied
 PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:338,2,applied
 PA-002,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:177,2,applied
 PA-002,api,POST /phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707,2,applied
-PA-002,api,POST /prescription/export-preview @ services/ai_agronomist/main.py:288,2,applied
 PA-002,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050,2,applied
+PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:288,2,applied
 PA-002,service,services/vegetation-analysis-service/main.py,10,applied
 PA-002,test,tests_v9/test_canonical_vri_prescription.py,3,applied
 PA-002,test,tests_v9/test_fii_prescription_season_context_guard.py,3,applied

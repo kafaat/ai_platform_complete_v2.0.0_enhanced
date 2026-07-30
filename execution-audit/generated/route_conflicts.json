@@ -1046,29 +1046,6 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "POST",
-      "path": "/recommend",
-      "registrations": [
-        {
-          "function": "recommend",
-          "line": 238,
-          "method": "POST",
-          "module": "services/agriai-engine/main.py",
-          "path": "/recommend",
-          "receiver": "app"
-        },
-        {
-          "function": "recommend",
-          "line": 393,
-          "method": "POST",
-          "module": "services/ai_agronomist/main.py",
-          "path": "/recommend",
-          "receiver": "app"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "POST",
       "path": "/v1/mcp/tools/call",
       "registrations": [
         {
@@ -1112,13 +1089,36 @@
           "receiver": "app"
         }
       ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/v1/query",
+      "registrations": [
+        {
+          "function": "query",
+          "line": 360,
+          "method": "POST",
+          "module": "services/ai_agronomist/main.py",
+          "path": "/v1/query",
+          "receiver": "app"
+        },
+        {
+          "function": "query_endpoint",
+          "line": 420,
+          "method": "POST",
+          "module": "services/local-ai-rag/main.py",
+          "path": "/v1/query",
+          "receiver": "app"
+        }
+      ]
     }
   ],
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "aafc9b0d9d748d10f908f1e1f03ec48a7a655f15474d32ac58b4689848e06389",
+  "route_inventory_sha256": "97edce00cd6395b4ac7c96e867f0b7b765c75b725bd082ac52fbc952d6c844cf",
   "runtime_verified": false,
   "schema_version": 1
 }

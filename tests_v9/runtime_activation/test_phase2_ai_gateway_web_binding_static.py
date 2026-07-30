@@ -26,10 +26,10 @@ def test_chatbot_uses_ai_agronomist_runtime_not_legacy_agent_or_mock_chat():
 def test_ai_agronomist_exposes_phase2_e2e_routes_and_fetches_canonical_field_state():
     src = read("services/ai_agronomist/main.py")
     for route in [
-        '@app.post("/query")',
-        '@app.post("/chat")',
-        '@app.post("/explain")',
-        '@app.post("/recommend")',
+        '@app.post("/v1/query")',
+        '@app.post("/v1/chat")',
+        '@app.post("/v1/explain")',
+        '@app.post("/v1/recommend")',
     ]:
         assert route in src
     assert "/internal/fields/{field_id}/state" in src

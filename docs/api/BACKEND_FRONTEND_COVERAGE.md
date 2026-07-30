@@ -11,7 +11,7 @@
 | admin | 19 | 9 |
 | agronomist | 184 | 172 |
 | farmer | 219 | 197 |
-| internal | 413 | 138 |
+| internal | 415 | 137 |
 | manager | 55 | 51 |
 
 العقد الملزِم (core): 467 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
@@ -505,10 +505,6 @@
 | `/api/v1/work-orders/from-recommendation` | manager | ✅ |
 | `/api/vegetation/v1/all_fields` | internal | — |
 | `/api/vegetation/v1/analyze` | internal | ✅ |
-| `/approvals/approve` | internal | — |
-| `/approvals/deny` | internal | — |
-| `/approvals/pending` | internal | ✅ |
-| `/approvals/resume` | internal | — |
 | `/auth/change-password` | farmer | ✅ |
 | `/auth/edge-sign` | farmer | — |
 | `/auth/invitations` | farmer | ✅ |
@@ -536,7 +532,6 @@
 | `/capabilities` | internal | ✅ |
 | `/champion-challenger` | internal | — |
 | `/change/detect` | internal | — |
-| `/chat` | internal | — |
 | `/cog-registry` | internal | — |
 | `/cog/validate` | internal | — |
 | `/commissioning/authorize` | internal | — |
@@ -559,7 +554,6 @@
 | `/experiments/assign` | internal | — |
 | `/experiments/evaluate` | internal | — |
 | `/experiments/shadow` | internal | — |
-| `/explain` | internal | — |
 | `/feature-schema` | internal | — |
 | `/feature-store/offline-dataset` | internal | — |
 | `/feature-store/online-materialization` | internal | — |
@@ -644,14 +638,12 @@
 | `/plugins/runtime/validate-output` | internal | — |
 | `/plugins/sandbox-policy` | internal | — |
 | `/plugins/validate` | internal | — |
-| `/prescription/export-preview` | internal | — |
 | `/price-history/{category}` | internal | — |
 | `/process` | internal | — |
 | `/process/batch` | internal | — |
 | `/procurement` | internal | — |
 | `/procurement/{order_id}` | internal | — |
 | `/quality` | internal | — |
-| `/query` | internal | — |
 | `/quota/check` | internal | — |
 | `/rasters/{raster_id}/tilejson.json` | internal | — |
 | `/raw/process` | internal | — |
@@ -699,10 +691,6 @@
 | `/terrain/slope` | internal | — |
 | `/tile-cache-plan` | internal | ✅ |
 | `/tiles/{layer_id}/{z}/{x}/{y}.png` | internal | — |
-| `/tts/status` | internal | — |
-| `/tts/stream` | internal | — |
-| `/tts/synthesize` | internal | ✅ |
-| `/tts/voices` | internal | — |
 | `/upload/drone` | internal | — |
 | `/upload/raster` | internal | — |
 | `/usage` | internal | — |
@@ -734,7 +722,12 @@
 | `/v1/anomalies/{anomaly_ref:path}/transition` | internal | — |
 | `/v1/anomalies/{anomaly_ref:path}/verification-requests` | internal | — |
 | `/v1/anomalies/{anomaly_ref:path}/verification-results` | internal | — |
+| `/v1/approvals/approve` | internal | — |
+| `/v1/approvals/deny` | internal | — |
+| `/v1/approvals/pending` | internal | — |
+| `/v1/approvals/resume` | internal | — |
 | `/v1/approve/{workflow_id}` | internal | — |
+| `/v1/chat` | internal | — |
 | `/v1/cog/registry/preview` | internal | — |
 | `/v1/command` | internal | ✅ |
 | `/v1/commands` | internal | ✅ |
@@ -761,6 +754,7 @@
 | `/v1/execution-requests/{execution_request_id}/receipt` | internal | — |
 | `/v1/execution-requests/{execution_request_id}/remote-sensing-outcome` | internal | — |
 | `/v1/execution-requests/{execution_request_id}/verify-outcome` | internal | — |
+| `/v1/explain` | internal | — |
 | `/v1/fields/analytics/geoparquet/export` | internal | — |
 | `/v1/fields/{field_id}/available-dates` | internal | ✅ |
 | `/v1/fields/{field_id}/baseline-comparisons` | internal | ✅ |
@@ -839,6 +833,7 @@
 | `/v1/indicators/registry/{name}` | internal | ✅ |
 | `/v1/inference/pest-detect` | internal | ✅ |
 | `/v1/inference/yield-estimate` | internal | — |
+| `/v1/ingest` | internal | — |
 | `/v1/learning/activation-commands/{activation_command_id}/claim` | internal | — |
 | `/v1/learning/activation-commands/{activation_command_id}/receipt` | internal | — |
 | `/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command` | internal | — |
@@ -872,8 +867,11 @@
 | `/v1/outcomes/{outcome_id}/learning-attribution` | internal | — |
 | `/v1/outcomes/{outcome_id}/remote-sensing-attribution` | internal | — |
 | `/v1/predict` | internal | — |
+| `/v1/prescription/export-preview` | internal | — |
 | `/v1/products` | internal | — |
 | `/v1/providers/status` | internal | — |
+| `/v1/query` | internal | — |
+| `/v1/recommend` | internal | ✅ |
 | `/v1/recommendation-outcomes` | internal | — |
 | `/v1/reservation-dispatch-intents` | internal | — |
 | `/v1/scenes/quality-score` | internal | — |
@@ -902,6 +900,10 @@
 | `/v1/tile-cache/stats` | internal | — |
 | `/v1/tiles/observability` | internal | — |
 | `/v1/timeseries/{field_id}` | internal | ✅ |
+| `/v1/tts/status` | internal | — |
+| `/v1/tts/stream` | internal | — |
+| `/v1/tts/synthesize` | internal | — |
+| `/v1/tts/voices` | internal | — |
 | `/v1/validate` | internal | ✅ |
 | `/v1/workflow/{workflow_id}` | internal | — |
 | `/verify` | internal | — |
