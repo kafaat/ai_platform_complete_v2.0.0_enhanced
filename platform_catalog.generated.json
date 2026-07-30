@@ -58,7 +58,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /plan"
+        "POST /v1/plan"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -73,7 +73,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /recommend"
+        "POST /v1/recommend"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -88,7 +88,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /replay/verify"
+        "POST /v1/replay/verify"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -103,7 +103,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /simulate"
+        "POST /v1/simulate"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -2174,7 +2174,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /ingest"
+        "POST /v1/ingest"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -2189,7 +2189,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /search"
+        "POST /v1/search"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -17455,13 +17455,13 @@
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 458,
     "components": 34,
-    "cross_service_duplicate_method_paths": 13,
-    "duplicate_groups_classified": 13,
+    "cross_service_duplicate_method_paths": 14,
+    "duplicate_groups_classified": 14,
     "indicator_products": 34,
     "ownership_conflicts": 0,
     "route_rows": 1105,
     "ui_waivers": 52,
-    "unique_method_path": 993
+    "unique_method_path": 992
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17601,20 +17601,6 @@
       "path": "/metrics"
     },
     {
-      "canonical_owner": "agriai-engine",
-      "classification": "legacy_bff_facade",
-      "classified": true,
-      "components": [
-        "agriai-engine",
-        "sahool-platform"
-      ],
-      "decision": "agriai يملك حوسبة التخطيط؛ المنصّة تُنسِّق أو تُمرِّر ولا تُعيد تنفيذها.",
-      "expires_on": "2026-12-31",
-      "facade": "sahool-platform",
-      "method": "POST",
-      "path": "/plan"
-    },
-    {
       "canonical_owner": null,
       "classification": "standard_readiness",
       "classified": true,
@@ -17700,6 +17686,20 @@
       "classification": "service_scoped_semantics",
       "classified": true,
       "components": [
+        "local-ai-rag",
+        "rag-retrieval"
+      ],
+      "decision": "ابتلاع rag-retrieval وابتلاع RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/ingest عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والخامسة، 2026-07-30).",
+      "expires_on": "2026-12-31",
+      "facade": null,
+      "method": "POST",
+      "path": "/v1/ingest"
+    },
+    {
+      "canonical_owner": null,
+      "classification": "service_scoped_semantics",
+      "classified": true,
+      "components": [
         "erp-bridge",
         "mcp_servers"
       ],
@@ -17722,9 +17722,23 @@
       "facade": null,
       "method": "POST",
       "path": "/v1/query"
+    },
+    {
+      "canonical_owner": null,
+      "classification": "service_scoped_semantics",
+      "classified": true,
+      "components": [
+        "agriai-engine",
+        "ai_agronomist"
+      ],
+      "decision": "تقييم agriai وتوصية المرشد الزراعيّ (ai_agronomist) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/recommend عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الرابعة والخامسة، 2026-07-30).",
+      "expires_on": "2026-12-31",
+      "facade": null,
+      "method": "POST",
+      "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "11725e670943db9e4b0a800865282ce92e7b4a6cb076f1d7c202e2f3090b3551",
+  "fingerprint": "ee1967e23faf454bb17861c342a626ecf998332022d6703b7b42712c0d6fcc63",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

@@ -11,7 +11,7 @@
 | admin | 19 | 9 |
 | agronomist | 184 | 172 |
 | farmer | 219 | 197 |
-| internal | 415 | 137 |
+| internal | 414 | 136 |
 | manager | 55 | 51 |
 
 العقد الملزِم (core): 467 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
@@ -569,7 +569,6 @@
 | `/imagery/timeseries/parallel` | internal | — |
 | `/indices` | internal | — |
 | `/info/{layer_id}` | internal | — |
-| `/ingest` | internal | — |
 | `/interactive-calculate` | internal | ✅ |
 | `/internal/events/ai-advice` | internal | — |
 | `/internal/field-forms/assignments` | internal | — |
@@ -647,8 +646,6 @@
 | `/quota/check` | internal | — |
 | `/rasters/{raster_id}/tilejson.json` | internal | — |
 | `/raw/process` | internal | — |
-| `/recommend` | internal | ✅ |
-| `/replay/verify` | internal | — |
 | `/retraining/plan` | internal | — |
 | `/runtime-identity` | internal | — |
 | `/runtime/authority-envelope` | internal | — |
@@ -663,9 +660,7 @@
 | `/scene-processing-plan` | internal | ✅ |
 | `/scene-ranking` | internal | — |
 | `/sdk/manifest` | internal | — |
-| `/search` | internal | — |
 | `/segment` | internal | — |
-| `/simulate` | internal | ✅ |
 | `/soil/decode/modbus` | internal | — |
 | `/soil/ingest` | internal | — |
 | `/soil/readings/{field_id}` | internal | — |
@@ -866,6 +861,7 @@
 | `/v1/outcomes/record` | internal | — |
 | `/v1/outcomes/{outcome_id}/learning-attribution` | internal | — |
 | `/v1/outcomes/{outcome_id}/remote-sensing-attribution` | internal | — |
+| `/v1/plan` | internal | — |
 | `/v1/predict` | internal | — |
 | `/v1/prescription/export-preview` | internal | — |
 | `/v1/products` | internal | — |
@@ -873,9 +869,12 @@
 | `/v1/query` | internal | — |
 | `/v1/recommend` | internal | ✅ |
 | `/v1/recommendation-outcomes` | internal | — |
+| `/v1/replay/verify` | internal | — |
 | `/v1/reservation-dispatch-intents` | internal | — |
 | `/v1/scenes/quality-score` | internal | — |
+| `/v1/search` | internal | — |
 | `/v1/segment` | internal | ✅ |
+| `/v1/simulate` | internal | ✅ |
 | `/v1/slope/{z}/{x}/{y}.png` | internal | ✅ |
 | `/v1/soil/action-policies` | internal | — |
 | `/v1/soil/calibrations/build` | internal | — |

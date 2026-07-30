@@ -252,9 +252,9 @@ def test_endpoint_recommend_returns_hashes_and_token_gate(monkeypatch):
         "agromanagement": {"irrigation_mm": 100.0},
     }
     # بلا توكن ⇒ 401 (التوكن مضبوط)
-    assert client.post("/recommend", json=body).status_code == 401
+    assert client.post("/v1/recommend", json=body).status_code == 401
     # بتوكن صالح ⇒ 200 مع بصمتَي أدلّة/إعادة
-    r = client.post("/recommend", json=body, headers={"x-agent-token": "testtoken"})
+    r = client.post("/v1/recommend", json=body, headers={"x-agent-token": "testtoken"})
     assert r.status_code == 200
     data = r.json()
     assert "evidence_hash" in data and "replay_hash" in data
@@ -272,21 +272,23 @@ def test_endpoint_replay_verify_roundtrips(monkeypatch):
     hdr = {"x-agent-token": "testtoken"}
     inputs = {"a": 1, "b": {"c": 2}}
     rec = client.post(
-        "/recommend",
+        "/v1/recommend",
         json={"field_id": "F1", "candidates": [{"name": "wheat", "price_per_kg": 0.5}]},
         headers=hdr,
     ).json()
-    # تحقّق دائريّ لبصمة إعادة التشغيل من نقطة /replay/verify.
+    # تحقّق دائريّ لبصمة إعادة التشغيل من نقطة /v1/replay/verify.
     import importlib.util as _u
 
     spec = _u.spec_from_file_location("replay", os.path.join(SVC, "replay.py"))
     rp = _u.module_from_spec(spec)
     spec.loader.exec_module(rp)
     h = rp.compute_replay_hash(inputs)
-    ok = client.post("/replay/verify", json={"inputs": inputs, "prior_hash": h}, headers=hdr).json()
+    ok = client.post(
+        "/v1/replay/verify", json={"inputs": inputs, "prior_hash": h}, headers=hdr
+    ).json()
     assert ok["verified"] is True
     bad = client.post(
-        "/replay/verify", json={"inputs": inputs, "prior_hash": "deadbeef"}, headers=hdr
+        "/v1/replay/verify", json={"inputs": inputs, "prior_hash": "deadbeef"}, headers=hdr
     ).json()
     assert bad["verified"] is False
     assert rec["replay_hash"]  # نقطة recommend تُصدر بصمة إعادة
@@ -300,4 +302,4 @@ def test_endpoint_token_unset_returns_503(monkeypatch):
     main = _load_main(monkeypatch)
     main.AGENT_TOKEN = ""  # محاكاة غياب التوكن ⇒ معطّل بأمان
     client = TestClient(main.app)
-    assert client.post("/simulate", json={"crop": {}}).status_code == 503
+    assert client.post("/v1/simulate", json={"crop": {}}).status_code == 503

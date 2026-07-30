@@ -8,10 +8,10 @@ agriai-engine,GET,/healthz,healthz,services/agriai-engine/main.py,55
 agriai-engine,GET,/health,legacy_health,services/agriai-engine/main.py,60
 agriai-engine,GET,/readyz,readyz,services/agriai-engine/main.py,65
 agriai-engine,GET,/metrics,metrics,services/agriai-engine/main.py,90
-agriai-engine,POST,/recommend,recommend,services/agriai-engine/main.py,238
-agriai-engine,POST,/simulate,simulate,services/agriai-engine/main.py,298
-agriai-engine,POST,/plan,plan,services/agriai-engine/main.py,311
-agriai-engine,POST,/replay/verify,replay_verify,services/agriai-engine/main.py,327
+agriai-engine,POST,/v1/recommend,recommend,services/agriai-engine/main.py,238
+agriai-engine,POST,/v1/simulate,simulate,services/agriai-engine/main.py,298
+agriai-engine,POST,/v1/plan,plan,services/agriai-engine/main.py,311
+agriai-engine,POST,/v1/replay/verify,replay_verify,services/agriai-engine/main.py,327
 ai-agronomist,GET,/healthz,healthz,services/ai_agronomist/main.py,113
 ai-agronomist,GET,/healthz/ai-provider,ai_provider_snapshot,services/ai_agronomist/main.py,118
 ai-agronomist,GET,/v1/approvals/pending,list_pending_approvals,services/ai_agronomist/main.py,126
@@ -208,8 +208,8 @@ odoo-bridge,POST,/webhook/odoo,odoo_webhook,services/odoo-bridge/routers/webhook
 rag-retrieval,GET,/healthz,healthz,services/rag-retrieval/main.py,55
 rag-retrieval,GET,/metrics,metrics,services/rag-retrieval/main.py,60
 rag-retrieval,GET,/readyz,readyz,services/rag-retrieval/main.py,73
-rag-retrieval,POST,/ingest,ingest,services/rag-retrieval/main.py,90
-rag-retrieval,POST,/search,search,services/rag-retrieval/main.py,115
+rag-retrieval,POST,/v1/ingest,ingest,services/rag-retrieval/main.py,90
+rag-retrieval,POST,/v1/search,search,services/rag-retrieval/main.py,115
 raster-service,POST,/zones/classify,zones_classify,services/raster-service/routers/analysis.py,30
 raster-service,POST,/change/detect,change_detect,services/raster-service/routers/analysis.py,48
 raster-service,POST,/fvc/compute,fvc_compute,services/raster-service/routers/analysis.py,85

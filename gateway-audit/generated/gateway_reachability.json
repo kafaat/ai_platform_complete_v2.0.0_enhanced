@@ -393,7 +393,7 @@
         },
         {
           "selector": "/api/rag/",
-          "proxy_pass": "http://rag_backend/",
+          "proxy_pass": "http://rag_backend/v1/",
           "upstream": "rag_backend",
           "upstream_defined": true,
           "auth_request": true,
@@ -401,7 +401,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 214,
+          "line": 215,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -414,7 +414,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 222,
+          "line": 223,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -479,7 +479,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 277,
+          "line": 278,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -510,7 +510,7 @@
         },
         {
           "selector": "/api/agriai/",
-          "proxy_pass": "http://agriai_backend/",
+          "proxy_pass": "http://agriai_backend/v1/",
           "upstream": "agriai_backend",
           "upstream_defined": true,
           "auth_request": false,
@@ -518,7 +518,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 291,
+          "line": 292,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -531,7 +531,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 300,
+          "line": 301,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -544,7 +544,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 304,
+          "line": 305,
           "security_class": "public_or_service_enforced"
         }
       ],
@@ -819,7 +819,7 @@
         },
         {
           "selector": "/api/agriai/",
-          "proxy_pass": "http://agriai_backend/",
+          "proxy_pass": "http://agriai_backend/v1/",
           "upstream": "agriai_backend",
           "upstream_defined": true,
           "auth_request": false,
@@ -840,7 +840,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 116,
+          "line": 117,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -853,7 +853,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 120,
+          "line": 122,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -866,7 +866,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 124,
+          "line": 125,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -879,7 +879,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 127,
+          "line": 128,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -905,7 +905,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 134,
+          "line": 135,
           "security_class": "public_or_service_enforced"
         }
       ],
@@ -1353,5 +1353,5 @@
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "586b3c4c1f606b84729ab8f2450f99333c97a2ab1a23d6f297844af22e4d74f8"
+  "content_sha256": "9101f03040bc5b0130862c74ff94860338b4ab942c0a063a1ef860407af51479"
 }

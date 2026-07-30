@@ -33,7 +33,7 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
 PINNED_BACKEND_COMPONENTS = 32
-PINNED_UNIQUE_METHOD_PATH = 993  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each
+PINNED_UNIQUE_METHOD_PATH = 992  # +3: PA-003 yield-map ingestion + records routes; +1: GET /runtime-identity (weather+soil+platform build identity); +1: POST /api/v1/scenario/economics (economic_scenarios wiring); +2: API-VERSIONING-GUARD-IS-A-MIRROR-01 Agent D slice 3 (2026-07-30) -- local-ai-rag's POST /query and POST /ingest moved to /v1/query and /v1/ingest, splitting what used to be one shared unique text (with ai_agronomist/rag-retrieval) into two distinct texts each; -1: Agent D slice 5 (2026-07-30) -- rag-retrieval's POST /search and agriai-engine's POST /simulate + POST /replay/verify moved to /v1/* net-neutral (bare text disappears, versioned text appears); rag-retrieval's POST /ingest and agriai-engine's POST /recommend moved into already-existing /v1/ingest and /v1/recommend texts (local-ai-rag's, ai_agronomist's), so their bare texts simply vanish (-2); agriai-engine's POST /plan moved to /v1/plan (+1 new text) but bare /plan does NOT vanish -- generate_service_inventory.py has the same APIRouter(prefix=...) composition blind spot fixed in api_versioning_policy_guard.py (PR #717) but never patched here, so sahool-platform's phase9 /plan (really /v1/phase9/autonomy/plan) still misreports as bare /plan in route_inventory.generated.json, keeping bare /plan alive as a phantom single-owner text (net 0 for /plan, not -1); tracked as a new gap, not fixed in this slice
 
 
 def _catalog() -> dict:
@@ -129,10 +129,17 @@ def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
     مقابل local-ai-rag) لم يعودا مجموعتَي تكرار بعد أن انتقل جانب local-ai-rag إلى
     ``/v1/query``/``/v1/ingest`` — عضو واحد متبقٍّ لكلّ نصّ، فلا حاجة لقرار تصنيف تكرار.
     قرارا `config/platform_catalog_overrides.yml` المقابلان أُزيلا (لا أُعيد ربطهما بمسار
-    جديد كما حدث مع ``/products`` سابقاً، إذ لم يبقَ عضوان يتشاركان النصّ نفسه)."""
+    جديد كما حدث مع ``/products`` سابقاً، إذ لم يبقَ عضوان يتشاركان النصّ نفسه).
+
+    13 ⇒ 14 (2026-07-30، API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل D الخامسة):
+    ``POST /plan`` أُزيل (بات ``stale decision`` — عضو حقيقيّ واحد فقط بعد هجرة
+    agriai-engine؛ العضو الآخر المُتبقّي ظاهريّاً هو مصدر خطأ تصنيفيّ سابق الوجود في
+    ``generate_service_inventory.py``، غير مُصلَح هنا). أُضيف قراران جديدان: ``POST
+    /v1/ingest`` (rag-retrieval × local-ai-rag) و``POST /v1/recommend`` (agriai-engine ×
+    ai_agronomist) — تطابقا نصّيّاً عرضاً بعد هجرات مستقلّة."""
     cat = _catalog()
     groups = cat["cross_service_duplicate_method_paths"]
-    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 13
+    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 14
     for g in groups:
         assert g["classified"] is True, g
         assert g["classification"], g
@@ -147,9 +154,11 @@ def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
         for g in groups
         if g["classification"] == "legacy_bff_facade"
     }
-    # فصل الحقيقة عن الواجهة: raster يملك STAC وagriai يملك التخطيط — المنصّة واجهة فقط.
+    # فصل الحقيقة عن الواجهة: raster يملك STAC — المنصّة واجهة فقط.
+    # (POST /plan لم يعد legacy_bff_facade هنا -- انظر شرح ٩٩٢/١٤ أعلاه: بعد هجرة
+    # agriai-engine إلى /v1/plan، العضو الوحيد الحقيقيّ المتبقّي لبادئة /plan الخام هو
+    # agriai-engine نفسه [الذي هاجر]، فلم يعد عقداً مُكرَّراً يحتاج قرار واجهة/مالك.)
     assert facades[("GET", "/stac")] == "raster-service"
-    assert facades[("POST", "/plan")] == "agriai-engine"
 
 
 def test_u4_ui_waivers_governed() -> None:

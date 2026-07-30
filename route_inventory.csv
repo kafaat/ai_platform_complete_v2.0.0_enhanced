@@ -9,10 +9,10 @@ agriai-engine,services/agriai-engine/main.py,55,GET,/healthz,healthz
 agriai-engine,services/agriai-engine/main.py,60,GET,/health,legacy_health
 agriai-engine,services/agriai-engine/main.py,65,GET,/readyz,readyz
 agriai-engine,services/agriai-engine/main.py,90,GET,/metrics,metrics
-agriai-engine,services/agriai-engine/main.py,238,POST,/recommend,recommend
-agriai-engine,services/agriai-engine/main.py,298,POST,/simulate,simulate
-agriai-engine,services/agriai-engine/main.py,311,POST,/plan,plan
-agriai-engine,services/agriai-engine/main.py,327,POST,/replay/verify,replay_verify
+agriai-engine,services/agriai-engine/main.py,238,POST,/v1/recommend,recommend
+agriai-engine,services/agriai-engine/main.py,298,POST,/v1/simulate,simulate
+agriai-engine,services/agriai-engine/main.py,311,POST,/v1/plan,plan
+agriai-engine,services/agriai-engine/main.py,327,POST,/v1/replay/verify,replay_verify
 ai_agronomist,services/ai_agronomist/main.py,113,GET,/healthz,healthz
 ai_agronomist,services/ai_agronomist/main.py,118,GET,/healthz/ai-provider,ai_provider_snapshot
 ai_agronomist,services/ai_agronomist/main.py,126,GET,/v1/approvals/pending,list_pending_approvals
@@ -217,8 +217,8 @@ odoo-bridge,services/odoo-bridge/routers/webhooks.py,21,POST,/webhook/odoo,odoo_
 rag-retrieval,services/rag-retrieval/main.py,55,GET,/healthz,healthz
 rag-retrieval,services/rag-retrieval/main.py,60,GET,/metrics,metrics
 rag-retrieval,services/rag-retrieval/main.py,73,GET,/readyz,readyz
-rag-retrieval,services/rag-retrieval/main.py,90,POST,/ingest,ingest
-rag-retrieval,services/rag-retrieval/main.py,115,POST,/search,search
+rag-retrieval,services/rag-retrieval/main.py,90,POST,/v1/ingest,ingest
+rag-retrieval,services/rag-retrieval/main.py,115,POST,/v1/search,search
 raster-service,services/raster-service/routers/analysis.py,30,POST,/zones/classify,zones_classify
 raster-service,services/raster-service/routers/analysis.py,48,POST,/change/detect,change_detect
 raster-service,services/raster-service/routers/analysis.py,85,POST,/fvc/compute,fvc_compute

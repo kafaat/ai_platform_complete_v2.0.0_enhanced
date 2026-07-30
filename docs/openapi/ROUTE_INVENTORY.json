@@ -15,7 +15,7 @@
       "GET /health",
       "GET /readyz",
       "GET /metrics",
-      "POST /recommend"
+      "POST /v1/recommend"
     ],
     "routers": 0
   },

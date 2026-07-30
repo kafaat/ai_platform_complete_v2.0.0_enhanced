@@ -2,10 +2,10 @@ capability_id,kind,owner,entrypoints,consumers,derived_from,curated
 actuator-service.command,command,actuator-service,POST /v1/command,frontend,route,False
 actuator-service.commands,query,actuator-service,GET /v1/commands,frontend,route,False
 actuator-service.idempotency.metrics,query,actuator-service,GET /v1/idempotency/metrics,frontend,route,False
-agriai-engine.plan,command,agriai-engine,POST /plan,,route,False
-agriai-engine.recommend,command,agriai-engine,POST /recommend,,route,False
-agriai-engine.replay.verify,command,agriai-engine,POST /replay/verify,,route,False
-agriai-engine.simulate,command,agriai-engine,POST /simulate,,route,False
+agriai-engine.plan,command,agriai-engine,POST /v1/plan,,route,False
+agriai-engine.recommend,command,agriai-engine,POST /v1/recommend,,route,False
+agriai-engine.replay.verify,command,agriai-engine,POST /v1/replay/verify,,route,False
+agriai-engine.simulate,command,agriai-engine,POST /v1/simulate,,route,False
 ai_agronomist.approvals.approve,command,ai_agronomist,POST /v1/approvals/approve,frontend,route,False
 ai_agronomist.approvals.deny,command,ai_agronomist,POST /v1/approvals/deny,frontend,route,False
 ai_agronomist.approvals.pending,query,ai_agronomist,GET /v1/approvals/pending,frontend,route,False
@@ -136,8 +136,8 @@ mcp_servers.procurement.order_id,query,mcp_servers,GET /procurement/{order_id},,
 mcp_servers.products,query,mcp_servers,GET /v1/products,,route,False
 mcp_servers.sales,mixed,mcp_servers,GET /sales|POST /sales,,route,False
 mcp_servers.suppliers.supplier_id,query,mcp_servers,GET /suppliers/{supplier_id},,route,False
-rag-retrieval.ingest,command,rag-retrieval,POST /ingest,,route,False
-rag-retrieval.search,command,rag-retrieval,POST /search,,route,False
+rag-retrieval.ingest,command,rag-retrieval,POST /v1/ingest,,route,False
+rag-retrieval.search,command,rag-retrieval,POST /v1/search,,route,False
 raster-service.change.detect,command,raster-service,POST /change/detect,frontend,route,False
 raster-service.cog.registry.preview,command,raster-service,POST /v1/cog/registry/preview,frontend,route,False
 raster-service.cog.validate,query,raster-service,GET /cog/validate,frontend,route,False

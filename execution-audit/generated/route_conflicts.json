@@ -1,6 +1,6 @@
 {
   "analysis_kind": "static_repository_evidence",
-  "cross_scope_candidate_count": 17,
+  "cross_scope_candidate_count": 18,
   "cross_scope_candidates": [
     {
       "classification": "review_only_distinct_module_or_router",
@@ -1023,23 +1023,23 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "POST",
-      "path": "/plan",
+      "path": "/v1/ingest",
       "registrations": [
         {
-          "function": "plan",
-          "line": 311,
+          "function": "ingest_endpoint",
+          "line": 430,
           "method": "POST",
-          "module": "services/agriai-engine/main.py",
-          "path": "/plan",
+          "module": "services/local-ai-rag/main.py",
+          "path": "/v1/ingest",
           "receiver": "app"
         },
         {
-          "function": "create_execution_plan",
-          "line": 112,
+          "function": "ingest",
+          "line": 90,
           "method": "POST",
-          "module": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
-          "path": "/plan",
-          "receiver": "router"
+          "module": "services/rag-retrieval/main.py",
+          "path": "/v1/ingest",
+          "receiver": "app"
         }
       ]
     },
@@ -1112,13 +1112,36 @@
           "receiver": "app"
         }
       ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/v1/recommend",
+      "registrations": [
+        {
+          "function": "recommend",
+          "line": 238,
+          "method": "POST",
+          "module": "services/agriai-engine/main.py",
+          "path": "/v1/recommend",
+          "receiver": "app"
+        },
+        {
+          "function": "recommend",
+          "line": 393,
+          "method": "POST",
+          "module": "services/ai_agronomist/main.py",
+          "path": "/v1/recommend",
+          "receiver": "app"
+        }
+      ]
     }
   ],
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "97edce00cd6395b4ac7c96e867f0b7b765c75b725bd082ac52fbc952d6c844cf",
+  "route_inventory_sha256": "0eb29074b4e7c371d820bd01ce0810af1699aa21ae37acfc1df8de38a92da107",
   "runtime_verified": false,
   "schema_version": 1
 }

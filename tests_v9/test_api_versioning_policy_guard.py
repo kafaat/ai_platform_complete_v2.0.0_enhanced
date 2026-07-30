@@ -418,3 +418,53 @@ def test_ai_agronomist_routes_are_versioned():
     }
     missing = expected - present_pairs
     assert not missing, f"ai_agronomist missing expected migrated route(s): {missing}"
+
+
+def test_rag_retrieval_and_agriai_engine_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, Agent D slice 5 (2026-07-30): both
+    services declare bare ``@app.*`` decorators with no router prefix, so the
+    decorator literal is the real runtime path. rag-retrieval's two routes and
+    agriai-engine's four routes all moved to /v1/*. Two accidental collisions
+    surfaced after independent migrations: POST /v1/ingest (rag-retrieval vs
+    local-ai-rag, slice 3) and POST /v1/recommend (agriai-engine vs ai_agronomist,
+    slice 4) -- both documented with new service_scoped_semantics governance
+    decisions in config/platform_catalog_overrides.yml. Falsified by construction:
+    reverting any decorator to its old bare path makes this fail by naming the
+    exact leaked path."""
+    rows = guard.collect()
+    migrated_files = (
+        "services/rag-retrieval/main.py",
+        "services/agriai-engine/main.py",
+    )
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/rag-retrieval/main.py": {"/ingest", "/search"},
+        "services/agriai-engine/main.py": {"/recommend", "/simulate", "/plan", "/replay/verify"},
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        "services/rag-retrieval/main.py": {
+            ("POST", "/v1/ingest"),
+            ("POST", "/v1/search"),
+        },
+        "services/agriai-engine/main.py": {
+            ("POST", "/v1/recommend"),
+            ("POST", "/v1/simulate"),
+            ("POST", "/v1/plan"),
+            ("POST", "/v1/replay/verify"),
+        },
+    }
+    for f, expected in new_paths.items():
+        present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
+        missing = expected - present
+        assert not missing, f"{f} missing expected migrated route(s): {missing}"

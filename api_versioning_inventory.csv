@@ -9,10 +9,10 @@ agriai-engine,services/agriai-engine/main.py,55,GET,/healthz,healthz,infra
 agriai-engine,services/agriai-engine/main.py,60,GET,/health,legacy_health,infra
 agriai-engine,services/agriai-engine/main.py,65,GET,/readyz,readyz,infra
 agriai-engine,services/agriai-engine/main.py,90,GET,/metrics,metrics,infra
-agriai-engine,services/agriai-engine/main.py,238,POST,/recommend,recommend,legacy_unversioned_business
-agriai-engine,services/agriai-engine/main.py,298,POST,/simulate,simulate,legacy_unversioned_business
-agriai-engine,services/agriai-engine/main.py,311,POST,/plan,plan,legacy_unversioned_business
-agriai-engine,services/agriai-engine/main.py,327,POST,/replay/verify,replay_verify,legacy_unversioned_business
+agriai-engine,services/agriai-engine/main.py,238,POST,/v1/recommend,recommend,versioned
+agriai-engine,services/agriai-engine/main.py,298,POST,/v1/simulate,simulate,versioned
+agriai-engine,services/agriai-engine/main.py,311,POST,/v1/plan,plan,versioned
+agriai-engine,services/agriai-engine/main.py,327,POST,/v1/replay/verify,replay_verify,versioned
 ai_agronomist,services/ai_agronomist/main.py,113,GET,/healthz,healthz,infra
 ai_agronomist,services/ai_agronomist/main.py,118,GET,/healthz/ai-provider,ai_provider_snapshot,infra
 ai_agronomist,services/ai_agronomist/main.py,126,GET,/v1/approvals/pending,list_pending_approvals,versioned
@@ -216,8 +216,8 @@ odoo-bridge,services/odoo-bridge/routers/webhooks.py,21,POST,/webhook/odoo,odoo_
 rag-retrieval,services/rag-retrieval/main.py,55,GET,/healthz,healthz,infra
 rag-retrieval,services/rag-retrieval/main.py,60,GET,/metrics,metrics,infra
 rag-retrieval,services/rag-retrieval/main.py,73,GET,/readyz,readyz,infra
-rag-retrieval,services/rag-retrieval/main.py,90,POST,/ingest,ingest,legacy_unversioned_business
-rag-retrieval,services/rag-retrieval/main.py,115,POST,/search,search,legacy_unversioned_business
+rag-retrieval,services/rag-retrieval/main.py,90,POST,/v1/ingest,ingest,versioned
+rag-retrieval,services/rag-retrieval/main.py,115,POST,/v1/search,search,versioned
 raster-service,services/raster-service/routers/analysis.py,30,POST,/zones/classify,zones_classify,legacy_unversioned_business
 raster-service,services/raster-service/routers/analysis.py,48,POST,/change/detect,change_detect,legacy_unversioned_business
 raster-service,services/raster-service/routers/analysis.py,85,POST,/fvc/compute,fvc_compute,legacy_unversioned_business

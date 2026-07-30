@@ -234,7 +234,7 @@ def _candidates_to_plan(
     return plan_inputs
 
 
-@app.post("/recommend")
+@app.post("/v1/recommend")
 async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
     """توصية مُدقَّقة: أدلّة ⇒ محاكاة ⇒ تخطيط ربح، مع بصمتَي evidence_hash + replay_hash."""
     _require_service_token(x_agent_token)
@@ -294,7 +294,7 @@ async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
     }
 
 
-@app.post("/simulate")
+@app.post("/v1/simulate")
 async def simulate(req: SimulateRequest, x_agent_token: str = Header(None)):
     """محاكاة غلّة/كتلة حيويّة/ماء عبر مُحوِّل PCSE/WOFOST (أو البديل الحتميّ)."""
     _require_service_token(x_agent_token)
@@ -307,7 +307,7 @@ async def simulate(req: SimulateRequest, x_agent_token: str = Header(None)):
     return result
 
 
-@app.post("/plan")
+@app.post("/v1/plan")
 async def plan(req: PlanRequest, x_agent_token: str = Header(None)):
     """خطّة ربح مرتّبة من مرشّحين، مع بصمة حزمة الأدلّة الحاكمة."""
     _require_service_token(x_agent_token)
@@ -323,7 +323,7 @@ async def plan(req: PlanRequest, x_agent_token: str = Header(None)):
     return result
 
 
-@app.post("/replay/verify")
+@app.post("/v1/replay/verify")
 async def replay_verify(req: ReplayVerifyRequest, x_agent_token: str = Header(None)):
     """يتحقّق من حتميّة إعادة التشغيل: هل تُعيد المدخلاتُ إنتاجَ البصمة السابقة؟"""
     _require_service_token(x_agent_token)

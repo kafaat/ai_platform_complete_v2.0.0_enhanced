@@ -17,7 +17,7 @@
 - `GET /healthz`
 - `GET /metrics`
 - `GET /readyz`
-- `POST /recommend`
+- `POST /v1/recommend`
 
 ## auth — 16 مسار
 - `GET /auth/me`
