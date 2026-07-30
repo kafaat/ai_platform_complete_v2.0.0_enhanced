@@ -204,9 +204,11 @@ def collect() -> list[dict[str, object]]:
     return rows
 
 
-def write(rows: list[dict[str, object]]) -> None:
-    OUT_JSON.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    with OUT_CSV.open("w", newline="", encoding="utf-8") as f:
+def write(
+    rows: list[dict[str, object]], out_json: Path = OUT_JSON, out_csv: Path = OUT_CSV
+) -> None:
+    out_json.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    with out_csv.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()) if rows else ["path"])
         writer.writeheader()
         writer.writerows(rows)
@@ -227,17 +229,25 @@ def main() -> int:
         for r in bad:
             print(f"route mount violation: {r['path']}: {r['status']} - {r['reason']}")
         return 1
-    before = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.exists() else None
-    before_csv = OUT_CSV.read_text(encoding="utf-8") if OUT_CSV.exists() else None
-    write(rows)
     if check:
-        after = OUT_JSON.read_text(encoding="utf-8")
-        after_csv = OUT_CSV.read_text(encoding="utf-8")
-        if before is not None and (before != after or before_csv != after_csv):
+        import tempfile
+
+        with tempfile.TemporaryDirectory(prefix="sahool-route-mount-check-") as tmp:
+            candidate_json = Path(tmp) / OUT_JSON.name
+            candidate_csv = Path(tmp) / OUT_CSV.name
+            write(rows, candidate_json, candidate_csv)
+            drift = (
+                not OUT_JSON.exists()
+                or not OUT_CSV.exists()
+                or OUT_JSON.read_bytes() != candidate_json.read_bytes()
+                or OUT_CSV.read_bytes() != candidate_csv.read_bytes()
+            )
+        if drift:
             print("route_mount_inventory drift; rerun scripts/ci/route_mount_contract_guard.py")
             return 1
         print("route_mount_inventory_check_ok")
     else:
+        write(rows)
         print(f"route_mount_inventory_written entries={len(rows)}")
     return 0
 

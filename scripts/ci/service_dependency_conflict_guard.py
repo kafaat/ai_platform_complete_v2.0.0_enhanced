@@ -82,12 +82,12 @@ def discover() -> list[ConflictRow]:
     return rows
 
 
-def write(rows: list[ConflictRow]) -> None:
+def write(rows: list[ConflictRow], output_root: Path = ROOT) -> None:
     payload = [asdict(r) for r in rows]
-    (ROOT / "dependency_conflicts.generated.json").write_text(
+    (output_root / "dependency_conflicts.generated.json").write_text(
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    with (ROOT / "dependency_conflicts.csv").open("w", encoding="utf-8", newline="") as f:
+    with (output_root / "dependency_conflicts.csv").open("w", encoding="utf-8", newline="") as f:
         fields = (
             list(asdict(rows[0]).keys())
             if rows
@@ -99,15 +99,19 @@ def write(rows: list[ConflictRow]) -> None:
 
 
 def check() -> None:
-    before = {
-        name: (ROOT / name).read_text(encoding="utf-8") if (ROOT / name).exists() else None
-        for name in ["dependency_conflicts.generated.json", "dependency_conflicts.csv"]
-    }
+    import tempfile
+
+    names = ["dependency_conflicts.generated.json", "dependency_conflicts.csv"]
     rows = discover()
-    write(rows)
-    drift = [
-        name for name, old in before.items() if (ROOT / name).read_text(encoding="utf-8") != old
-    ]
+    with tempfile.TemporaryDirectory(prefix="sahool-dependency-conflict-check-") as tmp:
+        candidate_root = Path(tmp)
+        write(rows, candidate_root)
+        drift = [
+            name
+            for name in names
+            if not (ROOT / name).exists()
+            or (ROOT / name).read_bytes() != (candidate_root / name).read_bytes()
+        ]
     if drift:
         raise SystemExit(
             "Dependency conflict inventory drift detected: "
