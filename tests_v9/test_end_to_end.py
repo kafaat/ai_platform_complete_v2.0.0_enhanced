@@ -199,7 +199,7 @@ class TestEndToEndWorkflow:
             },
         }
         contract_response = await http_client.post(
-            "http://localhost:8094/mcp/v1/tools/call",
+            "http://localhost:8094/v1/mcp/tools/call",
             json=contract_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )

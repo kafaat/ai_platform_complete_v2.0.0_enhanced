@@ -81,7 +81,7 @@ class ET0Request(BaseModel):
     latitude: float | None = Field(default=None, ge=-90, le=90)  # degrees
 
 
-@app.get("/mcp/v1/tools", dependencies=[Depends(require_scope("weather:read"))])
+@app.get("/v1/mcp/tools", dependencies=[Depends(require_scope("weather:read"))])
 async def list_tools():
     return {
         "tools": [
@@ -144,7 +144,7 @@ async def list_tools():
     }
 
 
-@app.post("/mcp/v1/tools/call", dependencies=[Depends(require_scope("weather:read"))])
+@app.post("/v1/mcp/tools/call", dependencies=[Depends(require_scope("weather:read"))])
 async def call_tool(request: dict):
     name = request.get("name")
     args = request.get("arguments", {})

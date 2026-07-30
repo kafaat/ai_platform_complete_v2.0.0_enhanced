@@ -2038,7 +2038,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /mcp/v1/tools"
+        "GET /v1/mcp/tools"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2053,7 +2053,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /mcp/v1/tools/call"
+        "POST /v1/mcp/tools/call"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -2068,7 +2068,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /mcp/v1/tools/list"
+        "GET /v1/mcp/tools/list"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -17752,7 +17752,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "0d2ea7dfee61363d181e48d3fad125e5ee6e41ad5fe91d83242c662be792766a",
+  "fingerprint": "04068dd9c1730a4a548af1233e018ebb1a0ff6bcef01e3e2baa97a8bfdda3b0d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

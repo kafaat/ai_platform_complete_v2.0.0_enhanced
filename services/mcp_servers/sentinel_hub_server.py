@@ -195,7 +195,7 @@ function evaluatePixel(sample) {{
 """
 
 
-@app.get("/mcp/v1/tools", dependencies=[Depends(require_scope("satellite:read"))])
+@app.get("/v1/mcp/tools", dependencies=[Depends(require_scope("satellite:read"))])
 async def list_tools() -> dict[str, Any]:
     return {
         "tools": [
@@ -282,7 +282,7 @@ async def list_tools() -> dict[str, Any]:
     }
 
 
-@app.post("/mcp/v1/tools/call", dependencies=[Depends(require_scope("satellite:read"))])
+@app.post("/v1/mcp/tools/call", dependencies=[Depends(require_scope("satellite:read"))])
 async def call_tool(request: Request):
     body = await request.json()
     tool_input = ToolInput(**body)

@@ -1561,36 +1561,36 @@
     "file": "services/mcp_servers/generic_context_server.py",
     "line": 134,
     "method": "GET",
-    "path": "/mcp/v1/tools",
+    "path": "/v1/mcp/tools",
     "handler": "list_tools",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
     "line": 151,
     "method": "POST",
-    "path": "/mcp/v1/tools/call",
+    "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
     "line": 546,
     "method": "GET",
-    "path": "/mcp/v1/tools/list",
+    "path": "/v1/mcp/tools/list",
     "handler": "mcp_tools_list",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/market_server.py",
     "line": 578,
     "method": "POST",
-    "path": "/mcp/v1/tools/call",
+    "path": "/v1/mcp/tools/call",
     "handler": "mcp_tools_call",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
@@ -1696,18 +1696,18 @@
     "file": "services/mcp_servers/sentinel_hub_server.py",
     "line": 199,
     "method": "GET",
-    "path": "/mcp/v1/tools",
+    "path": "/v1/mcp/tools",
     "handler": "list_tools",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
     "line": 286,
     "method": "POST",
-    "path": "/mcp/v1/tools/call",
+    "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
@@ -1741,18 +1741,18 @@
     "file": "services/mcp_servers/weather_server.py",
     "line": 85,
     "method": "GET",
-    "path": "/mcp/v1/tools",
+    "path": "/v1/mcp/tools",
     "handler": "list_tools",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/weather_server.py",
     "line": 148,
     "method": "POST",
-    "path": "/mcp/v1/tools/call",
+    "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
@@ -1786,18 +1786,18 @@
     "file": "services/mcp_servers/wofost_server.py",
     "line": 51,
     "method": "GET",
-    "path": "/mcp/v1/tools",
+    "path": "/v1/mcp/tools",
     "handler": "list_tools",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/wofost_server.py",
     "line": 114,
     "method": "POST",
-    "path": "/mcp/v1/tools/call",
+    "path": "/v1/mcp/tools/call",
     "handler": "call_tool",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "mcp_servers",

@@ -542,7 +542,7 @@ class MCPCallRequest(BaseModel):
     arguments: dict = Field(default_factory=dict)
 
 
-@app.get("/mcp/v1/tools/list", dependencies=[Depends(require_scope("market:read"))])
+@app.get("/v1/mcp/tools/list", dependencies=[Depends(require_scope("market:read"))])
 async def mcp_tools_list():
     return {
         "tools": [
@@ -574,7 +574,7 @@ _MARKET_WRITE_TOOLS = {
 }
 
 
-@app.post("/mcp/v1/tools/call")
+@app.post("/v1/mcp/tools/call")
 async def mcp_tools_call(req: MCPCallRequest, user: dict = Depends(require_scope("market:read"))):
     handlers = {
         "market_search_products": tool_search_products,

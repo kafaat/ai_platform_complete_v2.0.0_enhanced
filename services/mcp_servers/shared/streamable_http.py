@@ -98,9 +98,9 @@ class StreamableHTTPTransport:
         try:
             async with httpx.AsyncClient(app=self.app, base_url="http://testserver") as ac:
                 if method == "tools/list":
-                    resp = await ac.get("/mcp/v1/tools", headers=headers)
+                    resp = await ac.get("/v1/mcp/tools", headers=headers)
                 elif method == "tools/call":
-                    resp = await ac.post("/mcp/v1/tools/call", json=params, headers=headers)
+                    resp = await ac.post("/v1/mcp/tools/call", json=params, headers=headers)
                 else:
                     return {
                         "jsonrpc": "2.0",

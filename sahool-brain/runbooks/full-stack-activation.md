@@ -85,8 +85,8 @@ raster-service (`services/mcp_servers/sentinel_hub_server.py:439`)، **fail-clos
 # 1) توكن نطاق satellite:read (من auth؛ لا يُلصَق في المحادثة):
 TOKEN="…"   # bearer بنطاق satellite:read
 
-# 2) نداء الأداة عبر خادم MCP (POST /mcp/v1/tools/call):
-curl -fsS -X POST http://localhost:8000/mcp/v1/tools/call \
+# 2) نداء الأداة عبر خادم MCP (POST /v1/mcp/tools/call):
+curl -fsS -X POST http://localhost:8000/v1/mcp/tools/call \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"name":"analyze_field_change","arguments":{"field_id":"<FID>","index":"ndvi","since":"2026-03-01"}}'
 ```

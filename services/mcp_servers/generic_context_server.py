@@ -130,7 +130,7 @@ async def readyz() -> dict[str, str]:
     return {"status": "ready", "service": SERVICE}
 
 
-@app.get("/mcp/v1/tools")
+@app.get("/v1/mcp/tools")
 async def list_tools() -> dict[str, Any]:
     if SERVICE not in TOOLSETS:
         raise HTTPException(503, f"Unsupported MCP_SERVICE={SERVICE}")
@@ -147,7 +147,7 @@ async def list_tools() -> dict[str, Any]:
     }
 
 
-@app.post("/mcp/v1/tools/call")
+@app.post("/v1/mcp/tools/call")
 async def call_tool(call: ToolCall) -> dict[str, Any]:
     tools = TOOLSETS.get(SERVICE)
     if not tools or call.name not in tools:

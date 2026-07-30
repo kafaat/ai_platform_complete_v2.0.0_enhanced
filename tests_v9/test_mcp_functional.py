@@ -4,7 +4,7 @@
 These tests run the MCP FastAPI apps **in-process** via
 ``fastapi.testclient.TestClient`` — no live HTTP services are required — and
 verify (a) the health endpoint and (b) JWT scope enforcement on the
-``POST /mcp/v1/tools/call`` endpoint.
+``POST /v1/mcp/tools/call`` endpoint.
 
 INVESTIGATION FINDINGS
 ----------------------
@@ -30,12 +30,12 @@ Import layout (this dev checkout vs. the container image):
 
 Scope enforcement:
 
-* ``wofost_server`` guards ``POST /mcp/v1/tools/call`` with
+* ``wofost_server`` guards ``POST /v1/mcp/tools/call`` with
   ``Depends(require_scope("crop:read"))`` → no token = 401, wrong scope = 403,
   correct scope = passes auth (then 200/400/422 on the tool itself).
 
 * ``market_server`` — SECURITY BUG FOUND **AND FIXED**: its
-  ``POST /mcp/v1/tools/call`` (and ``GET /mcp/v1/tools/list``) used to have **no**
+  ``POST /v1/mcp/tools/call`` (and ``GET /v1/mcp/tools/list``) used to have **no**
   auth guard (returned 200 to anonymous callers) while the REST surface required
   a Bearer token. Now guarded by ``Depends(require_scope("market:read"))`` like
   wofost. ``test_market_mcp_call_endpoint_enforces_scope`` asserts 401 (no token)
@@ -186,7 +186,7 @@ def test_market_healthz_ok():
 @pytest.mark.security
 @pytest.mark.mcp
 def test_market_mcp_call_endpoint_enforces_scope():
-    """FIXED: market_server's POST /mcp/v1/tools/call is now guarded by
+    """FIXED: market_server's POST /v1/mcp/tools/call is now guarded by
     require_scope("market:read") — matching wofost. No token → 401, wrong
     scope → 403, correct scope → passes auth (then the tool runs / 404 / 422,
     not 401/403). (Previously the MCP endpoint was unauthenticated.)
@@ -199,18 +199,18 @@ def test_market_mcp_call_endpoint_enforces_scope():
     client = _test_client(mod.app)
     body = {"name": "get_market_price", "arguments": {"crop": "wheat", "market": "sanaa"}}
 
-    r_no = client.post("/mcp/v1/tools/call", json=body)
+    r_no = client.post("/v1/mcp/tools/call", json=body)
     assert r_no.status_code == 401, f"بلا توكن متوقّع 401: {r_no.status_code} {r_no.text!r}"
 
     r_wrong = client.post(
-        "/mcp/v1/tools/call",
+        "/v1/mcp/tools/call",
         json=body,
         headers={"Authorization": f"Bearer {_scoped_token('weather:read')}"},
     )
     assert r_wrong.status_code == 403, f"نطاق خاطئ متوقّع 403: {r_wrong.status_code}"
 
     r_ok = client.post(
-        "/mcp/v1/tools/call",
+        "/v1/mcp/tools/call",
         json=body,
         headers={"Authorization": f"Bearer {_scoped_token('market:read')}"},
     )
@@ -253,7 +253,7 @@ def test_wofost_mcp_call_rejects_missing_token():
     """No Authorization header → require_scope('crop:read') returns 401."""
     mod = _import_server("wofost_server")
     client = _test_client(mod.app)
-    resp = client.post("/mcp/v1/tools/call", json={"name": "x", "arguments": {}})
+    resp = client.post("/v1/mcp/tools/call", json={"name": "x", "arguments": {}})
     assert resp.status_code == 401, (
         f"missing token must be rejected (401); got {resp.status_code}: {resp.text!r}"
     )
@@ -267,7 +267,7 @@ def test_wofost_mcp_call_rejects_wrong_scope():
     client = _test_client(mod.app)
     token = _scoped_token(scope="weather:read")  # wrong scope on purpose
     resp = client.post(
-        "/mcp/v1/tools/call",
+        "/v1/mcp/tools/call",
         json={"name": "x", "arguments": {}},
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -289,7 +289,7 @@ def test_wofost_mcp_call_accepts_correct_scope():
     client = _test_client(mod.app)
     token = _scoped_token(scope="crop:read")
     resp = client.post(
-        "/mcp/v1/tools/call",
+        "/v1/mcp/tools/call",
         json={"name": "list_crop_models", "arguments": {}},
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -323,7 +323,7 @@ def test_shared_helpers_servers_import_or_skip(module_name):
     mod = _import_server(module_name)  # skips with a clear reason if not importable
     client = _test_client(mod.app)
     assert client.get("/healthz").status_code == 200
-    resp = client.post("/mcp/v1/tools/call", json={"name": "x", "arguments": {}})
+    resp = client.post("/v1/mcp/tools/call", json={"name": "x", "arguments": {}})
     assert resp.status_code in (401, 403), (
         f"{module_name} MCP endpoint must enforce scope; got {resp.status_code}"
     )
