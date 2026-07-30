@@ -90,11 +90,21 @@ def _classify(path: str) -> str:
     return "legacy_unversioned_business"
 
 
+def _is_test_file(path: Path) -> bool:
+    rel = path.relative_to(ROOT).as_posix()
+    return "/tests/" in rel or rel.startswith("tests/") or path.name.startswith("test_")
+
+
 def collect():
     paths = list(ROOT.glob("services/**/*.py")) + list(ROOT.glob("bots/**/*.py"))
     rows = []
     for p in sorted(paths):
         if "__pycache__" in p.parts or ".venv" in p.parts:
+            continue
+        # الجرد يقيس الـAPI الإنتاجيّ، لا مسارات الفحص الداخليّة داخل ملفّات الاختبار
+        # (مثل `GET /probe` في test_correlation_middleware.py) — استبعاد بنيويّ لا
+        # يدويّ، حتى يبقى الأساس 250/230/55 قابلاً لإعادة التوليد بلا تدخّل.
+        if _is_test_file(p):
             continue
         rows.extend(_routes(p))
     for r in rows:

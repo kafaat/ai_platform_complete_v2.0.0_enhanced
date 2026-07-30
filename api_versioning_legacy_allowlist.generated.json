@@ -57,7 +57,6 @@
     "GET /ogc/collections/fields/items",
     "GET /ogc/conformance",
     "GET /price-history/{category}",
-    "GET /probe",
     "GET /procurement/{order_id}",
     "GET /products",
     "GET /rasters/{raster_id}/tilejson.json",
