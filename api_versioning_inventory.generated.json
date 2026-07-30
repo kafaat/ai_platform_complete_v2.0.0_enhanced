@@ -6981,7 +6981,7 @@
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
-    "classification": "legacy_unversioned_business"
+    "classification": "infra"
   },
   {
     "service": "sahool-platform",
@@ -8646,7 +8646,7 @@
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
-    "classification": "legacy_unversioned_business"
+    "classification": "infra"
   },
   {
     "service": "soil-service",
@@ -9636,6 +9636,6 @@
     "method": "GET",
     "path": "/runtime-identity",
     "handler": "runtime_evidence_identity",
-    "classification": "legacy_unversioned_business"
+    "classification": "infra"
   }
 ]
