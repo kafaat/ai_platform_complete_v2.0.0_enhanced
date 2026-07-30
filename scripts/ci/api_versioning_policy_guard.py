@@ -79,11 +79,16 @@ def _classify(path: str) -> str:
         return "internal_s2s"
     if path == "/graphql":
         return "graphql_facade"
+    # /runtime-identity is grouped with healthz/readyz/metrics as a provenance/
+    # infrastructure route (CLAUDE.md, platform_route_placement_contract.json) and
+    # is contract-declared, probe-configured (functional_probe_runner.py identity_path),
+    # and attestation-tested — not a genuine unversioned business route to migrate.
     if path.startswith("/health") or path in {
         "/readyz",
         "/metrics",
         "/contract",
         "/capabilities",
+        "/runtime-identity",
         "/",
     }:
         return "infra"

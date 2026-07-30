@@ -61,7 +61,6 @@
     "GET /products",
     "GET /rasters/{raster_id}/tilejson.json",
     "GET /readyz/capabilities",
-    "GET /runtime-identity",
     "GET /sales",
     "GET /scene-processing-plan",
     "GET /scene-ranking",

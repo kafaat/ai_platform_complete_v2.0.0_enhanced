@@ -774,7 +774,7 @@ sahool-platform,services/sahool-platform/api/routers/phenology.py,181,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/planting.py,30,GET,/api/v1/planting/crops,planting_crops_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/planting.py,36,GET,/api/v1/planting/window,planting_window_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/planting.py,42,GET,/api/v1/planting/check,planting_check_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/platform_health.py,24,GET,/runtime-identity,runtime_evidence_identity,legacy_unversioned_business
+sahool-platform,services/sahool-platform/api/routers/platform_health.py,24,GET,/runtime-identity,runtime_evidence_identity,infra
 sahool-platform,services/sahool-platform/api/routers/platform_health.py,31,GET,/healthz,healthz,infra
 sahool-platform,services/sahool-platform/api/routers/platform_health.py,38,GET,/metrics,metrics,infra
 sahool-platform,services/sahool-platform/api/routers/platform_health.py,59,GET,/readyz,readyz,infra
@@ -959,7 +959,7 @@ scout-ingest-service,services/scout-ingest-service/season_api.py,522,POST,/inter
 scout-ingest-service,services/scout-ingest-service/season_api.py,583,POST,/internal/seasons/{season_id}/harvest,set_season_harvest,internal_s2s
 scout-ingest-service,services/scout-ingest-service/season_api.py,624,POST,/internal/seasons/{season_id}/costs,add_season_cost,internal_s2s
 scout-ingest-service,services/scout-ingest-service/season_api.py,668,GET,/internal/seasons/{season_id}/detail,season_detail,internal_s2s
-soil-service,services/soil-service/main.py,198,GET,/runtime-identity,runtime_evidence_identity,legacy_unversioned_business
+soil-service,services/soil-service/main.py,198,GET,/runtime-identity,runtime_evidence_identity,infra
 soil-service,services/soil-service/routers/canonical.py,22,POST,/v1/soil/observations,create_observation,versioned
 soil-service,services/soil-service/routers/canonical.py,43,GET,/v1/fields/{field_id}/soil/observations,observations,versioned
 soil-service,services/soil-service/routers/canonical.py,60,POST,/v1/fields/{field_id}/soil/profile/rebuild,rebuild_profile,versioned
@@ -1069,4 +1069,4 @@ video-processor,services/video-processor/routers/streams.py,162,POST,/streams/{s
 video-processor,services/video-processor/routers/streams.py,180,GET,/streams/{stream_id}/snapshot,snapshot_zlm,legacy_unversioned_business
 video-processor,services/video-processor/routers/streams.py,202,POST,/streams/{stream_id}/record/start,record_start,legacy_unversioned_business
 video-processor,services/video-processor/routers/streams.py,222,POST,/streams/{stream_id}/record/stop,record_stop,legacy_unversioned_business
-weather-service,services/weather-service/main.py,55,GET,/runtime-identity,runtime_evidence_identity,legacy_unversioned_business
+weather-service,services/weather-service/main.py,55,GET,/runtime-identity,runtime_evidence_identity,infra

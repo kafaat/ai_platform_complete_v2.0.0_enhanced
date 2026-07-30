@@ -38,3 +38,16 @@ def test_collect_excludes_test_file_routes_structurally():
     rows = guard.collect()
     test_file_rows = [r for r in rows if guard._is_test_file(guard.ROOT / r["file"])]
     assert test_file_rows == [], f"routes leaked from test files: {test_file_rows}"
+
+
+def test_runtime_identity_is_infra_not_legacy_business():
+    """GET /runtime-identity is grouped with healthz/readyz/metrics as a
+    provenance/infrastructure route (CLAUDE.md; platform_route_ownership_guard
+    already classifies it this way) and is contract-declared, probe-configured,
+    and attestation-tested -- not a genuine unversioned business route."""
+    assert guard._classify("/runtime-identity") == "infra"
+    rows = guard.collect()
+    leaked = [
+        r for r in rows if r["path"] == "/runtime-identity" and r["classification"] != "infra"
+    ]
+    assert leaked == [], f"/runtime-identity leaked into a non-infra classification: {leaked}"
