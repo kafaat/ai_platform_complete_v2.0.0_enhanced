@@ -73,7 +73,7 @@ BASE_URL=http://localhost python scripts/smoke_e2e.py
 
 - **الطقس:** `GET /api/v1/weather/current?lat=..&lon=..` ⇒ بيانات Open-Meteo حقيقيّة.
 - **الدردشة:** الواجهة تستدعي `/api/agent/query` (supervisor، JWT) ⇒ ردّ `response_ar`.
-- **Edge pest-detect (v9):** `POST /api/edge/inference/pest-detect` بـJWT صالح + صورة
+- **Edge pest-detect (v9):** `POST /api/edge/v1/inference/pest-detect` بـJWT صالح + صورة
   (البوّابة تحقن `X-Agent-Token`؛ يلزم ضبط `SAHOOL_AGENT_TOKEN`).
 - **Agent health:** `GET /api/agent/health` ⇒ 200.
 - **WebSocket:** اتّصل بـ`/ws/notifications` وأرسل أوّل إطار `{"type":"auth","token":"<JWT>"}`

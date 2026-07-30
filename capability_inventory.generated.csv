@@ -98,9 +98,9 @@ decision-service.outcomes.reconciled,query,decision-service,GET /v1/outcomes/rec
 decision-service.outcomes.record,command,decision-service,POST /v1/outcomes/record,,route,False
 decision-service.recommendation-outcomes,command,decision-service,POST /v1/recommendation-outcomes,,route,False
 decision-service.reservation-dispatch-intents,command,decision-service,POST /v1/reservation-dispatch-intents,,route,False
-edge-inference.inference.pest-detect,command,edge-inference,POST /inference/pest-detect,frontend,route,False
-edge-inference.inference.yield-estimate,command,edge-inference,POST /inference/yield-estimate,frontend,route,False
-edge-inference.sync.trigger,command,edge-inference,POST /sync/trigger,frontend,route,False
+edge-inference.inference.pest-detect,command,edge-inference,POST /v1/inference/pest-detect,frontend,route,False
+edge-inference.inference.yield-estimate,command,edge-inference,POST /v1/inference/yield-estimate,frontend,route,False
+edge-inference.sync.trigger,command,edge-inference,POST /v1/sync/trigger,frontend,route,False
 erp-bridge.config,query,erp-bridge,GET /config,,route,False
 erp-bridge.erp.provider,query,erp-bridge,GET /erp/provider,,route,False
 erp-bridge.logs,query,erp-bridge,GET /logs,,route,False
@@ -120,9 +120,9 @@ indicators-service.fields.field_id.observations,query,indicators-service,GET /v1
 indicators-service.indicators.catalog,query,indicators-service,GET /v1/indicators/catalog,frontend,route,False
 indicators-service.indicators.compute,command,indicators-service,POST /v1/indicators/compute,frontend,route,False
 indicators-service.indicators.ownership,query,indicators-service,GET /v1/indicators/ownership,frontend,route,False
-knowledge-graph.edges,mixed,knowledge-graph,GET /edges|POST /edges,,route,False
+knowledge-graph.edges,mixed,knowledge-graph,GET /v1/edges|POST /v1/edges,,route,False
 knowledge-graph.graphql,command,knowledge-graph,POST /graphql,,route,False
-knowledge-graph.nodes,command,knowledge-graph,POST /nodes,,route,False
+knowledge-graph.nodes,command,knowledge-graph,POST /v1/nodes,,route,False
 local-ai-rag.ingest,command,local-ai-rag,POST /ingest,,route,False
 local-ai-rag.query,command,local-ai-rag,POST /query,,route,False
 mcp_servers.<dynamic>,command,mcp_servers,POST <dynamic>,,route,False

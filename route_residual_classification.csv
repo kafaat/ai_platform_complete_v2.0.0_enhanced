@@ -90,9 +90,9 @@ decision-service,services/decision-service/main.py,2765,POST,/v1/learning/reconc
 decision-service,services/decision-service/main.py,2795,POST,/v1/context-snapshots,compose_context_snapshot,business_endpoint
 decision-service,services/decision-service/main.py,2827,GET,/v1/context-snapshots/{snapshot_id},read_context_snapshot,business_endpoint
 edge-inference,services/edge-inference/main.py,168,GET,/healthz,health_check,health
-edge-inference,services/edge-inference/main.py,200,POST,/inference/pest-detect,detect_pest,business_endpoint
-edge-inference,services/edge-inference/main.py,262,POST,/inference/yield-estimate,estimate_yield,business_endpoint
-edge-inference,services/edge-inference/main.py,328,POST,/sync/trigger,trigger_sync,business_endpoint
+edge-inference,services/edge-inference/main.py,200,POST,/v1/inference/pest-detect,detect_pest,business_endpoint
+edge-inference,services/edge-inference/main.py,262,POST,/v1/inference/yield-estimate,estimate_yield,business_endpoint
+edge-inference,services/edge-inference/main.py,328,POST,/v1/sync/trigger,trigger_sync,business_endpoint
 edge-inference,services/edge-inference/main.py,360,GET,/capabilities,capabilities,capabilities
 edge-inference,services/edge-inference/main.py,365,GET,/readyz,readyz,readiness
 field-management-service,services/field-management-service/main.py,184,GET,/healthz,healthz,health
@@ -120,9 +120,9 @@ indicators-service,services/indicators-service/main.py,196,GET,/v1/fields/{field
 knowledge-graph,services/knowledge-graph/main.py,89,GET,/healthz,healthz,health
 knowledge-graph,services/knowledge-graph/main.py,94,GET,/metrics,metrics,metrics
 knowledge-graph,services/knowledge-graph/main.py,111,GET,/readyz,readyz,readiness
-knowledge-graph,services/knowledge-graph/main.py,120,POST,/nodes,upsert_node,business_endpoint
-knowledge-graph,services/knowledge-graph/main.py,128,POST,/edges,upsert_edge,business_endpoint
-knowledge-graph,services/knowledge-graph/main.py,137,GET,/edges,edges,business_endpoint
+knowledge-graph,services/knowledge-graph/main.py,120,POST,/v1/nodes,upsert_node,business_endpoint
+knowledge-graph,services/knowledge-graph/main.py,128,POST,/v1/edges,upsert_edge,business_endpoint
+knowledge-graph,services/knowledge-graph/main.py,137,GET,/v1/edges,edges,business_endpoint
 knowledge-graph,services/knowledge-graph/main.py,151,POST,/graphql,graphql,business_endpoint
 local-ai-rag,services/local-ai-rag/main.py,420,POST,/query,query_endpoint,business_endpoint
 local-ai-rag,services/local-ai-rag/main.py,430,POST,/ingest,ingest_endpoint,business_endpoint

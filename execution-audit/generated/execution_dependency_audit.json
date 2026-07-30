@@ -1002,7 +1002,7 @@
       "line": 200,
       "handler": "detect_pest",
       "method": "POST",
-      "path": "/inference/pest-detect"
+      "path": "/v1/inference/pest-detect"
     },
     {
       "owner": "edge-inference",
@@ -1010,7 +1010,7 @@
       "line": 262,
       "handler": "estimate_yield",
       "method": "POST",
-      "path": "/inference/yield-estimate"
+      "path": "/v1/inference/yield-estimate"
     },
     {
       "owner": "edge-inference",
@@ -1018,7 +1018,7 @@
       "line": 328,
       "handler": "trigger_sync",
       "method": "POST",
-      "path": "/sync/trigger"
+      "path": "/v1/sync/trigger"
     },
     {
       "owner": "edge-inference",
@@ -1290,7 +1290,7 @@
       "line": 120,
       "handler": "upsert_node",
       "method": "POST",
-      "path": "/nodes"
+      "path": "/v1/nodes"
     },
     {
       "owner": "knowledge-graph",
@@ -1298,7 +1298,7 @@
       "line": 128,
       "handler": "upsert_edge",
       "method": "POST",
-      "path": "/edges"
+      "path": "/v1/edges"
     },
     {
       "owner": "knowledge-graph",
@@ -1306,7 +1306,7 @@
       "line": 137,
       "handler": "edges",
       "method": "GET",
-      "path": "/edges"
+      "path": "/v1/edges"
     },
     {
       "owner": "knowledge-graph",

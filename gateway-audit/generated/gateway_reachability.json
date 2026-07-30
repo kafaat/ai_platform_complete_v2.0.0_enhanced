@@ -406,7 +406,7 @@
         },
         {
           "selector": "/api/knowledge-graph/",
-          "proxy_pass": "http://kg_backend/",
+          "proxy_pass": "http://kg_backend/v1/",
           "upstream": "kg_backend",
           "upstream_defined": true,
           "auth_request": true,
@@ -414,7 +414,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 221,
+          "line": 222,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -427,7 +427,7 @@
           "trusted_tenant_injected": true,
           "internal": false,
           "sensitive": true,
-          "line": 224,
+          "line": 227,
           "security_class": "authenticated_tenant_bound"
         },
         {
@@ -440,7 +440,7 @@
           "trusted_tenant_injected": false,
           "internal": true,
           "sensitive": false,
-          "line": 237,
+          "line": 238,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -492,7 +492,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 281,
+          "line": 282,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -505,7 +505,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 285,
+          "line": 286,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -544,7 +544,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 303,
+          "line": 304,
           "security_class": "public_or_service_enforced"
         }
       ],
@@ -1353,5 +1353,5 @@
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "c9f8a9360e938d4eed6bc3d7987e2120d1b10a7c2118424c2782a29cd934cfb3"
+  "content_sha256": "f62a2e4f52e8142570a62e972bcaec71a2d6d096a70237218c0e8d8a78b3f9e0"
 }

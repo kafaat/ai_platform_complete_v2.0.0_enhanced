@@ -122,9 +122,9 @@ decision-service,POST,/v1/learning/reconcile-evidence,reconcile_evidence_boundar
 decision-service,POST,/v1/context-snapshots,compose_context_snapshot,services/decision-service/main.py,2795
 decision-service,GET,/v1/context-snapshots/{snapshot_id},read_context_snapshot,services/decision-service/main.py,2827
 edge-inference,GET,/healthz,health_check,services/edge-inference/main.py,168
-edge-inference,POST,/inference/pest-detect,detect_pest,services/edge-inference/main.py,200
-edge-inference,POST,/inference/yield-estimate,estimate_yield,services/edge-inference/main.py,262
-edge-inference,POST,/sync/trigger,trigger_sync,services/edge-inference/main.py,328
+edge-inference,POST,/v1/inference/pest-detect,detect_pest,services/edge-inference/main.py,200
+edge-inference,POST,/v1/inference/yield-estimate,estimate_yield,services/edge-inference/main.py,262
+edge-inference,POST,/v1/sync/trigger,trigger_sync,services/edge-inference/main.py,328
 edge-inference,GET,/capabilities,capabilities,services/edge-inference/main.py,360
 edge-inference,GET,/readyz,readyz,services/edge-inference/main.py,365
 field-management-service,GET,/healthz,healthz,services/field-management-service/main.py,184
@@ -158,9 +158,9 @@ indicators-service,GET,/v1/fields/{field_id}/observation-timeline,observation_ti
 knowledge-graph,GET,/healthz,healthz,services/knowledge-graph/main.py,89
 knowledge-graph,GET,/metrics,metrics,services/knowledge-graph/main.py,94
 knowledge-graph,GET,/readyz,readyz,services/knowledge-graph/main.py,111
-knowledge-graph,POST,/nodes,upsert_node,services/knowledge-graph/main.py,120
-knowledge-graph,POST,/edges,upsert_edge,services/knowledge-graph/main.py,128
-knowledge-graph,GET,/edges,edges,services/knowledge-graph/main.py,137
+knowledge-graph,POST,/v1/nodes,upsert_node,services/knowledge-graph/main.py,120
+knowledge-graph,POST,/v1/edges,upsert_edge,services/knowledge-graph/main.py,128
+knowledge-graph,GET,/v1/edges,edges,services/knowledge-graph/main.py,137
 knowledge-graph,POST,/graphql,graphql,services/knowledge-graph/main.py,151
 local-ai-rag,POST,/query,query_endpoint,services/local-ai-rag/main.py,420
 local-ai-rag,POST,/ingest,ingest_endpoint,services/local-ai-rag/main.py,430

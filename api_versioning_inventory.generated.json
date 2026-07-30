@@ -1129,27 +1129,27 @@
     "file": "services/edge-inference/main.py",
     "line": 200,
     "method": "POST",
-    "path": "/inference/pest-detect",
+    "path": "/v1/inference/pest-detect",
     "handler": "detect_pest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
     "line": 262,
     "method": "POST",
-    "path": "/inference/yield-estimate",
+    "path": "/v1/inference/yield-estimate",
     "handler": "estimate_yield",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
     "line": 328,
     "method": "POST",
-    "path": "/sync/trigger",
+    "path": "/v1/sync/trigger",
     "handler": "trigger_sync",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "edge-inference",
@@ -1462,27 +1462,27 @@
     "file": "services/knowledge-graph/main.py",
     "line": 120,
     "method": "POST",
-    "path": "/nodes",
+    "path": "/v1/nodes",
     "handler": "upsert_node",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
     "line": 128,
     "method": "POST",
-    "path": "/edges",
+    "path": "/v1/edges",
     "handler": "upsert_edge",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
     "line": 137,
     "method": "GET",
-    "path": "/edges",
+    "path": "/v1/edges",
     "handler": "edges",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "knowledge-graph",

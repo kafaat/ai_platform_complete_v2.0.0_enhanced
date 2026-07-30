@@ -427,7 +427,7 @@ _EDGE = {
 }
 
 
-@pytest.mark.parametrize("path,payload", [("/nodes", _NODE), ("/edges", _EDGE)])
+@pytest.mark.parametrize("path,payload", [("/v1/nodes", _NODE), ("/v1/edges", _EDGE)])
 def test_kg_write_without_token_rejected(monkeypatch, path, payload):
     _M, client = _kg_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
@@ -439,7 +439,7 @@ def test_kg_write_without_token_rejected(monkeypatch, path, payload):
 def test_kg_write_with_token_allowed(monkeypatch):
     _M, client = _kg_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post("/nodes", json=_NODE, headers={"X-Agent-Token": _AGENT_TOKEN})
+    r = client.post("/v1/nodes", json=_NODE, headers={"X-Agent-Token": _AGENT_TOKEN})
     assert r.status_code == 200
     assert r.json()["ok"] is True
 
@@ -449,11 +449,11 @@ def test_kg_read_edges_requires_trusted_tenant():
     # gateway-injected X-Tenant-Id (fail-closed 403 missing_tenant when absent),
     # preventing anonymous cross-tenant graph reads. ai_agronomist forwards it (C2).
     _M, client = _kg_client()
-    r_missing = client.get("/edges", params={"subject_id": "anything"})
+    r_missing = client.get("/v1/edges", params={"subject_id": "anything"})
     assert r_missing.status_code == 403
     assert r_missing.json()["detail"] == "missing_tenant"
     r_ok = client.get(
-        "/edges", params={"subject_id": "anything"}, headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/edges", params={"subject_id": "anything"}, headers={"X-Tenant-Id": "tenant-1"}
     )
     assert r_ok.status_code == 200
     assert "edges" in r_ok.json()

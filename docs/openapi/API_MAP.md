@@ -40,9 +40,9 @@
 ## edge-inference — 5 مسار
 - `GET /healthz`
 - `GET /readyz`
-- `POST /inference/pest-detect`
-- `POST /inference/yield-estimate`
-- `POST /sync/trigger`
+- `POST /v1/inference/pest-detect`
+- `POST /v1/inference/yield-estimate`
+- `POST /v1/sync/trigger`
 
 ## guardrails-engine — 7 مسار
 - `GET /health`

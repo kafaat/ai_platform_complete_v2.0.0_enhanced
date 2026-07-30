@@ -116,7 +116,7 @@ async def readyz():
     return {"status": "ready", "service": "knowledge-graph", "edges": edge_count}
 
 
-@app.post("/nodes")
+@app.post("/v1/nodes")
 async def upsert_node(node: NodeIn, _token: None = Depends(require_service_token)):
     # SEC-3: graph writes are internal-only; require the trusted service token
     # (X-Agent-Token == SAHOOL_AGENT_TOKEN). Reads require gateway-injected tenant.
@@ -124,7 +124,7 @@ async def upsert_node(node: NodeIn, _token: None = Depends(require_service_token
     return {"ok": True}
 
 
-@app.post("/edges")
+@app.post("/v1/edges")
 async def upsert_edge(edge: EdgeIn, _token: None = Depends(require_service_token)):
     try:
         store.upsert_edge(GraphEdge(**edge.model_dump()))
@@ -133,7 +133,7 @@ async def upsert_edge(edge: EdgeIn, _token: None = Depends(require_service_token
     return {"ok": True}
 
 
-@app.get("/edges")
+@app.get("/v1/edges")
 async def edges(
     subject_id: str | None = None,
     relation: str | None = None,
