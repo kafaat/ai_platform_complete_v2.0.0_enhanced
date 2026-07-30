@@ -75,12 +75,12 @@
 ## raster-service — 31 مسار
 - `GET /cog/validate`
 - `GET /healthz`
-- `GET /imagery/best`
-- `GET /imagery/dem`
-- `GET /imagery/search/landsat`
-- `GET /imagery/search/radar`
-- `GET /imagery/search/recent`
-- `GET /imagery/search/season`
+- `GET /v1/imagery/best`
+- `GET /v1/imagery/dem`
+- `GET /v1/imagery/search/landsat`
+- `GET /v1/imagery/search/radar`
+- `GET /v1/imagery/search/recent`
+- `GET /v1/imagery/search/season`
 - `GET /imagery/timeseries`
 - `GET /info/{layer_id}`
 - `GET /jobs/{job_id}`
@@ -92,7 +92,7 @@
 - `GET /readyz`
 - `GET /storage/stats`
 - `GET /tiles/{layer_id}/{z}/{x}/{y}.png`
-- `POST /imagery/search`
+- `POST /v1/imagery/search`
 - `POST /imagery/timeseries/analyze`
 - `POST /imagery/timeseries/parallel`
 - `POST /process`

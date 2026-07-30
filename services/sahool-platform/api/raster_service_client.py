@@ -385,9 +385,9 @@ async def get_best_imagery_scene(
     max_cloud_pct: float,
     timeout_s: float = 30.0,
 ) -> dict[str, Any]:
-    """Return raster-service /imagery/best response for a bbox."""
+    """Return raster-service /v1/imagery/best response for a bbox."""
     return await raster_get_json(
-        "/imagery/best",
+        "/v1/imagery/best",
         params={
             "west": bbox[0],
             "south": bbox[1],
@@ -410,7 +410,7 @@ async def search_imagery_scenes(
 ) -> dict[str, Any]:
     """Search raster-service imagery catalog for scheduler-driven automation."""
     return await raster_post_json(
-        "/imagery/search",
+        "/v1/imagery/search",
         payload={
             "bbox": list(bbox),
             "datetime_start": datetime_start,

@@ -23,7 +23,7 @@ capabilities:
   services:
   - services/raster-service/main.py
   apis:
-  - GET /imagery/best @ services/raster-service/routers/imagery_search.py:65
+  - GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:65
   - GET /scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:262
   - GET /scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:245
   - GET /stac @ services/raster-service/routers/stac.py:17
@@ -667,13 +667,13 @@ capabilities:
   - GET /cog/validate @ services/raster-service/routers/analysis.py:153
   - GET /gis/admin-boundaries @ services/raster-service/routers/fields.py:92
   - GET /healthz @ services/raster-service/routers/observability.py:31
-  - GET /imagery/best @ services/raster-service/routers/imagery_search.py:65
-  - GET /imagery/dem @ services/raster-service/routers/imagery_search.py:186
-  - GET /imagery/search/landsat @ services/raster-service/routers/imagery_search.py:157
-  - GET /imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:157
-  - GET /imagery/search/radar @ services/raster-service/routers/imagery_search.py:132
-  - GET /imagery/search/recent @ services/raster-service/routers/imagery_search.py:24
-  - GET /imagery/search/season @ services/raster-service/routers/imagery_search.py:43
+  - GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:65
+  - GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:186
+  - GET /v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:157
+  - GET /v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:157
+  - GET /v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:132
+  - GET /v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:24
+  - GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43
   - GET /imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:24
   - GET /indices @ services/raster-service/routers/observability.py:253
   - GET /info/{layer_id} @ services/raster-service/routers/observability.py:213

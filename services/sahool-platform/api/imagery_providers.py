@@ -2,7 +2,7 @@
 
 لماذا هذا السجلّ؟
   اليوم مصدر الصور **مُثبَّت برمجيّاً** على Sentinel‑2: مسار السحب الفعليّ
-  (api/imagery_automation.py → raster-service /imagery/search → مجموعة STAC
+  (api/imagery_automation.py → raster-service /v1/imagery/search → مجموعة STAC
   "sentinel-2-l2a" على Element84 Earth Search) لا يعرف سوى Sentinel‑2.
   إضافة مزوّد جديد (Planet / Landsat / طائرة مسيّرة) تتطلّب اليوم تعديل كود.
 

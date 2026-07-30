@@ -74,7 +74,7 @@ GUARD_NAMES: frozenset[str] = frozenset({FIELD_GUARD, LAYER_GUARD, SERVICE_GUARD
 # ─────────────────────────────────────────────────────────────────────────────
 FIELD_SCOPED_SERVICE_ONLY: set[str] = {
     # جسر استيراد STAC→معالجة: خلفيّة، يأخذ band hrefs ويبني VRT ثمّ /process.
-    # يستدعيه العامل بعد /imagery/best — لا يُنادى من المتصفّح.
+    # يستدعيه العامل بعد /v1/imagery/best — لا يُنادى من المتصفّح.
     "/v1/fields/{field_id}/process-from-stac",
     # معالجة CDSE (المزوّد الافتراضيّ): يحسب المؤشّر خادميّاً (evalscript) → COG. خلفيّة،
     # يستدعيه المنسّق (imagery_automation) خدمة-لخدمة بترويسة التوكن — لا يُنادى من المتصفّح.
@@ -92,7 +92,7 @@ FIELD_SCOPED_SERVICE_ONLY: set[str] = {
 # ─────────────────────────────────────────────────────────────────────────────
 SERVICE_ONLY: set[str] = {
     "/gis/admin-boundaries",  # A6/A7: قراءة طبقة الحدود المشتركة (خدمة-لخدمة، bbox مُطهَّر).
-    "/imagery/search",  # بحث متقدّم (POST) — توكن خدمة.
+    "/v1/imagery/search",  # بحث متقدّم (POST) — توكن خدمة.
     "/raw/process",  # فحص راستر خام: metadata+إحصاءات نطاقات (require_service_token في processing.py).
     "/imagery/timeseries/analyze",  # تحليل سلسلة زمنيّة من قيم محسوبة.
     "/imagery/timeseries/parallel",  # تحليل سلسلة زمنيّة متوازٍ.
@@ -130,13 +130,13 @@ SERVICE_ONLY: set[str] = {
 # ─────────────────────────────────────────────────────────────────────────────
 PUBLIC_CATALOG: set[str] = {
     # ── بحث الصور الفضائيّة العامّ (بـbbox، لا بيانات مستأجِر) ──
-    "/imagery/search/recent",  # آخر صور Sentinel-2 لمنطقة — بحث عامّ بـbbox.
-    "/imagery/search/season",  # صور الموسم الزراعي — بحث عامّ بـbbox.
-    "/imagery/search/radar",  # رادار Sentinel-1 — بحث عامّ بـbbox.
-    "/imagery/search/landsat",  # أرشيف Landsat — بحث عامّ بـbbox.
-    "/imagery/search/landsat-thermal",  # v147: بحث Landsat الحراريّ الفريد — بحث عامّ بـbbox.
-    "/imagery/best",  # أفضل مشهد حديث — اختيار من بحث عامّ بـbbox.
-    "/imagery/dem",  # نموذج ارتفاع Copernicus — مرجع جغرافيّ عامّ بـbbox.
+    "/v1/imagery/search/recent",  # آخر صور Sentinel-2 لمنطقة — بحث عامّ بـbbox.
+    "/v1/imagery/search/season",  # صور الموسم الزراعي — بحث عامّ بـbbox.
+    "/v1/imagery/search/radar",  # رادار Sentinel-1 — بحث عامّ بـbbox.
+    "/v1/imagery/search/landsat",  # أرشيف Landsat — بحث عامّ بـbbox.
+    "/v1/imagery/search/landsat-thermal",  # v147: بحث Landsat الحراريّ الفريد — بحث عامّ بـbbox.
+    "/v1/imagery/best",  # أفضل مشهد حديث — اختيار من بحث عامّ بـbbox.
+    "/v1/imagery/dem",  # نموذج ارتفاع Copernicus — مرجع جغرافيّ عامّ بـbbox.
     "/imagery/timeseries",  # توفّر المشاهد الزمنيّ — بحث عامّ بـbbox (GET، لا قيم).
     # ── بنية تحتيّة: فحوص صحّة/جاهزيّة + مقاييس (k8s/Prometheus، لا أسرار) ──
     "/healthz",  # فحص حياة العمليّة — بنية تحتيّة، لا بيانات.

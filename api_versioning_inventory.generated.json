@@ -2290,72 +2290,72 @@
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 24,
     "method": "GET",
-    "path": "/imagery/search/recent",
+    "path": "/v1/imagery/search/recent",
     "handler": "imagery_search_recent",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 43,
     "method": "GET",
-    "path": "/imagery/search/season",
+    "path": "/v1/imagery/search/season",
     "handler": "imagery_search_season",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 65,
     "method": "GET",
-    "path": "/imagery/best",
+    "path": "/v1/imagery/best",
     "handler": "imagery_best_scene",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 120,
     "method": "POST",
-    "path": "/imagery/search",
+    "path": "/v1/imagery/search",
     "handler": "imagery_search",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 132,
     "method": "GET",
-    "path": "/imagery/search/radar",
+    "path": "/v1/imagery/search/radar",
     "handler": "imagery_search_radar",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 157,
     "method": "GET",
-    "path": "/imagery/search/landsat",
+    "path": "/v1/imagery/search/landsat",
     "handler": "imagery_search_landsat",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 157,
     "method": "GET",
-    "path": "/imagery/search/landsat-thermal",
+    "path": "/v1/imagery/search/landsat-thermal",
     "handler": "imagery_search_landsat",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/imagery_search.py",
     "line": 186,
     "method": "GET",
-    "path": "/imagery/dem",
+    "path": "/v1/imagery/dem",
     "handler": "imagery_dem",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",

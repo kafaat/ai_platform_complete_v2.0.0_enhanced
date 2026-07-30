@@ -147,7 +147,7 @@ async def process_from_stac(
     """يجسر الاستيراد→المعالجة: يكدّس COGs المنفصلة لنطاقات STAC في VRT
     (عبر /vsicurl/ للبعيد) ثم يشغّل نفس مسار /process (قصّ→مؤشّر→COG→persist).
 
-    مناسب للمزوّد بلا مفتاح (Element84): استدعِ /imagery/best لجلب band hrefs،
+    مناسب للمزوّد بلا مفتاح (Element84): استدعِ /v1/imagery/best لجلب band hrefs،
     ثمّ مرّرها هنا. خلفيّة — يُرجِع job_id.
     """
     _require_service_token(x_agent_token)

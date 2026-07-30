@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dece2d20ae80da3127e86f05b48c5a62f5fb2605d310ba22bd9a51eeed00ed54"
+          "content": "30db74294b86647c738a898d99a94177399866829f8a4aad9a1ed7c42beb98b5"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -13435,7 +13435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18327281c96668378f00be861a868057097605c90f419e563c8587c82e6d1c59"
+          "content": "4b3302a4d9ea343d3ddffdce63395c9294f4839706a800d1f26393e4c99d0fd4"
         }
       ],
       "name": "services/raster-service/routers/analysis.py",
@@ -13455,7 +13455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f5e10593bc1211573b1b3659bfb9a1d203e8c95cd0cb3bd891dabb97daeb3dcd"
+          "content": "0a331309fa284846c38fe853a7b60b28dd69e27cda30ad1237924ba26e132143"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -13475,7 +13475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ed8511ff1a2dfa8bbc0b86b9e26b718ba4f2bb4775a5170a63b50a70bc8a127e"
+          "content": "ccc79d1c7e088d69637ec79ae82f2555048409900d8dc3596e673b5ef9757256"
         }
       ],
       "name": "services/raster-service/routers/imagery_search.py",
@@ -15865,7 +15865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02fef4f2f46ca340b43d88e21ea3eab79d4eca701f95b7431c04fca9a0b45cb0"
+          "content": "b2d49fc0727c2586c072a0447cc4ac7b7831bc5199b84098940f82db0ac38990"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -15875,7 +15875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70e12cfcb99ea2f06ff37ba569ee71cf833e65383970b632a0b420179d041dd8"
+          "content": "885bc8afe711b9582c02b222a0cbb13a966bdbb592338cc234cc155d4ecd7f6a"
         }
       ],
       "name": "services/sahool-platform/api/imagery_providers.py",
@@ -16555,7 +16555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8db746c159ee5a72789b8cf0c7095640435c997d973d8e674056b6e21437cd27"
+          "content": "7af52fc1aab0345391c53d79f90af4512b0f2bdcba39534ed1109572a32088b7"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",
@@ -25375,7 +25375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "77048759d0f3c62c6aad07936c25d5b12d62dea45a34aa38309494f452154d67"
+          "content": "bfdea80a0ceecadfad75b54dcaf88c6e962de15c03d6c0e83bee8ed9b9fd6a10"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_1_imagery_automation_raster_facade_guard.py",

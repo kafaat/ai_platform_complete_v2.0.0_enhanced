@@ -59,8 +59,8 @@ def test_raster_facade_exposes_automation_primitives():
         assert f"async def {token}" in text, f"raster facade missing {token}"
     for endpoint in [
         "/v1/fields/{field_id}/process-cdse",
-        "/imagery/best",
-        "/imagery/search",
+        "/v1/imagery/best",
+        "/v1/imagery/search",
         "/v1/fields/{field_id}/process-from-stac",
         "/process/batch",
         "/jobs/{job_id}/result",

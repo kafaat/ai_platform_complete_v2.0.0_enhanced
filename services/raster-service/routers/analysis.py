@@ -135,7 +135,7 @@ async def sar_rvi_endpoint(req: SarRviRequest, x_agent_token: str = Header(None)
 async def terrain_slope(req: TerrainRequest, x_agent_token: str = Header(None)):
     """يحسب الانحدار من DEM + يصنّف ملاءمة حصاد المياه (زراعة اليمن).
 
-    يأخذ dem_url (من /imagery/dem) ويحسب الانحدار/الاتّجاه ثمّ يوصي بتقنيّة
+    يأخذ dem_url (من /v1/imagery/dem) ويحسب الانحدار/الاتّجاه ثمّ يوصي بتقنيّة
     حصاد المياه المناسبة. صدق: الحساب الفعلي يحتاج rasterio في التشغيل.
     """
     require_service_token(x_agent_token, AGENT_TOKEN)

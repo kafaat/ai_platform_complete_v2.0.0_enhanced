@@ -2,7 +2,7 @@
 api/imagery_automation.py — أتمتة سحب الصور الجوّية وحساب المؤشّرات
 
 الفجوة التي يسدّها:
-  raster-service يوفّر بحث الصور (/imagery/search) وحساب المؤشّرات
+  raster-service يوفّر بحث الصور (/v1/imagery/search) وحساب المؤشّرات
   (/process → NDVI/EVI/...). لكن لا شيء **يفحص دوريّاً** عن صور Sentinel
   جديدة لحقول المستخدم، ثمّ **يُطلق** حساب المؤشّرات تلقائيّاً عند توفّرها.
   دورة Sentinel-2 ~5 أيّام، فالفحص اليدوي يفوّت صوراً.
@@ -255,7 +255,7 @@ class ImageryAutomation:
 
     @staticmethod
     def _band_hrefs_from_scene(scene: dict) -> dict[str, str]:
-        """Normalize raster-service /imagery/best STAC asset names to process-from-stac names.
+        """Normalize raster-service /v1/imagery/best STAC asset names to process-from-stac names.
 
         Element84 returns `bands_urls` with Sentinel-2 asset keys such as rededge1,
         swir16 and swir22. raster-service/stac_vrt expects canonical names:

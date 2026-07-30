@@ -241,7 +241,7 @@ capabilities:
   - services/raster-service/main.py
   apis:
   - GET /api/v1/fields/{field_id}/terrain @ services/sahool-platform/api/routers/fields.py:1090
-  - GET /imagery/dem @ services/raster-service/routers/imagery_search.py:186
+  - GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:186
   - GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73
   - GET /v1/fields/{field_id}/contours.geojson @ services/raster-service/routers/terrain_tiles.py:156
   - GET /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:146
