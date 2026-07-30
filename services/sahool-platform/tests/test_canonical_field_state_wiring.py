@@ -1,8 +1,9 @@
 """canonical_field_state موصولة بمستهلك إنتاجيّ — وتقول الحقيقة عن نواقصها.
 
-النواة تشترط ``weather`` و``water`` و``soil``. المنصّة تُنتِج **الماء** فقط من الثلاثة.
-فالربط اليوم لا يُنتِج حالة صالحة تشغيليّاً — وهذا **هو المطلوب**: أن تُسمّى المنتَجات
-الغائبة بأسمائها بدل اختلاق واحدٍ منها لإرضاء العقد.
+النواة تشترط ``weather`` و``water`` و``soil``. المنصّة تُنتِج **الماء** و**التربة** (عبر
+``api/canonical_soil_state.py`` — عميل HTTP لِـ``soil-service``) من الثلاثة؛ **الطقس** يبقى
+غائباً (قرار معماريّ مؤجَّل). فالربط اليوم لا يُنتِج حالة صالحة تشغيليّاً — وهذا **هو
+المطلوب**: أن يُسمّى المنتَج الغائب باسمه بدل اختلاقه لإرضاء العقد.
 
 الفشل الذي تمنعه هذه الاختبارات: منتَج بمخطّط صحيح ومحتوى مُلفَّق يجعل
 ``operational_eligible=true`` فتبدو الحالة صالحة وهي ليست كذلك.
@@ -99,8 +100,8 @@ def test_no_new_route_was_spent():
     assert sorted(paths) == ["/internal/events/ai-advice", "/internal/fields/{field_id}/state"]
 
 
-def test_consumer_passes_missing_products_as_none_and_fabricates_nothing():
-    """الفحص على AST: تمرير weather/soil كـNone صراحةً، لا حمولة مُختلَقة."""
+def test_consumer_passes_missing_weather_as_none_and_fabricates_nothing():
+    """الفحص على AST: تمرير weather كـNone صراحةً — لا حمولة مُختلَقة."""
     tree = ast.parse(ROUTER.read_text(encoding="utf-8"))
     fn = next(
         n
@@ -115,8 +116,46 @@ def test_consumer_passes_missing_products_as_none_and_fabricates_nothing():
         and n.func.id == "compose_canonical_field_state"
     )
     passed = {kw.arg: kw.value for kw in call.keywords}
-    for absent in ("weather", "soil"):
-        assert absent in passed, f"{absent} يجب أن يُمرَّر صراحةً لا أن يُحذَف"
-        assert isinstance(passed[absent], ast.Constant) and passed[absent].value is None, (
-            f"{absent} يجب أن يكون None — أيّ حمولة هنا اختلاق"
-        )
+    assert "weather" in passed, "weather يجب أن يُمرَّر صراحةً لا أن يُحذَف"
+    assert isinstance(passed["weather"], ast.Constant) and passed["weather"].value is None, (
+        "weather يجب أن يكون None — أيّ حمولة هنا اختلاق"
+    )
+
+
+def test_consumer_sources_soil_from_a_resolver_call_not_a_literal():
+    """soil يُمرَّر عبر متغيّر مصدره استدعاء resolve_canonical_soil_state — لا Constant/Dict مُلفَّق."""
+    tree = ast.parse(ROUTER.read_text(encoding="utf-8"))
+    fn = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "_compose_canonical"
+    )
+    imported = {
+        alias.name
+        for node in ast.walk(fn)
+        if isinstance(node, ast.ImportFrom) and node.module == "api.canonical_soil_state"
+        for alias in node.names
+    }
+    assert "resolve_canonical_soil_state" in imported, (
+        "soil يجب أن يُحلَّ عبر api.canonical_soil_state.resolve_canonical_soil_state"
+    )
+    call = next(
+        n
+        for n in ast.walk(fn)
+        if isinstance(n, ast.Call)
+        and isinstance(n.func, ast.Name)
+        and n.func.id == "compose_canonical_field_state"
+    )
+    passed = {kw.arg: kw.value for kw in call.keywords}
+    assert "soil" in passed, "soil يجب أن يُمرَّر صراحةً لا أن يُحذَف"
+    assert not isinstance(passed["soil"], (ast.Constant, ast.Dict)), (
+        "soil يجب أن يأتي من نتيجة الحلّ (resolver) — لا Constant/Dict مُلفَّق هنا"
+    )
+    resolver_calls = [
+        n
+        for n in ast.walk(fn)
+        if isinstance(n, ast.Call)
+        and isinstance(n.func, ast.Name)
+        and n.func.id == "resolve_canonical_soil_state"
+    ]
+    assert resolver_calls, "لا بدّ من استدعاء resolve_canonical_soil_state فعليّاً داخل الدالّة"

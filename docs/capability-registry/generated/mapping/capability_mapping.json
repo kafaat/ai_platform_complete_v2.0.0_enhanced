@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4786,
+    "files_scanned": 4788,
     "files_by_kind": {
-      "backend": 1190,
+      "backend": 1191,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1253,
-      "tests": 1520,
+      "tests": 1521,
       "web": 448
     },
     "unmapped_artifacts": 1950,
@@ -11318,7 +11318,7 @@
           "score": 20
         },
         {
-          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:69",
+          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:71",
           "score": 20
         },
         {
@@ -11389,23 +11389,27 @@
           "score": 20
         },
         {
+          "value": "api.canonical_soil_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:136",
+          "score": 20
+        },
+        {
           "value": "canonical_field_state.v1 @ docs/architecture/capability_core_consumption_registry.json:19",
           "score": 20
         },
         {
-          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:63",
+          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:64",
           "score": 20
         },
         {
-          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:67",
+          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:68",
           "score": 20
         },
         {
-          "value": "canonical_weather_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:68",
+          "value": "canonical_weather_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:69",
           "score": 20
         },
         {
-          "value": "core.canonical_field_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:83",
+          "value": "core.canonical_field_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:84",
           "score": 20
         },
         {
@@ -11478,7 +11482,7 @@
         "backend": 4,
         "routes": 9,
         "database": 8,
-        "events": 12,
+        "events": 13,
         "web": 0,
         "mobile": 0,
         "tests": 3,
@@ -26108,6 +26112,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/canonical_soil_state.py",
+          "score": 10,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
           "score": 8,
           "signals": [
@@ -26566,6 +26578,14 @@
           "score": 16
         },
         {
+          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_soil_state.py:54",
+          "score": 12
+        },
+        {
+          "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_soil_state.py:59",
+          "score": 12
+        },
+        {
           "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:391",
           "score": 12
         },
@@ -26606,6 +26626,22 @@
           "score": 12
         },
         {
+          "value": "soil-profile.v1 @ services/sahool-platform/tests/test_canonical_soil_state.py:37",
+          "score": 12
+        },
+        {
+          "value": "soil-profile.v1 @ services/sahool-platform/tests/test_canonical_soil_state.py:41",
+          "score": 12
+        },
+        {
+          "value": "soil-profile.v1 @ services/sahool-platform/tests/test_canonical_soil_state.py:42",
+          "score": 12
+        },
+        {
+          "value": "soil-profile.v1 @ services/sahool-platform/tests/test_canonical_soil_state.py:53",
+          "score": 12
+        },
+        {
           "value": "soil-profile.v1 @ services/soil-service/profile_composer.py:202",
           "score": 12
         },
@@ -26627,6 +26663,10 @@
         },
         {
           "value": "soil-observation.v1 @ tests_v9/test_soil_p6_runtime_integration.py:90",
+          "score": 10
+        },
+        {
+          "value": "soil-profile.v1 @ services/sahool-platform/api/canonical_soil_state.py:17",
           "score": 10
         },
         {
@@ -26690,6 +26730,14 @@
         },
         {
           "path": "services/agriai-engine/tests/test_agronomic_context_contract.py",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/tests/test_canonical_soil_state.py",
           "score": 12,
           "signals": [
             "content:Soil profile",
@@ -26872,13 +26920,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 12,
+        "backend": 13,
         "routes": 85,
         "database": 14,
-        "events": 27,
+        "events": 34,
         "web": 1,
         "mobile": 0,
-        "tests": 11,
+        "tests": 12,
         "governance": 1,
         "other_evidence": 12
       },

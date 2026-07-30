@@ -559,11 +559,15 @@
 - **الحرّاس الساكنة تبعت الاستخراج ولم تضعف:** `MapHubHistoricalTimeline` و`MapHubTwoYearBackfill` كانا يؤكّدان نصّ `alt` داخل `MapHub.tsx`؛ صارا يؤكّدان تصيير `<ImageryTimelineThumb` في البطاقة **و**وجود `alt` في المكوّن.
 - **حدّ الصدق:** يُغلق **BUG-4 وBUG-5**. لا يزال مفتوحاً: BUG-1A · BUG-1B · نافذة الاكتشاف بـ`acquisition_date` صريح · `SatellitePage.tsx:331` (truecolor مُثبَّت نصّيّاً).
 
-## FIELD-STATE-PRODUCERS-MISSING-01 — OPEN (P1) 2026-07-28
+## FIELD-STATE-PRODUCERS-MISSING-01 — PARTIALLY_CLOSED (soil) / OPEN (weather) 2026-07-30
 
-- **الأثر:** `canonical_field_state` موصولة (`247c69c`) وتُعيد `operational_eligible=false` **دائماً**.
-- **السبب:** من `required=(weather, water, soil)` مُنتِج واحد فقط — الماء (`api/canonical_water_state.py:21`). لا مُنتِج لـ`canonical_soil_state.`/`soil-profile.` (البادئة ترد في قائمة قبول النواة نفسها: `core/canonical_field_state.py:77`) ولا لـ`wx10/canonical-weather-state/`.
+- **الأثر الأصليّ:** `canonical_field_state` موصولة (`247c69c`) وكانت تُعيد `operational_eligible=false` **دائماً**.
+- **السبب الأصليّ:** من `required=(weather, water, soil)` مُنتِج واحد فقط — الماء (`api/canonical_water_state.py:21`). لا مُنتِج لـ`canonical_soil_state.`/`soil-profile.` (البادئة ترد في قائمة قبول النواة نفسها: `core/canonical_field_state.py:77`) ولا لـ`wx10/canonical-weather-state/`.
 - **لماذا مُسجَّل رغم إغلاق الفجوة الأمّ:** الراتشِت يقول 4/4 بصدق (مستهلكون يستوردون الرموز بفحص AST) لكنّه **لا يقول** إنّ الأربع تُنتِج قيمة. فجوة مُغلقة بتحفّظ غير مكتوب هي أوّل خطوة نحو سجلّ يكذب.
+- **مُنجَز التربة (2026-07-30):** `api/canonical_soil_state.py` (جديد) — عميل HTTP بنفس نمط `soil_hydraulic_client.py` (ترويستَي `X-Agent-Token`/`X-Tenant-Id`، `SOIL_SERVICE_URL`، لا اختلاق عند أيّ فشل/404/رمز مفقود). يقرأ `GET /v1/fields/{field_id}/soil/profile` من `soil-service` (`services/soil-service/routers/canonical.py:72` ← `profile_composer.compose_snapshot`)، الذي يُصدِر `contract_version: "soil-profile.v1"` أعلى المستوى — مفتاح لا تعرفه `core.canonical_field_state._schema_of()` (تقرأ `schema_version`/`schema` فقط). العميل يُطبِّع بإضافة `schema_version` من `contract_version` **دون حذف الأصل** وإن لم يوجد مفتاح مخطّط أصلاً؛ يُبقي الحمولة كما هي إن وُجد `schema_version`/`schema` مسبقاً.
+  - **الوصل:** `api/routers/internal_service.py:_compose_canonical` يستدعي `resolve_canonical_soil_state` بدل `soil=None` الثابتة. الطقس (`weather`) يبقى `None` صراحةً — **قرار معماريّ مؤجَّل عمداً**، لا نسيان: `weather-service/canonical_weather_state.py` (674 سطراً) مُنتِج كامل وموصول فعلاً عبر `POST /v1/weather/agro/canonical-state`، لكنّ نقطتَي `GET /v1/weather/current`/`forecast` الأبسط تُعيدان "views" جزئيّة بلا غلاف `schema_version` — كشف/تعديل عقد HTTP جديد لخدمة الطقس قرار لا يُتّخذ من هذه الجلسة.
+  - **البرهان بالتكذيب:** `tests/test_canonical_field_state_wiring.py::test_consumer_sources_soil_from_a_resolver_call_not_a_literal` — حقن `soil={"schema_version": ..., "fake": True}` مكان `soil_payload` ⇒ فشل فوريّ («soil يجب أن يأتي من نتيجة الحلّ»)؛ استعادة الوصل الحقيقيّ ⇒ نجاح. + ٩ اختبارات وحدة جديدة على العميل نفسه (`tests/test_canonical_soil_state.py`، عبر `respx` بلا شبكة): نجاح مع تطبيع المفتاح، إبقاء `schema_version` الموجود دون تكرار، رمز مفقود ⇒ `None` بلا طلب شبكة، 404/500/خطأ اتصال/حمولة غير `dict`/JSON تالف/بلا أيّ مفتاح مخطّط ⇒ `None` في كلّ حالة.
+  - **الأثر المتبقّي:** `operational_eligible` لا يزال `false` حتى يُحسَم الطقس (يشترط الثلاثة معاً — `core/canonical_field_state.py`)؛ لكن `limitations` الآن تسمّي `weather_missing` فقط بدل `weather_missing`+`soil_missing`.
 
 ## GENERATED-ARTIFACT-SWEEP-01 — FIXED_IN_CODE (2026-07-28)
 

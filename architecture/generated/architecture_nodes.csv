@@ -52,7 +52,7 @@ model-registry-adapter,service,0,3,False,services/model-registry-adapter
 networks,compose-service,82,0,False,
 nginx,compose-service,0,8,False,
 ollama,compose-service,1,0,False,
-platform,service,2,78,False,services/sahool-platform
+platform,service,2,80,False,services/sahool-platform
 postgis,compose-service,12,0,False,
 production-preflight,compose-service,3,0,False,
 python,compose-service,5,0,False,
@@ -135,7 +135,7 @@ sahool-zlmediakit-config,compose-service,1,0,False,
 sam2-inference,service,0,0,True,services/sam2-inference
 scout-ingest-service,service,1,0,False,services/scout-ingest-service
 sentinel-hub-mcp,compose-service,2,0,False,
-soil-service,service,7,0,False,services/soil-service
+soil-service,service,9,0,False,services/soil-service
 start-period,compose-service,51,0,False,
 supervisor-agent,service,3,18,False,services/supervisor-agent
 telegram-bot,compose-service,0,6,False,

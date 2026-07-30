@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1824,
+    "python_files_parsed": 1826,
     "route_handlers": 1042,
-    "call_edges": 71382,
+    "call_edges": 71452,
     "dead_code_candidates": 610,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -5287,7 +5287,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
-      "line": 70,
+      "line": 72,
       "handler": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice"
@@ -162037,6 +162037,90 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "getenv",
+      "line": 22
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "rstrip",
+      "line": 22
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "getenv",
+      "line": 24
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "getenv",
+      "line": 25
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "getenv",
+      "line": 26
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "AsyncClient",
+      "line": 32
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "get",
+      "line": 33
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "raise_for_status",
+      "line": 39
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "json",
+      "line": 40
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "isinstance",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "get",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "isinstance",
+      "line": 48
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_digest",
       "target": "hexdigest",
@@ -251087,147 +251171,154 @@
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "tenant_connection_for",
-      "line": 52
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_field_state",
-      "target": "_assert_field_in_tenant",
-      "line": 53
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_field_state",
-      "target": "recompute_field_state",
       "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
-      "target": "_compose_canonical",
+      "target": "_assert_field_in_tenant",
+      "line": 55
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_field_state",
+      "target": "recompute_field_state",
       "line": 56
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
+      "target": "_compose_canonical",
+      "line": 58
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_field_state",
       "target": "_db_unavailable",
-      "line": 63
+      "line": 65
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "post",
-      "line": 69
+      "line": 71
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "Depends",
-      "line": 72
+      "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "tenant_connection_for",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_ai_advice_event",
-      "target": "_assert_field_in_tenant",
       "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
-      "target": "_emit_domain_event",
-      "line": 94
+      "target": "_assert_field_in_tenant",
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
-      "target": "_ServiceUser",
+      "target": "_emit_domain_event",
       "line": 96
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
+      "target": "_ServiceUser",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_ai_advice_event",
       "target": "_db_unavailable",
-      "line": 106
+      "line": 108
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "resolve_canonical_water_state",
-      "line": 125
+      "line": 128
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "isinstance",
-      "line": 126
+      "line": 129
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "to_dict",
-      "line": 126
+      "line": 129
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "get",
-      "line": 127
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "str",
-      "line": 127
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "compose_canonical_field_state",
       "line": 130
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
-      "target": "isoformat",
+      "target": "str",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "resolve_canonical_soil_state",
       "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "compose_canonical_field_state",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "isoformat",
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "now",
-      "line": 133
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "to_dict",
-      "line": 140
+      "line": 145
     },
     {
       "owner": "sahool-platform",
@@ -348016,111 +348107,104 @@
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "_compose",
       "target": "compose_canonical_field_state",
-      "line": 27
+      "line": 28
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_water_only_names_every_missing_required_product",
       "target": "_compose",
-      "line": 34
+      "line": 35
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_absent_product_is_named_missing_not_silently_dropped",
       "target": "_compose",
-      "line": 49
+      "line": 50
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_a_wrong_schema_is_rejected_rather_than_accepted_as_canonical",
       "target": "_compose",
-      "line": 56
+      "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_eligibility_requires_all_three_and_never_a_subset",
       "target": "_compose",
-      "line": 63
+      "line": 64
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_eligibility_requires_all_three_and_never_a_subset",
       "target": "_compose",
-      "line": 65
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_digest_is_deterministic_so_the_state_is_comparable",
       "target": "_compose",
-      "line": 74
+      "line": 75
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_digest_is_deterministic_so_the_state_is_comparable",
       "target": "_compose",
-      "line": 74
+      "line": 75
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_router_consumes_the_core",
       "target": "parse",
-      "line": 79
+      "line": 80
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_router_consumes_the_core",
       "target": "read_text",
-      "line": 79
+      "line": 80
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_router_consumes_the_core",
       "target": "walk",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_router_consumes_the_core",
-      "target": "isinstance",
       "line": 83
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_router_consumes_the_core",
+      "target": "isinstance",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_no_new_route_was_spent",
       "target": "parse",
-      "line": 91
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_no_new_route_was_spent",
       "target": "read_text",
-      "line": 91
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_no_new_route_was_spent",
       "target": "walk",
-      "line": 94
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_no_new_route_was_spent",
-      "target": "isinstance",
       "line": 95
     },
     {
@@ -348128,91 +348212,203 @@
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_no_new_route_was_spent",
       "target": "isinstance",
-      "line": 97
+      "line": 96
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_no_new_route_was_spent",
       "target": "isinstance",
-      "line": 97
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_no_new_route_was_spent",
+      "target": "isinstance",
+      "line": 98
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_no_new_route_was_spent",
       "target": "sorted",
-      "line": 99
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
       "target": "parse",
-      "line": 104
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
-      "target": "read_text",
-      "line": 104
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
-      "target": "next",
       "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
-      "target": "walk",
-      "line": 107
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "target": "read_text",
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
-      "target": "isinstance",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "target": "next",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "target": "walk",
       "line": 108
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
-      "target": "next",
-      "line": 110
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
-      "target": "walk",
-      "line": 112
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
       "target": "isinstance",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "target": "next",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "target": "walk",
       "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
       "target": "isinstance",
       "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_products_as_none_and_fabricates_nothing",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "target": "isinstance",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
       "target": "isinstance",
       "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "parse",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "read_text",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "next",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "walk",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "walk",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "next",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "walk",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "walk",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 158
     },
     {
       "owner": "sahool-platform",
@@ -348346,6 +348542,300 @@
       "source": "test_observation_source_includes_historical",
       "target": "list",
       "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "_token",
+      "target": "fixture",
+      "line": 24
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "_token",
+      "target": "setenv",
+      "line": 26
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "_token",
+      "target": "delenv",
+      "line": 27
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "_token",
+      "target": "delenv",
+      "line": 28
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "_token",
+      "target": "delenv",
+      "line": 29
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_success_normalizes_contract_version_into_schema_version",
+      "target": "get",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_success_normalizes_contract_version_into_schema_version",
+      "target": "mock",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_success_normalizes_contract_version_into_schema_version",
+      "target": "Response",
+      "line": 36
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_success_normalizes_contract_version_into_schema_version",
+      "target": "resolve_canonical_soil_state",
+      "line": 40
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_existing_schema_version_key_is_left_untouched",
+      "target": "get",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_existing_schema_version_key_is_left_untouched",
+      "target": "mock",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_existing_schema_version_key_is_left_untouched",
+      "target": "Response",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_existing_schema_version_key_is_left_untouched",
+      "target": "resolve_canonical_soil_state",
+      "line": 58
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_missing_token_returns_none_without_network_call",
+      "target": "delenv",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_missing_token_returns_none_without_network_call",
+      "target": "Response",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_missing_token_returns_none_without_network_call",
+      "target": "get",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_missing_token_returns_none_without_network_call",
+      "target": "mock",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_missing_token_returns_none_without_network_call",
+      "target": "resolve_canonical_soil_state",
+      "line": 67
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_404_returns_none",
+      "target": "Response",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_404_returns_none",
+      "target": "get",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_404_returns_none",
+      "target": "mock",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_404_returns_none",
+      "target": "resolve_canonical_soil_state",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_server_error_returns_none_never_synthesizes",
+      "target": "Response",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_server_error_returns_none_never_synthesizes",
+      "target": "get",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_server_error_returns_none_never_synthesizes",
+      "target": "mock",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_server_error_returns_none_never_synthesizes",
+      "target": "resolve_canonical_soil_state",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_network_error_returns_none",
+      "target": "ConnectError",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_network_error_returns_none",
+      "target": "get",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_network_error_returns_none",
+      "target": "mock",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_network_error_returns_none",
+      "target": "resolve_canonical_soil_state",
+      "line": 92
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_non_dict_payload_returns_none",
+      "target": "Response",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_non_dict_payload_returns_none",
+      "target": "get",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_non_dict_payload_returns_none",
+      "target": "mock",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_non_dict_payload_returns_none",
+      "target": "resolve_canonical_soil_state",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_payload_without_any_version_key_returns_none",
+      "target": "Response",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_payload_without_any_version_key_returns_none",
+      "target": "get",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_payload_without_any_version_key_returns_none",
+      "target": "mock",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_payload_without_any_version_key_returns_none",
+      "target": "resolve_canonical_soil_state",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_malformed_json_returns_none",
+      "target": "get",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_malformed_json_returns_none",
+      "target": "mock",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_malformed_json_returns_none",
+      "target": "Response",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "source": "test_malformed_json_returns_none",
+      "target": "resolve_canonical_soil_state",
+      "line": 120
     },
     {
       "owner": "sahool-platform",

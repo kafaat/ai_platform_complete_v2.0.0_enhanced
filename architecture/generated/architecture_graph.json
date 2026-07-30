@@ -462,7 +462,7 @@
       ],
       "kind": "service",
       "incoming": 2,
-      "outgoing": 78,
+      "outgoing": 80,
       "orphan": false
     },
     {
@@ -1141,7 +1141,7 @@
         "services/soil-service"
       ],
       "kind": "service",
-      "incoming": 7,
+      "incoming": 9,
       "outgoing": 0,
       "orphan": false
     },
@@ -2191,6 +2191,12 @@
       "source": "platform",
       "target": "soil-service",
       "kind": "code-reference",
+      "evidence": "services/sahool-platform/api/canonical_soil_state.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
       "evidence": "services/sahool-platform/api/routers/service_proxy.py"
     },
     {
@@ -2210,6 +2216,12 @@
       "target": "soil-service",
       "kind": "code-reference",
       "evidence": "services/sahool-platform/core/field_intelligence_adapters.py"
+    },
+    {
+      "source": "platform",
+      "target": "soil-service",
+      "kind": "code-reference",
+      "evidence": "services/sahool-platform/tests/test_canonical_soil_state.py"
     },
     {
       "source": "platform",
@@ -6859,11 +6871,11 @@
   "cycles": [],
   "summary": {
     "nodes": 152,
-    "edges": 929,
+    "edges": 931,
     "orphans": 6,
     "cycles": 0,
-    "code_edges": 108,
+    "code_edges": 110,
     "compose_edges": 821
   },
-  "content_sha256": "b98bcc7036ab9d6c8abdf468f66662fdc74827f3d06b981f7908e0593e110992"
+  "content_sha256": "28a22a82f1432a292db8b2b82057b03e010f810a32cea1ce322ce4274e1ce8a7"
 }
