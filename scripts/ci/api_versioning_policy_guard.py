@@ -32,11 +32,46 @@ def _service_for(path: Path) -> str:
     return parts[0]
 
 
+# APIRouter(prefix=...) العمى: collect() كان يقرأ نصّ الديكوريتر وحده — @router.get("/plan")
+# — بلا تركيب بادئة الراوتر نفسه (`router = APIRouter(prefix="/v1/phase9/autonomy")`)، فمسار
+# مُصدَّر فعلاً على الشبكة (`/v1/phase9/autonomy/plan`) يُصنَّف «غير مُصدَّر» لأنّ نصّه الحرفيّ
+# لا يبدأ بمقطع إصدار. مسح شامل للمستودع (`include_router(..., prefix=...)` عبر خدمة) لم يجد
+# ولا استخداماً واحداً — البادئة الوحيدة المُستعمَلة فعليّاً هي `APIRouter(prefix=...)` في نفس
+# ملفّ الراوتر، فالتركيب هنا محليّ الملفّ بحت، لا يحتاج تتبّعاً عبر ملفّات. (API-VERSIONING-GUARD-IS-A-MIRROR-01)
+def _router_prefixes(tree: ast.AST) -> dict[str, str]:
+    prefixes: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        call = node.value
+        if not (
+            isinstance(call, ast.Call)
+            and isinstance(call.func, ast.Name)
+            and call.func.id == "APIRouter"
+        ):
+            continue
+        prefix = None
+        for kw in call.keywords:
+            if (
+                kw.arg == "prefix"
+                and isinstance(kw.value, ast.Constant)
+                and isinstance(kw.value.value, str)
+            ):
+                prefix = kw.value.value
+        if prefix is None:
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                prefixes[target.id] = prefix
+    return prefixes
+
+
 def _routes(path: Path):
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     except SyntaxError:
         return []
+    prefixes = _router_prefixes(tree)
     rows = []
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -52,13 +87,18 @@ def _routes(path: Path):
                     and isinstance(dec.args[0], ast.Constant)
                     and isinstance(dec.args[0].value, str)
                 ):
+                    route_path = dec.args[0].value
+                    if isinstance(dec.func.value, ast.Name):
+                        prefix = prefixes.get(dec.func.value.id)
+                        if prefix:
+                            route_path = prefix.rstrip("/") + route_path
                     rows.append(
                         {
                             "service": _service_for(path),
                             "file": path.relative_to(ROOT).as_posix(),
                             "line": getattr(node, "lineno", 0),
                             "method": dec.func.attr.upper(),
-                            "path": dec.args[0].value,
+                            "path": route_path,
                             "handler": node.name,
                         }
                     )
