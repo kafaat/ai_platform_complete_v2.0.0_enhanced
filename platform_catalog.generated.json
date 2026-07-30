@@ -1794,7 +1794,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /approve/{workflow_id}"
+        "POST /v1/approve/{workflow_id}"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -1811,7 +1811,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /validate"
+        "POST /v1/validate"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -1828,7 +1828,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /workflow/{workflow_id}"
+        "GET /v1/workflow/{workflow_id}"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -14582,7 +14582,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /agent/actuator-audit"
+        "GET /v1/agent/actuator-audit"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -14599,7 +14599,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /agent/journal/{invocation_id}"
+        "GET /v1/agent/journal/{invocation_id}"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -14616,7 +14616,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /agent/optimize"
+        "POST /v1/agent/optimize"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -14633,7 +14633,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /agent/query"
+        "POST /v1/agent/query"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -14650,7 +14650,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /agent/tools"
+        "GET /v1/agent/tools"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -17752,7 +17752,7 @@
       "path": "/v1/products"
     }
   ],
-  "fingerprint": "b50ed0bae2c7b0a5ced295684c83c96fb5e9eadab2c2115e0b1e8a9195c5deab",
+  "fingerprint": "8b6c51036bf087a410e9379938e324237cb69f4b15d022d2493035e435cc286f",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

@@ -390,9 +390,9 @@ async def call_supervisor(
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         if "حسّن" in query or "optimize" in query.lower() or "أفضل" in query:
-            endpoint = f"{SUPERVISOR_URL}/agent/optimize"
+            endpoint = f"{SUPERVISOR_URL}/v1/agent/optimize"
         else:
-            endpoint = f"{SUPERVISOR_URL}/agent/query"
+            endpoint = f"{SUPERVISOR_URL}/v1/agent/query"
 
         resp = await client.post(endpoint, json=payload, headers=headers)
         resp.raise_for_status()

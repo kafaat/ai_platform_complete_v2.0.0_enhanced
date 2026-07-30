@@ -353,7 +353,7 @@
         "POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523",
         "POST /approvals/approve @ services/ai_agronomist/main.py:146",
-        "POST /approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:36",
+        "POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:36",
         "POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:709",
         "POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2121",
         "POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100"
@@ -1346,7 +1346,7 @@
         "GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:140",
         "GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179",
         "GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:41",
-        "POST /agent/optimize @ services/supervisor-agent/routers/agent.py:89",
+        "POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:89",
         "POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:247",
         "POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:130",
         "POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:864",
@@ -3505,7 +3505,7 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178",
+        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178",
         "GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31",
         "GET /v1/commands @ services/actuator-service/routers/commands.py:70",
         "GET /health @ services/actuator-service/routers/health.py:20",
@@ -6317,7 +6317,7 @@
         "services/auth/main.py"
       ],
       "apis": [
-        "GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178",
+        "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178",
         "GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19",
         "GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:617"
       ],

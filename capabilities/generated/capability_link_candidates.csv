@@ -74,7 +74,7 @@ DEC-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api
 DEC-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684,2,applied
 DEC-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,2,applied
 DEC-003,api,POST /approvals/approve @ services/ai_agronomist/main.py:146,2,applied
-DEC-003,api,POST /approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:36,2,applied
+DEC-003,api,POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:42,2,applied
 DEC-003,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:705,3,applied
 DEC-003,api,POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2117,3,applied
 DEC-003,api,POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100,2,applied
@@ -319,7 +319,6 @@ FM-002,api,GET /api/v1/farms @ services/sahool-platform/api/routers/farms.py:105
 FM-002,api,GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:140,4,applied
 FM-002,api,GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179,4,applied
 FM-002,api,GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:41,2,applied
-FM-002,api,POST /agent/optimize @ services/supervisor-agent/routers/agent.py:89,2,applied
 FM-002,api,POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:247,2,applied
 FM-002,api,POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:130,2,applied
 FM-002,api,POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:864,2,applied
@@ -336,6 +335,7 @@ FM-002,api,POST /iot/dispatch/simulate @ services/sahool-platform/api/phase9_aut
 FM-002,api,POST /iot/telemetry/verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:251,2,applied
 FM-002,api,POST /models/register @ services/sahool-platform/api/phase9_autonomous_farm_os.py:175,2,applied
 FM-002,api,POST /plan @ services/sahool-platform/api/phase9_autonomous_farm_os.py:112,2,applied
+FM-002,api,POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:96,2,applied
 FM-002,api,POST /verify @ services/sahool-platform/api/phase9_autonomous_farm_os.py:134,2,applied
 FM-002,api,POST /verify-loop @ services/sahool-platform/api/phase9_autonomous_farm_os.py:207,2,applied
 FM-002,mobile,mobile/sahool_app/lib/screens/farms_screen.dart,2,applied
@@ -1076,11 +1076,11 @@ IRR-006,api,POST /v1/fields/{field_id}/post-execution-observations @ services/ve
 IRR-006,api,POST /v1/learning/runtime-schedules @ services/decision-service/main.py:2718,2,applied
 IRR-006,service,services/sahool-platform/api/main.py,10,applied
 IRR-006,test,tests_v9/test_irrigation_schedule_conflict_v29_5_op.py,7,applied
-IRR-007,api,GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178,2,applied
 IRR-007,api,GET /api/v1/commands/{command_id} @ services/sahool-platform/api/routers/commands.py:31,3,applied
 IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
+IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:185,2,applied
 IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:70,3,applied
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100,3,applied
@@ -1698,9 +1698,9 @@ SEC-004,test,tests_v9/test_mfa_crypto_v29_5.py,3,applied
 SEC-004,test,tests_v9/test_mfa_hardening_integration_v29_5.py,3,applied
 SEC-004,test,tests_v9/test_mfa_migration_contract_guard.py,3,applied
 SEC-004,test,tests_v9/test_mfa_totp_antireplay_v141.py,5,applied
-SEC-005,api,GET /agent/actuator-audit @ services/supervisor-agent/routers/agent.py:178,2,applied
 SEC-005,api,GET /api/v1/admin/security/denials @ services/sahool-platform/api/routers/security_audit.py:19,2,applied
 SEC-005,api,GET /api/v1/calibration/{region}/audit @ services/sahool-platform/api/routers/calibration.py:617,2,applied
+SEC-005,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:185,2,applied
 SEC-005,service,services/auth/main.py,10,applied
 SEC-005,test,services/sahool-platform/tests/test_calibration_audit_endpoint.py,3,applied
 SEC-005,test,services/sahool-platform/tests/test_tenant_audit.py,3,applied

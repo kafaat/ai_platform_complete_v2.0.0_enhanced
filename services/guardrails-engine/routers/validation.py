@@ -2,11 +2,17 @@
 ======================================================================
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
-نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/الطرائق/الأجسام/
+نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ الطرائق/الأجسام/
 المخرجات/المصادقة مطابقة تماماً. توكن الخدمة (``_require_service_token``) ومنطق
 ``/validate`` fail-safe محفوظان بايتاً ببايت. التبعيّات المشتركة (المحرّك/النماذج/
 المساعِدات/الـauth) تبقى في ``main`` وتُشار إليها عبر ``main.X``. ``register_routers(app)``
 يضمّ هذا الراوتر بلا prefix.
+
+إصدار المسارات (API-VERSIONING-GUARD-IS-A-MIRROR-01، شريحة 2026-07-30): المسارات
+الثلاثة كانت غير مُصدَّرة حرفيّاً (``/validate``، ``/approve/{workflow_id}``،
+``/workflow/{workflow_id}``) — لا مُقارب لها (بلا prefix على الراوتر، `register_routers`
+يضمّه مسطّحاً)، فصارت ``/v1/validate``، ``/v1/approve/{workflow_id}``،
+``/v1/workflow/{workflow_id}``. كل مستدعٍ حُدِّث (انظر سجلّ الفجوات).
 """
 
 from __future__ import annotations
@@ -18,7 +24,7 @@ from human_in_loop import HumanApprovalWorkflow
 router = APIRouter()
 
 
-@router.post("/validate", response_model=main.GuardrailsResult)
+@router.post("/v1/validate", response_model=main.GuardrailsResult)
 async def validate_action(
     request: main.GuardrailsRequest, _svc: bool = Depends(main._require_service_token)
 ):
@@ -32,7 +38,7 @@ async def validate_action(
     return await engine.validate(request)
 
 
-@router.post("/approve/{workflow_id}")
+@router.post("/v1/approve/{workflow_id}")
 async def approve_workflow(
     workflow_id: str, approved: bool, reason: str = "", claims: dict = Depends(main._gr_verify)
 ):
@@ -52,7 +58,7 @@ async def approve_workflow(
         return await hil.reject(workflow_id, expert_id, expert_role, reason, tenant_id)
 
 
-@router.get("/workflow/{workflow_id}")
+@router.get("/v1/workflow/{workflow_id}")
 async def get_workflow(workflow_id: str, claims: dict = Depends(main._gr_authn)):
     """حالة workflow — تتطلّب توكناً ومقيّدة بمستأجر الطالب (منع IDOR/تسريب).
 

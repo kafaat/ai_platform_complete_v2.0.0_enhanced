@@ -140,7 +140,7 @@ class RemoteSensingSkill:
                 "type": "full_satellite_analysis",
                 "satellite_results": results,
                 "period": date_range,
-                "recommendation": "تم جلب البيانات الفضائية. استخدم /agent/optimize لتحليل المفاضلات.",
+                "recommendation": "تم جلب البيانات الفضائية. استخدم /v1/agent/optimize لتحليل المفاضلات.",
                 "sources": ["Sentinel-2", "Sentinel-1", "SAHOOL Fusion Engine"],
             }
 

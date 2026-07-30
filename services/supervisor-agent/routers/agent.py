@@ -2,9 +2,16 @@
 ======================================================================
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
-نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المخرجات
+نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المخرجات
 والمصادقة مطابقة. التبعيّات المشتركة (الحالة/المساعِدات/النماذج/السجلّ) تبقى في
 ``main`` وتُشار إليها عبر ``main.X``. ``register_routers(app)`` يضمّ الراوتر بلا prefix.
+
+إصدار المسارات (API-VERSIONING-GUARD-IS-A-MIRROR-01، شريحة 2026-07-30): المسارات
+الخمسة كانت غير مُصدَّرة حرفيّاً (بلا prefix على الراوتر) — /agent/query·
+/agent/optimize·/agent/tools·/agent/journal/{invocation_id}·/agent/actuator-audit
+صارت /v1/agent/query·/v1/agent/optimize·/v1/agent/tools·
+/v1/agent/journal/{invocation_id}·/v1/agent/actuator-audit. البوّابة الخارجيّة
+(/api/agent/* عبر nginx) بقيت كما هي — فقط هدف proxy_pass الداخليّ تغيّر.
 """
 
 from __future__ import annotations
@@ -20,7 +27,7 @@ from tool_contracts import SideEffectClass
 router = APIRouter()
 
 
-@router.post("/agent/query", response_model=main.AgentResponse)
+@router.post("/v1/agent/query", response_model=main.AgentResponse)
 async def process_query(
     query: main.AgentQuery, user: dict = Depends(main._get_current_user)
 ) -> main.AgentResponse:
@@ -85,7 +92,7 @@ async def process_query(
     )
 
 
-@router.post("/agent/optimize")
+@router.post("/v1/agent/optimize")
 async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_current_user)):
     start_time = datetime.now(UTC)
     if not query.field_id:
@@ -128,7 +135,7 @@ async def optimize_farm(query: main.AgentQuery, user: dict = Depends(main._get_c
     }
 
 
-@router.get("/agent/tools")
+@router.get("/v1/agent/tools")
 async def list_tools(user: dict = Depends(main._get_current_user)):
     """يرجع كل الـtools المسجّلة + contracts. يتطلّب مصادقة (كان يكشف السجلّ علناً)."""
     tools = []
@@ -150,7 +157,7 @@ async def list_tools(user: dict = Depends(main._get_current_user)):
     return {"total": len(tools), "tools": tools}
 
 
-@router.get("/agent/journal/{invocation_id}")
+@router.get("/v1/agent/journal/{invocation_id}")
 async def get_journal_replay(invocation_id: str, user: dict = Depends(main._get_current_user)):
     """Replay لـinvocation (debug/audit) — مقصور على مستأجِر التوكن (كان مكشوفاً للجميع)."""
     tenant = user.get("tenant_id")
@@ -174,7 +181,7 @@ async def get_journal_replay(invocation_id: str, user: dict = Depends(main._get_
     }
 
 
-@router.get("/agent/actuator-audit")
+@router.get("/v1/agent/actuator-audit")
 async def get_actuator_audit(user: dict = Depends(main._get_current_user)):
     """Audit لكلّ actuator invocations (ريّ/مضخّات). حسّاس — admin + مستأجِر التوكن.
 

@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "314f28c6610a951e1a16bdaa7df54242973d4572aff90efed951ef23a7d862f0"
+          "content": "f9ef94410dc5ad59ad4b5d8ae55961ecadc507f2d5834cc3ee840a4a84fcbf16"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -2605,7 +2605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9435fbaa179af6be337f8b8c1bbed4d1f44a1a8a83d587fe8551467f9c580bdf"
+          "content": "e151447e0058e165306324e772ed95947cb22b6bfb6279d0b10471244fd24bc7"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86127fe856324342af7a131daa33f00483bc19fb79e4f8759e73879ae566855a"
+          "content": "dece2d20ae80da3127e86f05b48c5a62f5fb2605d310ba22bd9a51eeed00ed54"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12085,7 +12085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b31fca044c799c1638374826e06a777ebd7d47c65c1a45d4f8406eae41e2ada3"
+          "content": "25a228e3b3e44fedd75c92631172f1576a58942de5a96bbbf7d93439c2f2e67f"
         }
       ],
       "name": "services/guardrails-engine/main.py",
@@ -12135,7 +12135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2be8c0cf712b6b1f6c9d94e4fd2321a6d3072e8f3aafff260f1c2a4be8e8fc58"
+          "content": "e430ee6731c764b8ed619a5e691c810827b9e7e4ae6fd83992f3acce0e1be270"
         }
       ],
       "name": "services/guardrails-engine/routers/validation.py",
@@ -12145,7 +12145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6222ad35e75b252851912a8a8a209fbf94a6c4d3511df38d8801a93d3e07e8fd"
+          "content": "40b8b796a9ad4a1b48523c0317c8062f88cc502cccb2ec794cbd273f4b2cd491"
         }
       ],
       "name": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
@@ -20965,7 +20965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0231c6ba82b43afe67bc1dc89918089b1c6e0a5406235afb05b8612f675e21f2"
+          "content": "df95570da3046edc53fe805a060e8adc6008db1be5ce6002d403e7b357633019"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_adapters.py",
@@ -27735,7 +27735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f21d049c9d6719c706f6ce8eee5b00a3ba282119e945e63f2d50b7e87f9b52d"
+          "content": "f9b8c0b4aaaaf6a2592f96f40df56ded0de60a5f7549dcbd1b43416547ae49e8"
         }
       ],
       "name": "services/supervisor-agent/main.py",
@@ -27765,7 +27765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "305cac99ed7fec82bfa02373c3be4d9cef7e0607d64de4c024ce2a1a46772e95"
+          "content": "d9db7595a17790498f2d13e0425aa86f3b3e6c40835e3ec812fc6f927a1f4b0c"
         }
       ],
       "name": "services/supervisor-agent/remote_sensing_skill.py",
@@ -27815,7 +27815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a23bf3016dd341f24c68c0930e53b0d9fca11edba93507e4d7a8339cf910f5ac"
+          "content": "a139fb34477bf1046aba3ddb837bdfb1ddc3925be42cc7074e16b68687bd2446"
         }
       ],
       "name": "services/supervisor-agent/routers/agent.py",
@@ -27875,7 +27875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eaeab9fee11845f841d69b6bcc0ff8de16a2bd8126ae76dbad13660b999c06f7"
+          "content": "04be533d1531bc776676199a5e50a81fd7273e6d53398c25b150c7627ac1efaa"
         }
       ],
       "name": "services/supervisor-agent/skills/remote_sensing_skill.py",
@@ -27925,7 +27925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca5826ff126478021b39d080580e087dd8d5d33c77cecad8fab484d02b7b8a34"
+          "content": "3b1521429afc76310e20099f6860c6732b4f40befe2eea7f8176574db0def0f7"
         }
       ],
       "name": "services/supervisor-agent/test_graceful_degradation.py",
@@ -27945,7 +27945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4fff0e93420ce5bd063728e2f58410926d611d77360f73261c7b1cde3eabe31b"
+          "content": "ce07dc44e634b0e82da2669879512c03857c097e0e080e38a06e085f0ae4852f"
         }
       ],
       "name": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",

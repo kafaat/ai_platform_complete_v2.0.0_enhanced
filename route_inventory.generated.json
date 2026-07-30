@@ -1162,25 +1162,25 @@
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/routers/validation.py",
-    "line": 22,
+    "line": 28,
     "method": "POST",
-    "path": "/validate",
+    "path": "/v1/validate",
     "function": "validate_action"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/routers/validation.py",
-    "line": 36,
+    "line": 42,
     "method": "POST",
-    "path": "/approve/{workflow_id}",
+    "path": "/v1/approve/{workflow_id}",
     "function": "approve_workflow"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/routers/validation.py",
-    "line": 56,
+    "line": 62,
     "method": "GET",
-    "path": "/workflow/{workflow_id}",
+    "path": "/v1/workflow/{workflow_id}",
     "function": "get_workflow"
   },
   {
@@ -8218,41 +8218,41 @@
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 24,
+    "line": 31,
     "method": "POST",
-    "path": "/agent/query",
+    "path": "/v1/agent/query",
     "function": "process_query"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 89,
+    "line": 96,
     "method": "POST",
-    "path": "/agent/optimize",
+    "path": "/v1/agent/optimize",
     "function": "optimize_farm"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 132,
+    "line": 139,
     "method": "GET",
-    "path": "/agent/tools",
+    "path": "/v1/agent/tools",
     "function": "list_tools"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 154,
+    "line": 161,
     "method": "GET",
-    "path": "/agent/journal/{invocation_id}",
+    "path": "/v1/agent/journal/{invocation_id}",
     "function": "get_journal_replay"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/routers/agent.py",
-    "line": 178,
+    "line": 185,
     "method": "GET",
-    "path": "/agent/actuator-audit",
+    "path": "/v1/agent/actuator-audit",
     "function": "get_actuator_audit"
   },
   {

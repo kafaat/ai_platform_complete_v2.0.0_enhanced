@@ -367,7 +367,7 @@
         },
         {
           "selector": "/api/agent/",
-          "proxy_pass": "http://supervisor_backend/agent/",
+          "proxy_pass": "http://supervisor_backend/v1/agent/",
           "upstream": "supervisor_backend",
           "upstream_defined": true,
           "auth_request": false,
@@ -518,7 +518,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 290,
+          "line": 291,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -531,7 +531,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 299,
+          "line": 300,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -1206,7 +1206,7 @@
         },
         {
           "selector": "/api/agent/",
-          "proxy_pass": "http://supervisor_backend/agent/",
+          "proxy_pass": "http://supervisor_backend/v1/agent/",
           "upstream": "supervisor_backend",
           "upstream_defined": true,
           "auth_request": false,
@@ -1253,7 +1253,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": true,
-          "line": 41,
+          "line": 43,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -1346,12 +1346,12 @@
         {
           "kind": "sensitive_route_without_gateway_auth",
           "selector": "/api/raster/",
-          "line": 41,
+          "line": 43,
           "note": "May rely on service-level auth; requires review, not an automatic vulnerability finding."
         }
       ]
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "39734433bce2979a4d9112ae9c3f685deba2170bb87de2f4f6f32fc110c77108"
+  "content_sha256": "c9f8a9360e938d4eed6bc3d7987e2120d1b10a7c2118424c2782a29cd934cfb3"
 }

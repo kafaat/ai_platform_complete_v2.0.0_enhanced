@@ -132,13 +132,13 @@ def _run_checks():
     with TestClient(gr.app, raise_server_exceptions=False) as c:
         r = c.get("/healthz")
         ck("guardrails /healthz = 200", r.status_code == 200, f"{r.status_code}")
-        r = c.post("/validate", json={}, headers={})
+        r = c.post("/v1/validate", json={}, headers={})
         ck(
             "/validate بلا توكن خدمة مرفوض (401/422)",
             r.status_code in (401, 422),
             f"{r.status_code}",
         )
-        r = c.post("/validate", json={}, headers={"x-agent-token": "wrong"})
+        r = c.post("/v1/validate", json={}, headers={"x-agent-token": "wrong"})
         ck("/validate بتوكن خاطئ ⇒ 401 [L5]", r.status_code in (401, 422), f"{r.status_code}")
     return P, F
 

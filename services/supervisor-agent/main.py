@@ -262,7 +262,7 @@ async def _validate_actions_via_guardrails(
             if _fs is not None:
                 payload["farm_context"]["field_state"] = _fs
             resp = await client.post(
-                f"{GUARDRAILS_URL}/validate",
+                f"{GUARDRAILS_URL}/v1/validate",
                 json=payload,
                 headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
             )
@@ -290,7 +290,7 @@ async def _validate_actions_via_guardrails(
 async def _validate_via_guardrails(
     recommended: dict, rs: dict, cm: dict, query, x_user_id: str = None, trusted_tenant_id: str = ""
 ) -> dict:
-    """يمرّر التوصية عبر Guardrails /validate — البوّابة حاكمة للمسار.
+    """يمرّر التوصية عبر Guardrails /v1/validate — البوّابة حاكمة للمسار.
 
     بدل الاعتماد على رقم الخطر المحلّي في _generate_scenarios، نمرّر التوصية
     للبوّابة المركزيّة (3 طبقات + HITL) لتكون مرجع الحقيقة الوحيد للقرار.
@@ -327,7 +327,7 @@ async def _validate_via_guardrails(
             if _fs is not None:
                 payload["farm_context"]["field_state"] = _fs
             resp = await client.post(
-                f"{GUARDRAILS_URL}/validate",
+                f"{GUARDRAILS_URL}/v1/validate",
                 json=payload,
                 headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
             )
