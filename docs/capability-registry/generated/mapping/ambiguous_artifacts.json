@@ -771,37 +771,23 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "GIS-003",
+        "score": 19,
+        "signals": [
+          "content:contour",
+          "content:dem",
+          "content:hillshade",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
         "capability_id": "SOIL-002",
-        "score": 13,
+        "score": 18,
         "signals": [
           "content:Soil sampling",
           "content:sampling plan",
           "content:soil sampling"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 12,
-        "signals": [
-          "content:cdse",
-          "content:stac"
-        ]
-      },
-      {
-        "capability_id": "SAT-009",
-        "score": 11,
-        "signals": [
-          "content:cog",
-          "content:tilejson"
-        ]
-      },
-      {
-        "capability_id": "PA-001",
-        "score": 11,
-        "signals": [
-          "content:Management zones",
-          "content:management zone",
-          "content:productivity zone"
         ]
       }
     ]

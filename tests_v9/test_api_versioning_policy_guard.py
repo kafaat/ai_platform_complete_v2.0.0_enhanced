@@ -111,3 +111,39 @@ def test_products_cross_service_contract_migrated_to_versioned_prefix():
             f"{r['method']} {r['path']} ({r['file']}:{r['line']}) did not classify as "
             f"versioned: {r['classification']}"
         )
+
+
+def test_actuator_commands_migrated_to_versioned_prefix():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, Agent A slice 3 (2026-07-30): the
+    actuator-service command-dispatch surface -- ``POST /command`` and ``GET
+    /commands`` (services/actuator-service/routers/commands.py), plus ``GET
+    /idempotency/metrics`` (services/actuator-service/routers/metrics.py) --
+    moved to ``/v1/command``, ``/v1/commands``, ``/v1/idempotency/metrics``.
+    Elevated-caution domain (safety-critical physical device dispatch):
+    verified zero external callers before migrating -- repo-wide grep found no
+    frontend/mobile/nginx/docker-compose reference to any of the three old
+    paths, only this service's own tests. Falsified by construction: reverting
+    any of the three decorators makes this fail by naming the exact leaked
+    path."""
+    rows = guard.collect()
+    actuator_rows = [r for r in rows if r["service"] == "actuator-service"]
+
+    old_path_leaks = [
+        r for r in actuator_rows if r["path"] in {"/command", "/commands", "/idempotency/metrics"}
+    ]
+    assert old_path_leaks == [], f"pre-migration actuator path still present: {old_path_leaks}"
+
+    new_paths = {(r["method"], r["path"]) for r in actuator_rows}
+    for expected in (
+        ("POST", "/v1/command"),
+        ("GET", "/v1/commands"),
+        ("GET", "/v1/idempotency/metrics"),
+    ):
+        assert expected in new_paths, f"expected migrated route {expected} not found in inventory"
+
+    for r in actuator_rows:
+        if r["path"].startswith("/v1/command") or r["path"] == "/v1/idempotency/metrics":
+            assert r["classification"] == "versioned", (
+                f"{r['method']} {r['path']} ({r['file']}:{r['line']}) did not classify as "
+                f"versioned: {r['classification']}"
+            )

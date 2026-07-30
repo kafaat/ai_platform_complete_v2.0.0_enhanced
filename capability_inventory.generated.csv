@@ -1,7 +1,7 @@
 capability_id,kind,owner,entrypoints,consumers,derived_from,curated
-actuator-service.command,command,actuator-service,POST /command,frontend,route,False
-actuator-service.commands,query,actuator-service,GET /commands,frontend,route,False
-actuator-service.idempotency.metrics,query,actuator-service,GET /idempotency/metrics,frontend,route,False
+actuator-service.command,command,actuator-service,POST /v1/command,frontend,route,False
+actuator-service.commands,query,actuator-service,GET /v1/commands,frontend,route,False
+actuator-service.idempotency.metrics,query,actuator-service,GET /v1/idempotency/metrics,frontend,route,False
 agriai-engine.plan,command,agriai-engine,POST /plan,,route,False
 agriai-engine.recommend,command,agriai-engine,POST /recommend,,route,False
 agriai-engine.replay.verify,command,agriai-engine,POST /replay/verify,,route,False

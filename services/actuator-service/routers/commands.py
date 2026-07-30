@@ -21,7 +21,7 @@ from shared.actuation_killswitch import is_actuation_halted
 router = APIRouter()
 
 
-@router.post("/command")
+@router.post("/v1/command")
 async def send_command(req: main.CommandRequest, claims: dict = Depends(main._verify_token)):
     # الأمان: tenant_id يُشتقّ من التوكن المُتحقَّق، لا من جسم الطلب (منع انتحال).
     tenant_id = str(claims["tenant_id"])
@@ -66,7 +66,7 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
     }
 
 
-@router.get("/commands")
+@router.get("/v1/commands")
 async def list_commands(
     limit: int = Query(50, ge=1, le=500), claims: dict = Depends(main._verify_token)
 ):

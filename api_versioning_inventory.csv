@@ -1,10 +1,10 @@
 service,file,line,method,path,handler,classification
-actuator-service,services/actuator-service/routers/commands.py,25,POST,/command,send_command,legacy_unversioned_business
-actuator-service,services/actuator-service/routers/commands.py,70,GET,/commands,list_commands,legacy_unversioned_business
+actuator-service,services/actuator-service/routers/commands.py,25,POST,/v1/command,send_command,versioned
+actuator-service,services/actuator-service/routers/commands.py,70,GET,/v1/commands,list_commands,versioned
 actuator-service,services/actuator-service/routers/health.py,20,GET,/healthz,health,infra
 actuator-service,services/actuator-service/routers/health.py,20,GET,/health,health,infra
 actuator-service,services/actuator-service/routers/health.py,32,GET,/readyz,readyz,infra
-actuator-service,services/actuator-service/routers/metrics.py,18,GET,/idempotency/metrics,idempotency_metrics,legacy_unversioned_business
+actuator-service,services/actuator-service/routers/metrics.py,18,GET,/v1/idempotency/metrics,idempotency_metrics,versioned
 agriai-engine,services/agriai-engine/main.py,55,GET,/healthz,healthz,infra
 agriai-engine,services/agriai-engine/main.py,60,GET,/health,legacy_health,infra
 agriai-engine,services/agriai-engine/main.py,65,GET,/readyz,readyz,infra

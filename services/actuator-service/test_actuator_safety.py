@@ -160,7 +160,7 @@ def test_command_endpoint_flag_off_returns_explicit_safety_403():
     try:
         with TestClient(main.app) as client:
             response = client.post(
-                "/command",
+                "/v1/command",
                 json={"device_id": "pump-1", "command": "start", "payload": {}},
             )
         assert response.status_code == 403

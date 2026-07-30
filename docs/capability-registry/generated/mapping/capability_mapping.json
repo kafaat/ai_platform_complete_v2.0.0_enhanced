@@ -10335,6 +10335,17 @@
           ]
         },
         {
+          "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
+          "score": 19,
+          "signals": [
+            "content:contour",
+            "content:dem",
+            "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "TOPOGRAPHIC_QA_TEST_COVERAGE_VERIFICATION_20260710.md",
           "score": 18,
           "signals": [
@@ -10512,7 +10523,7 @@
         "mobile": 0,
         "tests": 34,
         "governance": 0,
-        "other_evidence": 31
+        "other_evidence": 32
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -14880,15 +14891,6 @@
           ]
         },
         {
-          "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
-          "score": 11,
-          "signals": [
-            "content:Management zones",
-            "content:management zone",
-            "content:productivity zone"
-          ]
-        },
-        {
           "path": "GIS_PHASE5_AI_OGC_WORKBENCH_COMPLETION_20260626.md",
           "score": 8,
           "signals": [
@@ -14934,7 +14936,7 @@
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 8
+        "other_evidence": 7
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -16590,14 +16592,6 @@
           ]
         },
         {
-          "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
-          "score": 12,
-          "signals": [
-            "content:cdse",
-            "content:stac"
-          ]
-        },
-        {
           "path": "docs/audits/RIV_THREE_CONTAINERS_FINAL_BOUNDARY_COMPLETION_20260712.md",
           "score": 12,
           "signals": [
@@ -16763,7 +16757,7 @@
         "mobile": 0,
         "tests": 40,
         "governance": 0,
-        "other_evidence": 33
+        "other_evidence": 32
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -22399,14 +22393,6 @@
           ]
         },
         {
-          "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
-          "score": 11,
-          "signals": [
-            "content:cog",
-            "content:tilejson"
-          ]
-        },
-        {
           "path": "docs/architecture/RASTER_FACADE_CLEANUP_CONTRACT.md",
           "score": 11,
           "signals": [
@@ -22510,7 +22496,7 @@
         "mobile": 0,
         "tests": 21,
         "governance": 0,
-        "other_evidence": 22
+        "other_evidence": 21
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -27453,6 +27439,15 @@
           ]
         },
         {
+          "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
+          "score": 18,
+          "signals": [
+            "content:Soil sampling",
+            "content:sampling plan",
+            "content:soil sampling"
+          ]
+        },
+        {
           "path": "docs/architecture/platform_extraction_map.json",
           "score": 18,
           "signals": [
@@ -27509,15 +27504,6 @@
         {
           "path": "V61_MAIN_SYNC_MERGE_REPORT_20260701.md",
           "score": 14,
-          "signals": [
-            "content:Soil sampling",
-            "content:sampling plan",
-            "content:soil sampling"
-          ]
-        },
-        {
-          "path": "docs/api/BACKEND_FRONTEND_COVERAGE.md",
-          "score": 13,
           "signals": [
             "content:Soil sampling",
             "content:sampling plan",
@@ -42084,37 +42070,23 @@
       "kind": "other",
       "candidates": [
         {
+          "capability_id": "GIS-003",
+          "score": 19,
+          "signals": [
+            "content:contour",
+            "content:dem",
+            "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "capability_id": "SOIL-002",
-          "score": 13,
+          "score": 18,
           "signals": [
             "content:Soil sampling",
             "content:sampling plan",
             "content:soil sampling"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 12,
-          "signals": [
-            "content:cdse",
-            "content:stac"
-          ]
-        },
-        {
-          "capability_id": "SAT-009",
-          "score": 11,
-          "signals": [
-            "content:cog",
-            "content:tilejson"
-          ]
-        },
-        {
-          "capability_id": "PA-001",
-          "score": 11,
-          "signals": [
-            "content:Management zones",
-            "content:management zone",
-            "content:productivity zone"
           ]
         }
       ]

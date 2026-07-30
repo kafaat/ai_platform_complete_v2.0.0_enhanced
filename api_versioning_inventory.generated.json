@@ -4,18 +4,18 @@
     "file": "services/actuator-service/routers/commands.py",
     "line": 25,
     "method": "POST",
-    "path": "/command",
+    "path": "/v1/command",
     "handler": "send_command",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "actuator-service",
     "file": "services/actuator-service/routers/commands.py",
     "line": 70,
     "method": "GET",
-    "path": "/commands",
+    "path": "/v1/commands",
     "handler": "list_commands",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "actuator-service",
@@ -49,9 +49,9 @@
     "file": "services/actuator-service/routers/metrics.py",
     "line": 18,
     "method": "GET",
-    "path": "/idempotency/metrics",
+    "path": "/v1/idempotency/metrics",
     "handler": "idempotency_metrics",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "agriai-engine",
