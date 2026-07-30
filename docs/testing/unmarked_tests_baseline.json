@@ -41,9 +41,9 @@
       "to_close": "تشخيص مستقلّ: هل تصعيد إجهاد الماء يشترط فعلاً مشاهدة فيزيائيّة وطيفيّة؟ إن لا، فهو انحدار حوكمة لا اختبار بائت."
     },
     "tests_v9/test_roadmap_phase23.py": {
-      "reason": "module_and_api_drift",
-      "evidence": "أربعة إخفاقات بأربعة أسباب مختلفة: ModuleNotFoundError · ImportError · AttributeError · KeyError. أي أنّ الملفّ يصف واجهات تغيّرت جذريّاً منذ كُتب.",
-      "to_close": "مراجعة مستقلّة: يُحدَّث للواجهات الحاليّة أو يُحذف إن غطّاه غيره — لا يُوسَم بحاله."
+      "reason": "missing_test_dependency",
+      "evidence": "أُصلحت انحرافات GDD وscenario_whatif وautomation_persistence وأصبح الملف متوافقاً مع الواجهات الحالية. يبقى اعتماد test_zones على scikit-learn المستوردة من api/zones_kmeans.py؛ التبعية معلنة في requirements_real.txt وليست في tests_v9/requirements-test.txt. في بيئة التنفيذ الحالية التي تحتوي scikit-learn مسبقاً قيس الملف كاملاً: 143/143 نجاحاً؛ لذلك لا يُسجَّل رقم 142/1 كحقيقة عامة، ويجب إثبات الفشل أو النجاح في بيئة CI نظيفة تثبّت requirements-test.txt فقط.",
+      "to_close": "تشغيل الملف في virtualenv نظيف يثبّت tests_v9/requirements-test.txt فقط، ثم إضافة scikit-learn إلى متطلبات الاختبار بعد pip-audit وقياس أثر زمن التثبيت على وظيفة الوحدة. بعد نجاح الوظيفة الفعلية يُضاف وسم الاختبار المناسب ويُخفّض أساس الملفات غير الموسومة من 9 إلى 8."
     }
   }
 }

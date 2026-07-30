@@ -2861,8 +2861,7 @@
         "tests_v9/test_elevated_context_scope.py",
         "tests_v9/test_field_geometry_history_append_only_v39_5.py",
         "tests_v9/test_mfa_crypto_v29_5.py",
-        "tests_v9/test_mfa_totp_antireplay_v141.py",
-        "tests_v9/test_roadmap_phase23.py"
+        "tests_v9/test_mfa_totp_antireplay_v141.py"
       ]
     },
     {
