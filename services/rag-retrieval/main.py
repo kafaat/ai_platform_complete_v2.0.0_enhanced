@@ -86,7 +86,7 @@ async def readyz():
     }
 
 
-@app.post("/ingest")
+@app.post("/v1/ingest")
 async def ingest(
     req: IngestRequest,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
@@ -111,7 +111,7 @@ async def ingest(
         raise HTTPException(502, str(exc)) from exc
 
 
-@app.post("/search")
+@app.post("/v1/search")
 async def search(
     req: SearchRequest, x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id")
 ):

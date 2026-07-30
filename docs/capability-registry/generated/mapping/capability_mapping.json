@@ -17795,27 +17795,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ services/agriai-engine/main.py:310",
-          "score": 12
-        },
-        {
           "value": "/readyz @ services/agriai-engine/main.py:64",
           "score": 12
         },
         {
           "value": "/readyz @ vegetation_real/indicators_real.py:495",
-          "score": 12
-        },
-        {
-          "value": "/recommend @ services/agriai-engine/main.py:237",
-          "score": 12
-        },
-        {
-          "value": "/replay/verify @ services/agriai-engine/main.py:326",
-          "score": 12
-        },
-        {
-          "value": "/simulate @ services/agriai-engine/main.py:297",
           "score": 12
         },
         {
@@ -17852,6 +17836,22 @@
         },
         {
           "value": "/v1/ndvi/current/{field_id} @ services/vegetation-analysis-service/test_production_truth_closure.py:24",
+          "score": 12
+        },
+        {
+          "value": "/v1/plan @ services/agriai-engine/main.py:310",
+          "score": 12
+        },
+        {
+          "value": "/v1/recommend @ services/agriai-engine/main.py:237",
+          "score": 12
+        },
+        {
+          "value": "/v1/replay/verify @ services/agriai-engine/main.py:326",
+          "score": 12
+        },
+        {
+          "value": "/v1/simulate @ services/agriai-engine/main.py:297",
           "score": 12
         },
         {

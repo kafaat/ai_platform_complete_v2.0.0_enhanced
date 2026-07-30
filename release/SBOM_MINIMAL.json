@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc36cce2cb95bba33e16e41f7d7a15587a972341b0cc78dd609d8e7e2b0064b3"
+          "content": "e4ecee0b62ba7843c051ef5f0ecff66aa07e7fd463fbfe61ce4939c8dc0ec04f"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -9755,7 +9755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cda58a67123a5c9916bb3a763ff635f6af313f14f56fb51cef40882862aa6423"
+          "content": "ab9dc4fe9506304134c23aefce4cfa9a6b36e93fa897d8ae5ca026b39cf3a9ad"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -9935,7 +9935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fb059a526bb1eb3b56f2c539c4395793a00a121c9cd7fee673f19f563f8f3d09"
+          "content": "5a09208d8eeb5b0c01f3ced606a6992d3b2e46fc938a218eef745bebddd642ae"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -12815,7 +12815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2459deefe7bbc847c781d978a81304fc7d1cee9d9a07c8eddecd3219c83d9526"
+          "content": "3f5a06bcfcb6d8b522c64466c058b60ae5ccb0d4d5d4ffc1960a65d003a8b8ab"
         }
       ],
       "name": "services/rag-retrieval/main.py",

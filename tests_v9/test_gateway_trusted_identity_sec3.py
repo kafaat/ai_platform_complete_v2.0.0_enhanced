@@ -315,7 +315,7 @@ def _rag_search_body(tenant="tenant-1"):
 
 def test_rag_search_missing_header_rejected():
     _M, client = _rag_client()
-    r = client.post("/search", json=_rag_search_body())
+    r = client.post("/v1/search", json=_rag_search_body())
     assert r.status_code == 403
     assert r.json()["detail"] == ERROR_MISSING_TENANT
 
@@ -323,7 +323,7 @@ def test_rag_search_missing_header_rejected():
 def test_rag_search_body_mismatch_rejected():
     _M, client = _rag_client()
     r = client.post(
-        "/search", json=_rag_search_body("tenant-EVIL"), headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/search", json=_rag_search_body("tenant-EVIL"), headers={"X-Tenant-Id": "tenant-1"}
     )
     assert r.status_code == 403
     assert r.json()["detail"] == ERROR_TENANT_MISMATCH
@@ -339,7 +339,7 @@ def test_rag_search_matching_tenant_uses_trusted_value(monkeypatch):
 
     monkeypatch.setattr(M._retriever, "retrieve", _fake_retrieve)
     r = client.post(
-        "/search", json=_rag_search_body("tenant-1"), headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/search", json=_rag_search_body("tenant-1"), headers={"X-Tenant-Id": "tenant-1"}
     )
     assert r.status_code == 200
     assert captured["tenant_id"] == "tenant-1"
@@ -365,7 +365,7 @@ _INGEST_BODY = {
 def test_rag_ingest_without_token_rejected(monkeypatch):
     _M, client = _rag_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post("/ingest", json=_INGEST_BODY)  # no X-Agent-Token
+    r = client.post("/v1/ingest", json=_INGEST_BODY)  # no X-Agent-Token
     assert r.status_code == 403
     assert r.json()["detail"] == "service_token_required"
 
@@ -379,7 +379,7 @@ def test_rag_ingest_with_token_not_rejected(monkeypatch):
     # addition to the SEC-4 service token). A valid internal caller presents both;
     # the chunk tenant_id must echo the trusted header ("tenant-1" in _INGEST_BODY).
     r = client.post(
-        "/ingest",
+        "/v1/ingest",
         json=_INGEST_BODY,
         headers={"X-Agent-Token": _AGENT_TOKEN, "X-Tenant-Id": "tenant-1"},
     )
@@ -392,7 +392,7 @@ def test_rag_ingest_with_token_but_missing_tenant_rejected(monkeypatch):
     # C4: even with a valid service token, a missing gateway tenant fails closed.
     _M, client = _rag_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post("/ingest", json=_INGEST_BODY, headers={"X-Agent-Token": _AGENT_TOKEN})
+    r = client.post("/v1/ingest", json=_INGEST_BODY, headers={"X-Agent-Token": _AGENT_TOKEN})
     assert r.status_code == 403
     assert r.json()["detail"] == "missing_tenant"
 

@@ -55,7 +55,7 @@
       "file": "services/agriai-engine/main.py",
       "line": 238,
       "method": "POST",
-      "path": "/recommend",
+      "path": "/v1/recommend",
       "function": "recommend",
       "classification": "business_endpoint"
     },
@@ -64,7 +64,7 @@
       "file": "services/agriai-engine/main.py",
       "line": 298,
       "method": "POST",
-      "path": "/simulate",
+      "path": "/v1/simulate",
       "function": "simulate",
       "classification": "business_endpoint"
     },
@@ -73,7 +73,7 @@
       "file": "services/agriai-engine/main.py",
       "line": 311,
       "method": "POST",
-      "path": "/plan",
+      "path": "/v1/plan",
       "function": "plan",
       "classification": "business_endpoint"
     },
@@ -82,7 +82,7 @@
       "file": "services/agriai-engine/main.py",
       "line": 327,
       "method": "POST",
-      "path": "/replay/verify",
+      "path": "/v1/replay/verify",
       "function": "replay_verify",
       "classification": "business_endpoint"
     },
@@ -1216,7 +1216,7 @@
       "file": "services/rag-retrieval/main.py",
       "line": 90,
       "method": "POST",
-      "path": "/ingest",
+      "path": "/v1/ingest",
       "function": "ingest",
       "classification": "business_endpoint"
     },
@@ -1225,7 +1225,7 @@
       "file": "services/rag-retrieval/main.py",
       "line": 115,
       "method": "POST",
-      "path": "/search",
+      "path": "/v1/search",
       "function": "search",
       "classification": "business_endpoint"
     },

@@ -90,7 +90,7 @@
       "line": 238,
       "handler": "recommend",
       "method": "POST",
-      "path": "/recommend"
+      "path": "/v1/recommend"
     },
     {
       "owner": "agriai-engine",
@@ -98,7 +98,7 @@
       "line": 298,
       "handler": "simulate",
       "method": "POST",
-      "path": "/simulate"
+      "path": "/v1/simulate"
     },
     {
       "owner": "agriai-engine",
@@ -106,7 +106,7 @@
       "line": 311,
       "handler": "plan",
       "method": "POST",
-      "path": "/plan"
+      "path": "/v1/plan"
     },
     {
       "owner": "agriai-engine",
@@ -114,7 +114,7 @@
       "line": 327,
       "handler": "replay_verify",
       "method": "POST",
-      "path": "/replay/verify"
+      "path": "/v1/replay/verify"
     },
     {
       "owner": "ai-agronomist",
@@ -1690,7 +1690,7 @@
       "line": 90,
       "handler": "ingest",
       "method": "POST",
-      "path": "/ingest"
+      "path": "/v1/ingest"
     },
     {
       "owner": "rag-retrieval",
@@ -1698,7 +1698,7 @@
       "line": 115,
       "handler": "search",
       "method": "POST",
-      "path": "/search"
+      "path": "/v1/search"
     },
     {
       "owner": "raster-service",

@@ -602,7 +602,7 @@ async def build_evidence_response(
             )
 
         rag_resp = await client.post(
-            f"{RAG_BASE_URL.rstrip('/')}/search",
+            f"{RAG_BASE_URL.rstrip('/')}/v1/search",
             json={
                 "tenant_id": tenant_id,
                 "query": req.question,

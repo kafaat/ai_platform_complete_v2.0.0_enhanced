@@ -94,36 +94,36 @@
     "file": "services/agriai-engine/main.py",
     "line": 238,
     "method": "POST",
-    "path": "/recommend",
+    "path": "/v1/recommend",
     "handler": "recommend",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
     "line": 298,
     "method": "POST",
-    "path": "/simulate",
+    "path": "/v1/simulate",
     "handler": "simulate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
     "line": 311,
     "method": "POST",
-    "path": "/plan",
+    "path": "/v1/plan",
     "handler": "plan",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
     "line": 327,
     "method": "POST",
-    "path": "/replay/verify",
+    "path": "/v1/replay/verify",
     "handler": "replay_verify",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "ai_agronomist",
@@ -1957,18 +1957,18 @@
     "file": "services/rag-retrieval/main.py",
     "line": 90,
     "method": "POST",
-    "path": "/ingest",
+    "path": "/v1/ingest",
     "handler": "ingest",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
     "line": 115,
     "method": "POST",
-    "path": "/search",
+    "path": "/v1/search",
     "handler": "search",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
