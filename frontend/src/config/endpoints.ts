@@ -51,7 +51,11 @@ export function resolveWsBase(): string {
 
 export const ENDPOINTS = {
   kong: resolveHttpBase('VITE_API_BASE_URL', '', localHttp(8000)),
-  auth: resolveHttpBase('VITE_AUTH_BASE_URL', '', localHttp(8120)),
+  // dev-direct default carries /v1: authApi calls bare /auth/* paths (e.g. '/auth/login');
+  // in gateway mode nginx rewrites those to the service's /v1/auth/* routes
+  // (API-VERSIONING-GUARD-IS-A-MIRROR-01), but dev-direct mode has no nginx in between, so
+  // the base itself must supply the /v1 segment or every direct-port auth call 404s.
+  auth: resolveHttpBase('VITE_AUTH_BASE_URL', '', `${localHttp(8120)}/v1`),
   raster: resolveHttpBase('VITE_RASTER_BASE_URL', '/api/raster', localHttp(8001)),
   vegetation: resolveHttpBase('VITE_VEGETATION_BASE_URL', '/api/vegetation', localHttp(8090)),
   indicators: resolveHttpBase('VITE_INDICATORS_BASE_URL', '/api/indicators', localHttp(8091)),

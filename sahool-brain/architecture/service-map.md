@@ -92,8 +92,8 @@
 
 | المسار (location) | الوجهة (proxy_pass) | الخدمة | السطر |
 |---|---|---|---|
-| `= /_auth_verify` | `auth_backend/auth/verify` | auth | `:133` |
-| `/auth/` | `auth_backend` | auth | `:144` |
+| `= /_auth_verify` | `auth_backend/v1/auth/verify` | auth | `:133` |
+| `/auth/` | `auth_backend` (rewrite ⇒ `/v1/auth/*`) | auth | `:144` |
 | `/api/v1/` | `platform_backend/api/v1/` | platform | `:159` |
 | `/api/indicators/` | `platform_backend/api/v1/indicators/` | platform | `:172` |
 | `/api/vegetation/` | `vegetation_backend/` | vegetation-analysis | `:177` |

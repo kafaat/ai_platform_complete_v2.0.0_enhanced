@@ -1,6 +1,6 @@
 """routers/session.py — الجلسة (تسجيل دخول/خروج/تجديد + من أنا).
 
-مسارات: POST /auth/login · POST /auth/logout · POST /auth/refresh · GET /auth/me
+مسارات: POST /v1/auth/login · POST /v1/auth/logout · POST /v1/auth/refresh · GET /v1/auth/me
 
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت المُعالِجات
 حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة (مساعِدات JWT، مسبح DB،
@@ -20,7 +20,7 @@ from jose import JWTError, jwt
 router = APIRouter()
 
 
-@router.post("/auth/login", response_model=main.TokenResponse)
+@router.post("/v1/auth/login", response_model=main.TokenResponse)
 async def login(req: main.LoginRequest, request: Request, response: Response):
     ip = request.client.host if request.client else "unknown"
     await main.check_ip_rate(ip)
@@ -121,7 +121,7 @@ async def login(req: main.LoginRequest, request: Request, response: Response):
     )
 
 
-@router.post("/auth/refresh", response_model=main.TokenResponse)
+@router.post("/v1/auth/refresh", response_model=main.TokenResponse)
 async def refresh_token(req: main.RefreshRequest, request: Request, response: Response):
     """✅ NEW: Refresh access token using refresh token."""
     if not main._redis:
@@ -163,7 +163,7 @@ async def refresh_token(req: main.RefreshRequest, request: Request, response: Re
     )
 
 
-@router.post("/auth/logout")
+@router.post("/v1/auth/logout")
 async def logout(
     request: Request,
     response: Response,
@@ -207,6 +207,6 @@ async def logout(
     return {"message": "تم تسجيل الخروج بنجاح"}
 
 
-@router.get("/auth/me")
+@router.get("/v1/auth/me")
 async def me(user: Annotated[dict, Depends(main.get_current_user)]):
     return {k: user[k] for k in ("sub", "email", "role", "full_name", "tenant_id")}

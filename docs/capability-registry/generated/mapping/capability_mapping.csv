@@ -60,7 +60,7 @@ SAT-009,satellite,COG persistence and tiling,True,5,11,67,0,12,1,0,21,0
 SEC-001,security,Tenant RLS,True,5,13,36,100,46,0,0,55,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
-SEC-004,security,MFA,True,7,7,15,23,3,5,4,12,0
+SEC-004,security,MFA,True,7,7,18,23,4,5,4,13,0
 SEC-005,security,Audit logging,True,2,0,0,4,0,0,0,1,0
 SEC-006,security,Service token guard,True,4,2,7,0,1,0,0,8,0
 SEC-007,security,Decision SoR DB ownership,True,4,2,0,9,47,0,0,9,0

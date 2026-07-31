@@ -290,7 +290,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/change-password"
+        "POST /v1/auth/change-password"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -307,7 +307,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /auth/edge-sign"
+        "GET /v1/auth/edge-sign"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -324,8 +324,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /auth/invitations",
-        "POST /auth/invitations"
+        "GET /v1/auth/invitations",
+        "POST /v1/auth/invitations"
       ],
       "idempotency_required": false,
       "kind": "mixed",
@@ -342,7 +342,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/invitations/accept"
+        "POST /v1/auth/invitations/accept"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -359,7 +359,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "DELETE /auth/invitations/{invitation_id}"
+        "DELETE /v1/auth/invitations/{invitation_id}"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -376,7 +376,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/login"
+        "POST /v1/auth/login"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -393,7 +393,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/logout"
+        "POST /v1/auth/logout"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -410,7 +410,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /auth/me"
+        "GET /v1/auth/me"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -427,7 +427,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/mfa/activate"
+        "POST /v1/auth/mfa/activate"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -444,7 +444,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/mfa/disable"
+        "POST /v1/auth/mfa/disable"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -461,7 +461,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/mfa/setup"
+        "POST /v1/auth/mfa/setup"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -478,7 +478,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/password-reset/confirm"
+        "POST /v1/auth/password-reset/confirm"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -495,7 +495,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/password-reset/request"
+        "POST /v1/auth/password-reset/request"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -512,7 +512,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/refresh"
+        "POST /v1/auth/refresh"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -529,7 +529,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/register"
+        "POST /v1/auth/register"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -546,7 +546,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/tenants"
+        "POST /v1/auth/tenants"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -563,7 +563,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /auth/users"
+        "GET /v1/auth/users"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -580,8 +580,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "PATCH /auth/users/{user_id}/deactivate",
-        "PATCH /auth/users/{user_id}/role"
+        "PATCH /v1/auth/users/{user_id}/deactivate",
+        "PATCH /v1/auth/users/{user_id}/role"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -598,7 +598,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /auth/verify"
+        "GET /v1/auth/verify"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -615,7 +615,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/verify/confirm"
+        "POST /v1/auth/verify/confirm"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -632,7 +632,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /auth/verify/request"
+        "POST /v1/auth/verify/request"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -649,7 +649,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /auth/verify/status"
+        "GET /v1/auth/verify/status"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -17223,7 +17223,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "1db28f507c7b30867703e0a6247d7896d4ed31916157e7e2e20c4760ab48fd20",
+  "fingerprint": "f43ca80e2c8e5bf1c607db6dac596c70b129aa0af0df580de4850f2d3b3ebc69",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17623,14 +17623,14 @@
       "waiver_id": "ui-waiver-049"
     },
     {
-      "endpoint": "/auth/edge-sign",
+      "endpoint": "/v1/auth/edge-sign",
       "expires_on": "2026-12-31",
       "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-050"
     },
     {
-      "endpoint": "/auth/me",
+      "endpoint": "/v1/auth/me",
       "expires_on": "2026-12-31",
       "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",

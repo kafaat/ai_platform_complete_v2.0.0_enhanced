@@ -823,7 +823,7 @@
       "intended_consumer": "machine"
     },
     {
-      "endpoint": "/auth/edge-sign",
+      "endpoint": "/v1/auth/edge-sign",
       "audience": "farmer",
       "methods": [
         "get@services/auth/routers/season_edge_sign.py"
@@ -839,7 +839,7 @@
       "intended_consumer": "machine"
     },
     {
-      "endpoint": "/auth/me",
+      "endpoint": "/v1/auth/me",
       "audience": "farmer",
       "methods": [
         "get@services/auth/routers/session.py"

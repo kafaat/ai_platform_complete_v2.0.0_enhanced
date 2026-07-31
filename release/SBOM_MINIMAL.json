@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9ef94410dc5ad59ad4b5d8ae55961ecadc507f2d5834cc3ee840a4a84fcbf16"
+          "content": "335ca0d9ef5325d04a237df65d8f2f51c0460ed0391ca2d12496d86c6d6e8ca9"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -2525,7 +2525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c9ea3b98ea391171060e3f7a2b21bdb3849f3b7cbb76ae563348f8197489a4cc"
+          "content": "738fc41f638deabfccad92a8b59fda910f80d3e76e8f2aaf98a82201423bea1d"
         }
       ],
       "name": "frontend/src/config/endpoints.ts",
@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3636edb41e721f43345d40cd65e8c04940ca404ce6b12b2dd358c3a69711a5d1"
+          "content": "0af45a3647d91f237c15bf49e32da5746ee5579b36c09c146e678f4a8b41b89c"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -10465,7 +10465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d2f95feab572b559d12816e090e4ad1377ef03900a578cb4e75360f536fe5ff"
+          "content": "b112ef59c7e5ba5b71bacebbc73a0891378a3494c4a775f2ca8b3e8a3c59e068"
         }
       ],
       "name": "services/auth/routers/email_verify.py",
@@ -10475,7 +10475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11083b25fcc9bcf49858a8322fabf544a8c96677400759ab766cad3b3925f559"
+          "content": "341993e2116b7a5ef919848c1e60c7bf8ff08c3cb3b664dc88d60bd3acc98e76"
         }
       ],
       "name": "services/auth/routers/invitations.py",
@@ -10485,7 +10485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff4ad1e3c777106fb84b46f2e4b0ae1a5a485dfe6077898dad72028cdd479936"
+          "content": "3cd33fc95e6caa824b8aa4fa7f6a0085c33f60a0a6c058fac7fca84b3f8b98b6"
         }
       ],
       "name": "services/auth/routers/mfa.py",
@@ -10505,7 +10505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02588de0ae531a1124fd1f7cd85b05dabd819e44eb32e7ff909aba6e677dd1dd"
+          "content": "f66ec77c8a5bde699252cce558a734a2f64e9c336a074db79071f8ed2ec97859"
         }
       ],
       "name": "services/auth/routers/password_reset.py",
@@ -10515,7 +10515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "33e37fa0102db246bab2193dccbf184a266c616af25cfd89f35debd8246ab635"
+          "content": "4e84b8c26a3f5da026d35f4dc049235521e596db008541f52450a0193fc20db0"
         }
       ],
       "name": "services/auth/routers/registration.py",
@@ -10525,7 +10525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18a55a85b5db78071ddcb31175147e70d67d37bc37afd5e6100600e2309004b3"
+          "content": "6cc73d2b9f64184b47337ccde914de481d2649484713f70c191c5e261b38d387"
         }
       ],
       "name": "services/auth/routers/season_edge_sign.py",
@@ -10535,7 +10535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7166abf54006c66a61e55167a73ea31ceb9b7437be62a13e7e7843f8caa0e67"
+          "content": "5acd63b1c70767f755fa8376f013da2ebaa7f303c5146115896b42519b0244ae"
         }
       ],
       "name": "services/auth/routers/session.py",
@@ -10545,7 +10545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ab45cf7c0792540d995251f06af761ba6bb751e81d8fe31fa33cac6a93b633f"
+          "content": "178f5f4955f8bdaac3774ee7ff05bcfe1f0b1ed539723d9643e62df999fe0f8d"
         }
       ],
       "name": "services/auth/routers/tenants.py",
@@ -10555,7 +10555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "990975209419a41c83280d1621ab1926bc07f6b225fc664ff91ef8be7c315cdd"
+          "content": "e0abed2bf5cfc71ae66eb39d67f768033a50cae2030975b1c15efaccffcfb9e3"
         }
       ],
       "name": "services/auth/routers/users.py",

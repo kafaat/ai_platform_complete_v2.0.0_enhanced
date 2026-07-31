@@ -15,7 +15,7 @@ the remainder is forwarded. This is the crux of every mapping below.
 
 | Public path (browser) | `location` | `proxy_pass` | Upstream receives | Backend route exists? |
 |---|---|---|---|---|
-| `/auth/*` | `/auth/` | `auth_backend/` | `/*` (prefix stripped) | auth-service `/auth/login` etc. — auth client base already includes `/auth`, so e.g. `/auth/login` → `/login`? **No** — `authApi` base is `VITE_AUTH_URL` (`/auth` in prod alias). See note 1. |
+| `/auth/*` | `/auth/` | `auth_backend` (`rewrite` to `/v1/auth/*`, no URI) | `/v1/auth/*` (rewritten, not just prefix-stripped) | auth-service `/v1/auth/login` etc. (API-VERSIONING-GUARD-IS-A-MIRROR-01) — auth client base already includes `/auth`, so e.g. `authApi.post('/auth/login')` → `/auth/auth/login` on the wire. See note 1. |
 | `/api/v1/*` | `/api/v1/` | `platform_backend/api/v1/` | `/api/v1/*` (prefix preserved) | sahool-platform — all `/api/v1/...` routes ✓ |
 | `/api/indicators/*` | `/api/indicators/` | `platform_backend/api/v1/indicators/` **(FIXED)** | `/api/v1/indicators/*` | platform `/api/v1/indicators/dashboard`,`/catalog` ✓ |
 | `/api/weather/*` | `/api/weather/` | `platform_backend/api/v1/weather/` **(FIXED)** | `/api/v1/weather/*` | platform `/api/v1/weather/current`,`/forecast`,`/historical` ✓ |
@@ -62,15 +62,30 @@ the remainder is forwarded. This is the crux of every mapping below.
 1. **Auth base path.** The frontend's `authApi` has base = `VITE_AUTH_URL` **and**
    calls paths that already begin with `/auth/` (e.g. `authApi.post('/auth/login')`).
    So with the production setting `VITE_AUTH_URL=/auth`, the browser requests
-   **`/auth/auth/login`**. The nginx block
-   `location /auth/ { proxy_pass http://auth_backend/; }` (trailing slash —
-   **intentional**) strips the *first* `/auth/` and forwards `/auth/login` to the
-   auth-service, which mounts its routes under `/auth/*` → matches. Removing the
-   trailing slash would forward `/auth/auth/login` unchanged → 404, so keep it.
-   (In dev, `VITE_AUTH_URL` defaults to the auth-service origin directly with no
-   nginx, so `/auth/login` reaches it as-is.) If you ever set `VITE_AUTH_URL=/`
-   (gateway root), the frontend calls must then drop the extra `/auth` prefix
-   (e.g. `POST /login`) to avoid a double prefix.
+   **`/auth/auth/login`**. The auth-service itself moved its routes from bare
+   `/auth/*` to `/v1/auth/*` (API-VERSIONING-GUARD-IS-A-MIRROR-01), so the nginx
+   block now carries **two** `rewrite` rules instead of a single prefix-strip:
+   ```
+   location /auth/ {
+       rewrite ^/auth/auth/(.*)$ /v1/auth/$1 break;
+       rewrite ^/auth/(.*)$ /v1/auth/$1 break;
+       proxy_pass http://auth_backend;
+   }
+   ```
+   The first rule normalizes the frontend's double-prefixed convention
+   (`/auth/auth/login` → `/v1/auth/login`); the second normalizes a direct
+   REST client's single-prefixed convention (`/auth/login` → `/v1/auth/login`).
+   Either way the auth-service — which now mounts its routes under
+   `/v1/auth/*` — receives a path it recognizes. A trailing-slash
+   `proxy_pass http://auth_backend/;` (no rewrite) cannot express this: it can
+   only strip one literal `/auth/` layer, so it would forward
+   `/auth/auth/login` → `/auth/login`, still short of `/v1/auth/login`.
+   (In `VITE_API_MODE=dev`, `VITE_AUTH_BASE_URL` defaults to the auth-service
+   origin directly with no nginx in between, so `frontend/src/config/endpoints.ts`
+   bakes the `/v1` segment into that default base itself — `frontend/src/config/
+   endpoints.ts` resolves it as `http://localhost:8120/v1`, so the frontend's
+   unchanged `/auth/login` call becomes `http://localhost:8120/v1/auth/login`,
+   which the service recognizes.)
 
 2. **Guardrails is service-to-service.** `guardrails-engine`'s `/validate`
    enforces a service token (`X-Agent-Token`) and is intended to be called by the

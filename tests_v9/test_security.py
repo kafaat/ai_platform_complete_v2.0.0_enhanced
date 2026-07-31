@@ -45,7 +45,7 @@ class TestHTTPSecurity:
         """Protected endpoints must return 401 without token."""
         from conftest import service_urls
 
-        resp = await http_client.get(f"{service_urls['auth']}/auth/me")
+        resp = await http_client.get(f"{service_urls['auth']}/v1/auth/me")
         assert resp.status_code == 401
 
     @pytest.mark.security
@@ -55,11 +55,11 @@ class TestHTTPSecurity:
 
         for _ in range(6):
             await http_client.post(
-                f"{service_urls['auth']}/auth/login",
+                f"{service_urls['auth']}/v1/auth/login",
                 json={"email": "brute@test.ye", "password": "Wrong123!"},
             )
         resp = await http_client.post(
-            f"{service_urls['auth']}/auth/login",
+            f"{service_urls['auth']}/v1/auth/login",
             json={"email": "brute@test.ye", "password": "Wrong123!"},
         )
         assert resp.status_code in [429, 401]

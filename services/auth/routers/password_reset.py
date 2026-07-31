@@ -1,6 +1,6 @@
 """routers/password_reset.py — إعادة تعيين كلمة المرور عبر البريد.
 
-مسارات: POST /auth/password-reset/request · POST /auth/password-reset/confirm
+مسارات: POST /v1/auth/password-reset/request · POST /v1/auth/password-reset/confirm
 
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت المُعالِجات
 حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة تبقى في ``main`` ويُشار
@@ -17,7 +17,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 router = APIRouter()
 
 
-@router.post("/auth/password-reset/request")
+@router.post("/v1/auth/password-reset/request")
 async def request_password_reset(req: main.PasswordResetRequest, request: Request):
     """✅ NEW: Request password reset via email."""
     ip = request.client.host if request.client else "unknown"
@@ -37,7 +37,7 @@ async def request_password_reset(req: main.PasswordResetRequest, request: Reques
     return {"message": "إذا كان البريد مسجلاً، ستصلك رسالة إعادة التعيين"}
 
 
-@router.post("/auth/password-reset/confirm")
+@router.post("/v1/auth/password-reset/confirm")
 async def confirm_password_reset(req: main.PasswordResetConfirm):
     """✅ NEW: Confirm password reset with token."""
     if not main._redis:

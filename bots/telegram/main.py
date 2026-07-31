@@ -347,7 +347,7 @@ async def link_account(user_id: int, email: str, password: str) -> bool:
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
-                f"{AUTH_URL}/auth/login",
+                f"{AUTH_URL}/v1/auth/login",
                 json={"email": email, "password": password},
             )
             resp.raise_for_status()

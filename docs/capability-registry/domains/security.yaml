@@ -229,9 +229,9 @@ capabilities:
   services:
   - services/auth/main.py
   apis:
-  - POST /auth/mfa/activate @ services/auth/routers/mfa.py:66
-  - POST /auth/mfa/disable @ services/auth/routers/mfa.py:136
-  - POST /auth/mfa/setup @ services/auth/routers/mfa.py:19
+  - POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:66
+  - POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:136
+  - POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:19
   ui_consumers: []
   mobile_consumers:
   - mobile/sahool_app/lib/screens/mfa_setup_screen.dart

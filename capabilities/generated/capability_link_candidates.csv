@@ -221,40 +221,40 @@ DEC-010,test,services/decision-service/tests/test_wx11_5_model_activation_approv
 DEC-010,test,services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py,3,applied
 DEC-010,test,services/sahool-platform/tests/test_practice_promotion.py,3,applied
 DEC-010,test,tests/architecture/test_runtime_verification_promotion_workflow.py,3,applied
-FM-001,api,DELETE /auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:195,3,applied
+FM-001,api,DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:195,3,applied
 FM-001,api,GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:91,2,applied
 FM-001,api,GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29,2,applied
-FM-001,api,GET /auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,3,applied
-FM-001,api,GET /auth/invitations @ services/auth/routers/invitations.py:84,3,applied
-FM-001,api,GET /auth/me @ services/auth/routers/session.py:211,3,applied
-FM-001,api,GET /auth/users @ services/auth/routers/users.py:22,3,applied
-FM-001,api,GET /auth/verify @ services/auth/routers/email_verify.py:97,3,applied
-FM-001,api,GET /auth/verify/status @ services/auth/routers/email_verify.py:107,3,applied
 FM-001,api,GET /health @ services/auth/routers/ops.py:27,3,applied
 FM-001,api,GET /healthz @ services/auth/routers/ops.py:27,3,applied
 FM-001,api,GET /metrics @ services/auth/routers/ops.py:21,3,applied
 FM-001,api,GET /readyz @ services/auth/routers/ops.py:32,3,applied
 FM-001,api,GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:691,2,applied
-FM-001,api,PATCH /auth/users/{user_id}/deactivate @ services/auth/routers/users.py:73,3,applied
-FM-001,api,PATCH /auth/users/{user_id}/role @ services/auth/routers/users.py:31,3,applied
+FM-001,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,3,applied
+FM-001,api,GET /v1/auth/invitations @ services/auth/routers/invitations.py:84,3,applied
+FM-001,api,GET /v1/auth/me @ services/auth/routers/session.py:211,3,applied
+FM-001,api,GET /v1/auth/users @ services/auth/routers/users.py:22,3,applied
+FM-001,api,GET /v1/auth/verify @ services/auth/routers/email_verify.py:97,3,applied
+FM-001,api,GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:107,3,applied
+FM-001,api,PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:73,3,applied
+FM-001,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:31,3,applied
 FM-001,api,POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:47,2,applied
 FM-001,api,POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:104,2,applied
 FM-001,api,POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:132,2,applied
-FM-001,api,POST /auth/change-password @ services/auth/routers/registration.py:74,3,applied
-FM-001,api,POST /auth/invitations @ services/auth/routers/invitations.py:25,3,applied
-FM-001,api,POST /auth/invitations/accept @ services/auth/routers/invitations.py:115,3,applied
-FM-001,api,POST /auth/login @ services/auth/routers/session.py:24,3,applied
-FM-001,api,POST /auth/logout @ services/auth/routers/session.py:167,3,applied
-FM-001,api,POST /auth/mfa/activate @ services/auth/routers/mfa.py:66,3,applied
-FM-001,api,POST /auth/mfa/disable @ services/auth/routers/mfa.py:136,3,applied
-FM-001,api,POST /auth/mfa/setup @ services/auth/routers/mfa.py:19,3,applied
-FM-001,api,POST /auth/password-reset/confirm @ services/auth/routers/password_reset.py:41,3,applied
-FM-001,api,POST /auth/password-reset/request @ services/auth/routers/password_reset.py:21,3,applied
-FM-001,api,POST /auth/refresh @ services/auth/routers/session.py:125,3,applied
-FM-001,api,POST /auth/register @ services/auth/routers/registration.py:19,3,applied
-FM-001,api,POST /auth/tenants @ services/auth/routers/tenants.py:40,5,applied
-FM-001,api,POST /auth/verify/confirm @ services/auth/routers/email_verify.py:55,3,applied
-FM-001,api,POST /auth/verify/request @ services/auth/routers/email_verify.py:22,3,applied
+FM-001,api,POST /v1/auth/change-password @ services/auth/routers/registration.py:74,3,applied
+FM-001,api,POST /v1/auth/invitations @ services/auth/routers/invitations.py:25,3,applied
+FM-001,api,POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:115,3,applied
+FM-001,api,POST /v1/auth/login @ services/auth/routers/session.py:24,3,applied
+FM-001,api,POST /v1/auth/logout @ services/auth/routers/session.py:167,3,applied
+FM-001,api,POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:66,3,applied
+FM-001,api,POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:136,3,applied
+FM-001,api,POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:19,3,applied
+FM-001,api,POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:41,3,applied
+FM-001,api,POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:21,3,applied
+FM-001,api,POST /v1/auth/refresh @ services/auth/routers/session.py:125,3,applied
+FM-001,api,POST /v1/auth/register @ services/auth/routers/registration.py:19,3,applied
+FM-001,api,POST /v1/auth/tenants @ services/auth/routers/tenants.py:40,5,applied
+FM-001,api,POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:55,3,applied
+FM-001,api,POST /v1/auth/verify/request @ services/auth/routers/email_verify.py:22,3,applied
 FM-001,api,POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2575,2,applied
 FM-001,mobile,mobile/sahool_app/lib/services/auth_service.dart,2,applied
 FM-001,service,services/auth/main.py,10,applied
@@ -737,10 +737,10 @@ FM-004,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platfo
 FM-004,api,GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:219,2,applied
 FM-004,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:512,2,applied
 FM-004,api,GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:253,2,applied
-FM-004,api,GET /auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,2,applied
 FM-004,api,GET /internal/seasons @ services/scout-ingest-service/season_api.py:478,2,applied
 FM-004,api,GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668,2,applied
 FM-004,api,GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368,2,applied
+FM-004,api,GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41,2,applied
 FM-004,api,GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43,2,applied
 FM-004,api,PATCH /api/v1/fields/{field_id}/seasons/{season_id} @ services/sahool-platform/api/routers/fields.py:2328,2,applied
 FM-004,api,PATCH /internal/seasons/{season_id} @ services/scout-ingest-service/season_api.py:264,2,applied
@@ -1426,8 +1426,8 @@ SAT-006,test,tests_v9/test_imagery_timeline_endpoint_v31_4.py,3,applied
 SAT-006,test,tests_v9/test_unified_timeline.py,3,applied
 SAT-006,ui,frontend/e2e/gis-tools-timeline-comparison.spec.ts,2,applied
 SAT-007,api,GET /api/v1/rbac/preview-role-change @ services/sahool-platform/api/routers/rbac.py:54,2,applied
-SAT-007,api,PATCH /auth/users/{user_id}/role @ services/auth/routers/users.py:31,2,applied
-SAT-007,api,POST /auth/change-password @ services/auth/routers/registration.py:74,2,applied
+SAT-007,api,PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:31,2,applied
+SAT-007,api,POST /v1/auth/change-password @ services/auth/routers/registration.py:74,2,applied
 SAT-007,api,POST /v1/change/detect @ services/raster-service/routers/analysis.py:48,3,applied
 SAT-007,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1129,3,applied
 SAT-007,service,services/raster-service/main.py,10,applied
@@ -1688,9 +1688,9 @@ SEC-002,service,services/field-management-service/main.py,10,applied
 SEC-002,test,tests_v9/test_service_tenant_assertion.py,5,applied
 SEC-003,service,services/auth/main.py,10,applied
 SEC-003,test,services/decision-service/tests/test_worker_identity_binding.py,5,applied
-SEC-004,api,POST /auth/mfa/activate @ services/auth/routers/mfa.py:66,3,applied
-SEC-004,api,POST /auth/mfa/disable @ services/auth/routers/mfa.py:136,3,applied
-SEC-004,api,POST /auth/mfa/setup @ services/auth/routers/mfa.py:19,3,applied
+SEC-004,api,POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:66,3,applied
+SEC-004,api,POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:136,3,applied
+SEC-004,api,POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:19,3,applied
 SEC-004,mobile,mobile/sahool_app/lib/screens/mfa_setup_screen.dart,2,applied
 SEC-004,service,services/auth/main.py,10,applied
 SEC-004,test,tests_v9/test_auth_admin_stepup_mfa.py,3,applied

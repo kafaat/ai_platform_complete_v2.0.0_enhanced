@@ -226,7 +226,7 @@
       "line": 22,
       "handler": "verify_request",
       "method": "POST",
-      "path": "/auth/verify/request"
+      "path": "/v1/auth/verify/request"
     },
     {
       "owner": "auth",
@@ -234,7 +234,7 @@
       "line": 55,
       "handler": "verify_confirm",
       "method": "POST",
-      "path": "/auth/verify/confirm"
+      "path": "/v1/auth/verify/confirm"
     },
     {
       "owner": "auth",
@@ -242,7 +242,7 @@
       "line": 97,
       "handler": "verify",
       "method": "GET",
-      "path": "/auth/verify"
+      "path": "/v1/auth/verify"
     },
     {
       "owner": "auth",
@@ -250,7 +250,7 @@
       "line": 107,
       "handler": "verify_status",
       "method": "GET",
-      "path": "/auth/verify/status"
+      "path": "/v1/auth/verify/status"
     },
     {
       "owner": "auth",
@@ -258,7 +258,7 @@
       "line": 25,
       "handler": "create_invitation",
       "method": "POST",
-      "path": "/auth/invitations"
+      "path": "/v1/auth/invitations"
     },
     {
       "owner": "auth",
@@ -266,7 +266,7 @@
       "line": 84,
       "handler": "list_invitations",
       "method": "GET",
-      "path": "/auth/invitations"
+      "path": "/v1/auth/invitations"
     },
     {
       "owner": "auth",
@@ -274,7 +274,7 @@
       "line": 115,
       "handler": "accept_invitation",
       "method": "POST",
-      "path": "/auth/invitations/accept"
+      "path": "/v1/auth/invitations/accept"
     },
     {
       "owner": "auth",
@@ -282,7 +282,7 @@
       "line": 195,
       "handler": "revoke_invitation",
       "method": "DELETE",
-      "path": "/auth/invitations/{invitation_id}"
+      "path": "/v1/auth/invitations/{invitation_id}"
     },
     {
       "owner": "auth",
@@ -290,7 +290,7 @@
       "line": 19,
       "handler": "mfa_setup",
       "method": "POST",
-      "path": "/auth/mfa/setup"
+      "path": "/v1/auth/mfa/setup"
     },
     {
       "owner": "auth",
@@ -298,7 +298,7 @@
       "line": 66,
       "handler": "mfa_activate",
       "method": "POST",
-      "path": "/auth/mfa/activate"
+      "path": "/v1/auth/mfa/activate"
     },
     {
       "owner": "auth",
@@ -306,7 +306,7 @@
       "line": 136,
       "handler": "mfa_disable",
       "method": "POST",
-      "path": "/auth/mfa/disable"
+      "path": "/v1/auth/mfa/disable"
     },
     {
       "owner": "auth",
@@ -338,7 +338,7 @@
       "line": 21,
       "handler": "request_password_reset",
       "method": "POST",
-      "path": "/auth/password-reset/request"
+      "path": "/v1/auth/password-reset/request"
     },
     {
       "owner": "auth",
@@ -346,7 +346,7 @@
       "line": 41,
       "handler": "confirm_password_reset",
       "method": "POST",
-      "path": "/auth/password-reset/confirm"
+      "path": "/v1/auth/password-reset/confirm"
     },
     {
       "owner": "auth",
@@ -354,7 +354,7 @@
       "line": 19,
       "handler": "register",
       "method": "POST",
-      "path": "/auth/register"
+      "path": "/v1/auth/register"
     },
     {
       "owner": "auth",
@@ -362,7 +362,7 @@
       "line": 74,
       "handler": "change_password",
       "method": "POST",
-      "path": "/auth/change-password"
+      "path": "/v1/auth/change-password"
     },
     {
       "owner": "auth",
@@ -370,7 +370,7 @@
       "line": 41,
       "handler": "edge_sign",
       "method": "GET",
-      "path": "/auth/edge-sign"
+      "path": "/v1/auth/edge-sign"
     },
     {
       "owner": "auth",
@@ -378,7 +378,7 @@
       "line": 24,
       "handler": "login",
       "method": "POST",
-      "path": "/auth/login"
+      "path": "/v1/auth/login"
     },
     {
       "owner": "auth",
@@ -386,7 +386,7 @@
       "line": 125,
       "handler": "refresh_token",
       "method": "POST",
-      "path": "/auth/refresh"
+      "path": "/v1/auth/refresh"
     },
     {
       "owner": "auth",
@@ -394,7 +394,7 @@
       "line": 167,
       "handler": "logout",
       "method": "POST",
-      "path": "/auth/logout"
+      "path": "/v1/auth/logout"
     },
     {
       "owner": "auth",
@@ -402,7 +402,7 @@
       "line": 211,
       "handler": "me",
       "method": "GET",
-      "path": "/auth/me"
+      "path": "/v1/auth/me"
     },
     {
       "owner": "auth",
@@ -410,7 +410,7 @@
       "line": 40,
       "handler": "provision_tenant",
       "method": "POST",
-      "path": "/auth/tenants"
+      "path": "/v1/auth/tenants"
     },
     {
       "owner": "auth",
@@ -418,7 +418,7 @@
       "line": 22,
       "handler": "list_users",
       "method": "GET",
-      "path": "/auth/users"
+      "path": "/v1/auth/users"
     },
     {
       "owner": "auth",
@@ -426,7 +426,7 @@
       "line": 31,
       "handler": "change_role",
       "method": "PATCH",
-      "path": "/auth/users/{user_id}/role"
+      "path": "/v1/auth/users/{user_id}/role"
     },
     {
       "owner": "auth",
@@ -434,7 +434,7 @@
       "line": 73,
       "handler": "deactivate_user",
       "method": "PATCH",
-      "path": "/auth/users/{user_id}/deactivate"
+      "path": "/v1/auth/users/{user_id}/deactivate"
     },
     {
       "owner": "decision-service",

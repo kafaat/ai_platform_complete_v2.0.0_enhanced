@@ -16,28 +16,28 @@ ai_agronomist.healthz.ai-provider,query,ai_agronomist,GET /healthz/ai-provider,f
 ai_agronomist.prescription.export-preview,command,ai_agronomist,POST /v1/prescription/export-preview,frontend,route,False
 ai_agronomist.query,command,ai_agronomist,POST /v1/query,frontend,route,False
 ai_agronomist.recommend,command,ai_agronomist,POST /v1/recommend,frontend,route,False
-auth.auth.change-password,command,auth,POST /auth/change-password,frontend,route,False
-auth.auth.edge-sign,query,auth,GET /auth/edge-sign,frontend,route,False
-auth.auth.invitations,mixed,auth,GET /auth/invitations|POST /auth/invitations,frontend,route,False
-auth.auth.invitations.accept,command,auth,POST /auth/invitations/accept,frontend,route,False
-auth.auth.invitations.invitation_id,command,auth,DELETE /auth/invitations/{invitation_id},frontend,route,False
-auth.auth.login,command,auth,POST /auth/login,frontend,route,False
-auth.auth.logout,command,auth,POST /auth/logout,frontend,route,False
-auth.auth.me,query,auth,GET /auth/me,frontend,route,False
-auth.auth.mfa.activate,command,auth,POST /auth/mfa/activate,frontend,route,False
-auth.auth.mfa.disable,command,auth,POST /auth/mfa/disable,frontend,route,False
-auth.auth.mfa.setup,command,auth,POST /auth/mfa/setup,frontend,route,False
-auth.auth.password-reset.confirm,command,auth,POST /auth/password-reset/confirm,frontend,route,False
-auth.auth.password-reset.request,command,auth,POST /auth/password-reset/request,frontend,route,False
-auth.auth.refresh,command,auth,POST /auth/refresh,frontend,route,False
-auth.auth.register,command,auth,POST /auth/register,frontend,route,False
-auth.auth.tenants,command,auth,POST /auth/tenants,frontend,route,False
-auth.auth.users,query,auth,GET /auth/users,frontend,route,False
-auth.auth.users.user_id,command,auth,PATCH /auth/users/{user_id}/deactivate|PATCH /auth/users/{user_id}/role,frontend,route,False
-auth.auth.verify,query,auth,GET /auth/verify,frontend,route,False
-auth.auth.verify.confirm,command,auth,POST /auth/verify/confirm,frontend,route,False
-auth.auth.verify.request,command,auth,POST /auth/verify/request,frontend,route,False
-auth.auth.verify.status,query,auth,GET /auth/verify/status,frontend,route,False
+auth.auth.change-password,command,auth,POST /v1/auth/change-password,frontend,route,False
+auth.auth.edge-sign,query,auth,GET /v1/auth/edge-sign,frontend,route,False
+auth.auth.invitations,mixed,auth,GET /v1/auth/invitations|POST /v1/auth/invitations,frontend,route,False
+auth.auth.invitations.accept,command,auth,POST /v1/auth/invitations/accept,frontend,route,False
+auth.auth.invitations.invitation_id,command,auth,DELETE /v1/auth/invitations/{invitation_id},frontend,route,False
+auth.auth.login,command,auth,POST /v1/auth/login,frontend,route,False
+auth.auth.logout,command,auth,POST /v1/auth/logout,frontend,route,False
+auth.auth.me,query,auth,GET /v1/auth/me,frontend,route,False
+auth.auth.mfa.activate,command,auth,POST /v1/auth/mfa/activate,frontend,route,False
+auth.auth.mfa.disable,command,auth,POST /v1/auth/mfa/disable,frontend,route,False
+auth.auth.mfa.setup,command,auth,POST /v1/auth/mfa/setup,frontend,route,False
+auth.auth.password-reset.confirm,command,auth,POST /v1/auth/password-reset/confirm,frontend,route,False
+auth.auth.password-reset.request,command,auth,POST /v1/auth/password-reset/request,frontend,route,False
+auth.auth.refresh,command,auth,POST /v1/auth/refresh,frontend,route,False
+auth.auth.register,command,auth,POST /v1/auth/register,frontend,route,False
+auth.auth.tenants,command,auth,POST /v1/auth/tenants,frontend,route,False
+auth.auth.users,query,auth,GET /v1/auth/users,frontend,route,False
+auth.auth.users.user_id,command,auth,PATCH /v1/auth/users/{user_id}/deactivate|PATCH /v1/auth/users/{user_id}/role,frontend,route,False
+auth.auth.verify,query,auth,GET /v1/auth/verify,frontend,route,False
+auth.auth.verify.confirm,command,auth,POST /v1/auth/verify/confirm,frontend,route,False
+auth.auth.verify.request,command,auth,POST /v1/auth/verify/request,frontend,route,False
+auth.auth.verify.status,query,auth,GET /v1/auth/verify/status,frontend,route,False
 decision-service.activation.evidence-receipts,command,decision-service,POST /v1/activation/evidence-receipts,,route,False
 decision-service.activation.evidence-receipts.evidence_id,command,decision-service,POST /v1/activation/evidence-receipts/{evidence_id}/revoke,,route,False
 decision-service.activation.irr_f01_reservation,query,decision-service,GET /v1/activation/irr_f01_reservation,,route,False

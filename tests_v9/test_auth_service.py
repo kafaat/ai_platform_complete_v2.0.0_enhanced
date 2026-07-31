@@ -92,7 +92,7 @@ class TestAuthEndpoints:
         from conftest import service_urls
 
         resp = await http_client.post(
-            f"{service_urls['auth']}/auth/login",
+            f"{service_urls['auth']}/v1/auth/login",
             json={"email": "test@sahool.ye", "password": "WrongPass123!"},
         )
         assert resp.status_code == 401
@@ -102,7 +102,7 @@ class TestAuthEndpoints:
         from conftest import service_urls
 
         resp = await http_client.post(
-            f"{service_urls['auth']}/auth/login",
+            f"{service_urls['auth']}/v1/auth/login",
             json={"email": "' OR '1'='1", "password": "anything"},
         )
         assert resp.status_code in [401, 422]

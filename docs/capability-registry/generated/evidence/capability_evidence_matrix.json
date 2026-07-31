@@ -2857,6 +2857,7 @@
       "title": "MFA",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_break_glass.py",
+        "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_auth_admin_stepup_mfa.py",
         "tests_v9/test_auth_mfa_enforcement.py",
         "tests_v9/test_decomposed_service_dockerfile_guard.py",

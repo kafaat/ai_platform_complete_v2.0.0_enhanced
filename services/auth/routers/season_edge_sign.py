@@ -37,7 +37,7 @@ from shared.security.trusted_tenant import (
 router = APIRouter()
 
 
-@router.get("/auth/edge-sign")
+@router.get("/v1/auth/edge-sign")
 async def edge_sign(
     response: Response,
     user: Annotated[dict, Depends(main.get_current_user)],

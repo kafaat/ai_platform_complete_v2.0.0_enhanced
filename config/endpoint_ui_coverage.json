@@ -178,7 +178,7 @@
       "audience": "farmer"
     },
     {
-      "prefix": "/auth/",
+      "prefix": "/v1/auth/",
       "audience": "farmer"
     },
     {
@@ -2764,107 +2764,107 @@
       "evidence": "/api/ai-agronomist/approvals/pending"
     },
     {
-      "endpoint": "/auth/change-password",
+      "endpoint": "/v1/auth/change-password",
       "audience": "farmer",
       "evidence": "/auth/change-password"
     },
     {
-      "endpoint": "/auth/invitations",
+      "endpoint": "/v1/auth/invitations",
       "audience": "farmer",
       "evidence": "/auth/invitations"
     },
     {
-      "endpoint": "/auth/invitations/accept",
+      "endpoint": "/v1/auth/invitations/accept",
       "audience": "farmer",
       "evidence": "/auth/invitations/accept"
     },
     {
-      "endpoint": "/auth/invitations/{invitation_id}",
+      "endpoint": "/v1/auth/invitations/{invitation_id}",
       "audience": "farmer",
       "evidence": "/auth/invitations"
     },
     {
-      "endpoint": "/auth/login",
+      "endpoint": "/v1/auth/login",
       "audience": "farmer",
       "evidence": "/auth/login"
     },
     {
-      "endpoint": "/auth/logout",
+      "endpoint": "/v1/auth/logout",
       "audience": "farmer",
       "evidence": "/auth/logout"
     },
     {
-      "endpoint": "/auth/mfa/activate",
+      "endpoint": "/v1/auth/mfa/activate",
       "audience": "farmer",
       "evidence": "/auth/mfa/activate"
     },
     {
-      "endpoint": "/auth/mfa/disable",
+      "endpoint": "/v1/auth/mfa/disable",
       "audience": "farmer",
       "evidence": "/auth/mfa/disable"
     },
     {
-      "endpoint": "/auth/mfa/setup",
+      "endpoint": "/v1/auth/mfa/setup",
       "audience": "farmer",
       "evidence": "/auth/mfa/setup"
     },
     {
-      "endpoint": "/auth/password-reset/confirm",
+      "endpoint": "/v1/auth/password-reset/confirm",
       "audience": "farmer",
       "evidence": "/auth/password-reset/confirm"
     },
     {
-      "endpoint": "/auth/password-reset/request",
+      "endpoint": "/v1/auth/password-reset/request",
       "audience": "farmer",
       "evidence": "/auth/password-reset/request"
     },
     {
-      "endpoint": "/auth/refresh",
+      "endpoint": "/v1/auth/refresh",
       "audience": "farmer",
       "evidence": "/auth/refresh"
     },
     {
-      "endpoint": "/auth/register",
+      "endpoint": "/v1/auth/register",
       "audience": "farmer",
       "evidence": "/auth/register"
     },
     {
-      "endpoint": "/auth/tenants",
+      "endpoint": "/v1/auth/tenants",
       "audience": "admin",
       "evidence": "/auth/tenants"
     },
     {
-      "endpoint": "/auth/users",
+      "endpoint": "/v1/auth/users",
       "audience": "admin",
       "evidence": "/auth/users"
     },
     {
-      "endpoint": "/auth/users/{user_id}/deactivate",
+      "endpoint": "/v1/auth/users/{user_id}/deactivate",
       "audience": "admin",
       "evidence": "/auth/users"
     },
     {
-      "endpoint": "/auth/users/{user_id}/role",
+      "endpoint": "/v1/auth/users/{user_id}/role",
       "audience": "admin",
       "evidence": "/auth/users"
     },
     {
-      "endpoint": "/auth/verify",
+      "endpoint": "/v1/auth/verify",
       "audience": "farmer",
       "evidence": "/auth/verify"
     },
     {
-      "endpoint": "/auth/verify/confirm",
+      "endpoint": "/v1/auth/verify/confirm",
       "audience": "farmer",
       "evidence": "/auth/verify/confirm"
     },
     {
-      "endpoint": "/auth/verify/request",
+      "endpoint": "/v1/auth/verify/request",
       "audience": "farmer",
       "evidence": "/auth/verify/request"
     },
     {
-      "endpoint": "/auth/verify/status",
+      "endpoint": "/v1/auth/verify/status",
       "audience": "farmer",
       "evidence": "/auth/verify/status"
     }

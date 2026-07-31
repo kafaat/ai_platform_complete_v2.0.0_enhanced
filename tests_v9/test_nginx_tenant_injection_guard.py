@@ -4,7 +4,7 @@
   • proxy_params.conf يمسح X-Tenant-Id الذي قد يحقنه العميل (الافتراض الآمن: فارغ).
   • مواقع الخدمات المصغّرة (raster/vegetation) تحقّق JWT عبر auth_request،
     وتلتقط المستأجِر الموثّق من ردّ التحقّق، وتعيد حقنه — بهذا الترتيب الصحيح.
-  • موقع تحقّق داخليّ (internal) يُمرّر /auth/verify ولا يصله العميل مباشرةً.
+  • موقع تحقّق داخليّ (internal) يُمرّر /v1/auth/verify ولا يصله العميل مباشرةً.
 
 منع انتحال المستأجِر = شرط لعزل RLS. أيّ انحدار هنا يكسر الحارس."""
 
@@ -57,11 +57,11 @@ def test_proxy_params_blanks_client_trust_headers():
 
 
 def test_internal_auth_verify_location_exists():
-    """موقع تحقّق داخليّ (internal) يُمرّر /auth/verify — هدف الطلب الفرعيّ."""
+    """موقع تحقّق داخليّ (internal) يُمرّر /v1/auth/verify — هدف الطلب الفرعيّ."""
     conf = _read(NGINX_CONF)
     block = _location_block(conf, "= /_auth_verify")
     assert "internal;" in block, "موقع التحقّق يجب أن يكون internal (لا يصله العميل)"
-    assert "/auth/verify" in block, "الطلب الفرعيّ يجب أن يُمرَّر إلى /auth/verify"
+    assert "/v1/auth/verify" in block, "الطلب الفرعيّ يجب أن يُمرَّر إلى /v1/auth/verify"
 
 
 @pytest.mark.parametrize("prefix", PROTECTED_LOCATIONS)
@@ -80,7 +80,7 @@ def test_microservice_location_verifies_and_injects_tenant(prefix):
     )
     # (3) التقاط المستأجِر الموثّق من ردّ التحقّق.
     assert "auth_request_set $tenant $upstream_http_x_tenant_id;" in block, (
-        f"{prefix} يجب أن يلتقط $tenant من ردّ /auth/verify"
+        f"{prefix} يجب أن يلتقط $tenant من ردّ /v1/auth/verify"
     )
     # (4) إعادة حقن القيمة الموثّقة.
     assert "proxy_set_header X-Tenant-Id $tenant;" in block, (
