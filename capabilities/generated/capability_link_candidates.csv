@@ -434,7 +434,6 @@ FM-003,api,GET /internal/fields/{field_id} @ services/field-management-service/m
 FM-003,api,GET /internal/fields/{field_id}/state @ services/sahool-platform/api/routers/internal_service.py:26,4,applied
 FM-003,api,GET /readyz @ services/field-management-service/main.py:194,3,applied
 FM-003,api,GET /readyz @ services/field-segmentation/main.py:380,2,applied
-FM-003,api,GET /soil/readings/{field_id} @ services/soil-service/routers/readings.py:23,2,applied
 FM-003,api,GET /v1/all_fields @ services/vegetation-analysis-service/routers/analysis.py:145,2,applied
 FM-003,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351,4,applied
 FM-003,api,GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:191,4,applied
@@ -477,6 +476,7 @@ FM-003,api,GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields
 FM-003,api,GET /v1/indices @ services/raster-service/routers/observability.py:253,2,applied
 FM-003,api,GET /v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2364,2,applied
 FM-003,api,GET /v1/ndvi/current/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:91,2,applied
+FM-003,api,GET /v1/soil/readings/{field_id} @ services/soil-service/routers/readings.py:23,2,applied
 FM-003,api,GET /v1/timeseries/{field_id} @ services/vegetation-analysis-service/routers/analysis.py:46,2,applied
 FM-003,api,PATCH /api/v1/fields/{field_id} @ services/sahool-platform/api/routers/fields.py:1270,4,applied
 FM-003,api,PATCH /api/v1/fields/{field_id}/boundary/review @ services/sahool-platform/api/routers/boundaries.py:36,6,applied
@@ -1742,8 +1742,8 @@ SEC-008,test,tests_v9/test_secret_enforcement_guard_v21.py,3,applied
 SEC-008,test,tests_v9/test_secret_guard.py,3,applied
 SEC-008,test,tests_v9/test_services_rs256_production_guard.py,3,applied
 SEC-008,test,tests_v9/test_tile_mask_fail_closed_v29_8.py,3,applied
-SOIL-001,api,GET /soil/soilgrids @ services/soil-service/routers/soil_profile.py:58,5,applied
-SOIL-001,api,POST /soil/suitability @ services/soil-service/routers/soil_profile.py:47,5,applied
+SOIL-001,api,GET /v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:58,5,applied
+SOIL-001,api,POST /v1/soil/suitability @ services/soil-service/routers/soil_profile.py:47,5,applied
 SOIL-001,service,services/soil-service/main.py,10,applied
 SOIL-001,test,services/decision-service/tests/test_soil_profile_context_gate.py,5,applied
 SOIL-001,test,services/soil-service/test_canonical_soil_profile.py,5,applied

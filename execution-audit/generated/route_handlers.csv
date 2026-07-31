@@ -947,7 +947,7 @@ soil-service,GET,/healthz,health,services/soil-service/routers/health.py,23
 soil-service,GET,/readyz,readyz,services/soil-service/routers/health.py,28
 soil-service,GET,/v1/soil/projection/status,projection_status,services/soil-service/routers/health.py,47
 soil-service,GET,/metrics,metrics,services/soil-service/routers/health.py,56
-soil-service,POST,/soil/decode/modbus,decode_modbus,services/soil-service/routers/modbus.py,36
+soil-service,POST,/v1/soil/decode/modbus,decode_modbus,services/soil-service/routers/modbus.py,36
 soil-service,POST,/v1/fields/{field_id}/soil/soilgrids-spatial,ingest_soilgrids,services/soil-service/routers/p1_products.py,35
 soil-service,POST,/v1/fields/{field_id}/soil/sampling-plans,create_plan,services/soil-service/routers/p1_products.py,83
 soil-service,POST,/v1/soil/sampling-plans/{plan_id}/approve,approve_plan,services/soil-service/routers/p1_products.py,100
@@ -990,10 +990,10 @@ soil-service,POST,/v1/soil/learning-datasets,create_learning_dataset,services/so
 soil-service,POST,/v1/soil/runtime-certifications/evaluate,evaluate_certification,services/soil-service/routers/p6_certification.py,21
 soil-service,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certification,services/soil-service/routers/p6_certification.py,49
 soil-service,GET,/v1/soil/runtime-certifications/{run_id},get_certification,services/soil-service/routers/p6_certification.py,60
-soil-service,GET,/soil/readings/{field_id},get_readings,services/soil-service/routers/readings.py,23
-soil-service,POST,/soil/ingest,ingest_reading,services/soil-service/routers/readings.py,38
-soil-service,POST,/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,47
-soil-service,GET,/soil/soilgrids,soil_from_soilgrids,services/soil-service/routers/soil_profile.py,58
+soil-service,GET,/v1/soil/readings/{field_id},get_readings,services/soil-service/routers/readings.py,23
+soil-service,POST,/v1/soil/ingest,ingest_reading,services/soil-service/routers/readings.py,38
+soil-service,POST,/v1/soil/suitability,soil_suitability,services/soil-service/routers/soil_profile.py,47
+soil-service,GET,/v1/soil/soilgrids,soil_from_soilgrids,services/soil-service/routers/soil_profile.py,58
 supervisor-agent,POST,/v1/agent/query,process_query,services/supervisor-agent/routers/agent.py,31
 supervisor-agent,POST,/v1/agent/optimize,optimize_farm,services/supervisor-agent/routers/agent.py,96
 supervisor-agent,GET,/v1/agent/tools,list_tools,services/supervisor-agent/routers/agent.py,139

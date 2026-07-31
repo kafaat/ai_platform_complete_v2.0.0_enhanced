@@ -3088,6 +3088,7 @@
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/soil-service/test_canonical_soil_profile.py",
         "services/soil-service/test_soil_snapshot_identity.py",
+        "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_canonical_root_zone_profile.py",
         "tests_v9/test_hourly_energy_aware_irrigation_mpc.py"
       ]

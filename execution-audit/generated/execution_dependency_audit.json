@@ -7602,7 +7602,7 @@
       "line": 36,
       "handler": "decode_modbus",
       "method": "POST",
-      "path": "/soil/decode/modbus"
+      "path": "/v1/soil/decode/modbus"
     },
     {
       "owner": "soil-service",
@@ -7946,7 +7946,7 @@
       "line": 23,
       "handler": "get_readings",
       "method": "GET",
-      "path": "/soil/readings/{field_id}"
+      "path": "/v1/soil/readings/{field_id}"
     },
     {
       "owner": "soil-service",
@@ -7954,7 +7954,7 @@
       "line": 38,
       "handler": "ingest_reading",
       "method": "POST",
-      "path": "/soil/ingest"
+      "path": "/v1/soil/ingest"
     },
     {
       "owner": "soil-service",
@@ -7962,7 +7962,7 @@
       "line": 47,
       "handler": "soil_suitability",
       "method": "POST",
-      "path": "/soil/suitability"
+      "path": "/v1/soil/suitability"
     },
     {
       "owner": "soil-service",
@@ -7970,7 +7970,7 @@
       "line": 58,
       "handler": "soil_from_soilgrids",
       "method": "GET",
-      "path": "/soil/soilgrids"
+      "path": "/v1/soil/soilgrids"
     },
     {
       "owner": "supervisor-agent",

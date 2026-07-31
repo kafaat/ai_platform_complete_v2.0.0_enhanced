@@ -13,7 +13,7 @@
 - Unmapped: **7**
 - Multi-dimensional mappings: **47**
 - Files scanned: **4789**
-- Ambiguous artifacts queued: **392**
+- Ambiguous artifacts queued: **393**
 - Unmapped artifacts queued: **1949**
 
 ## Capability coverage
@@ -40,7 +40,7 @@
 | FM-008 | farm_management | 10 | 24 | 5 | 1 | 0 | 0 | 7 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 3 | 0 | 0 | 2 | 0 | 2 | 4 |
-| GIS-003 | gis | 22 | 100 | 10 | 50 | 11 | 0 | 35 | 6 |
+| GIS-003 | gis | 22 | 100 | 10 | 51 | 11 | 0 | 35 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 5 | 15 | 2 | 58 | 0 | 0 | 7 | 5 |
@@ -86,7 +86,7 @@
 | SEC-006 | security | 2 | 7 | 0 | 1 | 0 | 0 | 8 | 4 |
 | SEC-007 | security | 2 | 0 | 9 | 47 | 0 | 0 | 9 | 4 |
 | SEC-008 | security | 0 | 0 | 0 | 1 | 0 | 0 | 6 | 2 |
-| SOIL-001 | soil | 13 | 85 | 14 | 34 | 1 | 0 | 12 | 6 |
+| SOIL-001 | soil | 13 | 88 | 14 | 35 | 1 | 0 | 13 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 6 | 5 | 0 | 11 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |

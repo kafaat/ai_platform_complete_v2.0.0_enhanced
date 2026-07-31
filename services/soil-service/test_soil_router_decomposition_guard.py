@@ -34,8 +34,8 @@ _ROUTERS_DIR = _HERE / "routers"
 
 # مسارات soil الحقيقيّة التي يجب أن تبقى حاضرة بعد التفكيك (لا تختفي).
 _CRITICAL_ROUTES = (
-    "/soil/readings/{field_id}",
-    "/soil/ingest",
+    "/v1/soil/readings/{field_id}",
+    "/v1/soil/ingest",
     "/healthz",
 )
 

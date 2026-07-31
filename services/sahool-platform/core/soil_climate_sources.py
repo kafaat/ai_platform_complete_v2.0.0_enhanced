@@ -28,7 +28,7 @@ SOIL_CLIMATE_SOURCE_REGISTRY: dict[str, dict[str, Any]] = {
         "id": "soilgrids",
         "label": "SoilGrids (ISRIC)",
         "tier": "production_baseline",
-        "active": True,  # موصول فعلاً: soil-service/soilgrids_client.py + /soil/soilgrids.
+        "active": True,  # موصول فعلاً: soil-service/soilgrids_client.py + /v1/soil/soilgrids.
         "verified": True,
         "free": True,
         "auth": "none",

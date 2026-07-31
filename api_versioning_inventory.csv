@@ -972,7 +972,7 @@ soil-service,services/soil-service/routers/health.py,23,GET,/health,health,infra
 soil-service,services/soil-service/routers/health.py,28,GET,/readyz,readyz,infra
 soil-service,services/soil-service/routers/health.py,47,GET,/v1/soil/projection/status,projection_status,versioned
 soil-service,services/soil-service/routers/health.py,56,GET,/metrics,metrics,infra
-soil-service,services/soil-service/routers/modbus.py,36,POST,/soil/decode/modbus,decode_modbus,legacy_unversioned_business
+soil-service,services/soil-service/routers/modbus.py,36,POST,/v1/soil/decode/modbus,decode_modbus,versioned
 soil-service,services/soil-service/routers/p1_products.py,35,POST,/v1/fields/{field_id}/soil/soilgrids-spatial,ingest_soilgrids,versioned
 soil-service,services/soil-service/routers/p1_products.py,83,POST,/v1/fields/{field_id}/soil/sampling-plans,create_plan,versioned
 soil-service,services/soil-service/routers/p1_products.py,100,POST,/v1/soil/sampling-plans/{plan_id}/approve,approve_plan,versioned
@@ -1015,10 +1015,10 @@ soil-service,services/soil-service/routers/p5_certification.py,128,POST,/v1/soil
 soil-service,services/soil-service/routers/p6_certification.py,21,POST,/v1/soil/runtime-certifications/evaluate,evaluate_certification,versioned
 soil-service,services/soil-service/routers/p6_certification.py,49,POST,/v1/soil/runtime-certifications/{run_id}/verify,verify_certification,versioned
 soil-service,services/soil-service/routers/p6_certification.py,60,GET,/v1/soil/runtime-certifications/{run_id},get_certification,versioned
-soil-service,services/soil-service/routers/readings.py,23,GET,/soil/readings/{field_id},get_readings,legacy_unversioned_business
-soil-service,services/soil-service/routers/readings.py,38,POST,/soil/ingest,ingest_reading,legacy_unversioned_business
-soil-service,services/soil-service/routers/soil_profile.py,47,POST,/soil/suitability,soil_suitability,legacy_unversioned_business
-soil-service,services/soil-service/routers/soil_profile.py,58,GET,/soil/soilgrids,soil_from_soilgrids,legacy_unversioned_business
+soil-service,services/soil-service/routers/readings.py,23,GET,/v1/soil/readings/{field_id},get_readings,versioned
+soil-service,services/soil-service/routers/readings.py,38,POST,/v1/soil/ingest,ingest_reading,versioned
+soil-service,services/soil-service/routers/soil_profile.py,47,POST,/v1/soil/suitability,soil_suitability,versioned
+soil-service,services/soil-service/routers/soil_profile.py,58,GET,/v1/soil/soilgrids,soil_from_soilgrids,versioned
 supervisor-agent,services/supervisor-agent/routers/agent.py,31,POST,/v1/agent/query,process_query,versioned
 supervisor-agent,services/supervisor-agent/routers/agent.py,96,POST,/v1/agent/optimize,optimize_farm,versioned
 supervisor-agent,services/supervisor-agent/routers/agent.py,139,GET,/v1/agent/tools,list_tools,versioned

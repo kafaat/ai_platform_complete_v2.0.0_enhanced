@@ -641,11 +641,6 @@
 | `/scene-ranking` | internal | — |
 | `/sdk/manifest` | internal | — |
 | `/segment` | internal | — |
-| `/soil/decode/modbus` | internal | — |
-| `/soil/ingest` | internal | — |
-| `/soil/readings/{field_id}` | internal | — |
-| `/soil/soilgrids` | internal | — |
-| `/soil/suitability` | internal | — |
 | `/stac` | internal | — |
 | `/stac/collections` | internal | ✅ |
 | `/stac/collections/{collection_id}` | internal | ✅ |
@@ -873,6 +868,8 @@
 | `/v1/soil/calibrations/build` | internal | — |
 | `/v1/soil/calibrations/{calibration_id}/evaluate` | internal | — |
 | `/v1/soil/cutover/readiness` | internal | — |
+| `/v1/soil/decode/modbus` | internal | — |
+| `/v1/soil/ingest` | internal | — |
 | `/v1/soil/irrigation-water/samples` | internal | — |
 | `/v1/soil/irrigation-water/sources/{source_id}/profile` | internal | — |
 | `/v1/soil/learning-datasets` | internal | — |
@@ -880,10 +877,13 @@
 | `/v1/soil/production-certifications` | internal | — |
 | `/v1/soil/projection/status` | internal | — |
 | `/v1/soil/properties` | internal | ✅ |
+| `/v1/soil/readings/{field_id}` | internal | — |
 | `/v1/soil/runtime-certifications/evaluate` | internal | — |
 | `/v1/soil/runtime-certifications/{run_id}` | internal | — |
 | `/v1/soil/runtime-certifications/{run_id}/verify` | internal | — |
 | `/v1/soil/sampling-plans/{plan_id}/approve` | internal | — |
+| `/v1/soil/soilgrids` | internal | — |
+| `/v1/soil/suitability` | internal | — |
 | `/v1/soil/tilejson` | internal | ✅ |
 | `/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png` | internal | ✅ |
 | `/v1/stac` | internal | — |

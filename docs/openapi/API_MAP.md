@@ -110,8 +110,8 @@
 - `GET /healthz`
 - `GET /metrics`
 - `GET /readyz`
-- `GET /soil/readings/{field_id}`
-- `POST /soil/ingest`
+- `GET /v1/soil/readings/{field_id}`
+- `POST /v1/soil/ingest`
 
 ## supervisor-agent — 8 مسار
 - `GET /agent/actuator-audit`

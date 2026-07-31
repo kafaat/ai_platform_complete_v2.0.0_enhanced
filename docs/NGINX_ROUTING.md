@@ -20,7 +20,7 @@ the remainder is forwarded. This is the crux of every mapping below.
 | `/api/indicators/*` | `/api/indicators/` | `platform_backend/api/v1/indicators/` **(FIXED)** | `/api/v1/indicators/*` | platform `/api/v1/indicators/dashboard`,`/catalog` ✓ |
 | `/api/weather/*` | `/api/weather/` | `platform_backend/api/v1/weather/` **(FIXED)** | `/api/v1/weather/*` | platform `/api/v1/weather/current`,`/forecast`,`/historical` ✓ |
 | `/api/vegetation/*` | `/api/vegetation/` | `vegetation_backend/` | `/*` (prefix stripped) | vegetation `/v1/analyze`,`/v1/timeseries/{id}` — call as `/api/vegetation/v1/...` ✓ |
-| `/api/soil/*` | `/api/soil/` | `soil_backend/` | `/*` (prefix stripped) | soil `/soil/readings/{id}` — call as `/api/soil/soil/...` (alias; frontend uses direct `VITE_SOIL_URL`) |
+| `/api/soil/*` | `/api/soil/` | `soil_backend/` | `/*` (prefix stripped) | soil `/v1/soil/readings/{id}` — call as `/api/soil/v1/soil/...` (alias; frontend uses direct `VITE_SOIL_URL`) |
 | `/api/agent/health` | `= /api/agent/health` (exact) **(FIXED)** | `supervisor_backend/health` | `/health` | supervisor `/health` ✓ (health probe) |
 | `/api/agent/*` | `/api/agent/` | `supervisor_backend/agent/` **(FIXED)** | `/agent/*` (prefix preserved) | supervisor `/agent/query`,`/agent/optimize` ✓ |
 | `/api/guardrails/*` | `/api/guardrails/` | `guardrails_backend/` | `/*` (prefix stripped) | guardrails `/validate` — service-to-service only; requires `X-Agent-Token`, so a direct browser call fails-closed by design (see note 2) |

@@ -201,7 +201,7 @@ def provider_status_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
 
 
 def soil_baseline_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
-    """يحوّل استجابة soil-service ``/soil/soilgrids`` إلى إشارة ``soil_baseline`` للبطاقة.
+    """يحوّل استجابة soil-service ``/v1/soil/soilgrids`` إلى إشارة ``soil_baseline`` للبطاقة.
 
     منطق صرف. ``None``/مشوّه ⇒ ``{}`` فيبقى القسم missing بصدق. عند التوفّر: صنف القوام
     (USDA) + خصائص الطبقة العلويّة (طين/رمل/طمي/pH/كربون عضويّ/CEC). **صدق:** خطّ أساس

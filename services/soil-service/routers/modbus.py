@@ -6,7 +6,7 @@
 حسّاس. المنطق النقيّ في ``modbus_decoder`` (مُختبَر بإطارات معروفة).
 
 الصدق: CRC فاسد/دالّة غير مدعومة/سلسلة سُداسيّة غير صالحة ⇒ 422 صريح (لا تخمين قيمة).
-قراءة/فكّ فقط — لا يكتب سجلّات (يُمرَّر الناتج إلى ``/soil/ingest`` القائم إن أُريد الحفظ).
+قراءة/فكّ فقط — لا يكتب سجلّات (يُمرَّر الناتج إلى ``/v1/soil/ingest`` القائم إن أُريد الحفظ).
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ class ModbusDecodeRequest(BaseModel):
     mapping: dict[str, RegisterSpec] = Field(default_factory=dict)
 
 
-@router.post("/soil/decode/modbus")
+@router.post("/v1/soil/decode/modbus")
 async def decode_modbus(req: ModbusDecodeRequest, x_agent_token: str = Header(None)):
     """يفكّ إطار Modbus-RTU (0x03/0x04) → سجلّات + قيم حسّاس مُخطَّطة (صدق: 422 عند الفساد)."""
     main._require_service_token(x_agent_token)

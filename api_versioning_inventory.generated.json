@@ -8761,9 +8761,9 @@
     "file": "services/soil-service/routers/modbus.py",
     "line": 36,
     "method": "POST",
-    "path": "/soil/decode/modbus",
+    "path": "/v1/soil/decode/modbus",
     "handler": "decode_modbus",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "soil-service",
@@ -9148,36 +9148,36 @@
     "file": "services/soil-service/routers/readings.py",
     "line": 23,
     "method": "GET",
-    "path": "/soil/readings/{field_id}",
+    "path": "/v1/soil/readings/{field_id}",
     "handler": "get_readings",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
     "line": 38,
     "method": "POST",
-    "path": "/soil/ingest",
+    "path": "/v1/soil/ingest",
     "handler": "ingest_reading",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/soil_profile.py",
     "line": 47,
     "method": "POST",
-    "path": "/soil/suitability",
+    "path": "/v1/soil/suitability",
     "handler": "soil_suitability",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "soil-service",
     "file": "services/soil-service/routers/soil_profile.py",
     "line": 58,
     "method": "GET",
-    "path": "/soil/soilgrids",
+    "path": "/v1/soil/soilgrids",
     "handler": "soil_from_soilgrids",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "supervisor-agent",

@@ -19,7 +19,7 @@ FM-007,farm_management,Inventory and procurement,True,6,8,19,8,0,1,1,4,3
 FM-008,farm_management,ERP integration,True,5,10,24,5,1,0,0,7,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,3,0,0,2,0,2,0
-GIS-003,gis,Terrain and DEM,True,6,22,100,10,50,11,0,35,0
+GIS-003,gis,Terrain and DEM,True,6,22,100,10,51,11,0,35,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
 INT-002,farm_management,Event bus integration,True,5,5,15,2,58,0,0,7,0
@@ -65,7 +65,7 @@ SEC-005,security,Audit logging,True,2,0,0,4,0,0,0,1,0
 SEC-006,security,Service token guard,True,4,2,7,0,1,0,0,8,0
 SEC-007,security,Decision SoR DB ownership,True,4,2,0,9,47,0,0,9,0
 SEC-008,security,Secrets and production fail-closed,True,2,0,0,0,1,0,0,6,0
-SOIL-001,soil,Soil profile,True,6,13,85,14,34,1,0,12,1
+SOIL-001,soil,Soil profile,True,6,13,88,14,35,1,0,13,1
 SOIL-002,soil,Soil sampling,True,6,14,35,9,6,5,0,11,0
 SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
 SOIL-004,soil,pH EC SOM nutrients,True,1,0,0,0,0,0,0,1,0

@@ -19,7 +19,7 @@ from shared.contracts.soil import SoilObservation, SoilObservationQuality, SoilO
 router = APIRouter()
 
 
-@router.get("/soil/readings/{field_id}")
+@router.get("/v1/soil/readings/{field_id}")
 async def get_readings(field_id: str, limit: int = 100, x_agent_token: str = Header(None)):
     """Compatibility view over canonical soil_observations; soil_readings is no longer read SoR."""
     main._require_service_token(x_agent_token)
@@ -34,7 +34,7 @@ async def get_readings(field_id: str, limit: int = 100, x_agent_token: str = Hea
     )
 
 
-@router.post("/soil/ingest")
+@router.post("/v1/soil/ingest")
 async def ingest_reading(reading: main.SoilReading, x_agent_token: str = Header(None)):
     """Ingest IoT soil sensor data — يتطلّب توكن خدمة + تحقّق Pydantic.
 
