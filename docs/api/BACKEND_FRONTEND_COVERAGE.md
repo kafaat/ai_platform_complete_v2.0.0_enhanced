@@ -23,7 +23,6 @@
 | `/` | internal | — |
 | `/agents/propose` | internal | — |
 | `/ai-boundary/plan` | internal | ✅ |
-| `/analytics/{tenant_id}` | internal | ✅ |
 | `/api/chat` | internal | ✅ |
 | `/api/raster/{path:path}` | internal | ✅ |
 | `/api/v1/admin/break-glass` | admin | — |
@@ -623,9 +622,6 @@
 | `/plugins/runtime/validate-output` | internal | — |
 | `/plugins/sandbox-policy` | internal | — |
 | `/plugins/validate` | internal | — |
-| `/price-history/{category}` | internal | — |
-| `/procurement` | internal | — |
-| `/procurement/{order_id}` | internal | — |
 | `/quality` | internal | — |
 | `/quota/check` | internal | — |
 | `/rasters/{raster_id}/tilejson.json` | internal | — |
@@ -635,7 +631,6 @@
 | `/runtime/event-envelope` | internal | — |
 | `/runtime/reputation/update` | internal | — |
 | `/runtime/resolve` | internal | — |
-| `/sales` | internal | — |
 | `/scenario` | internal | ✅ |
 | `/scene-processing-plan` | internal | ✅ |
 | `/scene-ranking` | internal | — |
@@ -653,7 +648,6 @@
 | `/streams/{stream_id}/record/stop` | internal | — |
 | `/streams/{stream_id}/snapshot` | internal | — |
 | `/suppliers` | internal | — |
-| `/suppliers/{supplier_id}` | internal | — |
 | `/sync` | internal | — |
 | `/tile-cache-plan` | internal | ✅ |
 | `/usage` | internal | — |
@@ -679,6 +673,7 @@
 | `/v1/agent/query` | internal | — |
 | `/v1/agent/tools` | internal | — |
 | `/v1/all_fields` | internal | ✅ |
+| `/v1/analytics/{tenant_id}` | internal | ✅ |
 | `/v1/analyze` | internal | ✅ |
 | `/v1/anomalies/{anomaly_ref:path}/decision-referrals` | internal | — |
 | `/v1/anomalies/{anomaly_ref:path}/diagnoses` | internal | — |
@@ -846,8 +841,11 @@
 | `/v1/plan` | internal | — |
 | `/v1/predict` | internal | — |
 | `/v1/prescription/export-preview` | internal | — |
+| `/v1/price-history/{category}` | internal | — |
 | `/v1/process` | internal | — |
 | `/v1/process/batch` | internal | — |
+| `/v1/procurement` | internal | — |
+| `/v1/procurement/{order_id}` | internal | — |
 | `/v1/products` | internal | — |
 | `/v1/providers/status` | internal | — |
 | `/v1/query` | internal | — |
@@ -856,6 +854,7 @@
 | `/v1/recommendation-outcomes` | internal | — |
 | `/v1/replay/verify` | internal | — |
 | `/v1/reservation-dispatch-intents` | internal | — |
+| `/v1/sales` | internal | — |
 | `/v1/salinity/calibrate` | internal | — |
 | `/v1/salinity/classify` | internal | — |
 | `/v1/sar/rvi` | internal | — |
@@ -891,6 +890,7 @@
 | `/v1/stac/mosaicjson` | internal | — |
 | `/v1/storage/cleanup` | internal | — |
 | `/v1/storage/stats` | internal | — |
+| `/v1/suppliers/{supplier_id}` | internal | — |
 | `/v1/sync/trigger` | internal | — |
 | `/v1/terrain/slope` | internal | — |
 | `/v1/terrain/status` | internal | — |

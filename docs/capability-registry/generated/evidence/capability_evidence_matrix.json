@@ -760,7 +760,7 @@
         "backend": true,
         "database": true,
         "documentation": true,
-        "events": false,
+        "events": true,
         "integration_tests": false,
         "mobile": true,
         "production": false,
@@ -769,7 +769,7 @@
         "unit_tests": true,
         "web": true
       },
-      "evidence_score": 7,
+      "evidence_score": 8,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
@@ -779,6 +779,7 @@
       "title": "Inventory and procurement",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_data_inventory.py",
+        "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_inventory_equipment.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
         "tests_v9/test_platform_main_subinventory_guard.py"

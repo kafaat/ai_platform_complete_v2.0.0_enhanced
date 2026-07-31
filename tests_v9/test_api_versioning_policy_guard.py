@@ -782,3 +782,59 @@ def test_soil_service_routes_are_versioned():
     assert soil_service_routes == set(), (
         f"soil-service migration incomplete: {sorted(soil_service_routes)}"
     )
+
+
+def test_mcp_servers_market_rest_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, mcp_servers (2026-07-31): the 7
+    remaining unversioned REST routes in market_server.py (flat @app.<method>
+    decorators, no APIRouter/prefix -- same registration pattern as the
+    already-versioned GET /v1/products in the same file) moved to /v1/*. All
+    use Depends(_get_current_user) (Bearer/JWT, browser-facing) unlike the
+    service-token routes migrated in other services. Zero real code consumers
+    found by repo-wide search (frontend/mobile/nginx/supervisor-agent/
+    odoo-bridge) -- the nginx.fixed.conf/nginx.unified.conf /api/market/
+    gateway is a transparent proxy (no rewrite), so no upstream config change
+    is needed either. Falsified by construction: reverting any decorator to
+    its old bare path makes this fail by naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_file = "services/mcp_servers/market_server.py"
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] == migrated_file and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "/suppliers/{supplier_id}",
+        "/procurement",
+        "/procurement/{order_id}",
+        "/sales",
+        "/price-history/{category}",
+        "/analytics/{tenant_id}",
+    }
+    present = {r["path"] for r in rows if r["file"] == migrated_file}
+    leaked_old = present & old_paths
+    assert not leaked_old, f"{migrated_file} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        ("GET", "/v1/suppliers/{supplier_id}"),
+        ("POST", "/v1/procurement"),
+        ("GET", "/v1/procurement/{order_id}"),
+        ("POST", "/v1/sales"),
+        ("GET", "/v1/sales"),
+        ("GET", "/v1/price-history/{category}"),
+        ("GET", "/v1/analytics/{tenant_id}"),
+    }
+    present_pairs = {(r["method"], r["path"]) for r in rows if r["file"] == migrated_file}
+    missing = new_paths - present_pairs
+    assert not missing, f"{migrated_file} missing expected migrated route(s): {missing}"
+
+    mcp_servers_legacy = {
+        (r["method"], r["path"])
+        for r in rows
+        if r["service"] == "mcp_servers" and r["classification"] == "legacy_unversioned_business"
+    }
+    assert mcp_servers_legacy == set(), (
+        f"mcp_servers still has legacy_unversioned_business routes: {sorted(mcp_servers_legacy)}"
+    )

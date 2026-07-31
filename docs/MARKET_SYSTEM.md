@@ -25,12 +25,12 @@
 │  ├─ /v1/mcp/tools/list   — 8 tools (MCP Protocol)          │
 │  ├─ /v1/mcp/tools/call   — تنفيذ الأدوات                   │
 │  ├─ /v1/products         — REST: بحث منتجات                  │
-│  ├─ /suppliers/{id}      — REST: تفاصيل مورد               │
-│  ├─ /procurement         — REST: إنشاء طلب شراء            │
-│  ├─ /procurement/{id}    — REST: حالة الطلب                │
-│  ├─ /sales               — REST: إنشاء/بحث عروض البيع      │
-│  ├─ /price-history/{cat} — REST: تاريخ الأسعار             │
-│  └─ /analytics/{tenant}  — REST: لوحة تحليلات              │
+│  ├─ /v1/suppliers/{id}      — REST: تفاصيل مورد               │
+│  ├─ /v1/procurement         — REST: إنشاء طلب شراء            │
+│  ├─ /v1/procurement/{id}    — REST: حالة الطلب                │
+│  ├─ /v1/sales               — REST: إنشاء/بحث عروض البيع      │
+│  ├─ /v1/price-history/{cat} — REST: تاريخ الأسعار             │
+│  └─ /v1/analytics/{tenant}  — REST: لوحة تحليلات              │
 └──────────────────────┬──────────────────────────────────────┘
                        │ asyncpg
                        ▼
@@ -113,10 +113,10 @@ docker compose -f docker-compose.light.yml up -d market-mcp
 curl "http://localhost:8094/v1/products?q=يوريا&limit=5"
 
 # تفاصيل مورد
-curl http://localhost:8094/suppliers/11111111-1111-1111-1111-111111111111
+curl http://localhost:8094/v1/suppliers/11111111-1111-1111-1111-111111111111
 
 # إنشاء طلب شراء
-curl -X POST http://localhost:8094/procurement   -H "Content-Type: application/json"   -d '{
+curl -X POST http://localhost:8094/v1/procurement   -H "Content-Type: application/json"   -d '{
     "tenant_id": "00000000-0000-0000-0000-000000000000",
     "field_id": "field_A3",
     "items": [
@@ -128,7 +128,7 @@ curl -X POST http://localhost:8094/procurement   -H "Content-Type: application/j
   }'
 
 # عرض محصول للبيع
-curl -X POST http://localhost:8094/sales   -H "Content-Type: application/json"   -d '{
+curl -X POST http://localhost:8094/v1/sales   -H "Content-Type: application/json"   -d '{
     "tenant_id": "00000000-0000-0000-0000-000000000000",
     "crop_type": "قمح",
     "quantity_kg": 50000,
@@ -138,7 +138,7 @@ curl -X POST http://localhost:8094/sales   -H "Content-Type: application/json"  
   }'
 
 # تحليلات
-curl http://localhost:8094/analytics/00000000-0000-0000-0000-000000000000
+curl http://localhost:8094/v1/analytics/00000000-0000-0000-0000-000000000000
 ```
 
 ---
@@ -200,7 +200,7 @@ class MarketService {
 
   Future<ProcurementOrder> createOrder(List<CartItem> items) async {
     final res = await http.post(
-      Uri.parse("$baseUrl/procurement"),
+      Uri.parse("$baseUrl/v1/procurement"),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'tenant_id': tenantId,

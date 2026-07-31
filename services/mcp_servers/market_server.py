@@ -640,30 +640,30 @@ async def api_search_products(
     )
 
 
-@app.get("/suppliers/{supplier_id}")
+@app.get("/v1/suppliers/{supplier_id}")
 async def api_get_supplier(supplier_id: str, user: dict = Depends(_get_current_user)):
     return await tool_get_supplier({"supplier_id": supplier_id, "tenant_id": user.get("tenant_id")})
 
 
-@app.post("/procurement")
+@app.post("/v1/procurement")
 async def api_create_procurement(body: dict, user: dict = Depends(_get_current_user)):
     # tenant من التوكن لا من الجسم (منع كتابة عابرة المستأجرين).
     return await tool_create_procurement({**(body or {}), "tenant_id": user.get("tenant_id")})
 
 
-@app.get("/procurement/{order_id}")
+@app.get("/v1/procurement/{order_id}")
 async def api_get_procurement(order_id: str, user: dict = Depends(_get_current_user)):
     return await tool_get_procurement_status(
         {"order_id": order_id, "tenant_id": user.get("tenant_id")}
     )
 
 
-@app.post("/sales")
+@app.post("/v1/sales")
 async def api_create_sales(body: dict, user: dict = Depends(_get_current_user)):
     return await tool_create_sales_listing({**(body or {}), "tenant_id": user.get("tenant_id")})
 
 
-@app.get("/sales")
+@app.get("/v1/sales")
 async def api_search_sales(
     crop: str | None = None,
     grade: str | None = None,
@@ -680,14 +680,14 @@ async def api_search_sales(
     )
 
 
-@app.get("/price-history/{category}")
+@app.get("/v1/price-history/{category}")
 async def api_price_history(category: str, days: int = 90, user: dict = Depends(_get_current_user)):
     return await tool_price_history(
         {"category": category, "days": days, "tenant_id": user.get("tenant_id")}
     )
 
 
-@app.get("/analytics/{tenant_id}")
+@app.get("/v1/analytics/{tenant_id}")
 async def api_analytics(tenant_id: str, user: dict = Depends(_get_current_user)):
     # tenant من التوكن لا من المسار (منع قراءة تحليلات مستأجِر آخر).
     return await tool_analytics_dashboard({"tenant_id": user.get("tenant_id")})

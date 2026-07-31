@@ -1428,7 +1428,7 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 644,
     "method": "GET",
-    "path": "/suppliers/{supplier_id}",
+    "path": "/v1/suppliers/{supplier_id}",
     "function": "api_get_supplier"
   },
   {
@@ -1436,7 +1436,7 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 649,
     "method": "POST",
-    "path": "/procurement",
+    "path": "/v1/procurement",
     "function": "api_create_procurement"
   },
   {
@@ -1444,7 +1444,7 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 655,
     "method": "GET",
-    "path": "/procurement/{order_id}",
+    "path": "/v1/procurement/{order_id}",
     "function": "api_get_procurement"
   },
   {
@@ -1452,7 +1452,7 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 662,
     "method": "POST",
-    "path": "/sales",
+    "path": "/v1/sales",
     "function": "api_create_sales"
   },
   {
@@ -1460,7 +1460,7 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 667,
     "method": "GET",
-    "path": "/sales",
+    "path": "/v1/sales",
     "function": "api_search_sales"
   },
   {
@@ -1468,7 +1468,7 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 684,
     "method": "GET",
-    "path": "/price-history/{category}",
+    "path": "/v1/price-history/{category}",
     "function": "api_price_history"
   },
   {
@@ -1476,7 +1476,7 @@
     "file": "services/mcp_servers/market_server.py",
     "line": 691,
     "method": "GET",
-    "path": "/analytics/{tenant_id}",
+    "path": "/v1/analytics/{tenant_id}",
     "function": "api_analytics"
   },
   {
