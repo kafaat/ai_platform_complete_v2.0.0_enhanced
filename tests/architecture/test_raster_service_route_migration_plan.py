@@ -7,10 +7,11 @@ A route landing in the wrong bucket, a route silently disappearing, or a new
 unversioned route appearing without classification all fail this test -- matching the
 falsification discipline used for the Option B classifier fix (PR #722).
 
-PR-R2 (internal/operational, 8 routes) migrated to /v1/... and is tracked below as
-MIGRATED_PR_R2 -- a regression test confirms it stays versioned. The remaining plan
-(PR-R3 imagery/catalog/process, PR-R4 tile/rendering -- 22 routes) is still pending and
-tracked as ALL_BUCKETED, matching the live legacy_unversioned_business measurement.
+PR-R2 (internal/operational, 8 routes) and PR-R3 (imagery/catalog/process, 20 routes)
+are migrated to /v1/... and tracked below as MIGRATED_PR_R2 / MIGRATED_PR_R3 --
+regression tests confirm they stay versioned. Only PR-R4 (tile/rendering, 2 routes) is
+still pending, tracked as ALL_BUCKETED, matching the live legacy_unversioned_business
+measurement.
 """
 
 from __future__ import annotations
@@ -39,28 +40,30 @@ MIGRATED_PR_R2 = {
     ("GET", "/v1/offline/packs/{pack_name}"),
 }
 
-# PR-R3 -- imagery/catalog/process routes (20). Still pending.
-PR_R3 = {
-    ("POST", "/zones/classify"),
-    ("POST", "/change/detect"),
-    ("POST", "/fvc/compute"),
-    ("POST", "/sar/rvi"),
-    ("POST", "/terrain/slope"),
-    ("GET", "/cog/validate"),
-    ("POST", "/salinity/classify"),
-    ("POST", "/salinity/calibrate"),
-    ("POST", "/process"),
-    ("POST", "/raw/process"),
-    ("POST", "/process/batch"),
-    ("GET", "/stac"),
-    ("GET", "/stac/collections"),
-    ("POST", "/stac/mosaicjson"),
-    ("GET", "/info/{layer_id}"),
-    ("GET", "/indices"),
-    ("GET", "/imagery/timeseries"),
-    ("POST", "/imagery/timeseries/analyze"),
-    ("POST", "/imagery/timeseries/parallel"),
-    ("GET", "/gis/admin-boundaries"),
+# PR-R3 -- imagery/catalog/process routes (20), migrated to /v1/... in this slice.
+# All require_service_token except the three STAC routes and the bare GET
+# /imagery/timeseries, which are PUBLIC_CATALOG.
+MIGRATED_PR_R3 = {
+    ("POST", "/v1/zones/classify"),
+    ("POST", "/v1/change/detect"),
+    ("POST", "/v1/fvc/compute"),
+    ("POST", "/v1/sar/rvi"),
+    ("POST", "/v1/terrain/slope"),
+    ("GET", "/v1/cog/validate"),
+    ("POST", "/v1/salinity/classify"),
+    ("POST", "/v1/salinity/calibrate"),
+    ("POST", "/v1/process"),
+    ("POST", "/v1/raw/process"),
+    ("POST", "/v1/process/batch"),
+    ("GET", "/v1/stac"),
+    ("GET", "/v1/stac/collections"),
+    ("POST", "/v1/stac/mosaicjson"),
+    ("GET", "/v1/info/{layer_id}"),
+    ("GET", "/v1/indices"),
+    ("GET", "/v1/imagery/timeseries"),
+    ("POST", "/v1/imagery/timeseries/analyze"),
+    ("POST", "/v1/imagery/timeseries/parallel"),
+    ("GET", "/v1/gis/admin-boundaries"),
 }
 
 # PR-R4 -- tile and rendering routes (2). Still pending. layer_scoped; no live caller
@@ -71,14 +74,18 @@ PR_R4 = {
 }
 
 # Routes still bare and pending migration -- what the live measurement must match.
-ALL_BUCKETED = PR_R3 | PR_R4
+ALL_BUCKETED = PR_R4
 
-# Pending routes confirmed to have a real internal service-to-service consumer
-# (services/sahool-platform/api/raster_service_client.py) that must be updated in the
-# same PR as any path migration -- not deferred to a later slice.
-REAL_CONSUMERS = {
-    ("GET", "/indices"): "raster_service_client.py:182 get_indices_sync",
-    ("POST", "/process/batch"): "raster_service_client.py:448 process_indicator_batch",
+# Routes confirmed to have a real internal service-to-service consumer
+# (services/sahool-platform/api/raster_service_client.py), all updated in the same PR
+# as their path migration -- kept here as an audit trail, not a pending-work tracker.
+REAL_CONSUMERS_MIGRATED = {
+    ("GET", "/v1/jobs/{job_id}/result"): "raster_service_client.py:466 get_job_result (PR-R2)",
+    ("GET", "/v1/indices"): "raster_service_client.py:191 get_indices_sync (PR-R3)",
+    (
+        "POST",
+        "/v1/process/batch",
+    ): "raster_service_client.py:448 process_indicator_batch (PR-R3)",
 }
 
 
@@ -100,10 +107,11 @@ def _raster_versioned_routes() -> set[tuple[str, str]]:
     }
 
 
-def test_pr_bucket_sets_are_disjoint_and_cover_exactly_twenty_two_pending_routes():
-    assert PR_R3 & PR_R4 == set()
-    assert MIGRATED_PR_R2 & ALL_BUCKETED == set()
-    assert len(ALL_BUCKETED) == 22, f"expected 22 pending bucketed routes, got {len(ALL_BUCKETED)}"
+def test_pr_bucket_sets_are_disjoint_and_cover_exactly_two_pending_routes():
+    assert MIGRATED_PR_R2 & MIGRATED_PR_R3 == set()
+    assert MIGRATED_PR_R2 & PR_R4 == set()
+    assert MIGRATED_PR_R3 & PR_R4 == set()
+    assert len(ALL_BUCKETED) == 2, f"expected 2 pending bucketed routes, got {len(ALL_BUCKETED)}"
 
 
 def test_measured_baseline_matches_the_bucketed_classification():
@@ -121,35 +129,31 @@ def test_measured_baseline_matches_the_bucketed_classification():
     )
 
 
-def test_pr_r2_routes_stay_versioned_not_legacy():
-    """Regression guard: PR-R2's 8 routes must remain versioned. If one reverts to a
-    bare path (merge mishap, accidental revert), this fails by naming it."""
+def test_pr_r2_and_pr_r3_routes_stay_versioned_not_legacy():
+    """Regression guard: PR-R2's 8 routes and PR-R3's 20 routes must remain versioned.
+    If one reverts to a bare path (merge mishap, accidental revert), this fails by
+    naming it."""
+    migrated = MIGRATED_PR_R2 | MIGRATED_PR_R3
     legacy = _raster_legacy_routes()
-    regressed = MIGRATED_PR_R2 & legacy
+    regressed = migrated & legacy
     assert not regressed, (
-        f"PR-R2 routes regressed back to legacy_unversioned_business: {sorted(regressed)}"
+        f"routes regressed back to legacy_unversioned_business: {sorted(regressed)}"
     )
     versioned = _raster_versioned_routes()
-    missing = MIGRATED_PR_R2 - versioned
-    assert not missing, f"PR-R2 routes not found as versioned: {sorted(missing)}"
+    missing = migrated - versioned
+    assert not missing, f"routes not found as versioned: {sorted(missing)}"
 
 
-def test_real_consumers_are_a_subset_of_the_bucketed_routes():
-    for route in REAL_CONSUMERS:
-        assert route in ALL_BUCKETED, f"{route} has a real consumer but is not bucketed"
-
-
-def test_real_consumer_call_sites_still_reference_the_bare_path():
-    """Falsifies staleness: if raster_service_client.py migrates a pending call site
-    (/indices, /process/batch) to /v1/... without this test being updated in the same
-    PR, the literal bare-path string search below breaks loudly instead of silently
-    describing an already-migrated route as a pending real-consumer risk. Also confirms
-    the PR-R2 call site (get_job_result) was actually updated to /v1/..., not left
-    pointing at the now-dead bare path."""
+def test_real_consumer_call_sites_reference_the_migrated_path():
+    """Falsifies staleness: if raster_service_client.py reverts a migrated call site
+    back to its bare path without this test being updated, the literal string search
+    below breaks loudly instead of silently describing a regressed route as migrated."""
     client = (ROOT / "services" / "sahool-platform" / "api" / "raster_service_client.py").read_text(
         encoding="utf-8"
     )
-    assert '"/indices"' in client
-    assert '"/process/batch"' in client
     assert 'f"/v1/jobs/{job_id}/result"' in client
     assert 'f"/jobs/{job_id}/result"' not in client
+    assert '"/v1/indices"' in client
+    assert '"/indices"' not in client
+    assert '"/v1/process/batch"' in client
+    assert '"/process/batch"' not in client

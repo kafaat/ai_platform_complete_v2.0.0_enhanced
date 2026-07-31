@@ -574,7 +574,7 @@ class ImageryAutomation:
         }
 
     async def _trigger_indicators(self, tf: TrackedField, image: dict) -> None:
-        """يطلب حساب المؤشّرات لصورة جديدة عبر raster-service /process/batch.
+        """يطلب حساب المؤشّرات لصورة جديدة عبر raster-service /v1/process/batch.
 
         يحسب المؤشّرات الأساسيّة دفعةً من نفس المشهد (كفاءة): NDVI (صحّة) +
         NDRE (نيتروجين) + NDSI (ملوحة — حرج لليمن). صدق: لو لا رابط راستر
@@ -626,8 +626,8 @@ class ImageryAutomation:
     ) -> float | None:
         """best-effort: متوسّط مؤشّر من المهمّة الفرعيّة «{job_id}_{indicator}».
 
-        raster-service: /process/batch ينشئ مهمّة فرعيّة لكلّ مؤشّر بمعرّف
-        «{batch_job_id}_{indicator}»، ونتيجتها GET /jobs/{id}/result بشكل
+        raster-service: /v1/process/batch ينشئ مهمّة فرعيّة لكلّ مؤشّر بمعرّف
+        «{batch_job_id}_{indicator}»، ونتيجتها GET /v1/jobs/{id}/result بشكل
         {stats:{mean, valid_pixels, ...}}. صدق: نُرجِع المتوسّط فقط حين valid_pixels>0
         (وإلّا 0.0 افتراضيّ بلا معنى). fail-safe تامّ: أيّ تعذّر ⇒ None (لا تلفيق).
         """

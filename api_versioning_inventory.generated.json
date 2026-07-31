@@ -1975,72 +1975,72 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 30,
     "method": "POST",
-    "path": "/zones/classify",
+    "path": "/v1/zones/classify",
     "handler": "zones_classify",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
     "line": 48,
     "method": "POST",
-    "path": "/change/detect",
+    "path": "/v1/change/detect",
     "handler": "change_detect",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
     "line": 85,
     "method": "POST",
-    "path": "/fvc/compute",
+    "path": "/v1/fvc/compute",
     "handler": "fvc_compute",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
     "line": 111,
     "method": "POST",
-    "path": "/sar/rvi",
+    "path": "/v1/sar/rvi",
     "handler": "sar_rvi_endpoint",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
     "line": 135,
     "method": "POST",
-    "path": "/terrain/slope",
+    "path": "/v1/terrain/slope",
     "handler": "terrain_slope",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
     "line": 153,
     "method": "GET",
-    "path": "/cog/validate",
+    "path": "/v1/cog/validate",
     "handler": "cog_validate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
     "line": 168,
     "method": "POST",
-    "path": "/salinity/classify",
+    "path": "/v1/salinity/classify",
     "handler": "salinity_classify",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
     "line": 175,
     "method": "POST",
-    "path": "/salinity/calibrate",
+    "path": "/v1/salinity/calibrate",
     "handler": "salinity_calibrate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
@@ -2074,9 +2074,9 @@
     "file": "services/raster-service/routers/fields.py",
     "line": 92,
     "method": "GET",
-    "path": "/gis/admin-boundaries",
+    "path": "/v1/gis/admin-boundaries",
     "handler": "gis_admin_boundaries",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
@@ -2425,9 +2425,9 @@
     "file": "services/raster-service/routers/observability.py",
     "line": 213,
     "method": "GET",
-    "path": "/info/{layer_id}",
+    "path": "/v1/info/{layer_id}",
     "handler": "raster_info",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
@@ -2443,36 +2443,36 @@
     "file": "services/raster-service/routers/observability.py",
     "line": 253,
     "method": "GET",
-    "path": "/indices",
+    "path": "/v1/indices",
     "handler": "field_indices",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
     "line": 28,
     "method": "POST",
-    "path": "/process",
+    "path": "/v1/process",
     "handler": "process_raster",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
     "line": 59,
     "method": "POST",
-    "path": "/raw/process",
+    "path": "/v1/raw/process",
     "handler": "process_raw_data",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
     "line": 78,
     "method": "POST",
-    "path": "/process/batch",
+    "path": "/v1/process/batch",
     "handler": "process_batch",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
@@ -2533,27 +2533,27 @@
     "file": "services/raster-service/routers/stac.py",
     "line": 17,
     "method": "GET",
-    "path": "/stac",
+    "path": "/v1/stac",
     "handler": "stac_landing",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/stac.py",
     "line": 25,
     "method": "GET",
-    "path": "/stac/collections",
+    "path": "/v1/stac/collections",
     "handler": "stac_collections",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/stac.py",
     "line": 33,
     "method": "POST",
-    "path": "/stac/mosaicjson",
+    "path": "/v1/stac/mosaicjson",
     "handler": "stac_mosaicjson",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
@@ -2677,27 +2677,27 @@
     "file": "services/raster-service/routers/timeseries_routes.py",
     "line": 24,
     "method": "GET",
-    "path": "/imagery/timeseries",
+    "path": "/v1/imagery/timeseries",
     "handler": "imagery_timeseries",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/timeseries_routes.py",
     "line": 77,
     "method": "POST",
-    "path": "/imagery/timeseries/analyze",
+    "path": "/v1/imagery/timeseries/analyze",
     "handler": "imagery_timeseries_analyze",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/timeseries_routes.py",
     "line": 92,
     "method": "POST",
-    "path": "/imagery/timeseries/parallel",
+    "path": "/v1/imagery/timeseries/parallel",
     "handler": "imagery_timeseries_parallel",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "remote-sensing-workspace-bff",

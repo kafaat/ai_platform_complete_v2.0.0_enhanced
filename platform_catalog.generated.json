@@ -2206,7 +2206,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /change/detect"
+        "POST /v1/change/detect"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -2240,7 +2240,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /cog/validate"
+        "GET /v1/cog/validate"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2656,7 +2656,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /fvc/compute"
+        "POST /v1/fvc/compute"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -2673,7 +2673,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /gis/admin-boundaries"
+        "GET /v1/gis/admin-boundaries"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2894,7 +2894,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /imagery/timeseries"
+        "GET /v1/imagery/timeseries"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2911,7 +2911,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /imagery/timeseries/analyze"
+        "POST /v1/imagery/timeseries/analyze"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -2928,7 +2928,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /imagery/timeseries/parallel"
+        "POST /v1/imagery/timeseries/parallel"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -2945,7 +2945,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /indices"
+        "GET /v1/indices"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2962,7 +2962,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /info/{layer_id}"
+        "GET /v1/info/{layer_id}"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -3064,7 +3064,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /process"
+        "POST /v1/process"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3081,7 +3081,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /process/batch"
+        "POST /v1/process/batch"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3115,7 +3115,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /raw/process"
+        "POST /v1/raw/process"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3132,7 +3132,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /salinity/calibrate"
+        "POST /v1/salinity/calibrate"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3149,7 +3149,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /salinity/classify"
+        "POST /v1/salinity/classify"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3166,7 +3166,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /sar/rvi"
+        "POST /v1/sar/rvi"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3268,7 +3268,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /stac"
+        "GET /v1/stac"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -3285,7 +3285,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /stac/collections"
+        "GET /v1/stac/collections"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -3302,7 +3302,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /stac/mosaicjson"
+        "POST /v1/stac/mosaicjson"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3353,7 +3353,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /terrain/slope"
+        "POST /v1/terrain/slope"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3489,7 +3489,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /zones/classify"
+        "POST /v1/zones/classify"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -17223,7 +17223,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2a598f730a77629b56e6faece0e68404c6b60784017725fb8918564ad471b63d",
+  "fingerprint": "ae78c4e14dddde1157002e39b24fa806fac00b68bc8943c7b6bc8e1097d87f02",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

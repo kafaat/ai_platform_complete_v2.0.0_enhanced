@@ -103,9 +103,11 @@ def test_indices_endpoint_wired_and_guarded():
 
     main = raster_combined_source(ROOT)  # main.py + routers/ (بعد التفكيك)
     _dec = (
-        '@router.get("/indices")' if '@router.get("/indices")' in main else '@app.get("/indices")'
+        '@router.get("/v1/indices")'
+        if '@router.get("/v1/indices")' in main
+        else '@app.get("/v1/indices")'
     )
-    assert _dec in main, "نقطة /indices مفقودة (Gap 1)"
+    assert _dec in main, "نقطة /v1/indices مفقودة (Gap 1)"
     # محميّة بتوكن الخدمة + صدق (real_data / note)
     seg = main[main.index(_dec) :]
     assert "require_service_token" in seg[:1200], "/indices غير محميّة بتوكن الخدمة"

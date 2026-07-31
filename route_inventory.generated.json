@@ -1764,7 +1764,7 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 30,
     "method": "POST",
-    "path": "/zones/classify",
+    "path": "/v1/zones/classify",
     "function": "zones_classify"
   },
   {
@@ -1772,7 +1772,7 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 48,
     "method": "POST",
-    "path": "/change/detect",
+    "path": "/v1/change/detect",
     "function": "change_detect"
   },
   {
@@ -1780,7 +1780,7 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 85,
     "method": "POST",
-    "path": "/fvc/compute",
+    "path": "/v1/fvc/compute",
     "function": "fvc_compute"
   },
   {
@@ -1788,7 +1788,7 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 111,
     "method": "POST",
-    "path": "/sar/rvi",
+    "path": "/v1/sar/rvi",
     "function": "sar_rvi_endpoint"
   },
   {
@@ -1796,7 +1796,7 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 135,
     "method": "POST",
-    "path": "/terrain/slope",
+    "path": "/v1/terrain/slope",
     "function": "terrain_slope"
   },
   {
@@ -1804,7 +1804,7 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 153,
     "method": "GET",
-    "path": "/cog/validate",
+    "path": "/v1/cog/validate",
     "function": "cog_validate"
   },
   {
@@ -1812,7 +1812,7 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 168,
     "method": "POST",
-    "path": "/salinity/classify",
+    "path": "/v1/salinity/classify",
     "function": "salinity_classify"
   },
   {
@@ -1820,7 +1820,7 @@
     "file": "services/raster-service/routers/analysis.py",
     "line": 175,
     "method": "POST",
-    "path": "/salinity/calibrate",
+    "path": "/v1/salinity/calibrate",
     "function": "salinity_calibrate"
   },
   {
@@ -1852,7 +1852,7 @@
     "file": "services/raster-service/routers/fields.py",
     "line": 92,
     "method": "GET",
-    "path": "/gis/admin-boundaries",
+    "path": "/v1/gis/admin-boundaries",
     "function": "gis_admin_boundaries"
   },
   {
@@ -2164,7 +2164,7 @@
     "file": "services/raster-service/routers/observability.py",
     "line": 213,
     "method": "GET",
-    "path": "/info/{layer_id}",
+    "path": "/v1/info/{layer_id}",
     "function": "raster_info"
   },
   {
@@ -2180,7 +2180,7 @@
     "file": "services/raster-service/routers/observability.py",
     "line": 253,
     "method": "GET",
-    "path": "/indices",
+    "path": "/v1/indices",
     "function": "field_indices"
   },
   {
@@ -2188,7 +2188,7 @@
     "file": "services/raster-service/routers/processing.py",
     "line": 28,
     "method": "POST",
-    "path": "/process",
+    "path": "/v1/process",
     "function": "process_raster"
   },
   {
@@ -2196,7 +2196,7 @@
     "file": "services/raster-service/routers/processing.py",
     "line": 59,
     "method": "POST",
-    "path": "/raw/process",
+    "path": "/v1/raw/process",
     "function": "process_raw_data"
   },
   {
@@ -2204,7 +2204,7 @@
     "file": "services/raster-service/routers/processing.py",
     "line": 78,
     "method": "POST",
-    "path": "/process/batch",
+    "path": "/v1/process/batch",
     "function": "process_batch"
   },
   {
@@ -2260,7 +2260,7 @@
     "file": "services/raster-service/routers/stac.py",
     "line": 17,
     "method": "GET",
-    "path": "/stac",
+    "path": "/v1/stac",
     "function": "stac_landing"
   },
   {
@@ -2268,7 +2268,7 @@
     "file": "services/raster-service/routers/stac.py",
     "line": 25,
     "method": "GET",
-    "path": "/stac/collections",
+    "path": "/v1/stac/collections",
     "function": "stac_collections"
   },
   {
@@ -2276,7 +2276,7 @@
     "file": "services/raster-service/routers/stac.py",
     "line": 33,
     "method": "POST",
-    "path": "/stac/mosaicjson",
+    "path": "/v1/stac/mosaicjson",
     "function": "stac_mosaicjson"
   },
   {
@@ -2388,7 +2388,7 @@
     "file": "services/raster-service/routers/timeseries_routes.py",
     "line": 24,
     "method": "GET",
-    "path": "/imagery/timeseries",
+    "path": "/v1/imagery/timeseries",
     "function": "imagery_timeseries"
   },
   {
@@ -2396,7 +2396,7 @@
     "file": "services/raster-service/routers/timeseries_routes.py",
     "line": 77,
     "method": "POST",
-    "path": "/imagery/timeseries/analyze",
+    "path": "/v1/imagery/timeseries/analyze",
     "function": "imagery_timeseries_analyze"
   },
   {
@@ -2404,7 +2404,7 @@
     "file": "services/raster-service/routers/timeseries_routes.py",
     "line": 92,
     "method": "POST",
-    "path": "/imagery/timeseries/parallel",
+    "path": "/v1/imagery/timeseries/parallel",
     "function": "imagery_timeseries_parallel"
   },
   {

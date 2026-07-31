@@ -62,7 +62,7 @@ def test_raster_facade_exposes_automation_primitives():
         "/v1/imagery/best",
         "/v1/imagery/search",
         "/v1/fields/{field_id}/process-from-stac",
-        "/process/batch",
+        "/v1/process/batch",
         "/v1/jobs/{job_id}/result",
     ]:
         assert endpoint in text, f"raster facade must own endpoint path {endpoint}"

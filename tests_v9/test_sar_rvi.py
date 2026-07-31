@@ -55,7 +55,7 @@ def test_shape_guard_and_endpoint_wired():
     from raster_route_source import raster_combined_source
 
     main = raster_combined_source(ROOT)  # main.py + routers/ (بعد التفكيك)
-    assert '@router.post("/sar/rvi")' in main or '@app.post("/sar/rvi")' in main, (
+    assert '@router.post("/v1/sar/rvi")' in main or '@app.post("/v1/sar/rvi")' in main, (
         "نقطة /sar/rvi مفقودة"
     )
     # Phase 27: مُغلِّف main._rvi_from_sar_cog أُزيل؛ مسار RVI من COG الرادار انتقل إلى

@@ -13,7 +13,7 @@ from fastapi import APIRouter
 router = APIRouter()
 
 
-@router.get("/stac")
+@router.get("/v1/stac")
 async def stac_landing() -> dict:
     """STAC landing page for SAHOOL internal imagery catalog facade."""
     import cloud_native_catalog as _cnc
@@ -21,7 +21,7 @@ async def stac_landing() -> dict:
     return _cnc.stac_landing_page()
 
 
-@router.get("/stac/collections")
+@router.get("/v1/stac/collections")
 async def stac_collections() -> dict:
     """List internal STAC collections: source scenes and derived COG products."""
     import cloud_native_catalog as _cnc
@@ -29,7 +29,7 @@ async def stac_collections() -> dict:
     return _cnc.stac_collections()
 
 
-@router.post("/stac/mosaicjson")
+@router.post("/v1/stac/mosaicjson")
 async def stac_mosaicjson(payload: dict) -> dict:
     """Build a lightweight MosaicJSON document from supplied STAC items/COG assets.
 

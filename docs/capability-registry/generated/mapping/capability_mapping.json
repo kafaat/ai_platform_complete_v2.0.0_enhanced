@@ -25,8 +25,8 @@
       "tests": 1521,
       "web": 448
     },
-    "unmapped_artifacts": 1950,
-    "ambiguous_artifacts": 392
+    "unmapped_artifacts": 1949,
+    "ambiguous_artifacts": 393
   },
   "capabilities": [
     {
@@ -9183,6 +9183,26 @@
           "score": 26
         },
         {
+          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:426",
+          "score": 20
+        },
+        {
+          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:420",
+          "score": 20
+        },
+        {
+          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:414",
+          "score": 20
+        },
+        {
+          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:409",
+          "score": 20
+        },
+        {
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:403",
+          "score": 20
+        },
+        {
           "value": "/api/v1/fields @ services/sahool-platform/api/routers/fields.py:570",
           "score": 18
         },
@@ -9375,55 +9395,35 @@
           "score": 18
         },
         {
-          "value": "/change/detect @ services/raster-service/routers/analysis.py:47",
+          "value": "/v1/change/detect @ services/raster-service/routers/analysis.py:47",
           "score": 18
         },
         {
-          "value": "/cog/validate @ services/raster-service/routers/analysis.py:152",
+          "value": "/v1/cog/validate @ services/raster-service/routers/analysis.py:152",
           "score": 18
         },
         {
-          "value": "/fvc/compute @ services/raster-service/routers/analysis.py:84",
+          "value": "/v1/fvc/compute @ services/raster-service/routers/analysis.py:84",
           "score": 18
         },
         {
-          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:426",
+          "value": "/v1/salinity/calibrate @ services/raster-service/routers/analysis.py:174",
           "score": 18
         },
         {
-          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:420",
+          "value": "/v1/salinity/classify @ services/raster-service/routers/analysis.py:167",
           "score": 18
         },
         {
-          "value": "/salinity/calibrate @ services/raster-service/routers/analysis.py:174",
+          "value": "/v1/sar/rvi @ services/raster-service/routers/analysis.py:110",
           "score": 18
         },
         {
-          "value": "/salinity/classify @ services/raster-service/routers/analysis.py:167",
+          "value": "/v1/terrain/slope @ services/raster-service/routers/analysis.py:134",
           "score": 18
         },
         {
-          "value": "/sar/rvi @ services/raster-service/routers/analysis.py:110",
-          "score": 18
-        },
-        {
-          "value": "/terrain/slope @ services/raster-service/routers/analysis.py:134",
-          "score": 18
-        },
-        {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:414",
-          "score": 18
-        },
-        {
-          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:409",
-          "score": 18
-        },
-        {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:403",
-          "score": 18
-        },
-        {
-          "value": "/zones/classify @ services/raster-service/routers/analysis.py:29",
+          "value": "/v1/zones/classify @ services/raster-service/routers/analysis.py:29",
           "score": 18
         },
         {
@@ -9461,10 +9461,6 @@
         {
           "value": "/terrain/slope @ tests_v9/test_roadmap_phase23.py:3290",
           "score": 17
-        },
-        {
-          "value": "/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
-          "score": 16
         },
         {
           "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
@@ -9535,8 +9531,12 @@
           "score": 16
         },
         {
-          "value": "/api/v1/evidence-graph/analytics @ services/sahool-platform/api/routers/field_intelligence.py:604",
-          "score": 11
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
+          "score": 16
+        },
+        {
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:74",
+          "score": 14
         }
       ],
       "database": [
@@ -9972,6 +9972,16 @@
           ]
         },
         {
+          "path": "tests_v9/test_raster_endpoint_auth_coverage.py",
+          "score": 20,
+          "signals": [
+            "content:dem",
+            "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "tests_v9/test_terrain_source_resolver.py",
           "score": 20,
           "signals": [
@@ -9986,16 +9996,6 @@
           "signals": [
             "content:dem",
             "path:terrain",
-            "content:terrain"
-          ]
-        },
-        {
-          "path": "tests_v9/test_raster_endpoint_auth_coverage.py",
-          "score": 18,
-          "signals": [
-            "content:dem",
-            "content:hillshade",
-            "content:slope",
             "content:terrain"
           ]
         },
@@ -10085,6 +10085,15 @@
           "signals": [
             "path:dem",
             "content:dem"
+          ]
+        },
+        {
+          "path": "tests_v9/test_api_versioning_policy_guard.py",
+          "score": 14,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
           ]
         },
         {
@@ -10388,6 +10397,15 @@
           ]
         },
         {
+          "path": "docs/architecture/api_versioning_legacy_baseline.json",
+          "score": 13,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "docs/audits/ADDITIONAL_PROVIDERS.md",
           "score": 13,
           "signals": [
@@ -10472,14 +10490,6 @@
           ]
         },
         {
-          "path": "docs/architecture/api_versioning_legacy_baseline.json",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:terrain"
-          ]
-        },
-        {
           "path": "docs/openapi/API_MAP.md",
           "score": 9,
           "signals": [
@@ -10502,6 +10512,14 @@
           "score": 8,
           "signals": [
             "content:dem",
+            "content:terrain"
+          ]
+        },
+        {
+          "path": "docs/architecture/raster_service_route_migration_plan.md",
+          "score": 8,
+          "signals": [
+            "content:slope",
             "content:terrain"
           ]
         },
@@ -10533,9 +10551,9 @@
         "events": 50,
         "web": 11,
         "mobile": 0,
-        "tests": 34,
+        "tests": 35,
         "governance": 0,
-        "other_evidence": 33
+        "other_evidence": 34
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -15709,10 +15727,6 @@
           "score": 18
         },
         {
-          "value": "/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
-          "score": 18
-        },
-        {
           "value": "/imagery/dem @ tests_v9/test_roadmap_phase23.py:3274",
           "score": 18
         },
@@ -15805,6 +15819,10 @@
           "score": 18
         },
         {
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
+          "score": 18
+        },
+        {
           "value": "/health @ services/mcp_servers/sentinel_hub_server.py:486",
           "score": 17
         },
@@ -15869,18 +15887,6 @@
           "score": 14
         },
         {
-          "value": "/stac @ services/raster-service/routers/stac.py:16",
-          "score": 14
-        },
-        {
-          "value": "/stac/collections @ services/raster-service/routers/stac.py:24",
-          "score": 14
-        },
-        {
-          "value": "/stac/mosaicjson @ services/raster-service/routers/stac.py:32",
-          "score": 14
-        },
-        {
           "value": "/v1/analyze @ sentinel_hub/vegetation_real.py:68",
           "score": 14
         },
@@ -15894,6 +15900,18 @@
         },
         {
           "value": "/v1/pixel-value @ sentinel_hub/vegetation_real.py:96",
+          "score": 14
+        },
+        {
+          "value": "/v1/stac @ services/raster-service/routers/stac.py:16",
+          "score": 14
+        },
+        {
+          "value": "/v1/stac/collections @ services/raster-service/routers/stac.py:24",
+          "score": 14
+        },
+        {
+          "value": "/v1/stac/mosaicjson @ services/raster-service/routers/stac.py:32",
           "score": 14
         },
         {
@@ -17771,10 +17789,6 @@
           "score": 12
         },
         {
-          "value": "/fvc/compute @ tests_v9/test_fvc.py:80",
-          "score": 12
-        },
-        {
           "value": "/health @ services/agriai-engine/main.py:59",
           "score": 12
         },
@@ -17788,10 +17802,6 @@
         },
         {
           "value": "/healthz @ vegetation_real/indicators_real.py:489",
-          "score": 12
-        },
-        {
-          "value": "/indices @ tests_v9/test_field_intelligence_cloud.py:106",
           "score": 12
         },
         {
@@ -17823,6 +17833,10 @@
           "score": 12
         },
         {
+          "value": "/v1/fvc/compute @ tests_v9/test_fvc.py:80",
+          "score": 12
+        },
+        {
           "value": "/v1/indicators/registry @ services/vegetation-analysis-service/routers/analysis.py:195",
           "score": 12
         },
@@ -17832,6 +17846,18 @@
         },
         {
           "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "score": 12
+        },
+        {
+          "value": "/v1/indices @ tests_v9/test_field_intelligence_cloud.py:106",
+          "score": 12
+        },
+        {
+          "value": "/v1/indices @ tests_v9/test_field_intelligence_cloud.py:107",
+          "score": 12
+        },
+        {
+          "value": "/v1/indices @ tests_v9/test_field_intelligence_cloud.py:108",
           "score": 12
         },
         {
@@ -17939,30 +17965,6 @@
           "score": 8
         },
         {
-          "value": "/imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:23",
-          "score": 8
-        },
-        {
-          "value": "/imagery/timeseries/analyze @ services/raster-service/routers/timeseries_routes.py:76",
-          "score": 8
-        },
-        {
-          "value": "/imagery/timeseries/parallel @ services/raster-service/routers/timeseries_routes.py:91",
-          "score": 8
-        },
-        {
-          "value": "/process @ services/raster-service/routers/processing.py:27",
-          "score": 8
-        },
-        {
-          "value": "/process/batch @ services/raster-service/routers/processing.py:77",
-          "score": 8
-        },
-        {
-          "value": "/raw/process @ services/raster-service/routers/processing.py:58",
-          "score": 8
-        },
-        {
           "value": "/readyz @ services/indicators-service/main.py:72",
           "score": 8
         },
@@ -17976,6 +17978,18 @@
         },
         {
           "value": "/v1/fields/{field_id}/observations @ services/indicators-service/main.py:164",
+          "score": 8
+        },
+        {
+          "value": "/v1/imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:23",
+          "score": 8
+        },
+        {
+          "value": "/v1/imagery/timeseries/analyze @ services/raster-service/routers/timeseries_routes.py:76",
+          "score": 8
+        },
+        {
+          "value": "/v1/imagery/timeseries/parallel @ services/raster-service/routers/timeseries_routes.py:91",
           "score": 8
         },
         {
@@ -17996,6 +18010,18 @@
         },
         {
           "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:150",
+          "score": 8
+        },
+        {
+          "value": "/v1/process @ services/raster-service/routers/processing.py:27",
+          "score": 8
+        },
+        {
+          "value": "/v1/process/batch @ services/raster-service/routers/processing.py:77",
+          "score": 8
+        },
+        {
+          "value": "/v1/raw/process @ services/raster-service/routers/processing.py:58",
           "score": 8
         }
       ],
@@ -20540,7 +20566,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 100,
-        "routes": 78,
+        "routes": 80,
         "database": 42,
         "events": 100,
         "web": 49,
@@ -21138,10 +21164,6 @@
       ],
       "routes": [
         {
-          "value": "/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
-          "score": 18
-        },
-        {
           "value": "/v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:723",
           "score": 18
         },
@@ -21207,6 +21229,10 @@
         },
         {
           "value": "/v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1185",
+          "score": 18
+        },
+        {
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
           "score": 18
         },
         {
@@ -21504,7 +21530,7 @@
       ],
       "routes": [
         {
-          "value": "/change/detect @ tests_v9/test_change_detection.py:108",
+          "value": "/v1/change/detect @ tests_v9/test_change_detection.py:109",
           "score": 26
         }
       ],
@@ -21841,19 +21867,19 @@
           "score": 18
         },
         {
-          "value": "/indices @ services/raster-service/routers/observability.py:252",
-          "score": 18
-        },
-        {
-          "value": "/info/{layer_id} @ services/raster-service/routers/observability.py:212",
-          "score": 18
-        },
-        {
           "value": "/metrics @ services/raster-service/routers/observability.py:35",
           "score": 18
         },
         {
           "value": "/readyz @ services/raster-service/routers/observability.py:170",
+          "score": 18
+        },
+        {
+          "value": "/v1/indices @ services/raster-service/routers/observability.py:252",
+          "score": 18
+        },
+        {
+          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:212",
           "score": 18
         },
         {
@@ -21886,10 +21912,6 @@
         },
         {
           "value": "/geoparquet/export @ services/sahool-platform/api/routers/gis_cloud_native.py:645",
-          "score": 15
-        },
-        {
-          "value": "/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
           "score": 15
         },
         {
@@ -22058,6 +22080,10 @@
         },
         {
           "value": "/v1/fields/{field_id}/timeseries @ services/raster-service/routers/fields.py:1185",
+          "score": 15
+        },
+        {
+          "value": "/v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:91",
           "score": 15
         },
         {
@@ -22495,6 +22521,14 @@
           ]
         },
         {
+          "path": "docs/architecture/raster_service_route_migration_plan.md",
+          "score": 8,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "grafana/dashboards/json/sahool-field-imagery-ai-runtime.json",
           "score": 8,
           "signals": [
@@ -22516,7 +22550,7 @@
         "mobile": 0,
         "tests": 21,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 22
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -40145,10 +40179,6 @@
       "kind": "tests"
     },
     {
-      "path": "tests_v9/test_api_versioning_policy_guard.py",
-      "kind": "tests"
-    },
-    {
       "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
       "kind": "tests"
     },
@@ -42272,19 +42302,20 @@
       "kind": "other",
       "candidates": [
         {
+          "capability_id": "GIS-003",
+          "score": 13,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "capability_id": "SAT-001",
           "score": 10,
           "signals": [
             "content:sentinel",
             "content:stac"
-          ]
-        },
-        {
-          "capability_id": "GIS-003",
-          "score": 9,
-          "signals": [
-            "content:dem",
-            "content:terrain"
           ]
         }
       ]
@@ -42398,6 +42429,28 @@
           "signals": [
             "content:field geometry",
             "content:field workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/raster_service_route_migration_plan.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SAT-009",
+          "score": 8,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 8,
+          "signals": [
+            "content:slope",
+            "content:terrain"
           ]
         }
       ]
@@ -50779,7 +50832,7 @@
       "candidates": [
         {
           "capability_id": "GIS-003",
-          "score": 18,
+          "score": 20,
           "signals": [
             "content:dem",
             "content:hillshade",

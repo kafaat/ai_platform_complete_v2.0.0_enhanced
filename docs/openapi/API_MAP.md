@@ -73,7 +73,7 @@
 - `POST /webhook/odoo`
 
 ## raster-service — 31 مسار
-- `GET /cog/validate`
+- `GET /v1/cog/validate`
 - `GET /healthz`
 - `GET /v1/imagery/best`
 - `GET /v1/imagery/dem`
@@ -81,8 +81,8 @@
 - `GET /v1/imagery/search/radar`
 - `GET /v1/imagery/search/recent`
 - `GET /v1/imagery/search/season`
-- `GET /imagery/timeseries`
-- `GET /info/{layer_id}`
+- `GET /v1/imagery/timeseries`
+- `GET /v1/info/{layer_id}`
 - `GET /v1/jobs/{job_id}`
 - `GET /v1/jobs/{job_id}/result`
 - `GET /layers/{layer_id}/tilejson`
@@ -93,17 +93,17 @@
 - `GET /v1/storage/stats`
 - `GET /tiles/{layer_id}/{z}/{x}/{y}.png`
 - `POST /v1/imagery/search`
-- `POST /imagery/timeseries/analyze`
-- `POST /imagery/timeseries/parallel`
-- `POST /process`
-- `POST /process/batch`
-- `POST /salinity/calibrate`
-- `POST /salinity/classify`
+- `POST /v1/imagery/timeseries/analyze`
+- `POST /v1/imagery/timeseries/parallel`
+- `POST /v1/process`
+- `POST /v1/process/batch`
+- `POST /v1/salinity/calibrate`
+- `POST /v1/salinity/classify`
 - `POST /v1/storage/cleanup`
-- `POST /terrain/slope`
+- `POST /v1/terrain/slope`
 - `POST /v1/upload/drone`
 - `POST /v1/upload/raster`
-- `POST /zones/classify`
+- `POST /v1/zones/classify`
 
 ## soil-service — 6 مسار
 - `GET /health`
