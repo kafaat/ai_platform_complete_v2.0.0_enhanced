@@ -8854,6 +8854,14 @@
         ]
       },
       {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      },
+      {
         "capability_id": "FM-007",
         "score": 11,
         "signals": [

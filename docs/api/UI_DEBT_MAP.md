@@ -9,7 +9,7 @@
 > (`/admin/manager-console`، 18 مساراً محكومة بـcanManage). العقد الآن **435 core + 31 إعفاء**.
 > **لم يبقَ إلا 3 دَين واجهة مُوثَّق** (عمل معماريّ متمايز، لا يُختلَق له UI أجوف): اتّجاه
 > نبات-تربة متعدّد المواسم · مصدر بلاطات طقس زمنيّة (طبقة خريطة) · تهيئة مستأجِر جديد
-> (`/auth/tenants`، admin). بدأ اليوم بـ24 endpoint ملزَماً؛ انتهى بـ435.
+> (`/v1/auth/tenants`، admin). بدأ اليوم بـ24 endpoint ملزَماً؛ انتهى بـ435.
 > **تحديث ٣ (فجراً): سُدّدت شريحة P2-متوسّط كاملةً (32 مساراً)** — بطاقات «المحاصيل المتخصّصة
 > والتوقيت التراثيّ» و«المديريّات والطقس والتهيئة» و«اتّساق البيانات والدورة وWOFOST والعمليّات»
 > في FieldView (خبير). العقد الآن **385 core + 81 إعفاء** — لم يبقَ إلا P3-منخفض.
@@ -88,7 +88,7 @@
 | 42 | 60 | P1-عالٍ | informational | `/api/v1/high-value-crops/detail` | button |
 | 43 | 60 | P1-عالٍ | informational | `/api/v1/niche-crops/detail` | button |
 | 44 | 60 | P1-عالٍ | informational | `/api/v1/weather/alerts` | button |
-| 45 | 60 | P1-عالٍ | informational | `/auth/users/{user_id}/role` | page |
+| 45 | 60 | P1-عالٍ | informational | `/v1/auth/users/{user_id}/role` | page |
 | 46 | 58 | P1-عالٍ | critical | `/api/v1/escalation/assess` | page |
 | 47 | 58 | P1-عالٍ | informational | `/api/v1/introduction/candidates` | button |
 | 48 | 58 | P1-عالٍ | critical | `/api/v1/lab/water-results` | page |
@@ -106,7 +106,7 @@
 | 60 | 48 | P2-متوسّط | decision-support | `/api/v1/rotation/principles` | button |
 | 61 | 48 | P2-متوسّط | decision-support | `/api/v1/wofost/adaptation-guidance` | button |
 | 62 | 48 | P2-متوسّط | decision-support | `/api/v1/wofost/crop-types` | button |
-| 63 | 48 | P2-متوسّط | informational | `/auth/tenants` | page |
+| 63 | 48 | P2-متوسّط | informational | `/v1/auth/tenants` | page |
 | 64 | 46 | P2-متوسّط | informational | `/api/v1/weather/field-weather-summary` | button |
 | 65 | 44 | P2-متوسّط | informational | `/api/v1/districts` | button |
 | 66 | 42 | P2-متوسّط | informational | `/api/v1/aromatic-crops/list` | button |
@@ -134,9 +134,9 @@
 | 88 | 40 | P2-متوسّط | informational | `/api/v1/weather-analytics/analyze` | page |
 | 89 | 40 | P2-متوسّط | informational | `/api/v1/weather-analytics/planting-guide` | page |
 | 90 | 40 | P2-متوسّط | informational | `/api/v1/weather/tile-series/{z}/{x}/{y}` | page |
-| 91 | 40 | P2-متوسّط | informational | `/auth/me` | button |
-| 92 | 40 | P2-متوسّط | informational | `/auth/users` | button |
-| 93 | 40 | P2-متوسّط | informational | `/auth/users/{user_id}/deactivate` | page |
+| 91 | 40 | P2-متوسّط | informational | `/v1/auth/me` | button |
+| 92 | 40 | P2-متوسّط | informational | `/v1/auth/users` | button |
+| 93 | 40 | P2-متوسّط | informational | `/v1/auth/users/{user_id}/deactivate` | page |
 | 94 | 38 | P3-منخفض | decision-support | `/api/v1/crop-suitability` | page |
 | 95 | 38 | P3-منخفض | decision-support | `/api/v1/crop-twin/compose` | page |
 | 96 | 38 | P3-منخفض | informational | `/api/v1/propagation/methods` | button |

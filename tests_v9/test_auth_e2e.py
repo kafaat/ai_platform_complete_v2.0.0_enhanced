@@ -1,7 +1,7 @@
 """auth-service e2e ضد Postgres + Redis حقيقيّين (خدمة المصادقة الحرجة).
 
 يغطّي تدفّق المصادقة الحقيقي (bcrypt + DB + JWT + قفل الحساب):
-register → login → /auth/me، ورفض كلمة المرور الخاطئة، وتكرار البريد،
+register → login → /v1/auth/me، ورفض كلمة المرور الخاطئة، وتكرار البريد،
 وتصعيد الدور خادم-جانبيّاً (يُتجاهَل دور العميل).
 
 يعمل بطريقتين:
@@ -68,7 +68,7 @@ def _run_checks():
     with TestClient(m.app, raise_server_exceptions=False) as c:
         print("\n══ auth-service e2e (bcrypt + DB + JWT) ══")
         r = c.post(
-            "/auth/register",
+            "/v1/auth/register",
             json={"email": email, "password": pw, "full_name": "مزارع تجريبي", "role": "owner"},
         )
         ck("register = 201", r.status_code == 201, f"{r.status_code}: {r.text[:160]}")
@@ -86,7 +86,7 @@ def _run_checks():
             f"role={r.json().get('role') if r.status_code == 201 else '?'}",
         )
 
-        r = c.post("/auth/login", json={"email": email, "password": pw})
+        r = c.post("/v1/auth/login", json={"email": email, "password": pw})
         ck(
             "login بكلمة المرور الصحيحة = 200",
             r.status_code == 200,
@@ -95,19 +95,19 @@ def _run_checks():
         ltok = r.json().get("access_token") if r.status_code == 200 else None
         ck("login يُرجع JWT", bool(ltok))
 
-        r = c.get("/auth/me", headers={"Authorization": f"Bearer {ltok}"})
-        ck("/auth/me بالتوكن = 200", r.status_code == 200, f"{r.status_code}")
+        r = c.get("/v1/auth/me", headers={"Authorization": f"Bearer {ltok}"})
+        ck("/v1/auth/me بالتوكن = 200", r.status_code == 200, f"{r.status_code}")
         ck(
-            "/auth/me يُرجع البريد الصحيح",
+            "/v1/auth/me يُرجع البريد الصحيح",
             r.status_code == 200 and r.json().get("email") == email,
             f"{r.json() if r.status_code == 200 else ''}",
         )
 
-        r = c.post("/auth/login", json={"email": email, "password": "wrong-password"})
+        r = c.post("/v1/auth/login", json={"email": email, "password": "wrong-password"})
         ck("login بكلمة مرور خاطئة مرفوض (401)", r.status_code == 401, f"{r.status_code}")
 
         r = c.post(
-            "/auth/register", json={"email": email, "password": pw, "full_name": "مزارع مكرّر"}
+            "/v1/auth/register", json={"email": email, "password": pw, "full_name": "مزارع مكرّر"}
         )
         ck(
             "register بنفس البريد مرفوض (409)",
@@ -115,8 +115,8 @@ def _run_checks():
             f"{r.status_code}: {r.text[:120]}",
         )
 
-        r = c.get("/auth/me")
-        ck("/auth/me بلا توكن مرفوض (401/403)", r.status_code in (401, 403), f"{r.status_code}")
+        r = c.get("/v1/auth/me")
+        ck("/v1/auth/me بلا توكن مرفوض (401/403)", r.status_code in (401, 403), f"{r.status_code}")
     return P, F
 
 

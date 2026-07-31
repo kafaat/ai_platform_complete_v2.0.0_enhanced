@@ -1,7 +1,7 @@
 """routers/email_verify.py — تأكيد البريد/الهاتف (تحقّق ناعم soft).
 
-مسارات: GET /auth/verify · GET /auth/verify/status · POST /auth/verify/confirm ·
-        POST /auth/verify/request
+مسارات: GET /v1/auth/verify · GET /v1/auth/verify/status · POST /v1/auth/verify/confirm ·
+        POST /v1/auth/verify/request
 
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت المُعالِجات
 حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة (مساعِدات OTP، مسبح DB،
@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 router = APIRouter()
 
 
-@router.post("/auth/verify/request")
+@router.post("/v1/auth/verify/request")
 async def verify_request(
     req: main.VerificationRequest,
     request: Request,
@@ -51,7 +51,7 @@ async def verify_request(
     }
 
 
-@router.post("/auth/verify/confirm")
+@router.post("/v1/auth/verify/confirm")
 async def verify_confirm(
     req: main.VerificationConfirm,
     request: Request,
@@ -93,7 +93,7 @@ async def verify_confirm(
     return {"message": "تم التحقّق بنجاح", "channel": req.channel, "verified": True}
 
 
-@router.get("/auth/verify")
+@router.get("/v1/auth/verify")
 async def verify(user: Annotated[dict, Depends(main.get_current_user)]):
     return {
         "valid": True,
@@ -103,7 +103,7 @@ async def verify(user: Annotated[dict, Depends(main.get_current_user)]):
     }
 
 
-@router.get("/auth/verify/status")
+@router.get("/v1/auth/verify/status")
 async def verify_status(user: Annotated[dict, Depends(main.get_current_user)]):
     """حالة تحقّق الحساب (بريد/هاتف) من القاعدة — لعرضها في الواجهة."""
     user_id = int(user["sub"])

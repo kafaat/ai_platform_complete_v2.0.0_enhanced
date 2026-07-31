@@ -1,6 +1,6 @@
 """routers/mfa.py — المصادقة الثنائيّة (TOTP / RFC 6238).
 
-مسارات: POST /auth/mfa/setup · POST /auth/mfa/activate · POST /auth/mfa/disable
+مسارات: POST /v1/auth/mfa/setup · POST /v1/auth/mfa/activate · POST /v1/auth/mfa/disable
 
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت المُعالِجات
 حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة تبقى في ``main`` ويُشار
@@ -15,12 +15,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 router = APIRouter()
 
 
-@router.post("/auth/mfa/setup")
+@router.post("/v1/auth/mfa/setup")
 async def mfa_setup(user: dict = Depends(main.get_current_user)):
     """يبدأ اقتران MFA: يولّد سرّاً ويُعيد provisioning_uri (لتطبيق المصادقة).
 
     V29.5: السرّ يُخزَّن **مشفّراً** (encrypted_mfa_secret) لا نصّاً؛ يتطلّب مفتاح تشفير
-    مُهيَّأ (fail-closed بدونه). لا يُفعّل MFA بعد — التفعيل عبر /auth/mfa/activate.
+    مُهيَّأ (fail-closed بدونه). لا يُفعّل MFA بعد — التفعيل عبر /v1/auth/mfa/activate.
     السرّ يُعرَض هنا مرّة واحدة فقط (لبناء رمز QR).
     """
     user_id = int(user["sub"])
@@ -62,7 +62,7 @@ async def mfa_setup(user: dict = Depends(main.get_current_user)):
     }
 
 
-@router.post("/auth/mfa/activate")
+@router.post("/v1/auth/mfa/activate")
 async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_current_user)):
     """يفعّل MFA بعد تأكيد أوّل رمز صحيح، ويُصدِر رموز استرداد (تُعرَض مرّة واحدة)."""
     user_id = int(user["sub"])
@@ -132,7 +132,7 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
     }
 
 
-@router.post("/auth/mfa/disable")
+@router.post("/v1/auth/mfa/disable")
 async def mfa_disable(req: main.MfaCodeRequest, user: dict = Depends(main.get_current_user)):
     """يعطّل MFA — يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله مهاجم بتوكن مسروق بلا الجهاز)."""
     user_id = int(user["sub"])

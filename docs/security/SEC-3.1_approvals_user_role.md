@@ -35,7 +35,7 @@ That requires the gateway to inject an authenticated `X-User-Id` (and optionally
 nginx `auth_request` consumes **response headers** from the verify subrequest
 (`$upstream_http_x_<header>`), **not** the JSON body.
 
-- `GET /auth/verify` (`services/auth/routers/email_verify.py:96-103`) returns
+- `GET /v1/auth/verify` (`services/auth/routers/email_verify.py:96-103`) returns
   `user_id` / `role` / `tenant_id` **in the JSON body** — which `auth_request`
   discards.
 - The **only** response header the auth service emits is `X-Tenant-ID`, set by
@@ -193,7 +193,7 @@ If step 3 ships before steps 1-2 reach production, **all human approvals return
 - `nginx/nginx.v9.conf:308-314` — `/api/ai-agronomist/` (injects only `X-Tenant-Id`).
 - `nginx/nginx.v9.conf:154-164` — `/_auth_verify` internal subrequest.
 - `nginx/proxy_params.conf:12-14` — clears client `X-Tenant-Id` / `X-User-Id`.
-- `services/auth/routers/email_verify.py:96-103` — `GET /auth/verify` (body only).
+- `services/auth/routers/email_verify.py:96-103` — `GET /v1/auth/verify` (body only).
 - `services/auth/main.py:340-357` — `tenant_header_middleware` (emits `X-Tenant-ID`).
 - `services/auth/main.py:519-524` — JWT payload carries `sub` + `role`.
 - `services/ai_agronomist/main.py:135,182,223` — approval endpoints (`require_trusted_tenant`).

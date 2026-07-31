@@ -247,99 +247,99 @@
     "file": "services/auth/routers/email_verify.py",
     "line": 22,
     "method": "POST",
-    "path": "/auth/verify/request",
+    "path": "/v1/auth/verify/request",
     "handler": "verify_request",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
     "line": 55,
     "method": "POST",
-    "path": "/auth/verify/confirm",
+    "path": "/v1/auth/verify/confirm",
     "handler": "verify_confirm",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
     "line": 97,
     "method": "GET",
-    "path": "/auth/verify",
+    "path": "/v1/auth/verify",
     "handler": "verify",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/email_verify.py",
     "line": 107,
     "method": "GET",
-    "path": "/auth/verify/status",
+    "path": "/v1/auth/verify/status",
     "handler": "verify_status",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
     "line": 25,
     "method": "POST",
-    "path": "/auth/invitations",
+    "path": "/v1/auth/invitations",
     "handler": "create_invitation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
     "line": 84,
     "method": "GET",
-    "path": "/auth/invitations",
+    "path": "/v1/auth/invitations",
     "handler": "list_invitations",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
     "line": 115,
     "method": "POST",
-    "path": "/auth/invitations/accept",
+    "path": "/v1/auth/invitations/accept",
     "handler": "accept_invitation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
     "line": 195,
     "method": "DELETE",
-    "path": "/auth/invitations/{invitation_id}",
+    "path": "/v1/auth/invitations/{invitation_id}",
     "handler": "revoke_invitation",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
     "line": 19,
     "method": "POST",
-    "path": "/auth/mfa/setup",
+    "path": "/v1/auth/mfa/setup",
     "handler": "mfa_setup",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
     "line": 66,
     "method": "POST",
-    "path": "/auth/mfa/activate",
+    "path": "/v1/auth/mfa/activate",
     "handler": "mfa_activate",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/mfa.py",
     "line": 136,
     "method": "POST",
-    "path": "/auth/mfa/disable",
+    "path": "/v1/auth/mfa/disable",
     "handler": "mfa_disable",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
@@ -382,117 +382,117 @@
     "file": "services/auth/routers/password_reset.py",
     "line": 21,
     "method": "POST",
-    "path": "/auth/password-reset/request",
+    "path": "/v1/auth/password-reset/request",
     "handler": "request_password_reset",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/password_reset.py",
     "line": 41,
     "method": "POST",
-    "path": "/auth/password-reset/confirm",
+    "path": "/v1/auth/password-reset/confirm",
     "handler": "confirm_password_reset",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/registration.py",
     "line": 19,
     "method": "POST",
-    "path": "/auth/register",
+    "path": "/v1/auth/register",
     "handler": "register",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/registration.py",
     "line": 74,
     "method": "POST",
-    "path": "/auth/change-password",
+    "path": "/v1/auth/change-password",
     "handler": "change_password",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/season_edge_sign.py",
     "line": 41,
     "method": "GET",
-    "path": "/auth/edge-sign",
+    "path": "/v1/auth/edge-sign",
     "handler": "edge_sign",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
     "line": 24,
     "method": "POST",
-    "path": "/auth/login",
+    "path": "/v1/auth/login",
     "handler": "login",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
     "line": 125,
     "method": "POST",
-    "path": "/auth/refresh",
+    "path": "/v1/auth/refresh",
     "handler": "refresh_token",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
     "line": 167,
     "method": "POST",
-    "path": "/auth/logout",
+    "path": "/v1/auth/logout",
     "handler": "logout",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
     "line": 211,
     "method": "GET",
-    "path": "/auth/me",
+    "path": "/v1/auth/me",
     "handler": "me",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/tenants.py",
     "line": 40,
     "method": "POST",
-    "path": "/auth/tenants",
+    "path": "/v1/auth/tenants",
     "handler": "provision_tenant",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
     "line": 22,
     "method": "GET",
-    "path": "/auth/users",
+    "path": "/v1/auth/users",
     "handler": "list_users",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
     "line": 31,
     "method": "PATCH",
-    "path": "/auth/users/{user_id}/role",
+    "path": "/v1/auth/users/{user_id}/role",
     "handler": "change_role",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "auth",
     "file": "services/auth/routers/users.py",
     "line": 73,
     "method": "PATCH",
-    "path": "/auth/users/{user_id}/deactivate",
+    "path": "/v1/auth/users/{user_id}/deactivate",
     "handler": "deactivate_user",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "decision-service",

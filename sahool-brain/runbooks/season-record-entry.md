@@ -26,7 +26,7 @@ SEASON_EDGE_HMAC_KEY="$(openssl rand -hex 32)"
 ```
 
 > **حقن `SEASON_EDGE_HMAC_KEY` في الحاويتين فقط:** auth + scout-ingest. لا nginx، لا المنصّة.
-> غيابه ⇒ `/auth/edge-sign` يعيد 503 و`accept` يرفض كلّ طلب بـ401 `edge_unattested` (الوضع الآمن).
+> غيابه ⇒ `/v1/auth/edge-sign` يعيد 503 و`accept` يرفض كلّ طلب بـ401 `edge_unattested` (الوضع الآمن).
 
 إعادة تشغيل الحاويات المعنيّة لتطبيق المتغيّرات:
 

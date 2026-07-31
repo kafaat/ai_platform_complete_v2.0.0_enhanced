@@ -3255,7 +3255,7 @@
           "score": 14
         },
         {
-          "value": "/auth/tenants @ services/auth/routers/tenants.py:39",
+          "value": "/v1/auth/tenants @ services/auth/routers/tenants.py:39",
           "score": 14
         }
       ],
@@ -6456,11 +6456,11 @@
           "score": 14
         },
         {
-          "value": "/auth/edge-sign @ services/auth/routers/season_edge_sign.py:40",
+          "value": "/path @ tests_v9/test_season_api_static.py:63",
           "score": 14
         },
         {
-          "value": "/path @ tests_v9/test_season_api_static.py:63",
+          "value": "/v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:40",
           "score": 14
         },
         {
@@ -24802,15 +24802,15 @@
       ],
       "routes": [
         {
-          "value": "/auth/mfa/activate @ services/auth/routers/mfa.py:65",
+          "value": "/v1/auth/mfa/activate @ services/auth/routers/mfa.py:65",
           "score": 40
         },
         {
-          "value": "/auth/mfa/disable @ services/auth/routers/mfa.py:135",
+          "value": "/v1/auth/mfa/disable @ services/auth/routers/mfa.py:135",
           "score": 40
         },
         {
-          "value": "/auth/mfa/setup @ services/auth/routers/mfa.py:18",
+          "value": "/v1/auth/mfa/setup @ services/auth/routers/mfa.py:18",
           "score": 40
         },
         {
@@ -24834,31 +24834,43 @@
           "score": 17
         },
         {
-          "value": "/auth/users @ services/auth/routers/users.py:21",
+          "value": "/v1/auth/users @ services/auth/routers/users.py:21",
           "score": 16
         },
         {
-          "value": "/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:72",
+          "value": "/v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:72",
           "score": 16
         },
         {
-          "value": "/auth/users/{user_id}/role @ services/auth/routers/users.py:30",
+          "value": "/v1/auth/users/{user_id}/role @ services/auth/routers/users.py:30",
           "score": 16
         },
         {
-          "value": "/auth/login @ services/auth/routers/session.py:23",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:74",
           "score": 12
         },
         {
-          "value": "/auth/logout @ services/auth/routers/session.py:166",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:59",
           "score": 12
         },
         {
-          "value": "/auth/me @ services/auth/routers/session.py:210",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:70",
           "score": 12
         },
         {
-          "value": "/auth/refresh @ services/auth/routers/session.py:124",
+          "value": "/v1/auth/login @ services/auth/routers/session.py:23",
+          "score": 12
+        },
+        {
+          "value": "/v1/auth/logout @ services/auth/routers/session.py:166",
+          "score": 12
+        },
+        {
+          "value": "/v1/auth/me @ services/auth/routers/session.py:210",
+          "score": 12
+        },
+        {
+          "value": "/v1/auth/refresh @ services/auth/routers/session.py:124",
           "score": 12
         }
       ],
@@ -24999,6 +25011,10 @@
         {
           "value": "sahool.break_glass @ services/sahool-platform/api/routers/break_glass.py:44",
           "score": 17
+        },
+        {
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:772",
+          "score": 12
         },
         {
           "value": "v139_field_geometry_history_append_only.sql @ tests_v9/test_field_geometry_history_append_only_v39_5.py:26",
@@ -25198,6 +25214,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_api_versioning_policy_guard.py",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "tests_v9/test_field_geometry_history_append_only_v39_5.py",
           "score": 12,
           "signals": [
@@ -25354,12 +25378,12 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 7,
-        "routes": 15,
+        "routes": 18,
         "database": 23,
-        "events": 3,
+        "events": 4,
         "web": 5,
         "mobile": 4,
-        "tests": 12,
+        "tests": 13,
         "governance": 0,
         "other_evidence": 15
       },
@@ -50246,6 +50270,14 @@
           "signals": [
             "content:Soil profile",
             "content:soil profile"
+          ]
+        },
+        {
+          "capability_id": "SEC-004",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
           ]
         },
         {

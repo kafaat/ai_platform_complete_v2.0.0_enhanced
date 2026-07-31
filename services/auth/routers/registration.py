@@ -1,6 +1,6 @@
 """routers/registration.py — التسجيل وتغيير كلمة المرور.
 
-مسارات: POST /auth/register · POST /auth/change-password
+مسارات: POST /v1/auth/register · POST /v1/auth/change-password
 
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت المُعالِجات
 حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة تبقى في ``main`` ويُشار
@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 router = APIRouter()
 
 
-@router.post("/auth/register", response_model=main.TokenResponse, status_code=201)
+@router.post("/v1/auth/register", response_model=main.TokenResponse, status_code=201)
 async def register(req: main.RegisterRequest, request: Request, response: Response):
     ip = request.client.host if request.client else "unknown"
     await main.check_ip_rate(ip)
@@ -70,7 +70,7 @@ async def register(req: main.RegisterRequest, request: Request, response: Respon
     )
 
 
-@router.post("/auth/change-password")
+@router.post("/v1/auth/change-password")
 async def change_password(
     req: main.ChangePasswordRequest,
     user: dict = Depends(main.get_current_user),

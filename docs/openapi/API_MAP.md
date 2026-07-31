@@ -20,22 +20,22 @@
 - `POST /v1/recommend`
 
 ## auth — 16 مسار
-- `GET /auth/me`
-- `GET /auth/users`
-- `GET /auth/verify`
 - `GET /health`
 - `GET /healthz`
 - `GET /metrics`
 - `GET /readyz`
-- `PATCH /auth/users/{user_id}/deactivate`
-- `PATCH /auth/users/{user_id}/role`
-- `POST /auth/change-password`
-- `POST /auth/login`
-- `POST /auth/logout`
-- `POST /auth/password-reset/confirm`
-- `POST /auth/password-reset/request`
-- `POST /auth/refresh`
-- `POST /auth/register`
+- `GET /v1/auth/me`
+- `GET /v1/auth/users`
+- `GET /v1/auth/verify`
+- `PATCH /v1/auth/users/{user_id}/deactivate`
+- `PATCH /v1/auth/users/{user_id}/role`
+- `POST /v1/auth/change-password`
+- `POST /v1/auth/login`
+- `POST /v1/auth/logout`
+- `POST /v1/auth/password-reset/confirm`
+- `POST /v1/auth/password-reset/request`
+- `POST /v1/auth/refresh`
+- `POST /v1/auth/register`
 
 ## edge-inference — 5 مسار
 - `GET /healthz`

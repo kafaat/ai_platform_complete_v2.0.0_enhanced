@@ -6,7 +6,7 @@ on the dev host (:3003) over HTTP via the sahool_at cookie.
 (tid/tenant_id) أو ترويسة X-Tenant-Id من العميل. حزمة الإنتاج تُجرّد tid (import.meta.env.PROD)
 وبلاطة <img> لا تحمل ترويسات ⇒ مستأجِر فارغ ⇒ خدمة الراستر 403 (وAUTH_COOKIE_SECURE=0 لا
 يُصلحه لأنّ هذا المسار لم يكن يقرأ الكوكي أصلاً). الإصلاح: نفس عقد الإنتاج —
-كوكي sahool_at ⇒ auth_request ⇒ /auth/verify ⇒ حقن X-Tenant-Id الموثّق فقط.
+كوكي sahool_at ⇒ auth_request ⇒ /v1/auth/verify ⇒ حقن X-Tenant-Id الموثّق فقط.
 
 هذا الحارس يمنع انحدار البوّابة إلى الاشتقاق غير الموثّق من العميل.
 """
@@ -47,7 +47,7 @@ def _block(conf: str, header: str) -> str:
 def test_auth_verify_subrequest_forwards_only_token() -> None:
     block = _block(_read(NGINX), "location = /_auth_verify")
     assert "internal;" in block  # لا يصله العميل مباشرةً
-    assert "http://sahool-auth:8000/auth/verify" in block  # نفس نقطة تحقّق الإنتاج
+    assert "http://sahool-auth:8000/v1/auth/verify" in block  # نفس نقطة تحقّق الإنتاج
     assert "Authorization" in block and "$fwd_auth" in block  # التوكن فقط
     # لا ثقة برؤوس هويّة من العميل في طلب التحقّق.
     assert 'proxy_set_header   X-Tenant-Id     "";' in block or 'X-Tenant-Id     ""' in block

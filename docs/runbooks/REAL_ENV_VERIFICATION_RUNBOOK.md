@@ -58,7 +58,7 @@ export JOBS_DATABASE_URL='postgresql://sahool_jobs:sahool_jobs_pw@127.0.0.1:5432
 export JWT_SECRET='<سرّ ≥32 حرف>'  SAHOOL_AGENT_TOKEN='<توكن>'
 python3 -m pytest tests_v9/test_auth_e2e.py -q     # يتخطّى نظيفاً بلا DB (integration)
 ```
-**متوقَّع/مُصادَق:** register 201 (المُسجِّل = **owner** مؤسِّس مؤسّسته، لا farmer) · login 200 · /auth/me 200 ·
+**متوقَّع/مُصادَق:** register 201 (المُسجِّل = **owner** مؤسِّس مؤسّسته، لا farmer) · login 200 · /v1/auth/me 200 ·
 كلمة مرور خاطئة 401 · تكرار بريد 409. (الاختبار يعمل تحت `sahool_app` عبر سياق admin على كلّ اتّصال pool.)
 
 ---

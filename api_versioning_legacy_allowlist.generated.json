@@ -1,6 +1,5 @@
 {
   "legacy_unversioned_business_routes": [
-    "DELETE /auth/invitations/{invitation_id}",
     "GET /api/agent/health",
     "GET /api/indicators/readyz",
     "GET /api/raster/{path:path}",
@@ -8,29 +7,6 @@
     "GET /api/vegetation/v1/all_fields",
     "GET /api/vegetation/v1/analyze",
     "GET /api/weather/readyz",
-    "GET /auth/edge-sign",
-    "GET /auth/invitations",
-    "GET /auth/me",
-    "GET /auth/users",
-    "GET /auth/verify",
-    "GET /auth/verify/status",
-    "PATCH /auth/users/{user_id}/deactivate",
-    "PATCH /auth/users/{user_id}/role",
-    "POST /api/chat",
-    "POST /auth/change-password",
-    "POST /auth/invitations",
-    "POST /auth/invitations/accept",
-    "POST /auth/login",
-    "POST /auth/logout",
-    "POST /auth/mfa/activate",
-    "POST /auth/mfa/disable",
-    "POST /auth/mfa/setup",
-    "POST /auth/password-reset/confirm",
-    "POST /auth/password-reset/request",
-    "POST /auth/refresh",
-    "POST /auth/register",
-    "POST /auth/tenants",
-    "POST /auth/verify/confirm",
-    "POST /auth/verify/request"
+    "POST /api/chat"
   ]
 }

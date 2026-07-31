@@ -971,3 +971,110 @@ def test_video_processor_stream_routes_are_versioned():
         f"video-processor still has legacy_unversioned_business routes: "
         f"{sorted(video_processor_legacy)}"
     )
+
+
+def test_auth_service_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, services/auth (2026-07-31, the
+    final and highest-risk slice: 24 routes gating platform-wide login/
+    session/authorization). Flat, prefix-less router registration across 9
+    files (email_verify.py, invitations.py, mfa.py, password_reset.py,
+    registration.py, season_edge_sign.py, session.py, tenants.py, users.py)
+    moved bare /auth/* decorators to /v1/auth/*. Two of the 24 are nginx
+    internal auth_request subrequest targets (_auth_verify -> GET
+    /v1/auth/verify, _auth_edge_sign -> GET /v1/auth/edge-sign) whose
+    proxy_pass targets were updated in lockstep across nginx.v9.conf,
+    nginx.fixed.conf, nginx.unified.conf, nginx.light.conf and
+    frontend/nginx.conf; the client-facing /auth/* location blocks in all
+    five configs now rewrite both the frontend's double-prefixed
+    (/auth/auth/x) and a direct client's single-prefixed (/auth/x)
+    convention to /v1/auth/x, so frontend/src/services/api/auth.ts and the
+    mobile app's api_service.dart needed zero code changes. Falsified by
+    construction: reverting any decorator to its old bare path makes this
+    fail by naming the exact leaked path."""
+    rows = guard.collect()
+    auth_files = {
+        "services/auth/routers/email_verify.py",
+        "services/auth/routers/invitations.py",
+        "services/auth/routers/mfa.py",
+        "services/auth/routers/password_reset.py",
+        "services/auth/routers/registration.py",
+        "services/auth/routers/season_edge_sign.py",
+        "services/auth/routers/session.py",
+        "services/auth/routers/tenants.py",
+        "services/auth/routers/users.py",
+    }
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in auth_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "/auth/verify",
+        "/auth/verify/confirm",
+        "/auth/verify/request",
+        "/auth/verify/status",
+        "/auth/invitations",
+        "/auth/invitations/accept",
+        "/auth/invitations/{invitation_id}",
+        "/auth/mfa/activate",
+        "/auth/mfa/disable",
+        "/auth/mfa/setup",
+        "/auth/password-reset/confirm",
+        "/auth/password-reset/request",
+        "/auth/change-password",
+        "/auth/register",
+        "/auth/edge-sign",
+        "/auth/login",
+        "/auth/logout",
+        "/auth/me",
+        "/auth/refresh",
+        "/auth/tenants",
+        "/auth/users",
+        "/auth/users/{user_id}/deactivate",
+        "/auth/users/{user_id}/role",
+    }
+    present = {r["path"] for r in rows if r["file"] in auth_files}
+    leaked_old = present & old_paths
+    assert not leaked_old, f"auth routers still declare old path(s): {leaked_old}"
+
+    new_paths = {
+        ("GET", "/v1/auth/verify"),
+        ("POST", "/v1/auth/verify/confirm"),
+        ("POST", "/v1/auth/verify/request"),
+        ("GET", "/v1/auth/verify/status"),
+        ("POST", "/v1/auth/invitations"),
+        ("GET", "/v1/auth/invitations"),
+        ("POST", "/v1/auth/invitations/accept"),
+        ("DELETE", "/v1/auth/invitations/{invitation_id}"),
+        ("POST", "/v1/auth/mfa/activate"),
+        ("POST", "/v1/auth/mfa/disable"),
+        ("POST", "/v1/auth/mfa/setup"),
+        ("POST", "/v1/auth/password-reset/confirm"),
+        ("POST", "/v1/auth/password-reset/request"),
+        ("POST", "/v1/auth/change-password"),
+        ("POST", "/v1/auth/register"),
+        ("GET", "/v1/auth/edge-sign"),
+        ("POST", "/v1/auth/login"),
+        ("POST", "/v1/auth/logout"),
+        ("GET", "/v1/auth/me"),
+        ("POST", "/v1/auth/refresh"),
+        ("POST", "/v1/auth/tenants"),
+        ("GET", "/v1/auth/users"),
+        ("PATCH", "/v1/auth/users/{user_id}/deactivate"),
+        ("PATCH", "/v1/auth/users/{user_id}/role"),
+    }
+    present_pairs = {(r["method"], r["path"]) for r in rows if r["file"] in auth_files}
+    missing = new_paths - present_pairs
+    assert not missing, f"auth routers missing expected migrated route(s): {missing}"
+    assert len(new_paths) == 24, f"expected 24 auth routes, got {len(new_paths)}"
+
+    auth_legacy = {
+        (r["method"], r["path"])
+        for r in rows
+        if r["service"] == "auth" and r["classification"] == "legacy_unversioned_business"
+    }
+    assert auth_legacy == set(), (
+        f"auth service still has legacy_unversioned_business routes: {sorted(auth_legacy)}"
+    )

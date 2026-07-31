@@ -517,8 +517,8 @@ capabilities:
   - services/raster-service/main.py
   apis:
   - GET /api/v1/rbac/preview-role-change @ services/sahool-platform/api/routers/rbac.py:54
-  - PATCH /auth/users/{user_id}/role @ services/auth/routers/users.py:31
-  - POST /auth/change-password @ services/auth/routers/registration.py:74
+  - PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:31
+  - POST /v1/auth/change-password @ services/auth/routers/registration.py:74
   - POST /v1/change/detect @ services/raster-service/routers/analysis.py:48
   - POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1129
   ui_consumers: []
