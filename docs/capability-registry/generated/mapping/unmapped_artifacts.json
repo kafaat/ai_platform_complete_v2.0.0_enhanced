@@ -6044,15 +6044,7 @@
     "kind": "backend"
   },
   {
-    "path": "services/supervisor-agent/advisory_skill.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/supervisor-agent/circuit_breaker.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/supervisor-agent/market_skill.py",
     "kind": "backend"
   },
   {
@@ -7629,6 +7621,10 @@
   },
   {
     "path": "tests_v9/test_spatial_e2e_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_supervisor_skill_canonical_location_guard.py",
     "kind": "tests"
   },
   {

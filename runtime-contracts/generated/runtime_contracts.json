@@ -2864,7 +2864,6 @@
       "evidence_paths": {
         "configuration": [
           "services/supervisor-agent/main.py",
-          "services/supervisor-agent/remote_sensing_skill.py",
           "services/supervisor-agent/skills/advisory_skill.py",
           "services/supervisor-agent/skills/remote_sensing_skill.py"
         ],
@@ -2874,11 +2873,8 @@
           "services/supervisor-agent/test_circuit_observability.py"
         ],
         "routes": [
-          "services/supervisor-agent/crop_model_skill.py",
           "services/supervisor-agent/main.py",
-          "services/supervisor-agent/market_skill.py",
           "services/supervisor-agent/mcp_client.py",
-          "services/supervisor-agent/remote_sensing_skill.py",
           "services/supervisor-agent/routers/agent.py",
           "services/supervisor-agent/routers/health.py",
           "services/supervisor-agent/skills/advisory_skill.py",

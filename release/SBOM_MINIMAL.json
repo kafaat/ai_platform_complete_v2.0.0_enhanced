@@ -27715,30 +27715,10 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47b1bb88377e0bda629a308554a9671f61ab119fb6c78b810b1c4b18990df0c6"
-        }
-      ],
-      "name": "services/supervisor-agent/advisory_skill.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "13362aef31ddbca8bf376c29574c6fa443c0f0bf29a12ab55b855000df47d8a8"
         }
       ],
       "name": "services/supervisor-agent/circuit_breaker.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "664d2d64e0cd7535a9d102f22f920c3c84e101266c5fe203261a313da0fb36c9"
-        }
-      ],
-      "name": "services/supervisor-agent/crop_model_skill.py",
       "type": "file"
     },
     {
@@ -27755,30 +27735,10 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2b90891ea1d2409af34a065c4859e4c97db00cc52856a05c74fbf56a5c56e71"
-        }
-      ],
-      "name": "services/supervisor-agent/market_skill.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "2f1db79cc01dee1ddb45ad362502cd11b9c4accc82656ba3d4e2b1b6d0aab914"
         }
       ],
       "name": "services/supervisor-agent/mcp_client.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "024735c669769d6137a4aa6eb129acc1bf795231b6e70bab5debcda37315c1cd"
-        }
-      ],
-      "name": "services/supervisor-agent/remote_sensing_skill.py",
       "type": "file"
     },
     {
