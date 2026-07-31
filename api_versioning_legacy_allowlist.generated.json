@@ -15,14 +15,9 @@
     "GET /auth/users",
     "GET /auth/verify",
     "GET /auth/verify/status",
-    "GET /config",
-    "GET /erp/provider",
-    "GET /logs",
-    "GET /readyz/capabilities",
     "GET /streams",
     "GET /streams/{stream_id}",
     "GET /streams/{stream_id}/snapshot",
-    "GET /suppliers",
     "PATCH /auth/users/{user_id}/deactivate",
     "PATCH /auth/users/{user_id}/role",
     "POST /api/chat",
@@ -44,8 +39,6 @@
     "POST /streams",
     "POST /streams/{stream_id}/record/start",
     "POST /streams/{stream_id}/record/stop",
-    "POST /streams/{stream_id}/snapshot",
-    "POST /sync",
-    "POST /webhook/odoo"
+    "POST /streams/{stream_id}/snapshot"
   ]
 }

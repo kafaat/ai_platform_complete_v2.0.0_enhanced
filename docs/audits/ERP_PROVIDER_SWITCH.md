@@ -30,7 +30,7 @@ ERP_PROVIDER=none      # إيقاف ERP تماماً
 - odoo-bridge: تبعيّة Odoo صارت `required: false` → الجسر يعمل مع أيّ مزوّد
 
 ### ٤. endpoint كشف الحالة
-`GET /erp/provider` يكشف المزوّد النشط وحالته.
+`GET /v1/erp/provider` يكشف المزوّد النشط وحالته.
 
 ## كيف تستخدمه
 ```powershell

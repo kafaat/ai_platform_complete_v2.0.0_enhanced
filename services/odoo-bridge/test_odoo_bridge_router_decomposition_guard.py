@@ -113,8 +113,8 @@ def test_no_orphan_router_module():
 # مسارات تمثيليّة حقيقيّة من المُعالِجات المنقولة — فقدانها انحدار حرج.
 _CRITICAL_ROUTES = (
     "/health",
-    "/sync",
-    "/webhook/odoo",
+    "/v1/sync",
+    "/v1/webhook/odoo",
 )
 
 

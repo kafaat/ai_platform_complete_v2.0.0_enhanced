@@ -1623,7 +1623,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /config"
+        "GET /v1/config"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -1638,7 +1638,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /erp/provider"
+        "GET /v1/erp/provider"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -1653,7 +1653,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /logs"
+        "GET /v1/logs"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -1683,7 +1683,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /readyz/capabilities"
+        "GET /v1/readyz/capabilities"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -1698,7 +1698,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /suppliers"
+        "GET /v1/suppliers"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -1713,7 +1713,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /sync"
+        "POST /v1/sync"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -1728,7 +1728,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /webhook/odoo"
+        "POST /v1/webhook/odoo"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -17223,7 +17223,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2caa22e2865f68ad3f3d26898d72850ea5bf0a050bc4d83957c20e6e905128fa",
+  "fingerprint": "2b870f61990fc99cd71a728793aed2a9b71bd19e0ce9eed5c85decd018dbf168",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

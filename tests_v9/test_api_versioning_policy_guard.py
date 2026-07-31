@@ -838,3 +838,77 @@ def test_mcp_servers_market_rest_routes_are_versioned():
     assert mcp_servers_legacy == set(), (
         f"mcp_servers still has legacy_unversioned_business routes: {sorted(mcp_servers_legacy)}"
     )
+
+
+def test_odoo_bridge_erp_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, odoo-bridge/erp-bridge (2026-07-31,
+    seventh and final active migration slice): the 7 remaining unversioned
+    routes across routers/catalog.py (4), routers/health.py (1,
+    /readyz/capabilities -- reports ERP capability state as data, not a
+    container-health judgment, so it doesn't qualify for the infra allowlist
+    the way /healthz/readyz do), routers/sync.py (1), and routers/webhooks.py
+    (1, POST /webhook/odoo -- called by an external Odoo instance, not code in
+    this repo) moved to /v1/*. All use main.require_auth (Bearer/JWT) except
+    the webhook, which uses a shared X-Webhook-Secret header. Falsified by
+    construction: reverting any decorator to its old bare path makes this fail
+    by naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_files = (
+        "services/odoo-bridge/routers/catalog.py",
+        "services/odoo-bridge/routers/health.py",
+        "services/odoo-bridge/routers/sync.py",
+        "services/odoo-bridge/routers/webhooks.py",
+    )
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/odoo-bridge/routers/catalog.py": {
+            "/erp/provider",
+            "/config",
+            "/logs",
+            "/suppliers",
+        },
+        "services/odoo-bridge/routers/health.py": {"/readyz/capabilities"},
+        "services/odoo-bridge/routers/sync.py": {"/sync"},
+        "services/odoo-bridge/routers/webhooks.py": {"/webhook/odoo"},
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        "services/odoo-bridge/routers/catalog.py": {
+            ("GET", "/v1/erp/provider"),
+            ("GET", "/v1/config"),
+            ("GET", "/v1/logs"),
+            ("GET", "/v1/suppliers"),
+        },
+        "services/odoo-bridge/routers/health.py": {("GET", "/v1/readyz/capabilities")},
+        "services/odoo-bridge/routers/sync.py": {("POST", "/v1/sync")},
+        "services/odoo-bridge/routers/webhooks.py": {("POST", "/v1/webhook/odoo")},
+    }
+    for f, expected in new_paths.items():
+        present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
+        missing = expected - present
+        assert not missing, f"{f} missing expected migrated route(s): {missing}"
+
+    sync_src = (guard.ROOT / "services" / "odoo-bridge" / "routers" / "sync.py").read_text(
+        encoding="utf-8"
+    )
+    assert "Check /v1/readyz/capabilities for capability status." in sync_src
+    assert "Check /readyz/capabilities for capability status." not in sync_src
+
+    odoo_bridge_legacy = {
+        (r["method"], r["path"])
+        for r in rows
+        if r["service"] == "odoo-bridge" and r["classification"] == "legacy_unversioned_business"
+    }
+    assert odoo_bridge_legacy == set(), (
+        f"odoo-bridge still has legacy_unversioned_business routes: {sorted(odoo_bridge_legacy)}"
+    )

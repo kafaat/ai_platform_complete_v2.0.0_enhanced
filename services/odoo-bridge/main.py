@@ -178,7 +178,7 @@ class WebhookPayload(BaseModel):
     data: dict = Field(default_factory=dict)
     signature: str | None = None
     # L6 FIX: أُزيل مُحقّق "التوقيع" الميّت (كان pass فقط) لئلّا يوحي بتحقّق
-    # توقيع غير موجود. التحقّق الفعلي يجري في نقطة /webhook/odoo عبر
+    # توقيع غير موجود. التحقّق الفعلي يجري في نقطة /v1/webhook/odoo عبر
     # hmac.compare_digest على رأس X-Webhook-Secret (يفشل-مغلقاً).
 
 

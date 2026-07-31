@@ -61,16 +61,16 @@
 - `POST /query`
 
 ## odoo-bridge — 10 مسار
-- `GET /config`
-- `GET /erp/provider`
 - `GET /health`
 - `GET /healthz`
-- `GET /logs`
-- `GET /products`
 - `GET /readyz`
-- `GET /suppliers`
-- `POST /sync`
-- `POST /webhook/odoo`
+- `GET /v1/config`
+- `GET /v1/erp/provider`
+- `GET /v1/logs`
+- `GET /v1/products`
+- `GET /v1/suppliers`
+- `POST /v1/sync`
+- `POST /v1/webhook/odoo`
 
 ## raster-service — 31 مسار
 - `GET /v1/cog/validate`

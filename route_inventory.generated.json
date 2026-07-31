@@ -1636,7 +1636,7 @@
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 17,
     "method": "GET",
-    "path": "/erp/provider",
+    "path": "/v1/erp/provider",
     "function": "erp_provider_status"
   },
   {
@@ -1644,7 +1644,7 @@
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 33,
     "method": "GET",
-    "path": "/config",
+    "path": "/v1/config",
     "function": "get_config"
   },
   {
@@ -1652,7 +1652,7 @@
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 50,
     "method": "GET",
-    "path": "/logs",
+    "path": "/v1/logs",
     "function": "get_logs"
   },
   {
@@ -1668,7 +1668,7 @@
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 78,
     "method": "GET",
-    "path": "/suppliers",
+    "path": "/v1/suppliers",
     "function": "list_erp_suppliers"
   },
   {
@@ -1700,7 +1700,7 @@
     "file": "services/odoo-bridge/routers/health.py",
     "line": 76,
     "method": "GET",
-    "path": "/readyz/capabilities",
+    "path": "/v1/readyz/capabilities",
     "function": "readyz_capabilities"
   },
   {
@@ -1708,7 +1708,7 @@
     "file": "services/odoo-bridge/routers/sync.py",
     "line": 78,
     "method": "POST",
-    "path": "/sync",
+    "path": "/v1/sync",
     "function": "trigger_sync"
   },
   {
@@ -1716,7 +1716,7 @@
     "file": "services/odoo-bridge/routers/webhooks.py",
     "line": 21,
     "method": "POST",
-    "path": "/webhook/odoo",
+    "path": "/v1/webhook/odoo",
     "function": "odoo_webhook"
   },
   {

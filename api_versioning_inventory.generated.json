@@ -1831,27 +1831,27 @@
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 17,
     "method": "GET",
-    "path": "/erp/provider",
+    "path": "/v1/erp/provider",
     "handler": "erp_provider_status",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 33,
     "method": "GET",
-    "path": "/config",
+    "path": "/v1/config",
     "handler": "get_config",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 50,
     "method": "GET",
-    "path": "/logs",
+    "path": "/v1/logs",
     "handler": "get_logs",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "odoo-bridge",
@@ -1867,9 +1867,9 @@
     "file": "services/odoo-bridge/routers/catalog.py",
     "line": 78,
     "method": "GET",
-    "path": "/suppliers",
+    "path": "/v1/suppliers",
     "handler": "list_erp_suppliers",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "odoo-bridge",
@@ -1903,27 +1903,27 @@
     "file": "services/odoo-bridge/routers/health.py",
     "line": 76,
     "method": "GET",
-    "path": "/readyz/capabilities",
+    "path": "/v1/readyz/capabilities",
     "handler": "readyz_capabilities",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
     "line": 78,
     "method": "POST",
-    "path": "/sync",
+    "path": "/v1/sync",
     "handler": "trigger_sync",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/webhooks.py",
     "line": 21,
     "method": "POST",
-    "path": "/webhook/odoo",
+    "path": "/v1/webhook/odoo",
     "handler": "odoo_webhook",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "rag-retrieval",
