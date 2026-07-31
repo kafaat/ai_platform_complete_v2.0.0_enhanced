@@ -132,12 +132,12 @@ substring checks (`"/process" in url`) that remain trivially true regardless of 
 decorators are a different service's routes with the same bare text before their own
 router-prefix composition — coincidental, unrelated, untouched.
 
-### PR-R4 — tile and rendering routes (2)
+### PR-R4 — tile and rendering routes (2) — MIGRATED
 
-| method | path | file:line |
-|---|---|---|
-| GET | `/tiles/{layer_id}/{z}/{x}/{y}.png` | `services/raster-service/routers/tiles.py:23` |
-| GET | `/layers/{layer_id}/tilejson` | `services/raster-service/routers/tiles.py:37` |
+| method | old path | new path | file:line |
+|---|---|---|---|
+| GET | `/tiles/{layer_id}/{z}/{x}/{y}.png` | `/v1/tiles/{layer_id}/{z}/{x}/{y}.png` | `services/raster-service/routers/tiles.py:22` |
+| GET | `/layers/{layer_id}/tilejson` | `/v1/layers/{layer_id}/tilejson` | `services/raster-service/routers/tiles.py:36` |
 
 These are `layer_scoped` (`require_layer_tenant` + `require_layer_tenant_authorized`),
 architecturally distinct from the **already-versioned** `/v1/fields/{field_id}/tiles/...`
@@ -150,37 +150,54 @@ tile URLs, tenant propagation, cache keys, signed/query auth, compat aliases):**
 
 - **nginx**: `/api/raster/` (`nginx/nginx.v9.conf:252`, `nginx/nginx.fixed.conf:65`,
   `frontend/nginx.conf:75`) is a transparent prefix-stripping proxy — it does not
-  hardcode individual raster-service paths, so it requires **no config change** for any
-  path migration under it, tile routes included.
-- **frontend/mobile**: no literal reference to `/tiles/{layer_id}` or
+  hardcode individual raster-service paths, so no config change was needed for this
+  migration.
+- **frontend/mobile**: confirmed no literal reference to `/tiles/{layer_id}` or
   `/layers/{layer_id}/tilejson` anywhere in `frontend/src/` or
-  `mobile/sahool_app/lib/` (searched directly, not just grep-for-tiles — confirmed the
-  frontend's own tile calls target the separate `/v1/fields/{field_id}/tiles/...` family).
-- **dynamic URL construction**: `raster_job_orchestration.py:230` embeds
-  `"tile_url_template": f"/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"` in `/process` job
-  results. Traced every reader of `get_job_result()` — `imagery_automation.py`'s
-  `_fetch_index_mean` reads only `stats.mean`/`stats.valid_pixels`. **No code anywhere
-  reads the `tile_url_template` field** — it is dead data, not a live integration. Update
-  it in the same PR for internal consistency (stop emitting a URL that would 404 with a
-  stale prefix), but it does not gate the migration on a hidden consumer.
+  `mobile/sahool_app/lib/`, both before and after the migration — the frontend's own
+  tile calls target the separate `/v1/fields/{field_id}/tiles/...` family, unaffected.
+- **dynamic URL construction**: `raster_job_orchestration.py:230`'s `tile_url_template`
+  field (confirmed dead data in PR-R1's research — no reader anywhere in the tree) and
+  the `"static-pregenerated"` fallback's embedded `tiles` URL template inside
+  `routers/tiles.py:63` itself were both updated to `/v1/tiles/...` in this same commit,
+  for internal payload consistency (no stale-prefix URL emitted even though unconsumed).
 
-**Conclusion:** despite the general caution tile routes deserve, this specific pair has
-**no live external caller** (browser, mobile, or cross-service) as of this baseline. PR-R4
-can migrate the path directly; it does not need a compatibility-alias period the way a
-route with a confirmed live caller would.
+**Confirmed:** despite the general caution tile routes deserve, this pair had **no live
+external caller** (browser, mobile, or cross-service) at the time of migration — it moved
+directly with no compatibility-alias period.
+
+**Classifier function updated too:** `tests_v9/test_raster_endpoint_auth_coverage.py`'s
+`_is_layer_scoped()` matched on the literal prefix `/tiles/{layer_id}` /
+`/layers/{layer_id}/` — updated to `/v1/tiles/{layer_id}` / `/v1/layers/{layer_id}/`, or
+both routes would have fallen through to "unclassified" and failed the auth-coverage
+guard. Falsification-confirmed: reverting one decorator to its bare path reproduces
+exactly this failure.
+
+**Additional pre-existing staleness discovered and fixed while searching for PR-R4's two
+routes** (from PR-R2/R3, missed in their own repo-wide searches): `docs/openapi/API_MAP.md`,
+`docs/openapi/ROUTE_INVENTORY.json`, `skills/sahool-gis/RASTER_LAYER.md`,
+`skills/sahool-gis/TERRAIN_DEM.md`, `docs/architecture/GIS_CLOUD_NATIVE_BEST_PRACTICES_PHASE4.md`,
+`docs/architecture/db_ownership.yml`, and five `docs/capability-registry/domains/*.yaml`
+files (`gis.yaml`, `satellite.yaml`, `irrigation.yaml`, `operations.yaml` — manual
+capability-to-route citations with `path:line` references) all still cited bare paths for
+routes already migrated in PR-R2/R3. All corrected in this PR alongside PR-R4's own two
+routes. `docs/specs/A7_admin_boundaries_spec.md` was left untouched — an explicit draft
+spec (status: "مسودّة للمراجعة") predating the real implementation, not a live reference.
+
+**Migration complete — all 30 originally-classified routes are now `/v1/...`.**
 
 ### PR-R5 — compatibility aliases + removal proof
 
 Not a route bucket — a follow-up verification PR after R2-R4 land. Confirms (a) every
 real consumer identified above (`raster_service_client.py`'s three call sites) was updated
-in lock-step, not left on a stale bare path; (b) no bare-path alias is needed for R2-R4
-specifically, since none of the 30 routes have a browser-facing or mobile-facing live
-caller (all real consumers found are internal service-to-service, updatable in the same
-commit as the server-side path change); (c) `api_versioning_legacy_allowlist.generated.json`
-ceiling drops by exactly 30 once R2-R4 are merged, with no phantom cross-service duplicate
-introduced (repeat the `build_platform_catalog.py --generate` duplicate-group check done
-in Option B, since this migration touches 21 bare texts that could collide with another
-service's routes of the same bare text — check each before merging, don't assume).
+in lock-step, not left on a stale bare path — **confirmed**, all three (`/v1/jobs/{job_id}/result`,
+`/v1/indices`, `/v1/process/batch`) updated in the same commit as their server-side migration;
+(b) no bare-path alias is needed for R2-R4, since none of the 30 routes had a browser-facing
+or mobile-facing live caller — **confirmed** across all three PRs; (c) the
+`api_versioning_legacy_allowlist.generated.json` ceiling dropped by exactly 30 across
+R2+R3+R4 (89 → 81 → 61 → 59 — see `docs/architecture/api_versioning_legacy_baseline.json`
+for the exact per-slice figures), with no phantom cross-service duplicate introduced
+(`build_platform_catalog.py --generate` re-checked clean after each slice).
 
 ## Auth-classification cross-reference
 

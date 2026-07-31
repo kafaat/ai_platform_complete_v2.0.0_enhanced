@@ -7,11 +7,11 @@ A route landing in the wrong bucket, a route silently disappearing, or a new
 unversioned route appearing without classification all fail this test -- matching the
 falsification discipline used for the Option B classifier fix (PR #722).
 
-PR-R2 (internal/operational, 8 routes) and PR-R3 (imagery/catalog/process, 20 routes)
-are migrated to /v1/... and tracked below as MIGRATED_PR_R2 / MIGRATED_PR_R3 --
-regression tests confirm they stay versioned. Only PR-R4 (tile/rendering, 2 routes) is
-still pending, tracked as ALL_BUCKETED, matching the live legacy_unversioned_business
-measurement.
+PR-R1 classified raster-service's 30 originally-unversioned routes into three
+ownership buckets without migrating any of them. PR-R2 (internal/operational, 8
+routes), PR-R3 (imagery/catalog/process, 20 routes), and PR-R4 (tile/rendering, 2
+routes) each migrated their bucket to /v1/... in turn. All 30 routes are now
+versioned -- raster-service's legacy_unversioned_business measurement must be empty.
 """
 
 from __future__ import annotations
@@ -66,15 +66,18 @@ MIGRATED_PR_R3 = {
     ("GET", "/v1/gis/admin-boundaries"),
 }
 
-# PR-R4 -- tile and rendering routes (2). Still pending. layer_scoped; no live caller
-# found (see plan doc).
-PR_R4 = {
-    ("GET", "/tiles/{layer_id}/{z}/{x}/{y}.png"),
-    ("GET", "/layers/{layer_id}/tilejson"),
+# PR-R4 -- tile and rendering routes (2), migrated to /v1/... in this slice.
+# layer_scoped; no live caller found (see plan doc) -- migration is purely
+# internal-reference cleanup, not a lock-step consumer update.
+MIGRATED_PR_R4 = {
+    ("GET", "/v1/tiles/{layer_id}/{z}/{x}/{y}.png"),
+    ("GET", "/v1/layers/{layer_id}/tilejson"),
 }
 
-# Routes still bare and pending migration -- what the live measurement must match.
-ALL_BUCKETED = PR_R4
+# All 30 originally-classified raster-service routes are now migrated. Nothing is
+# still bucketed as pending -- the live legacy_unversioned_business measurement for
+# raster-service must be empty.
+ALL_BUCKETED: set[tuple[str, str]] = set()
 
 # Routes confirmed to have a real internal service-to-service consumer
 # (services/sahool-platform/api/raster_service_client.py), all updated in the same PR
@@ -107,33 +110,32 @@ def _raster_versioned_routes() -> set[tuple[str, str]]:
     }
 
 
-def test_pr_bucket_sets_are_disjoint_and_cover_exactly_two_pending_routes():
+def test_pr_bucket_sets_are_disjoint_and_cover_no_pending_routes():
     assert MIGRATED_PR_R2 & MIGRATED_PR_R3 == set()
-    assert MIGRATED_PR_R2 & PR_R4 == set()
-    assert MIGRATED_PR_R3 & PR_R4 == set()
-    assert len(ALL_BUCKETED) == 2, f"expected 2 pending bucketed routes, got {len(ALL_BUCKETED)}"
+    assert MIGRATED_PR_R2 & MIGRATED_PR_R4 == set()
+    assert MIGRATED_PR_R3 & MIGRATED_PR_R4 == set()
+    assert ALL_BUCKETED == set(), (
+        f"expected zero pending bucketed routes (raster-service migration complete), "
+        f"got {sorted(ALL_BUCKETED)}"
+    )
 
 
 def test_measured_baseline_matches_the_bucketed_classification():
     measured = _raster_legacy_routes()
-    missing_from_plan = measured - ALL_BUCKETED
-    assert not missing_from_plan, (
-        f"raster-service legacy_unversioned_business routes not classified in "
-        f"docs/architecture/raster_service_route_migration_plan.md: {sorted(missing_from_plan)}"
-    )
-    no_longer_legacy = ALL_BUCKETED - measured
-    assert not no_longer_legacy, (
-        f"routes in the migration plan no longer measured as legacy_unversioned_business "
-        f"for raster-service (already migrated? update the plan doc and this test): "
-        f"{sorted(no_longer_legacy)}"
+    assert measured == set(), (
+        f"raster-service still has legacy_unversioned_business routes after PR-R1..PR-R4 "
+        f"(migration plan claims completion): {sorted(measured)}"
     )
 
 
-def test_pr_r2_and_pr_r3_routes_stay_versioned_not_legacy():
-    """Regression guard: PR-R2's 8 routes and PR-R3's 20 routes must remain versioned.
-    If one reverts to a bare path (merge mishap, accidental revert), this fails by
-    naming it."""
-    migrated = MIGRATED_PR_R2 | MIGRATED_PR_R3
+def test_pr_r2_pr_r3_pr_r4_routes_stay_versioned_not_legacy():
+    """Regression guard: PR-R2's 8 routes, PR-R3's 20 routes, and PR-R4's 2 routes must
+    remain versioned. If one reverts to a bare path (merge mishap, accidental revert),
+    this fails by naming it."""
+    migrated = MIGRATED_PR_R2 | MIGRATED_PR_R3 | MIGRATED_PR_R4
+    assert len(migrated) == 30, (
+        f"expected all 30 raster-service routes tracked, got {len(migrated)}"
+    )
     legacy = _raster_legacy_routes()
     regressed = migrated & legacy
     assert not regressed, (
@@ -157,3 +159,17 @@ def test_real_consumer_call_sites_reference_the_migrated_path():
     assert '"/indices"' not in client
     assert '"/v1/process/batch"' in client
     assert '"/process/batch"' not in client
+
+
+def test_pr_r4_tile_routes_have_no_stale_bare_path_reference():
+    """PR-R4 has zero confirmed live external consumers (see plan doc's exhaustive
+    search), so there's no lock-step client update to pin -- but the embedded
+    self-referential fallback URL in tiles.py must stay migrated."""
+    tiles = (ROOT / "services" / "raster-service" / "routers" / "tiles.py").read_text(
+        encoding="utf-8"
+    )
+    assert '@router.get("/v1/tiles/{layer_id}/{z}/{x}/{y}.png")' in tiles
+    assert '@router.get("/v1/layers/{layer_id}/tilejson")' in tiles
+    assert 'f"/v1/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"' in tiles
+    assert '@router.get("/tiles/{layer_id}/{z}/{x}/{y}.png")' not in tiles
+    assert '@router.get("/layers/{layer_id}/tilejson")' not in tiles

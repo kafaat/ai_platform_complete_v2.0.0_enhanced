@@ -2372,7 +2372,7 @@
     "file": "services/raster-service/routers/tiles.py",
     "line": 23,
     "method": "GET",
-    "path": "/tiles/{layer_id}/{z}/{x}/{y}.png",
+    "path": "/v1/tiles/{layer_id}/{z}/{x}/{y}.png",
     "function": "get_tile"
   },
   {
@@ -2380,7 +2380,7 @@
     "file": "services/raster-service/routers/tiles.py",
     "line": 37,
     "method": "GET",
-    "path": "/layers/{layer_id}/tilejson",
+    "path": "/v1/layers/{layer_id}/tilejson",
     "function": "layer_tilejson"
   },
   {

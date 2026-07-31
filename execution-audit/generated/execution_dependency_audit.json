@@ -2306,7 +2306,7 @@
       "line": 23,
       "handler": "get_tile",
       "method": "GET",
-      "path": "/tiles/{layer_id}/{z}/{x}/{y}.png"
+      "path": "/v1/tiles/{layer_id}/{z}/{x}/{y}.png"
     },
     {
       "owner": "raster-service",
@@ -2314,7 +2314,7 @@
       "line": 37,
       "handler": "layer_tilejson",
       "method": "GET",
-      "path": "/layers/{layer_id}/tilejson"
+      "path": "/v1/layers/{layer_id}/tilejson"
     },
     {
       "owner": "raster-service",

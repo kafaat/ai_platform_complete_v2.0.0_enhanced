@@ -191,7 +191,7 @@ async def test_db_configured_but_lookup_unavailable_fails_closed(rm):
     assert ei.value.status_code == 503
 
 
-# ─── تفويض الطبقة (layer-scoped): /tiles/{layer_id} و/layers/{layer_id}/tilejson ──
+# ─── تفويض الطبقة (layer-scoped): /v1/tiles/{layer_id} و/v1/layers/{layer_id}/tilejson ──
 def test_layer_owner_allowed(rm):
     """tenant_a → طبقة يملكها ⇒ يمرّ (دفاع عمق layer-scoped)."""
     rm._layers["lyr1"] = {"cog_url": "file:///x.tif", "tenant_id": "tenant_a"}

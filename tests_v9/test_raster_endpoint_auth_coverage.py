@@ -11,10 +11,10 @@
     ``x_agent_token`` في توقيعها: ليست مكشوفة للمتصفّح بل يستدعيها العامل/الوكيل،
     فتُحمى بـ``_require_service_token`` (مطابقة الشقيقات — منع كشف الحقول). تُدرَج
     صراحةً في ``FIELD_SCOPED_SERVICE_ONLY`` بتبرير لكلّ منها.
-  • **layer_scoped** — ``/tiles/{layer_id}/...`` و``/layers/{layer_id}/tilejson``
+  • **layer_scoped** — ``/v1/tiles/{layer_id}/...`` و``/v1/layers/{layer_id}/tilejson``
     يجب أن تستدعي ``_require_layer_tenant(layer_id)`` (تفويض ملكيّة الطبقة).
-  • **service_only** — معالجة/مهامّ/رفع/أدوات (``/process``، ``/jobs/{id}``،
-    ``/info/{layer_id}``، ``/cog/validate``، ...) يجب أن تستدعي
+  • **service_only** — معالجة/مهامّ/رفع/أدوات (``/v1/process``، ``/v1/jobs/{id}``،
+    ``/v1/info/{layer_id}``، ``/v1/cog/validate``، ...) يجب أن تستدعي
     ``_require_service_token`` (توكن خدمة-لخدمة، لا يُكشف للمتصفّح).
   • **public_catalog** — بحث صور أقمار عامّة بـbbox + فحوص صحّة: لا بيانات مستأجِر،
     مسموح بلا مصادقة، لكن **ضمن قائمة صريحة**
@@ -313,8 +313,9 @@ def _is_field_scoped(path: str) -> bool:
 
 
 def _is_layer_scoped(path: str) -> bool:
-    # ``/tiles/{layer_id}/...`` أو ``/layers/{layer_id}/...``
-    return path.startswith("/tiles/{layer_id}") or path.startswith("/layers/{layer_id}/")
+    # ``/v1/tiles/{layer_id}/...`` أو ``/v1/layers/{layer_id}/...`` (PR-R4: هُوجِرا من
+    # ``/tiles/{layer_id}/...``/``/layers/{layer_id}/...``)
+    return path.startswith("/v1/tiles/{layer_id}") or path.startswith("/v1/layers/{layer_id}/")
 
 
 def test_raster_main_exists_and_has_routes():

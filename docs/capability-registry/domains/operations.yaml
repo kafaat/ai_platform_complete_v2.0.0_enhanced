@@ -339,8 +339,8 @@ capabilities:
   - OPS-004
   services: []
   apis:
-  - GET /offline/packs @ services/raster-service/routers/storage.py:87
-  - GET /offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115
+  - GET /v1/offline/packs @ services/raster-service/routers/storage.py:87
+  - GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115
   - POST /feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:244
   ui_consumers: []
   mobile_consumers:

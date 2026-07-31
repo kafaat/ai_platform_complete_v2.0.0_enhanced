@@ -183,7 +183,7 @@ raster-service.indices,query,raster-service,GET /v1/indices,frontend,route,False
 raster-service.info.layer_id,query,raster-service,GET /v1/info/{layer_id},frontend,route,False
 raster-service.jobs.job_id,query,raster-service,GET /v1/jobs/{job_id},frontend,route,False
 raster-service.jobs.job_id.result,query,raster-service,GET /v1/jobs/{job_id}/result,frontend,route,False
-raster-service.layers.layer_id.tilejson,query,raster-service,GET /layers/{layer_id}/tilejson,frontend,route,False
+raster-service.layers.layer_id.tilejson,query,raster-service,GET /v1/layers/{layer_id}/tilejson,frontend,route,False
 raster-service.offline.packs,query,raster-service,GET /v1/offline/packs,frontend,route,False
 raster-service.offline.packs.pack_name,query,raster-service,GET /v1/offline/packs/{pack_name},frontend,route,False
 raster-service.process,command,raster-service,POST /v1/process,frontend,route,False
@@ -207,7 +207,7 @@ raster-service.terrain.slope,command,raster-service,POST /v1/terrain/slope,front
 raster-service.terrain.status,query,raster-service,GET /v1/terrain/status,frontend,route,False
 raster-service.terrain.tilejson,query,raster-service,GET /v1/terrain/tilejson,frontend,route,False
 raster-service.tile-cache.stats,query,raster-service,GET /v1/tile-cache/stats,frontend,route,False
-raster-service.tiles.layer_id.z,query,raster-service,GET /tiles/{layer_id}/{z}/{x}/{y}.png,frontend,route,False
+raster-service.tiles.layer_id.z,query,raster-service,GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png,frontend,route,False
 raster-service.tiles.observability,query,raster-service,GET /v1/tiles/observability,frontend,route,False
 raster-service.upload.drone,command,raster-service,POST /v1/upload/drone,frontend,route,False
 raster-service.upload.raster,command,raster-service,POST /v1/upload/raster,frontend,route,False

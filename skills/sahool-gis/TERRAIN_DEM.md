@@ -37,7 +37,7 @@
   `dem_auto_fill.available=false` دائماً حاليّاً. لا تعرض hillshade/منحدر «تلقائيّ»
   كأنّه محسوب من DEM — التفسير يعمل فقط على القيم **المخزّنة يدويّاً**.
 - (للبكسل التضاريسيّ الحقيقيّ لاحقاً: `rasterApi GET /v1/imagery/dem` و
-  `POST /terrain/slope` موجودان في raster-service لكن خارج هذا المسار.)
+  `POST /v1/terrain/slope` موجودان في raster-service لكن خارج هذا المسار.)
 
 ## ربط field_id الحقيقيّ
 - `field-scoped`. القيم تُملأ عبر `PATCH /api/v1/fields/{field_id}`

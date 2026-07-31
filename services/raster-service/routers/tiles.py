@@ -19,7 +19,7 @@ logger = logging.getLogger("raster-service")
 router = APIRouter()
 
 
-@router.get("/tiles/{layer_id}/{z}/{x}/{y}.png")
+@router.get("/v1/tiles/{layer_id}/{z}/{x}/{y}.png")
 async def get_tile(layer_id: str, z: int, x: int, y: int):
     """بلاطة خريطة لطبقة (MapLibre)."""
     require_layer_tenant(layer_id, layers=LAYERS)
@@ -33,7 +33,7 @@ async def get_tile(layer_id: str, z: int, x: int, y: int):
     return Response(content=TRANSPARENT_PNG, media_type="image/png")
 
 
-@router.get("/layers/{layer_id}/tilejson")
+@router.get("/v1/layers/{layer_id}/tilejson")
 async def layer_tilejson(
     layer_id: str, rescale: str | None = Query(None), colormap: str | None = Query("viridis")
 ):
@@ -60,7 +60,7 @@ async def layer_tilejson(
     return {
         "source": "static-pregenerated",
         "tilejson": "2.2.0",
-        "tiles": [f"/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"],
+        "tiles": [f"/v1/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"],
         "minzoom": 8,
         "maxzoom": 16,
         "note": "بلاطات ثابتة مُولَّدة مسبقاً (TiTiler غير مضبوط). للديناميكي: اضبط TITILER_URL ووفّر cog_url للطبقة.",

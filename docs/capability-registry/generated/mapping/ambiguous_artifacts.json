@@ -949,29 +949,6 @@
     ]
   },
   {
-    "path": "docs/architecture/api_versioning_legacy_baseline.json",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "GIS-003",
-        "score": 13,
-        "signals": [
-          "content:dem",
-          "content:slope",
-          "content:terrain"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 10,
-        "signals": [
-          "content:sentinel",
-          "content:stac"
-        ]
-      }
-    ]
-  },
-  {
     "path": "docs/architecture/db_ownership.yml",
     "kind": "other",
     "candidates": [
@@ -1089,19 +1066,20 @@
     "kind": "other",
     "candidates": [
       {
-        "capability_id": "SAT-009",
-        "score": 8,
+        "capability_id": "GIS-003",
+        "score": 12,
         "signals": [
-          "content:cog",
-          "content:tilejson"
+          "content:dem",
+          "content:slope",
+          "content:terrain"
         ]
       },
       {
-        "capability_id": "GIS-003",
-        "score": 8,
+        "capability_id": "SAT-009",
+        "score": 9,
         "signals": [
-          "content:slope",
-          "content:terrain"
+          "content:cog",
+          "content:tilejson"
         ]
       }
     ]
