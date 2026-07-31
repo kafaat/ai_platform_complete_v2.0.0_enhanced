@@ -4002,7 +4002,7 @@
     "method": "GET",
     "path": "/api/indicators/readyz",
     "handler": "indicators_readyz_alias",
-    "classification": "legacy_unversioned_business"
+    "classification": "permanent_health_compat_alias"
   },
   {
     "service": "sahool-platform",
@@ -4011,7 +4011,7 @@
     "method": "GET",
     "path": "/api/weather/readyz",
     "handler": "weather_readyz_alias",
-    "classification": "legacy_unversioned_business"
+    "classification": "permanent_health_compat_alias"
   },
   {
     "service": "sahool-platform",
@@ -4020,7 +4020,7 @@
     "method": "GET",
     "path": "/api/vegetation/readyz",
     "handler": "vegetation_readyz_alias",
-    "classification": "legacy_unversioned_business"
+    "classification": "permanent_health_compat_alias"
   },
   {
     "service": "sahool-platform",
@@ -4029,7 +4029,7 @@
     "method": "GET",
     "path": "/api/agent/health",
     "handler": "agent_health_alias",
-    "classification": "legacy_unversioned_business"
+    "classification": "permanent_health_compat_alias"
   },
   {
     "service": "sahool-platform",
@@ -4038,7 +4038,7 @@
     "method": "GET",
     "path": "/api/vegetation/v1/all_fields",
     "handler": "vegetation_all_fields_passthrough",
-    "classification": "legacy_unversioned_business"
+    "classification": "permanent_compatibility_gateway"
   },
   {
     "service": "sahool-platform",
@@ -4047,7 +4047,7 @@
     "method": "GET",
     "path": "/api/vegetation/v1/analyze",
     "handler": "vegetation_analyze_passthrough",
-    "classification": "legacy_unversioned_business"
+    "classification": "permanent_compatibility_gateway"
   },
   {
     "service": "sahool-platform",
@@ -4056,7 +4056,7 @@
     "method": "GET",
     "path": "/api/raster/{path:path}",
     "handler": "raster_api_passthrough",
-    "classification": "legacy_unversioned_business"
+    "classification": "permanent_compatibility_gateway"
   },
   {
     "service": "sahool-platform",

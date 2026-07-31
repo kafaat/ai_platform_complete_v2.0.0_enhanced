@@ -15,7 +15,7 @@ FM-003,farm_management,Field registry and boundaries,True,7,13,56,6,53,2,2,11,1
 FM-004,farm_management,Season lifecycle,True,7,30,82,86,54,12,1,33,0
 FM-005,farm_management,Crop and cultivar catalog,True,5,6,0,0,7,3,1,5,0
 FM-006,farm_management,Farm economics,True,4,2,3,0,0,2,0,1,0
-FM-007,farm_management,Inventory and procurement,True,7,8,22,8,1,1,1,5,3
+FM-007,farm_management,Inventory and procurement,True,7,8,24,8,1,1,1,5,3
 FM-008,farm_management,ERP integration,True,5,10,24,5,1,0,0,7,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,3,0,0,2,0,2,0
@@ -60,12 +60,12 @@ SAT-009,satellite,COG persistence and tiling,True,5,11,67,0,12,1,0,21,0
 SEC-001,security,Tenant RLS,True,5,13,36,100,46,0,0,55,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
-SEC-004,security,MFA,True,7,7,18,23,4,5,4,13,0
+SEC-004,security,MFA,True,7,7,20,23,4,5,4,13,0
 SEC-005,security,Audit logging,True,2,0,0,4,0,0,0,1,0
 SEC-006,security,Service token guard,True,4,2,7,0,1,0,0,8,0
 SEC-007,security,Decision SoR DB ownership,True,4,2,0,9,47,0,0,9,0
 SEC-008,security,Secrets and production fail-closed,True,2,0,0,0,1,0,0,6,0
-SOIL-001,soil,Soil profile,True,6,13,88,14,35,1,0,13,1
+SOIL-001,soil,Soil profile,True,6,13,90,14,35,1,0,13,1
 SOIL-002,soil,Soil sampling,True,6,14,35,9,6,5,0,11,0
 SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
 SOIL-004,soil,pH EC SOM nutrients,True,1,0,0,0,0,0,0,1,0

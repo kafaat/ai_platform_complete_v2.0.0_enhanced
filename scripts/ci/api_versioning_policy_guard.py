@@ -111,8 +111,37 @@ def _routes(path: Path):
 # مُتخيَّل لا من الشجرة. (API-VERSIONING-GUARD-IS-A-MIRROR-01)
 _VERSIONED = re.compile(r"^(?:/api)?/v[0-9]+(?:/|$)")
 
+# عقد التوافق الدائم: المصدر القانونيّ الوحيد لتصنيف مسار غير مُصدَّر عقداً دائماً لا ديناً.
+# مفتاحه (method + مسار مُطبَّع) — التطبيع يستبدل كلّ معامل بـ{} فيُعرَّف **شكل** المسار لا
+# تسمية معاملاته (`/api/raster/{path:path}` ⇒ `/api/raster/{}`)، فإعادة تسمية معامل لا تُسقِط
+# المطابقة ولا تفتح ثغرة. أيّ مسار غير مُصدَّر لا يطابق إدخالاً يبقى legacy_unversioned_business
+# ويسقط على سقف الأساس — فإضافة اسم بديل دائم تتطلّب تعديل ملفّ العقد صراحةً (adjudication
+# مرئيّ في المراجعة). (API-VERSIONING-GUARD-IS-A-MIRROR-01)
+PERMANENT_CONTRACT = ROOT / "docs" / "architecture" / "permanent_compatibility_contract.json"
+_PATH_PARAM = re.compile(r"\{[^}]*\}")
 
-def _classify(path: str) -> str:
+
+def _normalize_path(path: str) -> str:
+    """`/api/raster/{path:path}` ⇒ `/api/raster/{}` — شكل المسار لا تسمية معاملاته."""
+    return _PATH_PARAM.sub("{}", path)
+
+
+def _permanent_contract() -> dict[tuple[str, str], str]:
+    """{(METHOD, normalized_path): category} من العقد المركزيّ. غيابه ⇒ لا فئات دائمة."""
+    if not PERMANENT_CONTRACT.is_file():
+        return {}
+    data = json.loads(PERMANENT_CONTRACT.read_text(encoding="utf-8"))
+    out: dict[tuple[str, str], str] = {}
+    for category, spec in (data.get("categories") or {}).items():
+        for entry in spec.get("routes") or []:
+            method = str(entry["method"]).upper()
+            out[(method, _normalize_path(str(entry["path"])))] = category
+    return out
+
+
+def _classify(path: str, method: str | None = None) -> str:
+    """يصنّف مساراً. مطابقة عقد التوافق الدائم تتطلّب `method` — المفتاح (method + مسار)
+    بالعقد، فاستدعاء بمسار وحده لا يطابق عقداً دائماً بالتصميم لا بالسهو."""
     if _VERSIONED.match(path):
         return "versioned"
     if path.startswith("/internal/"):
@@ -132,6 +161,10 @@ def _classify(path: str) -> str:
         "/",
     }:
         return "infra"
+    if method is not None:
+        category = _permanent_contract().get((method.upper(), _normalize_path(path)))
+        if category:
+            return category
     return "legacy_unversioned_business"
 
 
@@ -177,7 +210,7 @@ def collect():
             continue
         rows.extend(_routes(p))
     for r in rows:
-        r["classification"] = _classify(r["path"])
+        r["classification"] = _classify(r["path"], r["method"])
     return rows
 
 
@@ -196,8 +229,23 @@ def write(rows):
             if r["classification"] == "legacy_unversioned_business"
         }
     )
+    # الجرد الخام يبقى ظاهراً: العقود الدائمة ليست ديناً لكنّها **ليست مخفيّة** — تُكتَب
+    # بفئتها المُسمّاة بجوار قائمة الدَّين كي يقرأها المراجع بلا فتح ملفّ العقد.
+    permanent: dict[str, list[str]] = {}
+    for r in rows:
+        if r["classification"] in _permanent_contract().values():
+            permanent.setdefault(r["classification"], []).append(f"{r['method']} {r['path']}")
     ALLOW.write_text(
-        json.dumps({"legacy_unversioned_business_routes": legacy}, indent=2, ensure_ascii=False)
+        json.dumps(
+            {
+                "legacy_unversioned_business_routes": legacy,
+                "permanent_compatibility_routes": {
+                    k: sorted(set(v)) for k, v in sorted(permanent.items())
+                },
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
         + "\n",
         encoding="utf-8",
     )
@@ -265,6 +313,21 @@ def main():
                         "  المجموعة المُجمَّدة تقلّصت "
                         f"{len(frozen_set)} ⇒ {len(current_set)} — حدّث `routes` في الأساس."
                     )
+
+        # إنفاذ عكسيّ لعقد التوافق الدائم: كلّ إدخال في العقد يجب أن يقابله مسار حيّ.
+        # الاتّجاه الأمامي مضمون بنيويّاً (التصنيف يأتي **من** العقد، فلا مسار دائم خارجه)،
+        # لكنّ العكس ليس كذلك: إدخال بائت (حُذِف مساره) يبقى صامتاً ويُغطّي سلفاً أيّ مسار
+        # يُعاد إدخاله بنفس التوقيع لاحقاً بلا adjudication جديد. فيُرفَض.
+        contract = _permanent_contract()
+        if contract:
+            live = {(r["method"].upper(), _normalize_path(r["path"])) for r in rows}
+            stale = sorted(f"{m} {p}" for (m, p) in contract if (m, p) not in live)
+            if stale:
+                raise SystemExit(
+                    "عقد التوافق الدائم يحمل إدخالاً/إدخالات بلا مسار حيّ مطابق "
+                    f"(عقد بائت — يُغطّي مساراً يُعاد إدخاله لاحقاً بلا adjudication): {stale}. "
+                    f"احذفها من {PERMANENT_CONTRACT.relative_to(ROOT)} إن أُزيل المسار عمداً."
+                )
         print("api_versioning_policy_check_ok")
     else:
         counts = {}

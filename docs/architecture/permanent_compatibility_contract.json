@@ -1,0 +1,56 @@
+{
+  "$comment": "عقد التوافق الدائم — المصدر القانونيّ الوحيد لتصنيف مسار غير مُصدَّر بوصفه عقداً دائماً لا ديناً. مفتاح كلّ إدخال (method + مسار مُطبَّع): التطبيع يستبدل كلّ معامل مسار بـ{} فيُعرَّف شكل المسار لا تسمية معاملاته (/api/raster/{path:path} ⇒ /api/raster/{}). أيّ مسار غير مُصدَّر لا يطابق إدخالاً هنا يُصنَّف legacy_unversioned_business ويسقط على سقف الأساس (٠) — فإضافة اسم بديل دائم جديد تتطلّب تعديل هذا الملفّ صراحةً، أي adjudication مرئيّ في المراجعة لا قراراً صامتاً. ويُفرَض عكسيّاً: إدخال هنا بلا مسار حيّ مطابق (عقد بائت) يُسقِط CI كذلك، كي لا تتراكم إدخالات ميّتة تُغطّي مساراً يُعاد إدخاله لاحقاً.",
+  "gap": "API-VERSIONING-GUARD-IS-A-MIRROR-01",
+  "adjudicated_on": "2026-07-31",
+  "adjudication": "بعد إغلاق حملة الهجرة (٧٤٩ ⇒ ٠ دَيناً قابلاً للهجرة، PR #727..#734)، فُحِصت المسارات السبعة المتبقّية بقراءة المصدر مباشرةً فتبيّن أنّها كلّها أسماء بديلة لمسارات قديمة بالتصميم: نقلها إلى /v1/ يُلغي التوافق الذي وُجِدت له (العميل القديم يتلقّى 404 — عين الانقطاع الذي أُنشِئت لمنعه). فهي ليست ديناً مؤجَّلاً بل عقد دائم، وتصنيفها legacy_unversioned_business كان يعرض في التقارير «سبعة ديون» بينما الحقيقة «صفر ديون + سبعة عقود». هذا العقد يُسمّيها صراحةً بفئتين مرئيّتين — لا يُخفيها في infra.",
+  "not_infra": "هذه الفئات لا تعني infra ولا تُعفي المسار من الظهور. إعادة تصنيف الأسماء البديلة الصحّيّة الأربعة إلى infra قرار معماريّ مستقلّ لم يُتَّخذ عمداً: نظيره /runtime-identity كان مسنوداً بعقد موضع مُجمَّد (platform_route_placement_contract.json) وهذه بلا نظير، وخفض العدّاد بإعادة تصنيف بلا عقد يُقرأ تحسينَ رقم لا تصحيحاً.",
+  "categories": {
+    "permanent_health_compat_alias": {
+      "rationale": "اسم بديل لمسار فحص صحّة/جاهزيّة قديم. الحمولة صحّيّة خالصة ({\"status\": \"ready\", \"service\": …, \"mode\": \"alias\"}) بصفر بيانات عمل — يبقيها خضراء لمجسّات/بيئات قديمة تستدعي المسار القديم.",
+      "source": "services/sahool-platform/api/routers/compat_gateway.py:26-49",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/indicators/readyz",
+          "target": "/api/v1/indicators/dashboard"
+        },
+        {
+          "method": "GET",
+          "path": "/api/weather/readyz",
+          "target": "/api/v1/weather/current"
+        },
+        {
+          "method": "GET",
+          "path": "/api/vegetation/readyz",
+          "target": "/api/vegetation/v1/analyze"
+        },
+        {
+          "method": "GET",
+          "path": "/api/agent/health",
+          "target": "/health"
+        }
+      ]
+    },
+    "permanent_compatibility_gateway": {
+      "rationale": "تمرير توافقيّ ضيّق (GET فقط) يلتقط طلبات توجّهها بيئات nginx/compose قديمة إلى المنصّة بدل الخدمة المقصودة. التوجيه الصحيح يبقى nginx ⇒ الخدمة مباشرةً؛ هذا يمنع انكسار الخرائط/اللوحات عند اختلاف ترتيب المواقع.",
+      "source": "services/sahool-platform/api/routers/compat_gateway.py:52-141",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/vegetation/v1/all_fields",
+          "upstream": "vegetation-analysis-service"
+        },
+        {
+          "method": "GET",
+          "path": "/api/vegetation/v1/analyze",
+          "upstream": "vegetation-analysis-service"
+        },
+        {
+          "method": "GET",
+          "path": "/api/raster/{}",
+          "upstream": "raster-service"
+        }
+      ]
+    }
+  }
+}
