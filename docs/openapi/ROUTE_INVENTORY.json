@@ -172,11 +172,11 @@
   },
   "video-processor": {
     "routes": [
-      "POST /streams",
-      "DELETE /streams/{stream_id}",
-      "GET /streams/{stream_id}",
-      "GET /streams",
-      "POST /streams/{stream_id}/snapshot",
+      "POST /v1/streams",
+      "DELETE /v1/streams/{stream_id}",
+      "GET /v1/streams/{stream_id}",
+      "GET /v1/streams",
+      "POST /v1/streams/{stream_id}/snapshot",
       "GET /healthz",
       "GET /health",
       "GET /readyz"

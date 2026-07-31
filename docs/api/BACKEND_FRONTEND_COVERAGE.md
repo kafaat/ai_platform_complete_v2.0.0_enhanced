@@ -639,11 +639,6 @@
 | `/stac/conformance` | internal | — |
 | `/stac/queryables` | internal | — |
 | `/stac/search` | internal | ✅ |
-| `/streams` | internal | — |
-| `/streams/{stream_id}` | internal | — |
-| `/streams/{stream_id}/record/start` | internal | — |
-| `/streams/{stream_id}/record/stop` | internal | — |
-| `/streams/{stream_id}/snapshot` | internal | — |
 | `/tile-cache-plan` | internal | ✅ |
 | `/usage` | internal | — |
 | `/v1/activation/evidence-receipts` | internal | — |
@@ -888,6 +883,11 @@
 | `/v1/stac/mosaicjson` | internal | — |
 | `/v1/storage/cleanup` | internal | — |
 | `/v1/storage/stats` | internal | — |
+| `/v1/streams` | internal | — |
+| `/v1/streams/{stream_id}` | internal | — |
+| `/v1/streams/{stream_id}/record/start` | internal | — |
+| `/v1/streams/{stream_id}/record/stop` | internal | — |
+| `/v1/streams/{stream_id}/snapshot` | internal | — |
 | `/v1/suppliers` | internal | — |
 | `/v1/suppliers/{supplier_id}` | internal | — |
 | `/v1/sync` | internal | — |

@@ -141,14 +141,14 @@
 - `GET /v1/timeseries/{field_id}`
 
 ## video-processor — 8 مسار
-- `DELETE /streams/{stream_id}`
 - `GET /health`
 - `GET /healthz`
 - `GET /readyz`
-- `GET /streams`
-- `GET /streams/{stream_id}`
-- `POST /streams`
-- `POST /streams/{stream_id}/snapshot`
+- `DELETE /v1/streams/{stream_id}`
+- `GET /v1/streams`
+- `GET /v1/streams/{stream_id}`
+- `POST /v1/streams`
+- `POST /v1/streams/{stream_id}/snapshot`
 
 ## weather-service — 4 مسار
 - `GET /`

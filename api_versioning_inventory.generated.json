@@ -9562,72 +9562,72 @@
     "file": "services/video-processor/routers/streams.py",
     "line": 46,
     "method": "POST",
-    "path": "/streams",
+    "path": "/v1/streams",
     "handler": "create_stream",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
     "line": 92,
     "method": "DELETE",
-    "path": "/streams/{stream_id}",
+    "path": "/v1/streams/{stream_id}",
     "handler": "stop_stream",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
     "line": 113,
     "method": "GET",
-    "path": "/streams/{stream_id}",
+    "path": "/v1/streams/{stream_id}",
     "handler": "get_stream",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
     "line": 136,
     "method": "GET",
-    "path": "/streams",
+    "path": "/v1/streams",
     "handler": "list_streams",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
     "line": 162,
     "method": "POST",
-    "path": "/streams/{stream_id}/snapshot",
+    "path": "/v1/streams/{stream_id}/snapshot",
     "handler": "snapshot",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
     "line": 180,
     "method": "GET",
-    "path": "/streams/{stream_id}/snapshot",
+    "path": "/v1/streams/{stream_id}/snapshot",
     "handler": "snapshot_zlm",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 202,
+    "line": 203,
     "method": "POST",
-    "path": "/streams/{stream_id}/record/start",
+    "path": "/v1/streams/{stream_id}/record/start",
     "handler": "record_start",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/routers/streams.py",
-    "line": 222,
+    "line": 223,
     "method": "POST",
-    "path": "/streams/{stream_id}/record/stop",
+    "path": "/v1/streams/{stream_id}/record/stop",
     "handler": "record_stop",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "weather-service",

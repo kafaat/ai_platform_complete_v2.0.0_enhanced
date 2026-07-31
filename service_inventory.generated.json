@@ -339,7 +339,7 @@
     "service": "video-processor",
     "domain": "Video Processing",
     "python_files": 9,
-    "python_loc": 1051,
+    "python_loc": 1052,
     "tests": 1,
     "routes": 11,
     "main": "services/video-processor/main.py",

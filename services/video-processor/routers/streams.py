@@ -42,7 +42,7 @@ def _assert_registry_tenant(entry, user: dict) -> None:
         raise HTTPException(404, "Stream not found")
 
 
-@router.post("/streams")
+@router.post("/v1/streams")
 async def create_stream(
     req: main.CreateStreamRequest, user: dict = Depends(main._get_current_user)
 ):
@@ -88,7 +88,7 @@ async def create_stream(
     }
 
 
-@router.delete("/streams/{stream_id}")
+@router.delete("/v1/streams/{stream_id}")
 async def stop_stream(stream_id: str, user: dict = Depends(main._get_current_user)):
     # عزل المستأجرين: لا تُزِل البثّ من الذاكرة قبل إثبات ملكيّة مستأجِر الرمز.
     # كان pop() قبل _assert_stream_tenant يسمح لمستأجِر آخر بإيقاف/حذف بثّ لا يملكه
@@ -109,7 +109,7 @@ async def stop_stream(stream_id: str, user: dict = Depends(main._get_current_use
     return {"stream_id": stream_id, "status": "stopped"}
 
 
-@router.get("/streams/{stream_id}")
+@router.get("/v1/streams/{stream_id}")
 async def get_stream(stream_id: str, user: dict = Depends(main._get_current_user)):
     state = main.STREAMS.get(stream_id)
     if not state:
@@ -132,7 +132,7 @@ async def get_stream(stream_id: str, user: dict = Depends(main._get_current_user
     }
 
 
-@router.get("/streams")
+@router.get("/v1/streams")
 async def list_streams(user: dict = Depends(main._get_current_user)):
     # تقييد بالمستأجِر: كلّ مستأجِر يرى بثوثه فقط. لا تجاوز admin شامل (أُزيل):
     # admin المستأجِر محصور في مستأجِره؛ العبور المشروع عبر break-glass فقط.
@@ -158,7 +158,7 @@ async def list_streams(user: dict = Depends(main._get_current_user)):
     }
 
 
-@router.post("/streams/{stream_id}/snapshot")
+@router.post("/v1/streams/{stream_id}/snapshot")
 async def snapshot(stream_id: str, user: dict = Depends(main._get_current_user)):
     state = main.STREAMS.get(stream_id)
     if not state or state.last_frame is None:
@@ -176,11 +176,12 @@ async def snapshot(stream_id: str, user: dict = Depends(main._get_current_user))
 # ══════════════════════════════════════════════════════════════
 # لقطة ZLMediaKit + تسجيل (عقود العميل + السجلّ الخفيف + الأحداث)
 # ══════════════════════════════════════════════════════════════
-@router.get("/streams/{stream_id}/snapshot")
+@router.get("/v1/streams/{stream_id}/snapshot")
 async def snapshot_zlm(stream_id: str, user: dict = Depends(main._get_current_user)):
     """لقطة عبر ZLMediaKit (getSnap). 404 إن كان البثّ مجهولاً في السجلّ.
 
-    (نظير POST /snapshot الذي يُرجِع آخر إطار مُلتقَط محليّاً؛ هذا يستدعي خادم الوسائط.)
+    (نظير POST /v1/streams/{stream_id}/snapshot الذي يُرجِع آخر إطار مُلتقَط محليّاً؛
+    هذا يستدعي خادم الوسائط.)
     """
     entry = registry.get(stream_id)
     _assert_registry_tenant(entry, user)
@@ -198,7 +199,7 @@ async def snapshot_zlm(stream_id: str, user: dict = Depends(main._get_current_us
     return {"stream_id": stream_id, "snapshot": result}
 
 
-@router.post("/streams/{stream_id}/record/start")
+@router.post("/v1/streams/{stream_id}/record/start")
 async def record_start(stream_id: str, user: dict = Depends(main._get_current_user)):
     """يبدأ تسجيل البثّ عبر ZLMediaKit ويحدّث السجلّ + يبثّ الحدث.
 
@@ -218,7 +219,7 @@ async def record_start(stream_id: str, user: dict = Depends(main._get_current_us
     return {"stream_id": stream_id, "state": "error", "ok": False, "result": result}
 
 
-@router.post("/streams/{stream_id}/record/stop")
+@router.post("/v1/streams/{stream_id}/record/stop")
 async def record_stop(stream_id: str, user: dict = Depends(main._get_current_user)):
     """يوقف تسجيل البثّ عبر ZLMediaKit ويحدّث السجلّ + يبثّ الحدث.
 
