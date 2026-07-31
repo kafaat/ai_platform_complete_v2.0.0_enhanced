@@ -4,3 +4,8 @@ httpx==0.28.1
 pydantic==2.10.4
 
 asyncpg==0.30.0
+
+# مخزن nonce لتأكيد هويّة العامل (main.py:_claim_worker_assertion_once). كان
+# يُستورَد كسولاً بلا إعلان، فالحاوية تُقلِع خضراء ثمّ يفشل أوّل طلب مربوط بالهويّة
+# بـModuleNotFoundError يظهر «مخزن الإعادة غير متاح» — DECISION-SERVICE-REDIS-DEPENDENCY-GAP-01.
+redis>=5.0.0

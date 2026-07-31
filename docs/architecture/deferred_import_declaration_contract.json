@@ -1,0 +1,68 @@
+{
+  "$comment": "عقد الاستيراد المؤجَّل — المصدر القانونيّ الوحيد لتصنيف استيراد حزمة ثقيلة **داخل دالّة** بلا إعلانها في requirements الخدمة. يفرضه tests_v9/test_requirements_completeness.py. فئتان لا تُخلَطان: optional_by_design (ميزة اختياريّة لها بديل صادق موثَّق — حالة دائمة) وundeclared_debt (عطل حقيقيّ عند أوّل استعمال، مُجمَّد ريثما يُتَّخذ قرار تبعيّة مسنود بـpip-audit). ويُفرَض عكسيّاً: إدخال بلا حالة حيّة مطابقة يُسقِط CI.",
+  "gap": "DEFERRED-IMPORT-UNDECLARED-01",
+  "adjudicated_on": "2026-07-31",
+  "why_this_was_invisible": "كان الحارس يرصد بتعبير نمطيّ مرتكز على العمود صفر (`^(?:from|import)`)، وعلّق ذلك صراحةً بأنّ ما يهمّ هو الإقلاع. فالاستيراد المؤجَّل — المسافة البادئة — لم يكن يُرى أصلاً. وredis لم يكن في خريطة الحزم رغم إعلانه في ثمان خدمات. النقطتان معاً أخفتا ثمانية مواضع في خمس خدمات.",
+  "failure_mode": "الحاوية تُقلِع خضراء (لا استيراد وقت الإقلاع)، ثمّ يفشل أوّل نداء يمرّ بالمسار بـModuleNotFoundError — وغالباً يبتلعه `except Exception` عريض فيظهر «الخدمة غير متاحة». فيُرسَل المشغّل إلى خادم سليم بينما العطل نقصٌ في الصورة.",
+  "optional_by_design": [
+    {
+      "service": "ai_agronomist",
+      "module": "numpy",
+      "sites": ["services/ai_agronomist/field_boundary_backends.py:131"],
+      "why": "تتبّع محيط حقيقيّ عبر rasterio.features.shapes حين توفّره؛ `except Exception ⇒ return None` والمُستدعي يسقط إلى مستطيل نقيّ (موثَّق في docstring:125-129). إعلان numpy/rasterio هنا يُثقِل خدمة خفيفة بتبعيّة جغرافيّة لا تحتاجها في مسارها الافتراضيّ."
+    },
+    {
+      "service": "ai_agronomist",
+      "module": "rasterio",
+      "sites": [
+        "services/ai_agronomist/field_boundary_backends.py:132",
+        "services/ai_agronomist/field_boundary_backends.py:133"
+      ],
+      "why": "نفس الموضع والبديل النقيّ أعلاه."
+    },
+    {
+      "service": "sahool-platform",
+      "module": "PIL",
+      "sites": [
+        "services/sahool-platform/core/spatial/bivariate_raster.py:123",
+        "services/sahool-platform/core/spatial/raster_export.py:93"
+      ],
+      "why": "`except ImportError ⇒ RuntimeError(\"Pillow مطلوب — pip install pillow\")`: الفشل صريح ويسمّي العلاج، ولا يُدّعى نجاح. تصدير PNG ميزة اختياريّة لا مسار إقلاع."
+    },
+    {
+      "service": "sahool-platform",
+      "module": "shapely",
+      "sites": [
+        "services/sahool-platform/api/gis_geometry_guard.py:124",
+        "services/sahool-platform/api/gis_geometry_guard.py:125"
+      ],
+      "why": "إصلاح هندسة أفضل-جهد: `except Exception ⇒ return geometry` (المُدخَل مُطبَّعاً). الغياب يُضعِف الإصلاح ولا يكسر المسار، والـdocstring يقولها صراحةً."
+    }
+  ],
+  "undeclared_debt": [
+    {
+      "service": "raster-service",
+      "module": "yaml",
+      "sites": ["services/raster-service/terrain_source_registry.py:63"],
+      "why": "**لا بديل**: المعالِج يلتقط `(FileNotFoundError, OSError)` فقط، فـImportError ينتشر ويُسقِط قراءة سجلّ مصادر التضاريس. pyyaml غير مُعلَن في requirements الخدمة.",
+      "closing_condition": "إعلان pyyaml بعد pip-audit، أو التقاط ImportError صراحةً بسقوط صادق (قائمة فارغة + سبب مُسجَّل) كما يعد الـdocstring."
+    },
+    {
+      "service": "sahool-platform",
+      "module": "sklearn",
+      "sites": ["services/sahool-platform/api/zones_kmeans.py:88"],
+      "why": "**استيراد مؤجَّل عارٍ بلا try/except إطلاقاً** — أخطر الثلاثة: أوّل نداء لتجميع المناطق يرمي ModuleNotFoundError خاماً. scikit-learn غير مُعلَن في api/requirements.txt.",
+      "closing_condition": "قرار: إعلان scikit-learn (حزمة ثقيلة ⇒ يلزم pip-audit وقياس حجم الصورة) أو نقل التجميع إلى خدمة تملكها."
+    },
+    {
+      "service": "ai_agronomist",
+      "module": "redis",
+      "sites": ["services/ai_agronomist/agent_stores.py:138"],
+      "why": "في الإنتاج `_production_mode()` يرفع RuntimeError بدل السقوط للذاكرة — أي redis **مطلوب إنتاجاً** وغير مُعلَن. الرسالة تحمل `type(exc).__name__` فتسمّي ModuleNotFoundError (أفضل من نظيرتها في decision-service قبل هذه الشريحة).",
+      "closing_condition": "إعلان redis في requirements الخدمة بعد pip-audit — القيد نفسه `redis>=5.0.0` مُعلَن في خمس خدمات شقيقة."
+    }
+  ],
+  "fixed_in_this_slice": {
+    "decision-service:redis": "أُعلِنت redis>=5.0.0 في services/decision-service/requirements.txt، وفُصِل ModuleNotFoundError عن تعذّر الاتّصال في رسالة الفشل — فلم تعد الحالة تُصنَّف ديناً. كانت الفجوة المُسجَّلة DECISION-SERVICE-REDIS-DEPENDENCY-GAP-01."
+  }
+}

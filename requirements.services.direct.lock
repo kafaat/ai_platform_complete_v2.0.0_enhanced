@@ -48,6 +48,7 @@ uvicorn==0.34.0
 httpx==0.28.1
 pydantic==2.10.4
 asyncpg==0.30.0
+redis>=5.0.0
 
 # --- services/edge-inference/requirements.txt ---
 fastapi==0.136.3
