@@ -595,8 +595,6 @@
 | `/iot/dispatch/preview` | internal | — |
 | `/iot/dispatch/simulate` | internal | — |
 | `/iot/telemetry/verify` | internal | — |
-| `/jobs/{job_id}` | internal | — |
-| `/jobs/{job_id}/result` | internal | — |
 | `/layers/{layer_id}/tilejson` | internal | — |
 | `/locks` | internal | — |
 | `/locks/{field_id}` | internal | — |
@@ -616,8 +614,6 @@
 | `/models/serving/{alias:path}` | internal | — |
 | `/mosaicjson` | internal | — |
 | `/network-calculate` | internal | ✅ |
-| `/offline/packs` | internal | — |
-| `/offline/packs/{pack_name}` | internal | — |
 | `/ogc` | internal | — |
 | `/ogc/collections` | internal | ✅ |
 | `/ogc/collections/fields/items` | internal | — |
@@ -673,8 +669,6 @@
 | `/stac/mosaicjson` | internal | — |
 | `/stac/queryables` | internal | — |
 | `/stac/search` | internal | ✅ |
-| `/storage/cleanup` | internal | — |
-| `/storage/stats` | internal | — |
 | `/streams` | internal | — |
 | `/streams/{stream_id}` | internal | — |
 | `/streams/{stream_id}/record/start` | internal | — |
@@ -686,8 +680,6 @@
 | `/terrain/slope` | internal | — |
 | `/tile-cache-plan` | internal | ✅ |
 | `/tiles/{layer_id}/{z}/{x}/{y}.png` | internal | — |
-| `/upload/drone` | internal | — |
-| `/upload/raster` | internal | — |
 | `/usage` | internal | — |
 | `/v1/activation/evidence-receipts` | internal | — |
 | `/v1/activation/evidence-receipts/{evidence_id}/revoke` | internal | — |
@@ -829,6 +821,8 @@
 | `/v1/inference/pest-detect` | internal | ✅ |
 | `/v1/inference/yield-estimate` | internal | — |
 | `/v1/ingest` | internal | — |
+| `/v1/jobs/{job_id}` | internal | — |
+| `/v1/jobs/{job_id}/result` | internal | — |
 | `/v1/learning/activation-commands/{activation_command_id}/claim` | internal | — |
 | `/v1/learning/activation-commands/{activation_command_id}/receipt` | internal | — |
 | `/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command` | internal | — |
@@ -857,6 +851,8 @@
 | `/v1/mcp/tools/list` | internal | — |
 | `/v1/ndvi/current/{field_id}` | internal | ✅ |
 | `/v1/nodes` | internal | — |
+| `/v1/offline/packs` | internal | — |
+| `/v1/offline/packs/{pack_name}` | internal | — |
 | `/v1/outcomes/reconciled` | internal | — |
 | `/v1/outcomes/record` | internal | — |
 | `/v1/outcomes/{outcome_id}/learning-attribution` | internal | — |
@@ -893,6 +889,8 @@
 | `/v1/soil/sampling-plans/{plan_id}/approve` | internal | — |
 | `/v1/soil/tilejson` | internal | ✅ |
 | `/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png` | internal | ✅ |
+| `/v1/storage/cleanup` | internal | — |
+| `/v1/storage/stats` | internal | — |
 | `/v1/sync/trigger` | internal | — |
 | `/v1/terrain/status` | internal | — |
 | `/v1/terrain/tilejson` | internal | ✅ |
@@ -903,6 +901,8 @@
 | `/v1/tts/stream` | internal | — |
 | `/v1/tts/synthesize` | internal | — |
 | `/v1/tts/voices` | internal | — |
+| `/v1/upload/drone` | internal | — |
+| `/v1/upload/raster` | internal | — |
 | `/v1/validate` | internal | ✅ |
 | `/v1/workflow/{workflow_id}` | internal | — |
 | `/verify` | internal | — |

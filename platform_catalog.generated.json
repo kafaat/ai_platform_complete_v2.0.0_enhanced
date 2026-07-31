@@ -2979,7 +2979,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /jobs/{job_id}"
+        "GET /v1/jobs/{job_id}"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -2996,7 +2996,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /jobs/{job_id}/result"
+        "GET /v1/jobs/{job_id}/result"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -3030,7 +3030,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /offline/packs"
+        "GET /v1/offline/packs"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -3047,7 +3047,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /offline/packs/{pack_name}"
+        "GET /v1/offline/packs/{pack_name}"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -3319,7 +3319,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /storage/cleanup"
+        "POST /v1/storage/cleanup"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3336,7 +3336,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /storage/stats"
+        "GET /v1/storage/stats"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -3455,7 +3455,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /upload/drone"
+        "POST /v1/upload/drone"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -3472,7 +3472,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /upload/raster"
+        "POST /v1/upload/raster"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -17223,7 +17223,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "1b3c2926e6785cf929a2f6eaae355a62c88fb9624345cc207697fd9f34bc2bb3",
+  "fingerprint": "2a598f730a77629b56e6faece0e68404c6b60784017725fb8918564ad471b63d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

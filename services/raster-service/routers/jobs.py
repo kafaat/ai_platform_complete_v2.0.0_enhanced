@@ -15,7 +15,7 @@ from raster_security_context import require_service_token
 router = APIRouter()
 
 
-@router.get("/jobs/{job_id}")
+@router.get("/v1/jobs/{job_id}")
 async def job_status(job_id: str, x_agent_token: str = Header(None)):
     """حالة المهمّة."""
     require_service_token(x_agent_token)
@@ -33,7 +33,7 @@ async def job_status(job_id: str, x_agent_token: str = Header(None)):
     }
 
 
-@router.get("/jobs/{job_id}/result")
+@router.get("/v1/jobs/{job_id}/result")
 async def job_result(job_id: str, x_agent_token: str = Header(None)):
     """نتيجة المهمّة (بعد الاكتمال)."""
     require_service_token(x_agent_token)

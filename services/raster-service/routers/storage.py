@@ -22,7 +22,7 @@ router = APIRouter()
 logger = logging.getLogger("raster-service")
 
 
-@router.post("/upload/raster")
+@router.post("/v1/upload/raster")
 async def upload_raster(file: UploadFile = File(...), x_agent_token: str = Header(None)):
     """يرفع ملفّ راستر (GeoTIFF) ويُرجع raster_url داخليّاً."""
     require_service_token(x_agent_token)
@@ -39,7 +39,7 @@ async def upload_raster(file: UploadFile = File(...), x_agent_token: str = Heade
     return {"raster_url": f"file://{path}"}
 
 
-@router.post("/upload/drone")
+@router.post("/v1/upload/drone")
 async def upload_drone(
     file: UploadFile = File(...),
     tenant_id: str = Form(...),
@@ -61,7 +61,7 @@ async def upload_drone(
     return {"raster_url": f"file://{path}"}
 
 
-@router.get("/storage/stats")
+@router.get("/v1/storage/stats")
 async def storage_stats(x_agent_token: str = Header(None)):
     require_service_token(x_agent_token)
     """إحصاء التخزين (مراقبة قبل الانفجار) — حجم + توزيع بالنوع."""
@@ -70,7 +70,7 @@ async def storage_stats(x_agent_token: str = Header(None)):
     return rl.scan_storage(UPLOAD_DIR)
 
 
-@router.post("/storage/cleanup")
+@router.post("/v1/storage/cleanup")
 async def storage_cleanup(dry_run: bool = True, x_agent_token: str = Header(None)):
     """ينظّف النواتج المنتهية حسب الاحتفاظ. dry_run=true افتراضي (آمن).
 
@@ -83,7 +83,7 @@ async def storage_cleanup(dry_run: bool = True, x_agent_token: str = Header(None
     return rl.cleanup(UPLOAD_DIR, dry_run=dry_run)
 
 
-@router.get("/offline/packs")
+@router.get("/v1/offline/packs")
 async def list_offline_packs(x_agent_token: str = Header(None)):
     require_service_token(x_agent_token)
     """يسرد حزم MBTiles الجاهزة للتنزيل (الموبايل يحمّلها للعمل offline).
@@ -101,7 +101,7 @@ async def list_offline_packs(x_agent_token: str = Header(None)):
                         "name": name,
                         "format": name.rsplit(".", 1)[-1],
                         "size_mb": round(os.path.getsize(path) / 1e6, 1),
-                        "download_url": f"/offline/packs/{name}",
+                        "download_url": f"/v1/offline/packs/{name}",
                     }
                 )
     return {
@@ -111,7 +111,7 @@ async def list_offline_packs(x_agent_token: str = Header(None)):
     }
 
 
-@router.get("/offline/packs/{pack_name}")
+@router.get("/v1/offline/packs/{pack_name}")
 async def download_offline_pack(pack_name: str, x_agent_token: str = Header(None)):
     require_service_token(x_agent_token)
     """ينزّل حزمة MBTiles/PMTiles محدّدة (للتخزين على الجهاز)."""

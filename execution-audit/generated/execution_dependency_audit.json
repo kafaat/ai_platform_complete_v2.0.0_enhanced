@@ -2042,7 +2042,7 @@
       "line": 19,
       "handler": "job_status",
       "method": "GET",
-      "path": "/jobs/{job_id}"
+      "path": "/v1/jobs/{job_id}"
     },
     {
       "owner": "raster-service",
@@ -2050,7 +2050,7 @@
       "line": 37,
       "handler": "job_result",
       "method": "GET",
-      "path": "/jobs/{job_id}/result"
+      "path": "/v1/jobs/{job_id}/result"
     },
     {
       "owner": "raster-service",
@@ -2218,7 +2218,7 @@
       "line": 26,
       "handler": "upload_raster",
       "method": "POST",
-      "path": "/upload/raster"
+      "path": "/v1/upload/raster"
     },
     {
       "owner": "raster-service",
@@ -2226,7 +2226,7 @@
       "line": 43,
       "handler": "upload_drone",
       "method": "POST",
-      "path": "/upload/drone"
+      "path": "/v1/upload/drone"
     },
     {
       "owner": "raster-service",
@@ -2234,7 +2234,7 @@
       "line": 65,
       "handler": "storage_stats",
       "method": "GET",
-      "path": "/storage/stats"
+      "path": "/v1/storage/stats"
     },
     {
       "owner": "raster-service",
@@ -2242,7 +2242,7 @@
       "line": 74,
       "handler": "storage_cleanup",
       "method": "POST",
-      "path": "/storage/cleanup"
+      "path": "/v1/storage/cleanup"
     },
     {
       "owner": "raster-service",
@@ -2250,7 +2250,7 @@
       "line": 87,
       "handler": "list_offline_packs",
       "method": "GET",
-      "path": "/offline/packs"
+      "path": "/v1/offline/packs"
     },
     {
       "owner": "raster-service",
@@ -2258,7 +2258,7 @@
       "line": 115,
       "handler": "download_offline_pack",
       "method": "GET",
-      "path": "/offline/packs/{pack_name}"
+      "path": "/v1/offline/packs/{pack_name}"
     },
     {
       "owner": "raster-service",

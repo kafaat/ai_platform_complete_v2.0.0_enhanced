@@ -83,14 +83,14 @@
 - `GET /v1/imagery/search/season`
 - `GET /imagery/timeseries`
 - `GET /info/{layer_id}`
-- `GET /jobs/{job_id}`
-- `GET /jobs/{job_id}/result`
+- `GET /v1/jobs/{job_id}`
+- `GET /v1/jobs/{job_id}/result`
 - `GET /layers/{layer_id}/tilejson`
 - `GET /metrics`
-- `GET /offline/packs`
-- `GET /offline/packs/{pack_name}`
+- `GET /v1/offline/packs`
+- `GET /v1/offline/packs/{pack_name}`
 - `GET /readyz`
-- `GET /storage/stats`
+- `GET /v1/storage/stats`
 - `GET /tiles/{layer_id}/{z}/{x}/{y}.png`
 - `POST /v1/imagery/search`
 - `POST /imagery/timeseries/analyze`
@@ -99,10 +99,10 @@
 - `POST /process/batch`
 - `POST /salinity/calibrate`
 - `POST /salinity/classify`
-- `POST /storage/cleanup`
+- `POST /v1/storage/cleanup`
 - `POST /terrain/slope`
-- `POST /upload/drone`
-- `POST /upload/raster`
+- `POST /v1/upload/drone`
+- `POST /v1/upload/raster`
 - `POST /zones/classify`
 
 ## soil-service — 6 مسار

@@ -103,18 +103,18 @@ SERVICE_ONLY: set[str] = {
     "/terrain/slope",  # انحدار من DEM.
     "/salinity/classify",  # تصنيف الملوحة.
     "/salinity/calibrate",  # معايرة الملوحة.
-    "/upload/raster",  # رفع راستر — يكتب ملفّات.
-    "/upload/drone",  # رفع أورثوموزاييك درون.
+    "/v1/upload/raster",  # رفع راستر — يكتب ملفّات. (PR-R2: هُوجِر من /upload/raster)
+    "/v1/upload/drone",  # رفع أورثوموزاييك درون. (PR-R2: هُوجِر من /upload/drone)
     "/process",  # معالجة مؤشّر (غير متزامن → job).
     "/process/batch",  # معالجة دفعيّة لعدّة مؤشّرات.
-    "/jobs/{job_id}",  # حالة مهمّة.
-    "/jobs/{job_id}/result",  # نتيجة مهمّة.
+    "/v1/jobs/{job_id}",  # حالة مهمّة. (PR-R2: هُوجِر من /jobs/{job_id})
+    "/v1/jobs/{job_id}/result",  # نتيجة مهمّة. (PR-R2: هُوجِر من /jobs/{job_id}/result)
     "/info/{layer_id}",  # معلومات طبقة راستر.
     "/cog/validate",  # تحقّق COG.
-    "/storage/cleanup",  # تنظيف التخزين — يحذف ملفّات.
-    "/storage/stats",  # إحصاء التخزين يكشف بنية داخلية؛ محمي بتوكن خدمة.
-    "/offline/packs",  # سرد حزم offline محمي بتوكن خدمة.
-    "/offline/packs/{pack_name}",  # تنزيل الحزم محمي بتوكن خدمة.
+    "/v1/storage/cleanup",  # تنظيف التخزين — يحذف ملفّات. (PR-R2: هُوجِر من /storage/cleanup)
+    "/v1/storage/stats",  # إحصاء التخزين يكشف بنية داخلية؛ محمي بتوكن خدمة. (PR-R2: هُوجِر من /storage/stats)
+    "/v1/offline/packs",  # سرد حزم offline محمي بتوكن خدمة. (PR-R2: هُوجِر من /offline/packs)
+    "/v1/offline/packs/{pack_name}",  # تنزيل الحزم محمي بتوكن خدمة. (PR-R2: هُوجِر من /offline/packs/{pack_name})
     "/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ).
     # ── كتالوج GIS سحابيّ + تحليلات حقول: تكشف بنية/تصدير ⇒ توكن خدمة + ترويسة ──
     "/v1/fields/analytics/geoparquet/export",  # تصدير GeoParquet لحقول — توكن خدمة.

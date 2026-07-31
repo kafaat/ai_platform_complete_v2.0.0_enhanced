@@ -2108,7 +2108,7 @@
     "file": "services/raster-service/routers/jobs.py",
     "line": 19,
     "method": "GET",
-    "path": "/jobs/{job_id}",
+    "path": "/v1/jobs/{job_id}",
     "function": "job_status"
   },
   {
@@ -2116,7 +2116,7 @@
     "file": "services/raster-service/routers/jobs.py",
     "line": 37,
     "method": "GET",
-    "path": "/jobs/{job_id}/result",
+    "path": "/v1/jobs/{job_id}/result",
     "function": "job_result"
   },
   {
@@ -2284,7 +2284,7 @@
     "file": "services/raster-service/routers/storage.py",
     "line": 26,
     "method": "POST",
-    "path": "/upload/raster",
+    "path": "/v1/upload/raster",
     "function": "upload_raster"
   },
   {
@@ -2292,7 +2292,7 @@
     "file": "services/raster-service/routers/storage.py",
     "line": 43,
     "method": "POST",
-    "path": "/upload/drone",
+    "path": "/v1/upload/drone",
     "function": "upload_drone"
   },
   {
@@ -2300,7 +2300,7 @@
     "file": "services/raster-service/routers/storage.py",
     "line": 65,
     "method": "GET",
-    "path": "/storage/stats",
+    "path": "/v1/storage/stats",
     "function": "storage_stats"
   },
   {
@@ -2308,7 +2308,7 @@
     "file": "services/raster-service/routers/storage.py",
     "line": 74,
     "method": "POST",
-    "path": "/storage/cleanup",
+    "path": "/v1/storage/cleanup",
     "function": "storage_cleanup"
   },
   {
@@ -2316,7 +2316,7 @@
     "file": "services/raster-service/routers/storage.py",
     "line": 87,
     "method": "GET",
-    "path": "/offline/packs",
+    "path": "/v1/offline/packs",
     "function": "list_offline_packs"
   },
   {
@@ -2324,7 +2324,7 @@
     "file": "services/raster-service/routers/storage.py",
     "line": 115,
     "method": "GET",
-    "path": "/offline/packs/{pack_name}",
+    "path": "/v1/offline/packs/{pack_name}",
     "function": "download_offline_pack"
   },
   {

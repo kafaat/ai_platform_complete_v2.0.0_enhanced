@@ -159,5 +159,5 @@ async def process_batch(
         "deduplicated": False,
         "claim_backend": claim_backend,
         "claim_recovered": recovered,
-        "note": "استعلم /jobs/{job_id} — batch_results + batch_failed عند الاكتمال",
+        "note": "استعلم /v1/jobs/{job_id} — batch_results + batch_failed عند الاكتمال",
     }

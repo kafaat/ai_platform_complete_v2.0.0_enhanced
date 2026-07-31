@@ -463,7 +463,7 @@ async def get_job_result(
 
     try:
         return await raster_get_json(
-            f"/jobs/{job_id}/result",
+            f"/v1/jobs/{job_id}/result",
             tenant_id=tenant_id,
             timeout_s=timeout_s,
         )

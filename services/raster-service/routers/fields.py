@@ -836,7 +836,7 @@ async def process_cdse(
         "job_id": job_id,
         "status": JobStatus.pending,
         "indicators": list(req.indicators),
-        "note": "معالجة CDSE خلفيّة — استعلم /jobs/{job_id} (cdse_results + cdse_failed).",
+        "note": "معالجة CDSE خلفيّة — استعلم /v1/jobs/{job_id} (cdse_results + cdse_failed).",
     }
 
 

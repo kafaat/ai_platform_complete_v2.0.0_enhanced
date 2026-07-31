@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b529fd45fade571caeee53044786b968483cce6df3052f34241c9864dc9e31c"
+          "content": "7b6b4651ce2d097c2caaa20c03c380153135d82f7395e826b6d00a6ec84b98cd"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -13025,7 +13025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5be7c707d0f003fd285155b0bfea592f00fd6f9e29e4f71c7af99724e5107f62"
+          "content": "5b50ad66d938757ff5e1f106327989c3931cae5d810f2db59f3041c9bf3e4902"
         }
       ],
       "name": "services/raster-service/job_store.py",
@@ -13165,7 +13165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93573bd2ffc54e3aa22ad0fb86338ca3221b59bff94619f9ffeed6cbd89d5125"
+          "content": "534b5d1e589c1d952ae14b2b66d1cc56cd914200ec3f037051c5e06c8ca57c30"
         }
       ],
       "name": "services/raster-service/raster_batch_runtime_leases.py",
@@ -13455,7 +13455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a331309fa284846c38fe853a7b60b28dd69e27cda30ad1237924ba26e132143"
+          "content": "4677d363a98c78f1a668d81d7db56d4a9c194268d7a42bd749601bc84b2c1775"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -13485,7 +13485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "624813a159030ac0877c8ba1d69bd758c3a30412028d1f4c521edac0b76cfa5f"
+          "content": "f8484a03bc43c42a981bf70520441ca6546d63b0bc8451bd96a01c559a136d24"
         }
       ],
       "name": "services/raster-service/routers/jobs.py",
@@ -13505,7 +13505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86281db485a849e4c9925f34c689b6324f2cdc1a0a095e8e6aad0a5316ffd379"
+          "content": "8d6dda154cd2c4b4f919992a94d0d243e179a1277b7f0d835fd49e015c2aecf1"
         }
       ],
       "name": "services/raster-service/routers/processing.py",
@@ -13535,7 +13535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5e942b70701a102138ff693bb6a295d2816b168fcdd1c363fe57f875f67997f"
+          "content": "8e3370437d50ef4fe153b5e9128ec3d8eb90866781032a056fdabc09bd18b8a3"
         }
       ],
       "name": "services/raster-service/routers/storage.py",
@@ -14125,7 +14125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "53bf705bac163356051296c66a3f8a4eafea151aa5bcb47a9bf798d6cc4cea88"
+          "content": "8569cc14e4efcce5ae8479ac2c5b58ccaccb8e4e550a9be9fbb66b236b2b3810"
         }
       ],
       "name": "services/raster-service/test_raster_error_sanitization_static.py",
@@ -14325,7 +14325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c372a41140d3714a53d02bb1a783151df4769884bde089176d09d10665a017b"
+          "content": "eaaf53398f1634b2a929b279828855a900ebefa14975b4919f564875dfc7b156"
         }
       ],
       "name": "services/raster-service/test_stac_vrt.py",
@@ -16555,7 +16555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7af52fc1aab0345391c53d79f90af4512b0f2bdcba39534ed1109572a32088b7"
+          "content": "c231692eac1030b3cc1914754dae931cd7ea9fcb24dd702b1f8b0bdf635a0b67"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",
@@ -25375,7 +25375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfdea80a0ceecadfad75b54dcaf88c6e962de15c03d6c0e83bee8ed9b9fd6a10"
+          "content": "bdeaf70cc9d9428928afdc25fe781423d1901a96360a8970b11b924e2de6bd64"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_1_imagery_automation_raster_facade_guard.py",

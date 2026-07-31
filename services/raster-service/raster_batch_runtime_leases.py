@@ -1,7 +1,7 @@
 """Process-private lease tokens for durable raster batch jobs.
 
 Lease tokens are capabilities and must never be stored in the public job status
-payload returned by /jobs/{id}. This map is intentionally process-local; after a
+payload returned by /v1/jobs/{id}. This map is intentionally process-local; after a
 restart the worker obtains a fresh token through PostgreSQL lease recovery.
 """
 
