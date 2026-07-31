@@ -36,6 +36,11 @@ jobs:
       - name: intelligence-governance-brain-gate
         run: python scripts/ci/intelligence_governance_gate.py
 
+      # P0-7: الشقّ الفيزيائيّ من المبدأ أعلاه، مفروضاً بعقد بدل ثلاث كلمات مفتاحيّة —
+      # HTTP · موضوع أمر على وسيط · استيراد عميل المُشغِّل · غلاف يُخفي النداء.
+      - name: physical-effect-boundary-guard
+        run: python scripts/ci/physical_effect_boundary_guard.py --check
+
       - name: weather-engine-formula-guard
         run: python scripts/ci/weather_engine_formula_guard.py
 

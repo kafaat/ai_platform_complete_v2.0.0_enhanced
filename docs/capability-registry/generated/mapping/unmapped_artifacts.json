@@ -7336,6 +7336,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_physical_effect_boundary_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_pip_audit_resolution_guard.py",
     "kind": "tests"
   },
