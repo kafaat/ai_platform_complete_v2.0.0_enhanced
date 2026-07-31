@@ -181,7 +181,7 @@ curl -X POST https://localhost/api/agriai/schedule-irrigation   -d '{"field_id":
 # ← 3 events, 1575 m³ — rules created in automation_rules
 
 # 4. طلب أسمدة
-curl -X POST https://localhost/api/market/procurement   -d '{"items":[{"product_name":"Urea 46%","quantity":2000,"unit":"kg"}]}'
+curl -X POST https://localhost/api/market/v1/procurement   -d '{"items":[{"product_name":"Urea 46%","quantity":2000,"unit":"kg"}]}'
 # ← order_id, status: approved (auto < 500 USD)
 
 # 5. Sync to Odoo

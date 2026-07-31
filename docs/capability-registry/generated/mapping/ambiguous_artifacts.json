@@ -8852,6 +8852,14 @@
           "content:Soil profile",
           "content:soil profile"
         ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 11,
+        "signals": [
+          "content:inventory",
+          "content:procurement"
+        ]
       }
     ]
   },

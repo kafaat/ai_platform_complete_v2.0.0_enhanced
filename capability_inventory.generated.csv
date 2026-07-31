@@ -126,16 +126,16 @@ knowledge-graph.nodes,command,knowledge-graph,POST /v1/nodes,,route,False
 local-ai-rag.ingest,command,local-ai-rag,POST /v1/ingest,,route,False
 local-ai-rag.query,command,local-ai-rag,POST /v1/query,,route,False
 mcp_servers.<dynamic>,command,mcp_servers,POST <dynamic>,,route,False
-mcp_servers.analytics.tenant_id,query,mcp_servers,GET /analytics/{tenant_id},,route,False
+mcp_servers.analytics.tenant_id,query,mcp_servers,GET /v1/analytics/{tenant_id},,route,False
 mcp_servers.mcp.tools,query,mcp_servers,GET /v1/mcp/tools,,route,False
 mcp_servers.mcp.tools.call,command,mcp_servers,POST /v1/mcp/tools/call,,route,False
 mcp_servers.mcp.tools.list,query,mcp_servers,GET /v1/mcp/tools/list,,route,False
-mcp_servers.price-history.category,query,mcp_servers,GET /price-history/{category},,route,False
-mcp_servers.procurement,command,mcp_servers,POST /procurement,,route,False
-mcp_servers.procurement.order_id,query,mcp_servers,GET /procurement/{order_id},,route,False
+mcp_servers.price-history.category,query,mcp_servers,GET /v1/price-history/{category},,route,False
+mcp_servers.procurement,command,mcp_servers,POST /v1/procurement,,route,False
+mcp_servers.procurement.order_id,query,mcp_servers,GET /v1/procurement/{order_id},,route,False
 mcp_servers.products,query,mcp_servers,GET /v1/products,,route,False
-mcp_servers.sales,mixed,mcp_servers,GET /sales|POST /sales,,route,False
-mcp_servers.suppliers.supplier_id,query,mcp_servers,GET /suppliers/{supplier_id},,route,False
+mcp_servers.sales,mixed,mcp_servers,GET /v1/sales|POST /v1/sales,,route,False
+mcp_servers.suppliers.supplier_id,query,mcp_servers,GET /v1/suppliers/{supplier_id},,route,False
 rag-retrieval.ingest,command,rag-retrieval,POST /v1/ingest,,route,False
 rag-retrieval.search,command,rag-retrieval,POST /v1/search,,route,False
 raster-service.change.detect,command,raster-service,POST /v1/change/detect,frontend,route,False

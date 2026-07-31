@@ -1178,7 +1178,7 @@
       ],
       "apis": [
         "DELETE /auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:195",
-        "GET /analytics/{tenant_id} @ services/mcp_servers/market_server.py:691",
+        "GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:691",
         "GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:91",
         "GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29",
         "GET /auth/edge-sign @ services/auth/routers/season_edge_sign.py:41",
@@ -2012,10 +2012,10 @@
         "GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912",
         "GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:184",
         "GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:90",
-        "GET /procurement/{order_id} @ services/mcp_servers/market_server.py:655",
+        "GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:655",
         "POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:40",
         "POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:121",
-        "POST /procurement @ services/mcp_servers/market_server.py:649"
+        "POST /v1/procurement @ services/mcp_servers/market_server.py:649"
       ],
       "ui_consumers": [],
       "mobile_consumers": [

@@ -1418,7 +1418,7 @@
       "line": 644,
       "handler": "api_get_supplier",
       "method": "GET",
-      "path": "/suppliers/{supplier_id}"
+      "path": "/v1/suppliers/{supplier_id}"
     },
     {
       "owner": "mcp-servers",
@@ -1426,7 +1426,7 @@
       "line": 649,
       "handler": "api_create_procurement",
       "method": "POST",
-      "path": "/procurement"
+      "path": "/v1/procurement"
     },
     {
       "owner": "mcp-servers",
@@ -1434,7 +1434,7 @@
       "line": 655,
       "handler": "api_get_procurement",
       "method": "GET",
-      "path": "/procurement/{order_id}"
+      "path": "/v1/procurement/{order_id}"
     },
     {
       "owner": "mcp-servers",
@@ -1442,7 +1442,7 @@
       "line": 662,
       "handler": "api_create_sales",
       "method": "POST",
-      "path": "/sales"
+      "path": "/v1/sales"
     },
     {
       "owner": "mcp-servers",
@@ -1450,7 +1450,7 @@
       "line": 667,
       "handler": "api_search_sales",
       "method": "GET",
-      "path": "/sales"
+      "path": "/v1/sales"
     },
     {
       "owner": "mcp-servers",
@@ -1458,7 +1458,7 @@
       "line": 684,
       "handler": "api_price_history",
       "method": "GET",
-      "path": "/price-history/{category}"
+      "path": "/v1/price-history/{category}"
     },
     {
       "owner": "mcp-servers",
@@ -1466,7 +1466,7 @@
       "line": 691,
       "handler": "api_analytics",
       "method": "GET",
-      "path": "/analytics/{tenant_id}"
+      "path": "/v1/analytics/{tenant_id}"
     },
     {
       "owner": "mcp-servers",
