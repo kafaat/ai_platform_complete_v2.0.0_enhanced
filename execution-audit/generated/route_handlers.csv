@@ -285,8 +285,8 @@ raster-service,GET,/v1/elevation/hillshade/{z}/{x}/{y}.png,hillshade_tile,servic
 raster-service,GET,/v1/slope/{z}/{x}/{y}.png,slope_tile,services/raster-service/routers/terrain_tiles.py,87
 raster-service,GET,/v1/terrain/tilejson,terrain_tilejson,services/raster-service/routers/terrain_tiles.py,101
 raster-service,GET,/v1/fields/{field_id}/contours.geojson,field_contours,services/raster-service/routers/terrain_tiles.py,156
-raster-service,GET,/tiles/{layer_id}/{z}/{x}/{y}.png,get_tile,services/raster-service/routers/tiles.py,23
-raster-service,GET,/layers/{layer_id}/tilejson,layer_tilejson,services/raster-service/routers/tiles.py,37
+raster-service,GET,/v1/tiles/{layer_id}/{z}/{x}/{y}.png,get_tile,services/raster-service/routers/tiles.py,23
+raster-service,GET,/v1/layers/{layer_id}/tilejson,layer_tilejson,services/raster-service/routers/tiles.py,37
 raster-service,GET,/v1/imagery/timeseries,imagery_timeseries,services/raster-service/routers/timeseries_routes.py,24
 raster-service,POST,/v1/imagery/timeseries/analyze,imagery_timeseries_analyze,services/raster-service/routers/timeseries_routes.py,77
 raster-service,POST,/v1/imagery/timeseries/parallel,imagery_timeseries_parallel,services/raster-service/routers/timeseries_routes.py,92

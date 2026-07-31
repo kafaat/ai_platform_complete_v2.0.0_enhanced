@@ -574,9 +574,9 @@ capabilities:
   - GET /api/v1/crop-cards/variety/{variety_id}/salinity-suitability @ services/sahool-platform/api/routers/crop_cards.py:83
   - GET /v1/fields/{field_id}/soil/salinity-assessment @ services/soil-service/routers/p2_products.py:160
   - POST /api/v1/salinity/assess @ services/sahool-platform/api/routers/salinity.py:30
-  - POST /salinity/calibrate @ services/raster-service/routers/analysis.py:175
-  - POST /salinity/classify @ services/raster-service/routers/analysis.py:168
-  - POST /sar/rvi @ services/raster-service/routers/analysis.py:111
+  - POST /v1/salinity/calibrate @ services/raster-service/routers/analysis.py:175
+  - POST /v1/salinity/classify @ services/raster-service/routers/analysis.py:168
+  - POST /v1/sar/rvi @ services/raster-service/routers/analysis.py:111
   - POST /v1/fields/{field_id}/soil/salinity-assessment @ services/soil-service/routers/p2_products.py:107
   ui_consumers: []
   mobile_consumers: []

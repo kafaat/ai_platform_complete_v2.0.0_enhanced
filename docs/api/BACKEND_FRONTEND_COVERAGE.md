@@ -586,7 +586,6 @@
 | `/iot/dispatch/preview` | internal | — |
 | `/iot/dispatch/simulate` | internal | — |
 | `/iot/telemetry/verify` | internal | — |
-| `/layers/{layer_id}/tilejson` | internal | — |
 | `/locks` | internal | — |
 | `/locks/{field_id}` | internal | — |
 | `/logs` | internal | — |
@@ -662,7 +661,6 @@
 | `/suppliers/{supplier_id}` | internal | — |
 | `/sync` | internal | — |
 | `/tile-cache-plan` | internal | ✅ |
-| `/tiles/{layer_id}/{z}/{x}/{y}.png` | internal | — |
 | `/usage` | internal | — |
 | `/v1/activation/evidence-receipts` | internal | — |
 | `/v1/activation/evidence-receipts/{evidence_id}/revoke` | internal | — |
@@ -815,6 +813,7 @@
 | `/v1/ingest` | internal | — |
 | `/v1/jobs/{job_id}` | internal | — |
 | `/v1/jobs/{job_id}/result` | internal | — |
+| `/v1/layers/{layer_id}/tilejson` | internal | — |
 | `/v1/learning/activation-commands/{activation_command_id}/claim` | internal | — |
 | `/v1/learning/activation-commands/{activation_command_id}/receipt` | internal | — |
 | `/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command` | internal | — |
@@ -898,6 +897,7 @@
 | `/v1/terrain/tilejson` | internal | ✅ |
 | `/v1/tile-cache/stats` | internal | — |
 | `/v1/tiles/observability` | internal | — |
+| `/v1/tiles/{layer_id}/{z}/{x}/{y}.png` | internal | — |
 | `/v1/timeseries/{field_id}` | internal | ✅ |
 | `/v1/tts/status` | internal | — |
 | `/v1/tts/stream` | internal | — |

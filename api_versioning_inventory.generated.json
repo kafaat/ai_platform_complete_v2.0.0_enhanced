@@ -2659,18 +2659,18 @@
     "file": "services/raster-service/routers/tiles.py",
     "line": 23,
     "method": "GET",
-    "path": "/tiles/{layer_id}/{z}/{x}/{y}.png",
+    "path": "/v1/tiles/{layer_id}/{z}/{x}/{y}.png",
     "handler": "get_tile",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/tiles.py",
     "line": 37,
     "method": "GET",
-    "path": "/layers/{layer_id}/tilejson",
+    "path": "/v1/layers/{layer_id}/tilejson",
     "handler": "layer_tilejson",
-    "classification": "legacy_unversioned_business"
+    "classification": "versioned"
   },
   {
     "service": "raster-service",

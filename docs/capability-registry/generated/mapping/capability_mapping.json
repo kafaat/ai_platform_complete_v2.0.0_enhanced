@@ -26,7 +26,7 @@
       "web": 448
     },
     "unmapped_artifacts": 1949,
-    "ambiguous_artifacts": 393
+    "ambiguous_artifacts": 392
   },
   "capabilities": [
     {
@@ -9183,23 +9183,23 @@
           "score": 26
         },
         {
-          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:426",
+          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:427",
           "score": 20
         },
         {
-          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:420",
+          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:421",
           "score": 20
         },
         {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:414",
+          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:415",
           "score": 20
         },
         {
-          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:409",
+          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:410",
           "score": 20
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:403",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:404",
           "score": 20
         },
         {
@@ -10380,6 +10380,15 @@
           ]
         },
         {
+          "path": "docs/architecture/api_versioning_legacy_baseline.json",
+          "score": 16,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "shared/actuator_idempotency.py",
           "score": 14,
           "signals": [
@@ -10389,15 +10398,6 @@
         },
         {
           "path": "docs/POST_DEPLOYMENT_ROADMAP.md",
-          "score": 13,
-          "signals": [
-            "content:dem",
-            "content:slope",
-            "content:terrain"
-          ]
-        },
-        {
-          "path": "docs/architecture/api_versioning_legacy_baseline.json",
           "score": 13,
           "signals": [
             "content:dem",
@@ -10428,6 +10428,15 @@
           "signals": [
             "content:contour",
             "content:hillshade",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
+          "path": "docs/architecture/raster_service_route_migration_plan.md",
+          "score": 12,
+          "signals": [
+            "content:dem",
             "content:slope",
             "content:terrain"
           ]
@@ -10512,14 +10521,6 @@
           "score": 8,
           "signals": [
             "content:dem",
-            "content:terrain"
-          ]
-        },
-        {
-          "path": "docs/architecture/raster_service_route_migration_plan.md",
-          "score": 8,
-          "signals": [
-            "content:slope",
             "content:terrain"
           ]
         },
@@ -15831,11 +15832,11 @@
           "score": 17
         },
         {
-          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:426",
+          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:427",
           "score": 17
         },
         {
-          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:420",
+          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:421",
           "score": 17
         },
         {
@@ -15843,7 +15844,7 @@
           "score": 17
         },
         {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:414",
+          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:415",
           "score": 17
         },
         {
@@ -15859,11 +15860,11 @@
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:409",
+          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:410",
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:403",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:404",
           "score": 17
         },
         {
@@ -16655,14 +16656,6 @@
           ]
         },
         {
-          "path": "docs/architecture/api_versioning_legacy_baseline.json",
-          "score": 10,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        },
-        {
           "path": "docs/audits/CODE_REVIEW_REPORT.md",
           "score": 10,
           "signals": [
@@ -16795,7 +16788,7 @@
         "mobile": 0,
         "tests": 40,
         "governance": 0,
-        "other_evidence": 33
+        "other_evidence": 32
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -22087,11 +22080,11 @@
           "score": 15
         },
         {
-          "value": "/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:36",
+          "value": "/v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:36",
           "score": 12
         },
         {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:22",
+          "value": "/v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:22",
           "score": 12
         },
         {
@@ -22481,6 +22474,14 @@
           ]
         },
         {
+          "path": "docs/architecture/raster_service_route_migration_plan.md",
+          "score": 9,
+          "signals": [
+            "content:cog",
+            "content:tilejson"
+          ]
+        },
+        {
           "path": "docs/audits/SATELLITE_ERP_REVIEW_AND_FIXES.md",
           "score": 9,
           "signals": [
@@ -22514,14 +22515,6 @@
         },
         {
           "path": "docs/architecture/GIS_CLOUD_NATIVE_BEST_PRACTICES_PHASE4.md",
-          "score": 8,
-          "signals": [
-            "content:cog",
-            "content:tilejson"
-          ]
-        },
-        {
-          "path": "docs/architecture/raster_service_route_migration_plan.md",
           "score": 8,
           "signals": [
             "content:cog",
@@ -42298,29 +42291,6 @@
       ]
     },
     {
-      "path": "docs/architecture/api_versioning_legacy_baseline.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "GIS-003",
-          "score": 13,
-          "signals": [
-            "content:dem",
-            "content:slope",
-            "content:terrain"
-          ]
-        },
-        {
-          "capability_id": "SAT-001",
-          "score": 10,
-          "signals": [
-            "content:sentinel",
-            "content:stac"
-          ]
-        }
-      ]
-    },
-    {
       "path": "docs/architecture/db_ownership.yml",
       "kind": "other",
       "candidates": [
@@ -42438,19 +42408,20 @@
       "kind": "other",
       "candidates": [
         {
-          "capability_id": "SAT-009",
-          "score": 8,
+          "capability_id": "GIS-003",
+          "score": 12,
           "signals": [
-            "content:cog",
-            "content:tilejson"
+            "content:dem",
+            "content:slope",
+            "content:terrain"
           ]
         },
         {
-          "capability_id": "GIS-003",
-          "score": 8,
+          "capability_id": "SAT-009",
+          "score": 9,
           "signals": [
-            "content:slope",
-            "content:terrain"
+            "content:cog",
+            "content:tilejson"
           ]
         }
       ]

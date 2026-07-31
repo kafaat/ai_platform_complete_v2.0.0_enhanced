@@ -653,3 +653,63 @@ def test_raster_service_pr_r3_routes_are_versioned():
     assert '"/indices"' not in client
     assert '"/v1/process/batch"' in client
     assert '"/process/batch"' not in client
+
+
+def test_raster_service_pr_r4_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, raster-service PR-R4 (2026-07-31): the
+    tile/rendering routes in routers/tiles.py (flat, prefix-less inclusion, so the
+    decorator literal is the real runtime path) moved to /v1/*. Both are
+    layer_scoped (require_layer_tenant + require_layer_tenant_authorized), no
+    browser-facing prefix distinction from the rest of the service. PR-R1's
+    exhaustive repo-wide search found zero live external or internal
+    service-to-service consumers for either route -- migration is confined to the
+    two decorators plus the embedded self-referential fallback tiles URL in the
+    same file -- see docs/architecture/raster_service_route_migration_plan.md.
+    This closes the raster-service migration: all 30 originally-classified routes
+    are now versioned. Falsified by construction: reverting either decorator to its
+    old bare path makes this fail by naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_files = ("services/raster-service/routers/tiles.py",)
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/raster-service/routers/tiles.py": {
+            "/tiles/{layer_id}/{z}/{x}/{y}.png",
+            "/layers/{layer_id}/tilejson",
+        },
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        "services/raster-service/routers/tiles.py": {
+            ("GET", "/v1/tiles/{layer_id}/{z}/{x}/{y}.png"),
+            ("GET", "/v1/layers/{layer_id}/tilejson"),
+        },
+    }
+    for f, expected in new_paths.items():
+        present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
+        missing = expected - present
+        assert not missing, f"{f} missing expected migrated route(s): {missing}"
+
+    tiles = (guard.ROOT / "services" / "raster-service" / "routers" / "tiles.py").read_text(
+        encoding="utf-8"
+    )
+    assert 'f"/v1/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"' in tiles
+    assert 'f"/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png"' not in tiles
+
+    raster_service_routes = {
+        (r["method"], r["path"])
+        for r in rows
+        if r["service"] == "raster-service" and r["classification"] == "legacy_unversioned_business"
+    }
+    assert raster_service_routes == set(), (
+        f"raster-service migration incomplete after PR-R4: {sorted(raster_service_routes)}"
+    )

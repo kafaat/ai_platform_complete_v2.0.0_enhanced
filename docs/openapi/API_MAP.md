@@ -85,13 +85,13 @@
 - `GET /v1/info/{layer_id}`
 - `GET /v1/jobs/{job_id}`
 - `GET /v1/jobs/{job_id}/result`
-- `GET /layers/{layer_id}/tilejson`
+- `GET /v1/layers/{layer_id}/tilejson`
 - `GET /metrics`
 - `GET /v1/offline/packs`
 - `GET /v1/offline/packs/{pack_name}`
 - `GET /readyz`
 - `GET /v1/storage/stats`
-- `GET /tiles/{layer_id}/{z}/{x}/{y}.png`
+- `GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png`
 - `POST /v1/imagery/search`
 - `POST /v1/imagery/timeseries/analyze`
 - `POST /v1/imagery/timeseries/parallel`

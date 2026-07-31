@@ -14,7 +14,7 @@
   - `vegetationApi` (`:8090`): `GET /v1/analyze`, `GET /v1/timeseries/{field_id}`,
     `GET /v1/ndvi/current/{field_id}` — **تقدير تركيبيّ موسوم `real_data=False`**
     (نطاقات تركيبيّة، لا بكسل). `_current_ndvi_payload` يصرّح بذلك.
-  - `rasterApi` (`:8099`): `GET /info/{layer_id}`, `GET /tiles/{layer_id}/{z}/{x}/{y}.png`
+  - `rasterApi` (`:8099`): `GET /v1/info/{layer_id}`, `GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png`
     — **بكسل حقيقيّ**؛ البلاطة شفّافة 1×1 إن لم تُنتَج بعد (لا تلوين مفبرك).
 
 ## المدخلات (شكل)

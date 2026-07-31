@@ -18,9 +18,9 @@
 
 ## endpoints الجديدة في raster-service
 
-- `GET /stac`
-- `GET /stac/collections`
-- `POST /stac/mosaicjson`
+- `GET /v1/stac`
+- `GET /v1/stac/collections`
+- `POST /v1/stac/mosaicjson`
 - `POST /v1/scenes/quality-score`
 - `POST /v1/cog/registry/preview`
 

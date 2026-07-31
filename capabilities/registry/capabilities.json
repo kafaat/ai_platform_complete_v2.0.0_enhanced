@@ -989,9 +989,9 @@
         "GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:255",
         "GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47",
         "GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2085",
-        "GET /layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37",
-        "GET /tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23",
         "GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:213",
+        "GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37",
+        "GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23",
         "POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:84",
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707",
         "POST /api/v1/gis/cloud-native/phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:728"
@@ -1816,10 +1816,8 @@
         "GET /api/v1/weather/tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2407",
         "GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2988",
         "GET /healthz @ services/raster-service/routers/observability.py:31",
-        "GET /layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37",
         "GET /metrics @ services/raster-service/routers/observability.py:36",
         "GET /readyz @ services/raster-service/routers/observability.py:171",
-        "GET /tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23",
         "GET /v1/cog/validate @ services/raster-service/routers/analysis.py:153",
         "GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73",
         "GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351",
@@ -1846,7 +1844,9 @@
         "GET /v1/imagery/search/landsat @ services/raster-service/routers/imagery_search.py:157",
         "GET /v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:157",
         "GET /v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:132",
-        "GET /v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:24"
+        "GET /v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:24",
+        "GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43",
+        "GET /v1/imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:24"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],

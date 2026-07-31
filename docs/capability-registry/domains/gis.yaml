@@ -160,9 +160,9 @@ capabilities:
   - GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evidence_map.py:87
   - GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47
   - GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2085
-  - GET /info/{layer_id} @ services/raster-service/routers/observability.py:213
-  - GET /layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37
-  - GET /tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23
+  - GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:213
+  - GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37
+  - GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23
   - POST /phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707
   - POST /phase6/profitability-map @ services/sahool-platform/api/routers/gis_cloud_native.py:728
   ui_consumers: []
@@ -249,7 +249,7 @@ capabilities:
   - GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:87
   - GET /v1/terrain/status @ services/raster-service/routers/terrain_tiles.py:45
   - GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:101
-  - POST /terrain/slope @ services/raster-service/routers/analysis.py:135
+  - POST /v1/terrain/slope @ services/raster-service/routers/analysis.py:135
   - POST /v1/fields/{field_id}/soil/terrain-derivatives @ services/soil-service/routers/p2_products.py:69
   ui_consumers: []
   mobile_consumers: []

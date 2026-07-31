@@ -294,8 +294,8 @@ raster-service,services/raster-service/routers/terrain_tiles.py,73,GET,/v1/eleva
 raster-service,services/raster-service/routers/terrain_tiles.py,87,GET,/v1/slope/{z}/{x}/{y}.png,slope_tile,versioned
 raster-service,services/raster-service/routers/terrain_tiles.py,101,GET,/v1/terrain/tilejson,terrain_tilejson,versioned
 raster-service,services/raster-service/routers/terrain_tiles.py,156,GET,/v1/fields/{field_id}/contours.geojson,field_contours,versioned
-raster-service,services/raster-service/routers/tiles.py,23,GET,/tiles/{layer_id}/{z}/{x}/{y}.png,get_tile,legacy_unversioned_business
-raster-service,services/raster-service/routers/tiles.py,37,GET,/layers/{layer_id}/tilejson,layer_tilejson,legacy_unversioned_business
+raster-service,services/raster-service/routers/tiles.py,23,GET,/v1/tiles/{layer_id}/{z}/{x}/{y}.png,get_tile,versioned
+raster-service,services/raster-service/routers/tiles.py,37,GET,/v1/layers/{layer_id}/tilejson,layer_tilejson,versioned
 raster-service,services/raster-service/routers/timeseries_routes.py,24,GET,/v1/imagery/timeseries,imagery_timeseries,versioned
 raster-service,services/raster-service/routers/timeseries_routes.py,77,POST,/v1/imagery/timeseries/analyze,imagery_timeseries_analyze,versioned
 raster-service,services/raster-service/routers/timeseries_routes.py,92,POST,/v1/imagery/timeseries/parallel,imagery_timeseries_parallel,versioned

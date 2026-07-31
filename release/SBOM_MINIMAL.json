@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf6cd67d7e950dc336ddacb9e79ee583c09d260e6ab37c2b9d6e3b9b6c9a5adf"
+          "content": "6d9c468395b2e9bd279dd5c2b088a21bc0e69a85edd95f2ee5e129b150337b41"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12935,7 +12935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f39278ec7a8050063f4a0d2096d06c41e3c9602db2db52abb1ea80e9ea4c5bab"
+          "content": "3f2eaae280053d01d3ed3e6ca0d1c19d506084a4daba7e2f02e1f4b6d7c8c210"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -13235,7 +13235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94ef5fea747b3123fffbcba8fe1050eb73d60a0c97052b1aee6f6f265d13cec2"
+          "content": "b049b645208f2498332c2874fc5d849157665692678c7b0820487216cb1d778d"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -13555,7 +13555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f15c977ddec9b2c369f895751ae0ecfb3dbaa50e015ef9bad67384cc41b3003"
+          "content": "59402e668b40b1e3a04ffad0a744146e432879996f66c14c5f0539b8019b9a43"
         }
       ],
       "name": "services/raster-service/routers/tiles.py",

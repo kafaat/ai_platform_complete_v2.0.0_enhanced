@@ -28,7 +28,7 @@ tables:
     source: "migrations/v118_phase9_autonomous_farm_os.sql"
   admin_boundaries:
     # مرجع مشترك (A7): القراءة عامّة لكلّ الأدوار التطبيقيّة (ملكيّة الكتابة لا حكر القراءة).
-    # A6: raster-service يقرؤه (GET /gis/admin-boundaries) لتركيبه مع هندسة الحقل في خريطة الطباعة —
+    # A6: raster-service يقرؤه (GET /v1/gis/admin-boundaries) لتركيبه مع هندسة الحقل في خريطة الطباعة —
     # استهلاك مشروع لنمط shared-reference المعلَن، لا تسلّل جدول غير مملوك (تمييز عن مرض p4).
     owner: gis-workflow-service
     writers: [gis-workflow-service]

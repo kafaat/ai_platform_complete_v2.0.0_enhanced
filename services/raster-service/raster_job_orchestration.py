@@ -227,7 +227,7 @@ def run_processing(ctx, job_id: str, req):
             "layer_id": layer_id,
             "indicator": req.indicator.value,
             "stats": stats,
-            "tile_url_template": f"/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png",
+            "tile_url_template": f"/v1/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png",
             "bounds_4326": bounds,
             "zoom_min": req.zoom_min,
             "zoom_max": req.zoom_max,

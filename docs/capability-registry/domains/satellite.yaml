@@ -26,9 +26,9 @@ capabilities:
   - GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:65
   - GET /scene-processing-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:262
   - GET /scene-ranking @ services/sahool-platform/api/routers/gis_cloud_native.py:245
-  - GET /stac @ services/raster-service/routers/stac.py:17
+  - GET /v1/stac @ services/raster-service/routers/stac.py:17
   - GET /stac @ services/sahool-platform/api/routers/gis_cloud_native.py:179
-  - GET /stac/collections @ services/raster-service/routers/stac.py:25
+  - GET /v1/stac/collections @ services/raster-service/routers/stac.py:25
   - GET /stac/collections @ services/sahool-platform/api/routers/gis_cloud_native.py:200
   - GET /stac/collections/{collection_id} @ services/sahool-platform/api/routers/gis_cloud_native.py:497
   - GET /stac/conformance @ services/sahool-platform/api/routers/gis_cloud_native.py:186
@@ -40,7 +40,7 @@ capabilities:
   - GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:117
   - GET /v1/fields/{field_id}/cdse-tilejson @ services/raster-service/routers/cdse_tiles.py:167
   - GET /v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png @ services/raster-service/routers/cdse_tiles.py:42
-  - POST /stac/mosaicjson @ services/raster-service/routers/stac.py:33
+  - POST /v1/stac/mosaicjson @ services/raster-service/routers/stac.py:33
   - POST /stac/search @ services/sahool-platform/api/routers/gis_cloud_native.py:215
   - POST /v1/activation/satellite_cdse/begin @ services/decision-service/main.py:1629
   - POST /v1/activation/satellite_cdse/complete @ services/decision-service/main.py:1642
@@ -519,7 +519,7 @@ capabilities:
   - GET /api/v1/rbac/preview-role-change @ services/sahool-platform/api/routers/rbac.py:54
   - PATCH /auth/users/{user_id}/role @ services/auth/routers/users.py:31
   - POST /auth/change-password @ services/auth/routers/registration.py:74
-  - POST /change/detect @ services/raster-service/routers/analysis.py:48
+  - POST /v1/change/detect @ services/raster-service/routers/analysis.py:48
   - POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1129
   ui_consumers: []
   mobile_consumers: []
@@ -664,8 +664,8 @@ capabilities:
   - GET /api/v1/weather/tile-cache/stats @ services/sahool-platform/api/routers/weather.py:2277
   - GET /api/v1/weather/tile-data/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2407
   - GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2988
-  - GET /cog/validate @ services/raster-service/routers/analysis.py:153
-  - GET /gis/admin-boundaries @ services/raster-service/routers/fields.py:92
+  - GET /v1/cog/validate @ services/raster-service/routers/analysis.py:153
+  - GET /v1/gis/admin-boundaries @ services/raster-service/routers/fields.py:92
   - GET /healthz @ services/raster-service/routers/observability.py:31
   - GET /v1/imagery/best @ services/raster-service/routers/imagery_search.py:65
   - GET /v1/imagery/dem @ services/raster-service/routers/imagery_search.py:186
@@ -674,22 +674,22 @@ capabilities:
   - GET /v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:132
   - GET /v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:24
   - GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43
-  - GET /imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:24
-  - GET /indices @ services/raster-service/routers/observability.py:253
-  - GET /info/{layer_id} @ services/raster-service/routers/observability.py:213
-  - GET /jobs/{job_id} @ services/raster-service/routers/jobs.py:19
-  - GET /jobs/{job_id}/result @ services/raster-service/routers/jobs.py:37
-  - GET /layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37
+  - GET /v1/imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:24
+  - GET /v1/indices @ services/raster-service/routers/observability.py:253
+  - GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:213
+  - GET /v1/jobs/{job_id} @ services/raster-service/routers/jobs.py:19
+  - GET /v1/jobs/{job_id}/result @ services/raster-service/routers/jobs.py:37
+  - GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37
   - GET /metrics @ services/raster-service/routers/observability.py:36
-  - GET /offline/packs @ services/raster-service/routers/storage.py:87
-  - GET /offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115
+  - GET /v1/offline/packs @ services/raster-service/routers/storage.py:87
+  - GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115
   - GET /rasters/{raster_id}/tilejson.json @ services/sahool-platform/api/routers/gis_cloud_native.py:532
   - GET /readyz @ services/raster-service/routers/observability.py:171
-  - GET /stac @ services/raster-service/routers/stac.py:17
-  - GET /stac/collections @ services/raster-service/routers/stac.py:25
-  - GET /storage/stats @ services/raster-service/routers/storage.py:65
+  - GET /v1/stac @ services/raster-service/routers/stac.py:17
+  - GET /v1/stac/collections @ services/raster-service/routers/stac.py:25
+  - GET /v1/storage/stats @ services/raster-service/routers/storage.py:65
   - GET /tile-cache-plan @ services/sahool-platform/api/routers/gis_cloud_native.py:279
-  - GET /tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23
+  - GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23
   - GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73
   - GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351
   - GET /v1/fields/{field_id}/cdse-thumbnail.png @ services/raster-service/routers/cdse_tiles.py:117
