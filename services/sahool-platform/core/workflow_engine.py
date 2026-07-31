@@ -46,6 +46,36 @@ class WorkflowStatus(str, Enum):
     COMPENSATION_FAILED = "compensation_failed"
 
 
+class WorkflowTemplateResultError(RuntimeError):
+    """معالِج أعاد نتيجة موسومة ``_template: True`` — أي أنّه **لم ينفّذ شيئاً**.
+
+    قبل هذا الحارس كان المحرّك يخزّن النتيجة ويُعلّم الخطوة مكتملة بلا فحص محتوى
+    إطلاقاً: الاكتمال دالّة في «هل رمى المعالِج؟» وحدها. فقالبٌ يُعيد
+    ``{"validated": True, "_template": True}`` يبلغ ``COMPLETED`` **بمسار مطابق
+    بايتاً** لمعالِج حقيقيّ، والوسم ``_template`` لا يقرؤه شيء في الإنتاج (قراءاته
+    كلّها في الاختبارات) — فكان إشارة ميتة لا ضعيفة، وكان هذا المسار الوحيد القادر
+    على تسجيل **نجاح غير حقيقيّ** في المحرّك.
+
+    الآن: نتيجة موسومة قالباً تُعامَل فشلَ خطوة عبر نفس مسار الاستثناء القائم
+    (``FAILED`` + تعويض Saga إن طُلِب + قابليّة الاستئناف) — لا حالة جديدة ولا
+    مسار موازٍ. الوسم صار مقروءاً حيث يُهمّ.
+    """
+
+
+def _reject_template_result(step_id: str, result: object) -> None:
+    """يرفض نتيجة معالِج موسومة ``_template: True`` — قالب لم ينفّذ شيئاً.
+
+    يُستدعى **داخل** كتلة ``try`` في كلا مساري التشغيل (المتزامن وasync) كي يرث
+    مسار الفشل القائم بالكامل (FAILED + تعويض + استئناف) بدل مضاعفته.
+    """
+    if isinstance(result, dict) and result.get("_template") is True:
+        raise WorkflowTemplateResultError(
+            f"معالِج الخطوة '{step_id}' أعاد نتيجة قالب (_template=True) — قالب لا ينفّذ "
+            "شيئاً، وتسجيله اكتمالاً يُنتِج نجاحاً غير حقيقيّ. فعّل المعالِج الحقيقيّ "
+            "(مثل FEATURE_IRRIGATION_WORKFLOW_REAL) أو أزِل القالب."
+        )
+
+
 class WorkflowLeasedError(RuntimeError):
     """يُرفَع حين يكون workflow محجوزاً بعقد حيّ (single-writer lease) لعامل آخر.
 
@@ -694,6 +724,9 @@ def run_workflow(
 
         try:
             result = step.fn(state.context)
+            # نتيجة قالب = لم يُنفَّذ شيء ⇒ فشل خطوة، لا اكتمال زائف (داخل try
+            # عمداً كي ترث مسار الفشل/التعويض/الاستئناف القائم بلا مضاعفته).
+            _reject_template_result(step.step_id, result)
         except Exception as e:  # noqa: BLE001 — صدق: نُعلن الفشل لا نخفيه
             state.status = WorkflowStatus.FAILED
             state.error = f"خطوة '{step.step_id}' فشلت: {e}"
@@ -827,6 +860,8 @@ async def run_workflow_async(
 
         try:
             result = step.fn(state.context)
+            # نتيجة قالب = لم يُنفَّذ شيء ⇒ فشل خطوة، لا اكتمال زائف (انظر النظير المتزامن).
+            _reject_template_result(step.step_id, result)
         except Exception as e:  # noqa: BLE001 — صدق: نُعلن الفشل لا نخفيه
             state.status = WorkflowStatus.FAILED
             state.error = f"خطوة '{step.step_id}' فشلت: {e}"

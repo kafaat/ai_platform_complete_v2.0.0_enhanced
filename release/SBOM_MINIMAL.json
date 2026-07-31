@@ -22065,7 +22065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7929822dfdeee3d4e6cf8944143610f92d6b3ac8847e5abf0950bd8d8150869d"
+          "content": "830cd4b5739adaf681c1978c5e9640c67098930194f8692b9a8c4b047d6de426"
         }
       ],
       "name": "services/sahool-platform/core/workflow_engine.py",
@@ -26905,7 +26905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c3ae02a258f888bfd095595eb6b597779639d725ac1b7baea9b0ecc05a0d163"
+          "content": "feb0da1d4c1c971bacca6b48e01127f2919700168caa8c9a1db7ac16966356f1"
         }
       ],
       "name": "services/sahool-platform/tests/test_workflow_definitions.py",
@@ -26919,6 +26919,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_workflow_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6fa022a84214e751bad72bf4fce2df661042e8c132893e1287f8f64d9eb54c30"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_workflow_template_completion_guard.py",
       "type": "file"
     },
     {
