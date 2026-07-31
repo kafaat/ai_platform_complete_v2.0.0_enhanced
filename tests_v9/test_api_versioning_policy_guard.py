@@ -713,3 +713,72 @@ def test_raster_service_pr_r4_routes_are_versioned():
     assert raster_service_routes == set(), (
         f"raster-service migration incomplete after PR-R4: {sorted(raster_service_routes)}"
     )
+
+
+def test_soil_service_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, soil-service (2026-07-31): the 5
+    remaining unversioned routes in routers/modbus.py, routers/readings.py, and
+    routers/soil_profile.py (flat, prefix-less inclusion, so the decorator literal
+    is the real runtime path) moved to /v1/soil/*. All are require_service_token
+    (no PUBLIC_CATALOG/layer/field-scoped taxonomy exists for soil-service). The
+    one real internal consumer,
+    services/sahool-platform/core/field_intelligence_adapters.py's
+    fetch_soil_baseline(), was updated in the same commit to call
+    /v1/soil/soilgrids. Falsified by construction: reverting any decorator to its
+    old bare path makes this fail by naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_files = (
+        "services/soil-service/routers/modbus.py",
+        "services/soil-service/routers/readings.py",
+        "services/soil-service/routers/soil_profile.py",
+    )
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/soil-service/routers/modbus.py": {"/soil/decode/modbus"},
+        "services/soil-service/routers/readings.py": {
+            "/soil/readings/{field_id}",
+            "/soil/ingest",
+        },
+        "services/soil-service/routers/soil_profile.py": {"/soil/suitability", "/soil/soilgrids"},
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        "services/soil-service/routers/modbus.py": {("POST", "/v1/soil/decode/modbus")},
+        "services/soil-service/routers/readings.py": {
+            ("GET", "/v1/soil/readings/{field_id}"),
+            ("POST", "/v1/soil/ingest"),
+        },
+        "services/soil-service/routers/soil_profile.py": {
+            ("POST", "/v1/soil/suitability"),
+            ("GET", "/v1/soil/soilgrids"),
+        },
+    }
+    for f, expected in new_paths.items():
+        present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
+        missing = expected - present
+        assert not missing, f"{f} missing expected migrated route(s): {missing}"
+
+    adapters = (
+        guard.ROOT / "services" / "sahool-platform" / "core" / "field_intelligence_adapters.py"
+    ).read_text(encoding="utf-8")
+    assert 'f"{SOIL_URL}/v1/soil/soilgrids"' in adapters
+    assert 'f"{SOIL_URL}/soil/soilgrids"' not in adapters
+
+    soil_service_routes = {
+        (r["method"], r["path"])
+        for r in rows
+        if r["service"] == "soil-service" and r["classification"] == "legacy_unversioned_business"
+    }
+    assert soil_service_routes == set(), (
+        f"soil-service migration incomplete: {sorted(soil_service_routes)}"
+    )

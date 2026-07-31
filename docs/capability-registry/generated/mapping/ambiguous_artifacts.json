@@ -8833,6 +8833,29 @@
     ]
   },
   {
+    "path": "tests_v9/test_api_versioning_policy_guard.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "content:dem",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 12,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_canonical_as_applied_irrigation.py",
     "kind": "tests",
     "candidates": [

@@ -752,20 +752,20 @@ soil-service.soil.action-policies,query,soil-service,GET /v1/soil/action-policie
 soil-service.soil.calibrations.build,command,soil-service,POST /v1/soil/calibrations/build,frontend,route,False
 soil-service.soil.calibrations.calibration_id,command,soil-service,POST /v1/soil/calibrations/{calibration_id}/evaluate,frontend,route,False
 soil-service.soil.cutover.readiness,query,soil-service,GET /v1/soil/cutover/readiness,frontend,route,False
-soil-service.soil.decode.modbus,command,soil-service,POST /soil/decode/modbus,frontend,route,False
-soil-service.soil.ingest,command,soil-service,POST /soil/ingest,frontend,route,False
+soil-service.soil.decode.modbus,command,soil-service,POST /v1/soil/decode/modbus,frontend,route,False
+soil-service.soil.ingest,command,soil-service,POST /v1/soil/ingest,frontend,route,False
 soil-service.soil.irrigation-water.samples,command,soil-service,POST /v1/soil/irrigation-water/samples,frontend,route,False
 soil-service.soil.irrigation-water.sources,query,soil-service,GET /v1/soil/irrigation-water/sources/{source_id}/profile,frontend,route,False
 soil-service.soil.learning-datasets,command,soil-service,POST /v1/soil/learning-datasets,frontend,route,False
 soil-service.soil.observations,command,soil-service,POST /v1/soil/observations,frontend,route,False
 soil-service.soil.production-certifications,command,soil-service,POST /v1/soil/production-certifications,frontend,route,False
 soil-service.soil.projection.status,query,soil-service,GET /v1/soil/projection/status,frontend,route,False
-soil-service.soil.readings.field_id,query,soil-service,GET /soil/readings/{field_id},frontend,route,False
+soil-service.soil.readings.field_id,query,soil-service,GET /v1/soil/readings/{field_id},frontend,route,False
 soil-service.soil.runtime-certifications.evaluate,command,soil-service,POST /v1/soil/runtime-certifications/evaluate,frontend,route,False
 soil-service.soil.runtime-certifications.run_id,mixed,soil-service,GET /v1/soil/runtime-certifications/{run_id}|POST /v1/soil/runtime-certifications/{run_id}/verify,frontend,route,False
 soil-service.soil.sampling-plans.plan_id,command,soil-service,POST /v1/soil/sampling-plans/{plan_id}/approve,frontend,route,False
-soil-service.soil.soilgrids,query,soil-service,GET /soil/soilgrids,frontend,route,False
-soil-service.soil.suitability,command,soil-service,POST /soil/suitability,frontend,route,False
+soil-service.soil.soilgrids,query,soil-service,GET /v1/soil/soilgrids,frontend,route,False
+soil-service.soil.suitability,command,soil-service,POST /v1/soil/suitability,frontend,route,False
 supervisor-agent.agent.actuator-audit,query,supervisor-agent,GET /v1/agent/actuator-audit,frontend,route,False
 supervisor-agent.agent.journal.invocation_id,query,supervisor-agent,GET /v1/agent/journal/{invocation_id},frontend,route,False
 supervisor-agent.agent.optimize,command,supervisor-agent,POST /v1/agent/optimize,frontend,route,False

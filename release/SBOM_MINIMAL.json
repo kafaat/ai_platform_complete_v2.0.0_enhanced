@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d9c468395b2e9bd279dd5c2b088a21bc0e69a85edd95f2ee5e129b150337b41"
+          "content": "9c33fea322a6161a1f8ad67577a773540126224ac8db4f5ed51add691545eaa7"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -17265,7 +17265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c97dc6af0bad00966a86f3645869535079b6a86b64807d561d4727bc37a45cc9"
+          "content": "3ed60a0a5de47dd0382a4e764053df142c5bac37e1239b567a247cb310c5121e"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
@@ -20965,7 +20965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df95570da3046edc53fe805a060e8adc6008db1be5ce6002d403e7b357633019"
+          "content": "1b1979dd3723d9bc42649b020d8ac2c8c59d3f8ce8ba0a8f6565b565d074776e"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_adapters.py",
@@ -20975,7 +20975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29f4dc07f0edd2f16a7fb8b73cbc79005fedb284afab37b3ba2d75d3001518d4"
+          "content": "ba2c3b865c2c4962b2878e9dbb8ae18782fb1a401de2eadbca42bcd010c97edd"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_card.py",
@@ -21785,7 +21785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5e830fe47c115964d7ef91817afc673ef1904dd67de46dc222b99f501643f472"
+          "content": "1f3f6b61938a9ac2d7f42a3deaad040a4676e392a2a3c435b05e4b0b3caf7680"
         }
       ],
       "name": "services/sahool-platform/core/soil_climate_sources.py",
@@ -27395,7 +27395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "710484b6a7ec29e60e7870f69a6969432f3aee2037a066008232e77c652b33d1"
+          "content": "402e6bfaf1ef5f66f49ee99971e996879bfa140d3a43c59e7aec4b92c2f44a48"
         }
       ],
       "name": "services/soil-service/routers/modbus.py",
@@ -27465,7 +27465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84391646cbd2f572d1bc1360c788896b21688bb6f4aa09c322fc9b01b2e4e52e"
+          "content": "285c4cdab598ae1a1f5ef18f7f09fd6e07e3c649c4a87055a212dad106619d3b"
         }
       ],
       "name": "services/soil-service/routers/readings.py",
@@ -27475,7 +27475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ca2d6ade2e0aede12e6a635e9adf92358547003c5131305708e0f3b87ee01f9"
+          "content": "267080a8f98ede87a1af1a00bf2acceda0cc8d82ff3e8870e49fa742023cc6cc"
         }
       ],
       "name": "services/soil-service/routers/soil_profile.py",
@@ -27635,7 +27635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9afab85b33d01475d9aa818be7a5f3184189b536c4717f00e070ceddf2033481"
+          "content": "e1084def356cf467a9d51fd75a870131fd1fd4378e457c63c37f8960f5756ede"
         }
       ],
       "name": "services/soil-service/test_soil_router_decomposition_guard.py",

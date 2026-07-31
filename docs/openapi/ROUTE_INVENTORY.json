@@ -129,8 +129,8 @@
       "GET /health",
       "GET /readyz",
       "GET /metrics",
-      "GET /soil/readings/{field_id}",
-      "POST /soil/ingest"
+      "GET /v1/soil/readings/{field_id}",
+      "POST /v1/soil/ingest"
     ],
     "routers": 0
   },

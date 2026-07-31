@@ -83,7 +83,7 @@ def _run_checks():
             "k_ppm": 88.0,
             "tenant_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
         }
-        r = c.post("/soil/ingest", json=payload, headers=TOK)
+        r = c.post("/v1/soil/ingest", json=payload, headers=TOK)
         ck(
             "ingest قراءة تربة بـNPK = 200 [H5]",
             r.status_code == 200,
@@ -94,7 +94,7 @@ def _run_checks():
             r.json().get("status") == "ingested" if r.status_code == 200 else False,
         )
 
-        r = c.get("/soil/readings/rls_func_fieldH5")
+        r = c.get("/v1/soil/readings/rls_func_fieldH5")
         ck(
             "read القراءات = 200 (SELECT بالأعمدة الفعليّة) [H5]",
             r.status_code == 200,
@@ -119,7 +119,7 @@ def _run_checks():
             float(row.get("temperature") or -1) == 24.5 and float(row.get("ph_level") or -1) == 6.8,
             f"temp={row.get('temperature')} ph={row.get('ph_level')}",
         )
-        r = c.post("/soil/ingest", json=payload)
+        r = c.post("/v1/soil/ingest", json=payload)
         ck(
             "ingest بلا توكن خدمة مرفوض (401/403/422)",
             r.status_code in (401, 403, 422),

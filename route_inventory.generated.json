@@ -7844,7 +7844,7 @@
     "file": "services/soil-service/routers/modbus.py",
     "line": 36,
     "method": "POST",
-    "path": "/soil/decode/modbus",
+    "path": "/v1/soil/decode/modbus",
     "function": "decode_modbus"
   },
   {
@@ -8188,7 +8188,7 @@
     "file": "services/soil-service/routers/readings.py",
     "line": 23,
     "method": "GET",
-    "path": "/soil/readings/{field_id}",
+    "path": "/v1/soil/readings/{field_id}",
     "function": "get_readings"
   },
   {
@@ -8196,7 +8196,7 @@
     "file": "services/soil-service/routers/readings.py",
     "line": 38,
     "method": "POST",
-    "path": "/soil/ingest",
+    "path": "/v1/soil/ingest",
     "function": "ingest_reading"
   },
   {
@@ -8204,7 +8204,7 @@
     "file": "services/soil-service/routers/soil_profile.py",
     "line": 47,
     "method": "POST",
-    "path": "/soil/suitability",
+    "path": "/v1/soil/suitability",
     "function": "soil_suitability"
   },
   {
@@ -8212,7 +8212,7 @@
     "file": "services/soil-service/routers/soil_profile.py",
     "line": 58,
     "method": "GET",
-    "path": "/soil/soilgrids",
+    "path": "/v1/soil/soilgrids",
     "function": "soil_from_soilgrids"
   },
   {

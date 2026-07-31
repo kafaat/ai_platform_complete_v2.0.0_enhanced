@@ -26,7 +26,7 @@
       "web": 448
     },
     "unmapped_artifacts": 1949,
-    "ambiguous_artifacts": 392
+    "ambiguous_artifacts": 393
   },
   "capabilities": [
     {
@@ -9767,6 +9767,10 @@
           "score": 14
         },
         {
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:772",
+          "score": 14
+        },
+        {
           "value": "sahool.events.> @ docs/POST_DEPLOYMENT_ROADMAP.md:34",
           "score": 13
         },
@@ -10380,15 +10384,6 @@
           ]
         },
         {
-          "path": "docs/architecture/api_versioning_legacy_baseline.json",
-          "score": 16,
-          "signals": [
-            "content:dem",
-            "content:slope",
-            "content:terrain"
-          ]
-        },
-        {
           "path": "shared/actuator_idempotency.py",
           "score": 14,
           "signals": [
@@ -10549,12 +10544,12 @@
         "backend": 22,
         "routes": 100,
         "database": 10,
-        "events": 50,
+        "events": 51,
         "web": 11,
         "mobile": 0,
         "tests": 35,
         "governance": 0,
-        "other_evidence": 34
+        "other_evidence": 33
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -26179,11 +26174,11 @@
       ],
       "routes": [
         {
-          "value": "/soil/soilgrids @ services/soil-service/routers/soil_profile.py:57",
+          "value": "/v1/soil/soilgrids @ services/soil-service/routers/soil_profile.py:57",
           "score": 22
         },
         {
-          "value": "/soil/suitability @ services/soil-service/routers/soil_profile.py:46",
+          "value": "/v1/soil/suitability @ services/soil-service/routers/soil_profile.py:46",
           "score": 22
         },
         {
@@ -26191,7 +26186,19 @@
           "score": 12
         },
         {
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:74",
+          "score": 12
+        },
+        {
           "value": "/healthz @ services/decision-service/main.py:500",
+          "score": 12
+        },
+        {
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:59",
+          "score": 12
+        },
+        {
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:70",
           "score": 12
         },
         {
@@ -26623,6 +26630,10 @@
           "score": 12
         },
         {
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:772",
+          "score": 12
+        },
+        {
           "value": "public.soil_observations @ services/soil-service/soil_store.py:390",
           "score": 12
         },
@@ -26786,6 +26797,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_api_versioning_policy_guard.py",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "tests_v9/test_canonical_root_zone_profile.py",
           "score": 12,
           "signals": [
@@ -26863,6 +26882,15 @@
             "content:Soil profile",
             "path:soil profile",
             "content:soil profile"
+          ]
+        },
+        {
+          "path": "docs/architecture/api_versioning_legacy_baseline.json",
+          "score": 26,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile",
+            "explicit_id"
           ]
         },
         {
@@ -26954,14 +26982,14 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 13,
-        "routes": 85,
+        "routes": 88,
         "database": 14,
-        "events": 34,
+        "events": 35,
         "web": 1,
         "mobile": 0,
-        "tests": 12,
+        "tests": 13,
         "governance": 1,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -50170,6 +50198,29 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_api_versioning_policy_guard.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "GIS-003",
+          "score": 14,
+          "signals": [
+            "content:dem",
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
+          "capability_id": "SOIL-001",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
           ]
         }
       ]

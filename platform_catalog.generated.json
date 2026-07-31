@@ -13854,7 +13854,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /soil/decode/modbus"
+        "POST /v1/soil/decode/modbus"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -13871,7 +13871,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /soil/ingest"
+        "POST /v1/soil/ingest"
       ],
       "idempotency_required": true,
       "kind": "command",
@@ -13990,7 +13990,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /soil/readings/{field_id}"
+        "GET /v1/soil/readings/{field_id}"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -14061,7 +14061,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /soil/soilgrids"
+        "GET /v1/soil/soilgrids"
       ],
       "idempotency_required": false,
       "kind": "query",
@@ -14078,7 +14078,7 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /soil/suitability"
+        "POST /v1/soil/suitability"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -17223,7 +17223,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "e78b5f5f80b5104c48d4b54a9cacf26bf6d5e9838f642a785d91b909a58a51f3",
+  "fingerprint": "e57106663cd2e1e0f80ac79581629a441e14f4ae7631366af2e042562404b14d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
