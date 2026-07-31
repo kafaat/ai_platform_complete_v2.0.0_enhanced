@@ -6956,6 +6956,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_fake_green_test_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_feature_flags_smoke.py",
     "kind": "tests"
   },
