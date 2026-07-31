@@ -8,8 +8,9 @@ contract = json.loads((ROOT / "shared/contracts/intelligence_governance.json").r
 errors = []
 if contract["principles"].get("observed_spectral_truth") != "raster-service":
     errors.append("bad spectral owner")
+# الموضع القانونيّ الوحيد بعد حذف نسخة الجذر الميتة
+# (SUPERVISOR-ROOT-SKILLS-DEAD-CODE-01): main.py يستورد skills.* حصراً.
 for rel in [
-    "services/supervisor-agent/remote_sensing_skill.py",
     "services/supervisor-agent/skills/remote_sensing_skill.py",
 ]:
     text = (ROOT / rel).read_text()

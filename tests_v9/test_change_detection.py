@@ -95,10 +95,8 @@ def test_deterministic_and_improvement_and_shape_guard():
 def test_placeholder_removed_and_endpoint_wired():
     """الـplaceholder أُزيل من نسختَي المهارة، والنقطة موجودة في raster-service."""
     placeholder = "قيد التطوير"
-    for rel in (
-        "services/supervisor-agent/skills/remote_sensing_skill.py",
-        "services/supervisor-agent/remote_sensing_skill.py",
-    ):
+    # نسخة الجذر حُذِفت (SUPERVISOR-ROOT-SKILLS-DEAD-CODE-01) — كانت ميتة.
+    for rel in ("services/supervisor-agent/skills/remote_sensing_skill.py",):
         txt = open(os.path.join(ROOT, rel), encoding="utf-8").read()
         assert placeholder not in txt, f"placeholder ما زال في {rel}"
         assert "/change/detect" in txt, f"الربط بالنقطة مفقود في {rel}"

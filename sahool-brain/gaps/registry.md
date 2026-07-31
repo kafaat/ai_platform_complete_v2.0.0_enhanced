@@ -1061,6 +1061,17 @@
 - **التحقّق:** `pytest -m unit`: 3776 · مجموعة المنصّة (`Platform Unit Tests`): **4014 نجحت**، صفر فشل · `ruff` نظيف.
 - **PR:** انظر السجلّ التشغيليّ في `log.md`.
 
+## SUPERVISOR-ROOT-SKILLS-DEAD-CODE-01 — مُغلقة (2026-07-31)
+
+- **العلّة:** `services/supervisor-agent` حمل **نسختين** من كلّ مهارة — واحدة في جذره وأخرى في `skills/`. والنسخ الجذريّة كانت **ميتة ومتباعدة معاً**، وهو أسوأ من التكرار الصرف: `advisory_skill` ١٣٧ سطراً مقابل ٢٤٨ (**١٢٣ سطراً مختلفاً** — فرق قدرة لا أسلوب) · `crop_model_skill` ١٦٠/١٦٥ (٩) · `market_skill` ١١١/٩٦ (١٧) · `remote_sensing_skill` ١٧٦/١٧٦ (٢).
+- **إثبات reachability كامل قبل الحذف (لا `main.py` وحده):** صفر استيراد جذريّ (`from X`/`import X`) في الشجرة كلّها · صفر استيراد ديناميكيّ يمسّ الجذر (`router_registry.py:30` يمسح `routers/` فقط) · صفر `__main__` في الأربعة · entrypoint الحاوية `uvicorn main:app` و`main.py` يستورد `skills.*` حصراً · `test_advisor_source_tagging.py` يحمّل بـ`spec_from_file_location` لكن على `skills/` صراحةً.
+- **ثلاثة مستهلكين كانوا يقرؤون الملفّ الجذريّ نصّاً — الحذف كان سيُسقِطهم بـ`FileNotFoundError`:** `scripts/ci/intelligence_governance_gate.py:11-21` (حارس CI) · `tests/test_intelligence_governance_contract.py:14-21` · `tests_v9/test_change_detection.py:98-104`. الثلاثة يفرضون العقد نفسه على النسختين (لا `compute_ndvi`، وجود `read_indicator_observation`، تسييج الجلب المباشر) — قُلِّمت قوائمهم إلى `skills/` وحدها **قبل** الحذف.
+- **ورابع:** `architecture/legacy_quarantine_allowlist.json:16` كان يحجر `advisory_skill.py:mvp_in_memory` **الجذريّ** — سطر أُزيل، وهو بذاته دليل أنّ الجذر كان معروفاً كـlegacy.
+- **العلاج: حذف مباشر (٥٨٤ سطراً) — بلا wrappers وبلا نقل الفروق.** الكود الميت لا يصير قدرة مطلوبة لمجرّد أنّه أطول؛ أيّ فرق ذي قيمة يحتاج إثبات مستهلك أو عقد أو اختبار مستقلّ — ولم يُقدَّم.
+- **حارس منع العودة:** `tests_v9/test_supervisor_skill_canonical_location_guard.py` — أربعة تأكيدات: لا `*_skill.py` في جذر الخدمة · الأربع الحيّة سليمة في `skills/` · `main.py` يستورد `skills.*` ولا يستورد جذريّاً · صفر استيراد جذريّ عبر الشجرة.
+- **مُكذَّب بثلاثة مسارات:** إعادة ملفّ إلى الجذر ⇒ فشل مُسمّى · استيراد جذريّ عارٍ ⇒ فشل يسمّي الملفّ والسطر · حذف مهارة حيّة ⇒ فشل مُسمّى. والاستعادة خضراء في الثلاثة.
+- **التحقّق:** `intelligence_governance_gate` ⇒ `ok` · `tests/` **611 نجحت صفر فشل** · `pytest -m unit` **3780** · `verify_all_generated` ⇒ صفر انحراف بعد **سبع دورات توليد** (أطول سلسلة في الجلسة: الحذف حرّك الجرد والنَّسَب وعقود التشغيل والإغلاق الساكن معاً).
+
 ## PYTEST-NONASSERTING-GROWTH-01 — مُغلقة (2026-07-31)
 
 - **ما أُغلِق بالضبط:** **النموّ** لا الدَّين. لا يمكن بعد اليوم إدخال دالّة `test_*` بلا `assert`/`raises` وتُرجِع قيمة: `scripts/ci/assertion_presence_guard.py --check` يُسقِط CI **بالاسم**، مربوطاً بـ`capability-governance.yml`. المجموعة مُجمَّدة (٢٠٧) وتتقلّص ولا تنمو — فلا يُستبدَل دَين بدَين حتى لو ثبت العدد (درس #733).

@@ -54,7 +54,7 @@ SAT-003,satellite,NDVI,True,7,100,80,42,100,49,6,100,0
 SAT-004,satellite,NDMI,True,6,18,10,5,12,7,0,17,0
 SAT-005,satellite,Cloud screening,True,4,8,24,0,1,0,0,9,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,2,0
-SAT-007,satellite,Change detection,True,3,3,1,0,0,0,0,3,0
+SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,5,0
 SAT-009,satellite,COG persistence and tiling,True,5,11,67,0,12,1,0,21,0
 SEC-001,security,Tenant RLS,True,5,13,36,100,46,0,0,55,0
@@ -71,9 +71,9 @@ SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
 SOIL-004,soil,pH EC SOM nutrients,True,1,0,0,0,0,0,0,1,0
 SOIL-005,soil,Soil water properties,True,3,5,0,0,2,0,0,2,0
 WX-001,weather,Current weather,False,0,0,0,0,0,0,0,0,0
-WX-002,weather,Weather forecast,True,6,23,51,9,56,9,0,21,0
+WX-002,weather,Weather forecast,True,6,22,51,9,56,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
-WX-004,weather,ET0,True,5,60,53,0,78,19,0,57,0
+WX-004,weather,ET0,True,5,59,53,0,78,19,0,57,0
 WX-005,weather,VPD,True,5,8,29,0,6,2,0,6,0
 WX-006,weather,GDD,True,6,81,26,26,26,15,0,41,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0

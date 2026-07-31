@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 509,
+      "evidence_count": 508,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -459,7 +459,6 @@
         "services/soil-service/test_soil_p6_certification.py",
         "services/soil-service/test_soil_snapshot_identity.py",
         "services/soil-service/test_soil_supersession_current_pointer.py",
-        "services/supervisor-agent/remote_sensing_skill.py",
         "services/supervisor-agent/skills/remote_sensing_skill.py",
         "services/supervisor-agent/tool_contracts.py",
         "services/vegetation-analysis-service/anomaly_engine.py",
@@ -549,7 +548,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 455,
+      "evidence_count": 453,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -983,9 +982,7 @@
         "services/soil-service/test_soil_p1_products.py",
         "services/soil-service/test_soil_p3_products.py",
         "services/soil-service/test_soil_p5_certification.py",
-        "services/supervisor-agent/crop_model_skill.py",
         "services/supervisor-agent/main.py",
-        "services/supervisor-agent/remote_sensing_skill.py",
         "services/supervisor-agent/skills/crop_model_skill.py",
         "services/supervisor-agent/skills/remote_sensing_skill.py",
         "services/vegetation-analysis-service/anomaly_engine.py",
@@ -2220,8 +2217,8 @@
         "services/sahool-platform/core/field_digital_twin.py",
         "services/sahool-platform/core/field_event_sourcing.py"
       ],
-      "source_evidence_count": 509,
-      "target_evidence_count": 455,
+      "source_evidence_count": 508,
+      "target_evidence_count": 453,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2321,7 +2318,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 455,
+      "source_evidence_count": 453,
       "target_evidence_count": 159,
       "static_supported": true,
       "runtime_verified": false
@@ -2571,5 +2568,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "d5696b056ebd6627d014b9196f5e6a8f9aa98bca548bf4bbe23aaaa9f75400d3"
+  "content_sha256": "3393fcf4cccd7f900f1b24586db9eeaa3326d8a93a0b3d63aab8b4aedddd4fd4"
 }

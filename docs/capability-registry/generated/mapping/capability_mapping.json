@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4794,
+    "files_scanned": 4791,
     "files_by_kind": {
-      "backend": 1191,
+      "backend": 1187,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1257,
-      "tests": 1523,
+      "tests": 1524,
       "web": 448
     },
-    "unmapped_artifacts": 1951,
-    "ambiguous_artifacts": 393
+    "unmapped_artifacts": 1950,
+    "ambiguous_artifacts": 391
   },
   "capabilities": [
     {
@@ -17532,14 +17532,6 @@
           ]
         },
         {
-          "path": "services/supervisor-agent/remote_sensing_skill.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "services/supervisor-agent/router.py",
           "score": 12,
           "signals": [
@@ -17717,6 +17709,14 @@
         },
         {
           "path": "services/ai_agronomist/tool_governance.py",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "path": "services/gis-workflow-service/bulletin_render.py",
           "score": 8,
           "signals": [
             "content:NDVI",
@@ -21533,14 +21533,6 @@
           ]
         },
         {
-          "path": "services/supervisor-agent/remote_sensing_skill.py",
-          "score": 10,
-          "signals": [
-            "content:Change detection",
-            "content:change detection"
-          ]
-        },
-        {
           "path": "services/supervisor-agent/skills/remote_sensing_skill.py",
           "score": 10,
           "signals": [
@@ -21551,7 +21543,7 @@
       ],
       "routes": [
         {
-          "value": "/v1/change/detect @ tests_v9/test_change_detection.py:109",
+          "value": "/v1/change/detect @ tests_v9/test_change_detection.py:107",
           "score": 26
         }
       ],
@@ -21596,7 +21588,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 3,
+        "backend": 2,
         "routes": 1,
         "database": 0,
         "events": 0,
@@ -28198,15 +28190,6 @@
           ]
         },
         {
-          "path": "services/supervisor-agent/crop_model_skill.py",
-          "score": 12,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        },
-        {
           "path": "services/supervisor-agent/skills/crop_model_skill.py",
           "score": 12,
           "signals": [
@@ -29203,7 +29186,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 23,
+        "backend": 22,
         "routes": 51,
         "database": 9,
         "events": 56,
@@ -29657,14 +29640,6 @@
         },
         {
           "path": "services/sahool-platform/core/kc_extraction_engine.py",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "path": "services/supervisor-agent/crop_model_skill.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -31212,7 +31187,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 60,
+        "backend": 59,
         "routes": 53,
         "database": 0,
         "events": 78,
@@ -39689,15 +39664,7 @@
       "kind": "backend"
     },
     {
-      "path": "services/supervisor-agent/advisory_skill.py",
-      "kind": "backend"
-    },
-    {
       "path": "services/supervisor-agent/circuit_breaker.py",
-      "kind": "backend"
-    },
-    {
-      "path": "services/supervisor-agent/market_skill.py",
       "kind": "backend"
     },
     {
@@ -41274,6 +41241,10 @@
     },
     {
       "path": "tests_v9/test_spatial_e2e_smoke.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_supervisor_skill_canonical_location_guard.py",
       "kind": "tests"
     },
     {
@@ -49519,29 +49490,6 @@
       ]
     },
     {
-      "path": "services/supervisor-agent/crop_model_skill.py",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
-          ]
-        },
-        {
-          "capability_id": "WX-002",
-          "score": 12,
-          "signals": [
-            "content:Weather forecast",
-            "content:forecast",
-            "content:weather forecast"
-          ]
-        }
-      ]
-    },
-    {
       "path": "services/supervisor-agent/main.py",
       "kind": "backend",
       "candidates": [
@@ -49559,28 +49507,6 @@
           "signals": [
             "content:Human approval",
             "content:approval workflow"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "services/supervisor-agent/remote_sensing_skill.py",
-      "kind": "backend",
-      "candidates": [
-        {
-          "capability_id": "SAT-003",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "SAT-007",
-          "score": 10,
-          "signals": [
-            "content:Change detection",
-            "content:change detection"
           ]
         }
       ]

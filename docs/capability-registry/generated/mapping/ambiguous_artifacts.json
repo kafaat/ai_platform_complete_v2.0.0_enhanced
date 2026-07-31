@@ -8068,29 +8068,6 @@
     ]
   },
   {
-    "path": "services/supervisor-agent/crop_model_skill.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-002",
-        "score": 12,
-        "signals": [
-          "content:Weather forecast",
-          "content:forecast",
-          "content:weather forecast"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/supervisor-agent/main.py",
     "kind": "backend",
     "candidates": [
@@ -8108,28 +8085,6 @@
         "signals": [
           "content:Human approval",
           "content:approval workflow"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/supervisor-agent/remote_sensing_skill.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "SAT-003",
-        "score": 12,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "SAT-007",
-        "score": 10,
-        "signals": [
-          "content:Change detection",
-          "content:change detection"
         ]
       }
     ]
