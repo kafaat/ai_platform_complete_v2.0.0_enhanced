@@ -181,11 +181,11 @@ raster-service.imagery.timeseries.analyze,command,raster-service,POST /imagery/t
 raster-service.imagery.timeseries.parallel,command,raster-service,POST /imagery/timeseries/parallel,frontend,route,False
 raster-service.indices,query,raster-service,GET /indices,frontend,route,False
 raster-service.info.layer_id,query,raster-service,GET /info/{layer_id},frontend,route,False
-raster-service.jobs.job_id,query,raster-service,GET /jobs/{job_id},frontend,route,False
-raster-service.jobs.job_id.result,query,raster-service,GET /jobs/{job_id}/result,frontend,route,False
+raster-service.jobs.job_id,query,raster-service,GET /v1/jobs/{job_id},frontend,route,False
+raster-service.jobs.job_id.result,query,raster-service,GET /v1/jobs/{job_id}/result,frontend,route,False
 raster-service.layers.layer_id.tilejson,query,raster-service,GET /layers/{layer_id}/tilejson,frontend,route,False
-raster-service.offline.packs,query,raster-service,GET /offline/packs,frontend,route,False
-raster-service.offline.packs.pack_name,query,raster-service,GET /offline/packs/{pack_name},frontend,route,False
+raster-service.offline.packs,query,raster-service,GET /v1/offline/packs,frontend,route,False
+raster-service.offline.packs.pack_name,query,raster-service,GET /v1/offline/packs/{pack_name},frontend,route,False
 raster-service.process,command,raster-service,POST /process,frontend,route,False
 raster-service.process.batch,command,raster-service,POST /process/batch,frontend,route,False
 raster-service.providers.status,query,raster-service,GET /v1/providers/status,frontend,route,False
@@ -201,16 +201,16 @@ raster-service.soil.tiles.prop,query,raster-service,GET /v1/soil/tiles/{prop}/{d
 raster-service.stac,query,raster-service,GET /stac,frontend,route,False
 raster-service.stac.collections,query,raster-service,GET /stac/collections,frontend,route,False
 raster-service.stac.mosaicjson,command,raster-service,POST /stac/mosaicjson,frontend,route,False
-raster-service.storage.cleanup,command,raster-service,POST /storage/cleanup,frontend,route,False
-raster-service.storage.stats,query,raster-service,GET /storage/stats,frontend,route,False
+raster-service.storage.cleanup,command,raster-service,POST /v1/storage/cleanup,frontend,route,False
+raster-service.storage.stats,query,raster-service,GET /v1/storage/stats,frontend,route,False
 raster-service.terrain.slope,command,raster-service,POST /terrain/slope,frontend,route,False
 raster-service.terrain.status,query,raster-service,GET /v1/terrain/status,frontend,route,False
 raster-service.terrain.tilejson,query,raster-service,GET /v1/terrain/tilejson,frontend,route,False
 raster-service.tile-cache.stats,query,raster-service,GET /v1/tile-cache/stats,frontend,route,False
 raster-service.tiles.layer_id.z,query,raster-service,GET /tiles/{layer_id}/{z}/{x}/{y}.png,frontend,route,False
 raster-service.tiles.observability,query,raster-service,GET /v1/tiles/observability,frontend,route,False
-raster-service.upload.drone,command,raster-service,POST /upload/drone,frontend,route,False
-raster-service.upload.raster,command,raster-service,POST /upload/raster,frontend,route,False
+raster-service.upload.drone,command,raster-service,POST /v1/upload/drone,frontend,route,False
+raster-service.upload.raster,command,raster-service,POST /v1/upload/raster,frontend,route,False
 raster-service.zones.classify,command,raster-service,POST /zones/classify,frontend,route,False
 remote-sensing-workspace-bff.fields.field_id.remote-sensing-workspace,query,remote-sensing-workspace-bff,GET /v1/fields/{field_id}/remote-sensing-workspace,,route,False
 sahool-platform OutboxWorker.event.9fe71469,event,sahool-platform OutboxWorker,NATS sahool.events.>,notification-agent (notif_domain_events),event,False

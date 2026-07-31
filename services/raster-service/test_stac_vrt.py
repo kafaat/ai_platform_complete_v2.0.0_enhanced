@@ -65,7 +65,7 @@ def run():
     )
     assert r.status_code == 200, f"process-from-stac فشل: {r.status_code} {r.text[:200]}"
     job = r.json()["job_id"]
-    js = c.get(f"/jobs/{job}").json()
+    js = c.get(f"/v1/jobs/{job}").json()
     print(f"(ب) job={job} status={js.get('status')} progress={js.get('progress_pct')}")
     assert js.get("status") == "completed", f"المهمّة لم تكتمل: {js.get('status')}"
 

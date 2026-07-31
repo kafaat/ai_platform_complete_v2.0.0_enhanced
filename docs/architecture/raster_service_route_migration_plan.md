@@ -7,7 +7,8 @@ inventory, not assumed from a stale one.
 
 ## Baseline (re-measured, not assumed)
 
-`api_versioning_inventory.generated.json`, `service == "raster-service"`:
+`api_versioning_inventory.generated.json`, `service == "raster-service"`, **as measured
+before PR-R2**:
 
 | classification | count |
 |---|---|
@@ -16,10 +17,10 @@ inventory, not assumed from a stale one.
 | `infra` | 3 |
 | **total** | 81 |
 
-The `legacy_unversioned_business` count is **still 30** — unchanged by Option B, because
-none of raster-service's unversioned routes were misreported by the `APIRouter(prefix=...)`
-composition bug (that bug only affected six sahool-platform files). This baseline is a
-genuine independent measurement, not a carry-over assumption.
+The `legacy_unversioned_business` count was **still 30** before PR-R2 — unchanged by
+Option B, because none of raster-service's unversioned routes were misreported by the
+`APIRouter(prefix=...)` composition bug (that bug only affected six sahool-platform
+files). This baseline is a genuine independent measurement, not a carry-over assumption.
 
 ## Migration split (by ownership, not size)
 
@@ -27,28 +28,46 @@ The 30 routes split into four PRs. Route→PR assignment is pinned and falsifica
 in `tests/architecture/test_raster_service_route_migration_plan.py` — a route landing in
 the wrong bucket, or a new unversioned route appearing unclassified, fails that test.
 
-### PR-R2 — internal and operational routes (8)
+### PR-R2 — internal and operational routes (8) — MIGRATED
 
 Job status/result and storage/upload/offline-pack management. All require
-`x_agent_token` (`require_service_token`) — no browser exposure.
+`x_agent_token` (`require_service_token`) — no browser exposure. All 8 migrated to
+`/v1/...` in this slice.
 
-| method | path | file:line |
-|---|---|---|
-| GET | `/jobs/{job_id}` | `services/raster-service/routers/jobs.py:19` |
-| GET | `/jobs/{job_id}/result` | `services/raster-service/routers/jobs.py:37` |
-| POST | `/upload/raster` | `services/raster-service/routers/storage.py:26` |
-| POST | `/upload/drone` | `services/raster-service/routers/storage.py:43` |
-| GET | `/storage/stats` | `services/raster-service/routers/storage.py:65` |
-| POST | `/storage/cleanup` | `services/raster-service/routers/storage.py:74` |
-| GET | `/offline/packs` | `services/raster-service/routers/storage.py:87` |
-| GET | `/offline/packs/{pack_name}` | `services/raster-service/routers/storage.py:115` |
+| method | old path | new path | file:line |
+|---|---|---|---|
+| GET | `/jobs/{job_id}` | `/v1/jobs/{job_id}` | `services/raster-service/routers/jobs.py:18` |
+| GET | `/jobs/{job_id}/result` | `/v1/jobs/{job_id}/result` | `services/raster-service/routers/jobs.py:36` |
+| POST | `/upload/raster` | `/v1/upload/raster` | `services/raster-service/routers/storage.py:25` |
+| POST | `/upload/drone` | `/v1/upload/drone` | `services/raster-service/routers/storage.py:42` |
+| GET | `/storage/stats` | `/v1/storage/stats` | `services/raster-service/routers/storage.py:64` |
+| POST | `/storage/cleanup` | `/v1/storage/cleanup` | `services/raster-service/routers/storage.py:73` |
+| GET | `/offline/packs` | `/v1/offline/packs` | `services/raster-service/routers/storage.py:86` |
+| GET | `/offline/packs/{pack_name}` | `/v1/offline/packs/{pack_name}` | `services/raster-service/routers/storage.py:114` |
 
-**Real consumer requiring lock-step update:** `GET /jobs/{job_id}/result` is called by
+**Real consumer updated in lock-step:** `GET /jobs/{job_id}/result` was called by
 `services/sahool-platform/api/raster_service_client.py:466` (`get_job_result`), itself
-used by `imagery_automation.py:634` to read indicator-batch sub-job results. Migrating
-this path to `/v1/jobs/{job_id}/result` **must** update `raster_service_client.py` in the
-same PR, not defer it — this is not a classifier-only slice like sahool-platform's phase9-12
-routers were in Option B.
+used by `imagery_automation.py:634` to read indicator-batch sub-job results. Updated to
+`f"/v1/jobs/{job_id}/result"` in the same commit as the server-side path change — not
+deferred — matching `services/sahool-platform/tests/test_p2_1_imagery_automation_raster_facade_guard.py`'s
+facade-endpoint assertion, which was updated to match.
+
+**Every other literal reference updated in the same PR** (repo-wide search, not
+assumption): `tests_v9/test_raster_endpoint_auth_coverage.py`'s `SERVICE_ONLY` set,
+`tests_v9/test_fields_put_and_mfa_api_contract_20260626.py`'s substring assertions,
+`services/raster-service/test_stac_vrt.py`'s functional `TestClient` call (the one real
+in-service functional test hitting `/jobs/{job_id}` directly), the `download_url` and
+advisory `note` fields dynamically embedded in `/offline/packs` and `/process/batch`
+responses (same "no stale embedded URL" discipline as the `tile_url_template` finding in
+PR-R4's research), and `docs/openapi/API_MAP.md`. Two known-dead references were left
+untouched deliberately: `tests_v9/test_mobile_backend_contract.py` (non-asserting —
+`return`s a results list instead of `assert`ing, and scans a sibling directory that
+doesn't exist in this repo — a pre-existing stale artifact, out of scope here) and
+`tests_v9/test_roadmap_phase23.py`'s two soft checks (scan `services/raster-service/main.py`
+for these paths, which were never there post-decomposition — already dead before this
+PR, confirmed by grep). Dated historical reports (`FIX_ALL_REPORTED_ISSUES_20260626.md`,
+`docs/history/PROVIDERS_GAPS_IMPLEMENTATION.md`) were left untouched, matching this
+session's established precedent for point-in-time snapshots.
 
 ### PR-R3 — imagery/catalog/process routes (20)
 

@@ -468,3 +468,68 @@ def test_rag_retrieval_and_agriai_engine_routes_are_versioned():
         present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
         missing = expected - present
         assert not missing, f"{f} missing expected migrated route(s): {missing}"
+
+
+def test_raster_service_pr_r2_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, raster-service PR-R2 (2026-07-31): the
+    internal/operational routes in routers/jobs.py and routers/storage.py (registered
+    via register_routers()'s flat, prefix-less inclusion, so the decorator literal is
+    the real runtime path) moved to /v1/*. All 8 are require_service_token, no browser
+    exposure. The one real internal consumer,
+    services/sahool-platform/api/raster_service_client.py's get_job_result(), was
+    updated in the same commit to call /v1/jobs/{job_id}/result -- see
+    docs/architecture/raster_service_route_migration_plan.md. Falsified by
+    construction: reverting any decorator to its old bare path makes this fail by
+    naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_files = (
+        "services/raster-service/routers/jobs.py",
+        "services/raster-service/routers/storage.py",
+    )
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/raster-service/routers/jobs.py": {"/jobs/{job_id}", "/jobs/{job_id}/result"},
+        "services/raster-service/routers/storage.py": {
+            "/upload/raster",
+            "/upload/drone",
+            "/storage/stats",
+            "/storage/cleanup",
+            "/offline/packs",
+            "/offline/packs/{pack_name}",
+        },
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        "services/raster-service/routers/jobs.py": {
+            ("GET", "/v1/jobs/{job_id}"),
+            ("GET", "/v1/jobs/{job_id}/result"),
+        },
+        "services/raster-service/routers/storage.py": {
+            ("POST", "/v1/upload/raster"),
+            ("POST", "/v1/upload/drone"),
+            ("GET", "/v1/storage/stats"),
+            ("POST", "/v1/storage/cleanup"),
+            ("GET", "/v1/offline/packs"),
+            ("GET", "/v1/offline/packs/{pack_name}"),
+        },
+    }
+    for f, expected in new_paths.items():
+        present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
+        missing = expected - present
+        assert not missing, f"{f} missing expected migrated route(s): {missing}"
+
+    client = (
+        guard.ROOT / "services" / "sahool-platform" / "api" / "raster_service_client.py"
+    ).read_text(encoding="utf-8")
+    assert 'f"/v1/jobs/{job_id}/result"' in client
+    assert 'f"/jobs/{job_id}/result"' not in client

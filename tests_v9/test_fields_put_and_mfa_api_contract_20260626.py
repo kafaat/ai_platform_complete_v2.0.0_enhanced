@@ -69,7 +69,8 @@ def test_storage_and_offline_are_no_longer_public_catalog_in_guard():
             "# ─────────────────────────────────────────────────────────────────────────────\n# القائمة العامّة"
         )
     ]
-    assert '"/storage/stats"' in service
-    assert '"/offline/packs"' in service
-    assert '"/offline/packs/{pack_name}"' in service
+    assert '"/v1/storage/stats"' in service
+    assert '"/v1/offline/packs"' in service
+    assert '"/v1/offline/packs/{pack_name}"' in service
     assert '"/storage/stats"' not in public
+    assert '"/v1/storage/stats"' not in public

@@ -1219,8 +1219,8 @@ OPS-004,test,tests_v9/test_field_forms_sync_token.py,7,applied
 OPS-004,test,tests_v9/test_v204_field_forms_static.py,7,applied
 OPS-004,ui,frontend/src/components/ds/forms.test.tsx,2,applied
 OPS-004,ui,frontend/src/components/ds/forms.tsx,2,applied
-OPS-005,api,GET /offline/packs @ services/raster-service/routers/storage.py:87,2,applied
-OPS-005,api,GET /offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115,2,applied
+OPS-005,api,GET /v1/offline/packs @ services/raster-service/routers/storage.py:87,2,applied
+OPS-005,api,GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115,2,applied
 OPS-005,api,POST /v1/phase10/learning/feature-store/offline-dataset @ services/sahool-platform/api/phase10_continuous_learning.py:244,2,applied
 OPS-005,mobile,mobile/sahool_app/lib/widgets/offline_field_map.dart,2,applied
 OPS-005,test,services/local-ai-rag/test_rag_offline_guards.py,3,applied
@@ -1464,16 +1464,11 @@ SAT-009,api,GET /healthz @ services/raster-service/routers/observability.py:31,3
 SAT-009,api,GET /imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:24,3,applied
 SAT-009,api,GET /indices @ services/raster-service/routers/observability.py:253,3,applied
 SAT-009,api,GET /info/{layer_id} @ services/raster-service/routers/observability.py:213,3,applied
-SAT-009,api,GET /jobs/{job_id} @ services/raster-service/routers/jobs.py:19,3,applied
-SAT-009,api,GET /jobs/{job_id}/result @ services/raster-service/routers/jobs.py:37,3,applied
 SAT-009,api,GET /layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37,5,applied
 SAT-009,api,GET /metrics @ services/raster-service/routers/observability.py:36,3,applied
-SAT-009,api,GET /offline/packs @ services/raster-service/routers/storage.py:87,3,applied
-SAT-009,api,GET /offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115,3,applied
 SAT-009,api,GET /readyz @ services/raster-service/routers/observability.py:171,3,applied
 SAT-009,api,GET /stac @ services/raster-service/routers/stac.py:17,3,applied
 SAT-009,api,GET /stac/collections @ services/raster-service/routers/stac.py:25,3,applied
-SAT-009,api,GET /storage/stats @ services/raster-service/routers/storage.py:65,3,applied
 SAT-009,api,GET /tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23,5,applied
 SAT-009,api,GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351,3,applied
@@ -1501,11 +1496,16 @@ SAT-009,api,GET /v1/imagery/search/landsat-thermal @ services/raster-service/rou
 SAT-009,api,GET /v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:132,3,applied
 SAT-009,api,GET /v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:24,3,applied
 SAT-009,api,GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43,3,applied
+SAT-009,api,GET /v1/jobs/{job_id} @ services/raster-service/routers/jobs.py:19,3,applied
+SAT-009,api,GET /v1/jobs/{job_id}/result @ services/raster-service/routers/jobs.py:37,3,applied
+SAT-009,api,GET /v1/offline/packs @ services/raster-service/routers/storage.py:87,3,applied
+SAT-009,api,GET /v1/offline/packs/{pack_name} @ services/raster-service/routers/storage.py:115,3,applied
 SAT-009,api,GET /v1/providers/status @ services/raster-service/routers/observability.py:223,3,applied
 SAT-009,api,GET /v1/slope/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:87,5,applied
 SAT-009,api,GET /v1/soil/properties @ services/raster-service/routers/soil_tiles.py:100,3,applied
 SAT-009,api,GET /v1/soil/tilejson @ services/raster-service/routers/soil_tiles.py:52,5,applied
 SAT-009,api,GET /v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png @ services/raster-service/routers/soil_tiles.py:37,5,applied
+SAT-009,api,GET /v1/storage/stats @ services/raster-service/routers/storage.py:65,3,applied
 SAT-009,api,GET /v1/terrain/status @ services/raster-service/routers/terrain_tiles.py:45,3,applied
 SAT-009,api,GET /v1/terrain/tilejson @ services/raster-service/routers/terrain_tiles.py:101,5,applied
 SAT-009,api,GET /v1/tile-cache/stats @ services/raster-service/routers/observability.py:192,5,applied
@@ -1527,10 +1527,7 @@ SAT-009,api,POST /salinity/calibrate @ services/raster-service/routers/analysis.
 SAT-009,api,POST /salinity/classify @ services/raster-service/routers/analysis.py:168,3,applied
 SAT-009,api,POST /sar/rvi @ services/raster-service/routers/analysis.py:111,3,applied
 SAT-009,api,POST /stac/mosaicjson @ services/raster-service/routers/stac.py:33,3,applied
-SAT-009,api,POST /storage/cleanup @ services/raster-service/routers/storage.py:74,3,applied
 SAT-009,api,POST /terrain/slope @ services/raster-service/routers/analysis.py:135,3,applied
-SAT-009,api,POST /upload/drone @ services/raster-service/routers/storage.py:43,3,applied
-SAT-009,api,POST /upload/raster @ services/raster-service/routers/storage.py:26,3,applied
 SAT-009,api,POST /v1/cog/registry/preview @ services/raster-service/routers/imagery.py:130,5,applied
 SAT-009,api,POST /v1/fields/analytics/geoparquet/export @ services/raster-service/routers/fields.py:724,3,applied
 SAT-009,api,POST /v1/fields/{field_id}/change @ services/raster-service/routers/fields.py:1129,3,applied
@@ -1544,6 +1541,9 @@ SAT-009,api,POST /v1/imagery/mosaic/plan @ services/raster-service/routers/image
 SAT-009,api,POST /v1/imagery/scenes/rank @ services/raster-service/routers/imagery.py:78,3,applied
 SAT-009,api,POST /v1/imagery/search @ services/raster-service/routers/imagery_search.py:120,3,applied
 SAT-009,api,POST /v1/scenes/quality-score @ services/raster-service/routers/imagery.py:114,3,applied
+SAT-009,api,POST /v1/storage/cleanup @ services/raster-service/routers/storage.py:74,3,applied
+SAT-009,api,POST /v1/upload/drone @ services/raster-service/routers/storage.py:43,3,applied
+SAT-009,api,POST /v1/upload/raster @ services/raster-service/routers/storage.py:26,3,applied
 SAT-009,api,POST /zones/classify @ services/raster-service/routers/analysis.py:30,3,applied
 SAT-009,service,services/raster-service/main.py,10,applied
 SAT-009,test,services/raster-service/test_available_dates_provider_datetime.py,3,applied
