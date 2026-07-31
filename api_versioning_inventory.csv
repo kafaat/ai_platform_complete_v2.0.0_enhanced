@@ -302,7 +302,6 @@ raster-service,services/raster-service/routers/timeseries_routes.py,92,POST,/v1/
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,33,GET,/healthz,healthz,infra
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,38,GET,/readyz,readyz,infra
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,69,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,versioned
-sahool-platform,services/sahool-platform/api/chat_proxy_reference.py,110,POST,/api/chat,chat,legacy_unversioned_business
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,147,POST,/v1/phase10/learning/feature-schema,feature_schema,versioned
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,152,POST,/v1/phase10/learning/dataset,dataset,versioned
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,162,POST,/v1/phase10/learning/models/promote,model_promotion,versioned

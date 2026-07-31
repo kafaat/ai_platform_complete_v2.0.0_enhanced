@@ -8863,7 +8863,7 @@
       },
       {
         "capability_id": "FM-007",
-        "score": 11,
+        "score": 12,
         "signals": [
           "content:inventory",
           "content:procurement"

@@ -140,6 +140,27 @@ def _is_test_file(path: Path) -> bool:
     return "/tests/" in rel or rel.startswith("tests/") or path.name.startswith("test_")
 
 
+# وحدات تُعرّف مسارات على تطبيق FastAPI **مستقلّ غير مُركَّب** — أمثلة مرجعيّة لا سطح
+# مخدوم. نفس صنف استبعاد ملفّات الاختبار أعلاه: الجرد يصف ما تخدمه الخدمة فعلاً، وادّعاء
+# مسار غير موجود في التطبيق العامل خطأ صدق لا دَين هجرة.
+#   • services/sahool-platform/api/chat_proxy_reference.py — ثلاثة أقفال بنيويّة مستقلّة:
+#     (١) خارج `api/routers/`، و`register_routers()` يُسجّل تلقائيّاً وحدات تلك الحزمة
+#         وحدها (`pkgutil.iter_modules(_routers_pkg.__path__)`، api/router_registry.py)؛
+#     (٢) صفر استيراد إنتاجيّ في المستودع (المطابقتان الوحيدتان تعليق في
+#         ai_provider_config.py ونصّ docstring داخل الملفّ نفسه — لا `import`)؛
+#     (٣) لا يُصدِّر `router` إطلاقاً، بل `app = FastAPI(...)` داخل try/except كمثال
+#         قابل للتشغيل مستقلّاً (`uvicorn api.chat_proxy_reference:app`).
+#     docstring الملفّ صريح: «هذا ملف مرجعي يوضّح النمط… النواة الحالية لا تتضمّن خادماً».
+#     سابقة مستقلّة قائمة: tests_v9/test_endpoint_auth_coverage.py يستثنيه بالاسم للسبب نفسه.
+#   الحقائق الثلاث مُثبَّتة في tests_v9/test_api_versioning_policy_guard.py — لو رُكِّب
+#   الملفّ يوماً (أو نُقِل إلى api/routers/) يسقط الاختبار ويُجبِر إعادة التقييم.
+_UNMOUNTED_REFERENCE_FILES = frozenset({"services/sahool-platform/api/chat_proxy_reference.py"})
+
+
+def _is_unmounted_reference(path: Path) -> bool:
+    return path.relative_to(ROOT).as_posix() in _UNMOUNTED_REFERENCE_FILES
+
+
 def collect():
     paths = list(ROOT.glob("services/**/*.py")) + list(ROOT.glob("bots/**/*.py"))
     rows = []
@@ -150,6 +171,9 @@ def collect():
         # (مثل `GET /probe` في test_correlation_middleware.py) — استبعاد بنيويّ لا
         # يدويّ، حتى يبقى الأساس 250/230/55 قابلاً لإعادة التوليد بلا تدخّل.
         if _is_test_file(p):
+            continue
+        # تطبيق مرجعيّ مستقلّ غير مُركَّب ⇒ ليس سطحاً مخدوماً (انظر التعليق أعلاه).
+        if _is_unmounted_reference(p):
             continue
         rows.extend(_routes(p))
     for r in rows:
