@@ -199,14 +199,22 @@ def main():
         # علاجها المُوثَّق «أعِد التوليد» — فمسار غير مُصدَّر **جديد** يُقبَل بمجرّد
         # الالتزام بالقائمة الجديدة. كاشف انحراف لا بوّابة سياسة. الراتشِت أدناه
         # يمنع **النموّ**: التقلّص مسموح ومطلوب، والزيادة تُسقِط CI.
+        #
+        # شرطان مستقلّان، لا شرط واحد: عدّ فقط (len(current) <= ceiling) لا يمنع
+        # استبدال دَين قديم بدَين جديد — إغلاق مسارَين وفتح مسارَين مختلفَين يُبقي
+        # العدد ثابتاً فيمرّ صامتاً. الشرط الثاني (current_set ⊆ frozen_set) يمنع هذا:
+        # أيّ مسار **جديد** في القائمة الحاليّة لم يكن في المجموعة المُجمَّدة يُسقِط CI
+        # فوراً حتى لو بقي العدد الكلّي تحت السقف.
         import json as _json
 
         baseline = ROOT / "docs" / "architecture" / "api_versioning_legacy_baseline.json"
         if baseline.exists():
-            ceiling = _json.loads(baseline.read_text(encoding="utf-8"))["ceiling"]
-            current = len(
-                _json.loads(ALLOW.read_text(encoding="utf-8"))["legacy_unversioned_business_routes"]
-            )
+            baseline_data = _json.loads(baseline.read_text(encoding="utf-8"))
+            ceiling = baseline_data["ceiling"]
+            current_routes = _json.loads(ALLOW.read_text(encoding="utf-8"))[
+                "legacy_unversioned_business_routes"
+            ]
+            current = len(current_routes)
             if current > ceiling:
                 raise SystemExit(
                     f"قائمة السماح نمت {ceiling} ⇒ {current}. مسار عمل جديد بلا إصدار "
@@ -215,6 +223,24 @@ def main():
                 )
             if current < ceiling:
                 print(f"  قائمة السماح تقلّصت {ceiling} ⇒ {current} — حدّث ceiling في الأساس.")
+
+            frozen_routes = baseline_data.get("routes")
+            if frozen_routes is not None:
+                current_set = set(current_routes)
+                frozen_set = set(frozen_routes)
+                escaped = current_set - frozen_set
+                if escaped:
+                    raise SystemExit(
+                        "قائمة السماح تحمل مساراً/مسارات جديدة ليست في المجموعة المُجمَّدة "
+                        f"(استبدال دَين لا تقلّصه، مرفوض حتى لو بقي العدد تحت السقف): "
+                        f"{sorted(escaped)}. أصدِرها تحت /api/v1/ أو أضِفها إلى `routes` في "
+                        f"{baseline.relative_to(ROOT)} إن كانت هجرة مُقرَّرة."
+                    )
+                if current_set != frozen_set:
+                    print(
+                        "  المجموعة المُجمَّدة تقلّصت "
+                        f"{len(frozen_set)} ⇒ {len(current_set)} — حدّث `routes` في الأساس."
+                    )
         print("api_versioning_policy_check_ok")
     else:
         counts = {}
