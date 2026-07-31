@@ -1631,6 +1631,7 @@ SAT-009,test,services/sahool-platform/tests/test_raster_export.py,3,applied
 SAT-009,test,services/sahool-platform/tests/test_weather_tile_engine_v10.py,3,applied
 SAT-009,test,services/vegetation-analysis-service/test_raster_bundle_boundary.py,3,applied
 SAT-009,test,services/weather-service/tests/test_p3_tile_neutral_resilience.py,3,applied
+SAT-009,test,tests/architecture/test_raster_service_route_migration_plan.py,3,applied
 SAT-009,test,tests_v9/raster_route_source.py,2,applied
 SAT-009,test,tests_v9/test_dev_gateway_raster_tile_auth_guard.py,5,applied
 SAT-009,test,tests_v9/test_frontend_tilejson_date_contract_guard.py,3,applied
