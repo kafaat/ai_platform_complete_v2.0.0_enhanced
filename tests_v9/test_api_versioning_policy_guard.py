@@ -22,6 +22,54 @@ def test_api_versioning_policy_guard_inventory_is_current():
     )
 
 
+def test_baseline_check_rejects_legacy_route_swap_not_just_count():
+    """The ratchet in --check enforced only len(current) <= ceiling (a bare count),
+    not that the *same* set is shrinking — closing 2 routes and opening 2 different
+    ones would pass silently as long as the total stayed <= ceiling. Fixed by adding
+    a frozen `routes` set to api_versioning_legacy_baseline.json and a second,
+    independent condition: current_legacy_set must be a subset of the frozen set.
+
+    Falsified by construction: temporarily drop one entry from the frozen `routes`
+    list (simulating a debt-swap where the live set still contains a route the
+    baseline no longer covers) and confirm --check fails naming that exact route,
+    then restore and confirm --check passes again."""
+    import json
+
+    root = Path(__file__).resolve().parents[1]
+    baseline_path = root / "docs" / "architecture" / "api_versioning_legacy_baseline.json"
+    original = baseline_path.read_text(encoding="utf-8")
+    data = json.loads(original)
+    assert data.get("routes"), "baseline must declare a frozen `routes` set for this guard to work"
+    dropped = data["routes"][0]
+
+    try:
+        tampered = dict(data)
+        tampered["routes"] = [r for r in data["routes"] if r != dropped]
+        baseline_path.write_text(
+            json.dumps(tampered, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        result = subprocess.run(
+            [sys.executable, "scripts/ci/api_versioning_policy_guard.py", "--check"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode != 0, "swapping one frozen route out must fail --check"
+        assert dropped in result.stdout + result.stderr, (
+            f"failure must name the escaped route {dropped!r} explicitly"
+        )
+    finally:
+        baseline_path.write_text(original, encoding="utf-8")
+
+    restored = subprocess.run(
+        [sys.executable, "scripts/ci/api_versioning_policy_guard.py", "--check"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+    assert restored.returncode == 0, f"restoring the baseline must pass --check: {restored.stdout}"
+
+
 def test_is_test_file_excludes_by_directory_and_filename():
     root = guard.ROOT
     assert guard._is_test_file(
