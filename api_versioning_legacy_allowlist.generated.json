@@ -1,7 +1,6 @@
 {
   "legacy_unversioned_business_routes": [
     "DELETE /auth/invitations/{invitation_id}",
-    "DELETE /streams/{stream_id}",
     "GET /api/agent/health",
     "GET /api/indicators/readyz",
     "GET /api/raster/{path:path}",
@@ -15,9 +14,6 @@
     "GET /auth/users",
     "GET /auth/verify",
     "GET /auth/verify/status",
-    "GET /streams",
-    "GET /streams/{stream_id}",
-    "GET /streams/{stream_id}/snapshot",
     "PATCH /auth/users/{user_id}/deactivate",
     "PATCH /auth/users/{user_id}/role",
     "POST /api/chat",
@@ -35,10 +31,6 @@
     "POST /auth/register",
     "POST /auth/tenants",
     "POST /auth/verify/confirm",
-    "POST /auth/verify/request",
-    "POST /streams",
-    "POST /streams/{stream_id}/record/start",
-    "POST /streams/{stream_id}/record/stop",
-    "POST /streams/{stream_id}/snapshot"
+    "POST /auth/verify/request"
   ]
 }

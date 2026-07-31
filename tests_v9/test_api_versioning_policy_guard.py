@@ -912,3 +912,62 @@ def test_odoo_bridge_erp_routes_are_versioned():
     assert odoo_bridge_legacy == set(), (
         f"odoo-bridge still has legacy_unversioned_business routes: {sorted(odoo_bridge_legacy)}"
     )
+
+
+def test_video_processor_stream_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, video-processor (2026-07-31, a
+    newly-discovered slice surfaced only during erp-bridge's final
+    remeasurement, not part of the originally-announced sequence): the 8
+    unversioned routes in routers/streams.py (flat, prefix-less inclusion, so
+    the decorator literal is the real runtime path) moved to /v1/streams*.
+    All use main._get_current_user (Bearer/JWT). Zero real consumers found by
+    repo-wide search: frontend/mobile have zero literal references; the live
+    nginx.v9.conf /api/video/ gateway is a transparent proxy (no rewrite)
+    restricted to private network ranges only (no browser-facing exposure);
+    no other service defines a URL constant pointing at video-processor.
+    Falsified by construction: reverting any decorator to its old bare path
+    makes this fail by naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_file = "services/video-processor/routers/streams.py"
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] == migrated_file and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "/streams",
+        "/streams/{stream_id}",
+        "/streams/{stream_id}/snapshot",
+        "/streams/{stream_id}/record/start",
+        "/streams/{stream_id}/record/stop",
+    }
+    present = {r["path"] for r in rows if r["file"] == migrated_file}
+    leaked_old = present & old_paths
+    assert not leaked_old, f"{migrated_file} still declares old path(s): {leaked_old}"
+
+    new_paths = {
+        ("POST", "/v1/streams"),
+        ("DELETE", "/v1/streams/{stream_id}"),
+        ("GET", "/v1/streams/{stream_id}"),
+        ("GET", "/v1/streams"),
+        ("POST", "/v1/streams/{stream_id}/snapshot"),
+        ("GET", "/v1/streams/{stream_id}/snapshot"),
+        ("POST", "/v1/streams/{stream_id}/record/start"),
+        ("POST", "/v1/streams/{stream_id}/record/stop"),
+    }
+    present_pairs = {(r["method"], r["path"]) for r in rows if r["file"] == migrated_file}
+    missing = new_paths - present_pairs
+    assert not missing, f"{migrated_file} missing expected migrated route(s): {missing}"
+
+    video_processor_legacy = {
+        (r["method"], r["path"])
+        for r in rows
+        if r["service"] == "video-processor"
+        and r["classification"] == "legacy_unversioned_business"
+    }
+    assert video_processor_legacy == set(), (
+        f"video-processor still has legacy_unversioned_business routes: "
+        f"{sorted(video_processor_legacy)}"
+    )

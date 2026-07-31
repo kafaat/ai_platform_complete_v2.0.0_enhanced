@@ -793,10 +793,10 @@ vegetation-analysis-service.indicators.registry.name,query,vegetation-analysis-s
 vegetation-analysis-service.ndvi.current.field_id,query,vegetation-analysis-service,GET /v1/ndvi/current/{field_id},frontend,route,False
 vegetation-analysis-service.outcomes.outcome_id.remote-sensing-attribution,command,vegetation-analysis-service,POST /v1/outcomes/{outcome_id}/remote-sensing-attribution,frontend,route,False
 vegetation-analysis-service.timeseries.field_id,query,vegetation-analysis-service,GET /v1/timeseries/{field_id},frontend,route,False
-video-processor.streams,mixed,video-processor,GET /streams|POST /streams,frontend,route,False
-video-processor.streams.stream_id,mixed,video-processor,DELETE /streams/{stream_id}|GET /streams/{stream_id},frontend,route,False
-video-processor.streams.stream_id.record,command,video-processor,POST /streams/{stream_id}/record/start|POST /streams/{stream_id}/record/stop,frontend,route,False
-video-processor.streams.stream_id.snapshot,mixed,video-processor,GET /streams/{stream_id}/snapshot|POST /streams/{stream_id}/snapshot,frontend,route,False
+video-processor.streams,mixed,video-processor,GET /v1/streams|POST /v1/streams,frontend,route,False
+video-processor.streams.stream_id,mixed,video-processor,DELETE /v1/streams/{stream_id}|GET /v1/streams/{stream_id},frontend,route,False
+video-processor.streams.stream_id.record,command,video-processor,POST /v1/streams/{stream_id}/record/start|POST /v1/streams/{stream_id}/record/stop,frontend,route,False
+video-processor.streams.stream_id.snapshot,mixed,video-processor,GET /v1/streams/{stream_id}/snapshot|POST /v1/streams/{stream_id}/snapshot,frontend,route,False
 weather-service.runtime-identity,query,weather-service,GET /runtime-identity,frontend,route,False
 weather-service.weather.agro.canonical-state,command,weather-service,POST /v1/weather/agro/canonical-state,frontend,route,False
 weather-service.weather.agro.et0,command,weather-service,POST /v1/weather/agro/et0|POST /v1/weather/agro/et0/series,frontend,route,False

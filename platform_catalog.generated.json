@@ -14565,8 +14565,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /streams",
-        "POST /streams"
+        "GET /v1/streams",
+        "POST /v1/streams"
       ],
       "idempotency_required": false,
       "kind": "mixed",
@@ -14583,8 +14583,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "DELETE /streams/{stream_id}",
-        "GET /streams/{stream_id}"
+        "DELETE /v1/streams/{stream_id}",
+        "GET /v1/streams/{stream_id}"
       ],
       "idempotency_required": false,
       "kind": "mixed",
@@ -14601,8 +14601,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "POST /streams/{stream_id}/record/start",
-        "POST /streams/{stream_id}/record/stop"
+        "POST /v1/streams/{stream_id}/record/start",
+        "POST /v1/streams/{stream_id}/record/stop"
       ],
       "idempotency_required": false,
       "kind": "command",
@@ -14619,8 +14619,8 @@
       "curated": false,
       "derived_from": "route",
       "entrypoints": [
-        "GET /streams/{stream_id}/snapshot",
-        "POST /streams/{stream_id}/snapshot"
+        "GET /v1/streams/{stream_id}/snapshot",
+        "POST /v1/streams/{stream_id}/snapshot"
       ],
       "idempotency_required": false,
       "kind": "mixed",
@@ -17223,7 +17223,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "2b870f61990fc99cd71a728793aed2a9b71bd19e0ce9eed5c85decd018dbf168",
+  "fingerprint": "1db28f507c7b30867703e0a6247d7896d4ed31916157e7e2e20c4760ab48fd20",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

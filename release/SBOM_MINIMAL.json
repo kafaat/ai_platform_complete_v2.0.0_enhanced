@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a068b3bf3c31115476d1023c51fb3248959d634b6018791b242697caffc0882c"
+          "content": "3636edb41e721f43345d40cd65e8c04940ca404ce6b12b2dd358c3a69711a5d1"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -28575,7 +28575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0075dd13dfe47011ef56b83f7abd796d43bdf0fb9f88f60a4ffcc8d41ae267c1"
+          "content": "b6b3e63e9b1fd43522c943301c2a1cbeaec43522eb4daff2f3c5ef17ba9b7f2f"
         }
       ],
       "name": "services/video-processor/routers/streams.py",
@@ -28605,7 +28605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae2c69d67f689f1a83766125101b2da40935d939976e0a3b6891424a7b73a3b3"
+          "content": "b0ff3a22bc4f462f944146d81c91bca64b29c5c96741aaca9e037bbb7ddd01ea"
         }
       ],
       "name": "services/video-processor/test_video_processor_router_decomposition_guard.py",
