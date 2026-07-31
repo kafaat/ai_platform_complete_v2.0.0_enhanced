@@ -21,6 +21,10 @@ jobs:
         run: python scripts/ci/architecture_graph.py --check
       - name: Validate API versioning inventory and legacy-route ratchet
         run: python scripts/ci/api_versioning_policy_guard.py --check
+      # الخضرة الزائفة: دالّة test_* بلا assert/raises وتُرجِع قيمة لا يمكن أن تفشل
+      # (pytest يُهمِل القيمة الراجعة). المجموعة مُجمَّدة وتتقلّص ولا تنمو.
+      - name: Reject new tests that cannot fail (no assertion, returns a value)
+        run: python scripts/ci/assertion_presence_guard.py --check
       - name: Validate platform route release source binding
         run: python scripts/release/platform_route_release_binding.py --check-source
       - name: Validate runtime contract drift

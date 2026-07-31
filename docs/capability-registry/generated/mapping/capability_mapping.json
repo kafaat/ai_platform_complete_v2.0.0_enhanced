@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4791,
+    "files_scanned": 4794,
     "files_by_kind": {
       "backend": 1191,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1255,
-      "tests": 1522,
+      "other": 1257,
+      "tests": 1523,
       "web": 448
     },
-    "unmapped_artifacts": 1950,
+    "unmapped_artifacts": 1951,
     "ambiguous_artifacts": 393
   },
   "capabilities": [
@@ -40598,6 +40598,10 @@
     },
     {
       "path": "tests_v9/test_external_submission_contract_v1.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_fake_green_test_guard.py",
       "kind": "tests"
     },
     {
