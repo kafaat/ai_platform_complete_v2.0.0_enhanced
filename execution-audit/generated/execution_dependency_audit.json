@@ -1586,7 +1586,7 @@
       "line": 17,
       "handler": "erp_provider_status",
       "method": "GET",
-      "path": "/erp/provider"
+      "path": "/v1/erp/provider"
     },
     {
       "owner": "odoo-bridge",
@@ -1594,7 +1594,7 @@
       "line": 33,
       "handler": "get_config",
       "method": "GET",
-      "path": "/config"
+      "path": "/v1/config"
     },
     {
       "owner": "odoo-bridge",
@@ -1602,7 +1602,7 @@
       "line": 50,
       "handler": "get_logs",
       "method": "GET",
-      "path": "/logs"
+      "path": "/v1/logs"
     },
     {
       "owner": "odoo-bridge",
@@ -1618,7 +1618,7 @@
       "line": 78,
       "handler": "list_erp_suppliers",
       "method": "GET",
-      "path": "/suppliers"
+      "path": "/v1/suppliers"
     },
     {
       "owner": "odoo-bridge",
@@ -1642,7 +1642,7 @@
       "line": 76,
       "handler": "readyz_capabilities",
       "method": "GET",
-      "path": "/readyz/capabilities"
+      "path": "/v1/readyz/capabilities"
     },
     {
       "owner": "odoo-bridge",
@@ -1650,7 +1650,7 @@
       "line": 78,
       "handler": "trigger_sync",
       "method": "POST",
-      "path": "/sync"
+      "path": "/v1/sync"
     },
     {
       "owner": "odoo-bridge",
@@ -1658,7 +1658,7 @@
       "line": 21,
       "handler": "odoo_webhook",
       "method": "POST",
-      "path": "/webhook/odoo"
+      "path": "/v1/webhook/odoo"
     },
     {
       "owner": "rag-retrieval",

@@ -677,7 +677,7 @@
         "metrics": [],
         "readiness": [
           "/readyz",
-          "/readyz/capabilities"
+          "/v1/readyz/capabilities"
         ]
       },
       "entrypoint": "services/odoo-bridge/main.py",

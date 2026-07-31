@@ -17,7 +17,7 @@ from fastapi import APIRouter, Header, HTTPException
 router = APIRouter()
 
 
-@router.post("/webhook/odoo")
+@router.post("/v1/webhook/odoo")
 async def odoo_webhook(payload: main.WebhookPayload, x_webhook_secret: str = Header(None)):
     """Receive real-time push from Odoo — يتطلّب سرّ webhook (كان مكشوفاً)."""
     # الأمان: webhook مالي/ERP — تحقّق من السرّ المشترك (منع حقن خارجي)

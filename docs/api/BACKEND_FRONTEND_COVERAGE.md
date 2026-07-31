@@ -534,7 +534,6 @@
 | `/commissioning/authorize` | internal | — |
 | `/commissioning/certificates` | internal | — |
 | `/commissioning/systems/{system_id}/current` | internal | — |
-| `/config` | internal | — |
 | `/connectors/descriptor` | internal | — |
 | `/consensus` | internal | — |
 | `/context` | internal | — |
@@ -545,7 +544,6 @@
 | `/drift` | internal | — |
 | `/editing-sessions` | internal | ✅ |
 | `/editing-sessions/undo-redo` | internal | ✅ |
-| `/erp/provider` | internal | — |
 | `/events/from-plan` | internal | — |
 | `/events/replay` | internal | — |
 | `/experiments/assign` | internal | — |
@@ -587,7 +585,6 @@
 | `/iot/telemetry/verify` | internal | — |
 | `/locks` | internal | — |
 | `/locks/{field_id}` | internal | — |
-| `/logs` | internal | — |
 | `/management-zones/summary` | internal | ✅ |
 | `/manual-executions` | internal | ✅ |
 | `/manual-executions/{execution_id}/confirm` | internal | ✅ |
@@ -647,8 +644,6 @@
 | `/streams/{stream_id}/record/start` | internal | — |
 | `/streams/{stream_id}/record/stop` | internal | — |
 | `/streams/{stream_id}/snapshot` | internal | — |
-| `/suppliers` | internal | — |
-| `/sync` | internal | — |
 | `/tile-cache-plan` | internal | ✅ |
 | `/usage` | internal | — |
 | `/v1/activation/evidence-receipts` | internal | — |
@@ -691,6 +686,7 @@
 | `/v1/cog/validate` | internal | — |
 | `/v1/command` | internal | ✅ |
 | `/v1/commands` | internal | ✅ |
+| `/v1/config` | internal | — |
 | `/v1/context-snapshots` | internal | — |
 | `/v1/context-snapshots/{snapshot_id}` | internal | — |
 | `/v1/cutover/readiness` | internal | — |
@@ -706,6 +702,7 @@
 | `/v1/edge/sync` | internal | — |
 | `/v1/edges` | internal | — |
 | `/v1/elevation/hillshade/{z}/{x}/{y}.png` | internal | ✅ |
+| `/v1/erp/provider` | internal | — |
 | `/v1/evidence/vegetation-snapshots` | internal | — |
 | `/v1/execution-plans/{execution_plan_id}/authorize-dispatch` | internal | — |
 | `/v1/execution-requests` | internal | — |
@@ -827,6 +824,7 @@
 | `/v1/learning/runtime-workers/{worker_id}/tenants` | internal | — |
 | `/v1/learning/summary` | internal | ✅ |
 | `/v1/learning/updates` | internal | — |
+| `/v1/logs` | internal | — |
 | `/v1/mcp/tools` | internal | — |
 | `/v1/mcp/tools/call` | internal | — |
 | `/v1/mcp/tools/list` | internal | — |
@@ -890,7 +888,9 @@
 | `/v1/stac/mosaicjson` | internal | — |
 | `/v1/storage/cleanup` | internal | — |
 | `/v1/storage/stats` | internal | — |
+| `/v1/suppliers` | internal | — |
 | `/v1/suppliers/{supplier_id}` | internal | — |
+| `/v1/sync` | internal | — |
 | `/v1/sync/trigger` | internal | — |
 | `/v1/terrain/slope` | internal | — |
 | `/v1/terrain/status` | internal | — |
@@ -906,10 +906,10 @@
 | `/v1/upload/drone` | internal | — |
 | `/v1/upload/raster` | internal | — |
 | `/v1/validate` | internal | ✅ |
+| `/v1/webhook/odoo` | internal | — |
 | `/v1/workflow/{workflow_id}` | internal | — |
 | `/v1/zones/classify` | internal | — |
 | `/verify` | internal | — |
 | `/verify-loop` | internal | — |
-| `/webhook/odoo` | internal | — |
 | `/webhooks` | internal | — |
 | `/webhooks/delivery-plan` | internal | — |

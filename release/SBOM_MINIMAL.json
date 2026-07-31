@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88f912b4aa94cb8c5530a4804d12f721fa91dd090d4d713a89c97bf3dcc96772"
+          "content": "a068b3bf3c31115476d1023c51fb3248959d634b6018791b242697caffc0882c"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12635,7 +12635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "146b6315f68eb2189847cfbe2f11b50505f19abe0acda52569f47a49e238b8ca"
+          "content": "ad6e7105e7731cc354c030fe90fe020ffda3877c5dd9a2c2f41b2dfdecce4d87"
         }
       ],
       "name": "services/odoo-bridge/main.py",
@@ -12675,7 +12675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ec1948c4d84785ade03dd77b2749917decc6d396ba5c3032422aebc168ed6bb"
+          "content": "2c57a9947b9a0f9d51312ba3d29bd467988d2bc2ab3e5b8eee48a49a96ba24a8"
         }
       ],
       "name": "services/odoo-bridge/routers/catalog.py",
@@ -12685,7 +12685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a96d6245ccf9f57aafa774e8837a6b86ef4689d1f2d9d31411f1b04bea9b775"
+          "content": "abc7d9a85f8caec8a3701fa83ac673134d5a1badde1659490d6a01ca4df3f5f5"
         }
       ],
       "name": "services/odoo-bridge/routers/health.py",
@@ -12695,7 +12695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ce8c9bec7484c730ea36936d179628af03a012f63d96de2c5ea59d0c460cb22"
+          "content": "5d55aa56c918d3f0021295fc305c40b76718346a31252b3fd8f53f21716e24ea"
         }
       ],
       "name": "services/odoo-bridge/routers/sync.py",
@@ -12705,7 +12705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8528726103f526a95dcd83e222915655afea813342cc7f0c2d1cdcb5e9f2a524"
+          "content": "591e8623a0633fd5675d5dcf3582a044ca3a3f2f9b639357fcde51aba281684c"
         }
       ],
       "name": "services/odoo-bridge/routers/webhooks.py",
@@ -12725,7 +12725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50b2eaf3c063f875a34c4b0740189a296ead2c489faab76b6e1c971d0da2b749"
+          "content": "12d3a1b07903e49981a9a3d1da0777ca96363ed70b68fb49d29d64fa13516eeb"
         }
       ],
       "name": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",

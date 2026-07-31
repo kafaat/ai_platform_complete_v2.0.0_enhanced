@@ -8145,7 +8145,7 @@
           "score": 11
         },
         {
-          "value": "/sync @ services/odoo-bridge/routers/sync.py:77",
+          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:77",
           "score": 10
         }
       ],
@@ -8493,7 +8493,7 @@
       ],
       "routes": [
         {
-          "value": "/sync @ services/odoo-bridge/routers/sync.py:77",
+          "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:77",
           "score": 12
         },
         {
@@ -8509,7 +8509,7 @@
           "score": 11
         },
         {
-          "value": "/readyz/capabilities @ services/odoo-bridge/routers/health.py:75",
+          "value": "/v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:75",
           "score": 11
         },
         {
@@ -8565,19 +8565,15 @@
           "score": 10
         },
         {
-          "value": "/config @ services/odoo-bridge/routers/catalog.py:32",
+          "value": "/v1/config @ services/odoo-bridge/routers/catalog.py:32",
           "score": 8
         },
         {
-          "value": "/erp/provider @ services/odoo-bridge/routers/catalog.py:16",
+          "value": "/v1/erp/provider @ services/odoo-bridge/routers/catalog.py:16",
           "score": 8
         },
         {
-          "value": "/logs @ services/odoo-bridge/routers/catalog.py:49",
-          "score": 8
-        },
-        {
-          "value": "/suppliers @ services/odoo-bridge/routers/catalog.py:77",
+          "value": "/v1/logs @ services/odoo-bridge/routers/catalog.py:49",
           "score": 8
         },
         {
@@ -8585,7 +8581,11 @@
           "score": 8
         },
         {
-          "value": "/webhook/odoo @ services/odoo-bridge/routers/webhooks.py:20",
+          "value": "/v1/suppliers @ services/odoo-bridge/routers/catalog.py:77",
+          "score": 8
+        },
+        {
+          "value": "/v1/webhook/odoo @ services/odoo-bridge/routers/webhooks.py:20",
           "score": 8
         }
       ],

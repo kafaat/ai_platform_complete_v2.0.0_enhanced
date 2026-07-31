@@ -76,13 +76,13 @@
     "routes": [
       "GET /healthz",
       "GET /health",
-      "GET /erp/provider",
-      "GET /config",
-      "POST /sync",
-      "POST /webhook/odoo",
-      "GET /logs",
+      "GET /v1/erp/provider",
+      "GET /v1/config",
+      "POST /v1/sync",
+      "POST /v1/webhook/odoo",
+      "GET /v1/logs",
       "GET /v1/products",
-      "GET /suppliers",
+      "GET /v1/suppliers",
       "GET /readyz"
     ],
     "routers": 0

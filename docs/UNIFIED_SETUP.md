@@ -185,7 +185,7 @@ curl -X POST https://localhost/api/market/v1/procurement   -d '{"items":[{"produ
 # ← order_id, status: approved (auto < 500 USD)
 
 # 5. Sync to Odoo
-curl -X POST https://localhost/api/odoo/sync -d '{"entity":"all"}'
+curl -X POST https://localhost/api/odoo/v1/sync -d '{"entity":"all"}'
 # ← products, suppliers, procurement → Odoo purchase.order
 
 # 6. مراقبة آفات
