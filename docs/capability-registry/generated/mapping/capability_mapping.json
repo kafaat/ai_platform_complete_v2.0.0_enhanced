@@ -8085,7 +8085,19 @@
           "score": 12
         },
         {
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:122",
+          "score": 12
+        },
+        {
           "value": "/healthz @ services/mcp_servers/market_server.py:696",
+          "score": 12
+        },
+        {
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:107",
+          "score": 12
+        },
+        {
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:118",
           "score": 12
         },
         {
@@ -8131,18 +8143,6 @@
         {
           "value": "/v1/suppliers/{supplier_id} @ services/mcp_servers/market_server.py:643",
           "score": 12
-        },
-        {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:122",
-          "score": 11
-        },
-        {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:107",
-          "score": 11
-        },
-        {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:118",
-          "score": 11
         },
         {
           "value": "/v1/sync @ services/odoo-bridge/routers/sync.py:77",
@@ -8196,7 +8196,7 @@
       "events": [
         {
           "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:820",
-          "score": 11
+          "score": 12
         }
       ],
       "web": [
@@ -8237,6 +8237,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_api_versioning_policy_guard.py",
+          "score": 12,
+          "signals": [
+            "content:inventory",
+            "content:procurement"
+          ]
+        },
+        {
           "path": "tests_v9/test_odoo_bridge_tenant_honesty.py",
           "score": 12,
           "signals": [
@@ -8250,14 +8258,6 @@
           "signals": [
             "path:inventory",
             "content:inventory"
-          ]
-        },
-        {
-          "path": "tests_v9/test_api_versioning_policy_guard.py",
-          "score": 11,
-          "signals": [
-            "content:inventory",
-            "content:procurement"
           ]
         }
       ],
@@ -50282,7 +50282,7 @@
         },
         {
           "capability_id": "FM-007",
-          "score": 11,
+          "score": 12,
           "signals": [
             "content:inventory",
             "content:procurement"

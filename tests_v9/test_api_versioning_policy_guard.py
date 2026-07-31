@@ -1126,3 +1126,61 @@ def test_auth_service_routes_are_versioned():
     assert auth_legacy == set(), (
         f"auth service still has legacy_unversioned_business routes: {sorted(auth_legacy)}"
     )
+
+
+def test_chat_proxy_reference_is_structurally_unmounted():
+    """`POST /api/chat` was counted as legacy migration debt, but the module that
+    declares it is a standalone reference example the platform never mounts — the
+    inventory was claiming a route the running app does not serve (same class as the
+    `GET /probe` test-file false positive fixed on 2026-07-30).
+
+    This proves the three independent structural facts the exclusion rests on, so the
+    exclusion is backed by a verified invariant rather than an assertion. If anyone
+    ever mounts the module, moves it into `api/routers/`, or gives it a `router`
+    export, this fails and forces the exclusion to be re-evaluated."""
+    root = Path(__file__).resolve().parents[1]
+    module = root / "services" / "sahool-platform" / "api" / "chat_proxy_reference.py"
+    assert module.is_file(), "reference module missing — re-evaluate the exclusion"
+
+    # (1) It is NOT inside api/routers/, and register_routers() auto-mounts only that
+    #     package (pkgutil.iter_modules over api/routers/).
+    assert not (module.parent / "routers" / "chat_proxy_reference.py").exists()
+    registry = (module.parent / "router_registry.py").read_text(encoding="utf-8")
+    assert "_routers_pkg.__path__" in registry, (
+        "router_registry no longer auto-mounts by scanning api/routers/ — "
+        "the unmounted-reference exclusion must be re-derived"
+    )
+
+    # (2) It exports no `router` object at all — only a standalone FastAPI `app`.
+    source = module.read_text(encoding="utf-8")
+    assert "FastAPI(" in source
+    tree = ast.parse(source)
+    exported_routers = {
+        target.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Assign)
+        for target in node.targets
+        if isinstance(target, ast.Name) and target.id == "router"
+    }
+    assert not exported_routers, "module now exports `router` — it may be auto-mounted"
+
+    # (3) No production module imports it (test harnesses load it via importlib, which
+    #     does not mount it into the platform app).
+    importers: list[str] = []
+    for py in sorted(root.glob("services/**/*.py")):
+        if "__pycache__" in py.parts or py == module:
+            continue
+        if guard._is_test_file(py):
+            continue
+        text = py.read_text(encoding="utf-8", errors="ignore")
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped.startswith(("import ", "from ")):
+                continue
+            if "chat_proxy_reference" in stripped:
+                importers.append(f"{py.relative_to(root).as_posix()}: {stripped}")
+    assert not importers, f"module is imported by production code now: {importers}"
+
+    # Therefore it must not appear in the served inventory at all.
+    inventoried = {r["file"] for r in guard.collect()}
+    assert "services/sahool-platform/api/chat_proxy_reference.py" not in inventoried

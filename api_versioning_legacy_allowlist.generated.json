@@ -6,7 +6,6 @@
     "GET /api/vegetation/readyz",
     "GET /api/vegetation/v1/all_fields",
     "GET /api/vegetation/v1/analyze",
-    "GET /api/weather/readyz",
-    "POST /api/chat"
+    "GET /api/weather/readyz"
   ]
 }

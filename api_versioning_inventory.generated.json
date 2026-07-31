@@ -2728,15 +2728,6 @@
   },
   {
     "service": "sahool-platform",
-    "file": "services/sahool-platform/api/chat_proxy_reference.py",
-    "line": 110,
-    "method": "POST",
-    "path": "/api/chat",
-    "handler": "chat",
-    "classification": "legacy_unversioned_business"
-  },
-  {
-    "service": "sahool-platform",
     "file": "services/sahool-platform/api/phase10_continuous_learning.py",
     "line": 147,
     "method": "POST",
