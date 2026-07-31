@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -29,37 +30,63 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
     a frozen `routes` set to api_versioning_legacy_baseline.json and a second,
     independent condition: current_legacy_set must be a subset of the frozen set.
 
-    Falsified by construction: temporarily drop one entry from the frozen `routes`
-    list (simulating a debt-swap where the live set still contains a route the
-    baseline no longer covers) and confirm --check fails naming that exact route,
-    then restore and confirm --check passes again."""
-    import json
+    Since the permanent-compatibility contract landed, migratable legacy debt is 0 and
+    the frozen `routes` set is empty, so the subset condition is no longer reachable
+    through real data — an empty set is a subset of everything, and any live legacy route
+    now trips the ceiling (0) first. The invariant still has to hold for the day debt
+    reappears, so this reconstructs exactly that situation instead of relying on it:
+    a baseline whose ceiling ADMITS the count (1 <= 1) but whose frozen set does NOT
+    contain the live route. Only the subset condition can reject that.
 
+    Falsified by construction: the probe route is added to the code and the baseline is
+    given a decoy frozen entry, so a count-only ratchet would pass; the run must fail
+    naming the escaped route, and both the code and the baseline are then restored."""
     root = Path(__file__).resolve().parents[1]
     baseline_path = root / "docs" / "architecture" / "api_versioning_legacy_baseline.json"
-    original = baseline_path.read_text(encoding="utf-8")
-    data = json.loads(original)
-    assert data.get("routes"), "baseline must declare a frozen `routes` set for this guard to work"
-    dropped = data["routes"][0]
+    target = root / "services" / "sahool-platform" / "api" / "routers" / "compat_gateway.py"
+    baseline_original = baseline_path.read_text(encoding="utf-8")
+    code_original = target.read_text(encoding="utf-8")
+    escaped = "GET /api/probe-swapped-in/status"
+    probe = (
+        '\n\n@router.get("/api/probe-swapped-in/status")\n'
+        "async def _probe_swapped_in():\n"
+        "    return {}\n"
+    )
+
+    def _regenerate():
+        subprocess.run(
+            [sys.executable, "scripts/ci/api_versioning_policy_guard.py"],
+            cwd=root,
+            capture_output=True,
+        )
 
     try:
-        tampered = dict(data)
-        tampered["routes"] = [r for r in data["routes"] if r != dropped]
+        target.write_text(code_original + probe, encoding="utf-8")
+        data = json.loads(baseline_original)
+        # Count admits it (1 <= 1); the frozen set deliberately holds a different route.
+        data["ceiling"] = 1
+        data["routes"] = ["GET /api/decoy-already-adjudicated/status"]
         baseline_path.write_text(
-            json.dumps(tampered, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
+        _regenerate()
+
         result = subprocess.run(
             [sys.executable, "scripts/ci/api_versioning_policy_guard.py", "--check"],
             cwd=root,
             capture_output=True,
             text=True,
         )
-        assert result.returncode != 0, "swapping one frozen route out must fail --check"
-        assert dropped in result.stdout + result.stderr, (
-            f"failure must name the escaped route {dropped!r} explicitly"
+        combined = result.stdout + result.stderr
+        assert result.returncode != 0, "a set-swap under an admitting ceiling must fail --check"
+        assert escaped in combined, f"failure must name the escaped route {escaped!r}: {combined}"
+        assert "نمت" not in combined, (
+            "must fail on the SET condition, not the count — the ceiling admitted it"
         )
     finally:
-        baseline_path.write_text(original, encoding="utf-8")
+        target.write_text(code_original, encoding="utf-8")
+        baseline_path.write_text(baseline_original, encoding="utf-8")
+        _regenerate()
 
     restored = subprocess.run(
         [sys.executable, "scripts/ci/api_versioning_policy_guard.py", "--check"],
@@ -1184,3 +1211,124 @@ def test_chat_proxy_reference_is_structurally_unmounted():
     # Therefore it must not appear in the served inventory at all.
     inventoried = {r["file"] for r in guard.collect()}
     assert "services/sahool-platform/api/chat_proxy_reference.py" not in inventoried
+
+
+def _run_check(root: Path):
+    return subprocess.run(
+        [sys.executable, "scripts/ci/api_versioning_policy_guard.py", "--check"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_permanent_compatibility_contract_classifies_by_method_and_normalized_path():
+    """The 7 surviving unversioned routes are permanent compatibility contracts, not
+    migration debt. They are classified from an explicit central contract keyed by
+    (method + normalized path) — normalization collapses each path parameter to `{}`
+    so the contract identifies the route *shape*, not its parameter naming.
+
+    These categories are deliberately NOT `infra`: they stay visible in the inventory
+    under their own named buckets. Reclassifying the health aliases as infra remains a
+    separate architectural decision, out of scope here."""
+    contract = guard._permanent_contract()
+    assert contract, "permanent compatibility contract is missing or empty"
+
+    # Keyed by method + normalized path, and normalization is shape-based.
+    assert guard._normalize_path("/api/raster/{path:path}") == "/api/raster/{}"
+    assert guard._normalize_path("/api/v1/fields/{field_id}/x") == "/api/v1/fields/{}/x"
+    assert contract[("GET", "/api/raster/{}")] == "permanent_compatibility_gateway"
+
+    rows = guard.collect()
+    by_class: dict[str, set[str]] = {}
+    for r in rows:
+        by_class.setdefault(r["classification"], set()).add(f"{r['method']} {r['path']}")
+
+    assert by_class.get("permanent_health_compat_alias") == {
+        "GET /api/indicators/readyz",
+        "GET /api/weather/readyz",
+        "GET /api/vegetation/readyz",
+        "GET /api/agent/health",
+    }
+    assert by_class.get("permanent_compatibility_gateway") == {
+        "GET /api/vegetation/v1/all_fields",
+        "GET /api/vegetation/v1/analyze",
+        "GET /api/raster/{path:path}",
+    }
+    # The whole point: migratable legacy debt is now zero, not seven.
+    assert by_class.get("legacy_unversioned_business", set()) == set()
+
+    # Contract matching requires the method — a path-only call cannot silently match.
+    assert guard._classify("/api/agent/health") == "legacy_unversioned_business"
+    assert guard._classify("/api/agent/health", "GET") == "permanent_health_compat_alias"
+
+
+def test_new_unversioned_route_is_rejected_without_adjudication():
+    """Adding an unversioned route that is not in the contract must fail CI — including
+    one shaped like a health alias. A permanent alias may only be added by editing the
+    contract file, which makes the adjudication visible in review.
+
+    Two gates must both hold, and the second is the one that matters: the drift detector
+    fires first, but its *documented remedy* is "just regenerate" — so the test also
+    regenerates and asserts --check STILL fails, now on the ceiling (0 => 1). That proves
+    regenerating cannot launder a new unversioned route into the baseline."""
+    root = Path(__file__).resolve().parents[1]
+    target = root / "services" / "sahool-platform" / "api" / "routers" / "compat_gateway.py"
+    original = target.read_text(encoding="utf-8")
+    probe = (
+        '\n\n@router.get("/api/probe-newservice/readyz")\n'
+        "async def _probe_unadjudicated_alias():\n"
+        '    return {"status": "ready"}\n'
+    )
+
+    def _regenerate():
+        subprocess.run(
+            [sys.executable, "scripts/ci/api_versioning_policy_guard.py"],
+            cwd=root,
+            capture_output=True,
+        )
+
+    try:
+        target.write_text(original + probe, encoding="utf-8")
+
+        # Gate 1: the committed inventory no longer matches the tree.
+        drifted = _run_check(root)
+        assert drifted.returncode != 0, "an unadjudicated unversioned route must fail --check"
+        assert "drift" in (drifted.stdout + drifted.stderr).lower()
+
+        # Gate 2 (the load-bearing one): applying the documented remedy does NOT help.
+        _regenerate()
+        ratcheted = _run_check(root)
+        assert ratcheted.returncode != 0, "regenerating must not launder a new unversioned route"
+        assert "0 ⇒ 1" in ratcheted.stdout + ratcheted.stderr, ratcheted.stdout + ratcheted.stderr
+    finally:
+        target.write_text(original, encoding="utf-8")
+        _regenerate()
+    assert _run_check(root).returncode == 0, "restoring must return --check to green"
+
+
+def test_stale_permanent_contract_entry_is_rejected():
+    """Reverse enforcement: a contract entry with no live matching route must fail.
+    The forward direction is structural (classification comes *from* the contract, so no
+    permanent route can exist outside it), but the reverse is not — a dead entry would
+    sit silently and pre-cover a route re-added later with the same signature, bypassing
+    a fresh adjudication.
+
+    Falsified by construction: add a ghost entry, confirm --check names it, restore."""
+    root = Path(__file__).resolve().parents[1]
+    contract_path = root / "docs" / "architecture" / "permanent_compatibility_contract.json"
+    original = contract_path.read_text(encoding="utf-8")
+    try:
+        data = json.loads(original)
+        data["categories"]["permanent_health_compat_alias"]["routes"].append(
+            {"method": "GET", "path": "/api/ghost-probe/readyz"}
+        )
+        contract_path.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        result = _run_check(root)
+        assert result.returncode != 0, "a stale contract entry must fail --check"
+        assert "/api/ghost-probe/readyz" in result.stdout + result.stderr
+    finally:
+        contract_path.write_text(original, encoding="utf-8")
+    assert _run_check(root).returncode == 0, "restoring must return --check to green"

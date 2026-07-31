@@ -15,13 +15,13 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4789,
+    "files_scanned": 4790,
     "files_by_kind": {
       "backend": 1191,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1254,
+      "other": 1255,
       "tests": 1521,
       "web": 448
     },
@@ -8081,11 +8081,19 @@
           "score": 14
         },
         {
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1279",
+          "score": 12
+        },
+        {
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:51",
+          "score": 12
+        },
+        {
           "value": "/health @ services/mcp_servers/market_server.py:697",
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:122",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:149",
           "score": 12
         },
         {
@@ -8093,11 +8101,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:107",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:134",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:118",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:145",
           "score": 12
         },
         {
@@ -8195,7 +8203,7 @@
       ],
       "events": [
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:820",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:847",
           "score": 12
         }
       ],
@@ -8394,7 +8402,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 8,
-        "routes": 22,
+        "routes": 24,
         "database": 8,
         "events": 1,
         "web": 1,
@@ -9560,7 +9568,7 @@
           "score": 16
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:122",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1279",
           "score": 14
         }
       ],
@@ -9792,7 +9800,7 @@
           "score": 14
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:820",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:847",
           "score": 14
         },
         {
@@ -24846,15 +24854,23 @@
           "score": 16
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:122",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1279",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:107",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:51",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:118",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:149",
+          "score": 12
+        },
+        {
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:134",
+          "score": 12
+        },
+        {
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:145",
           "score": 12
         },
         {
@@ -25013,7 +25029,7 @@
           "score": 17
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:820",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:847",
           "score": 12
         },
         {
@@ -25378,7 +25394,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 7,
-        "routes": 18,
+        "routes": 20,
         "database": 23,
         "events": 4,
         "web": 5,
@@ -26231,11 +26247,19 @@
           "score": 22
         },
         {
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1279",
+          "score": 12
+        },
+        {
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:51",
+          "score": 12
+        },
+        {
           "value": "/contract @ services/decision-service/main.py:552",
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:122",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:149",
           "score": 12
         },
         {
@@ -26243,11 +26267,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:107",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:134",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:118",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:145",
           "score": 12
         },
         {
@@ -26679,7 +26703,7 @@
           "score": 12
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:820",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:847",
           "score": 12
         },
         {
@@ -27031,7 +27055,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 13,
-        "routes": 88,
+        "routes": 90,
         "database": 14,
         "events": 35,
         "web": 1,
