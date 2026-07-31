@@ -20,7 +20,7 @@ from stac_search import stac_search
 router = APIRouter()
 
 
-@router.get("/imagery/timeseries")
+@router.get("/v1/imagery/timeseries")
 async def imagery_timeseries(
     west: float,
     south: float,
@@ -68,18 +68,18 @@ async def imagery_timeseries(
         "monthly_availability": timeline,
         "scenes": scenes,
         "normalized_scenes": normalized,
-        "note": "احسب المؤشّر لكلّ مشهد عبر /process ثمّ مرّر القيم لـ"
-        "/imagery/timeseries/analyze للحصول على الاتّجاه والشذوذ",
+        "note": "احسب المؤشّر لكلّ مشهد عبر /v1/process ثمّ مرّر القيم لـ"
+        "/v1/imagery/timeseries/analyze للحصول على الاتّجاه والشذوذ",
     }
 
 
-@router.post("/imagery/timeseries/analyze")
+@router.post("/v1/imagery/timeseries/analyze")
 async def imagery_timeseries_analyze(
     req: TimeSeriesAnalyzeRequest, x_agent_token: str = Header(None)
 ):
     """يحلّل قيم مؤشّر محسوبة عبر الزمن: تركيب شهري + اتّجاه + شذوذ.
 
-    يستقبل قيم المؤشّر المحسوبة فعليّاً لكلّ مشهد (من /process) ويُرجِع
+    يستقبل قيم المؤشّر المحسوبة فعليّاً لكلّ مشهد (من /v1/process) ويُرجِع
     التحليل الزمني الكامل. صدق: يعمل على قيم حقيقيّة مُمرَّرة، لا مخترعة.
     """
     require_service_token(x_agent_token)
@@ -88,7 +88,7 @@ async def imagery_timeseries_analyze(
     return ts.build_time_series(req.scene_values, value_key="mean")
 
 
-@router.post("/imagery/timeseries/parallel")
+@router.post("/v1/imagery/timeseries/parallel")
 async def imagery_timeseries_parallel(
     req: TimeSeriesAnalyzeRequest,
     max_concurrency: int = Query(4, ge=1, le=10),
@@ -96,7 +96,7 @@ async def imagery_timeseries_parallel(
 ):
     """تحليل زمني بمعالجة متوازية للمشاهد (أسرع للسلاسل الطويلة).
 
-    يحلّل قيماً محسوبة مسبقاً (من /process) بالتوازي المحدود + يبني التحليل.
+    يحلّل قيماً محسوبة مسبقاً (من /v1/process) بالتوازي المحدود + يبني التحليل.
     semaphore يحدّ التزامن (backpressure). عزل فشل كلّ مشهد.
     """
     require_service_token(x_agent_token)

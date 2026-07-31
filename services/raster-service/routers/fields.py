@@ -88,7 +88,7 @@ def _authenticated_tenant(body_tenant: str | None) -> str | None:
     return context_tenant
 
 
-@router.get("/gis/admin-boundaries")
+@router.get("/v1/gis/admin-boundaries")
 async def gis_admin_boundaries(
     level: int = Query(1, ge=1, le=2),
     bbox: str | None = Query(None, description="minx,miny,maxx,maxy (4326) — مقصوص، محدود المساحة"),

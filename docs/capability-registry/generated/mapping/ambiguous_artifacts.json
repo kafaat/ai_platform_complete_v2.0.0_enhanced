@@ -953,19 +953,20 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "GIS-003",
+        "score": 13,
+        "signals": [
+          "content:dem",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
         "capability_id": "SAT-001",
         "score": 10,
         "signals": [
           "content:sentinel",
           "content:stac"
-        ]
-      },
-      {
-        "capability_id": "GIS-003",
-        "score": 9,
-        "signals": [
-          "content:dem",
-          "content:terrain"
         ]
       }
     ]
@@ -1079,6 +1080,28 @@
         "signals": [
           "content:field geometry",
           "content:field workspace"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/raster_service_route_migration_plan.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-009",
+        "score": 8,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 8,
+        "signals": [
+          "content:slope",
+          "content:terrain"
         ]
       }
     ]
@@ -9460,7 +9483,7 @@
     "candidates": [
       {
         "capability_id": "GIS-003",
-        "score": 18,
+        "score": 20,
         "signals": [
           "content:dem",
           "content:hillshade",

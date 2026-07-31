@@ -533,3 +533,123 @@ def test_raster_service_pr_r2_routes_are_versioned():
     ).read_text(encoding="utf-8")
     assert 'f"/v1/jobs/{job_id}/result"' in client
     assert 'f"/jobs/{job_id}/result"' not in client
+
+
+def test_raster_service_pr_r3_routes_are_versioned():
+    """API-VERSIONING-GUARD-IS-A-MIRROR-01, raster-service PR-R3 (2026-07-31): the
+    imagery/catalog/process routes in routers/analysis.py, routers/fields.py (one
+    route), routers/observability.py, routers/processing.py, routers/stac.py, and
+    routers/timeseries_routes.py (all flat, prefix-less inclusion, so the decorator
+    literal is the real runtime path) moved to /v1/*. All are require_service_token
+    except the three STAC routes and the bare GET /imagery/timeseries, which are
+    PUBLIC_CATALOG (bbox-scoped public search/catalog, no tenant data). The two real
+    internal consumers,
+    services/sahool-platform/api/raster_service_client.py's get_indices_sync() and
+    process_indicator_batch(), were updated in the same commit to call
+    /v1/indices and /v1/process/batch -- see
+    docs/architecture/raster_service_route_migration_plan.md. Falsified by
+    construction: reverting any decorator to its old bare path makes this fail by
+    naming the exact leaked path."""
+    rows = guard.collect()
+    migrated_files = (
+        "services/raster-service/routers/analysis.py",
+        "services/raster-service/routers/fields.py",
+        "services/raster-service/routers/observability.py",
+        "services/raster-service/routers/processing.py",
+        "services/raster-service/routers/stac.py",
+        "services/raster-service/routers/timeseries_routes.py",
+    )
+    still_legacy = [
+        r
+        for r in rows
+        if r["file"] in migrated_files and r["classification"] == "legacy_unversioned_business"
+    ]
+    assert still_legacy == [], f"routes still unversioned after migration: {still_legacy}"
+
+    old_paths = {
+        "services/raster-service/routers/analysis.py": {
+            "/zones/classify",
+            "/change/detect",
+            "/fvc/compute",
+            "/sar/rvi",
+            "/terrain/slope",
+            "/cog/validate",
+            "/salinity/classify",
+            "/salinity/calibrate",
+        },
+        "services/raster-service/routers/observability.py": {"/info/{layer_id}", "/indices"},
+        "services/raster-service/routers/processing.py": {
+            "/process",
+            "/raw/process",
+            "/process/batch",
+        },
+        "services/raster-service/routers/stac.py": {
+            "/stac",
+            "/stac/collections",
+            "/stac/mosaicjson",
+        },
+        "services/raster-service/routers/timeseries_routes.py": {
+            "/imagery/timeseries",
+            "/imagery/timeseries/analyze",
+            "/imagery/timeseries/parallel",
+        },
+    }
+    for f, old in old_paths.items():
+        present = {r["path"] for r in rows if r["file"] == f}
+        leaked_old = present & old
+        assert not leaked_old, f"{f} still declares old path(s): {leaked_old}"
+    fields_present = {
+        r["path"] for r in rows if r["file"] == "services/raster-service/routers/fields.py"
+    }
+    assert "/gis/admin-boundaries" not in fields_present, (
+        "fields.py still declares old /gis/admin-boundaries"
+    )
+
+    new_paths = {
+        "services/raster-service/routers/analysis.py": {
+            ("POST", "/v1/zones/classify"),
+            ("POST", "/v1/change/detect"),
+            ("POST", "/v1/fvc/compute"),
+            ("POST", "/v1/sar/rvi"),
+            ("POST", "/v1/terrain/slope"),
+            ("GET", "/v1/cog/validate"),
+            ("POST", "/v1/salinity/classify"),
+            ("POST", "/v1/salinity/calibrate"),
+        },
+        "services/raster-service/routers/observability.py": {
+            ("GET", "/v1/info/{layer_id}"),
+            ("GET", "/v1/indices"),
+        },
+        "services/raster-service/routers/processing.py": {
+            ("POST", "/v1/process"),
+            ("POST", "/v1/raw/process"),
+            ("POST", "/v1/process/batch"),
+        },
+        "services/raster-service/routers/stac.py": {
+            ("GET", "/v1/stac"),
+            ("GET", "/v1/stac/collections"),
+            ("POST", "/v1/stac/mosaicjson"),
+        },
+        "services/raster-service/routers/timeseries_routes.py": {
+            ("GET", "/v1/imagery/timeseries"),
+            ("POST", "/v1/imagery/timeseries/analyze"),
+            ("POST", "/v1/imagery/timeseries/parallel"),
+        },
+    }
+    for f, expected in new_paths.items():
+        present = {(r["method"], r["path"]) for r in rows if r["file"] == f}
+        missing = expected - present
+        assert not missing, f"{f} missing expected migrated route(s): {missing}"
+    assert ("GET", "/v1/gis/admin-boundaries") in {
+        (r["method"], r["path"])
+        for r in rows
+        if r["file"] == "services/raster-service/routers/fields.py"
+    }, "fields.py missing expected migrated route /v1/gis/admin-boundaries"
+
+    client = (
+        guard.ROOT / "services" / "sahool-platform" / "api" / "raster_service_client.py"
+    ).read_text(encoding="utf-8")
+    assert '"/v1/indices"' in client
+    assert '"/indices"' not in client
+    assert '"/v1/process/batch"' in client
+    assert '"/process/batch"' not in client

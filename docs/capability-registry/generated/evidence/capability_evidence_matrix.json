@@ -961,6 +961,7 @@
         "services/soil-service/test_soil_p2_products.py",
         "services/soil-service/test_soil_p3_products.py",
         "tests_v9/test_actuator_idempotency.py",
+        "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_canonical_sprinkler_runoff_capability.py",
         "tests_v9/test_canonical_vri_prescription.py",
         "tests_v9/test_dem_quality_and_registry_v63_6.py",

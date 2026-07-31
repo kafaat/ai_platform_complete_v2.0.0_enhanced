@@ -147,26 +147,26 @@ class RemoteSensingSkill:
         elif intent == "change_detection":
             # كشف التغيير المكاني (per-pixel 2D) — متاح فعليّاً عبر raster-service.
             # المسار الصادق: العامل يحسب شبكتي المؤشّر للتاريخين من COG (rasterio)
-            # عبر /process، ثم يستدعي /change/detect لخريطة فرق تُظهر «أين» تدهور
+            # عبر /v1/process، ثم يستدعي /v1/change/detect لخريطة فرق تُظهر «أين» تدهور
             # الحقل (لا فقط «هل» المتوسّط تغيّر — المتوسّط يُخفي التدهور الموضعي).
             return {
                 "type": "change_detection",
                 "capability": "available",
-                "endpoint": "POST /change/detect (raster-service)",
+                "endpoint": "POST /v1/change/detect (raster-service)",
                 "required_inputs": {
                     "field_id": field_id,
                     "index": "ndvi|ndmi|salinity",
                     "date_before": "YYYY-MM-DD",
                     "date_after": "YYYY-MM-DD",
-                    "grid_before": "شبكة المؤشّر للتاريخ الأقدم (من /process)",
-                    "grid_after": "شبكة المؤشّر للتاريخ الأحدث (من /process)",
+                    "grid_before": "شبكة المؤشّر للتاريخ الأقدم (من /v1/process)",
+                    "grid_after": "شبكة المؤشّر للتاريخ الأحدث (من /v1/process)",
                 },
                 "recommendation": (
-                    "احسب شبكتي المؤشّر للتاريخين عبر /process ثمّ استدعِ "
-                    "/change/detect للحصول على خريطة فرق بكسل-بكسل ونسب المساحة "
+                    "احسب شبكتي المؤشّر للتاريخين عبر /v1/process ثمّ استدعِ "
+                    "/v1/change/detect للحصول على خريطة فرق بكسل-بكسل ونسب المساحة "
                     "المتدهورة (تكشف الرقع الموضعيّة التي يُخفيها المتوسّط الزمني)."
                 ),
-                "sources": ["SAHOOL raster-service /change/detect"],
+                "sources": ["SAHOOL raster-service /v1/change/detect"],
             }
 
         else:

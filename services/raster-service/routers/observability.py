@@ -209,7 +209,7 @@ async def tile_cache_stats(x_agent_token: str = Header(None)):
     }
 
 
-@router.get("/info/{layer_id}")
+@router.get("/v1/info/{layer_id}")
 async def raster_info(layer_id: str, x_agent_token: str = Header(None)):
     """معلومات طبقة راستر معالَجة."""
     require_service_token(x_agent_token, AGENT_TOKEN)
@@ -249,7 +249,7 @@ async def providers_status():
     }
 
 
-@router.get("/indices")
+@router.get("/v1/indices")
 async def field_indices(
     field_id: str,
     lat: float | None = Query(None),

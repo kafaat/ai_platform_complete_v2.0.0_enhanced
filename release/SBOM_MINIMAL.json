@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b6b4651ce2d097c2caaa20c03c380153135d82f7395e826b6d00a6ec84b98cd"
+          "content": "cf6cd67d7e950dc336ddacb9e79ee583c09d260e6ab37c2b9d6e3b9b6c9a5adf"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12915,7 +12915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2d39d92e6332f54954c1e0fa548cb303fe9c90c75b7179dd5100f282d9d3640"
+          "content": "3a77a123a47a02232c0165cd794a0960169509c7a57ebaac053f8d8685d6e930"
         }
       ],
       "name": "services/raster-service/cloud_native_catalog.py",
@@ -13435,7 +13435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b3302a4d9ea343d3ddffdce63395c9294f4839706a800d1f26393e4c99d0fd4"
+          "content": "f3c39783f6e782c72c13edaa4363573b375b0afbd92bb5585032d43e0ceb88da"
         }
       ],
       "name": "services/raster-service/routers/analysis.py",
@@ -13455,7 +13455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4677d363a98c78f1a668d81d7db56d4a9c194268d7a42bd749601bc84b2c1775"
+          "content": "cf4c334f01cdd2d709a7d59f685c649d886a096f23d490a44b0a4b77c13312db"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -13495,7 +13495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e164f25c79a2e7f088427b1cbc40c2c5dd8918ebd732998e3b8427d5bdfe8884"
+          "content": "63b22e0c39e4a7b777fad7a33069e7442eed6fe02e68c866194d0520e8caa800"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -13505,7 +13505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d6dda154cd2c4b4f919992a94d0d243e179a1277b7f0d835fd49e015c2aecf1"
+          "content": "56beb5a1336b6fa8cb8b8753b9430fa7b39516b09259c646ddb184609669ad5a"
         }
       ],
       "name": "services/raster-service/routers/processing.py",
@@ -13525,7 +13525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca2e795990768aaf15a9976f84dfd9f2c5084a71e10025276fc756f6ce558148"
+          "content": "1e802284f149d3f5bb485e4f2a724b3fa4f390f8b0acd4097cbb4921bd1facba"
         }
       ],
       "name": "services/raster-service/routers/stac.py",
@@ -13565,7 +13565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d6439c7b3849891ef9cf85b13268dff24b64e0e69da0448f6041ed0119d022d"
+          "content": "3e7c87c9338c3caeb90ebf30c16e2f8baa30361675985c520982c233def26924"
         }
       ],
       "name": "services/raster-service/routers/timeseries_routes.py",
@@ -15865,7 +15865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b2d49fc0727c2586c072a0447cc4ac7b7831bc5199b84098940f82db0ac38990"
+          "content": "424f7201328af3957d558577ee9cc1dc393acdee261c094a6cd792bb0e9d0978"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -16555,7 +16555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c231692eac1030b3cc1914754dae931cd7ea9fcb24dd702b1f8b0bdf635a0b67"
+          "content": "cfe1889521bf9555136dc2bc7075b5d2cf37f2dfdef02df33dd15fba3f0f04f8"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",
@@ -25375,7 +25375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bdeaf70cc9d9428928afdc25fe781423d1901a96360a8970b11b924e2de6bd64"
+          "content": "a10979bcbdd5563e8431b4b2b7d81b035d0f79ef7d48fd4e8a27c543cc375fd6"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_1_imagery_automation_raster_facade_guard.py",
@@ -27765,7 +27765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9db7595a17790498f2d13e0425aa86f3b3e6c40835e3ec812fc6f927a1f4b0c"
+          "content": "024735c669769d6137a4aa6eb129acc1bf795231b6e70bab5debcda37315c1cd"
         }
       ],
       "name": "services/supervisor-agent/remote_sensing_skill.py",
@@ -27875,7 +27875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04be533d1531bc776676199a5e50a81fd7273e6d53398c25b150c7627ac1efaa"
+          "content": "60d33d6aa5b49b279843620dcb47354c1018fe27e8971156f8bff54122d20594"
         }
       ],
       "name": "services/supervisor-agent/skills/remote_sensing_skill.py",

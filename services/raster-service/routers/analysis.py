@@ -26,7 +26,7 @@ from raster_settings import AGENT_TOKEN, SSRF_BLOCKED_HOSTS, UPLOAD_DIR
 router = APIRouter()
 
 
-@router.post("/zones/classify")
+@router.post("/v1/zones/classify")
 async def zones_classify(req: ManagementZonesRequest, x_agent_token: str = Header(None)):
     """مناطق الإدارة داخل الحقل (سدّ فجوة P1): تقسيم أداء + وصفة VRT.
 
@@ -44,7 +44,7 @@ async def zones_classify(req: ManagementZonesRequest, x_agent_token: str = Heade
     return result
 
 
-@router.post("/change/detect")
+@router.post("/v1/change/detect")
 async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(None)):
     """كشف التغيير المكاني (per-pixel 2D) بين تاريخين — أين تدهور/تحسّن الحقل.
 
@@ -81,7 +81,7 @@ async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(No
     return result
 
 
-@router.post("/fvc/compute")
+@router.post("/v1/fvc/compute")
 async def fvc_compute(req: FvcComputeRequest, x_agent_token: str = Header(None)):
     """نسبة التغطية النباتيّة (FVC) عبر نموذج البكسل الثنائي — تكمّل LAI.
 
@@ -107,7 +107,7 @@ async def fvc_compute(req: FvcComputeRequest, x_agent_token: str = Header(None))
     return result
 
 
-@router.post("/sar/rvi")
+@router.post("/v1/sar/rvi")
 async def sar_rvi_endpoint(req: SarRviRequest, x_agent_token: str = Header(None)):
     """مؤشّر الغطاء الراداري RVI من Sentinel-1 VV/VH — يُكمل مقاومة السحاب.
 
@@ -131,7 +131,7 @@ async def sar_rvi_endpoint(req: SarRviRequest, x_agent_token: str = Header(None)
     return result
 
 
-@router.post("/terrain/slope")
+@router.post("/v1/terrain/slope")
 async def terrain_slope(req: TerrainRequest, x_agent_token: str = Header(None)):
     """يحسب الانحدار من DEM + يصنّف ملاءمة حصاد المياه (زراعة اليمن).
 
@@ -149,7 +149,7 @@ async def terrain_slope(req: TerrainRequest, x_agent_token: str = Header(None)):
     return result
 
 
-@router.get("/cog/validate")
+@router.get("/v1/cog/validate")
 async def cog_validate(path: str, x_agent_token: str = Header(None)):
     """يتحقّق أنّ ملفّاً COG صالح (مبلّط + أهرامات داخليّة) — تدقيق الجودة.
 
@@ -164,14 +164,14 @@ async def cog_validate(path: str, x_agent_token: str = Header(None)):
     return cog_writer.validate_cog(path)
 
 
-@router.post("/salinity/classify")
+@router.post("/v1/salinity/classify")
 async def salinity_classify(req: SalinityClassifyRequest, x_agent_token: str = Header(None)):
     """يصنّف NDSI لصنف ملوحة (heuristic إقليمي للجوف). تقديري."""
     require_service_token(x_agent_token, AGENT_TOKEN)
     return _sal.classify_ndsi_salinity(req.ndsi)
 
 
-@router.post("/salinity/calibrate")
+@router.post("/v1/salinity/calibrate")
 async def salinity_calibrate(req: SalinityFitRequest, x_agent_token: str = Header(None)):
     """يلائم انحدار NDSI→ECe من أزواج حقيقيّة (عند جمعها بإحداثيّات + EC).
 

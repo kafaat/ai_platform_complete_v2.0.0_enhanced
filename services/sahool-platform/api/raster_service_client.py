@@ -186,9 +186,9 @@ def get_indices_sync(
     lon: float,
     timeout_s: float = 20.0,
 ) -> dict[str, Any] | None:
-    """Return point/field index summary from raster-service /indices, fail-soft."""
+    """Return point/field index summary from raster-service /v1/indices, fail-soft."""
     return raster_get_json_sync(
-        "/indices",
+        "/v1/indices",
         params={"field_id": field_id, "lat": lat, "lon": lon},
         timeout_s=timeout_s,
     )
@@ -445,7 +445,7 @@ async def process_indicator_batch(
 ) -> dict[str, Any]:
     """Queue raster-service batch indicator processing."""
     return await raster_post_json(
-        "/process/batch",
+        "/v1/process/batch",
         tenant_id=tenant_id,
         payload=payload,
         timeout_s=timeout_s,

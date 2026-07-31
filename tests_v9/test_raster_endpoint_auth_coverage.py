@@ -91,31 +91,31 @@ FIELD_SCOPED_SERVICE_ONLY: set[str] = {
 # مبنيّة من قراءة الكود: كلّ نقطة هنا تستدعي ``_require_service_token``.
 # ─────────────────────────────────────────────────────────────────────────────
 SERVICE_ONLY: set[str] = {
-    "/gis/admin-boundaries",  # A6/A7: قراءة طبقة الحدود المشتركة (خدمة-لخدمة، bbox مُطهَّر).
+    "/v1/gis/admin-boundaries",  # A6/A7: قراءة طبقة الحدود المشتركة (خدمة-لخدمة، bbox مُطهَّر). (PR-R3: هُوجِر من /gis/admin-boundaries)
     "/v1/imagery/search",  # بحث متقدّم (POST) — توكن خدمة.
-    "/raw/process",  # فحص راستر خام: metadata+إحصاءات نطاقات (require_service_token في processing.py).
-    "/imagery/timeseries/analyze",  # تحليل سلسلة زمنيّة من قيم محسوبة.
-    "/imagery/timeseries/parallel",  # تحليل سلسلة زمنيّة متوازٍ.
-    "/zones/classify",  # تصنيف مناطق الإدارة من بكسلات.
-    "/change/detect",  # كشف تغيّر من شبكتين مُمرَّرتين.
-    "/fvc/compute",  # نسبة التغطية النباتيّة من شبكة NDVI.
-    "/sar/rvi",  # مؤشّر الغطاء الراداري RVI.
-    "/terrain/slope",  # انحدار من DEM.
-    "/salinity/classify",  # تصنيف الملوحة.
-    "/salinity/calibrate",  # معايرة الملوحة.
+    "/v1/raw/process",  # فحص راستر خام: metadata+إحصاءات نطاقات (require_service_token في processing.py). (PR-R3: هُوجِر من /raw/process)
+    "/v1/imagery/timeseries/analyze",  # تحليل سلسلة زمنيّة من قيم محسوبة. (PR-R3: هُوجِر من /imagery/timeseries/analyze)
+    "/v1/imagery/timeseries/parallel",  # تحليل سلسلة زمنيّة متوازٍ. (PR-R3: هُوجِر من /imagery/timeseries/parallel)
+    "/v1/zones/classify",  # تصنيف مناطق الإدارة من بكسلات. (PR-R3: هُوجِر من /zones/classify)
+    "/v1/change/detect",  # كشف تغيّر من شبكتين مُمرَّرتين. (PR-R3: هُوجِر من /change/detect)
+    "/v1/fvc/compute",  # نسبة التغطية النباتيّة من شبكة NDVI. (PR-R3: هُوجِر من /fvc/compute)
+    "/v1/sar/rvi",  # مؤشّر الغطاء الراداري RVI. (PR-R3: هُوجِر من /sar/rvi)
+    "/v1/terrain/slope",  # انحدار من DEM. (PR-R3: هُوجِر من /terrain/slope)
+    "/v1/salinity/classify",  # تصنيف الملوحة. (PR-R3: هُوجِر من /salinity/classify)
+    "/v1/salinity/calibrate",  # معايرة الملوحة. (PR-R3: هُوجِر من /salinity/calibrate)
     "/v1/upload/raster",  # رفع راستر — يكتب ملفّات. (PR-R2: هُوجِر من /upload/raster)
     "/v1/upload/drone",  # رفع أورثوموزاييك درون. (PR-R2: هُوجِر من /upload/drone)
-    "/process",  # معالجة مؤشّر (غير متزامن → job).
-    "/process/batch",  # معالجة دفعيّة لعدّة مؤشّرات.
+    "/v1/process",  # معالجة مؤشّر (غير متزامن → job). (PR-R3: هُوجِر من /process)
+    "/v1/process/batch",  # معالجة دفعيّة لعدّة مؤشّرات. (PR-R3: هُوجِر من /process/batch)
     "/v1/jobs/{job_id}",  # حالة مهمّة. (PR-R2: هُوجِر من /jobs/{job_id})
     "/v1/jobs/{job_id}/result",  # نتيجة مهمّة. (PR-R2: هُوجِر من /jobs/{job_id}/result)
-    "/info/{layer_id}",  # معلومات طبقة راستر.
-    "/cog/validate",  # تحقّق COG.
+    "/v1/info/{layer_id}",  # معلومات طبقة راستر. (PR-R3: هُوجِر من /info/{layer_id})
+    "/v1/cog/validate",  # تحقّق COG. (PR-R3: هُوجِر من /cog/validate)
     "/v1/storage/cleanup",  # تنظيف التخزين — يحذف ملفّات. (PR-R2: هُوجِر من /storage/cleanup)
     "/v1/storage/stats",  # إحصاء التخزين يكشف بنية داخلية؛ محمي بتوكن خدمة. (PR-R2: هُوجِر من /storage/stats)
     "/v1/offline/packs",  # سرد حزم offline محمي بتوكن خدمة. (PR-R2: هُوجِر من /offline/packs)
     "/v1/offline/packs/{pack_name}",  # تنزيل الحزم محمي بتوكن خدمة. (PR-R2: هُوجِر من /offline/packs/{pack_name})
-    "/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ).
+    "/v1/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ). (PR-R3: هُوجِر من /indices)
     # ── كتالوج GIS سحابيّ + تحليلات حقول: تكشف بنية/تصدير ⇒ توكن خدمة + ترويسة ──
     "/v1/fields/analytics/geoparquet/export",  # تصدير GeoParquet لحقول — توكن خدمة.
     "/v1/tile-cache/stats",  # إحصاء ذاكرة بلاطات يكشف بنية داخلية — توكن خدمة.
@@ -137,16 +137,16 @@ PUBLIC_CATALOG: set[str] = {
     "/v1/imagery/search/landsat-thermal",  # v147: بحث Landsat الحراريّ الفريد — بحث عامّ بـbbox.
     "/v1/imagery/best",  # أفضل مشهد حديث — اختيار من بحث عامّ بـbbox.
     "/v1/imagery/dem",  # نموذج ارتفاع Copernicus — مرجع جغرافيّ عامّ بـbbox.
-    "/imagery/timeseries",  # توفّر المشاهد الزمنيّ — بحث عامّ بـbbox (GET، لا قيم).
+    "/v1/imagery/timeseries",  # توفّر المشاهد الزمنيّ — بحث عامّ بـbbox (GET، لا قيم). (PR-R3: هُوجِر من /imagery/timeseries)
     # ── بنية تحتيّة: فحوص صحّة/جاهزيّة + مقاييس (k8s/Prometheus، لا أسرار) ──
     "/healthz",  # فحص حياة العمليّة — بنية تحتيّة، لا بيانات.
     "/readyz",  # فحص جاهزيّة (وصول Earth Search) — بنية تحتيّة، لا بيانات.
     "/metrics",  # مقاييس Prometheus (عدّ مهامّ/طبقات مُجمَّع، لا بيانات مستأجِر).
     # ── مراقبة تخزين + حزم خرائط offline (خلفيّة ثابتة، لا بيانات مستأجِر) ──
     # ── كتالوج GIS سحابيّ عامّ (STAC/COG/imagery policy) — بحث/سياسة عامّة بـbbox ──
-    "/stac",  # صفحة STAC الجذر — كتالوج صور عامّ، لا بيانات مستأجِر.
-    "/stac/collections",  # مجموعات STAC — كتالوج عامّ.
-    "/stac/mosaicjson",  # MosaicJSON — تركيب فسيفساء عامّ من مشاهد.
+    "/v1/stac",  # صفحة STAC الجذر — كتالوج صور عامّ، لا بيانات مستأجِر. (PR-R3: هُوجِر من /stac)
+    "/v1/stac/collections",  # مجموعات STAC — كتالوج عامّ. (PR-R3: هُوجِر من /stac/collections)
+    "/v1/stac/mosaicjson",  # MosaicJSON — تركيب فسيفساء عامّ من مشاهد. (PR-R3: هُوجِر من /stac/mosaicjson)
     "/v1/scenes/quality-score",  # تقييم جودة مشهد — حساب من بيانات وصفيّة عامّة.
     "/v1/cog/registry/preview",  # معاينة سجلّ COG — كتالوج عامّ، لا بيانات مستأجِر.
     "/v1/tiles/observability",  # مراقبة البلاطات (عدّ مُجمَّع) — لا بيانات مستأجِر.

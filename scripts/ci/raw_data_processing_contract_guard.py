@@ -32,9 +32,9 @@ def build_payload() -> dict:
         "RawDataProcessResponse model": "class RawDataProcessResponse" in models,
         "raw runtime module": "def process_raw_raster" in raw,
         "runtime adapter": "raw_data_processing.process_raw_raster" in runtime,
-        "raw endpoint": '@router.post("/raw/process")' in router,
+        "raw endpoint": '@router.post("/v1/raw/process")' in router,
         "service-token guard": "require_service_token" in router and "process_raw_data" in router,
-        "no raw logic in main": "raw_data_processing" not in main and "/raw/process" not in main,
+        "no raw logic in main": "raw_data_processing" not in main and "/v1/raw/process" not in main,
         "no fabricated indicator": "fabricated_indicator" in raw and "indicator_computed" in raw,
         "bounded sampling": "max_pixels" in raw and "sampled_every_" in raw,
     }
@@ -47,7 +47,7 @@ def build_payload() -> dict:
         "schema": "sahool.raw_data_processing_contract/1",
         "status": status,
         "errors": errors,
-        "endpoint": "POST /raw/process",
+        "endpoint": "POST /v1/raw/process",
         "owner": "services/raster-service/raw_data_processing.py",
     }
     if errors:

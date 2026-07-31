@@ -1,6 +1,6 @@
 {
   "analysis_kind": "static_repository_evidence",
-  "cross_scope_candidate_count": 18,
+  "cross_scope_candidate_count": 16,
   "cross_scope_candidates": [
     {
       "classification": "review_only_distinct_module_or_router",
@@ -853,52 +853,6 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "GET",
-      "path": "/stac",
-      "registrations": [
-        {
-          "function": "stac_landing",
-          "line": 17,
-          "method": "GET",
-          "module": "services/raster-service/routers/stac.py",
-          "path": "/stac",
-          "receiver": "router"
-        },
-        {
-          "function": "stac_root",
-          "line": 179,
-          "method": "GET",
-          "module": "services/sahool-platform/api/routers/gis_cloud_native.py",
-          "path": "/stac",
-          "receiver": "router"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "GET",
-      "path": "/stac/collections",
-      "registrations": [
-        {
-          "function": "stac_collections",
-          "line": 25,
-          "method": "GET",
-          "module": "services/raster-service/routers/stac.py",
-          "path": "/stac/collections",
-          "receiver": "router"
-        },
-        {
-          "function": "list_stac_collections",
-          "line": 200,
-          "method": "GET",
-          "module": "services/sahool-platform/api/routers/gis_cloud_native.py",
-          "path": "/stac/collections",
-          "receiver": "router"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "GET",
       "path": "/v1/mcp/tools",
       "registrations": [
         {
@@ -1141,7 +1095,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "bac89d7c2e239e645efcfc6d27ef142fd5efc1a080b2a3874f4ea2c9e63d89b3",
+  "route_inventory_sha256": "dcf30f35d3d63038578327e0297955ccea94956ea139cfe7b987997719e47412",
   "runtime_verified": false,
   "schema_version": 1
 }

@@ -1706,7 +1706,7 @@
       "line": 30,
       "handler": "zones_classify",
       "method": "POST",
-      "path": "/zones/classify"
+      "path": "/v1/zones/classify"
     },
     {
       "owner": "raster-service",
@@ -1714,7 +1714,7 @@
       "line": 48,
       "handler": "change_detect",
       "method": "POST",
-      "path": "/change/detect"
+      "path": "/v1/change/detect"
     },
     {
       "owner": "raster-service",
@@ -1722,7 +1722,7 @@
       "line": 85,
       "handler": "fvc_compute",
       "method": "POST",
-      "path": "/fvc/compute"
+      "path": "/v1/fvc/compute"
     },
     {
       "owner": "raster-service",
@@ -1730,7 +1730,7 @@
       "line": 111,
       "handler": "sar_rvi_endpoint",
       "method": "POST",
-      "path": "/sar/rvi"
+      "path": "/v1/sar/rvi"
     },
     {
       "owner": "raster-service",
@@ -1738,7 +1738,7 @@
       "line": 135,
       "handler": "terrain_slope",
       "method": "POST",
-      "path": "/terrain/slope"
+      "path": "/v1/terrain/slope"
     },
     {
       "owner": "raster-service",
@@ -1746,7 +1746,7 @@
       "line": 153,
       "handler": "cog_validate",
       "method": "GET",
-      "path": "/cog/validate"
+      "path": "/v1/cog/validate"
     },
     {
       "owner": "raster-service",
@@ -1754,7 +1754,7 @@
       "line": 168,
       "handler": "salinity_classify",
       "method": "POST",
-      "path": "/salinity/classify"
+      "path": "/v1/salinity/classify"
     },
     {
       "owner": "raster-service",
@@ -1762,7 +1762,7 @@
       "line": 175,
       "handler": "salinity_calibrate",
       "method": "POST",
-      "path": "/salinity/calibrate"
+      "path": "/v1/salinity/calibrate"
     },
     {
       "owner": "raster-service",
@@ -1794,7 +1794,7 @@
       "line": 92,
       "handler": "gis_admin_boundaries",
       "method": "GET",
-      "path": "/gis/admin-boundaries"
+      "path": "/v1/gis/admin-boundaries"
     },
     {
       "owner": "raster-service",
@@ -2098,7 +2098,7 @@
       "line": 213,
       "handler": "raster_info",
       "method": "GET",
-      "path": "/info/{layer_id}"
+      "path": "/v1/info/{layer_id}"
     },
     {
       "owner": "raster-service",
@@ -2114,7 +2114,7 @@
       "line": 253,
       "handler": "field_indices",
       "method": "GET",
-      "path": "/indices"
+      "path": "/v1/indices"
     },
     {
       "owner": "raster-service",
@@ -2122,7 +2122,7 @@
       "line": 28,
       "handler": "process_raster",
       "method": "POST",
-      "path": "/process"
+      "path": "/v1/process"
     },
     {
       "owner": "raster-service",
@@ -2130,7 +2130,7 @@
       "line": 59,
       "handler": "process_raw_data",
       "method": "POST",
-      "path": "/raw/process"
+      "path": "/v1/raw/process"
     },
     {
       "owner": "raster-service",
@@ -2138,7 +2138,7 @@
       "line": 78,
       "handler": "process_batch",
       "method": "POST",
-      "path": "/process/batch"
+      "path": "/v1/process/batch"
     },
     {
       "owner": "raster-service",
@@ -2194,7 +2194,7 @@
       "line": 17,
       "handler": "stac_landing",
       "method": "GET",
-      "path": "/stac"
+      "path": "/v1/stac"
     },
     {
       "owner": "raster-service",
@@ -2202,7 +2202,7 @@
       "line": 25,
       "handler": "stac_collections",
       "method": "GET",
-      "path": "/stac/collections"
+      "path": "/v1/stac/collections"
     },
     {
       "owner": "raster-service",
@@ -2210,7 +2210,7 @@
       "line": 33,
       "handler": "stac_mosaicjson",
       "method": "POST",
-      "path": "/stac/mosaicjson"
+      "path": "/v1/stac/mosaicjson"
     },
     {
       "owner": "raster-service",
@@ -2322,7 +2322,7 @@
       "line": 24,
       "handler": "imagery_timeseries",
       "method": "GET",
-      "path": "/imagery/timeseries"
+      "path": "/v1/imagery/timeseries"
     },
     {
       "owner": "raster-service",
@@ -2330,7 +2330,7 @@
       "line": 77,
       "handler": "imagery_timeseries_analyze",
       "method": "POST",
-      "path": "/imagery/timeseries/analyze"
+      "path": "/v1/imagery/timeseries/analyze"
     },
     {
       "owner": "raster-service",
@@ -2338,7 +2338,7 @@
       "line": 92,
       "handler": "imagery_timeseries_parallel",
       "method": "POST",
-      "path": "/imagery/timeseries/parallel"
+      "path": "/v1/imagery/timeseries/parallel"
     },
     {
       "owner": "remote-sensing-workspace-bff",
@@ -104626,21 +104626,21 @@
       "file": "services/raster-service/cloud_native_catalog.py",
       "source": "cog_registry_record",
       "target": "score_scene_quality",
-      "line": 86
+      "line": 89
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cloud_native_catalog.py",
       "source": "cog_registry_record",
       "target": "float",
-      "line": 94
+      "line": 97
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cloud_native_catalog.py",
       "source": "cog_registry_record",
       "target": "float",
-      "line": 95
+      "line": 98
     },
     {
       "owner": "raster-service",

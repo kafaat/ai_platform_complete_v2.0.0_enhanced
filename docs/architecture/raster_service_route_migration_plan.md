@@ -69,49 +69,68 @@ PR, confirmed by grep). Dated historical reports (`FIX_ALL_REPORTED_ISSUES_20260
 `docs/history/PROVIDERS_GAPS_IMPLEMENTATION.md`) were left untouched, matching this
 session's established precedent for point-in-time snapshots.
 
-### PR-R3 — imagery/catalog/process routes (20)
+### PR-R3 — imagery/catalog/process routes (20) — MIGRATED
 
 Analysis (8), async processing (3), internal STAC facade (3), observability (2),
 timeseries (3), and one GIS boundary read (1). All `require_service_token` except the
 three STAC routes and the bare `GET /imagery/timeseries`, which are `PUBLIC_CATALOG`
 (bbox-scoped public search/catalog, no tenant data — see
-`tests_v9/test_raster_endpoint_auth_coverage.py:PUBLIC_CATALOG`).
+`tests_v9/test_raster_endpoint_auth_coverage.py:PUBLIC_CATALOG`). All 20 migrated to
+`/v1/...` in this slice.
 
-| method | path | file:line |
-|---|---|---|
-| POST | `/zones/classify` | `services/raster-service/routers/analysis.py:30` |
-| POST | `/change/detect` | `services/raster-service/routers/analysis.py:48` |
-| POST | `/fvc/compute` | `services/raster-service/routers/analysis.py:85` |
-| POST | `/sar/rvi` | `services/raster-service/routers/analysis.py:111` |
-| POST | `/terrain/slope` | `services/raster-service/routers/analysis.py:135` |
-| GET | `/cog/validate` | `services/raster-service/routers/analysis.py:153` |
-| POST | `/salinity/classify` | `services/raster-service/routers/analysis.py:168` |
-| POST | `/salinity/calibrate` | `services/raster-service/routers/analysis.py:175` |
-| POST | `/process` | `services/raster-service/routers/processing.py:28` |
-| POST | `/raw/process` | `services/raster-service/routers/processing.py:59` |
-| POST | `/process/batch` | `services/raster-service/routers/processing.py:78` |
-| GET | `/stac` | `services/raster-service/routers/stac.py:17` |
-| GET | `/stac/collections` | `services/raster-service/routers/stac.py:25` |
-| POST | `/stac/mosaicjson` | `services/raster-service/routers/stac.py:33` |
-| GET | `/info/{layer_id}` | `services/raster-service/routers/observability.py:213` |
-| GET | `/indices` | `services/raster-service/routers/observability.py:253` |
-| GET | `/imagery/timeseries` | `services/raster-service/routers/timeseries_routes.py:24` |
-| POST | `/imagery/timeseries/analyze` | `services/raster-service/routers/timeseries_routes.py:77` |
-| POST | `/imagery/timeseries/parallel` | `services/raster-service/routers/timeseries_routes.py:92` |
-| GET | `/gis/admin-boundaries` | `services/raster-service/routers/fields.py:92` |
+| method | old path | new path | file:line |
+|---|---|---|---|
+| POST | `/zones/classify` | `/v1/zones/classify` | `services/raster-service/routers/analysis.py:29` |
+| POST | `/change/detect` | `/v1/change/detect` | `services/raster-service/routers/analysis.py:47` |
+| POST | `/fvc/compute` | `/v1/fvc/compute` | `services/raster-service/routers/analysis.py:84` |
+| POST | `/sar/rvi` | `/v1/sar/rvi` | `services/raster-service/routers/analysis.py:110` |
+| POST | `/terrain/slope` | `/v1/terrain/slope` | `services/raster-service/routers/analysis.py:134` |
+| GET | `/cog/validate` | `/v1/cog/validate` | `services/raster-service/routers/analysis.py:152` |
+| POST | `/salinity/classify` | `/v1/salinity/classify` | `services/raster-service/routers/analysis.py:167` |
+| POST | `/salinity/calibrate` | `/v1/salinity/calibrate` | `services/raster-service/routers/analysis.py:174` |
+| POST | `/process` | `/v1/process` | `services/raster-service/routers/processing.py:27` |
+| POST | `/raw/process` | `/v1/raw/process` | `services/raster-service/routers/processing.py:58` |
+| POST | `/process/batch` | `/v1/process/batch` | `services/raster-service/routers/processing.py:77` |
+| GET | `/stac` | `/v1/stac` | `services/raster-service/routers/stac.py:16` |
+| GET | `/stac/collections` | `/v1/stac/collections` | `services/raster-service/routers/stac.py:24` |
+| POST | `/stac/mosaicjson` | `/v1/stac/mosaicjson` | `services/raster-service/routers/stac.py:32` |
+| GET | `/info/{layer_id}` | `/v1/info/{layer_id}` | `services/raster-service/routers/observability.py:212` |
+| GET | `/indices` | `/v1/indices` | `services/raster-service/routers/observability.py:252` |
+| GET | `/imagery/timeseries` | `/v1/imagery/timeseries` | `services/raster-service/routers/timeseries_routes.py:23` |
+| POST | `/imagery/timeseries/analyze` | `/v1/imagery/timeseries/analyze` | `services/raster-service/routers/timeseries_routes.py:76` |
+| POST | `/imagery/timeseries/parallel` | `/v1/imagery/timeseries/parallel` | `services/raster-service/routers/timeseries_routes.py:91` |
+| GET | `/gis/admin-boundaries` | `/v1/gis/admin-boundaries` | `services/raster-service/routers/fields.py:91` |
 
-**Real consumers requiring lock-step update:**
-- `GET /indices` — `raster_service_client.py:182` (`get_indices_sync`).
+**Real consumers updated in lock-step:**
+- `GET /indices` — `raster_service_client.py:191` (`get_indices_sync`), updated to `/v1/indices`.
 - `POST /process/batch` — `raster_service_client.py:448` (`process_indicator_batch`),
-  driving `imagery_automation.py`'s indicator-collection flow.
-
-Both must be updated in the same PR as their path migration.
+  updated to `/v1/process/batch`, driving `imagery_automation.py`'s indicator-collection
+  flow (its docstrings updated to match).
 
 `services/supervisor-agent/skills/remote_sensing_skill.py` (and its duplicate,
 `services/supervisor-agent/remote_sensing_skill.py`) *describes* `/change/detect` and
 `/fvc/compute` in text returned to an LLM caller (a capability description, not an HTTP
-call — no `httpx`/`requests` invocation). Not a live consumer; update the description
-text for accuracy but it is not a breaking-change risk.
+call — no `httpx`/`requests` invocation). Not a live consumer; the description text was
+updated to `/v1/change/detect`/`/v1/fvc/compute` for accuracy.
+
+Two other embedded self-referential URLs were updated in the same PR (same "no stale
+embedded URL" discipline as the `tile_url_template` finding from PR-R1's research):
+`cloud_native_catalog.py`'s STAC landing-page `href` links (`self`/`search`/`data`, all
+three now `/v1/stac...`), and the advisory `note` fields in `timeseries_routes.py` that
+point callers at `/process` and `/imagery/timeseries/analyze`.
+
+`scripts/ci/raw_data_processing_contract_guard.py` — a real CI-enforced contract guard,
+not a test — asserts the literal `/raw/process` decorator string; updated to
+`/v1/raw/process` in the same commit, verified locally (`raw_data_processing_contract_ok`).
+
+Known-dead references left untouched after direct verification: `tests_v9/test_roadmap_phase23.py`'s
+several soft checks that scan `services/raster-service/main.py` for these paths
+(confirmed absent from `main.py` both before and after this PR — post
+router-decomposition, these routes live in `routers/`, not `main.py`) and two mock-URL
+substring checks (`"/process" in url`) that remain trivially true regardless of the
+`/v1/` prefix. `sahool-platform/api/routers/gis_cloud_native.py`'s own `/stac`/`/stac/collections`
+decorators are a different service's routes with the same bare text before their own
+router-prefix composition — coincidental, unrelated, untouched.
 
 ### PR-R4 — tile and rendering routes (2)
 
