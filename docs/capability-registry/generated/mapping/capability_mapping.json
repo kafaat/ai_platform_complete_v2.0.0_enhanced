@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4790,
+    "files_scanned": 4791,
     "files_by_kind": {
       "backend": 1191,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1255,
-      "tests": 1521,
+      "tests": 1522,
       "web": 448
     },
-    "unmapped_artifacts": 1949,
+    "unmapped_artifacts": 1950,
     "ambiguous_artifacts": 393
   },
   "capabilities": [
@@ -39526,6 +39526,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_workflow_engine.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_workflow_template_completion_guard.py",
       "kind": "tests"
     },
     {

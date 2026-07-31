@@ -5884,6 +5884,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_workflow_template_completion_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_yemeni_calendars.py",
     "kind": "tests"
   },

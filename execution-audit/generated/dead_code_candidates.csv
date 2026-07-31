@@ -217,7 +217,6 @@ medium,sahool-platform,function,detect_temporal_change,services/sahool-platform/
 medium,sahool-platform,function,transfer_summary,services/sahool-platform/core/transfer_learning.py,242,0,review_before_delete,False
 medium,sahool-platform,function,map_summary_for_print,services/sahool-platform/core/vrt_manual_maps.py,267,0,review_before_delete,False
 medium,sahool-platform,class,StepStatus,services/sahool-platform/core/workflow_engine.py,32,0,review_before_delete,False
-medium,sahool-platform,function,run_workflow_async,services/sahool-platform/core/workflow_engine.py,763,0,review_before_delete,False
 medium,sahool-platform,function,add_yield,services/sahool-platform/storage/lite_store.py,375,0,review_before_delete,False
 medium,sahool-platform,function,add_snippet,services/sahool-platform/storage/lite_store.py,428,0,review_before_delete,False
 medium,sahool-platform,function,search_snippets,services/sahool-platform/storage/lite_store.py,440,0,review_before_delete,False
