@@ -31,6 +31,20 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 CORE = os.path.join(ROOT, "services/sahool-platform")
 
 
+def _env_can_hold(value: str) -> bool:
+    """هل يستطيع متغيّر بيئة على هذه المنصّة حمل هذه القيمة؟
+
+    `os.environ` يُرمّز بترميز نظام الملفّات؛ تحت لغة C هو ASCII، فإسنادُ قيمة عربيّة
+    يرفع `UnicodeEncodeError` قبل أن تصل الشيفرة المفحوصة. القياس بالمحاولة لا بتخمين
+    اسم الترميز.
+    """
+    try:
+        value.encode(sys.getfilesystemencoding())
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
 @pytest.fixture(scope="module")
 def core_on_path():
     if CORE not in sys.path:
@@ -236,8 +250,15 @@ async def test_concurrency_floor_is_one_never_zero(core_on_path, monkeypatch):
     assert ia_mod._scan_concurrency() == 1
     monkeypatch.setenv("IMAGERY_SCAN_CONCURRENCY", "-5")
     assert ia_mod._scan_concurrency() == 1
-    monkeypatch.setenv("IMAGERY_SCAN_CONCURRENCY", "ليس رقماً")
+    monkeypatch.setenv("IMAGERY_SCAN_CONCURRENCY", "not-a-number")
     assert ia_mod._scan_concurrency() == 8
+    # القيمة العربيّة تبقى مقصودة — المُشغّل قد يكتبها — لكنّ `os.environ` يُرمّز
+    # بترميز نظام الملفّات، وهو ASCII تحت لغة C؛ فلا يمكن للمتغيّر أن يحملها أصلاً.
+    # هذا حدّ نظام تشغيل لا عيب شيفرة، فيُشترَط بقدرة المنصّة عليه بدل أن يُحذف أو
+    # يُسقِط السويت على محطّة بلغة غير UTF-8.
+    if _env_can_hold("ليس رقماً"):
+        monkeypatch.setenv("IMAGERY_SCAN_CONCURRENCY", "ليس رقماً")
+        assert ia_mod._scan_concurrency() == 8
 
 
 @pytest.mark.asyncio
