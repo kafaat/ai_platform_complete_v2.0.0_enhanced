@@ -1,6 +1,6 @@
-"""‏CANONICAL-FIELD-STATE-ELIGIBILITY-IS-PRESENCE-ONLY-01 — سُلَّم الأهليّة.
+"""CANONICAL-FIELD-STATE-ELIGIBILITY-IS-PRESENCE-ONLY-01 — سُلَّم الأهليّة.
 
-‏`operational_eligible` يسأل عن **الوجود** وحده. والعيب المقيس أنّ منتَجاً موجوداً
+`operational_eligible` يسأل عن **الوجود** وحده. والعيب المقيس أنّ منتَجاً موجوداً
 يُعلن مالكه أنّه `degraded` يجعل الحالة «مؤهّلة» بينما مالكها يقول إنّها ليست صالحة —
 فيُبنى على ذلك توصية تنفيذيّة. هذه الاختبارات تُثبّت أنّ الحقل القديم **لم يتغيّر
 معناه** (له مستهلكون قائمون) وأنّ السُلَّم الجديد يُجيب السؤال الذي لم يكن يُسأل.
@@ -92,7 +92,7 @@ def test_a_product_that_declares_no_quality_is_not_granted_it():
 
 def test_an_unknown_quality_vocabulary_is_treated_as_unproven_not_healthy():
     """المفردات **ليست موحَّدة بين المُلّاك** — مقيس: الطقس يُخرِج
-    ‏validated/degraded/insufficient/invalid، والماء يُخرِج verified/degraded.
+    validated/degraded/insufficient/invalid، والماء يُخرِج verified/degraded.
 
     فمصطلح جديد من مالك جديد يجب أن يُقرأ قراءة صريحة قبل أن يُمنَح ثقة، لا أن يمرّ
     لأنّه ليس مُدرَجاً في قائمة السيّئ. لو كان الفحص «ليس في قائمة سوداء» لمرّ هذا.
@@ -152,7 +152,7 @@ def test_eligibility_does_not_move_the_state_digest():
     assert healthy.eligibility["propose"]["allowed"] is True
     assert degraded.eligibility["propose"]["allowed"] is False
     assert healthy.state_digest != degraded.state_digest, (
-        "‏quality_status جزء من المنتَج المُبصَم، فاختلافه يجب أن يُغيّر البصمة"
+        "quality_status جزء من المنتَج المُبصَم، فاختلافه يجب أن يُغيّر البصمة"
     )
 
     repeat = _state()

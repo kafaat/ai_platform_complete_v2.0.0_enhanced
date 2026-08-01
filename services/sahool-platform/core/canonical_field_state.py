@@ -44,7 +44,7 @@ SCHEMA_VERSION = "canonical_field_state.v1"
 ELIGIBILITY_LEVELS = ("discover", "diagnose", "propose", "execute")
 
 # مفردات الجودة **ليست موحَّدة بين المُلّاك** — مقيس لا مُقدَّر:
-# ‏`canonical_weather_state` يُخرِج validated/degraded/insufficient/invalid،
+# `canonical_weather_state` يُخرِج validated/degraded/insufficient/invalid،
 # و`canonical_water_state` يُخرِج verified/degraded. فلا يجوز افتراض مفردة واحدة.
 # المقبول هنا اتّحاد المصطلحين الصحّيّين المعروفين؛ وأيّ مصطلح **غير معروف** يُعامَل
 # «غير مُثبَت» لا «سليم» — لأنّ مفردة جديدة من مالك جديد يجب أن تُقرأ قراءة صريحة
@@ -198,10 +198,10 @@ def compose_canonical_field_state(
         "evidence_digests": evidence,
     }
     digest = _digest(body)
-    # ‏`eligibility` تبقى **خارج** الجسم المُبصَم، تماماً كـ`operational_eligible`
+    # `eligibility` تبقى **خارج** الجسم المُبصَم، تماماً كـ`operational_eligible`
     # و`state_digest`. البصمة تُعرِّف **المُدخَلات** لا الحكم عليها؛ فلو دخل الحكم فيها
     # لتغيّرت بصمة كلّ حالة قائمة بلا تغيّر مُدخَل واحد، وانكسر كلّ ما رُبِط ببصمة
-    # مُخزَّنة (‏approval pinned to digest) لسبب تحريريّ لا موضوعيّ.
+    # مُخزَّنة (approval pinned to digest) لسبب تحريريّ لا موضوعيّ.
     return CanonicalFieldState(
         **body,
         state_digest=digest,
