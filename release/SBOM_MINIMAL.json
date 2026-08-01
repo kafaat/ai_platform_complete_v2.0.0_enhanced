@@ -15865,7 +15865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "424f7201328af3957d558577ee9cc1dc393acdee261c094a6cd792bb0e9d0978"
+          "content": "6cc7f68f9705020dccf89a459847776a530041de5922427df2f5e7b8e6915e5a"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -16555,7 +16555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cfe1889521bf9555136dc2bc7075b5d2cf37f2dfdef02df33dd15fba3f0f04f8"
+          "content": "8623002fb65482f019bb835588a6308c8c3f276f5ea54b9dae674161967616af"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",

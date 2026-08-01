@@ -471,3 +471,33 @@ async def get_job_result(
         if exc.status_code == 404:
             return None
         raise
+
+
+async def get_job_status(
+    job_id: str,
+    *,
+    tenant_id: str | None = None,
+    timeout_s: float = 10.0,
+) -> dict[str, Any] | None:
+    """Best-effort job **status** fetch; ``None`` when raster-service does not know the job.
+
+    ``/v1/jobs/{id}`` answers as soon as the job is registered — including while it is
+    still ``pending``/``processing`` — whereas ``/v1/jobs/{id}/result`` answers ``409``
+    until the job is ``completed``. A caller that must wait for a background batch needs
+    the former: the latter cannot distinguish "not finished yet" from "finished, empty".
+
+    ``None`` (404) is **not** the same as "still running": the job is unknown to the
+    replica that answered. Callers must keep the two apart rather than retrying blindly.
+    """
+    from fastapi import HTTPException
+
+    try:
+        return await raster_get_json(
+            f"/v1/jobs/{job_id}",
+            tenant_id=tenant_id,
+            timeout_s=timeout_s,
+        )
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            return None
+        raise
