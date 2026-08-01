@@ -10,14 +10,23 @@
 بإصلاح الشيفرة. الأوّل يجعل CI الأخضر شهادةً على أنّ Linux افتراضيّه UTF-8، لا على أنّ
 الحارس يقرأ ما يدّعي قراءته.
 
-**والمتّجهان اثنان لا واحد:**
+**والمتّجهات ثلاثة لا واحد** — والعلاج الشائع (إضافة `encoding` إلى القراءات) يُغلق
+ثمانية من الاثني عشر لا كلّها، مقيساً بتطبيقه وحده:
   ① قراءة مباشرة — `read_text()`/`open()` بلا `encoding`.
   ② فكّ ترميز مخرَج عمليّة — `subprocess.run(..., text=True)` يفكّ بترميز اللغة أيضاً،
      فاختبارٌ يُشغّل حارساً يطبع عربيّة ينهار في **الأب** لا في الابن. هذا المتّجه لا
-     يظهر لأيّ فحص يبحث عن `open(` وحده، وهو سبب ثلاثة من الاثني عشر.
+     يظهر لأيّ فحص يبحث عن `open(` وحده.
+  ③ **مخرَج الابن نفسه** — `encoding` على الأب لا يُملي على الابن بماذا يكتب، فرسالة
+     تحوي «—» أو حرفاً عربيّاً تُسقِطه بـ`UnicodeEncodeError`؛ يُغلَق بـ
+     `PYTHONIOENCODING=utf-8` في بيئته. هذا وحده سبب أربعة من الاثني عشر.
 
 الأساس يمنع النموّ **ولا يدّعي** أنّ ما فيه سليم: أُثبِت انهيار ثمانية ملفّات (أُصلِحت)،
 والبقيّة تقرأ ASCII اليوم — حظّ لا تصميم، فتوثيق هذا المستودع عربيّ.
+
+**ودقّة الماسح نفسها قابلة للخطأ:** نسخته الأولى أدرجت أربعة ملفّات دَيناً وهي نظيفة،
+لأنّها قرأت وسيط الوضع من الموضع الثاني دائماً — وموضعه في `path.open("rb")` هو الأوّل.
+أمسك بها فحصٌ خارجيّ لا أنا. الأساس المُبالِغ في الدَّين يُدرَّب قارئه على تجاهله، وهو
+عطل الحارس الأكثر شيوعاً؛ فصارت حالات الشكلين مُقفَلة باختبار صريح أدناه.
 
 فحص صرف — ``pytest -m unit``.
 """
@@ -57,12 +66,22 @@ def _offenders_in(src: str) -> dict[str, int]:
             continue
         if any(k.arg == "encoding" for k in node.keywords):
             continue
+        is_method = isinstance(node.func, ast.Attribute)
         name = _call_name(node)
         if name in _TEXT_IO:
-            # الوضع الثنائيّ لا يفكّ ترميزاً فلا يعنيه هذا الحارس.
+            # `read_text` كاسم عارٍ ليست طريقة مسار بل دالّة محلّيّة يعرّفها الملفّ
+            # (‏`runtime_contract_generator.py` مثالها) — وهي تتولّى ترميزها بنفسها.
+            # المدمَجة الوحيدة التي تُستدعى باسم عارٍ هي `open`.
+            if not is_method and name != "open":
+                continue
+            # موضع وسيط الوضع يختلف بين الشكلين: `open(path, "rb")` وسيطه الثاني،
+            # و`path.open("rb")` وسيطه **الأوّل**. قراءة الثاني دائماً تجعل كلّ فتح
+            # ثنائيّ على كائن مسار يُحسَب عيباً — أربعة ملفّات في هذه الشجرة كانت
+            # مُدرَجة دَيناً وهي نظيفة، وأمسك بها فحصٌ خارجيّ لا أنا.
+            mode_args = node.args[0:1] if (is_method and name == "open") else node.args[1:2]
             mode = [
                 a.value
-                for a in node.args[1:2]
+                for a in mode_args
                 if isinstance(a, ast.Constant) and isinstance(a.value, str)
             ]
             if mode and "b" in mode[0]:
@@ -115,7 +134,7 @@ def test_the_baseline_never_grows_and_holds_no_dead_entries():
     current, baseline = _scan(), _baseline()
     stale = sorted(set(baseline) - set(current))
     assert not stale, "مداخل في الأساس لم تعد منحرفة — احذفها: " + " · ".join(stale)
-    assert len(baseline) <= 188, f"الأساس نما إلى {len(baseline)}؛ يتقلّص ولا ينمو"
+    assert len(baseline) <= 184, f"الأساس نما إلى {len(baseline)}؛ يتقلّص ولا ينمو"
 
 
 def test_the_eight_files_proven_to_break_are_fixed_and_stay_fixed():
@@ -150,6 +169,13 @@ def test_the_subprocess_vector_is_actually_covered():
     assert _offenders_in("p.read_text()")["reads"] == 1
     assert _offenders_in("p.read_text(encoding='utf-8')")["reads"] == 0
     assert _offenders_in("open(p, 'rb')")["reads"] == 0, "الوضع الثنائيّ لا يفكّ ترميزاً"
+    # موضع وسيط الوضع يختلف بين الشكلين — والخلط بينهما يجعل كلّ فتح ثنائيّ عيباً.
+    assert _offenders_in("p.open('rb')")["reads"] == 0, "الوضع الأوّل في طريقة المسار"
+    assert _offenders_in("p.open('r')")["reads"] == 1, "نصّيّ صريح بلا ترميز يبقى عيباً"
+    assert _offenders_in("p.open()")["reads"] == 1, "الافتراضيّ نصّيّ"
+    # `read_text` باسم عارٍ دالّة محلّيّة لا طريقة مسار — إدراجها يضخّم الدَّين بالباطل.
+    assert _offenders_in("content = read_text(path)")["reads"] == 0
+    assert _offenders_in("p.read_text()")["reads"] == 1
 
 
 def test_this_repository_actually_contains_the_bytes_that_trigger_it():
