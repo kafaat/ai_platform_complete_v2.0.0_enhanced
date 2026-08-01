@@ -19095,7 +19095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ddb46187ea1c58366d6d9a2f76181410ac0e3af335e7a8c8293f9531ae4fb40"
+          "content": "f8f8698a9fbd28c99d062b185657f6be1d5e7a0719d8e18896cb0660c69c68c5"
         }
       ],
       "name": "services/sahool-platform/core/canonical_field_state.py",
@@ -22979,6 +22979,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_candidate_generator.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cecb5a6bf9521df6b7da7c162f303bdc039b7a15c49adef52bd9938868eb10d6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_field_state_eligibility.py",
       "type": "file"
     },
     {
