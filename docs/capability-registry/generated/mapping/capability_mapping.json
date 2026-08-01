@@ -25418,6 +25418,14 @@
             "content:MFA",
             "content:mfa"
           ]
+        },
+        {
+          "path": "scripts/ci/runtime_contract_generator.py",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
         }
       ],
       "ambiguous": [],
@@ -25433,7 +25441,7 @@
         "mobile": 4,
         "tests": 14,
         "governance": 0,
-        "other_evidence": 15
+        "other_evidence": 16
       },
       "coverage_dimensions": 7,
       "mapped": true

@@ -42,11 +42,16 @@ CONTRACTS = ROOT / "runtime-contracts/generated/runtime_contracts.json"
 _CDSE_CLIENT = ROOT / "services/raster-service/cdse_client.py"
 
 # متغيّرات مخفيّة أظهرها الإصلاح — (الخدمة، المتغيّر، أهو سرّ؟).
+#
+# `DECISION_WORKER_ASSERTION_KEY` كان مُثبَّتاً هنا `configuration`، وهذا الاختبار كان
+# **يُثبِّت العطل**: مفتاح توقيع مُصنَّف تهيئةً لأنّ `SECRET_MARKERS` لا تحوي `KEY` مجرّدة.
+# صحّحته `RUNTIME-CONTRACT-KEY-SUFFIX-NOT-SECRET-01` فسقط هذا الاختبار — وسقوطه صحيح.
+# الدرس: اختبارٌ يلتقط الحالة الراهنة يُثبّت خطأها معها ما لم يُسأل عمّا **يجب** أن تكون.
 _RECOVERED = [
     ("raster-service", "CDSE_CLOUD_POLICY", False),
     ("auth", "MFA_SECRET_ENCRYPTION_KEY", True),
     ("auth", "MFA_SECRET_DECRYPTION_KEYS", True),
-    ("decision-service", "DECISION_WORKER_ASSERTION_KEY", False),
+    ("decision-service", "DECISION_WORKER_ASSERTION_KEY", True),
     ("edge-inference", "PEST_MODEL_PATH", False),
 ]
 

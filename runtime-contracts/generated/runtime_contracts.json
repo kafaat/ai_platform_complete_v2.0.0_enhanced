@@ -316,7 +316,6 @@
         "JWT_EXPIRE_MINUTES",
         "JWT_PUBLIC_KEY",
         "MFA_ALLOW_DERIVED_KEY",
-        "MFA_AUDIT_HASH_KEY",
         "OTP_MAX_REQUESTS",
         "OTP_TTL_SECONDS",
         "REDIS_URL",
@@ -324,7 +323,6 @@
         "REQUIRE_MFA_ROLES",
         "SAHOOL_ALLOW_HS256_IN_PROD",
         "SAHOOL_ENV",
-        "SEASON_EDGE_HMAC_KEY",
         "SMS_FROM",
         "SMS_PROVIDER_URL",
         "SMTP_FROM",
@@ -389,8 +387,10 @@
         "ADMIN_PASSWORD",
         "JWT_PRIVATE_KEY",
         "JWT_SECRET",
+        "MFA_AUDIT_HASH_KEY",
         "MFA_SECRET_DECRYPTION_KEYS",
         "MFA_SECRET_ENCRYPTION_KEY",
+        "SEASON_EDGE_HMAC_KEY",
         "SMS_API_KEY",
         "SMTP_PASSWORD"
       ],
@@ -416,8 +416,6 @@
       "configuration": [
         "ACTIVATION_CACHE_TTL_SECONDS",
         "ACTIVATION_ENVIRONMENT_ID",
-        "ACTIVATION_EVIDENCE_SIGNING_KEY",
-        "ACTIVATION_PROBE_SIGNING_KEY",
         "DATABASE_URL",
         "DECISION_DATABASE_URL",
         "DECISION_DB_POOL_MAX",
@@ -433,9 +431,7 @@
         "DECISION_SOR_SERVICE_URL",
         "DECISION_SOR_TABLE_SCHEMA",
         "DECISION_STRICT_WORKER_TENANTS",
-        "DECISION_WORKER_ASSERTION_KEY",
         "DECISION_WORKER_ASSERTION_KEY_ID",
-        "DECISION_WORKER_ASSERTION_PREVIOUS_KEY",
         "DECISION_WORKER_ASSERTION_PREVIOUS_KEY_ID",
         "DECISION_WORKER_ASSERTION_REDIS_URL",
         "DEPLOY_BUILD_SHA",
@@ -553,8 +549,12 @@
         "tracing_instrumented": false
       },
       "secrets": [
+        "ACTIVATION_EVIDENCE_SIGNING_KEY",
+        "ACTIVATION_PROBE_SIGNING_KEY",
         "DECISION_REQUIRE_AUTH_TOKEN",
-        "DECISION_SERVICE_AUTH_TOKEN"
+        "DECISION_SERVICE_AUTH_TOKEN",
+        "DECISION_WORKER_ASSERTION_KEY",
+        "DECISION_WORKER_ASSERTION_PREVIOUS_KEY"
       ],
       "service": "decision-service",
       "source_service": "decision-service",
@@ -744,9 +744,7 @@
         "DATABASE_URL",
         "FIELD_SERVICE_ALLOWED_CALLERS",
         "FIELD_SERVICE_ASSERTION_REDIS_URL",
-        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
-        "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY",
         "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID",
         "SAHOOL_ENV",
         "SERVICE_VERSION"
@@ -786,6 +784,8 @@
         "tracing_instrumented": false
       },
       "secrets": [
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
+        "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY",
         "SAHOOL_AGENT_TOKEN"
       ],
       "service": "field-management-service",
@@ -1845,7 +1845,6 @@
         "EDGE_INFERENCE_URL",
         "ENABLE_LIVE_GUARDRAILS",
         "ENVIRONMENT",
-        "FCM_SERVER_KEY",
         "FEATURE_CANONICAL_ETC_DUAL",
         "FEATURE_CANONICAL_SALINITY",
         "FEATURE_DECISION_CONFIDENCE",
@@ -2542,6 +2541,7 @@
         "ANTHROPIC_API_KEY",
         "CDSE_CLIENT_SECRET",
         "DECISION_SERVICE_TOKEN",
+        "FCM_SERVER_KEY",
         "FIELD_FORMS_SERVICE_TOKEN",
         "INTERNAL_SERVICE_TOKEN",
         "JWT_SECRET",
@@ -2651,7 +2651,6 @@
         "FIELD_FORMS_ENABLED",
         "FIELD_FORMS_MAX_OFFLINE_SECONDS",
         "FIELD_FORMS_SERVER_ID",
-        "FIELD_FORMS_SYNC_HMAC_KEY",
         "FIELD_FORMS_SYNC_HMAC_KEY_ID",
         "FIELD_FORMS_SYNC_HMAC_KEY_PREVIOUS",
         "FIELD_FORMS_SYNC_HMAC_PREVIOUS_KEY_ID",
@@ -2664,7 +2663,6 @@
         "SCOUT_INGEST_PROJECTION_LEASE_SECONDS",
         "SCOUT_INGEST_PROJECTION_MAX_ATTEMPTS",
         "SCOUT_INGEST_PROJECTION_POLL_SECONDS",
-        "SEASON_EDGE_HMAC_KEY",
         "SEASON_ENTRY_ENABLED",
         "SERVICE_VERSION",
         "TEST_ADMIN_URL"
@@ -2713,7 +2711,9 @@
       },
       "secrets": [
         "FIELD_FORMS_SERVICE_TOKEN",
+        "FIELD_FORMS_SYNC_HMAC_KEY",
         "SCOUT_INGEST_READ_TOKEN",
+        "SEASON_EDGE_HMAC_KEY",
         "SEASON_ENTRY_SERVICE_TOKEN"
       ],
       "service": "scout-ingest-service",
@@ -3025,7 +3025,6 @@
         "DATABASE_URL",
         "DECISION_SERVICE_URL",
         "FEATURE_SENTINEL_DB_FIELDS",
-        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
         "FIELD_SERVICE_URL",
         "INDICATORS_SERVICE_URL",
@@ -3115,6 +3114,7 @@
         "tracing_instrumented": true
       },
       "secrets": [
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
         "JWT_SECRET",
         "SAHOOL_AGENT_TOKEN",
         "TASK_SERVICE_CALLBACK_TOKEN"
