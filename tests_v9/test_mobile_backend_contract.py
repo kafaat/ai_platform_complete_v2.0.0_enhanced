@@ -59,7 +59,7 @@ def _extract_backend_endpoints():
     for fp, _decorators in [(main_py, ["@app"]), (raster_py, ["@router", "@app"])]:
         if not os.path.exists(fp):
             continue
-        src = open(fp).read()
+        src = open(fp, encoding="utf-8").read()
         for m in re.finditer(r'@(?:app|router)\.(?:get|post|put|delete)\(\s*["\']([^"\']+)', src):
             paths.add(_norm(m.group(1)))
     return paths
@@ -85,7 +85,7 @@ def test_auth_paths_have_api_v1_prefix():
     results = []
     authsvc = os.path.join(os.path.dirname(__file__), "../../sahool_mobile/src/api/authService.ts")
     if os.path.exists(authsvc):
-        src = open(authsvc).read()
+        src = open(authsvc, encoding="utf-8").read()
         # أيّ استدعاء /auth/* يجب أن يكون /api/v1/auth/*
         bad = re.findall(r"httpClient\.\w+\([^)]*['\"](/auth/[^'\"]+)", src)
         if not bad:

@@ -7676,6 +7676,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_text_encoding_locale.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_thresholds_unified.py",
     "kind": "tests"
   },

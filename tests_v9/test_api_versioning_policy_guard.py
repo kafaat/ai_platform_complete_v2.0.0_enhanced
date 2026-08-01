@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -76,6 +77,7 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
             cwd=root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
         combined = result.stdout + result.stderr
         assert result.returncode != 0, "a set-swap under an admitting ceiling must fail --check"
@@ -93,6 +95,8 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
         cwd=root,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
     assert restored.returncode == 0, f"restoring the baseline must pass --check: {restored.stdout}"
 
@@ -1219,6 +1223,8 @@ def _run_check(root: Path):
         cwd=root,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
 
 
