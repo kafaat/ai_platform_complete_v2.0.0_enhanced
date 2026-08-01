@@ -627,6 +627,7 @@ FM-003,test,services/raster-service/test_field_terrain.py,3,applied
 FM-003,test,services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py,3,applied
 FM-003,test,services/raster-service/test_raster_assets_text_field_id.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_boundary_confidence.py,3,applied
+FM-003,test,services/sahool-platform/tests/test_canonical_field_state_eligibility.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_canonical_field_state_wiring.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_aggregate.py,3,applied
 FM-003,test,services/sahool-platform/tests/test_field_aggregate_ports.py,3,applied

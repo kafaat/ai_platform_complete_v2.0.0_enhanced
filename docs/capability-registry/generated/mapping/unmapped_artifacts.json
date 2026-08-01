@@ -5012,6 +5012,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_canonical_field_state_eligibility.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_canonical_well_capability.py",
     "kind": "tests"
   },

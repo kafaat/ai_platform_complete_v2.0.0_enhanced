@@ -340,10 +340,10 @@
         "services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py",
         "services/raster-service/test_raster_assets_text_field_id.py",
         "services/sahool-platform/tests/test_boundary_confidence.py",
+        "services/sahool-platform/tests/test_canonical_field_state_eligibility.py",
         "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
         "services/sahool-platform/tests/test_field_aggregate.py",
-        "services/sahool-platform/tests/test_field_aggregate_ports.py",
-        "services/sahool-platform/tests/test_field_ai_context_v45_static.py"
+        "services/sahool-platform/tests/test_field_aggregate_ports.py"
       ],
       "runtime": {
         "metrics": [],

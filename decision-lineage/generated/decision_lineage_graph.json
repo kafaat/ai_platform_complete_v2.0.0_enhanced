@@ -1519,7 +1519,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 115,
+      "evidence_count": 117,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1617,6 +1617,7 @@
         "services/sahool-platform/api/water_decision_bridge.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/core/authorization.py",
+        "services/sahool-platform/core/canonical_field_state.py",
         "services/sahool-platform/core/data_inventory.yaml",
         "services/sahool-platform/core/evidence_graph_normalize.py",
         "services/sahool-platform/core/evidence_snapshot.py",
@@ -1628,6 +1629,7 @@
         "services/sahool-platform/tests/test_ai_provider_config.py",
         "services/sahool-platform/tests/test_authorization.py",
         "services/sahool-platform/tests/test_break_glass.py",
+        "services/sahool-platform/tests/test_canonical_field_state_eligibility.py",
         "services/sahool-platform/tests/test_decision_approve_permission.py",
         "services/sahool-platform/tests/test_decision_review_endpoint.py",
         "services/sahool-platform/tests/test_evidence_snapshot.py",
@@ -2453,7 +2455,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 32,
-      "target_evidence_count": 115,
+      "target_evidence_count": 117,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2481,7 +2483,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 115,
+      "source_evidence_count": 117,
       "target_evidence_count": 27,
       "static_supported": true,
       "runtime_verified": false
@@ -2571,5 +2573,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "a19fcf9bcb8e6c13cca14cf00a0b6d4361ed6c0f92beaf8a831f9eea0480322a"
+  "content_sha256": "245667b8b6aee34b3c271a1d1820f543e721a37db5b944dfd3108cbc203190ee"
 }
