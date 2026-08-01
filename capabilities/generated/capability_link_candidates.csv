@@ -48,7 +48,7 @@ DEC-001,test,tests_v9/test_ndvi_evidence_policy.py,3,applied
 DEC-001,test,tests_v9/test_production_evidence_pack_guard.py,3,applied
 DEC-001,test,tests_v9/test_runtime_evidence_wiring_v62_2.py,3,applied
 DEC-001,test,tests_v9/test_soil_lab_evidence_hardening_v57_5.py,3,applied
-DEC-002,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:352,2,applied
+DEC-002,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302,2,applied
 DEC-002,api,POST /api/v1/decisions/{decision_id}/review @ services/sahool-platform/api/routers/decision_review.py:107,2,applied
 DEC-002,api,POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:712,3,applied
 DEC-002,service,services/decision-service/main.py,10,applied
@@ -802,10 +802,10 @@ FM-005,api,GET /api/v1/wofost/crop-types @ services/sahool-platform/api/routers/
 FM-005,api,POST /api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:154,2,applied
 FM-005,api,POST /api/v1/agro/crop-rotation @ services/sahool-platform/api/routers/agro_intelligence.py:189,2,applied
 FM-005,api,POST /api/v1/crop-suitability @ services/sahool-platform/api/routers/crop_suitability.py:31,2,applied
-FM-005,api,POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:300,2,applied
-FM-005,api,POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:459,2,applied
-FM-005,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:352,2,applied
-FM-005,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:585,2,applied
+FM-005,api,POST /api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:250,2,applied
+FM-005,api,POST /api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:409,2,applied
+FM-005,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302,2,applied
+FM-005,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:535,2,applied
 FM-005,api,POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3432,2,applied
 FM-005,api,POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:263,2,applied
 FM-005,test,services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py,3,applied
@@ -854,7 +854,7 @@ FM-006,api,GET /api/v1/farm-ledger/variance/{season_id} @ services/sahool-platfo
 FM-006,api,GET /api/v1/orchard/economics @ services/sahool-platform/api/routers/orchard.py:30,2,applied
 FM-006,api,GET /api/v1/registry/cost-profiles @ services/sahool-platform/api/routers/registry.py:88,2,applied
 FM-006,api,GET /v1/fields/{field_id}/soil/reclamation-economics @ services/soil-service/routers/p3_products.py:194,2,applied
-FM-006,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:585,2,applied
+FM-006,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:535,2,applied
 FM-006,api,POST /api/v1/economics/feasibility @ services/sahool-platform/api/routers/economics.py:32,2,applied
 FM-006,api,POST /api/v1/farm-ledger/budgets @ services/sahool-platform/api/routers/farm_operations_ledger.py:528,2,applied
 FM-006,api,POST /api/v1/scenario/economics @ services/sahool-platform/api/routers/scenario.py:143,2,applied

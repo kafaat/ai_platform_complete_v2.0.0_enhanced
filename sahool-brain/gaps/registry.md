@@ -559,7 +559,31 @@
 - **الحرّاس الساكنة تبعت الاستخراج ولم تضعف:** `MapHubHistoricalTimeline` و`MapHubTwoYearBackfill` كانا يؤكّدان نصّ `alt` داخل `MapHub.tsx`؛ صارا يؤكّدان تصيير `<ImageryTimelineThumb` في البطاقة **و**وجود `alt` في المكوّن.
 - **حدّ الصدق:** يُغلق **BUG-4 وBUG-5**. لا يزال مفتوحاً: BUG-1A · BUG-1B · نافذة الاكتشاف بـ`acquisition_date` صريح · `SatellitePage.tsx:331` (truecolor مُثبَّت نصّيّاً).
 
-## FIELD-STATE-PRODUCERS-MISSING-01 — PARTIALLY_CLOSED (soil) / OPEN (weather) 2026-07-30
+## FIELD-STATE-PRODUCERS-MISSING-01 — PARTIALLY_CLOSED (soil + spectral) / OPEN (weather) 2026-08-01
+
+**تحديث الطيف (2026-08-01) — الغياب كان مُصطنَعاً لا مقيساً.** كان `_compose_canonical` يُمرّر
+`spectral=None` **حرفيّاً**، بينما المُنتِج والمُحلِّل قائمان في الشجرة:
+
+- المُنتِج: `core/crop_intelligence/spectral.py` ⇒ `canonical_spectral_state.v1` (والنواة تقبل بادئته: `core/canonical_field_state.py:78`).
+- المُحلِّل الخادميّ: كان يعيش داخل `routers/crop_twin.py` وحده، فلا يبلغه هذا المُركِّب.
+
+فالحالة الكنسيّة كانت تُعلن `spectral_missing` لحقولٍ **تُقرأ مؤشّراتها فعلاً**. هذا الصنف
+أخطر من «لم يُختبَر حيّاً»: تشغيل اختبار حيّ عليه كان سيُثبِت الغياب ويُسمّيه بيئةً.
+
+- **المُنجَز:** `api/canonical_spectral_state.py` — نظير `canonical_soil_state.py`/`canonical_water_state.py`. المُحلِّل **نُقِل** بلا تغيير سلوك (لا نسخة ثانية)، و`crop_twin` يستورده بالاسم فبقيت اختباراته العاملة بالترقيع خضراء. NDVI سيّد: غيابه ⇒ `None` لا منتَج بمؤشّرات كلّها `None` (ذاك يرفع `availability.spectral` بلا معرفة — التلفيق نفسه بمخطّط صحيح).
+- **قفل صدق:** الطيف **ليس** من `required=(weather, water, soil)`، فوصله **لا يرفع** `operational_eligible` — مُقفَل بـ`test_wiring_spectral_cannot_raise_eligibility_on_its_own`. لولاه لقُرِئ الوصل تقدّماً نحو أهليّة لم تتغيّر.
+- **التكذيب:** إعادة `spectral=None` ⇒ حارس AST يسقط؛ إرجاع منتَج فارغ بدل `None` ⇒ **٣** اختبارات تسقط. استُعيد الأصل ⇒ **١٨** نجحت.
+- **`temporal_compatible=None` عمداً:** التوافق الزمنيّ بين NDMI وMSI ادّعاء لا يملكه هذا المسار؛ تمريره `True` كان سيرفع `water_stress.confirmation_available` بلا دليل ويحوّل قراءتين من مشهدين إلى «تأكيد إجهاد».
+- **الراتشِت:** وحدات المنصّة 674 ⇒ 675 بمذكّرة مُعلَّلة على نمط سابقة التربة حرفيّاً.
+- **حدّ الصدق:** مُثبَت على مستوى الوحدة بمحاكاة `get_indicator_grid`؛ **لا** برهان تشغيليّ حيّ بأنّ الحقول الحقيقيّة تُرجِع منتَجاً. ⇒ `WIRED_AND_UNIT_PROVEN`، لا `runtime_verified`.
+
+**تصحيح مقيس لسبب بقاء الطقس** (كان الوصف هنا وفي الكود ناقصاً): `POST /v1/weather/agro/canonical-state`
+**يُرجِع الغلاف فعلاً** — لكنّه **حاسبة على مدخلات المُستدعي** (`CanonicalWeatherStateRequest`:
+`t_max_c`/`rh_mean_pct`/…) لا تجلب شيئاً. والمسارات الجالبة (`current`/`forecast`/`historical`)
+تُرجِع **مشاهدات** بلا غلاف. فلا واجهة تُجيب «ما الحالة الكنسيّة لطقس هذا الحقل؟»، وتغذية
+الحاسبة من المنصّة كانت ستجعل **المنصّة** هي مَن يؤكّد وقائع الطقس. فالفجوة **`implementation
+missing` في خدمة الطقس** لا نقصُ وصلٍ هنا — و`weather=None` محروسة بـAST كي لا تُدسّ حمولة.
+
 
 - **الأثر الأصليّ:** `canonical_field_state` موصولة (`247c69c`) وكانت تُعيد `operational_eligible=false` **دائماً**.
 - **السبب الأصليّ:** من `required=(weather, water, soil)` مُنتِج واحد فقط — الماء (`api/canonical_water_state.py:21`). لا مُنتِج لـ`canonical_soil_state.`/`soil-profile.` (البادئة ترد في قائمة قبول النواة نفسها: `core/canonical_field_state.py:77`) ولا لـ`wx10/canonical-weather-state/`.

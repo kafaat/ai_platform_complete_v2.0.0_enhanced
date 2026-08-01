@@ -11388,7 +11388,7 @@
           "score": 20
         },
         {
-          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:71",
+          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:79",
           "score": 20
         },
         {
@@ -17746,19 +17746,19 @@
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:299",
+          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:249",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:458",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:408",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:351",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:301",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:584",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:534",
           "score": 12
         },
         {
@@ -20759,19 +20759,19 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:299",
+          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:249",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:458",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:408",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:351",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:301",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:584",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:534",
           "score": 12
         },
         {
@@ -29873,19 +29873,19 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:299",
+          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:249",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:458",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:408",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:351",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:301",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:584",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:534",
           "score": 12
         },
         {
@@ -32252,19 +32252,19 @@
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:299",
+          "value": "/api/v1/crop-twin/compose @ services/sahool-platform/api/routers/crop_twin.py:249",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:458",
+          "value": "/api/v1/crop-twin/decision @ services/sahool-platform/api/routers/crop_twin.py:408",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:351",
+          "value": "/api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:301",
           "score": 12
         },
         {
-          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:584",
+          "value": "/api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:534",
           "score": 12
         },
         {
