@@ -9222,6 +9222,28 @@
     ]
   },
   {
+    "path": "tests_v9/test_imagery_batch_wait_before_read.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_imagery_product_identity_canonical.py",
     "kind": "tests",
     "candidates": [
