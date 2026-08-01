@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4807,
+    "files_scanned": 4809,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1263,
-      "tests": 1533,
+      "tests": 1535,
       "web": 448
     },
-    "unmapped_artifacts": 1956,
+    "unmapped_artifacts": 1957,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -25270,6 +25270,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_runtime_contract_indirect_env.py",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "tests_v9/test_decomposed_service_dockerfile_guard.py",
           "score": 8,
           "signals": [
@@ -25423,7 +25431,7 @@
         "events": 4,
         "web": 5,
         "mobile": 4,
-        "tests": 13,
+        "tests": 14,
         "governance": 0,
         "other_evidence": 15
       },
@@ -40725,6 +40733,10 @@
     },
     {
       "path": "tests_v9/test_imagery_quality_metadata_v57_5.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_imagery_scan_bounded_concurrency.py",
       "kind": "tests"
     },
     {

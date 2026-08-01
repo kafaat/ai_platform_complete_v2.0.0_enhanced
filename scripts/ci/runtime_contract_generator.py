@@ -41,6 +41,19 @@ ROUTE_RE = re.compile(
 )
 ENV_CALL_RE = re.compile(r"(?:os\.getenv|os\.environ\.get|getenv)\(\s*[\"']([A-Z][A-Z0-9_]+)[\"']")
 ENV_INDEX_RE = re.compile(r"os\.environ\[\s*[\"']([A-Z][A-Z0-9_]+)[\"']\s*\]")
+# A variable read through a module constant is still a variable. The two regexes above
+# only see a *literal* inside the call, so `os.getenv(_CLOUD_POLICY_ENV, "strict")` was
+# invisible and CDSE_CLOUD_POLICY appeared in no contract while --check still passed —
+# a completeness gate reporting completeness it did not have. These two capture the
+# indirect form: an identifier passed to the call, resolved against the module-level
+# constants below. A constant that is never passed to a read is never admitted, so the
+# resolution stays as narrow as the literal case.
+ENV_CALL_INDIRECT_RE = re.compile(
+    r"(?:os\.getenv|os\.environ\.get|getenv)\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*[,)]"
+)
+ENV_INDEX_INDIRECT_RE = re.compile(r"os\.environ\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\]")
+# Module-level `NAME = "ENV_VAR"` — the only bindings the indirect forms resolve against.
+ENV_CONST_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*[\"']([A-Z][A-Z0-9_]+)[\"']", re.M)
 SETTING_RE = re.compile(r"^\s*([A-Z][A-Z0-9_]{2,})\s*[:=]", re.M)
 METRIC_RE = re.compile(r"(?:Counter|Gauge|Histogram|Summary)\(\s*[\"']([^\"']+)[\"']")
 TRACE_RE = re.compile(r"(?:start_as_current_span|start_span)\(\s*[\"']([^\"']+)[\"']")
@@ -90,6 +103,39 @@ def read_text(path: Path) -> str:
         return ""
 
 
+def resolve_indirect_env(content: str) -> set[str]:
+    """Env names read through a module constant rather than a literal.
+
+    Resolution is deliberately one hop and same-file: a bare identifier passed to
+    ``os.getenv``/``os.environ.get``/``os.environ[...]`` is looked up in that module's
+    ``NAME = "ENV_VAR"`` bindings. Anything that does not resolve is dropped rather than
+    guessed — inventing a name would be worse than the omission this repairs.
+    """
+    referenced = set(ENV_CALL_INDIRECT_RE.findall(content)) | set(
+        ENV_INDEX_INDIRECT_RE.findall(content)
+    )
+    if not referenced:
+        return set()
+    constants = dict(ENV_CONST_RE.findall(content))
+    return {constants[name] for name in referenced if name in constants}
+
+
+def extract_env_names(content: str, filename: str = "") -> set[str]:
+    """Every env name one file declares — the single seam the scan reads through.
+
+    This exists as its own function so the indirect resolution can be held by a test at
+    the level the scan actually uses. Asserting on ``resolve_indirect_env`` alone would
+    stay green if that call were dropped from the scan, which is precisely the shape of
+    the original defect: a capability present but never run.
+    """
+    names = set(ENV_CALL_RE.findall(content)) | set(ENV_INDEX_RE.findall(content))
+    names |= resolve_indirect_env(content)
+    # Pydantic settings often declare uppercase fields directly.
+    if filename in {"config.py", "settings.py"}:
+        names |= set(SETTING_RE.findall(content))
+    return names
+
+
 def classify_routes(routes: set[str]) -> dict[str, list[str]]:
     low = {r.lower(): r for r in routes}
     health = sorted(
@@ -131,10 +177,7 @@ def scan_service(row: dict[str, str]) -> dict[str, Any]:
         if found_routes:
             routes.update(found_routes)
             evidence["routes"].add(rel(path))
-        found_env = set(ENV_CALL_RE.findall(content)) | set(ENV_INDEX_RE.findall(content))
-        # Pydantic settings often declare uppercase fields directly.
-        if path.name in {"config.py", "settings.py"}:
-            found_env |= set(SETTING_RE.findall(content))
+        found_env = extract_env_names(content, path.name)
         if found_env:
             envs.update(found_env)
             evidence["configuration"].add(rel(path))

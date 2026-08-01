@@ -2850,7 +2850,8 @@
       "integration_test_paths": [
         "tests_v9/test_fields_put_and_mfa_api_contract_20260626.py",
         "tests_v9/test_mfa_hardening_integration_v29_5.py",
-        "tests_v9/test_mfa_migration_contract_guard.py"
+        "tests_v9/test_mfa_migration_contract_guard.py",
+        "tests_v9/test_runtime_contract_indirect_env.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
