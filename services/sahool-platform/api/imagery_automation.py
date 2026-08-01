@@ -64,6 +64,19 @@ def _batch_poll_interval_s() -> float:
         return 2.0
 
 
+def _scan_concurrency() -> int:
+    """عدد الحقول المفحوصة معاً في كنسة واحدة (IMAGERY-SCAN-SERIAL-WAIT-01).
+
+    ٨ افتراضاً — نفس سقف ``GAP-B1-ALLFIELDS-SEQ``: يكفي لإخفاء زمن الانتظار ولا يُغرِق
+    raster-service. الحدّ الأدنى ١ (تسلسليّ) لأنّ صفراً أو سالباً يعني ``Semaphore``
+    لا يُفتَح أبداً — تعليقاً تامّاً لا «بلا حدّ».
+    """
+    try:
+        return max(1, int(os.getenv("IMAGERY_SCAN_CONCURRENCY", "8")))
+    except ValueError:
+        return 8
+
+
 # مؤشّرات تُحسب تلقائيّاً عند صورة جديدة (دفعةً من نفس المشهد):
 #   NDVI صحّة نباتيّة · NDRE نيتروجين (red-edge) · NDSI ملوحة (حرج لليمن الجافّ)
 #   NDMI رطوبة المحتوى · MSI إجهاد مائيّ — (D2b) يغذّيان تأكيد الإجهاد الطيفيّ.
@@ -145,6 +158,8 @@ class ImageryAutomation:
         self._batch_waits_terminal = 0
         self._batch_waits_timed_out = 0
         self._batch_waits_unknown = 0
+        #   disabled  = الانتظار مُعطَّل بالميزانيّة (IMAGERY_BATCH_WAIT_BUDGET_S=0)
+        self._batch_waits_disabled = 0
 
     def set_pool(self, pool) -> None:
         """يربط pool القاعدة لتمكين الاستمرار الدائم."""
@@ -277,9 +292,11 @@ class ImageryAutomation:
                 "terminal": self._batch_waits_terminal,
                 "timed_out": self._batch_waits_timed_out,
                 "unknown": self._batch_waits_unknown,
+                "disabled": self._batch_waits_disabled,
                 "budget_s": _batch_wait_budget_s(),
                 "poll_interval_s": _batch_poll_interval_s(),
             },
+            "scan_concurrency": _scan_concurrency(),
             "fields": [f.to_dict() for f in self._fields.values()],
         }
 
@@ -549,6 +566,18 @@ class ImageryAutomation:
         (افتراض 24 ساعة) على **وقت التقاط صورته السابقة** (``last_image_date``). حقل بلا
         وقت التقاط معروف (لم تُلتقَط له صورة بعد) يُفحَص دائماً. هذا يجعل المزامنة فعليّاً
         «كلّ 24 ساعة من وقت التقاط الصورة السابقة» لا كنساً أعمى لكلّ حقل كلّ دورة.
+
+        **التزامن المحدود (IMAGERY-SCAN-SERIAL-WAIT-01):** كان المرور تسلسليّاً، وهو ما
+        كان مقبولاً حين كان العمل لكلّ حقل نداءً أو نداءين. بعد
+        SPECTRAL-COLLECTOR-ASYNC-RACE-01 صار كلّ حقل بصورة جديدة **ينتظر اكتمال دفعته**
+        حتّى ``IMAGERY_BATCH_WAIT_BUDGET_S`` (افتراض ١٢٠ث)، و``load_from_db`` يجلب حقول
+        كلّ المستأجرين بلا حدّ ⇒ أسوأ حالة للدورة = عدد الحقول × الميزانيّة. الجدولة لا
+        تضع مهلة على المهمّة (`scheduler.py`)، فالأثر انزياح دورة لا تداخل — لكنّه انزياح
+        ينمو خطّيّاً مع عدد الحقول. نفس علاج ``GAP-B1-ALLFIELDS-SEQ``: ``gather`` بتزامن
+        محدود بـ``Semaphore``. زمن الجدار = أبطأ حقل لا مجموع الحقول.
+
+        العزل والحتميّة محفوظان: الفشل يبقى لكلّ حقل، و``gather`` يُرجِع بترتيب الدخل لا
+        بترتيب الإتمام فتبقى قائمة ``errors`` مستقرّة بين التشغيلات.
         """
         if not self._fields:
             return {
@@ -564,21 +593,77 @@ class ImageryAutomation:
         end = now.strftime("%Y-%m-%d")
         min_gap = timedelta(hours=max(0.0, min_hours_since_last_capture))
 
-        scanned = 0
         skipped = 0
-        new_images = 0
-        failed = 0
-        errors: list[str] = []
-
+        due: list[tuple[str, TrackedField]] = []
         for field_id, tf in list(self._fields.items()):
             # حارس per-field: تخطَّ الحقل إن لم تمرّ 24 ساعة على وقت التقاط صورته
             # السابقة (لا وقت التقاط ⇒ يُفحَص). لا يُعدّ فحصاً ولا يضرب raster-service.
+            # قرار محلّيّ بلا شبكة ⇒ يبقى تسلسليّاً: لا شيء يُكسَب من موازاته.
             last_capture = _parse_capture_time(tf.last_image_date)
             if last_capture is not None and (now - last_capture) < min_gap:
                 skipped += 1
                 continue
-            scanned += 1
             tf.last_checked_at = now.isoformat()
+            due.append((field_id, tf))
+
+        semaphore = asyncio.Semaphore(_scan_concurrency())
+        results = await asyncio.gather(
+            *(self._scan_one(field_id, tf, start, end, semaphore) for field_id, tf in due),
+            return_exceptions=True,
+        )
+
+        scanned = len(due)
+        new_images = 0
+        failed = 0
+        errors: list[str] = []
+        for (field_id, tf), outcome in zip(due, results, strict=True):
+            # الإلغاء ليس فشل حقل: `return_exceptions=True` يلتقط `BaseException` أيضاً،
+            # فبلا هذا السطر كان إيقاف الخدمة يُسجَّل «فشل فحص N حقلاً» وتمضي الكنسة إلى
+            # نهايتها بدل أن تنتهي — ابتلاعُ إشارة تحكّم وإعادة تسميتها عطلاً.
+            if isinstance(outcome, asyncio.CancelledError):
+                raise outcome
+            # ما عداه شبكة أمان لا مسار متوقَّع: `_scan_one` تلتقط أخطاء الحقل بنفسها
+            # وتُرجِعها. ما يصل هنا استثناءً يعني تسرّباً منها — يُعَدّ فشلاً كغيره بدل
+            # أن يُسقِط الكنسة كلّها.
+            if isinstance(outcome, BaseException):
+                tf.check_errors += 1
+                failed += 1
+                errors.append(f"{field_id}: {type(outcome).__name__}")
+                logger.warning("فشل فحص صور الحقل %s: %s", field_id, outcome)
+                continue
+            found_new, error_name = outcome
+            if error_name is not None:
+                failed += 1
+                errors.append(f"{field_id}: {error_name}")
+            elif found_new:
+                new_images += 1
+
+        return {
+            "scanned": scanned,
+            "skipped": skipped,
+            "new_images": new_images,
+            "failed": failed,
+            "errors": errors[:10],
+        }
+
+    async def _scan_one(
+        self,
+        field_id: str,
+        tf: TrackedField,
+        start: str,
+        end: str,
+        semaphore: asyncio.Semaphore,
+    ) -> tuple[bool, str | None]:
+        """يفحص حقلاً واحداً. يُرجِع ``(وُجدت صورة جديدة، اسم الخطأ أو None)``.
+
+        العزل هنا لا في المستدعي: فشل حقل لا يُسقِط غيره ولا يُلغي الكنسة. النوع
+        المُرجَع صريح بدل تحميل ``None`` معنيَين — «لا صورة جديدة» و«فشل» نتيجتان
+        مختلفتان، وخلطهما كان سيجعل عدّاد ``failed`` يكذب.
+
+        الـ``Semaphore`` يُؤخَذ حول العمل الشبكيّ كلّه — بما فيه انتظار الدفعة — وإلّا
+        ظلّ الانتظار الطويل بلا حدّ تزامن وهو **بالضبط** ما يُراد تحديده.
+        """
+        async with semaphore:
             try:
                 # ابحث عن صور Sentinel-2 جديدة لهذا الحقل
                 body = await search_imagery_scenes(
@@ -589,33 +674,25 @@ class ImageryAutomation:
                 )
                 items = body.get("items", [])
                 if not items:
-                    continue
+                    return (False, None)
                 # الأحدث أوّلاً (نفترض ترتيب raster-service تنازليّاً)
                 newest = items[0]
                 newest_id = newest.get("id") or newest.get("image_id")
                 # صورة جديدة؟ (مختلفة عن آخر معروفة)
-                if newest_id and newest_id != tf.last_image_id:
-                    tf.last_image_id = newest_id
-                    tf.last_image_date = newest.get("datetime") or newest.get("date")
-                    tf.new_images_found += 1
-                    new_images += 1
-                    # اطلب حساب المؤشّرات (NDVI) لو توفّر رابط الراستر
-                    await self._trigger_indicators(tf, newest)
-                    # احفظ الحالة الجديدة (لا إعادة معالجة بعد إعادة التشغيل)
-                    await self._persist_field(tf)
+                if not newest_id or newest_id == tf.last_image_id:
+                    return (False, None)
+                tf.last_image_id = newest_id
+                tf.last_image_date = newest.get("datetime") or newest.get("date")
+                tf.new_images_found += 1
+                # اطلب حساب المؤشّرات (NDVI) لو توفّر رابط الراستر
+                await self._trigger_indicators(tf, newest)
+                # احفظ الحالة الجديدة (لا إعادة معالجة بعد إعادة التشغيل)
+                await self._persist_field(tf)
+                return (True, None)
             except Exception as e:  # noqa: BLE001 — عزل لكلّ حقل
-                failed += 1
                 tf.check_errors += 1
-                errors.append(f"{field_id}: {type(e).__name__}")
                 logger.warning("فشل فحص صور الحقل %s: %s", field_id, e)
-
-        return {
-            "scanned": scanned,
-            "skipped": skipped,
-            "new_images": new_images,
-            "failed": failed,
-            "errors": errors[:10],
-        }
+                return (False, type(e).__name__)
 
     async def _trigger_indicators(self, tf: TrackedField, image: dict) -> None:
         """يطلب حساب المؤشّرات لصورة جديدة عبر raster-service /v1/process/batch.
@@ -702,6 +779,11 @@ class ImageryAutomation:
             return True
         budget = _batch_wait_budget_s()
         if budget <= 0:
+            # الانتظار مُعطَّل صراحةً ⇒ قراءة بلا انتظار. يُعَدّ في عدّاده الخاصّ لا في
+            # `terminal`: الأخير يعني «بلغت الدفعة نهايتها»، وهنا لم يُتحقَّق من شيء.
+            # وبلا عدّاد أصلاً كان مجموع `batch_waits` أقلّ من عدد الدفعات بلا تفسير —
+            # ثقب في عدّادات حجّتها الأولى أنّ ما لا يُقاس يعود صمتاً بشكل آخر.
+            self._batch_waits_disabled += 1
             return True
         interval = _batch_poll_interval_s()
         deadline = datetime.now(UTC) + timedelta(seconds=budget)

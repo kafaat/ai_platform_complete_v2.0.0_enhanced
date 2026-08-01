@@ -15875,7 +15875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6cc7f68f9705020dccf89a459847776a530041de5922427df2f5e7b8e6915e5a"
+          "content": "a15912159785874cc0e3b992237ef281a7f3affaa53fd7cb6ae86aebc144bc68"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
