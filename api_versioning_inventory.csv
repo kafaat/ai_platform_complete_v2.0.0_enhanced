@@ -450,6 +450,7 @@ sahool-platform,services/sahool-platform/api/routers/compat_gateway.py,48,GET,/a
 sahool-platform,services/sahool-platform/api/routers/compat_gateway.py,53,GET,/api/vegetation/v1/all_fields,vegetation_all_fields_passthrough,permanent_compatibility_gateway
 sahool-platform,services/sahool-platform/api/routers/compat_gateway.py,80,GET,/api/vegetation/v1/analyze,vegetation_analyze_passthrough,permanent_compatibility_gateway
 sahool-platform,services/sahool-platform/api/routers/compat_gateway.py,114,GET,/api/raster/{path:path},raster_api_passthrough,permanent_compatibility_gateway
+sahool-platform,services/sahool-platform/api/routers/compat_gateway.py,145,GET,/api/probe-newservice/readyz,_probe_unadjudicated_alias,legacy_unversioned_business
 sahool-platform,services/sahool-platform/api/routers/confidence.py,35,POST,/api/v1/confidence/ndvi,ndvi_confidence,versioned
 sahool-platform,services/sahool-platform/api/routers/confidence.py,54,POST,/api/v1/confidence/irrigation,irrigation_rec_confidence,versioned
 sahool-platform,services/sahool-platform/api/routers/confidence_gate.py,27,POST,/api/v1/confidence-gate,confidence_gate,versioned

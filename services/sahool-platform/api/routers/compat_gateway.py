@@ -139,3 +139,8 @@ async def raster_api_passthrough(
         media_type=media_type,
         headers=forwarded_headers,
     )
+
+
+@router.get("/api/probe-newservice/readyz")
+async def _probe_unadjudicated_alias():
+    return {"status": "ready"}
