@@ -989,7 +989,7 @@
         "GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:255",
         "GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47",
         "GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2085",
-        "GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:226",
+        "GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:241",
         "GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37",
         "GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23",
         "POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:84",
@@ -1266,6 +1266,7 @@
         "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
         "tests_v9/test_cdse_catalog_hardening_20260626.py",
+        "tests_v9/test_cdse_cloud_filter_policy.py",
         "tests_v9/test_cdse_evalscript.py",
         "tests_v9/test_cdse_latest_window_singleflight_guard.py",
         "tests_v9/test_cdse_process_throttle_retry_guard.py",
@@ -1274,8 +1275,7 @@
         "tests_v9/test_historical_search_cdse_v30_8.py",
         "tests_v9/test_imagery_single_scene_process.py",
         "tests_v9/test_normalized_scene_wiring_v63_2.py",
-        "tests_v9/test_raster_scene_model_v63.py",
-        "tests_v9/test_stac_singleflight_v30_5.py"
+        "tests_v9/test_raster_scene_model_v63.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1516,6 +1516,7 @@
         "services/raster-service/test_cloud_native_catalog.py",
         "shared/gis/test_cloud_native_gis.py",
         "shared/gis/test_cloud_native_runtime.py",
+        "tests_v9/test_cdse_cloud_filter_policy.py",
         "tests_v9/test_field_intelligence_cloud.py",
         "tests_v9/test_imagery_aoi_cloud_contract.py"
       ],
@@ -1547,7 +1548,7 @@
           "path": "shared/gis/cloud_native_gis.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=30, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=30, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -1817,7 +1818,7 @@
         "GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platform/api/routers/weather.py:2988",
         "GET /healthz @ services/raster-service/routers/observability.py:31",
         "GET /metrics @ services/raster-service/routers/observability.py:36",
-        "GET /readyz @ services/raster-service/routers/observability.py:171",
+        "GET /readyz @ services/raster-service/routers/observability.py:186",
         "GET /v1/cog/validate @ services/raster-service/routers/analysis.py:153",
         "GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73",
         "GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351",

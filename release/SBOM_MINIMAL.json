@@ -12885,7 +12885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "069222d4a6728f01f5247a1c2a7bed1cc748c86e3bcfaa1ba0a3e717547ef68e"
+          "content": "732e40836058d74f44b2efc939f775a0f8a820cca573715888e7ed9f4cadc3b3"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -13495,7 +13495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "65106371b6c5d07c1fb67cb1611b0f5f741bd2b052c1351edd78e7e4f2c46b72"
+          "content": "f4c538219a21a65140e570de48b3d9c03352d35b20c94cda8fe0c19360255b62"
         }
       ],
       "name": "services/raster-service/routers/observability.py",

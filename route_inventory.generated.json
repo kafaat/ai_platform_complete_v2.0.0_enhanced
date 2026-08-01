@@ -2138,7 +2138,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 130,
+    "line": 145,
     "method": "GET",
     "path": "/v1/tiles/observability",
     "function": "tile_observability"
@@ -2146,7 +2146,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 171,
+    "line": 186,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -2154,7 +2154,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 192,
+    "line": 207,
     "method": "GET",
     "path": "/v1/tile-cache/stats",
     "function": "tile_cache_stats"
@@ -2162,7 +2162,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 226,
+    "line": 241,
     "method": "GET",
     "path": "/v1/info/{layer_id}",
     "function": "raster_info"
@@ -2170,7 +2170,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 236,
+    "line": 251,
     "method": "GET",
     "path": "/v1/providers/status",
     "function": "providers_status"
@@ -2178,7 +2178,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 266,
+    "line": 281,
     "method": "GET",
     "path": "/v1/indices",
     "function": "field_indices"
