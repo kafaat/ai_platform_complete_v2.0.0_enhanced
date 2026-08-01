@@ -126,19 +126,52 @@ _GENERATE_FLAG.update(
     }
 )
 
+# الأربعة أدناه كانت **غير مرئيّة للاكتشاف أصلاً** لا مجرّد غائبة عن الخريطة: استدعاؤها
+# في `platform-route-budget.yml` مكتوب على أسطر بشرطة مائلة عكسيّة، و`_STEP` مقصور على
+# سطر واحد. أُضيفت بعد إغلاق الشرط المُعلَن لكلٍّ منها (أفسِد مصنوعتها ⇒ `--check` يرصد،
+# ثمّ شغّل العلم ⇒ `--check` بصفر **والملفّ مُستعاد بايتاً بايت**) — لا بالثقة في وجود العلم.
+#
+# الترتيب بينها حقيقة تبعيّة لا تفضيل: `attestation` يستدعي جرد الملكيّة ويقرأ جرد
+# الميزانيّة، و`release_binding` يبصم الثلاثة. والأبجديّة **لا** تُنتِج هذا الترتيب —
+# قِستُه فوجدتُه `budget → attestation → ownership`، أي التصديق قبل أحد مصدرَيه؛ فصار
+# صريحاً في `_ORDER_TIER` بدل الاتّكال على أنّ دورة `--fix` الثانية ستُصحّحه مصادفةً.
+# و`--write-source` اسمٌ تاريخيّ: يكتب `release/PLATFORM_ROUTE_GOVERNANCE_BINDING.json`
+# (مصنوعة مولَّدة) لا كوداً مصدريّاً — تحقّقتُ منه قبل الوصل.
+_GENERATE_FLAG.update(
+    {
+        "platform_route_ownership_guard.py": "--write-generated",
+        "platform_route_budget_guard.py": "--write-generated",
+        "platform_route_governance_attestation.py": "--write-generated",
+        "platform_route_release_binding.py": "--write-source",
+    }
+)
+
 # علم كتابة يُعلنه سكربت في مصدره — يُميّز «كاتب لم يُستدعَ» عن «فحص بلا مولّد».
 _WRITE_FLAG_DECL = re.compile(r"""["'](--(?:write|apply|generate)[a-z-]*)["']""")
 
-# أعلام الكتابة المعروفة في هذا المستودع — تُستعمل حكماً لا تخميناً في
-# `flag_map_problems()` بعد استجواب `--help`.
-_WRITE_FLAGS = (
-    "--apply",
-    "--generate",
-    "--generate-index",
-    "--write",
-    "--write-registry",
-    "--fix",
-)
+# أعلام الكتابة، **بالعائلة لا بالتعداد** (GENERATED-SWEEP-WRITE-FLAG-FAMILY-BLIND-01).
+#
+# كانت قائمةً مغلقةً تُفحَص بتطابق تامّ، فغابت عنها عائلة `--write-*` كاملةً: أربعة
+# مولّدات تكتب بـ`--write-generated`/`--write-source` بقيت **غير مرئيّة** لـ
+# `flag_map_problems()`، فأعلن الحارس نظافةً بينما هي تنحرف. وقياساً على `d4549ef6`:
+# `flag_map_problems()` تُرجِع لا شيء بينما `platform_route_ownership_guard` و
+# `platform_route_governance_attestation` و`platform_route_budget_guard` غائبة عن
+# `_GENERATE_FLAG` — وهي التي عطّلت شريحة #751 حتّى شُغِّلت يدويّاً.
+#
+# والتناقض كان **داخل هذا الملفّ نفسه**: `_WRITE_FLAG_DECL` أعلاه يطابق `--write-*`
+# بالبادئة، فالماسح المصدريّ كان يراها والمُستجوِب لا يراها. فوُحِّد المعياران.
+#
+# البادئة مقصودة أوسع من التعداد: خطؤها المحتمل «سمِّه في الأساس» — كلفته سطر
+# مُعلَّل؛ وخطأ التعداد «لا يُعاد توليده أبداً» — كلفته انحراف صامت.
+_WRITE_FLAG_PREFIXES = ("--write", "--generate", "--apply")
+_WRITE_FLAG_EXACT = frozenset({"--fix"})
+
+
+def write_flags_of(flags: set[str]) -> list[str]:
+    """أعلام الكتابة ضمن ما يقبله سكربت فعلاً — بعائلة العلم لا بقائمة مغلقة."""
+    return sorted(
+        flag for flag in flags if flag in _WRITE_FLAG_EXACT or flag.startswith(_WRITE_FLAG_PREFIXES)
+    )
 
 
 def _declared_write_flags(script: str) -> list[str]:
@@ -192,13 +225,13 @@ def flag_map_problems(steps) -> list[str]:
         if name in _GENERATE_FLAG:
             declared = _GENERATE_FLAG[name]
             if declared and declared not in flags:
-                usable = sorted(flags & set(_WRITE_FLAGS)) or ["لا علم كتابة — التشغيل العاري"]
+                usable = write_flags_of(flags) or ["لا علم كتابة — التشغيل العاري"]
                 problems.append(
                     f"{script}: العلم المُعلَن `{declared}` لا يقبله السكربت. "
                     f"المقبول: {', '.join(usable)}"
                 )
             continue
-        usable = sorted(flags & set(_WRITE_FLAGS))
+        usable = write_flags_of(flags)
         if not usable:
             continue
         if script in baseline:
@@ -224,6 +257,16 @@ def flag_map_problems(steps) -> list[str]:
 # يبصم مخرجات المولّدات ⇒ بعدها دائماً.
 _LATE = ("static_governance_closure.py",)
 
+# طبقات ترتيب صريحة داخل مرحلة المولّدات — تبعيّة مقيسة لا ترتيب أبجديّ.
+# `platform_route_governance_attestation` يستدعي `build_ownership_inventory()` ويقرأ
+# جرد الميزانيّة، فتشغيله قبل أيّهما يُبقيه بائتاً **بلا خطأ خاصّ به**: الأبجديّة وحدها
+# كانت ترتّبه `budget → attestation → ownership`، أي قبل أحد مصدرَيه. الاعتماد على أنّ
+# `--fix` سيُصحّح ذلك في دورة ثانية اعتمادٌ على مصادفة، وهو نفس الصمت الذي تعالجه المكنسة.
+_ORDER_TIER = {
+    "platform_route_governance_attestation.py": 1,
+    "platform_route_release_binding.py": 2,
+}
+
 # تبصم كلّ ما سبق ⇒ آخر شيء على الإطلاق.
 _RELEASE_BUILD = "scripts/release/build_release_bundle.py"
 _RELEASE_VALIDATE = "scripts/release/validate_release_package.py"
@@ -233,10 +276,24 @@ STEP_TIMEOUT_SECONDS = 180
 
 
 def discover() -> list[tuple[str, list[str]]]:
-    """(مسار السكربت، وسائطه) لكلّ خطوة ``--check`` في الـworkflows — مُزالة التكرار."""
+    """(مسار السكربت، وسائطه) لكلّ خطوة ``--check`` في الـworkflows — مُزالة التكرار.
+
+    **متابعات السطر تُطوى أوّلاً** (`GENERATED-SWEEP-CONTINUATION-BLIND-01`): `_STEP`
+    مقصور على سطر واحد عمداً — `\\s` كان يبتلع الأسطر الجديدة فيلتهم كتلة YAML كاملة
+    ويُنتج «خطوة» وهميّة. لكنّ القصر بلا طيّ جعل كلّ استدعاء مكتوب على أسطر بشرطة
+    مائلة عكسيّة **غير مرئيّ للاكتشاف أصلاً**، لا مُصنَّفاً ولا مُبلَّغاً عنه.
+
+    القياس على `d4549ef6`: **ثلاث** خطوات فحص في `platform-route-budget.yml`
+    (`platform_route_ownership_guard` · `platform_route_budget_guard` ·
+    `platform_route_governance_attestation`) خارج المدى تماماً — وهي التي عطّلت #751
+    ولم يُظهرها أيّ حارس، لأنّ ما لا يُكتشَف لا يُصنَّف.
+
+    الطيّ يقتصر على `\\` في نهاية السطر (متابعة صدفة صريحة)، فلا يُعيد فتح ثغرة `\\s`:
+    سطر YAML عاديّ بلا شرطة مائلة يبقى منفصلاً.
+    """
     seen: dict[tuple[str, tuple[str, ...]], None] = {}
     for wf in sorted(WORKFLOWS.glob("*.yml")):
-        text = wf.read_text(encoding="utf-8")
+        text = re.sub(r"\\\n[ \t]*", " ", wf.read_text(encoding="utf-8"))
         for script, args in _STEP.findall(text):
             argv = tuple(a for a in args.split() if a)
             seen.setdefault((script, argv), None)
@@ -339,9 +396,9 @@ def _run(argv: list[str]) -> tuple[int, str]:
     return proc.returncode, ((stdout or "") + (stderr or "")).strip()
 
 
-def _sort_key(step: tuple[str, list[str]]) -> tuple[int, str]:
+def _sort_key(step: tuple[str, list[str]]) -> tuple[int, int, str]:
     name = Path(step[0]).name
-    return (1 if name in _LATE else 0, step[0])
+    return (1 if name in _LATE else 0, _ORDER_TIER.get(name, 0), step[0])
 
 
 def tree_state() -> str:
