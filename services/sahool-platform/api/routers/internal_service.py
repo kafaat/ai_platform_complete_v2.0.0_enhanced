@@ -30,7 +30,7 @@ async def internal_field_state(
         False,
         description=(
             "أرفِق canonical_field_state.v1 المُركَّب من المنتَجات المتاحة. "
-            "يعود operational_eligible=false ما دام لا مُنتِج للتربة/الطقس."
+            "يعود operational_eligible=false ما دام الطقس غير مُتاح كغلاف كنسيّ."
         ),
     ),
     _: None = Depends(_require_service_token),
@@ -40,13 +40,21 @@ async def internal_field_state(
     مع ``canonical=true`` يُرفَق ``canonical_field_state.v1`` المُركَّب من **منتَجات الحالة
     المتاحة فعلاً** في المنصّة، بلا مسار جديد (سابقة INT-004A).
 
-    حدّ صدق صريح: العقد يشترط ``weather`` و``water`` و``soil``؛ والمنصّة تُنتِج **الماء**
+    حدّ صدق صريح: العقد يشترط ``weather`` و``water`` و``soil``؛ والمنصّة تُحلّ **الماء**
     (``api/canonical_water_state.py``)، و**التربة** (``api/canonical_soil_state.py`` — عميل
-    HTTP لِـ``soil-service``'s ``/v1/fields/{field_id}/soil/profile``)، و**الطيف** (غير
-    مشترط). لا مُنتِج في الشجرة يُصدِر ``wx10/canonical-weather-state/`` عبر واجهة تُرجِع
-    الغلاف الكامل بمخطّطه — الطقس قرار معماريّ منفصل مؤجَّل. لذلك يعود
-    ``operational_eligible=false`` ما دام الطقس غائباً، مع تسمية الناقص — وهي **الحقيقة**،
-    لا عيب، ولا يجوز اختلاق منتَج لإرضاء العقد.
+    HTTP لِـ``soil-service``'s ``/v1/fields/{field_id}/soil/profile``)، و**الطيف**
+    (``api/canonical_spectral_state.py`` — منتَج raster المُتحقَّق، غير مشترط في العقد).
+
+    يبقى **الطقس** وحده غائباً (``FIELD-STATE-PRODUCERS-MISSING-01``)، وبسبب مقيس لا تقدير:
+    المسارات الجالبة في ``weather-service`` (``current``/``forecast``/``historical``) تُرجِع
+    **مشاهدات** مُشتقّة بلا غلاف ولا ``schema_version``؛ والمسار الذي يُرجِع الغلاف كاملاً
+    (``POST /v1/weather/agro/canonical-state``) **حاسبة على مدخلات المُستدعي** — يقرأ
+    ``t_max_c``/``rh_mean_pct``/… من الجسم ولا يجلب شيئاً. فلا توجد واجهة تُجيب «ما الحالة
+    الكنسيّة لطقس هذا الحقل؟»، وتغذية الحاسبة من هنا كانت ستجعل **المنصّة** هي مَن يؤكّد
+    وقائع الطقس — التلفيق نفسه بمخطّط صحيح.
+
+    لذلك يعود ``operational_eligible=false`` ما دام الطقس غائباً، مع تسمية الناقص — وهي
+    **الحقيقة**، لا عيب، ولا يجوز اختلاق منتَج لإرضاء العقد.
     """
     from api.field_state_projection import recompute_field_state
 
@@ -123,6 +131,7 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
     from datetime import UTC, datetime
 
     from api.canonical_soil_state import resolve_canonical_soil_state
+    from api.canonical_spectral_state import resolve_canonical_spectral_state
     from api.canonical_water_state import resolve_canonical_water_state
 
     water = await resolve_canonical_water_state(conn, tenant_id=tenant_id, field_id=field_id)
@@ -131,6 +140,9 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
         water_payload = None  # حمولة محجوبة بلا مخطّط ⇒ غياب مُعلَن لا قبول صامت
 
     soil_payload = await resolve_canonical_soil_state(tenant_id=tenant_id, field_id=field_id)
+    spectral_payload = await resolve_canonical_spectral_state(
+        tenant_id=tenant_id, field_id=field_id
+    )
 
     state = compose_canonical_field_state(
         field_id=field_id,
@@ -138,8 +150,13 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
         as_of_time=datetime.now(UTC).isoformat(),
         water=water_payload,
         soil=soil_payload,
-        # لا مُنتِج للطقس في هذه الخدمة — يُعلَن غائباً بالاسم (قرار معماريّ منفصل).
+        # الطقس يبقى `None` صراحةً (FIELD-STATE-PRODUCERS-MISSING-01، نصف الطقس):
+        # لا واجهة تُرجِع غلافاً كنسيّاً **لحقل** من بيانات weather-service نفسها. المسارات
+        # الجالبة (`current`/`forecast`/`historical`) تُرجِع **مشاهدات** بلا غلاف، والمسار
+        # الذي يُرجِع الغلاف (`POST /v1/weather/agro/canonical-state`) **حاسبة على مدخلات
+        # المُستدعي** (`CanonicalWeatherStateRequest`: t_max_c/rh_mean_pct/…) لا يجلب شيئاً —
+        # فتغذيته من هنا تجعل المنصّة هي مَن يؤكّد وقائع الطقس، وهو التلفيق نفسه بمخطّط صحيح.
         weather=None,
-        spectral=None,
+        spectral=spectral_payload,
     )
     return state.to_dict()

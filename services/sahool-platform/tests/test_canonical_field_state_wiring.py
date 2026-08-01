@@ -159,3 +159,64 @@ def test_consumer_sources_soil_from_a_resolver_call_not_a_literal():
         and n.func.id == "resolve_canonical_soil_state"
     ]
     assert resolver_calls, "لا بدّ من استدعاء resolve_canonical_soil_state فعليّاً داخل الدالّة"
+
+
+def test_consumer_sources_spectral_from_a_resolver_call_not_a_literal():
+    """P0-2 (نصف الطيف): ``spectral`` كان ``None`` حرفيّاً بينما المُحلِّل موجود.
+
+    المُنتِج (``core.crop_intelligence.build_canonical_spectral_state``) والمُحلِّل الخادميّ
+    كانا في الشجرة، لكنّ الثاني يعيش داخل ``routers/crop_twin.py`` فلا يبلغه هذا المُركِّب.
+    فكانت الحالة الكنسيّة تُعلن ``spectral_missing`` لحقولٍ تُقرأ مؤشّراتها فعلاً — غيابٌ
+    مُصطنَع لا مقيس. هذا الحارس نظير حارس التربة أعلاه: القيمة تأتي من نتيجة حلّ، لا من
+    ثابت ولا من قاموس مُلفَّق.
+    """
+    tree = ast.parse(ROUTER.read_text(encoding="utf-8"))
+    fn = next(
+        n
+        for n in ast.walk(tree)
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "_compose_canonical"
+    )
+    imported = {
+        alias.name
+        for node in ast.walk(fn)
+        if isinstance(node, ast.ImportFrom) and node.module == "api.canonical_spectral_state"
+        for alias in node.names
+    }
+    assert "resolve_canonical_spectral_state" in imported, (
+        "spectral يجب أن يُحلَّ عبر api.canonical_spectral_state.resolve_canonical_spectral_state"
+    )
+    call = next(
+        n
+        for n in ast.walk(fn)
+        if isinstance(n, ast.Call)
+        and isinstance(n.func, ast.Name)
+        and n.func.id == "compose_canonical_field_state"
+    )
+    passed = {kw.arg: kw.value for kw in call.keywords}
+    assert "spectral" in passed, "spectral يجب أن يُمرَّر صراحةً لا أن يُحذَف"
+    assert not isinstance(passed["spectral"], (ast.Constant, ast.Dict)), (
+        "spectral يجب أن يأتي من نتيجة الحلّ (resolver) — لا None حرفيّة ولا Dict مُلفَّق"
+    )
+    resolver_calls = [
+        n
+        for n in ast.walk(fn)
+        if isinstance(n, ast.Call)
+        and isinstance(n.func, ast.Name)
+        and n.func.id == "resolve_canonical_spectral_state"
+    ]
+    assert resolver_calls, "لا بدّ من استدعاء resolve_canonical_spectral_state فعليّاً داخل الدالّة"
+
+
+def test_wiring_spectral_cannot_raise_eligibility_on_its_own():
+    """قفل صدق: الطيف **ليس** من الثلاثة المشترطة، فوصله لا يجوز أن يرفع الأهليّة.
+
+    لولا هذا القفل لأمكن أن يُقرأ وصلُ الطيف تقدّماً نحو ``operational_eligible=true``
+    وهو لا يمسّها إطلاقاً — والفارق بين «أضفنا معرفة» و«صارت الحالة صالحة تشغيليّاً»
+    هو بالضبط ما يحرسه هذا الملفّ.
+    """
+    spectral = {"schema": "canonical_spectral_state.v1", "indices": {"ndvi": 0.7}}
+    with_spectral = _compose(water=_WATER, spectral=spectral)
+    assert with_spectral.availability["spectral"] is True
+    assert with_spectral.operational_eligible is False
+    assert "required_weather_unavailable" in with_spectral.limitations
+    assert "required_soil_unavailable" in with_spectral.limitations

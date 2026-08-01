@@ -5329,6 +5329,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/canonical_spectral_state.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/canonical_vri_prescription.py",
     "kind": "backend",
     "candidates": [
@@ -7446,6 +7468,28 @@
         "signals": [
           "content:farm",
           "content:farms"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
         ]
       }
     ]

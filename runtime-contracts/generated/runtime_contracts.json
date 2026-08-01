@@ -2057,6 +2057,7 @@
           "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
           "services/sahool-platform/api/canonical_root_zone_profile.py",
           "services/sahool-platform/api/canonical_soil_state.py",
+          "services/sahool-platform/api/canonical_spectral_state.py",
           "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
           "services/sahool-platform/api/canonical_vri_prescription.py",
           "services/sahool-platform/api/canonical_water.py",
