@@ -12415,7 +12415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4d8144d060ff23d471e6b8b3294e43f3bd7aa784c602e51b24eaa1345f9c259"
+          "content": "f51e17fcd75e109e7f88ec0c81ac08e07e982ded7dd5db20ae029dd1475bc24a"
         }
       ],
       "name": "services/mcp_servers/generic_context_server.py",

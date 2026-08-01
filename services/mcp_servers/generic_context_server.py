@@ -6,11 +6,27 @@ import os
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from shared.oauth_middleware import require_scope
 
 app = FastAPI(title="SAHOOL Independent MCP Context Server", version="2026.2")
 SERVICE = os.getenv("MCP_SERVICE", "field")
+
+# MCP-GENERIC-CONTEXT-AUTH-MISSING-01 — هذه الوحدة كانت **الوحيدة** بين خوادم MCP بلا
+# أيّ مصادقة: لا `require_scope` ولا `Depends` ولا middleware، بينما تشتقّ منها **ستّ**
+# خدمات منشورة (`field` · `lab` · `satellite` · `iot` · `rag` · `knowledge-graph`)
+# في `docker-compose.rag-kg-mcp.yml`. الشبكة داخليّة بلا `ports:`، لكنّ «داخليّ» ليس
+# «مُصادَق»: أيّ حِمل داخل الشبكة الموثوقة كان يقرأ سياق مستأجِرين بلا هويّة.
+#
+# **النطاق موحَّد لا مجاليّ:** بقيّة الخوادم تستعمل نطاق مجالها (`weather:read`…)، وهذه
+# وحدة واحدة تخدم ستّة مجالات — فنطاق مجاليّ واحد سيكون كاذباً لخمسة منها، وستّة نطاقات
+# ستجعل الحارس يعتمد على `MCP_SERVICE` وهو **مُدخَل بيئة** لا هويّة.
+#
+# **بلا bypass افتراضيّ ولا علم انتقال:** الجرد أثبت أنّ لا مستهلك مُهيّأ في المستودع
+# (عميل المشرف الوحيد يستهدف الأربعة المحروسة)، فلا حاجة إلى فترة سماح — والافتراضيّ
+# الآمن أصدق من علم مؤقّت يصير دائماً بالصمت.
+MCP_CONTEXT_SCOPE = "mcp:context:read"
 
 
 class ToolCall(BaseModel):
@@ -130,7 +146,7 @@ async def readyz() -> dict[str, str]:
     return {"status": "ready", "service": SERVICE}
 
 
-@app.get("/v1/mcp/tools")
+@app.get("/v1/mcp/tools", dependencies=[Depends(require_scope(MCP_CONTEXT_SCOPE))])
 async def list_tools() -> dict[str, Any]:
     if SERVICE not in TOOLSETS:
         raise HTTPException(503, f"Unsupported MCP_SERVICE={SERVICE}")
@@ -147,7 +163,7 @@ async def list_tools() -> dict[str, Any]:
     }
 
 
-@app.post("/v1/mcp/tools/call")
+@app.post("/v1/mcp/tools/call", dependencies=[Depends(require_scope(MCP_CONTEXT_SCOPE))])
 async def call_tool(call: ToolCall) -> dict[str, Any]:
     tools = TOOLSETS.get(SERVICE)
     if not tools or call.name not in tools:
