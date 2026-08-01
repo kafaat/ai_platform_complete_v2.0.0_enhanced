@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4817,
+    "files_scanned": 4818,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1266,
-      "tests": 1540,
+      "tests": 1541,
       "web": 448
     },
-    "unmapped_artifacts": 1960,
+    "unmapped_artifacts": 1961,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -40369,6 +40369,10 @@
     },
     {
       "path": "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_brain_transition_guard_vocabulary.py",
       "kind": "tests"
     },
     {

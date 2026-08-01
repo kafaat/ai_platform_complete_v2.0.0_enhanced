@@ -35,8 +35,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 5261,
-  "generated_at": "2026-08-01T22:57:45.454204+00:00",
+  "file_count": 5262,
+  "generated_at": "2026-08-01T23:33:51.946903+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -135,5 +135,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 56128745
+  "total_size_bytes": 56135197
 }
