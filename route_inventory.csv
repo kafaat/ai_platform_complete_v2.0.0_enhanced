@@ -170,10 +170,10 @@ local-ai-rag,services/local-ai-rag/main.py,430,POST,/v1/ingest,ingest_endpoint
 local-ai-rag,services/local-ai-rag/main.py,482,GET,/healthz,healthz
 local-ai-rag,services/local-ai-rag/main.py,500,GET,/health,legacy_health
 local-ai-rag,services/local-ai-rag/main.py,505,GET,/readyz,readyz
-mcp_servers,services/mcp_servers/generic_context_server.py,122,GET,/healthz,healthz
-mcp_servers,services/mcp_servers/generic_context_server.py,127,GET,/readyz,readyz
-mcp_servers,services/mcp_servers/generic_context_server.py,134,GET,/v1/mcp/tools,list_tools
-mcp_servers,services/mcp_servers/generic_context_server.py,151,POST,/v1/mcp/tools/call,call_tool
+mcp_servers,services/mcp_servers/generic_context_server.py,138,GET,/healthz,healthz
+mcp_servers,services/mcp_servers/generic_context_server.py,143,GET,/readyz,readyz
+mcp_servers,services/mcp_servers/generic_context_server.py,150,GET,/v1/mcp/tools,list_tools
+mcp_servers,services/mcp_servers/generic_context_server.py,167,POST,/v1/mcp/tools/call,call_tool
 mcp_servers,services/mcp_servers/market_server.py,546,GET,/v1/mcp/tools/list,mcp_tools_list
 mcp_servers,services/mcp_servers/market_server.py,578,POST,/v1/mcp/tools/call,mcp_tools_call
 mcp_servers,services/mcp_servers/market_server.py,632,GET,/v1/products,api_search_products
