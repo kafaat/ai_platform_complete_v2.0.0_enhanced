@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1823,
     "route_handlers": 1042,
-    "call_edges": 71407,
+    "call_edges": 71411,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -135251,462 +135251,469 @@
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 137
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "open",
       "line": 139
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
+      "target": "open",
+      "line": 141
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
       "target": "read_field_window",
-      "line": 143
+      "line": 145
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "abs",
-      "line": 156
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "radians",
       "line": 158
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
+      "target": "radians",
+      "line": 160
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
       "target": "cos",
-      "line": 159
+      "line": 161
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "type",
-      "line": 169
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "isfinite",
-      "line": 179
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "gradient",
-      "line": 181
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "max",
-      "line": 181
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "gradient",
-      "line": 182
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "max",
-      "line": 182
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "arctan",
-      "line": 183
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "degrees",
-      "line": 183
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "sqrt",
-      "line": 183
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "arctan2",
-      "line": 184
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "degrees",
-      "line": 184
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "where",
       "line": 185
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
-      "target": "where",
-      "line": 186
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "isfinite",
-      "line": 188
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/terrain_analysis.py",
-      "source": "compute_field_terrain",
-      "target": "isfinite",
+      "target": "type",
       "line": 192
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
-      "target": "radians",
-      "line": 197
+      "target": "isfinite",
+      "line": 202
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
-      "target": "arctan2",
-      "line": 198
+      "target": "gradient",
+      "line": 204
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
-      "target": "cos",
-      "line": 198
+      "target": "max",
+      "line": 204
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "gradient",
+      "line": 205
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "max",
+      "line": 205
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "arctan",
+      "line": 206
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "degrees",
-      "line": 198
+      "line": 206
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "sqrt",
+      "line": 206
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "arctan2",
+      "line": 207
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "degrees",
+      "line": 207
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "where",
+      "line": 208
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "where",
+      "line": 209
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "isfinite",
+      "line": 211
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "isfinite",
+      "line": 215
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "radians",
+      "line": 220
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "arctan2",
+      "line": 221
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "cos",
+      "line": 221
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/terrain_analysis.py",
+      "source": "compute_field_terrain",
+      "target": "degrees",
+      "line": 221
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "mean",
-      "line": 198
+      "line": 221
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "mean",
-      "line": 198
+      "line": 221
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "sin",
-      "line": 198
+      "line": 221
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "int",
-      "line": 199
+      "line": 222
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 206
+      "line": 229
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "min",
-      "line": 206
+      "line": 229
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 207
+      "line": 230
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "max",
-      "line": 207
+      "line": 230
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 208
+      "line": 231
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "mean",
-      "line": 208
+      "line": 231
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 211
+      "line": 234
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "min",
-      "line": 211
+      "line": 234
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 212
+      "line": 235
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "max",
-      "line": 212
+      "line": 235
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 213
+      "line": 236
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "mean",
-      "line": 213
+      "line": 236
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 215
+      "line": 238
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "sum",
-      "line": 215
+      "line": 238
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "float",
-      "line": 216
+      "line": 239
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "compute_field_terrain",
       "target": "sum",
-      "line": 216
+      "line": 239
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "classify_water_harvesting",
       "target": "round",
-      "line": 240
+      "line": 263
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "get",
-      "line": 254
+      "line": 277
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "float",
-      "line": 256
+      "line": 279
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "get",
-      "line": 256
+      "line": 279
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "get",
-      "line": 256
+      "line": 279
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "float",
-      "line": 257
+      "line": 280
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "get",
-      "line": 257
+      "line": 280
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "get",
-      "line": 257
+      "line": 280
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "radians",
-      "line": 258
+      "line": 281
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "round",
-      "line": 258
+      "line": 281
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "tan",
-      "line": 258
+      "line": 281
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "radians",
-      "line": 259
+      "line": 282
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "round",
-      "line": 259
+      "line": 282
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "tan",
-      "line": 259
+      "line": 282
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "get",
-      "line": 260
+      "line": 283
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "append",
-      "line": 284
+      "line": 307
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "append",
-      "line": 286
+      "line": 309
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "append",
-      "line": 288
+      "line": 311
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "append",
-      "line": 290
+      "line": 313
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "append",
-      "line": 292
+      "line": 315
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/terrain_analysis.py",
       "source": "interpret_terrain_for_agronomy",
       "target": "append",
-      "line": 294
+      "line": 317
     },
     {
       "owner": "raster-service",
@@ -326736,56 +326743,49 @@
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 36
+      "line": 37
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 38
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__post_init__",
-      "target": "get",
       "line": 39
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
-      "target": "ValueError",
-      "line": 41
+      "target": "get",
+      "line": 40
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 43
+      "line": 42
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__post_init__",
+      "target": "ValueError",
+      "line": 44
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
       "target": "get",
-      "line": 46
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__post_init__",
-      "target": "ValueError",
       "line": 47
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "as_annotation",
-      "target": "get",
-      "line": 80
+      "source": "__post_init__",
+      "target": "ValueError",
+      "line": 48
     },
     {
       "owner": "sahool-platform",
@@ -326804,246 +326804,246 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "as_annotation",
+      "target": "get",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "findall",
-      "line": 90
+      "line": 91
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "lower",
-      "line": 90
+      "line": 91
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "strip",
-      "line": 90
+      "line": 91
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "tokenize",
-      "line": 110
+      "line": 111
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "blake2b",
-      "line": 111
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "encode",
-      "line": 111
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "hexdigest",
-      "line": 111
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "int",
-      "line": 111
+      "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "sqrt",
-      "line": 115
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "sum",
-      "line": 115
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "round",
-      "line": 116
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "rstrip",
-      "line": 126
+      "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "dumps",
-      "line": 130
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "encode",
-      "line": 130
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "Request",
       "line": 131
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
+      "target": "encode",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "Request",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
       "target": "urlopen",
-      "line": 137
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "decode",
-      "line": 138
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "loads",
-      "line": 138
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "read",
-      "line": 138
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "float",
-      "line": 140
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "get",
       "line": 141
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
-      "target": "float",
+      "target": "get",
       "line": 142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
-      "target": "ValueError",
+      "target": "float",
       "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "ValueError",
+      "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "add",
       "target": "tokenize",
-      "line": 157
+      "line": 158
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "add",
       "target": "get",
-      "line": 160
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "add",
       "target": "len",
-      "line": 163
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "add",
       "target": "get",
-      "line": 165
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "len",
       "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "len",
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "add",
       "target": "max",
-      "line": 166
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "add",
       "target": "sum",
-      "line": 166
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "add",
       "target": "values",
-      "line": 166
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "score",
       "target": "len",
-      "line": 171
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
       "line": 172
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "score",
+      "target": "get",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
       "target": "tokenize",
-      "line": 174
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
       "line": 175
     },
     {
@@ -327051,553 +327051,581 @@
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "score",
       "target": "get",
-      "line": 175
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "score",
       "target": "get",
-      "line": 178
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "score",
-      "target": "log",
+      "target": "get",
       "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "score",
+      "target": "log",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
       "target": "round",
-      "line": 182
+      "line": 183
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "items",
-      "line": 189
+      "line": 190
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "any",
-      "line": 192
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "get",
       "line": 193
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
-      "target": "items",
+      "target": "get",
       "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
+      "target": "items",
+      "line": 195
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
       "target": "score",
-      "line": 197
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "append",
-      "line": 199
+      "line": 200
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "sorted",
-      "line": 200
+      "line": 201
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__init__",
+      "target": "super",
+      "line": 212
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "rstrip",
-      "line": 212
+      "line": 242
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "dumps",
-      "line": 221
+      "line": 251
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "encode",
-      "line": 221
+      "line": 251
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "Request",
-      "line": 225
+      "line": 255
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "urlopen",
-      "line": 229
+      "line": 259
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "decode",
-      "line": 230
+      "line": 260
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "read",
-      "line": 230
+      "line": 260
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "loads",
-      "line": 231
+      "line": 261
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "decode",
-      "line": 233
+      "line": 263
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "read",
-      "line": 233
+      "line": 263
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
-      "target": "RuntimeError",
-      "line": 234
+      "target": "QdrantHTTPError",
+      "line": 264
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ensure_collection",
-      "target": "_request",
-      "line": 238
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ensure_collection",
-      "target": "_request",
-      "line": 242
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "upsert",
-      "target": "zip",
-      "line": 253
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "upsert",
-      "target": "append",
-      "line": 254
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "upsert",
-      "target": "_request",
-      "line": 255
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "items",
-      "line": 266
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "append",
-      "line": 268
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
+      "source": "probe_collection",
       "target": "_request",
       "line": 269
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "float",
-      "line": 275
+      "source": "ensure_collection",
+      "target": "probe_collection",
+      "line": 291
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "get",
-      "line": 275
+      "source": "ensure_collection",
+      "target": "RuntimeError",
+      "line": 295
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "get",
-      "line": 275
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "str",
-      "line": 275
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "get",
-      "line": 276
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__init__",
-      "target": "HashEmbeddingProvider",
-      "line": 288
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__init__",
-      "target": "BM25Index",
-      "line": 289
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ingest",
-      "target": "add",
-      "line": 294
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ingest",
-      "target": "embed",
-      "line": 296
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ingest",
-      "target": "ensure_collection",
-      "line": 297
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ingest",
-      "target": "upsert",
-      "line": 298
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ingest",
-      "target": "len",
+      "source": "ensure_collection",
+      "target": "_request",
       "line": 299
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "embed",
+      "source": "upsert",
+      "target": "zip",
       "line": 310
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "search",
+      "source": "upsert",
+      "target": "append",
       "line": 311
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "search",
-      "line": 315
+      "source": "upsert",
+      "target": "_request",
+      "line": 312
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "set",
-      "line": 319
+      "source": "search",
+      "target": "items",
+      "line": 323
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "set",
-      "line": 319
+      "source": "search",
+      "target": "append",
+      "line": 325
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
+      "source": "search",
+      "target": "_request",
+      "line": 326
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "float",
+      "line": 332
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
       "target": "get",
-      "line": 322
+      "line": 332
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "next",
-      "line": 324
+      "source": "search",
+      "target": "get",
+      "line": 332
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "KnowledgeChunk",
-      "line": 327
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "str",
-      "line": 328
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "str",
-      "line": 329
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "str",
-      "line": 330
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "str",
-      "line": 331
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
+      "source": "search",
       "target": "str",
       "line": 332
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "int",
+      "source": "search",
+      "target": "get",
       "line": 333
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__init__",
+      "target": "HashEmbeddingProvider",
+      "line": 345
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__init__",
+      "target": "BM25Index",
+      "line": 346
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "add",
+      "line": 351
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "embed",
+      "line": 353
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "ensure_collection",
+      "line": 354
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "upsert",
+      "line": 355
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "len",
+      "line": 356
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "embed",
+      "line": 367
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "search",
+      "line": 368
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "search",
+      "line": 372
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "set",
+      "line": 376
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "set",
+      "line": 376
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 379
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "next",
+      "line": 381
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "KnowledgeChunk",
+      "line": 384
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "str",
+      "line": 385
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "str",
+      "line": 386
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "str",
+      "line": 387
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "str",
+      "line": 388
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "str",
+      "line": 389
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "int",
-      "line": 334
+      "line": 390
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "int",
+      "line": 391
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "items",
-      "line": 337
+      "line": 394
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "get",
-      "line": 350
+      "line": 407
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "get",
-      "line": 351
+      "line": 408
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "RetrievedAnnotation",
-      "line": 353
+      "line": 410
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "append",
-      "line": 353
+      "line": 410
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "_expand_neighbors",
-      "line": 354
+      "line": 411
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "sorted",
-      "line": 355
+      "line": 412
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "_rerank",
-      "line": 357
+      "line": 414
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "list",
-      "line": 361
+      "line": 418
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "values",
-      "line": 363
+      "line": 420
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "get",
-      "line": 366
+      "line": 423
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "add",
-      "line": 368
+      "line": 425
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "append",
-      "line": 369
+      "line": 426
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "RetrievedAnnotation",
-      "line": 370
+      "line": 427
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "set",
-      "line": 377
+      "line": 434
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "tokenize",
-      "line": 377
+      "line": 434
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "lower",
-      "line": 380
+      "line": 437
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "sum",
-      "line": 380
+      "line": 437
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "append",
-      "line": 382
+      "line": 439
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "RetrievedAnnotation",
-      "line": 383
+      "line": 440
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "round",
-      "line": 388
+      "line": 445
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "sorted",
-      "line": 392
+      "line": 449
     },
     {
       "owner": "sahool-platform",
@@ -510493,7 +510521,7 @@
       "symbol": "HttpEmbeddingProvider",
       "kind": "class",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "line": 119,
+      "line": 120,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

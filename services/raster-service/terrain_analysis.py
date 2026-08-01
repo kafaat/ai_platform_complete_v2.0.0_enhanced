@@ -134,7 +134,9 @@ def compute_field_terrain(
         }
 
     min_lon, min_lat, max_lon, max_lat = (float(v) for v in bbox)
-    px_x_m = px_y_m = float(pixel_size_m)  # احتياطيّ إن تعذّر اشتقاق الدقّة
+    # قيمة ابتدائيّة فقط. لم تعد «احتياطيّاً عند تعذّر الاشتقاق»: تعذّر اشتقاق الدقّة
+    # صار يُرجِع computed=False (dem-resolution-unavailable) بدل المضيّ بانحدار خاطئ.
+    px_x_m = px_y_m = float(pixel_size_m)
     try:
         with rasterio.open(dem_path) as src:
             # قراءة موحَّدة: تصحيح CRS (bbox lon/lat ⇒ src.crs قبل النافذة) + سقف حجم.
@@ -160,8 +162,29 @@ def compute_field_terrain(
                     px_y_m = yres * 111320.0 * scale_y
                 else:
                     px_x_m, px_y_m = xres * scale_x, yres * scale_y
-            except (TypeError, ValueError, AttributeError):
-                pass
+            except (TypeError, ValueError, AttributeError) as e:
+                # SILENT-EXCEPTION-HANDLERS-11-01 — أخطر المواضع الأحد عشر: هذا الفرع
+                # هو **تصحيح CRS** الذي يقول التعليق أعلاه إنّه إلزاميّ («لا نحسب
+                # الانحدار من درجات lat/lon مباشرة»). وابتلاعه كان يُسقِط الحساب إلى
+                # `pixel_size_m` القادم من المُستدعي، ثمّ يمضي فيُرجِع `computed: True`
+                # بانحدار **خاطئ يبدو معقولاً**.
+                #
+                # وهذا يناقض عقد الدالّة نفسها: كلّ إخفاق شقيق (runtime-libs-missing ·
+                # dem-not-configured · field-bbox-unavailable · field-outside-dem ·
+                # dem-read-failed) يُرجِع `computed: False` بسبب صريح. هذا المسار وحده
+                # كان يُرجِع جواباً خاطئاً بزيّ جواب صحيح — تناقض عقد لا قرار منتج.
+                #
+                # fail-closed: لا رقم أفضل من رقم كاذب. و`AttributeError` تبقى ملتقَطة
+                # عمداً (غياب `src.res`/`src.crs` عطب بنيويّ في الـDEM) لكنّها تُصنَّف
+                # الآن صراحةً بدل أن تتحوّل انحداراً مخترَعاً.
+                return {
+                    "computed": False,
+                    "source": "dem-resolution-unavailable",
+                    "reason": (
+                        "تعذّر اشتقاق دقّة البكسل الأرضيّة من الـDEM "
+                        f"({type(e).__name__}) — لا يُحسَب انحدار بدقّة غير مُثبَتة"
+                    ),
+                }
     except rasterio.errors.RasterioIOError as e:
         return {
             "computed": False,

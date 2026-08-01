@@ -13665,7 +13665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3762ffcc18db7f292a012676f990ce5d9e1375a5e7f51ed5cdd1fe9a846c6e2"
+          "content": "096251eb8684a1d221931ef6a57dbe80a5a676d275107dee80348c94fc81f54e"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -21585,7 +21585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "41da13afb0559370fc89460ea15e4354634a2f8cd5a6fb2463c729ec2532b573"
+          "content": "84c38e390174e8a5367fe07c9aecb90faeb440fd6db1172d7e743005936e961a"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
