@@ -341,3 +341,35 @@ def test_the_source_scan_is_a_diagnostic_not_a_verdict():
         "المكنسة صارت تقبل علم كتابة فعليّاً — راجع الفرضيّة"
     )
     assert declared - accepted, "مسح المصدر لم يعد يُنتج إيجابيّة كاذبة هنا"
+
+
+def test_a_generator_whose_only_write_flag_is_fix_is_not_invisible():
+    """‏``--fix`` ثغرة مقيسة في مسح المصدر، لا احتمال نظريّ.
+
+    نمط ``_WRITE_FLAG_DECL`` يطابق ``--write|--apply|--generate`` فقط. فمولّد علمه
+    الوحيد ``--fix`` **لا يراه التشخيص إطلاقاً** — ولا حتّى بعد أن تفشل المكنسة في
+    الاستقرار، وهي اللحظة الوحيدة التي يعمل فيها ذلك التشخيص. أي أنّ صنفاً كاملاً
+    من الكُتّاب يسقط من التقرير الذي وُضع ليسمّي الكُتّاب الساقطين.
+
+    ``_WRITE_FLAGS`` يشمله، والاستجواب عبر ``argparse`` لا يعتمد على النمط أصلاً.
+    """
+    probe = ROOT / "scripts" / "ci" / "_fix_only_write_flag_probe.py"
+    assert not probe.exists()
+    probe.write_text(
+        "import argparse\n"
+        "p = argparse.ArgumentParser()\n"
+        'p.add_argument("--check", action="store_true")\n'
+        'p.add_argument("--fix", action="store_true")\n'
+        "p.parse_args()\n",
+        encoding="utf-8",
+    )
+    try:
+        relative = "scripts/ci/_fix_only_write_flag_probe.py"
+        assert MOD._declared_write_flags(relative) == [], (
+            "تغيّر نمط مسح المصدر — أعد قياس الفرضيّة بدل الاعتماد على هذا الاختبار"
+        )
+        assert sorted(MOD._accepted_flags(relative) & set(MOD._WRITE_FLAGS)) == ["--fix"], (
+            "الاستجواب لم يرَ --fix — الثغرة صارت مفتوحة في الاتّجاهين"
+        )
+    finally:
+        probe.unlink(missing_ok=True)
