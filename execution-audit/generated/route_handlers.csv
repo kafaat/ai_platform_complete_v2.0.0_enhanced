@@ -437,10 +437,10 @@ sahool-platform,GET,/api/v1/crop-cards/variety/{variety_id}/expected-harvest,var
 sahool-platform,GET,/api/v1/crop-cards/variety/{variety_id}/disease-watch,variety_disease_watch_endpoint,services/sahool-platform/api/routers/crop_cards.py,113
 sahool-platform,GET,/api/v1/crops/{crop_id}/operations-calendar,crop_operations_calendar_endpoint,services/sahool-platform/api/routers/crop_operations.py,24
 sahool-platform,POST,/api/v1/crop-suitability,crop_suitability,services/sahool-platform/api/routers/crop_suitability.py,31
-sahool-platform,POST,/api/v1/crop-twin/compose,compose_crop_twin,services/sahool-platform/api/routers/crop_twin.py,300
-sahool-platform,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint,services/sahool-platform/api/routers/crop_twin.py,352
-sahool-platform,POST,/api/v1/crop-twin/decision,crop_decision_endpoint,services/sahool-platform/api/routers/crop_twin.py,459
-sahool-platform,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint,services/sahool-platform/api/routers/crop_twin.py,585
+sahool-platform,POST,/api/v1/crop-twin/compose,compose_crop_twin,services/sahool-platform/api/routers/crop_twin.py,250
+sahool-platform,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint,services/sahool-platform/api/routers/crop_twin.py,302
+sahool-platform,POST,/api/v1/crop-twin/decision,crop_decision_endpoint,services/sahool-platform/api/routers/crop_twin.py,409
+sahool-platform,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint,services/sahool-platform/api/routers/crop_twin.py,535
 sahool-platform,GET,/api/v1/crops/drought-resilience,crop_drought_resilience,services/sahool-platform/api/routers/crops.py,26
 sahool-platform,GET,/api/v1/crops/compare-drought-resilience,compare_drought_resilience,services/sahool-platform/api/routers/crops.py,47
 sahool-platform,GET,/api/v1/cultural-calendar,cultural_calendar,services/sahool-platform/api/routers/cultural_calendar.py,24
@@ -658,7 +658,7 @@ sahool-platform,GET,/api/v1/indicators/map-layers,indicators_map_layers,services
 sahool-platform,GET,/api/v1/indicators/dashboard,indicators_dashboard,services/sahool-platform/api/routers/indicators.py,60
 sahool-platform,GET,/api/v1/indices/coverage-report,indices_coverage_report,services/sahool-platform/api/routers/indices.py,22
 sahool-platform,GET,/internal/fields/{field_id}/state,internal_field_state,services/sahool-platform/api/routers/internal_service.py,26
-sahool-platform,POST,/internal/events/ai-advice,internal_ai_advice_event,services/sahool-platform/api/routers/internal_service.py,72
+sahool-platform,POST,/internal/events/ai-advice,internal_ai_advice_event,services/sahool-platform/api/routers/internal_service.py,80
 sahool-platform,GET,/api/v1/introduction/candidates,introduction_candidates_endpoint,services/sahool-platform/api/routers/introduction.py,29
 sahool-platform,GET,/api/v1/introduction/card,introduction_card_endpoint,services/sahool-platform/api/routers/introduction.py,35
 sahool-platform,POST,/api/v1/introduction/field-fit,introduction_field_fit_endpoint,services/sahool-platform/api/routers/introduction.py,41

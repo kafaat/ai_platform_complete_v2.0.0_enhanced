@@ -46,8 +46,11 @@ _GENERIC_KC_MAP = {"initial": 0.40, "development": 0.75, "mid": 1.10, "late": 0.
 # DECISION-CENTER-UNIFY-01 (شريحة Composer — المُحلِّل الطيفيّ الخادميّ):
 # للحقول الحقيقيّة، الطيف الحاكم يجب أن يُجلَب خادميّاً من raster-service القانونيّ
 # لا أن يُوثَق من مدخلات العميل. راية default-off (نمط سهول): التفعيل قرار تشغيليّ.
-# المؤشّرات القانونيّة المُشتقّة خادميّاً (NDVI سيّد؛ إن غاب ⇒ لا سلطة خادميّة).
-_SERVER_SPECTRAL_INDICES = ("ndvi", "ndre", "ndmi", "msi")
+#
+# `_resolve_server_spectral` انتقل إلى `api/canonical_spectral_state.py` بلا تغيير سلوك:
+# كان يعيش هنا وحده، فبقي `routers/internal_service.py` يُمرّر `spectral=None` رغم توفّر
+# مُحلِّل عامل (P0-2). يُستورَد بالاسم كي يبقى ترقيعه في الاختبارات على هذه الوحدة عاملاً.
+from api.canonical_spectral_state import _resolve_server_spectral  # noqa: E402
 
 
 def compose_server_authoritative_spectral_enabled() -> bool:
@@ -59,59 +62,6 @@ def compose_server_authoritative_spectral_enabled() -> bool:
         "1",
         "true",
         "yes",
-    }
-
-
-async def _resolve_server_spectral(field_id: str, tenant_id: str | None) -> dict | None:
-    """يجلب مؤشّرات الطيف القانونيّة للحقل من raster-service خادميّاً (tenant-scoped).
-
-    NDVI سيّد: إن تعذّر جلبه أو لم يكن حقيقيّاً ⇒ ``None`` (لا سلطة خادميّة، لا خلط
-    مصادر). صدق: يقرأ منتج raster المُتحقَّق فقط عبر الواجهة القانونيّة الوحيدة؛ لا
-    حساب طيفيّ هنا. أيّ فشل نقل ⇒ ``None`` (fail-soft يُترجَم لتعليم غير-متحقَّق أعلى).
-    """
-    import asyncio
-
-    # الواجهة القانونيّة الوحيدة لحدود raster-service (نفس نمط etc_dual/field_ai_context):
-    # المسار والنقل يبقيان داخل الواجهة؛ المُركِّب مستهلِك صرف لا يملك معرفة نقطة raster.
-    from api.raster_service_client import get_indicator_grid
-
-    async def _one(index: str) -> float | None:
-        try:
-            data = await get_indicator_grid(
-                field_id, tenant_id=tenant_id, index=index, date="latest", timeout_s=20.0
-            )
-        except Exception:  # noqa: BLE001 — fail-soft: أيّ خطأ ⇒ لا قيمة خادميّة لهذا المؤشّر
-            return None
-        if (
-            not isinstance(data, dict)
-            or not data.get("real_data")
-            or data.get("source") == "simulation"
-        ):
-            return None
-        stats = data.get("stats") if isinstance(data.get("stats"), dict) else {}
-        return stats.get("mean"), data.get("date"), data.get("scene_id") or data.get("asset_id")
-
-    results = await asyncio.gather(*[_one(ix) for ix in _SERVER_SPECTRAL_INDICES])
-    parsed: dict = {}
-    acquisition_date: str | None = None
-    scene_id: str | None = None
-    for ix, res in zip(_SERVER_SPECTRAL_INDICES, results, strict=True):
-        if isinstance(res, tuple):
-            mean, date, scene = res
-            parsed[ix] = mean
-            if ix == "ndvi":
-                acquisition_date, scene_id = date, scene
-        else:
-            parsed[ix] = None
-    if parsed.get("ndvi") is None:
-        return None  # NDVI السيّد غائب ⇒ لا سلطة خادميّة (لا خلط مع مدخلات العميل)
-    return {
-        "ndvi": parsed.get("ndvi"),
-        "ndre": parsed.get("ndre"),
-        "ndmi": parsed.get("ndmi"),
-        "msi": parsed.get("msi"),
-        "acquisition_date": acquisition_date,
-        "scene_id": scene_id,
     }
 
 

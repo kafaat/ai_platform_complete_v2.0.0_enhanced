@@ -14845,6 +14845,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "daf6ec783a24b25dffc82f3254055a041cbf48a3e758e77f170b065c78161621"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_spectral_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ec729279710a857d80fb50e55a28e2d2c95af2f54aa71668a685e27564f22815"
         }
       ],
@@ -16925,7 +16935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe63a827d1772f62066ff82155a87b0026cb392f0efdf6c8674349b79b481636"
+          "content": "22eb3e6e59580ed823fcfb418ce8eb49cb4f6b06f227a12a6904c5f0645a8e5a"
         }
       ],
       "name": "services/sahool-platform/api/routers/crop_twin.py",
@@ -17465,7 +17475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3429be743504c87f0bb68bb58f4468cb604583729b14decd8c987c771ead8ff1"
+          "content": "6690761c86ef22d4464a753c9ebc1cf9df99231fa2f6bfa7291454bae81f7601"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -22975,7 +22985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6bf3436461b3a082a35435e3bee8e318515876b015fc61062f63787a42643379"
+          "content": "6c59e0472ec23531ef68048ce187a9c75030cee9d4d474978573146dc815a271"
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
@@ -22999,6 +23009,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_soil_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "664cc01bf8c86603b513a09dfb8a2f8153a28d1a4573b8adbe7ffd759ad7b78c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
       "type": "file"
     },
     {
