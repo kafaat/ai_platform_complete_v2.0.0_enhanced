@@ -16275,7 +16275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e4dc5b7c72deecac898fb4e9895cdde32f5beb56022d81ef66ae0348fb31e428"
+          "content": "d9fdb6190baf7995f60dca15421e82a9beb40eb73bae0c75d1f30de71fd32a13"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -27335,7 +27335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d592ad021271cf529a5be96b1b5f2dec711a59b76ec481d21d3af8d4baaf67c1"
+          "content": "a8c1e87a5e5a15ef2ca7484efb75ff13e8ec8c65e00591bcb25def13310691f1"
         }
       ],
       "name": "services/soil-service/projection_jobs.py",

@@ -6944,6 +6944,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_expected_control_flow_exceptions.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_external_submission_contract_v1.py",
     "kind": "tests"
   },

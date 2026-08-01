@@ -514,7 +514,7 @@
     },
     {
       "kind": "app",
-      "line": 190,
+      "line": 191,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "44c18198d1a73e3e7fd0e66ad369036b07f7ef2e53ce8ed466a188fdbb5cfe2e",
+  "inventory_sha256": "b61682c7af3e92f7a87a7e9974c7c5a991e68d80aa18c49385d256198a31076a",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {

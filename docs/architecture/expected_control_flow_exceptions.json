@@ -1,0 +1,34 @@
+{
+  "$comment": "عقد الاستثناءات المتوقَّعة في مسار التحكّم — المصدر القانونيّ الوحيد لتصنيف موضع يطابق نمط «المعالِج الصامت» (except…: pass) بينما الاستثناء فيه **إشارة تحكّم مقصودة** لا عطل مبتلَع. يفرضه scripts/ci/expected_control_flow_guard.py. كلّ إدخال يحمل شروطه الستّة كاملةً، وسقوط أيّ شرط يُسقِط CI — فالتصنيف مفروض لا مُدّعى.",
+  "gap": "EXPECTED-CONTROL-FLOW-EXCEPTION",
+  "adjudicated_on": "2026-08-01",
+  "why_not_a_baseline_deletion": "كاشف SILENT-EXCEPTION-HANDLERS-11-01 قاعدته نحويّة صرفة، فيلتقط هذين الموضعين بحقّ. إخراجهما بحذف سطر من أساس كان سيجعل «إعادة التصنيف» رخصةً: يكفي أن يوسّع أحدهم النوع لاحقاً أو يحذف اختبار الإثبات فيعود الابتلاع الصامت تحت اسم مُبرَّأ. فالإخراج مشروط بدليل بنيويّ يُفحَص آليّاً.",
+  "conditions": [
+    "نوع الاستثناء ضيّق ومُسمّى (لا Exception ولا BaseException)",
+    "الاستثناء إشارة متوقَّعة: إلغاء · مهلة دورة · تكرار · غياب · قدرة اختياريّة",
+    "لا except Exception: pass في الدالّة",
+    "تعليق عقديّ في المصدر يشرح لماذا الاستثناء متوقَّع",
+    "اختبار سلوكيّ يُثبِت أنّ كتم هذا الاستثناء يحفظ المسار المقصود",
+    "أيّ استثناء آخر يبقى ظاهراً ويفشل"
+  ],
+  "sites": [
+    {
+      "path": "services/sahool-platform/api/main.py",
+      "function": "_stop_outbox_worker",
+      "exception": "asyncio.CancelledError",
+      "signal": "cancellation",
+      "why_expected": "`task.cancel()` ثمّ `await task` يرفع CancelledError **دائماً** — الاستثناء تأكيد توقّف المهمّة لا عطل. تسجيله يُسجّل نجاحاً كأنّه فشل، وإعادة رفعه تُفشِل الإيقاف على نجاحه.",
+      "other_exceptions_still_surface": "الكتم مقصور على CancelledError؛ أيّ خطأ آخر من المهمّة ينتشر. والكتلة التالية (drain) تُسجّل فشلها صراحةً بـlogging.warning — دليل أنّ المؤلّف يميّز الحالتين.",
+      "evidence_test": "tests_v9/test_expected_control_flow_exceptions.py"
+    },
+    {
+      "path": "services/soil-service/projection_jobs.py",
+      "function": "worker_loop",
+      "exception": "TimeoutError",
+      "signal": "poll_interval_elapsed",
+      "why_expected": "`wait_for(stop.wait(), timeout=POLL_SECONDS)` يعود مبكراً إن رُفِع علم التوقّف، ويرفع TimeoutError على المسار **العاديّ** حين تنقضي فترة الاستطلاع — أي مرّة كلّ POLL_SECONDS إلى الأبد. تسجيله يُنتِج ضجيجاً يتناسب مع زمن التشغيل.",
+      "other_exceptions_still_surface": "الكتم مقصور على TimeoutError؛ أيّ خطأ في `run_once` أو في العلم ينتشر إلى `worker_loop` ويوقف الحلقة عبر finally الذي يُنزِل WORKER_UP.",
+      "evidence_test": "tests_v9/test_expected_control_flow_exceptions.py"
+    }
+  ]
+}

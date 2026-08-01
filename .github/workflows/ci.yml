@@ -41,6 +41,13 @@ jobs:
       - name: physical-effect-boundary-guard
         run: python scripts/ci/physical_effect_boundary_guard.py --check
 
+      # EXPECTED-CONTROL-FLOW-EXCEPTION: موضع يطابق نمط المعالِج الصامت والاستثناء فيه
+      # إشارة تحكّم مقصودة — يبقى مُخرَجاً من الدَّين **بشرط** دليله: نوع ضيّق + تعليق
+      # عقديّ + اختبار سلوكيّ. حذف الاختبار لا يُسقِط اختباراً (المحذوف لا يُشغَّل)،
+      # فيلزم سكربت مستقلّ يفحص وجوده — وحذفه يستلزم تعديل هذا الملفّ صراحةً.
+      - name: expected-control-flow-exception-contract
+        run: python scripts/ci/expected_control_flow_guard.py --check
+
       - name: weather-engine-formula-guard
         run: python scripts/ci/weather_engine_formula_guard.py
 

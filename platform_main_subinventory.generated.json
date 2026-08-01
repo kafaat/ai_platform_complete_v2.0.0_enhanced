@@ -2,7 +2,7 @@
   "schema_version": 1,
   "file": "services/sahool-platform/api/main.py",
   "total_lines": 2553,
-  "import_lines": 132,
+  "import_lines": 133,
   "top_level_symbols": 46,
   "direct_route_decorators": 0,
   "category_totals": {
@@ -20,7 +20,7 @@
     },
     "idempotency_outbox_events": {
       "symbols": 9,
-      "loc": 407
+      "loc": 406
     },
     "middleware_and_rate_limit": {
       "symbols": 1,
@@ -49,15 +49,15 @@
     "field_task_alert_helpers": "embedded_business_logic",
     "workflow_compatibility": "compatibility_runtime"
   },
-  "embedded_business_logic_loc": 675,
-  "categorized_symbol_loc": 1296,
+  "embedded_business_logic_loc": 674,
+  "categorized_symbol_loc": 1295,
   "uncategorized_residual_loc_estimate": 1125,
   "items": [
     {
       "name": "_refuse_hs256_in_production",
       "kind": "FunctionDef",
-      "line_start": 95,
-      "line_end": 101,
+      "line_start": 96,
+      "line_end": 102,
       "loc": 7,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -65,8 +65,8 @@
     {
       "name": "_is_production",
       "kind": "FunctionDef",
-      "line_start": 110,
-      "line_end": 116,
+      "line_start": 111,
+      "line_end": 117,
       "loc": 7,
       "category": "misc_bootstrap_compatibility",
       "decorators": []
@@ -74,8 +74,8 @@
     {
       "name": "_lifespan",
       "kind": "AsyncFunctionDef",
-      "line_start": 171,
-      "line_end": 187,
+      "line_start": 172,
+      "line_end": 188,
       "loc": 17,
       "category": "misc_bootstrap_compatibility",
       "decorators": [
@@ -85,8 +85,8 @@
     {
       "name": "_warn_weak_dev_jwt_secret",
       "kind": "AsyncFunctionDef",
-      "line_start": 198,
-      "line_end": 209,
+      "line_start": 199,
+      "line_end": 210,
       "loc": 12,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -94,8 +94,8 @@
     {
       "name": "_init_db_pool",
       "kind": "AsyncFunctionDef",
-      "line_start": 224,
-      "line_end": 259,
+      "line_start": 225,
+      "line_end": 260,
       "loc": 36,
       "category": "db_tenant_rls_bootstrap",
       "decorators": []
@@ -103,8 +103,8 @@
     {
       "name": "_assert_db_role_rls_safe",
       "kind": "AsyncFunctionDef",
-      "line_start": 262,
-      "line_end": 294,
+      "line_start": 263,
+      "line_end": 295,
       "loc": 33,
       "category": "auth_jwt_permissions",
       "decorators": []
@@ -112,8 +112,8 @@
     {
       "name": "_start_scheduler",
       "kind": "AsyncFunctionDef",
-      "line_start": 297,
-      "line_end": 527,
+      "line_start": 298,
+      "line_end": 528,
       "loc": 231,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -121,8 +121,8 @@
     {
       "name": "_start_outbox_worker",
       "kind": "AsyncFunctionDef",
-      "line_start": 538,
-      "line_end": 572,
+      "line_start": 539,
+      "line_end": 573,
       "loc": 35,
       "category": "idempotency_outbox_events",
       "decorators": []
@@ -130,9 +130,9 @@
     {
       "name": "_stop_outbox_worker",
       "kind": "AsyncFunctionDef",
-      "line_start": 575,
+      "line_start": 576,
       "line_end": 591,
-      "loc": 17,
+      "loc": 16,
       "category": "idempotency_outbox_events",
       "decorators": []
     },
