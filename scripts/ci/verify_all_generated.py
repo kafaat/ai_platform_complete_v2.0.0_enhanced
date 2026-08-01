@@ -55,6 +55,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
 KNOWN_DRIFT = ROOT / "docs" / "architecture" / "generated_chain_known_drift.json"
+UNMAPPED_BASELINE = ROOT / "docs" / "architecture" / "generated_sweep_unmapped_generators.json"
 
 # أدلّة السكربتات التي قد تحمل مولّدات — نفسها التي يطابقها `_STEP` في الـworkflows.
 _SCRIPT_DIRS = ("scripts/ci", "scripts/architecture", "scripts/release")
@@ -106,8 +107,38 @@ _GENERATE_FLAG.update(
     }
 )
 
+# العشرة أدناه أُغلِقت بالشرط المُعلَن في generated_sweep_unmapped_generators.json، لا
+# بالثقة في وجود العلم: لكلٍّ منها أُفسِدت مصنوعة يملكها ⇒ `--check` رصد الإفساد
+# (خرج بغير صفر)، ثمّ شُغِّل العلم ⇒ `--check` عاد بصفر **والملفّ استُعيد بايتاً بايت**.
+# وكلّها خاملة على شجرة نظيفة (تشغيل العلم لا يُغيّر شيئاً)، فوصلها لا يُوسّخ الشجرة.
+_GENERATE_FLAG.update(
+    {
+        "capability_roadmap_linker.py": "--generate",
+        "compose_runtime_target_resolver.py": "--generate",
+        "gateway_reachability_guard.py": "--generate",
+        "integration_runtime_governance_closure.py": "--generate",
+        "path3_runtime_readiness_closure.py": "--generate",
+        "production_evidence_pack_guard.py": "--write",
+        "report_index_guard.py": "--write",
+        "runtime_certification_gate.py": "--generate",
+        "runtime_evidence_ingestion.py": "--generate",
+        "runtime_verification_harness.py": "--generate",
+    }
+)
+
 # علم كتابة يُعلنه سكربت في مصدره — يُميّز «كاتب لم يُستدعَ» عن «فحص بلا مولّد».
 _WRITE_FLAG_DECL = re.compile(r"""["'](--(?:write|apply|generate)[a-z-]*)["']""")
+
+# أعلام الكتابة المعروفة في هذا المستودع — تُستعمل حكماً لا تخميناً في
+# `flag_map_problems()` بعد استجواب `--help`.
+_WRITE_FLAGS = (
+    "--apply",
+    "--generate",
+    "--generate-index",
+    "--write",
+    "--write-registry",
+    "--fix",
+)
 
 
 def _declared_write_flags(script: str) -> list[str]:
@@ -116,6 +147,78 @@ def _declared_write_flags(script: str) -> list[str]:
         return sorted(set(_WRITE_FLAG_DECL.findall(path.read_text(encoding="utf-8"))))
     except OSError:
         return []
+
+
+def _accepted_flags(script: str) -> set[str]:
+    """الأعلام التي يقبلها ``argparse`` فعلاً — من ``--help`` لا من مسح المصدر.
+
+    ``_declared_write_flags`` أعلاه يمسح النصّ، وهو تقريب رخيص يكفي **للتشخيص بعد
+    الفشل**. لكنّه لا يصلح حكماً: أيّ سلسلة نصّيّة مقتبَسة تُحسَب علماً. مُقاس على
+    الشجرة (2026-08-01): خمسة سكربتات «تُعلن» علماً لا يقبله argparse، وأطرفها
+    ``verify_all_generated.py`` نفسه — يُتَّهم بإعلان الأعلام الخمسة جميعاً لأنّ
+    ``_GENERATE_FLAG`` يحوي تلك النصوص. الاستجواب هنا لا يخطئ هذا الخطأ.
+    """
+    proc = subprocess.run(  # noqa: S603 — مسار مُكتشَف من الـworkflows
+        [sys.executable, script, "--help"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=STEP_TIMEOUT_SECONDS,
+    )
+    if proc.returncode != 0:
+        return set()
+    return set(re.findall(r"--[a-z][a-z0-9-]*", proc.stdout))
+
+
+def flag_map_problems(steps) -> list[str]:
+    """يستجوب ``_GENERATE_FLAG`` قبل استعماله — وقايةً لا تشخيصاً بعد وقوع الضرر.
+
+    ``VERIFY-ALL-GENERATED-WRITER-FLAG-MISMATCH-01`` عولج بتصحيح المداخل الخاطئة،
+    وأُضيف إليه تشخيص يميّز «كاتب لم يُستدعَ» عن «دورة تبعيّة». لكنّ ذلك التشخيص
+    يعمل **داخل فرع عدم الاستقرار وحده** — أي بعد أن تكون المكنسة قد فشلت ثلاث
+    دورات كاملة. والخريطة يدويّة، فستبيت ثانيةً؛ والعيب ساكن لا يحتاج انحرافاً
+    لينكشف. هذا يفحصها في الوضع الافتراضيّ وهي خضراء: علم مُعلَن لا يقبله السكربت،
+    أو علم كتابة يملكه السكربت ولا تذكره الخريطة ⇒ فشل يسمّي السكربت وعلمه الحقيقيّ.
+    """
+    problems: list[str] = []
+    baseline = json.loads(UNMAPPED_BASELINE.read_text(encoding="utf-8"))["unmapped"]
+    seen: set[str] = set()
+    for script in sorted({s for s, _ in steps}):
+        name = Path(script).name
+        flags = _accepted_flags(script)
+        if not flags:
+            continue  # لا ``--help`` قابلاً للاستجواب ⇒ لا حكم (لا تخمين)
+        seen.add(script)
+        if name in _GENERATE_FLAG:
+            declared = _GENERATE_FLAG[name]
+            if declared and declared not in flags:
+                usable = sorted(flags & set(_WRITE_FLAGS)) or ["لا علم كتابة — التشغيل العاري"]
+                problems.append(
+                    f"{script}: العلم المُعلَن `{declared}` لا يقبله السكربت. "
+                    f"المقبول: {', '.join(usable)}"
+                )
+            continue
+        usable = sorted(flags & set(_WRITE_FLAGS))
+        if not usable:
+            continue
+        if script in baseline:
+            if baseline[script] not in usable:
+                problems.append(
+                    f"{script}: الأساس يسجّل `{baseline[script]}` والسكربت يقبل "
+                    f"{', '.join(usable)} — حدّث generated_sweep_unmapped_generators.json"
+                )
+            continue
+        problems.append(
+            f"{script}: يملك علم كتابة ({', '.join(usable)}) ولا يذكره _GENERATE_FLAG "
+            "⇒ لا يُعاد توليده أبداً، وانحرافه يبقى بلا إصلاح. صِلْه بالخريطة، أو "
+            "سجّله في generated_sweep_unmapped_generators.json بسبب مقيس."
+        )
+    for script in sorted(set(baseline) - seen):
+        problems.append(
+            f"مدخل بائت في أساس غير المُوصَّلين: {script} — لم يعد خطوة --check في أيّ "
+            "workflow، أو وُصِل بالخريطة. احذف المدخل (الأساس يتقلّص)."
+        )
+    return problems
 
 
 # يبصم مخرجات المولّدات ⇒ بعدها دائماً.
@@ -242,14 +345,27 @@ def _sort_key(step: tuple[str, list[str]]) -> tuple[int, str]:
 
 
 def tree_state() -> str:
-    """حالة الملفّات المتتبَّعة — الإشارة الوحيدة التي لا يملك الحارس تزييفها."""
-    out = subprocess.run(  # noqa: S603 — أمر ثابت
+    """حالة الملفّات المتتبَّعة — الإشارة الوحيدة التي لا يملك الحارس تزييفها.
+
+    وهي إشارة **مشروطة بوجود git**: على أرشيف مفكوك بلا ``.git`` كان الأمر يفشل
+    و``stdout`` يعود فارغاً، فيتساوى «قبل» و«بعد» **دائماً** ويصير كاشف الكتابة-
+    أثناء-الفحص أعمى بلا أن يقول ذلك — مُقاس على لقطة: اثنا عشر ملفّاً أُصلِحت
+    ذاتيّاً وأُعلِنت السلامة. الغياب يُرفَع الآن استثناءً: عمى الأداة يجب أن يُعلن
+    نفسه، لا أن يُنتج خضرة.
+    """
+    proc = subprocess.run(  # noqa: S603 — أمر ثابت
         ["git", "status", "--porcelain", "--untracked-files=no"],
         cwd=ROOT,
         capture_output=True,
         text=True,
-    ).stdout
-    return "\n".join(sorted(out.splitlines()))
+    )
+    if proc.returncode != 0:
+        raise SystemExit(
+            "تعذّر قراءة حالة الشجرة عبر git — كاشف «حارس كتب أثناء الفحص» يعتمد "
+            "عليها كليّاً، وبلا git يُعطي خضرة كاذبة. شغّل المكنسة داخل checkout "
+            f"حقيقيّ. رمز git={proc.returncode}: {proc.stderr.strip()[:200]}"
+        )
+    return "\n".join(sorted(proc.stdout.splitlines()))
 
 
 def unreferenced_generators() -> list[str]:
@@ -334,6 +450,16 @@ def main() -> int:
         for line in unclassified:
             print(f"  ✗ {line}")
         return 1
+    # خريطة أعلام التوليد تُستجوَب قبل استعمالها. علم خاطئ أو غائب يتنكّر في هيئة
+    # انحراف مصنوعات لا ينقضي، فيُطارَد الوهم بدل السطر. والفحص يعمل في الوضع
+    # الافتراضيّ عمداً: العيب ساكن، ولا يحتاج `--fix` لينكشف.
+    flag_problems = flag_map_problems(steps)
+    if flag_problems:
+        print("خريطة أعلام إعادة التوليد لا تطابق السكربتات:")
+        for line in flag_problems:
+            print(f"  ✗ {line}")
+        return 1
+
     entries = load_known_drift()
     drifting = [s for s, e in entries.items() if e["drifts"]]
     print(
@@ -403,17 +529,30 @@ def main() -> int:
         for script in manual:
             print(f"  · {script}")
 
-    # التقاء شريحتين على الزاوية نفسها (#693 و#690): `unreferenced_generators` يُبلِّغ
-    # المجموعة، و`classify_uncovered` أعلاه **يفرض** أن يحمل كلّ عضو فيها مدخلاً مُبرَّراً.
-    # يبقى الإبلاغ لأنّه يُسمّي الحدّ في المخرَج، والفرض هو ما يمنع اتّساعه صامتاً.
+    # التقاء شريحتين على الزاوية نفسها (#693 و#690). وكان النصّ المطبوع هنا يقول إنّ
+    # كلّ عضو في هذه المجموعة «مُصنَّف في الأساس» ويحيل إلى `classify_uncovered`
+    # كفارضٍ له — وهو **غير صحيح**، لأنّ المجموعتين ليستا واحدة: `uncovered()` يجمع من
+    # يُعلن `--check`، و`unreferenced_generators()` يجمع من يُعلن علم كتابة. مُقاس:
+    # أعضاء هذه المجموعة، **واحد** منها في الأساس والباقي في لا شيء. فكانت الأداة
+    # تطبع ادّعاء تغطية لا تملكه — وهو بالضبط العيب الذي بُنيت لتمنعه. التصنيف الآن
+    # يُشتَقّ لا يُدَّعى، والمجهول يُسمّى مجهولاً.
     blind = unreferenced_generators()
     if blind:
-        print("\nمولِّدات لا يذكرها أيّ workflow ⇒ خارج الاكتشاف (مُصنَّفة في الأساس، غير مُنفَّذة هنا):")
-        for script in blind:
-            print(f"  · {script}")
-        print(
-            "  مُصنَّفة بسببها في docs/architecture/generated_chain_known_drift.json — القائمة تتقلّص ولا تنمو."
-        )
+        classified = set(load_known_drift())
+        known = [s for s in blind if s in classified]
+        unknown = [s for s in blind if s not in classified]
+        print("\nمولِّدات لا يذكرها أيّ workflow ⇒ خارج الاكتشاف (لا تُنفَّذ هنا):")
+        for script in known:
+            print(f"  · {script} — مُصنَّف في generated_chain_known_drift.json")
+        for script in unknown:
+            print(f"  · {script} — **بلا تصنيف**: يُعلن علم كتابة ولا `--check` له")
+        if unknown:
+            print(
+                f"  {len(unknown)} من {len(blind)} بلا تصنيف. لا يمسكها "
+                "`classify_uncovered` لأنّه يفرض على من يُعلن `--check` وحدهم: "
+                "مولّد بلا وضع فحص لا يستطيع الإبلاغ عن انحرافه أصلاً "
+                "(GENERATED-WRITE-ONLY-GENERATORS-UNCLASSIFIED-01)."
+            )
 
     if args.uncovered:
         print("\n— المولّدات غير المُغطّاة (تنفيذ صريح؛ راجع `git status` بعده):")

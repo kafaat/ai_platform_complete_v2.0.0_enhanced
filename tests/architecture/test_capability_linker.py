@@ -168,6 +168,28 @@ def test_discovery_and_candidates_are_stable_when_filesystem_order_changes(monke
     registry, generated = _minimal_repo(tmp_path)
     _configure(module, tmp_path, registry, generated)
 
+    # الملفّات أدناه ليست زينة. الصيغة السابقة كتبت ملفّاً واحداً
+    # (`services/auth/tenant_auth.py`) وكانت **تمرّ بحذف الفرزين معاً** — أي أنّها لم
+    # تحرس شيئاً. السبب مقيس: ذلك الملفّ يقع في `evidence_paths` لا في `candidates`،
+    # فبقيت المرشّحات ثلاثة بأنواع متمايزة (service · api · test)، ولا تبديل يستطيع
+    # إعادة ترتيب ثلاثة عناصر لا يتكرّر فيها مفتاح الفرز. حارسٌ على مجموعة أصغر من
+    # أن تنكشف فيها العلّة أخضرُ دائماً — وهو صنف «التكذيب الفاشل» نفسه الذي يحذّر
+    # منه سجلّ القرارات. تُوسَّع العيّنة حتّى تصير المرشّحات المُشتقّة من ملفّات أكثر
+    # من واحدة، فيصبح للترتيب معنى.
+    #
+    # الحدّ المقيس بعد التوسيع (تكذيب بالاتّجاهات الثلاثة): حذف الفرزين معاً ⇒
+    # **يفشل**؛ حذف أحدهما وحده ⇒ يمرّ، ومروره صحيح لا ثغرة — فكلّ فرز يكفي وحده
+    # لتحقيق الخاصّيّة، والمحروس هو «المخرَج مستقلّ عن الترتيب» لا «هذا السطر موجود».
+    # فقدان التكرار الاحتياطيّ ليس فقدان الحتميّة، ولا يُدَّعى أنّ هذا يمسكه.
+    for i in range(4):
+        extra_test = tmp_path / f"tests/test_tenant_auth_{i}.py"
+        extra_test.write_text(f"def test_tenant_auth_{i}(): pass\n", encoding="utf-8")
+    ui_dir = tmp_path / "frontend/web"
+    ui_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(3):
+        (ui_dir / f"tenantAuth{i}.tsx").write_text(
+            "export const TenantAuth = () => null;\n", encoding="utf-8"
+        )
     extra = tmp_path / "services/auth/tenant_auth.py"
     extra.write_text("# auth tenant implementation\n", encoding="utf-8")
 
@@ -185,3 +207,34 @@ def test_discovery_and_candidates_are_stable_when_filesystem_order_changes(monke
     assert module.main() == 0
     assert registry.read_bytes() == first_registry
     assert (generated / "capability_link_candidates.csv").read_bytes() == first_candidates
+
+
+def test_the_committed_candidates_csv_is_in_canonical_order():
+    """المصنوعة المُلتزَمة مفروزة بمحتواها — حارسٌ على الملفّ لا على الدالّة.
+
+    الاختبار أعلاه يحرس المولّد عبر عيّنة؛ وهذا يحرس **ما دخل المستودع فعلاً**.
+    الفرق ليس تكراراً: عيّنة تصغر يوماً تُبطِل الأوّل صامتاً (وقد حدث)، بينما هذا
+    يقيس المصنوعة الحقيقيّة بألف صفّ وبضع مئات — لا يمكن أن يصير فارغاً بالصدفة.
+    ويلتقط أيضاً مساراً لا يمرّ بالمولّد أصلاً: مصنوعة أُعيد توليدها بأداة أو فرع
+    قديم ثمّ التُزِمت.
+    """
+    import csv
+
+    root = Path(__file__).resolve().parents[2]
+    path = root / "capabilities" / "generated" / "capability_link_candidates.csv"
+    rows = list(csv.DictReader(path.read_text(encoding="utf-8").splitlines()))
+    assert len(rows) > 100, f"المصنوعة أصغر من أن تكشف ترتيباً ({len(rows)} صفّاً)"
+
+    def key(row: dict) -> tuple:
+        return (
+            row["capability_id"],
+            row["kind"],
+            row["value"],
+            int(row["score"]),
+            row["decision"],
+        )
+
+    assert [key(r) for r in rows] == sorted(key(r) for r in rows), (
+        "capability_link_candidates.csv غير مفروز بمحتواه — أُعيد توليده بترتيب "
+        "مورَّث من نظام الملفّات، فسيقول `--check` «انحراف» على عدّاء آخر."
+    )
