@@ -12215,7 +12215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca7c61952063379ad0fbbe3ff680f8c8e01d08d4087429a7c027d9f7546f2914"
+          "content": "e0a8854d79b305e39f5329b8edf5d53a11c64fae4084bb4e99d5b3ebb80919b0"
         }
       ],
       "name": "services/indicators-service/__init__.py",
@@ -28655,7 +28655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1707046cb8a514f712c4604893f26b2c2a72b6e57ca05cdebc054e1c36a38e05"
+          "content": "04b8107d1a68a9577a13e7912873d5f5ed24c000222913c82d565b6863d81864"
         }
       ],
       "name": "services/weather-service/__init__.py",

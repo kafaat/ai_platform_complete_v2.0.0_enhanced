@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4800,
+    "files_scanned": 4801,
     "files_by_kind": {
       "backend": 1187,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1262,
-      "tests": 1528,
+      "tests": 1529,
       "web": 448
     },
-    "unmapped_artifacts": 1954,
+    "unmapped_artifacts": 1955,
     "ambiguous_artifacts": 391
   },
   "capabilities": [
@@ -41189,6 +41189,10 @@
     },
     {
       "path": "tests_v9/test_service_main_container_path_safety.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_service_stub_claim_truth.py",
       "kind": "tests"
     },
     {

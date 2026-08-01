@@ -7572,6 +7572,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_service_stub_claim_truth.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_services_functional.py",
     "kind": "tests"
   },
