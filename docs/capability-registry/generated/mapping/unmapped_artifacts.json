@@ -6672,6 +6672,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_brain_transition_guard_vocabulary.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_c4m1_mobile_push.py",
     "kind": "tests"
   },
