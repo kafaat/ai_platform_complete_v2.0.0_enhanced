@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4811,
+    "files_scanned": 4812,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1264,
-      "tests": 1536,
+      "tests": 1537,
       "web": 448
     },
     "unmapped_artifacts": 1957,
@@ -20863,6 +20863,14 @@
           "score": 12
         },
         {
+          "value": "field_state_projection.py @ tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py:33",
+          "score": 12
+        },
+        {
+          "value": "imagery_automation.py @ tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py:214",
+          "score": 12
+        },
+        {
           "value": "sahool.field_state @ services/sahool-platform/api/field_state_projection.py:53",
           "score": 12
         },
@@ -21024,6 +21032,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
           "path": "tests_v9/test_tool_loop_budget_v58_2c.py",
           "score": 12,
           "signals": [
@@ -21131,10 +21147,10 @@
         "backend": 19,
         "routes": 10,
         "database": 5,
-        "events": 12,
+        "events": 14,
         "web": 7,
         "mobile": 0,
-        "tests": 19,
+        "tests": 20,
         "governance": 0,
         "other_evidence": 3
       },

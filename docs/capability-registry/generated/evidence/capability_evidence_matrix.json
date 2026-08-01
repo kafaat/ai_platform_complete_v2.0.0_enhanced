@@ -2413,6 +2413,7 @@
         "tests_v9/test_field_state_unification.py",
         "tests_v9/test_imagery_batch_wait_before_read.py",
         "tests_v9/test_sahool_brain_forensic.py",
+        "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py",
         "tests_v9/test_tool_loop_budget_v58_2c.py"
       ]
     },
