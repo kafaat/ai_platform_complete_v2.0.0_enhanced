@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1823,
     "route_handlers": 1042,
-    "call_edges": 71452,
+    "call_edges": 71476,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -187721,646 +187721,583 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_batch_wait_budget_s",
+      "target": "float",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_batch_wait_budget_s",
+      "target": "getenv",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_batch_poll_interval_s",
+      "target": "float",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_batch_poll_interval_s",
+      "target": "getenv",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_batch_poll_interval_s",
+      "target": "max",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_parse_capture_time",
       "target": "str",
-      "line": 88
+      "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_parse_capture_time",
       "target": "strip",
-      "line": 88
+      "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_parse_capture_time",
       "target": "fromisoformat",
-      "line": 92
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_parse_capture_time",
       "target": "replace",
-      "line": 92
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_parse_capture_time",
       "target": "strptime",
-      "line": 95
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_parse_capture_time",
       "target": "replace",
-      "line": 99
+      "line": 125
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_set_tenant_context_if_any",
       "target": "execute",
-      "line": 128
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_set_tenant_context_if_any",
       "target": "str",
-      "line": 128
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "load_from_db",
       "target": "acquire",
-      "line": 145
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "load_from_db",
       "target": "fetch",
-      "line": 146
+      "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "load_from_db",
       "target": "TrackedField",
-      "line": 152
+      "line": 187
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "load_from_db",
       "target": "str",
-      "line": 155
+      "line": 190
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "load_from_db",
       "target": "warning",
-      "line": 164
+      "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_field",
       "target": "acquire",
-      "line": 171
+      "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_field",
       "target": "transaction",
-      "line": 172
+      "line": 207
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_field",
       "target": "_set_tenant_context_if_any",
-      "line": 173
+      "line": 208
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_field",
       "target": "execute",
-      "line": 174
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_field",
       "target": "warning",
-      "line": 203
+      "line": 238
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "register_field",
       "target": "len",
-      "line": 209
+      "line": 244
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "register_field",
       "target": "ValueError",
-      "line": 210
+      "line": 245
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "register_field",
       "target": "TrackedField",
-      "line": 216
+      "line": 251
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "register_field_persistent",
       "target": "register_field",
-      "line": 222
+      "line": 257
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "register_field_persistent",
       "target": "_persist_field",
-      "line": 223
+      "line": 258
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "unregister_field",
       "target": "pop",
-      "line": 226
+      "line": 261
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "tracked_count",
       "target": "len",
-      "line": 229
+      "line": 264
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "status",
       "target": "len",
-      "line": 233
+      "line": 268
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "status",
       "target": "raster_service_url",
-      "line": 234
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "status",
+      "target": "_batch_wait_budget_s",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "status",
+      "target": "_batch_poll_interval_s",
+      "line": 281
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "status",
       "target": "to_dict",
-      "line": 239
+      "line": 283
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "status",
       "target": "values",
-      "line": 239
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_bbox_from_guard_bbox",
-      "target": "float",
-      "line": 246
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_bbox_from_guard_bbox",
-      "target": "float",
-      "line": 247
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_bbox_from_guard_bbox",
-      "target": "float",
-      "line": 248
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_bbox_from_guard_bbox",
-      "target": "float",
-      "line": 249
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_scene_id",
-      "target": "get",
-      "line": 254
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_scene_id",
-      "target": "get",
-      "line": 254
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_scene_id",
-      "target": "get",
-      "line": 254
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "get",
-      "line": 265
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "get",
-      "line": 265
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "get",
-      "line": 265
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "get",
-      "line": 269
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "pick",
-      "target": "get",
-      "line": 269
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "isinstance",
-      "line": 270
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "pick",
-      "target": "isinstance",
-      "line": 270
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "get",
-      "line": 271
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "pick",
-      "target": "get",
-      "line": 271
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "str",
-      "line": 273
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "pick",
-      "target": "str",
-      "line": 273
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "pick",
-      "line": 277
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "pick",
-      "line": 278
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "pick",
-      "line": 279
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "pick",
-      "line": 280
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "pick",
-      "line": 281
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "pick",
-      "line": 282
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_band_hrefs_from_scene",
-      "target": "pick",
       "line": 283
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_bbox_from_guard_bbox",
+      "target": "float",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_bbox_from_guard_bbox",
+      "target": "float",
+      "line": 291
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_bbox_from_guard_bbox",
+      "target": "float",
+      "line": 292
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_bbox_from_guard_bbox",
+      "target": "float",
+      "line": 293
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_scene_id",
+      "target": "get",
+      "line": 298
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_scene_id",
+      "target": "get",
+      "line": 298
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_scene_id",
+      "target": "get",
+      "line": 298
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "get",
+      "line": 309
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "get",
+      "line": 309
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "get",
+      "line": 309
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "get",
+      "line": 313
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "pick",
+      "target": "get",
+      "line": 313
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "isinstance",
+      "line": 314
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "pick",
+      "target": "isinstance",
+      "line": 314
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "get",
+      "line": 315
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "pick",
+      "target": "get",
+      "line": 315
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "str",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "pick",
+      "target": "str",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_band_hrefs_from_scene",
       "target": "pick",
-      "line": 284
+      "line": 321
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "pick",
+      "line": 322
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "pick",
+      "line": 323
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "pick",
+      "line": 324
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "pick",
+      "line": 325
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "pick",
+      "line": 326
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "pick",
+      "line": 327
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_band_hrefs_from_scene",
+      "target": "pick",
+      "line": 328
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_band_hrefs_from_scene",
       "target": "items",
-      "line": 286
+      "line": 330
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_try_cdse",
       "target": "process_field_cdse",
-      "line": 312
+      "line": 356
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_try_cdse",
       "target": "get",
-      "line": 335
+      "line": 379
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_try_cdse",
       "target": "get",
-      "line": 337
+      "line": 381
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_try_cdse",
       "target": "get",
-      "line": 340
+      "line": 384
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_try_cdse",
       "target": "_persist_field",
-      "line": 341
+      "line": 385
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_try_cdse",
       "target": "get",
-      "line": 348
+      "line": 392
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_try_cdse",
       "target": "get",
-      "line": 349
+      "line": 393
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
       "target": "isinstance",
-      "line": 378
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "_bbox_from_guard_bbox",
-      "line": 379
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "float",
-      "line": 381
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "len",
-      "line": 382
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "ValueError",
-      "line": 383
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "register_field",
-      "line": 386
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "_try_cdse",
-      "line": 392
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "get_best_imagery_scene",
-      "line": 409
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "_persist_field",
-      "line": 416
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "type",
       "line": 422
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
-      "target": "get",
+      "target": "_bbox_from_guard_bbox",
+      "line": 423
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "float",
+      "line": 425
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "len",
       "line": 426
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
-      "target": "_persist_field",
-      "line": 428
+      "target": "ValueError",
+      "line": 427
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
-      "target": "get",
-      "line": 434
+      "target": "register_field",
+      "line": 430
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
-      "target": "get",
-      "line": 435
+      "target": "_try_cdse",
+      "line": 436
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
-      "target": "_band_hrefs_from_scene",
-      "line": 438
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "issubset",
-      "line": 440
+      "target": "get_best_imagery_scene",
+      "line": 453
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
       "target": "_persist_field",
-      "line": 441
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "_scene_id",
-      "line": 447
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "sorted",
-      "line": 448
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "process_field_from_stac",
-      "line": 456
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "_scene_id",
-      "line": 463
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "get",
-      "line": 464
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "get",
-      "line": 464
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "append",
-      "line": 471
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "append",
-      "line": 473
+      "line": 460
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
       "target": "type",
-      "line": 473
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "_scene_id",
-      "line": 475
+      "line": 466
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
       "target": "get",
-      "line": 476
+      "line": 470
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "_persist_field",
+      "line": 472
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
       "target": "get",
-      "line": 476
+      "line": 478
     },
     {
       "owner": "sahool-platform",
@@ -188373,224 +188310,280 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
-      "target": "len",
-      "line": 481
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "trigger_field_imagery_processing",
-      "target": "_persist_field",
+      "target": "_band_hrefs_from_scene",
       "line": 482
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "trigger_field_imagery_processing",
-      "target": "bool",
+      "target": "issubset",
+      "line": 484
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "_persist_field",
       "line": 485
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "_scene_id",
+      "line": 491
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "sorted",
+      "line": 492
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "process_field_from_stac",
+      "line": 500
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "_scene_id",
+      "line": 507
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "get",
+      "line": 508
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "get",
+      "line": 508
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "append",
+      "line": 515
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "append",
+      "line": 517
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "type",
+      "line": 517
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "_scene_id",
+      "line": 519
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "get",
+      "line": 520
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "get",
+      "line": 520
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "get",
+      "line": 523
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "len",
+      "line": 525
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "_persist_field",
+      "line": 526
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "trigger_field_imagery_processing",
+      "target": "bool",
+      "line": 529
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "now",
-      "line": 518
+      "line": 562
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "strftime",
-      "line": 519
+      "line": 563
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "timedelta",
-      "line": 519
+      "line": 563
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "strftime",
-      "line": 520
+      "line": 564
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "max",
-      "line": 521
+      "line": 565
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "timedelta",
-      "line": 521
+      "line": 565
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "items",
-      "line": 529
+      "line": 573
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "list",
-      "line": 529
+      "line": 573
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "_parse_capture_time",
-      "line": 532
+      "line": 576
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "isoformat",
-      "line": 537
+      "line": 581
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "search_imagery_scenes",
-      "line": 540
+      "line": 584
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "get",
-      "line": 546
+      "line": 590
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "get",
-      "line": 551
+      "line": 595
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "get",
-      "line": 551
+      "line": 595
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "get",
-      "line": 555
+      "line": 599
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "get",
-      "line": 555
+      "line": 599
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "_trigger_indicators",
-      "line": 559
+      "line": 603
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "_persist_field",
-      "line": 561
+      "line": 605
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "append",
-      "line": 565
+      "line": 609
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "type",
-      "line": 565
+      "line": 609
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "scan_all",
       "target": "warning",
-      "line": 566
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "get",
-      "line": 584
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "get",
-      "line": 585
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "get",
-      "line": 585
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "get",
-      "line": 586
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "get",
-      "line": 586
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "get",
-      "line": 609
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "get",
-      "line": 609
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "get",
       "line": 610
     },
     {
@@ -188598,238 +188591,406 @@
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_trigger_indicators",
       "target": "get",
-      "line": 610
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_trigger_indicators",
-      "target": "process_indicator_batch",
-      "line": 612
+      "line": 628
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_trigger_indicators",
       "target": "get",
-      "line": 616
+      "line": 629
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_trigger_indicators",
-      "target": "_collect_ndvi_value",
-      "line": 618
+      "target": "get",
+      "line": 629
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_trigger_indicators",
-      "target": "_collect_spectral_values",
-      "line": 620
+      "target": "get",
+      "line": 630
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_trigger_indicators",
-      "target": "warning",
-      "line": 622
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_fetch_index_mean",
-      "target": "get_job_result",
-      "line": 634
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_fetch_index_mean",
       "target": "get",
-      "line": 637
+      "line": 630
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_fetch_index_mean",
+      "source": "_trigger_indicators",
       "target": "get",
-      "line": 638
+      "line": 653
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_fetch_index_mean",
+      "source": "_trigger_indicators",
       "target": "get",
-      "line": 639
+      "line": 653
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_fetch_index_mean",
-      "target": "float",
-      "line": 642
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_image_date",
-      "target": "get",
-      "line": 646
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_image_date",
-      "target": "get",
-      "line": 646
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/imagery_automation.py",
-      "source": "_collect_ndvi_value",
+      "source": "_trigger_indicators",
       "target": "get",
       "line": 654
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_trigger_indicators",
+      "target": "get",
+      "line": 654
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_trigger_indicators",
+      "target": "process_indicator_batch",
+      "line": 656
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_trigger_indicators",
+      "target": "get",
+      "line": 660
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_trigger_indicators",
+      "target": "_await_batch_terminal",
+      "line": 666
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_trigger_indicators",
+      "target": "_collect_ndvi_value",
+      "line": 669
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_trigger_indicators",
+      "target": "_collect_spectral_values",
+      "line": 671
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_trigger_indicators",
+      "target": "warning",
+      "line": 673
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "get",
+      "line": 695
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "get",
+      "line": 698
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "str",
+      "line": 698
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "_batch_wait_budget_s",
+      "line": 703
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "_batch_poll_interval_s",
+      "line": 706
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "now",
+      "line": 707
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "timedelta",
+      "line": 707
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "get_job_status",
+      "line": 710
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "warning",
+      "line": 713
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "get",
+      "line": 719
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "str",
+      "line": 719
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "now",
+      "line": 723
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "warning",
+      "line": 725
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_await_batch_terminal",
+      "target": "sleep",
+      "line": 734
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_fetch_index_mean",
+      "target": "get_job_result",
+      "line": 755
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_fetch_index_mean",
+      "target": "debug",
+      "line": 758
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_fetch_index_mean",
+      "target": "get",
+      "line": 768
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_fetch_index_mean",
+      "target": "get",
+      "line": 769
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_fetch_index_mean",
+      "target": "get",
+      "line": 770
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_fetch_index_mean",
+      "target": "float",
+      "line": 773
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_image_date",
+      "target": "get",
+      "line": 777
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_image_date",
+      "target": "get",
+      "line": 777
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
+      "source": "_collect_ndvi_value",
+      "target": "get",
+      "line": 785
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_ndvi_value",
       "target": "_fetch_index_mean",
-      "line": 657
+      "line": 788
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_ndvi_value",
       "target": "_image_date",
-      "line": 661
+      "line": 792
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_ndvi_value",
       "target": "_persist_ndvi",
-      "line": 662
+      "line": 793
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_ndvi_value",
       "target": "debug",
-      "line": 664
+      "line": 795
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_spectral_values",
       "target": "get",
-      "line": 675
+      "line": 806
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_spectral_values",
       "target": "_image_date",
-      "line": 678
+      "line": 809
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_spectral_values",
       "target": "_fetch_index_mean",
-      "line": 679
+      "line": 810
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_spectral_values",
       "target": "_fetch_index_mean",
-      "line": 683
+      "line": 814
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_spectral_values",
       "target": "_persist_spectral",
-      "line": 688
+      "line": 819
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_collect_spectral_values",
       "target": "debug",
-      "line": 690
+      "line": 821
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_ndvi",
       "target": "acquire",
-      "line": 697
+      "line": 828
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_ndvi",
       "target": "transaction",
-      "line": 698
+      "line": 829
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_ndvi",
       "target": "_set_tenant_context_if_any",
-      "line": 699
+      "line": 830
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_ndvi",
       "target": "execute",
-      "line": 700
+      "line": 831
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_ndvi",
       "target": "debug",
-      "line": 708
+      "line": 839
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_spectral",
       "target": "acquire",
-      "line": 719
+      "line": 850
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_spectral",
       "target": "transaction",
-      "line": 720
+      "line": 851
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_spectral",
       "target": "_set_tenant_context_if_any",
-      "line": 721
+      "line": 852
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_spectral",
       "target": "execute",
-      "line": 722
+      "line": 853
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/imagery_automation.py",
       "source": "_persist_spectral",
       "target": "debug",
-      "line": 736
+      "line": 867
     },
     {
       "owner": "sahool-platform",
@@ -215493,6 +215654,13 @@
       "source": "get_job_result",
       "target": "raster_get_json",
       "line": 465
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/raster_service_client.py",
+      "source": "get_job_status",
+      "target": "raster_get_json",
+      "line": 495
     },
     {
       "owner": "sahool-platform",

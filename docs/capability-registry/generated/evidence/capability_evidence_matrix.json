@@ -2353,7 +2353,7 @@
         "tests_v9/test_field_state_unification.py",
         "tests_v9/test_fieldstate_water_canon.py",
         "tests_v9/test_fvc.py",
-        "tests_v9/test_imagery_product_identity_canonical.py",
+        "tests_v9/test_imagery_batch_wait_before_read.py",
         "tests_v9/test_kc_from_ndvi.py",
         "tests_v9/test_kc_ndvi.py",
         "tests_v9/test_ndvi_evidence_policy.py",
@@ -2410,6 +2410,7 @@
         "services/vegetation-analysis-service/test_vegetation_logic.py",
         "tests_v9/test_canonical_water_stress.py",
         "tests_v9/test_field_state_unification.py",
+        "tests_v9/test_imagery_batch_wait_before_read.py",
         "tests_v9/test_sahool_brain_forensic.py",
         "tests_v9/test_tool_loop_budget_v58_2c.py"
       ]

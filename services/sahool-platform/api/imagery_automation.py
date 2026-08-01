@@ -22,13 +22,16 @@ api/imagery_automation.py — أتمتة سحب الصور الجوّية وحس
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 from api.raster_service_client import (
     get_best_imagery_scene,
     get_job_result,
+    get_job_status,
     process_field_cdse,
     process_field_from_stac,
     process_indicator_batch,
@@ -37,6 +40,29 @@ from api.raster_service_client import (
 )
 
 logger = logging.getLogger("sahool.imagery_automation")
+
+# حالات المهمّة **النهائيّة** في raster-service (`raster_api_models.JobStatus`): بعدها لا
+# يتغيّر شيء، فالانتظار بعدها انتظار بلا نهاية. `processed_unpublished` نهائيّة أيضاً —
+# نجاح معالجة بلا إدامة — وإغفالها كان سيُنتِج انتظاراً حتّى نفاد المهلة في كلّ دورة
+# تعمل بوضع الإدامة «أفضل-جهد».
+_BATCH_TERMINAL_STATUSES = frozenset({"completed", "processed_unpublished", "failed", "cancelled"})
+
+
+def _batch_wait_budget_s() -> float:
+    """أقصى انتظار لاكتمال دفعة واحدة (ثوانٍ). صفر أو أقلّ ⇒ لا انتظار (سلوك ما قبل الإصلاح)."""
+    try:
+        return float(os.getenv("IMAGERY_BATCH_WAIT_BUDGET_S", "120"))
+    except ValueError:
+        return 120.0
+
+
+def _batch_poll_interval_s() -> float:
+    """الفاصل بين استطلاعين. يُقيَّد بحدّ أدنى كي لا يتحوّل الاستطلاع إلى حلقة مشغولة."""
+    try:
+        return max(0.05, float(os.getenv("IMAGERY_BATCH_POLL_INTERVAL_S", "2")))
+    except ValueError:
+        return 2.0
+
 
 # مؤشّرات تُحسب تلقائيّاً عند صورة جديدة (دفعةً من نفس المشهد):
 #   NDVI صحّة نباتيّة · NDRE نيتروجين (red-edge) · NDSI ملوحة (حرج لليمن الجافّ)
@@ -110,6 +136,15 @@ class ImageryAutomation:
     def __init__(self) -> None:
         self._fields: dict[str, TrackedField] = {}
         self._pool = None
+        # عدّادات انتظار الدفعة — الانتظار الذي لا يُقاس يعود صمتاً بشكل آخر
+        # (SPECTRAL-COLLECTOR-ASYNC-RACE-01). ثلاث حالات مفصولة عمداً:
+        #   terminal  = بلغت الدفعة حالة نهائيّة فقُرِئت النتيجة (المسار المقصود)
+        #   timed_out = المهمّة معروفة ولم تكتمل ضمن الميزانيّة (بطء/تشبّع)
+        #   unknown   = raster-service لا يعرف المهمّة أصلاً (404) — عطل مختلف تماماً،
+        #               غالباً حالة مهامّ بالذاكرة موزَّعة على أكثر من نسخة.
+        self._batch_waits_terminal = 0
+        self._batch_waits_timed_out = 0
+        self._batch_waits_unknown = 0
 
     def set_pool(self, pool) -> None:
         """يربط pool القاعدة لتمكين الاستمرار الدائم."""
@@ -236,6 +271,15 @@ class ImageryAutomation:
             # المزوّد الافتراضيّ CDSE (إن هُيّئ في raster-service) مع fallback إلى Element84.
             "default_provider": "cdse",
             "fallback_provider": "element84",
+            # قابليّة قراءة السباق المُصلَح: بلا هذه الأرقام يعود «لم تُكتَب القيم» غير
+            # مرئيّ من الخارج تماماً كما كان قبل الإصلاح.
+            "batch_waits": {
+                "terminal": self._batch_waits_terminal,
+                "timed_out": self._batch_waits_timed_out,
+                "unknown": self._batch_waits_unknown,
+                "budget_s": _batch_wait_budget_s(),
+                "poll_interval_s": _batch_poll_interval_s(),
+            },
             "fields": [f.to_dict() for f in self._fields.values()],
         }
 
@@ -614,12 +658,80 @@ class ImageryAutomation:
                 payload=payload,
             )
             tf.last_indicator_job = body.get("job_id")
+            # `/v1/process/batch` **غير متزامن**: يُرجِع `pending` فور جدولة المهمّة
+            # الخلفيّة، والمهامّ الفرعيّة `{job_id}_{indicator}` تُنشَأ **داخلها**. القراءة
+            # الفوريّة كانت تصطدم بـ404 دائماً فلا تُكتَب أيّ قيمة طيفيّة
+            # (SPECTRAL-COLLECTOR-ASYNC-RACE-01). ننتظر حالة نهائيّة **مرّةً واحدة**
+            # للدفعة، لا مرّةً لكلّ مؤشّر.
+            if not await self._await_batch_terminal(tf, body):
+                return
             # Stage D: best-effort — استخرج متوسّط NDVI الحقيقيّ واحفظه (fail-safe).
             await self._collect_ndvi_value(tf, image, body)
             # D2b: best-effort — استخرج NDMI/MSI (تأكيد الإجهاد الطيفيّ) واحفظهما.
             await self._collect_spectral_values(tf, image, body)
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل طلب مؤشّرات الحقل %s: %s", tf.field_id, e)
+
+    async def _await_batch_terminal(self, tf: TrackedField, batch_body: dict) -> bool:
+        """ينتظر بلوغ دفعة المؤشّرات حالةً نهائيّة قبل قراءة نتائجها الفرعيّة.
+
+        يُرجِع ``True`` حين يصحّ الشروع في القراءة، و``False`` حين لا يصحّ — وعندئذٍ
+        **لا تُقرأ** النتائج أصلاً: نداء يعرف سلفاً أنّه سيصطدم بـ404 ليس «أفضل جهد»
+        بل ضجيج يُخفي السبب.
+
+        ثلاث نهايات مفصولة لأنّها ثلاثة أعطال مختلفة العلاج:
+
+        * **نهائيّة** ⇒ ``True``. حتّى ``failed`` تُقرأ: قد تنجح مؤشّرات وتفشل أخرى،
+          والمهمّة الفرعيّة الناجحة نتيجتها صالحة.
+        * **نفاد الميزانيّة** والمهمّة ما تزال قيد التنفيذ ⇒ ``False`` + ``warning``
+          + عدّاد. القيمة تُترَك ``NULL`` ولا تُختلَق، والدورة التالية تُعيد المحاولة.
+        * **مهمّة مجهولة (404)** ⇒ ``False`` فوراً بلا انتظار + عدّاد منفصل. الانتظار
+          هنا عبث: الحالة بالذاكرة قد تكون على نسخة أخرى من raster-service، والزمن
+          لن يُصلح ذلك. خلطها بالمهلة كان سيُخفي عطل نشر خلف «بطء».
+
+        ميزانيّة صفر تُعطّل الانتظار وتُعيد السلوك السابق حرفيّاً — بوّابة تراجع
+        تشغيليّة، وهي أيضاً ما يجعل تكذيب هذا الإصلاح ممكناً في اختبار.
+        """
+        job_id = batch_body.get("job_id") or tf.last_indicator_job
+        if not job_id:
+            return False
+        status = str(batch_body.get("status") or "")
+        if status in _BATCH_TERMINAL_STATUSES:
+            # مسار إلغاء التكرار: الدفعة مكتملة سلفاً وأُعيد job_id السلطويّ نفسه.
+            self._batch_waits_terminal += 1
+            return True
+        budget = _batch_wait_budget_s()
+        if budget <= 0:
+            return True
+        interval = _batch_poll_interval_s()
+        deadline = datetime.now(UTC) + timedelta(seconds=budget)
+        last_seen = status or "pending"
+        while True:
+            body = await get_job_status(job_id, tenant_id=tf.tenant_id)
+            if body is None:
+                self._batch_waits_unknown += 1
+                logger.warning(
+                    "دفعة مؤشّرات مجهولة لدى raster-service (%s/%s) — لا قراءة ولا انتظار",
+                    tf.field_id,
+                    job_id,
+                )
+                return False
+            last_seen = str(body.get("status") or last_seen)
+            if last_seen in _BATCH_TERMINAL_STATUSES:
+                self._batch_waits_terminal += 1
+                return True
+            if datetime.now(UTC) >= deadline:
+                self._batch_waits_timed_out += 1
+                logger.warning(
+                    "دفعة مؤشّرات لم تكتمل خلال %.0fث (%s/%s، آخر حالة: %s) — "
+                    "تُترَك القيم NULL وتُعاد المحاولة في الدورة التالية",
+                    budget,
+                    tf.field_id,
+                    job_id,
+                    last_seen,
+                )
+                return False
+            await asyncio.sleep(interval)
 
     async def _fetch_index_mean(
         self, job_id: str, indicator: str, tenant_id: str | None = None
@@ -630,8 +742,27 @@ class ImageryAutomation:
         «{batch_job_id}_{indicator}»، ونتيجتها GET /v1/jobs/{id}/result بشكل
         {stats:{mean, valid_pixels, ...}}. صدق: نُرجِع المتوسّط فقط حين valid_pixels>0
         (وإلّا 0.0 افتراضيّ بلا معنى). fail-safe تامّ: أيّ تعذّر ⇒ None (لا تلفيق).
+
+        **409 يُترجَم None لا استثناءً:** الدفعة تبلغ حالةً نهائيّة وقد يفشل فيها مؤشّر
+        واحد، فتبقى مهمّته الفرعيّة غير مكتملة ويردّ `/result` بـ409. تركُ الاستثناء
+        ينتشر كان يُسقِط **بقيّة** المؤشّرات في المستدعي نفسه (`_collect_spectral_values`
+        يقرأ NDMI ثمّ MSI بالتتابع)، فيضيع مؤشّر ناجح بسبب آخر فاشل. المؤشّر غير المكتمل
+        ليس عطلاً في القراءة، بل **غياب قيمة** — وهذا تعريف None هنا.
         """
-        body = await get_job_result(f"{job_id}_{indicator}", tenant_id=tenant_id)
+        from fastapi import HTTPException
+
+        try:
+            body = await get_job_result(f"{job_id}_{indicator}", tenant_id=tenant_id)
+        except HTTPException as exc:
+            if exc.status_code == 409:
+                logger.debug(
+                    "مهمّة فرعيّة غير مكتملة (%s_%s): %s — لا قيمة",
+                    job_id,
+                    indicator,
+                    exc.detail,
+                )
+                return None
+            raise
         if not body:
             return None
         stats = (body or {}).get("stats") or {}
