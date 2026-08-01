@@ -107,6 +107,25 @@ _GENERATE_FLAG.update(
     }
 )
 
+# العشرة أدناه أُغلِقت بالشرط المُعلَن في generated_sweep_unmapped_generators.json، لا
+# بالثقة في وجود العلم: لكلٍّ منها أُفسِدت مصنوعة يملكها ⇒ `--check` رصد الإفساد
+# (خرج بغير صفر)، ثمّ شُغِّل العلم ⇒ `--check` عاد بصفر **والملفّ استُعيد بايتاً بايت**.
+# وكلّها خاملة على شجرة نظيفة (تشغيل العلم لا يُغيّر شيئاً)، فوصلها لا يُوسّخ الشجرة.
+_GENERATE_FLAG.update(
+    {
+        "capability_roadmap_linker.py": "--generate",
+        "compose_runtime_target_resolver.py": "--generate",
+        "gateway_reachability_guard.py": "--generate",
+        "integration_runtime_governance_closure.py": "--generate",
+        "path3_runtime_readiness_closure.py": "--generate",
+        "production_evidence_pack_guard.py": "--write",
+        "report_index_guard.py": "--write",
+        "runtime_certification_gate.py": "--generate",
+        "runtime_evidence_ingestion.py": "--generate",
+        "runtime_verification_harness.py": "--generate",
+    }
+)
+
 # علم كتابة يُعلنه سكربت في مصدره — يُميّز «كاتب لم يُستدعَ» عن «فحص بلا مولّد».
 _WRITE_FLAG_DECL = re.compile(r"""["'](--(?:write|apply|generate)[a-z-]*)["']""")
 

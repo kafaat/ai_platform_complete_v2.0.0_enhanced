@@ -313,13 +313,19 @@ def test_the_unmapped_baseline_is_itself_held_to_the_truth(tmp_path):
             "مدخل بائت في الأساس لم يُرصَد"
         )
 
+        # الهدف يُختار **من الأساس الحيّ** لا بالاسم: الصيغة السابقة ثبّتت
+        # `report_index_guard.py`، فلمّا أُغلِق ذلك المدخل وخرج من الأساس صار المسبار
+        # يفسد مدخلاً لا وجود له ⇒ لا شيء يُرصَد، وسقط الاختبار. وهذا سقوط **صحيح**:
+        # أمسك بياتَ نفسه. الاختيار الحيّ يُبقيه صادقاً كلّما تقلّص الأساس.
+        victim = next(iter(sorted(real["unmapped"])))
+        opposite = "--generate" if real["unmapped"][victim] != "--generate" else "--write"
         wrong = dict(real)
-        wrong["unmapped"] = {**real["unmapped"], "scripts/ci/report_index_guard.py": "--generate"}
+        wrong["unmapped"] = {**real["unmapped"], victim: opposite}
         path2 = tmp_path / "wrong.json"
         path2.write_text(json.dumps(wrong, ensure_ascii=False), encoding="utf-8")
         MOD.UNMAPPED_BASELINE = path2
-        assert any("report_index_guard.py" in p for p in MOD.flag_map_problems(steps)), (
-            "علم خاطئ مُسجَّل في الأساس لم يُرصَد"
+        assert any(victim in p for p in MOD.flag_map_problems(steps)), (
+            f"علم خاطئ مُسجَّل في الأساس لم يُرصَد ({victim})"
         )
     finally:
         MOD.UNMAPPED_BASELINE = original
