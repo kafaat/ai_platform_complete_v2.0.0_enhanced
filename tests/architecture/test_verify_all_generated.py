@@ -434,3 +434,61 @@ def test_the_attestation_runs_after_both_inventories_it_reads():
     assert attestation > ownership and attestation > budget
     assert binding > attestation
     assert position["scripts/ci/static_governance_closure.py"] > binding
+
+
+def test_unindexed_files_are_reported_because_no_generator_can_see_them(tmp_path):
+    """‏`GENERATED-SWEEP-UNINDEXED-FILES-INVISIBLE-01` — قاعدة كانت نصّاً بلا إنفاذ.
+
+    المولّدات تمسح ``git ls-files`` (مثال حيّ: ``capability_mapping_engine.py:203``)،
+    فملفّ لم يُضَف إلى الفهرس **لا يراه أيّ مولّد**. كانت القاعدة مكتوبة في docstring
+    المكنسة («`git add` قبل التشغيل ضرورة لا عادة») ولا تفرضها الأداة — فتخرج بصفر
+    بينما CI يرصد الانحراف بعد الالتزام. حدث ذلك فعليّاً على ``fe44832a``: انحرفت
+    مصنوعة ``capability_mapping`` بملفّ اختبار جديد لم يُضَف، والمكنسة كانت خضراء.
+
+    الفحص هنا على سلوك ``unindexed_files()`` في مستودع حقيقيّ مؤقّت — لا على نصّ
+    المكنسة، لأنّ الادّعاء أنّ الأداة **ترصد**، لا أنّها تذكر الكلمة.
+    """
+    import subprocess
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    run = lambda *a: subprocess.run(["git", *a], cwd=repo, capture_output=True, text=True)  # noqa: E731
+    run("init", "-q")
+    run("config", "user.email", "t@example.invalid")
+    run("config", "user.name", "t")
+    (repo / ".gitignore").write_text("ignored/\n", encoding="utf-8")
+    (repo / "tracked.py").write_text("x = 1\n", encoding="utf-8")
+    run("add", "-A")
+    run("commit", "-qm", "base")
+
+    original_root = MOD.ROOT
+    try:
+        MOD.ROOT = repo
+        assert MOD.unindexed_files() == [], "شجرة نظيفة أُبلِغ عنها كناقصة"
+
+        (repo / "new_test.py").write_text("y = 2\n", encoding="utf-8")
+        assert MOD.unindexed_files() == ["new_test.py"], "ملفّ غير مُفهرَس لم يُرصَد"
+
+        (repo / "ignored").mkdir()
+        (repo / "ignored" / "scratch.py").write_text("z = 3\n", encoding="utf-8")
+        assert MOD.unindexed_files() == ["new_test.py"], (
+            "المُتجاهَل أُبلِغ عنه — المولّد لا يراه ولا يُفترَض أن يراه، فالإبلاغ عنه ضجيج"
+        )
+
+        run("add", "-A")
+        assert MOD.unindexed_files() == [], "الفهرسة لم تُسكِت الإبلاغ"
+    finally:
+        MOD.ROOT = original_root
+
+
+def test_the_completeness_question_is_not_the_change_question():
+    """‏``tree_state()`` لا يسدّ هذه الثغرة، والخلط بينهما هو سبب بقائها مفتوحة.
+
+    ``tree_state`` يستعمل ``--untracked-files=no`` **عمداً**: يقيس *تغيّر* المتعقَّب
+    أثناء الفحص. و``unindexed_files`` يقيس *اكتمال المُدخَل* قبله. سؤالان مختلفان،
+    وعلمٌ واحد لا يجيبهما.
+    """
+    import inspect
+
+    assert "--untracked-files=no" in inspect.getsource(MOD.tree_state)
+    assert "--untracked-files=normal" in inspect.getsource(MOD.unindexed_files)
