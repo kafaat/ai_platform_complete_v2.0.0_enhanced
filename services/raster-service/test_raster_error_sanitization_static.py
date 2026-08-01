@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """حارس ساكن: لا تسريب نصّ الاستثناء (`str(e)`) في حقول الخطأ المكشوفة للعميل.
 
-raster-service يُرجِع حالة الوظائف عبر `/jobs/{id}/result` و`batch_failed` — فلا يجوز
+raster-service يُرجِع حالة الوظائف عبر `/v1/jobs/{id}/result` و`batch_failed` — فلا يجوز
 كتابة `str(e)` الخام (مسارات ملفّات/S3/SQL) في `error_message` أو عناصر `failed[...]`.
 يجب أن تكون رموزاً عامّة (processing_failed/scene_processing_failed) مع تسجيل
 `type(e).__name__` في log فقط.
