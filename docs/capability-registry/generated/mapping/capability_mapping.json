@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4810,
+    "files_scanned": 4812,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1263,
-      "tests": 1536,
+      "other": 1264,
+      "tests": 1537,
       "web": 448
     },
     "unmapped_artifacts": 1957,
@@ -25286,6 +25286,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_runtime_contract_key_classification.py",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "tests_v9/test_runtime_contract_indirect_env.py",
           "score": 10,
           "signals": [
@@ -25396,6 +25404,14 @@
           ]
         },
         {
+          "path": "docs/architecture/runtime_contract_nonsecret_keys.json",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "scripts/ci/container_fleet_contract_guard.py",
           "score": 12,
           "signals": [
@@ -25434,6 +25450,14 @@
             "content:MFA",
             "content:mfa"
           ]
+        },
+        {
+          "path": "scripts/ci/runtime_contract_generator.py",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
         }
       ],
       "ambiguous": [],
@@ -25447,9 +25471,9 @@
         "events": 4,
         "web": 5,
         "mobile": 4,
-        "tests": 14,
+        "tests": 15,
         "governance": 0,
-        "other_evidence": 15
+        "other_evidence": 17
       },
       "coverage_dimensions": 7,
       "mapped": true

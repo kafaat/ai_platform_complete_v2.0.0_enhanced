@@ -66,6 +66,48 @@ SECRET_MARKERS = (
     "ACCESS_KEY",
     "CREDENTIAL",
 )
+# RUNTIME-CONTRACT-KEY-SUFFIX-NOT-SECRET-01. The markers above are substrings, so a
+# name had to contain PRIVATE_KEY/API_KEY/ACCESS_KEY to count. Bare `..._KEY` matched
+# none of them, and ten signing and HMAC keys were published as ordinary configuration:
+# FCM_SERVER_KEY, SEASON_EDGE_HMAC_KEY, DECISION_WORKER_ASSERTION_KEY among them. A
+# contract that lists a signing key beside a log level is not merely untidy -- it is
+# reporting the service's secret surface as smaller than it is.
+#
+# Fail closed: the suffix means key material, and the exemptions are declared with the
+# source line that was read, never inferred from the name. Deliberately NOT a cleverer
+# regex: MFA_ALLOW_DERIVED_KEY and MFA_AUDIT_HASH_KEY differ by one word in one service,
+# and one is a boolean flag. A pattern that separated those two would be a pattern
+# fitted to thirteen known names -- a list wearing a pattern's clothes, which decays the
+# moment the fourteenth name arrives.
+KEY_SUFFIXES = ("_KEY", "_KEYS")
+NONSECRET_KEYS_FILE = ROOT / "docs" / "architecture" / "runtime_contract_nonsecret_keys.json"
+
+
+def declared_nonsecret_keys() -> set[str]:
+    """Names exempt from the ``*_KEY`` rule, read from their declaration.
+
+    Missing or malformed file yields an empty set, so every ``*_KEY`` name classifies
+    as a secret. Losing the exemptions must over-report secrets, never under-report
+    them: the failure has to fall on the safe side of the question it answers.
+    """
+    try:
+        data = json.loads(NONSECRET_KEYS_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    return {
+        str(e["name"]) for e in data.get("nonsecret", []) if isinstance(e, dict) and "name" in e
+    }
+
+
+def is_secret(name: str) -> bool:
+    """A variable is a secret by marker, or by carrying a key suffix without exemption."""
+    if any(marker in name for marker in SECRET_MARKERS):
+        return True
+    if name.endswith(KEY_SUFFIXES):
+        return name not in declared_nonsecret_keys()
+    return False
+
+
 CONFIG_EXCLUDE = {"PATH", "HOME", "HOSTNAME", "PWD", "PYTHONPATH"}
 
 
@@ -191,7 +233,7 @@ def scan_service(row: dict[str, str]) -> dict[str, Any]:
             evidence["tracing"].add(rel(path))
 
     route_groups = classify_routes(routes)
-    secrets = sorted(e for e in envs if any(marker in e for marker in SECRET_MARKERS))
+    secrets = sorted(e for e in envs if is_secret(e))
     configuration = sorted(e for e in envs if e not in secrets and e not in CONFIG_EXCLUDE)
     dockerfile = ROOT / row.get("dockerfile", "") if row.get("dockerfile") else None
     requirements = ROOT / row.get("requirements", "") if row.get("requirements") else None
