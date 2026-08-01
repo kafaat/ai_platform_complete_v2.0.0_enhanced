@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 508,
+      "evidence_count": 510,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -146,6 +146,7 @@
         "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
         "services/gis-workflow-service/bulletin_bundle.py",
         "services/gis-workflow-service/run_bundle.py",
+        "services/indicators-service/__init__.py",
         "services/indicators-service/main.py",
         "services/indicators-service/observation_runtime.py",
         "services/indicators-service/observation_timeline.py",
@@ -480,6 +481,7 @@
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
         "services/vegetation-analysis-service/vegetation_contracts.py",
         "services/vegetation-analysis-service/vegetation_runtime.py",
+        "services/weather-service/__init__.py",
         "services/weather-service/canonical_weather_state.py",
         "services/weather-service/chill_accumulation.py",
         "services/weather-service/lodging_risk.py",
@@ -2217,7 +2219,7 @@
         "services/sahool-platform/core/field_digital_twin.py",
         "services/sahool-platform/core/field_event_sourcing.py"
       ],
-      "source_evidence_count": 508,
+      "source_evidence_count": 510,
       "target_evidence_count": 453,
       "static_supported": true,
       "runtime_verified": false
@@ -2568,5 +2570,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "3393fcf4cccd7f900f1b24586db9eeaa3326d8a93a0b3d63aab8b4aedddd4fd4"
+  "content_sha256": "94ff38b5521a304736ef68fecd3a507b257bf73039d27e96f1515af8989077cc"
 }
