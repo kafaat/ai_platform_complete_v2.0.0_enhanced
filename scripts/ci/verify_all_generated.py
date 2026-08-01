@@ -401,6 +401,34 @@ def _sort_key(step: tuple[str, list[str]]) -> tuple[int, int, str]:
     return (1 if name in _LATE else 0, _ORDER_TIER.get(name, 0), step[0])
 
 
+def unindexed_files() -> list[str]:
+    """ملفّات غير متعقَّبة وغير مُتجاهَلة — أي غير مرئيّة لأيّ مولّد.
+
+    `GENERATED-SWEEP-UNINDEXED-FILES-INVISIBLE-01`. المولّدات تمسح `git ls-files`
+    (متعقَّب فقط — قرار #660 لمنع التقاط ملفّات محلّيّة غائبة عن checkout الـCI)، مثال
+    حيّ: `capability_mapping_engine.py:203`. فملفّ جديد لم يُضَف إلى الفهرس **لا يراه
+    أيّ مولّد**، وتخرج المكنسة بصفر بينما CI يرصد الانحراف بعد الالتزام.
+
+    القاعدة كانت مكتوبة في docstring هذا الملفّ («`git add` قبل التشغيل ضرورة لا
+    عادة») **ولا تفرضها الأداة**. وقاعدة بلا إنفاذ ليست قاعدة: نصّها لا يمنع أحداً،
+    وخضرة الأداة تُقرأ تصديقاً لتشغيلٍ لم يرَ نصف المُدخَل.
+
+    و`tree_state()` لا يسدّ هذه الثغرة: يستعمل `--untracked-files=no` عمداً — يقيس
+    **تغيّر** الملفّات المتعقَّبة، لا اكتمال المُدخَل. فالسؤالان مختلفان.
+
+    المُتجاهَلة (`.gitignore`) مستثناة: لا يراها المولّد ولا يُفترَض أن يراها.
+    """
+    proc = subprocess.run(  # noqa: S603 — أمر ثابت
+        ["git", "status", "--porcelain", "--untracked-files=normal"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        return []  # لا git ⇒ `tree_state()` يرفع الاستثناء المفصَّل بعد قليل
+    return sorted(line[3:] for line in proc.stdout.splitlines() if line.startswith("?? "))
+
+
 def tree_state() -> str:
     """حالة الملفّات المتتبَّعة — الإشارة الوحيدة التي لا يملك الحارس تزييفها.
 
@@ -498,6 +526,23 @@ def main() -> int:
 
     steps = discover()
     print(f"اكتُشفت {len(steps)} خطوة --check من {len(list(WORKFLOWS.glob('*.yml')))} workflow\n")
+
+    # اكتمال المُدخَل قبل أيّ قياس عليه: ملفّ غير مُفهرَس لا يراه أيّ مولّد، فنتيجة
+    # المكنسة عنه لا معنى لها — لا «سليم» ولا «منحرف»، بل **غير مقيس**. الإعلان أوّلاً
+    # لأنّ كلّ ما يليه مبنيّ عليه.
+    pending = unindexed_files()
+    if pending:
+        print("ملفّات غير مُفهرَسة — لا يراها أيّ مولّد، فنتيجة المكنسة عنها غير مقيسة:")
+        for path in pending[:20]:
+            print(f"  ✗ {path}")
+        if len(pending) > 20:
+            print(f"  … و{len(pending) - 20} غيرها")
+        print(
+            "\n  شغّل `git add -A` ثمّ أعِد المكنسة. الخضرة قبل الفهرسة تصديقٌ لتشغيلٍ\n"
+            "  لم يرَ نصف المُدخَل، وCI سيرصد الانحراف بعد الالتزام (مثال: مصنوعة\n"
+            "  capability_mapping تنحرف بملفّ اختبار جديد لم يُضَف)."
+        )
+        return 1
 
     # التصنيف أوّلاً: يقيس مدى الأداة نفسها. مولّد خارج كلّ workflow لا يظهر في أيّ فحص
     # أدناه، فالسكوت عنه يُحوّل نجاح المكنسة إلى ادّعاء تغطية لا تملكها.
