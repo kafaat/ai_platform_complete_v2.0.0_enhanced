@@ -1,11 +1,25 @@
 from __future__ import annotations
 
+import ast
 import json
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "shared/contracts/indicator_ownership.json"
+
+
+def _literal_return(path: Path, function_name: str) -> dict:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    node = next(
+        item
+        for item in tree.body
+        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name == function_name
+    )
+    returned = next(item for item in ast.walk(node) if isinstance(item, ast.Return))
+    value = ast.literal_eval(returned.value)
+    assert isinstance(value, dict)
+    return value
 
 
 def test_canonical_indicator_ownership_manifest_has_single_owner_per_product():
@@ -54,7 +68,9 @@ def test_spectral_formula_executables_are_inside_allowlist():
 
 
 def test_indicators_service_is_contract_only_not_spectral_owner():
-    text = (ROOT / "services/indicators-service/main.py").read_text(encoding="utf-8")
-    assert '"runtime_role": "contract-only"' in text
-    assert '"spectral_compute": False' in text
+    path = ROOT / "services/indicators-service/main.py"
+    text = path.read_text(encoding="utf-8")
+    root_contract = _literal_return(path, "root")
+    assert root_contract["runtime_role"] == "canonical-observation-adapter"
+    assert root_contract["spectral_compute"] is False
     assert "exclusively owned by raster-service" in text

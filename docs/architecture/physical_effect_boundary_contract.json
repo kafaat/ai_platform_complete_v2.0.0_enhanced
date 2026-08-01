@@ -1,0 +1,53 @@
+{
+  "$comment": "عقد حدّ الأثر الفيزيائيّ — المصدر القانونيّ الوحيد لمن يجوز له إطلاق أمر مُشغِّل، ولمن يُمنَع عليه بلوغه أصلاً. يفرضه scripts/ci/physical_effect_boundary_guard.py على الكود المُنفَّذ وحده (تُجرَّد docstrings والتعليقات عبر AST). قاعدتان مختلفتان عمداً: إطلاق الأثر مقيَّد **عالميّاً** بقائمة السماح أدناه، بينما البلوغ عبر الاستيراد مقيَّد **داخل مناطق الدماغ وحدها** — لأنّ استيراد وحدات التوزيع داخل المنصّة سلوك طبيعيّ، ومن الدماغ تجاوزٌ للمراجعة عبر وسيط. ويُفرَض عكسيّاً: إدخال سماح بلا مسار حيّ مطابق يُسقِط CI، وإدخال سماح داخل منطقة دماغ يُسقِط CI — فلا يُعالَج خرقٌ مستقبليّ بترخيصه.",
+  "gap": "BRAIN-ACTUATOR-BYPASS-UNGUARDED-01",
+  "adjudicated_on": "2026-07-31",
+  "canonical_path": "توصية محرّك ⇒ حواجز (guardrails) ⇒ بوّابة موافقة ⇒ core.decision_dispatch (نقيّ، بلا I/O) ⇒ core.dispatch_executor (يُدرِج قرار READY فقط) ⇒ core.actuator_command (بناء أمر نقيّ) ⇒ actuator-service يستهلك الطابور ويوقّع HMAC ثمّ ينشر الأمر. الدماغ يُصدِر مرشّح قرار يُراجَع، لا أمراً يُنفَّذ.",
+  "state_at_adjudication": "صفر خرق. الحدّ سليم اليوم بالقياس (لا ملفّ في منطقة دماغ يحمل مسار أثر أو استيراد بلوغ)، فهذا الحارس **يُجمّد حالة قائمة صحيحة** ولا يُصلِح خرقاً قائماً — الفرق مذكور صراحةً كي لا يُقرأ إغلاقُ الفجوة إصلاحَ عطل.",
+  "forbidden_zones": [
+    {
+      "path": "services/supervisor-agent",
+      "why": "وكيل الإشراف: يخطّط ويستدعي أدوات مصنَّفة بآثارها الجانبيّة (tool_contracts.SideEffectClass). التصنيف يصف الأداة؛ التنفيذ الفيزيائيّ ليس له."
+    },
+    {
+      "path": "services/ai_agronomist",
+      "why": "مولّد التوصيات: ينشر أحداث دورة حياة التوصية (recommendation.*) وهي مرشّحات تُراجَع — لا أوامر."
+    },
+    {
+      "path": "services/agriai-engine",
+      "why": "محرّك نماذج زراعيّة: يحسب ويقترح؛ لا منفذ تنفيذ."
+    },
+    {
+      "path": "services/mcp_servers",
+      "why": "أدوات MCP مكشوفة لمزوّد LLM. أداة تصل للمُشغِّل تعني نموذجاً يُطلِق أثراً فيزيائيّاً بلا موافقة بشريّة — أخطر أشكال التجاوز."
+    },
+    {
+      "path": "agents",
+      "why": "الوكلاء الموزّعون (base_agent/notification) يملكون عميل NATS، فموضوع أمر واحد يكفي لتجاوز الحلقة كلّها."
+    }
+  ],
+  "allowlist": [
+    {
+      "path": "services/actuator-service/actuator_runtime.py",
+      "category": "actuator_client_implementation",
+      "why": "المُشغِّل نفسه: الموضع القانونيّ الوحيد الذي ينشر أمراً موقَّعاً (HMAC) على sahool/actuator/{device_id}/command بعد استهلاك الطابور. منع النشر هنا يعني خدمة بلا وظيفة."
+    },
+    {
+      "path": "services/sahool-platform/api/phase_runtime_workers.py",
+      "category": "approved_relay_worker",
+      "why": "عامل الترحيل المعتمَد: ينشر موضوع NATS sahool.actuator.dispatch.requested كإشعار توزيع للقرارات المُدرَجة (READY فقط، بعد الحواجز والموافقة). ترحيل بين طبقتين معتمدتين، لا إصدار أمر من دماغ."
+    }
+  ],
+  "not_in_allowlist_by_measurement": {
+    "$comment": "أُدرِج ما يُطلِق فعلاً، لا ما يُتوقَّع أن يُطلِق. ثلاثة مواضع بدت مرشَّحة وسقطت بالقياس:",
+    "services/sahool-platform/core/actuator_command.py": "يبني شكل الأمر ويسمّي الموضوع في docstring فقط — نقيّ بلا I/O، فلا يطابق بعد تجريد التوثيق.",
+    "services/sahool-platform/core/dispatch_executor.py": "يُدرِج في الطابور ولا يُطلِق MQTT مطلقاً (موثَّق في مصدره) — الإدراج حدّ المنصّة الآمن.",
+    "services/decision-service/persistence.py": "منفذ طلبات التنفيذ **للقراءة فقط**: تغذية اكتشاف تُعدِّد الطلبات المُدرَجة لمُهيّئ لاحق. القراءة ليست إطلاقاً."
+  },
+  "must_not_flag": {
+    "$comment": "حالات مشروعة تعمّدنا ألّا تُلتقَط — لكلٍّ منها مصدر حيّ يُثبِت أنّ القاعدة لا تصطاده:",
+    "decision_candidate_emission": "services/ai_agronomist/recommendation_events.py — مواضيع recommendation.* (created/approved/executed) إعلانُ دورة حياة مرشّح، لا أمر تشغيل.",
+    "non_executive_audit_read": "services/supervisor-agent/routers/agent.py:184 — GET /v1/agent/actuator-audit يقرأ سجلّ الاستدعاءات (admin + مستأجِر). قراءة تدقيقيّة لا تنفيذ.",
+    "side_effect_free_contract": "services/supervisor-agent/tool_contracts.py:49 — SideEffectClass.ACTUATOR تصنيفٌ يفرض idempotency/max_retries=0. تسمية الخطر ليست ارتكابه."
+  }
+}

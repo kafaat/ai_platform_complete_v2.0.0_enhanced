@@ -109,6 +109,120 @@ def _env_float(name: str, default: float, *, minimum: float | None = None) -> fl
     return value
 
 
+# ── مرشّح الغيوم: شرط جودة، لا حقل اختياريّ ──────────────────────────────────
+# SILENT-EXCEPTION-HANDLERS-11-01، آخر المواضع. كان `except (TypeError, ValueError): pass`
+# يسقط إلى `filtered.append(feature)` — أي أنّ قيمة `eo:cloud_cover` **غير القابلة
+# للتحليل تُقبَل المشهدَ**. والتعليق فوقه يقول إنّ هذا المرشّح موجود تحديداً لأنّ مسار
+# fallback قد يكون أسقط مرشّح المزوّد؛ فهو أحياناً المرشّح **الوحيد** العامل.
+#
+# المبدأ الحاكم (قرار المالك): «عدم القدرة على إثبات أنّ المشهد تحت الحدّ لا يساوي
+# إثبات أنّه صالح».
+#
+# لكنّ `invalid` و`missing` ليسا سواءً:
+#   • `"bad"` ⇒ بيانات وصفيّة **تالفة** ⇒ رفض (`invalid_cloud_cover`).
+#   • غياب الحقل ⇒ **جودة مجهولة**؛ رفضه اليوم بلا قياس حيّ قد يحوّل نقص بيانات من
+#     المزوّد إلى فقد مشاهد واسع. فيُقبَل مؤقّتاً مع تسجيله وعدّه صراحةً
+#     (`quality_unknown`) حتّى تُقاس نسبته في بيئة حيّة، ثمّ تُشدَّد السياسة بقرار.
+# وفي الحالتين **لا إسقاط صامت**: لكلّ مشهد سطر تشخيص بسببه وقيمته الخام.
+_CLOUD_POLICY_ENV = "CDSE_CLOUD_POLICY"
+_ALLOW_UNKNOWN = "allow_unknown"
+
+# عدّادان مُسمّيان — لا حقل `reason` داخل قائمة تشخيص. الفرق ليس شكليّاً: قرار قبول
+# `missing` مؤقّت **مشروط بقياس نسبته حيّاً ثمّ التشديد**؛ وبلا عدّاد يقرأه أحد يستحيل
+# ذلك القياس، فتتحوّل السياسة المؤقّتة إلى دائمة صامتاً. النمط نفسه المستعمل في
+# `tile_observability.TILE_OBS` — داخل العمليّة، منخفض البطاقات.
+CDSE_METADATA_OBS: dict[str, int] = {
+    "cdse_metadata_invalid_rejected": 0,
+    "cdse_metadata_missing_accepted": 0,
+    "cdse_metadata_invalid_accepted_allow_unknown": 0,
+}
+
+
+def metadata_obs_inc(name: str, amount: int = 1) -> None:
+    """يزيد عدّاد جودة بيانات CDSE الوصفيّة."""
+    CDSE_METADATA_OBS[name] = int(CDSE_METADATA_OBS.get(name, 0)) + amount
+
+
+def metadata_obs_snapshot() -> dict[str, int]:
+    """لقطة للعدّادات — تُعرَض عبر /metrics بلا كشف معرّفات مشاهد."""
+    return dict(CDSE_METADATA_OBS)
+
+
+def _cloud_policy() -> str:
+    """``strict`` (افتراض) يرفض التالف؛ ``allow_unknown`` عقد صريح يقبل المجهول.
+
+    الافتراضيّ **ليس** ``allow_unknown`` عمداً: وضع البحث الذي يسمح بجودة مجهولة
+    عقدٌ مختلف يُطلَب صراحةً، لا سلوك يُورَث صامتاً.
+    """
+    return (os.getenv(_CLOUD_POLICY_ENV, "strict") or "strict").strip().lower()
+
+
+def _apply_cloud_filter(features: list[dict], cloud: float) -> tuple[list[dict], list[dict]]:
+    """يُرجِع (المشاهد المقبولة، تشخيص كلّ مشهد غير مُثبَت الجودة).
+
+    التصنيف صريح لكلّ مشهد: ``accepted`` · ``rejected_over_threshold`` ·
+    ``invalid_cloud_cover`` · ``quality_unknown``.
+    """
+    policy = _cloud_policy()
+    accepted: list[dict] = []
+    diagnostics: list[dict] = []
+    for feature in features:
+        props = feature.get("properties") or {}
+        raw = props.get("eo:cloud_cover")
+        scene_id = feature.get("id") or props.get("productIdentifier") or "<unknown>"
+
+        if raw is None:
+            # غياب ≠ صفر. لا يُحوَّل إلى 0.0 (وهو ما كان يجعله يمرّ أيّ عتبة).
+            diagnostics.append(
+                {
+                    "scene_id": scene_id,
+                    "accepted": True,
+                    "reason": "quality_unknown",
+                    "raw_value": None,
+                    "provider": "cdse",
+                }
+            )
+            metadata_obs_inc("cdse_metadata_missing_accepted")
+            accepted.append(feature)
+            continue
+
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            accepted_flag = policy == _ALLOW_UNKNOWN
+            diagnostics.append(
+                {
+                    "scene_id": scene_id,
+                    "accepted": accepted_flag,
+                    "reason": "invalid_cloud_cover",
+                    "raw_value": raw,
+                    "provider": "cdse",
+                }
+            )
+            metadata_obs_inc(
+                "cdse_metadata_invalid_accepted_allow_unknown"
+                if accepted_flag
+                else "cdse_metadata_invalid_rejected"
+            )
+            if accepted_flag:
+                accepted.append(feature)
+            continue
+
+        if value > cloud:
+            continue  # فوق العتبة — رفض عاديّ مُثبَت، لا تشخيص
+        accepted.append(feature)
+    return accepted, diagnostics
+
+
+def _summarize_cloud_diagnostics(diagnostics: list[dict]) -> str:
+    """ملخّص مُجمَّع بالسبب — لا يطبع مشهداً مشهداً كي لا يُغرِق السجلّ."""
+    counts: dict[str, int] = {}
+    for d in diagnostics:
+        key = f"{d['reason']}:{'accepted' if d['accepted'] else 'rejected'}"
+        counts[key] = counts.get(key, 0) + 1
+    return ", ".join(f"{k}={v}" for k, v in sorted(counts.items()))
+
+
 def _env_int(name: str, default: int, *, minimum: int | None = None) -> int:
     try:
         value = int(os.getenv(name, str(default)))
@@ -632,16 +746,13 @@ class CdseClient:
                 data = resp.json()
                 features = list(data.get("features") or [])
                 # Defensive client-side cloud filter in case fallback removed the provider filter.
-                filtered: list[dict] = []
-                for feature in features:
-                    props = feature.get("properties") or {}
-                    cc = props.get("eo:cloud_cover")
-                    try:
-                        if cc is not None and float(cc) > cloud:
-                            continue
-                    except (TypeError, ValueError):
-                        pass
-                    filtered.append(feature)
+                filtered, diagnostics = _apply_cloud_filter(features, cloud)
+                if diagnostics:
+                    logger.warning(
+                        "CDSE cloud filter: %s مشهداً بجودة غير مُثبَتة — %s",
+                        len(diagnostics),
+                        _summarize_cloud_diagnostics(diagnostics),
+                    )
                 return filtered
             except httpx.TransportError as exc:
                 if attempt >= max_retries:

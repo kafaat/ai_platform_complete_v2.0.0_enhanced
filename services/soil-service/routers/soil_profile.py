@@ -2,9 +2,9 @@
 
 يسدّ فجوة حقيقيّة: soil-service كان يخزّن قراءات الحسّاسات فقط دون تفسير زراعيّ.
 مصدرا الحقيقة:
-  • ``POST /soil/suitability`` — نقيّ: من خصائص مُعطاة (قوام/pH/EC) ⇒ صنف القوام +
+  • ``POST /v1/soil/suitability`` — نقيّ: من خصائص مُعطاة (قوام/pH/EC) ⇒ صنف القوام +
     ترتيب ملاءمة المحاصيل (لا قاعدة/شبكة — تفسير حتميّ شفّاف).
-  • ``GET  /soil/soilgrids`` — يجلب خصائص التربة من SoilGrids لإحداثيّة (fail-soft:
+  • ``GET  /v1/soil/soilgrids`` — يجلب خصائص التربة من SoilGrids لإحداثيّة (fail-soft:
     503 صادق عند تعذّر الوصول، لا اختراع قيمة) ثمّ يُفسّرها كأعلاه.
 
 الأمان: توكن الخدمة (``_require_service_token``) كبقيّة مسارات الخدمة. لا قاعدة ⇒ لا
@@ -43,7 +43,7 @@ def _interpret(clay, sand, silt, ph, ec) -> dict:
     return {"texture": texture, "crops": crops}
 
 
-@router.post("/soil/suitability")
+@router.post("/v1/soil/suitability")
 async def soil_suitability(req: SuitabilityRequest, x_agent_token: str = Header(None)):
     """قوام USDA + ترتيب ملاءمة المحاصيل من خصائص مُعطاة (حساب نقيّ حتميّ)."""
     main._require_service_token(x_agent_token)
@@ -54,7 +54,7 @@ async def soil_suitability(req: SuitabilityRequest, x_agent_token: str = Header(
     return {"source": "input", **result}
 
 
-@router.get("/soil/soilgrids")
+@router.get("/v1/soil/soilgrids")
 async def soil_from_soilgrids(
     lon: float = Query(..., ge=-180, le=180),
     lat: float = Query(..., ge=-90, le=90),

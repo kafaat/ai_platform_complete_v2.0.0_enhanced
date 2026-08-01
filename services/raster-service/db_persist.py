@@ -1004,7 +1004,7 @@ async def field_owner_tenant(field_id: str) -> str | None:
 async def layer_owner_tenant(layer_id: str) -> str | None:
     """مالك طبقة راستر persisted من raster_assets.
 
-    fallback دفاعي لمسارات /tiles/{layer_id} بعد إعادة التشغيل عندما لا تكون
+    fallback دفاعي لمسارات /v1/tiles/{layer_id} بعد إعادة التشغيل عندما لا تكون
     _layers محمّلة في الذاكرة. لا يعيد بيانات الطبقة؛ فقط tenant_id.
     """
     if not DATABASE_URL:

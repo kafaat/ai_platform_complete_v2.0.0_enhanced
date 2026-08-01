@@ -27,7 +27,7 @@ def test_add_field_has_client_boundary_improvement_tools():
 def test_live_segmentation_platform_gate_exists_and_uses_platform_route():
     gate = _read("scripts/e2e/segmentation_platform_live_gate.py")
     assert "SAHOOL_JWT" in gate
-    assert "/api/segmentation/segment" in gate
+    assert "/api/segmentation/v1/segment" in gate
     assert "SEGMENTATION_REQUIRE_MODEL" in gate
     assert "SAM2_BASE_URL" in gate
     assert "model_loaded" in gate

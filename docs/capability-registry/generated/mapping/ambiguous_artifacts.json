@@ -771,37 +771,23 @@
     "kind": "other",
     "candidates": [
       {
+        "capability_id": "GIS-003",
+        "score": 19,
+        "signals": [
+          "content:contour",
+          "content:dem",
+          "content:hillshade",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
         "capability_id": "SOIL-002",
-        "score": 13,
+        "score": 18,
         "signals": [
           "content:Soil sampling",
           "content:sampling plan",
           "content:soil sampling"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 12,
-        "signals": [
-          "content:cdse",
-          "content:stac"
-        ]
-      },
-      {
-        "capability_id": "SAT-009",
-        "score": 11,
-        "signals": [
-          "content:cog",
-          "content:tilejson"
-        ]
-      },
-      {
-        "capability_id": "PA-001",
-        "score": 11,
-        "signals": [
-          "content:Management zones",
-          "content:management zone",
-          "content:productivity zone"
         ]
       }
     ]
@@ -1071,6 +1057,29 @@
         "signals": [
           "content:field geometry",
           "content:field workspace"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/raster_service_route_migration_plan.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 12,
+        "signals": [
+          "content:dem",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 9,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
         ]
       }
     ]
@@ -1710,6 +1719,29 @@
         "signals": [
           "content:Scouting",
           "content:scouting"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/testing/unmarked_tests_baseline.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 9,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
         ]
       }
     ]
@@ -8036,29 +8068,6 @@
     ]
   },
   {
-    "path": "services/supervisor-agent/crop_model_skill.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-002",
-        "score": 12,
-        "signals": [
-          "content:Weather forecast",
-          "content:forecast",
-          "content:weather forecast"
-        ]
-      }
-    ]
-  },
-  {
     "path": "services/supervisor-agent/main.py",
     "kind": "backend",
     "candidates": [
@@ -8076,28 +8085,6 @@
         "signals": [
           "content:Human approval",
           "content:approval workflow"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/supervisor-agent/remote_sensing_skill.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "SAT-003",
-        "score": 12,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "SAT-007",
-        "score": 10,
-        "signals": [
-          "content:Change detection",
-          "content:change detection"
         ]
       }
     ]
@@ -8801,6 +8788,45 @@
     ]
   },
   {
+    "path": "tests_v9/test_api_versioning_policy_guard.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 14,
+        "signals": [
+          "content:dem",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "SOIL-001",
+        "score": 12,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      },
+      {
+        "capability_id": "SEC-004",
+        "score": 12,
+        "signals": [
+          "content:MFA",
+          "content:mfa"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 12,
+        "signals": [
+          "content:inventory",
+          "content:procurement"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_canonical_as_applied_irrigation.py",
     "kind": "tests",
     "candidates": [
@@ -9429,7 +9455,7 @@
     "candidates": [
       {
         "capability_id": "GIS-003",
-        "score": 18,
+        "score": 20,
         "signals": [
           "content:dem",
           "content:hillshade",
@@ -9490,15 +9516,6 @@
           "content:dem",
           "content:slope",
           "content:terrain"
-        ]
-      },
-      {
-        "capability_id": "SEC-004",
-        "score": 15,
-        "signals": [
-          "content:MFA",
-          "content:mfa",
-          "content:totp"
         ]
       },
       {

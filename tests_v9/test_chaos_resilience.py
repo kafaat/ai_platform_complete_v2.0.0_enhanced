@@ -17,6 +17,10 @@ import sys
 import tempfile
 import types
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 BASE = os.path.join(os.path.dirname(__file__), "..")
 
 

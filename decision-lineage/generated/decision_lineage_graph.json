@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 508,
+      "evidence_count": 510,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -146,6 +146,7 @@
         "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
         "services/gis-workflow-service/bulletin_bundle.py",
         "services/gis-workflow-service/run_bundle.py",
+        "services/indicators-service/__init__.py",
         "services/indicators-service/main.py",
         "services/indicators-service/observation_runtime.py",
         "services/indicators-service/observation_timeline.py",
@@ -162,6 +163,7 @@
         "services/raster-service/routers/fields.py",
         "services/raster-service/routers/timeseries_routes.py",
         "services/raster-service/stac_search.py",
+        "services/raster-service/test_cdse_empty_raster_not_cached.py",
         "services/raster-service/test_imagery_source_gate.py",
         "services/raster-service/test_indicator_observation_bundle.py",
         "services/raster-service/test_raster_validated_product.py",
@@ -458,7 +460,6 @@
         "services/soil-service/test_soil_p6_certification.py",
         "services/soil-service/test_soil_snapshot_identity.py",
         "services/soil-service/test_soil_supersession_current_pointer.py",
-        "services/supervisor-agent/remote_sensing_skill.py",
         "services/supervisor-agent/skills/remote_sensing_skill.py",
         "services/supervisor-agent/tool_contracts.py",
         "services/vegetation-analysis-service/anomaly_engine.py",
@@ -480,6 +481,7 @@
         "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
         "services/vegetation-analysis-service/vegetation_contracts.py",
         "services/vegetation-analysis-service/vegetation_runtime.py",
+        "services/weather-service/__init__.py",
         "services/weather-service/canonical_weather_state.py",
         "services/weather-service/chill_accumulation.py",
         "services/weather-service/lodging_risk.py",
@@ -548,7 +550,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 455,
+      "evidence_count": 453,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -982,9 +984,7 @@
         "services/soil-service/test_soil_p1_products.py",
         "services/soil-service/test_soil_p3_products.py",
         "services/soil-service/test_soil_p5_certification.py",
-        "services/supervisor-agent/crop_model_skill.py",
         "services/supervisor-agent/main.py",
-        "services/supervisor-agent/remote_sensing_skill.py",
         "services/supervisor-agent/skills/crop_model_skill.py",
         "services/supervisor-agent/skills/remote_sensing_skill.py",
         "services/vegetation-analysis-service/anomaly_engine.py",
@@ -2219,8 +2219,8 @@
         "services/sahool-platform/core/field_digital_twin.py",
         "services/sahool-platform/core/field_event_sourcing.py"
       ],
-      "source_evidence_count": 508,
-      "target_evidence_count": 455,
+      "source_evidence_count": 510,
+      "target_evidence_count": 453,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2320,7 +2320,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 455,
+      "source_evidence_count": 453,
       "target_evidence_count": 159,
       "static_supported": true,
       "runtime_verified": false
@@ -2570,5 +2570,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "c02c6e741acd2f586404ed44ff904215bb0ef5d163809be7dd51eafb4b599fbe"
+  "content_sha256": "94ff38b5521a304736ef68fecd3a507b257bf73039d27e96f1515af8989077cc"
 }

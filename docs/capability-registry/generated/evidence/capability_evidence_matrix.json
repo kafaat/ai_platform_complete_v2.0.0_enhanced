@@ -760,7 +760,7 @@
         "backend": true,
         "database": true,
         "documentation": true,
-        "events": false,
+        "events": true,
         "integration_tests": false,
         "mobile": true,
         "production": false,
@@ -769,7 +769,7 @@
         "unit_tests": true,
         "web": true
       },
-      "evidence_score": 7,
+      "evidence_score": 8,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
@@ -779,6 +779,7 @@
       "title": "Inventory and procurement",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_data_inventory.py",
+        "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_inventory_equipment.py",
         "tests_v9/test_odoo_bridge_tenant_honesty.py",
         "tests_v9/test_platform_main_subinventory_guard.py"
@@ -961,6 +962,7 @@
         "services/soil-service/test_soil_p2_products.py",
         "services/soil-service/test_soil_p3_products.py",
         "tests_v9/test_actuator_idempotency.py",
+        "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_canonical_sprinkler_runoff_capability.py",
         "tests_v9/test_canonical_vri_prescription.py",
         "tests_v9/test_dem_quality_and_registry_v63_6.py",
@@ -2155,6 +2157,7 @@
         "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
         "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
         "services/raster-service/test_cdse_date_normalization.py",
+        "services/raster-service/test_cdse_empty_raster_not_cached.py",
         "services/raster-service/test_cdse_process_rate_limit.py",
         "services/raster-service/test_cdse_tilejson_availability.py",
         "services/raster-service/test_clip_grid.py",
@@ -2169,6 +2172,7 @@
         "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
         "tests_v9/test_cdse_and_storage_failclosed_v29_8.py",
         "tests_v9/test_cdse_catalog_hardening_20260626.py",
+        "tests_v9/test_cdse_cloud_filter_policy.py",
         "tests_v9/test_cdse_evalscript.py",
         "tests_v9/test_cdse_latest_window_singleflight_guard.py",
         "tests_v9/test_cdse_process_throttle_retry_guard.py",
@@ -2278,6 +2282,7 @@
         "services/raster-service/test_indicator_batch_claim.py",
         "services/raster-service/test_indicator_observation_bundle.py",
         "services/raster-service/test_indicator_product_identity.py",
+        "services/raster-service/test_persisted_thumbnail_path.py",
         "services/raster-service/test_raster_indicator_product.py",
         "services/raster-service/test_raster_runtime_certification.py",
         "services/raster-service/test_tile_tenant_query.py",
@@ -2351,7 +2356,6 @@
         "tests_v9/test_imagery_product_identity_canonical.py",
         "tests_v9/test_kc_from_ndvi.py",
         "tests_v9/test_kc_ndvi.py",
-        "tests_v9/test_live_guardrails_adapter.py",
         "tests_v9/test_ndvi_evidence_policy.py",
         "tests_v9/test_ndvi_repoint_raster_service.py",
         "tests_v9/test_ndvi_threshold_gating.py",
@@ -2854,14 +2858,14 @@
       "title": "MFA",
       "unit_test_paths": [
         "services/sahool-platform/tests/test_break_glass.py",
+        "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_auth_admin_stepup_mfa.py",
         "tests_v9/test_auth_mfa_enforcement.py",
         "tests_v9/test_decomposed_service_dockerfile_guard.py",
         "tests_v9/test_elevated_context_scope.py",
         "tests_v9/test_field_geometry_history_append_only_v39_5.py",
         "tests_v9/test_mfa_crypto_v29_5.py",
-        "tests_v9/test_mfa_totp_antireplay_v141.py",
-        "tests_v9/test_roadmap_phase23.py"
+        "tests_v9/test_mfa_totp_antireplay_v141.py"
       ]
     },
     {
@@ -3083,9 +3087,11 @@
       "unit_test_paths": [
         "services/agriai-engine/tests/test_agronomic_adapters.py",
         "services/decision-service/tests/test_soil_profile_context_gate.py",
+        "services/sahool-platform/tests/test_canonical_soil_state.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "services/soil-service/test_canonical_soil_profile.py",
         "services/soil-service/test_soil_snapshot_identity.py",
+        "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_canonical_root_zone_profile.py",
         "tests_v9/test_hourly_energy_aware_irrigation_mpc.py"
       ]
@@ -3746,11 +3752,11 @@
         "mobile": false,
         "production": false,
         "runtime": false,
-        "runtime_instrumentation": false,
+        "runtime_instrumentation": true,
         "unit_tests": true,
         "web": false
       },
-      "evidence_score": 4,
+      "evidence_score": 5,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",

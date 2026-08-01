@@ -4,6 +4,8 @@ import pytest
 from api.geospatial_integrity import validate_field_geometry
 from api.gis_geometry_guard import guard_field_geometry
 
+pytestmark = pytest.mark.unit
+
 
 def _poly(lon: float, lat: float) -> list[list[float]]:
     return [[lon, lat], [lon + 0.01, lat], [lon + 0.01, lat + 0.01], [lon, lat + 0.01], [lon, lat]]

@@ -3,11 +3,11 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `a3182943d4c7468de64299d2e05a939c48968b9274263810c83d6bc562e9a562`
+- fingerprint: `f43ca80e2c8e5bf1c607db6dac596c70b129aa0af0df580de4850f2d3b3ebc69`
 - components: **34** (backend: 32)
-- route rows: **1105** → unique method/path: **991**
-- capabilities (derived, uncurated): **853**
-- cross-service duplicate method/paths: **15**
+- route rows: **1105** → unique method/path: **998**
+- capabilities (derived, uncurated): **820**
+- cross-service duplicate method/paths: **12**
 - ownership conflicts (incl. TBD/alias): **0**
 - UI waivers pending U4 classification: **52**
 
@@ -64,13 +64,10 @@
 | `GET` | `/contract` | `standard_service_contract` | `service-local` | `permanent` |
 | `GET` | `/health` | `standard_health_alias` | `service-local` | `2026-12-31` |
 | `GET` | `/healthz` | `standard_liveness` | `service-local` | `permanent` |
-| `POST` | `/ingest` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/metrics` | `standard_observability` | `service-local` | `permanent` |
-| `POST` | `/plan` | `legacy_bff_facade` | `agriai-engine` | `2026-12-31` |
-| `GET` | `/products` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
-| `POST` | `/query` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/readyz` | `standard_readiness` | `service-local` | `permanent` |
-| `POST` | `/recommend` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
 | `GET` | `/runtime-identity` | `standard_observability` | `service-local` | `permanent` |
-| `GET` | `/stac` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
-| `GET` | `/stac/collections` | `legacy_bff_facade` | `raster-service` | `2026-12-31` |
+| `POST` | `/v1/ingest` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
+| `GET` | `/v1/products` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
+| `POST` | `/v1/query` | `service_scoped_semantics` | `service-local` | `2026-12-31` |
+| `POST` | `/v1/recommend` | `service_scoped_semantics` | `service-local` | `2026-12-31` |

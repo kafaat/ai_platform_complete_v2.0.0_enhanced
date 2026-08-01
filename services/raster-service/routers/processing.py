@@ -24,7 +24,7 @@ from fastapi import APIRouter, BackgroundTasks, Header, HTTPException
 router = APIRouter()
 
 
-@router.post("/process")
+@router.post("/v1/process")
 async def process_raster(
     req: api_models.ProcessRequest,
     background_tasks: BackgroundTasks,
@@ -55,7 +55,7 @@ async def process_raster(
     }
 
 
-@router.post("/raw/process")
+@router.post("/v1/raw/process")
 async def process_raw_data(
     req: api_models.RawDataProcessRequest,
     x_agent_token: str = Header(None),
@@ -74,7 +74,7 @@ async def process_raw_data(
         raise HTTPException(400, str(exc)) from exc
 
 
-@router.post("/process/batch")
+@router.post("/v1/process/batch")
 async def process_batch(
     req: api_models.BatchProcessRequest,
     background_tasks: BackgroundTasks,
@@ -159,5 +159,5 @@ async def process_batch(
         "deduplicated": False,
         "claim_backend": claim_backend,
         "claim_recovered": recovered,
-        "note": "استعلم /jobs/{job_id} — batch_results + batch_failed عند الاكتمال",
+        "note": "استعلم /v1/jobs/{job_id} — batch_results + batch_failed عند الاكتمال",
     }

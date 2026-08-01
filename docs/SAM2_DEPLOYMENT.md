@@ -121,11 +121,11 @@ docker exec -it sahool-v9-sam2-inference \
 ## الخطوة ٥ — التحقّق عبر مسار المنصّة
 
 استدعِ `POST /api/segmentation` (عبر البوّابة، تحقن البوّابة `X-Agent-Token`) أو
-استدعِ `field-segmentation` مباشرة بمسار `/segment`:
+استدعِ `field-segmentation` مباشرة بمسار `/v1/segment`:
 
 ```bash
 # auto: تقطيع كامل من صورة الـbbox.
-curl -s -X POST http://sahool-field-segmentation:8000/segment \
+curl -s -X POST http://sahool-field-segmentation:8000/v1/segment \
   -H "X-Agent-Token: $SAHOOL_AGENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -135,7 +135,7 @@ curl -s -X POST http://sahool-field-segmentation:8000/segment \
   }'
 
 # hybrid: مُوجَّه ببادرة المستخدم (مركز/مربّع user_polygon).
-curl -s -X POST http://sahool-field-segmentation:8000/segment \
+curl -s -X POST http://sahool-field-segmentation:8000/v1/segment \
   -H "X-Agent-Token: $SAHOOL_AGENT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

@@ -1,0 +1,10 @@
+{
+  "$comment": "المولّدات التي تدعم --check ولا يذكرها أيّ workflow. المكنسة تكتشف خطواتها من الـworkflows، فما ليس في workflow خارج مداها بالتصميم — وهذه هي القائمة التي تجعل ذلك الخارج مرئيّاً بدل أن يكون صمتاً. القائمة تتقلّص ولا تنمو: مدخل يُحذف عند وصل السكربت بالبوّابة أو إصلاح سببه، ولا يُضاف مدخل لتمرير CI. كلّ مدخل يحمل حارسه (إن وُجد) وسبب عدم عمل الحارس ودليل الانحراف وشرط الإغلاق.",
+  "gap": "GENERATED-ARTIFACT-SWEEP-01",
+  "origin": "الزاوية مُستخرَجة من claude/verify-all-generated (GENERATED-CHAIN-UNDOCUMENTED-01): «مولّد موجود لا يشغّله أيّ workflow» — زاوية لا تمسكها المكنسة لأنّها تكتشف من الـworkflows. أُعيد القياس على main الحاليّ بدل نقل نتائجه، فاختلف العدد والتفسير.",
+  "measured_on": "6c966bab + deterministic linker + generated-chain workflow closure (2026-07-29)",
+  "measurement": "وُصل api_versioning_policy_guard وplatform_route_release_binding مباشرةً ببوابة Capability Governance، مع تشغيل اختبار release binding صراحةً. لم يبقَ أي مولّد مصنّف في قائمة الانحراف المعروف.",
+  "correction": "قياس أوّليّ في هذه الجلسة عدّ api_versioning_policy_guard سليماً؛ كان خطأ قياس — رمز الخروج قُرئ بعد أنبوب `| tail` فعاد رمز tail لا رمز السكربت. القياس الصحيح: exit=1 لخمسة من الستّة.",
+  "why_the_sweep_does_not_execute_these": "لا توجد مداخل متبقية؛ المولّدان السابقان أصبحا خطوات CI مباشرة، فتتحقق أعلام الفحص الصحيحة في checkout نظيف.",
+  "uncovered": {}
+}

@@ -25,40 +25,40 @@ capabilities:
   - services/auth/main.py
   - services/field-management-service/main.py
   apis:
-  - DELETE /auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:195
-  - GET /analytics/{tenant_id} @ services/mcp_servers/market_server.py:691
+  - DELETE /v1/auth/invitations/{invitation_id} @ services/auth/routers/invitations.py:195
+  - GET /v1/analytics/{tenant_id} @ services/mcp_servers/market_server.py:691
   - GET /api/v1/auth/me @ services/sahool-platform/api/routers/auth.py:91
   - GET /api/v1/tenant/config @ services/sahool-platform/api/routers/tenant.py:29
-  - GET /auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
-  - GET /auth/invitations @ services/auth/routers/invitations.py:84
-  - GET /auth/me @ services/auth/routers/session.py:211
-  - GET /auth/users @ services/auth/routers/users.py:22
-  - GET /auth/verify @ services/auth/routers/email_verify.py:97
-  - GET /auth/verify/status @ services/auth/routers/email_verify.py:107
+  - GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
+  - GET /v1/auth/invitations @ services/auth/routers/invitations.py:84
+  - GET /v1/auth/me @ services/auth/routers/session.py:211
+  - GET /v1/auth/users @ services/auth/routers/users.py:22
+  - GET /v1/auth/verify @ services/auth/routers/email_verify.py:97
+  - GET /v1/auth/verify/status @ services/auth/routers/email_verify.py:107
   - GET /health @ services/auth/routers/ops.py:27
   - GET /healthz @ services/auth/routers/ops.py:27
   - GET /metrics @ services/auth/routers/ops.py:21
   - GET /readyz @ services/auth/routers/ops.py:32
-  - PATCH /auth/users/{user_id}/deactivate @ services/auth/routers/users.py:73
-  - PATCH /auth/users/{user_id}/role @ services/auth/routers/users.py:31
+  - PATCH /v1/auth/users/{user_id}/deactivate @ services/auth/routers/users.py:73
+  - PATCH /v1/auth/users/{user_id}/role @ services/auth/routers/users.py:31
   - POST /api/v1/auth/login @ services/sahool-platform/api/routers/auth.py:47
   - POST /api/v1/auth/logout @ services/sahool-platform/api/routers/auth.py:104
   - POST /api/v1/auth/signup @ services/sahool-platform/api/routers/auth.py:132
-  - POST /auth/change-password @ services/auth/routers/registration.py:74
-  - POST /auth/invitations @ services/auth/routers/invitations.py:25
-  - POST /auth/invitations/accept @ services/auth/routers/invitations.py:115
-  - POST /auth/login @ services/auth/routers/session.py:24
-  - POST /auth/logout @ services/auth/routers/session.py:167
-  - POST /auth/mfa/activate @ services/auth/routers/mfa.py:66
-  - POST /auth/mfa/disable @ services/auth/routers/mfa.py:136
-  - POST /auth/mfa/setup @ services/auth/routers/mfa.py:19
-  - POST /auth/password-reset/confirm @ services/auth/routers/password_reset.py:41
-  - POST /auth/password-reset/request @ services/auth/routers/password_reset.py:21
-  - POST /auth/refresh @ services/auth/routers/session.py:125
-  - POST /auth/register @ services/auth/routers/registration.py:19
-  - POST /auth/tenants @ services/auth/routers/tenants.py:40
-  - POST /auth/verify/confirm @ services/auth/routers/email_verify.py:55
-  - POST /auth/verify/request @ services/auth/routers/email_verify.py:22
+  - POST /v1/auth/change-password @ services/auth/routers/registration.py:74
+  - POST /v1/auth/invitations @ services/auth/routers/invitations.py:25
+  - POST /v1/auth/invitations/accept @ services/auth/routers/invitations.py:115
+  - POST /v1/auth/login @ services/auth/routers/session.py:24
+  - POST /v1/auth/logout @ services/auth/routers/session.py:167
+  - POST /v1/auth/mfa/activate @ services/auth/routers/mfa.py:66
+  - POST /v1/auth/mfa/disable @ services/auth/routers/mfa.py:136
+  - POST /v1/auth/mfa/setup @ services/auth/routers/mfa.py:19
+  - POST /v1/auth/password-reset/confirm @ services/auth/routers/password_reset.py:41
+  - POST /v1/auth/password-reset/request @ services/auth/routers/password_reset.py:21
+  - POST /v1/auth/refresh @ services/auth/routers/session.py:125
+  - POST /v1/auth/register @ services/auth/routers/registration.py:19
+  - POST /v1/auth/tenants @ services/auth/routers/tenants.py:40
+  - POST /v1/auth/verify/confirm @ services/auth/routers/email_verify.py:55
+  - POST /v1/auth/verify/request @ services/auth/routers/email_verify.py:22
   - POST /v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2579
   ui_consumers:
   - frontend/src/services/api/auth.ts
@@ -168,7 +168,7 @@ capabilities:
   - GET /api/v1/farms/{farm_id}/fields @ services/sahool-platform/api/routers/farms.py:140
   - GET /api/v1/farms/{farm_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:179
   - GET /api/v1/reports/farm-summary @ services/sahool-platform/api/routers/reports.py:41
-  - POST /agent/optimize @ services/supervisor-agent/routers/agent.py:89
+  - POST /v1/agent/optimize @ services/supervisor-agent/routers/agent.py:89
   - POST /api/v1/farm-book/entries @ services/sahool-platform/api/routers/simple_farm_book.py:247
   - POST /api/v1/farm-book/parties @ services/sahool-platform/api/routers/simple_farm_book.py:130
   - POST /api/v1/farm-ledger/autowrite-preview @ services/sahool-platform/api/routers/farm_operations_ledger.py:864
@@ -417,8 +417,8 @@ capabilities:
   - GET /api/v1/fields/{field_id}/season-workspace @ services/sahool-platform/api/routers/season_workspace.py:219
   - GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:512
   - GET /api/v1/reports/season/{season_id}/summary @ services/sahool-platform/api/routers/reports.py:253
-  - GET /auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
-  - GET /imagery/search/season @ services/raster-service/routers/imagery_search.py:43
+  - GET /v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:41
+  - GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43
   - GET /internal/seasons @ services/scout-ingest-service/season_api.py:478
   - GET /internal/seasons/{season_id}/detail @ services/scout-ingest-service/season_api.py:668
   - GET /internal/seasons/{season_id}/logbook @ services/scout-ingest-service/season_api.py:368
@@ -714,10 +714,10 @@ capabilities:
   - GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912
   - GET /api/v1/inventory/expiring @ services/sahool-platform/api/routers/inventory.py:184
   - GET /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:90
-  - GET /procurement/{order_id} @ services/mcp_servers/market_server.py:655
+  - GET /v1/procurement/{order_id} @ services/mcp_servers/market_server.py:655
   - POST /api/v1/inventory/items @ services/sahool-platform/api/routers/inventory.py:40
   - POST /api/v1/inventory/items/{item_id}/batches @ services/sahool-platform/api/routers/inventory.py:121
-  - POST /procurement @ services/mcp_servers/market_server.py:649
+  - POST /v1/procurement @ services/mcp_servers/market_server.py:649
   ui_consumers: []
   mobile_consumers:
   - mobile/sahool_app/lib/screens/inventory_screen.dart
@@ -785,18 +785,18 @@ capabilities:
   apis:
   - GET /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:285
   - GET /api/v1/farm-ledger/erp-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:792
-  - GET /config @ services/odoo-bridge/routers/catalog.py:33
-  - GET /erp/provider @ services/odoo-bridge/routers/catalog.py:17
   - GET /health @ services/odoo-bridge/routers/health.py:31
   - GET /healthz @ services/odoo-bridge/routers/health.py:31
-  - GET /logs @ services/odoo-bridge/routers/catalog.py:50
-  - GET /products @ services/odoo-bridge/routers/catalog.py:71
   - GET /readyz @ services/odoo-bridge/routers/health.py:41
-  - GET /readyz/capabilities @ services/odoo-bridge/routers/health.py:76
-  - GET /suppliers @ services/odoo-bridge/routers/catalog.py:78
+  - GET /v1/config @ services/odoo-bridge/routers/catalog.py:33
+  - GET /v1/erp/provider @ services/odoo-bridge/routers/catalog.py:17
+  - GET /v1/logs @ services/odoo-bridge/routers/catalog.py:50
+  - GET /v1/products @ services/odoo-bridge/routers/catalog.py:71
+  - GET /v1/readyz/capabilities @ services/odoo-bridge/routers/health.py:76
+  - GET /v1/suppliers @ services/odoo-bridge/routers/catalog.py:78
   - POST /api/v1/erp/reconciliations @ services/sahool-platform/api/routers/operational_truth.py:221
-  - POST /sync @ services/odoo-bridge/routers/sync.py:78
-  - POST /webhook/odoo @ services/odoo-bridge/routers/webhooks.py:21
+  - POST /v1/sync @ services/odoo-bridge/routers/sync.py:78
+  - POST /v1/webhook/odoo @ services/odoo-bridge/routers/webhooks.py:21
   ui_consumers: []
   mobile_consumers: []
   tests:

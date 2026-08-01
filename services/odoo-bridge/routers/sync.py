@@ -40,7 +40,7 @@ async def _probe_erp_or_503(provider) -> None:
                     f"ERP provider '{provider.name}' probe timed out "
                     f"({_PROVIDER_PROBE_TIMEOUT}s). "
                     "Retry when ERP is available. "
-                    "Check /readyz/capabilities for capability status."
+                    "Check /v1/readyz/capabilities for capability status."
                 ),
             },
         ) from None
@@ -68,13 +68,13 @@ async def _probe_erp_or_503(provider) -> None:
                     f"ERP provider '{provider.name}' is configured but unreachable "
                     f"(health={status!r}). "
                     "Retry when ERP is available. "
-                    "Check /readyz/capabilities for live status."
+                    "Check /v1/readyz/capabilities for live status."
                 ),
             },
         )
 
 
-@router.post("/sync")
+@router.post("/v1/sync")
 async def trigger_sync(
     req: main.SyncRequest,
     background_tasks: BackgroundTasks,
@@ -89,7 +89,7 @@ async def trigger_sync(
       424 — مزوّد ERP غير مهيّأ (none/مفاتيح فارغة): لا إرسال وهميّ، لا كتابة جزئية.
       503 — مزوّد مهيّأ لكن غير مستجيب: probe بمهلة 5s قبل الإضافة للطابور.
     كلا الرفضين يحدثان قبل أيّ background_tasks.add_task() — ضمان لا كتابة جزئية.
-    الحالة الطبيعية معروضة كبيانات في /readyz/capabilities (HTTP 200 دائماً).
+    الحالة الطبيعية معروضة كبيانات في /v1/readyz/capabilities (HTTP 200 دائماً).
     """
     provider = main.get_active_erp_provider()
 
@@ -104,7 +104,7 @@ async def trigger_sync(
                     "ERP provider is not configured or credentials are missing. "
                     "Set ERP_PROVIDER and the corresponding credentials "
                     "(ERPNEXT_API_KEY/ERPNEXT_API_SECRET or ODOO_*). "
-                    "Check /readyz/capabilities for current capability status."
+                    "Check /v1/readyz/capabilities for current capability status."
                 ),
             },
         )

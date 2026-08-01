@@ -4,7 +4,7 @@
 الحسّاسات فقط دون تفسير زراعيّ. يغطّي:
   • ``soil_science`` (نقيّ): تصنيف قوام USDA + ملاءمة محصول شفّافة (Liebig min).
   • ``soilgrids_client``: استخراج/تحويل خصائص SoilGrids + فشل ناعم (لا اختراع).
-  • نقطتا HTTP (/soil/suitability · /soil/soilgrids) — importorskip للتبعيّات.
+  • نقطتا HTTP (/v1/soil/suitability · /v1/soil/soilgrids) — importorskip للتبعيّات.
 
 الوحدتان النقيّتان تُحمَّلان مباشرةً من مجلّد الخدمة (كما يفعل حارس التفكيك).
 """
@@ -217,7 +217,7 @@ def test_suitability_endpoint_requires_token(monkeypatch):
     from fastapi.testclient import TestClient
 
     client = TestClient(main.app)
-    r = client.post("/soil/suitability", json={"clay": 25, "sand": 40, "silt": 35, "ph": 7.0})
+    r = client.post("/v1/soil/suitability", json={"clay": 25, "sand": 40, "silt": 35, "ph": 7.0})
     assert r.status_code == 401  # لا توكن ⇒ يُرفَض
 
 
@@ -227,7 +227,7 @@ def test_suitability_endpoint_returns_texture_and_crops(monkeypatch):
 
     client = TestClient(main.app)
     r = client.post(
-        "/soil/suitability",
+        "/v1/soil/suitability",
         json={"clay": 25, "sand": 40, "silt": 35, "ph": 7.0, "ec": 1.0},
         headers={"X-Agent-Token": "test-token"},
     )
@@ -245,7 +245,7 @@ def test_soilgrids_endpoint_503_when_unavailable(monkeypatch):
     from fastapi.testclient import TestClient
 
     client = TestClient(main.app)
-    r = client.get("/soil/soilgrids?lon=46&lat=24", headers={"X-Agent-Token": "test-token"})
+    r = client.get("/v1/soil/soilgrids?lon=46&lat=24", headers={"X-Agent-Token": "test-token"})
     assert r.status_code == 503
     assert r.json()["detail"]["error"] == "soilgrids_unavailable"
 
@@ -267,7 +267,7 @@ def test_soilgrids_endpoint_200_with_data(monkeypatch):
     from fastapi.testclient import TestClient
 
     client = TestClient(main.app)
-    r = client.get("/soil/soilgrids?lon=46&lat=24", headers={"X-Agent-Token": "test-token"})
+    r = client.get("/v1/soil/soilgrids?lon=46&lat=24", headers={"X-Agent-Token": "test-token"})
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["source"] == "soilgrids"

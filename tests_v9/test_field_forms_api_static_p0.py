@@ -8,6 +8,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 API = (
     Path(__file__).resolve().parents[1] / "services" / "scout-ingest-service" / "field_forms_api.py"
 ).read_text(encoding="utf-8")

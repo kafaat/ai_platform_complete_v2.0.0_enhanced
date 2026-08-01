@@ -106,8 +106,8 @@ def test_no_orphan_router_module():
 # تحت 14 (المُتغيّر الثابت: 10 مُعالِجات + افتراضيّات FastAPI = 14).
 
 _CRITICAL_ROUTES = (
-    "/agent/query",
-    "/agent/optimize",
+    "/v1/agent/query",
+    "/v1/agent/optimize",
     "/healthz/deps",
 )
 

@@ -4,6 +4,8 @@ import pytest
 
 from scripts.simulation.sim_golden import GoldenError, evaluate, verify_signed_evidence
 
+pytestmark = pytest.mark.unit
+
 
 def rows(error=0.03):
     out = []

@@ -83,16 +83,44 @@ def test_zones():
 
 
 def test_gdd():
-    from api.gdd_tracker import DailyTemp, daily_gdd, track_gdd
+    # WS-C.1c Zero-Legacy: الحساب اليومي والتراكمي ملك Weather Engine وحده؛
+    # المنصّة تطبّق فقط سياسة مرحلة الموسم على الناتج التراكمي.
+    weather_service = os.path.join(os.path.dirname(__file__), "../services/weather-service")
+    sys.path.insert(0, weather_service)
+    try:
+        from gdd import accumulate_gdd, gdd_daily
+    finally:
+        sys.path.remove(weather_service)
+
+    from api.gdd_tracker import stage_result_from_cumulative
 
     r = []
-    if abs(daily_gdd(10, 25, 0.0) - 17.5) < 1e-9:
-        r.append(("✓", "GDD يومي=17.5"))
-    if abs(daily_gdd(10, 35, 0.0, t_upper=30) - 20.0) < 1e-9:
-        r.append(("✓", "سقف الحرارة يعمل"))
-    d = track_gdd("wheat", [DailyTemp(10, 25)] * 40).to_dict()
+    if abs(gdd_daily(t_min_c=10, t_max_c=25, base_c=0.0, method="simple") - 17.5) < 1e-9:
+        r.append(("✓", "Weather Engine: GDD يومي=17.5"))
+    if (
+        abs(
+            gdd_daily(
+                t_min_c=10,
+                t_max_c=35,
+                base_c=0.0,
+                upper_cutoff_c=30,
+                method="simple",
+            )
+            - 20.0
+        )
+        < 1e-9
+    ):
+        r.append(("✓", "Weather Engine: سقف الحرارة يعمل"))
+
+    _daily, cumulative, counted = accumulate_gdd(
+        daily_t_min=[10] * 40,
+        daily_t_max=[25] * 40,
+        base_c=0.0,
+        method="simple",
+    )
+    d = stage_result_from_cumulative("wheat", cumulative, counted).to_dict()
     if d["cumulative_gdd"] == 700.0 and d["current_stage"] == "tillering":
-        r.append(("✓", "700 GDD → tillering"))
+        r.append(("✓", "Weather GDD → Season policy: 700 GDD → tillering"))
     return r
 
 
@@ -188,13 +216,20 @@ def test_crop_suitability():
 
 
 def test_scenario_whatif():
-    from api.gdd_tracker import DailyTemp
+    from api.gdd_tracker import stage_result_from_cumulative
     from api.scenario_whatif import (
         whatif_planting_date,
         whatif_rainfall_change,
         whatif_temperature_shift,
     )
     from api.water_balance import WeatherInput
+
+    weather_service = os.path.join(os.path.dirname(__file__), "../services/weather-service")
+    sys.path.insert(0, weather_service)
+    try:
+        from gdd import accumulate_gdd
+    finally:
+        sys.path.remove(weather_service)
 
     r = []
     w = WeatherInput(t_min_c=12, t_max_c=30, latitude_deg=15.5, elevation_m=2000, day_of_year=150)
@@ -204,7 +239,24 @@ def test_scenario_whatif():
     et0 = [c for c in rt["comparisons"] if "ET0" in c["metric_ar"]][0]
     if et0["delta"] > 0:
         r.append(("✓", "ارتفاع الحرارة يرفع ET0 (فيزيائي)"))
-    rp = whatif_planting_date("wheat", [DailyTemp(8, 20)] * 40, [DailyTemp(14, 28)] * 40)
+
+    _, base_cumulative, base_days = accumulate_gdd(
+        daily_t_min=[8] * 40,
+        daily_t_max=[20] * 40,
+        base_c=5.0,
+        method="modified",
+    )
+    _, scen_cumulative, scen_days = accumulate_gdd(
+        daily_t_min=[14] * 40,
+        daily_t_max=[28] * 40,
+        base_c=5.0,
+        method="modified",
+    )
+    rp = whatif_planting_date(
+        "wheat",
+        stage_result_from_cumulative("wheat", base_cumulative, base_days),
+        stage_result_from_cumulative("wheat", scen_cumulative, scen_days),
+    )
     if rp["comparisons"][0]["scenario"] > rp["comparisons"][0]["baseline"]:
         r.append(("✓", "الموعد الأدفأ يتراكم GDD أسرع"))
     rr = whatif_rainfall_change(w, "wheat", "mid", 0, 40, et0_mm=6.0)
@@ -956,7 +1008,7 @@ def test_climate_analogs():
     return r
 
 
-async def test_weather_analytics(monkeypatch):
+async def _weather_analytics_report():
     from api import weather_analytics as _wa
     from api.weather_analytics import (
         analyze_weather_log,
@@ -969,7 +1021,8 @@ async def test_weather_analytics(monkeypatch):
         n = len(kwargs.get("daily_t_max") or [])
         return {"daily_et0_mm": [6.0] * n}  # ~6 مم/يوم ⇒ ET0 سنويّ + عجز مائي ضخم
 
-    monkeypatch.setattr(_wa, "get_et0_series", _fake_series)
+    original_get_et0_series = _wa.get_et0_series
+    _wa.get_et0_series = _fake_series
 
     r = []
     # سجلّ اصطناعي صحراوي: 365 يوم، صيف حارّ
@@ -997,7 +1050,20 @@ async def test_weather_analytics(monkeypatch):
     g = seasonal_planting_guide(recs)
     if g["supported"] and len(g["heat_stress_season_ar"]) >= 2:
         r.append(("✓", "دليل المواسم: يحدّد الموسم الأمثل ونافذة الإجهاد الحراري"))
+    _wa.get_et0_series = original_get_et0_series
     return r
+
+
+async def test_weather_analytics():
+    """Pytest surface: the same behavioral report without a pytest-only fixture dependency."""
+    assert await _weather_analytics_report()
+
+
+def _report_weather_analytics():
+    """Legacy roadmap runner surface; explicitly executes the async contract."""
+    import asyncio
+
+    return asyncio.run(_weather_analytics_report())
 
 
 def test_upstream_flood():
@@ -1582,6 +1648,7 @@ def test_automation_persistence():
             return FResp({"job_id": "j1"})
 
     fh.AsyncClient = FClient
+    fh.HTTPError = RuntimeError
     sys.modules["httpx"] = fh
     sys.modules.pop("api.weather_automation", None)
     sys.modules.pop("api.imagery_automation", None)
@@ -1609,6 +1676,9 @@ def test_automation_persistence():
 
         async def __aexit__(s, *a):
             return False
+
+        def transaction(s):
+            return s
 
         async def execute(s, q, *a):
             if "INSERT" not in q:
@@ -2131,8 +2201,15 @@ def test_rs256_migration():
         "video-processor",
     ]
     ok = 0
+    verifier_extra_sources = {
+        "actuator-service": ("actuator_runtime.py",),
+    }
     for v in verifiers:
-        src = open(os.path.join(base, f"services/{v}/main.py"), encoding="utf-8").read()
+        paths = ("main.py",) + verifier_extra_sources.get(v, ())
+        src = "\n".join(
+            open(os.path.join(base, f"services/{v}/{path}"), encoding="utf-8").read()
+            for path in paths
+        )
         if "JWT_PUBLIC_KEY" in src and "RS256" in src:
             ok += 1
     if ok == len(verifiers):
@@ -2242,8 +2319,8 @@ def test_imagery_automation_process():
     sys.path.insert(
         0, os.path.join(os.path.dirname(__file__), "..", "services/sahool-platform/api")
     )
+    cap = {}
     if "httpx" not in sys.modules:
-        cap = {}
         fh = types.ModuleType("httpx")
 
         class R:
@@ -2281,15 +2358,27 @@ def test_imagery_automation_process():
     auto = ia.ImageryAutomation()
     auto.register_field("f1", [44.0, 16.0, 44.1, 16.1], tenant_id="t-abc")
     img = {"id": "S2_X", "datetime": "2024-01-15T07:30:00Z", "raster_url": "https://x/B04.tif"}
+
+    async def _fake_process_indicator_batch(*, tenant_id, payload):
+        cap.update(payload)
+        return {"job_id": "j"}
+
+    async def _noop_collect(*_args, **_kwargs):
+        return None
+
+    ia.process_indicator_batch = _fake_process_indicator_batch
+    auto._collect_ndvi_value = _noop_collect
+    auto._collect_spectral_values = _noop_collect
     try:
         loop = asyncio.new_event_loop()
-        loop.run_until_complete(auto._trigger_indicators(_h.AsyncClient(), auto._fields["f1"], img))
+        loop.run_until_complete(auto._trigger_indicators(auto._fields["f1"], img))
         loop.close()
     except Exception as e:
         return [("\u2717", f"_trigger_indicators فشل: {e}")]
-    cap = getattr(_h, "_cap", {})
-    if all(k in cap for k in ["tenant_id", "indicator", "source_format", "bands"]):
-        r.append(("\u2713", "payload يحمل الحقول المطلوبة (tenant_id/source_format/bands)"))
+    if all(k in cap for k in ["tenant_id", "indicators", "source_format", "bands"]):
+        r.append(
+            ("\u2713", "payload يحمل الحقول المطلوبة (tenant_id/indicators/source_format/bands)")
+        )
     if cap.get("scene_id") and cap.get("capture_datetime"):
         r.append(("\u2713", "payload يحمل provenance (scene_id + capture_datetime)"))
     if cap.get("tenant_id") == "t-abc":
@@ -5893,7 +5982,15 @@ def test_p0_security_foundation():
         r.append(("✗", "P0: ترتيب الترحيلات في MANIFEST مكسور (اعتماديّات قد تنكسر)"))
 
     # ② MFA مفروض في auth.login + نقاط الاقتران الثلاث
-    auth_src = _read("services/auth/main.py")
+    auth_src = "\n".join(
+        _read(path)
+        for path in (
+            "services/auth/main.py",
+            "services/auth/routers/session.py",
+            "services/auth/routers/mfa.py",
+            "services/auth/mfa_crypto.py",
+        )
+    )
     if 'if row["mfa_enabled"]' in auth_src and "pyotp.TOTP" in auth_src:
         r.append(("✓", "P0: MFA مفروض عند login (لا تجاوز صامت)"))
     else:
@@ -5924,8 +6021,9 @@ def test_p0_security_foundation():
     else:
         r.append(("✗", "P0: جداول الأتمتة ناقصة الأعمدة (تبقى الأتمتة معطّلة)"))
 
-    # ⑤ نقاط farms + ربطها بالصلاحيات
-    if "/api/v1/farms" in main_src and "require_permission(Permission.FARM_CREATE)" in main_src:
+    # ⑤ نقاط farms + ربطها بالصلاحيات — المالك الفعلي بعد تفكيك main.py.
+    farms_src = main_src + "\n" + _read("services/sahool-platform/api/routers/farms.py")
+    if "/api/v1/farms" in farms_src and "require_permission(Permission.FARM_CREATE)" in farms_src:
         r.append(("✓", "P0: نقاط farms موجودة ومُبوّبة بصلاحية farm:create"))
     else:
         r.append(("✗", "P0: نقاط farms مفقودة أو غير مُبوّبة"))
@@ -5972,7 +6070,14 @@ def test_inventory_equipment_layers():
         r.append(("✗", "المخزون/المعدّات: تسرّب صلاحية إدارة لدور أدنى"))
 
     # ③ النقاط مُبوّبة بالصلاحيات الصحيحة في النواة
-    main_src = _read("services/sahool-platform/api/main.py")
+    main_src = "\n".join(
+        _read(path)
+        for path in (
+            "services/sahool-platform/api/main.py",
+            "services/sahool-platform/api/routers/inventory.py",
+            "services/sahool-platform/api/routers/equipment.py",
+        )
+    )
     inv_ok = "/api/v1/inventory/items" in main_src and (
         "require_permission(Permission.INVENTORY_MANAGE)" in main_src
     )
@@ -6025,7 +6130,11 @@ def test_iot_device_layer():
     else:
         r.append(("✗", "IoT: صلاحيّات الأجهزة غير صحيحة"))
 
-    main_src = _read("services/sahool-platform/api/main.py")
+    main_src = (
+        _read("services/sahool-platform/api/main.py")
+        + "\n"
+        + _read("services/sahool-platform/api/routers/devices.py")
+    )
     if "/api/v1/devices" in main_src and "require_permission(Permission.DEVICE_MANAGE)" in main_src:
         r.append(("✓", "IoT: نقاط الأجهزة موجودة ومُبوّبة"))
     else:
@@ -6075,7 +6184,11 @@ def test_irrigation_ops_layer():
     else:
         r.append(("✗", "الري: صلاحيّات الري غير صحيحة"))
 
-    main_src = _read("services/sahool-platform/api/main.py")
+    main_src = (
+        _read("services/sahool-platform/api/main.py")
+        + "\n"
+        + _read("services/sahool-platform/api/routers/irrigation.py")
+    )
     if "/api/v1/irrigation/schedules" in main_src and "/api/v1/irrigation/valves" in main_src:
         r.append(("✓", "الري: نقاط الصمامات والجداول موجودة"))
     else:
@@ -6124,7 +6237,14 @@ def test_master_data_layer():
     else:
         r.append(("✗", "Master Data: صلاحيّات غير صحيحة"))
 
-    main_src = _read("services/sahool-platform/api/main.py")
+    main_src = "\n".join(
+        _read(path)
+        for path in (
+            "services/sahool-platform/api/main.py",
+            "services/sahool-platform/api/routers/master_data.py",
+            "services/sahool-platform/api/routers/fields.py",
+        )
+    )
     if "/api/v1/master-data" in main_src and "/rotations" in main_src:
         r.append(("✓", "Master Data: نقاط الكتالوج والدورات موجودة"))
     else:
@@ -6168,6 +6288,19 @@ def _agos_read(p):
         return f.read()
 
 
+def _platform_contract_source(*router_names):
+    """Return the mounted platform contract source after main.py decomposition.
+
+    Route ownership moved from ``api/main.py`` into APIRouter modules. Static
+    governance must follow the mounted owner instead of asserting that every
+    route literal remains in the historical monolith.
+    """
+    parts = [_agos_read("services/sahool-platform/api/main.py")]
+    for name in router_names:
+        parts.append(_agos_read(f"services/sahool-platform/api/routers/{name}.py"))
+    return "\n".join(parts)
+
+
 def _agos_u(role):
     from core.canonical_schemas import UserSchema
 
@@ -6193,7 +6326,7 @@ def test_settings_layer():
         r.append(("✓", "Settings: صلاحيّات (المالك/المدير يدير، البقيّة تعرض)"))
     else:
         r.append(("✗", "Settings: صلاحيّات غير صحيحة"))
-    main_src = _agos_read("services/sahool-platform/api/main.py")
+    main_src = _platform_contract_source("settings")
     if "/api/v1/settings" in main_src and "Permission.SETTINGS_MANAGE" in main_src:
         r.append(("✓", "Settings: نقاط الحفظ والعرض موجودة ومحروسة"))
     else:
@@ -6220,7 +6353,7 @@ def test_documents_layer():
         r.append(("✓", "Documents: صلاحيّات (المهندس+ يدير، البقيّة تعرض)"))
     else:
         r.append(("✗", "Documents: صلاحيّات غير صحيحة"))
-    main_src = _agos_read("services/sahool-platform/api/main.py")
+    main_src = _platform_contract_source("documents")
     if "/api/v1/documents" in main_src and "/api/v1/documents/{doc_id}" in main_src:
         r.append(("✓", "Documents: نقاط التسجيل والقائمة والمستند المفرد موجودة"))
     else:
@@ -6243,7 +6376,7 @@ def test_cost_analytics_layer():
         r.append(("✓", "Cost Analytics: صلاحيّة analytics:view (مالك+مدير+مهندس فقط)"))
     else:
         r.append(("✗", "Cost Analytics: صلاحيّات غير صحيحة"))
-    main_src = _agos_read("services/sahool-platform/api/main.py")
+    main_src = _platform_contract_source("analytics")
     if "/api/v1/analytics/costs" in main_src and "ANALYTICS_VIEW" in main_src:
         r.append(("✓", "Cost Analytics: نقطة التجميع موجودة ومحروسة"))
     else:
@@ -6384,7 +6517,7 @@ def run_all():
         ("geo_locator", test_geo_zone_locator),
         ("seasonal_risk", test_seasonal_risk),
         ("climate_analogs", test_climate_analogs),
-        ("weather_analytics", test_weather_analytics),
+        ("weather_analytics", _report_weather_analytics),
         ("upstream_flood", test_upstream_flood),
         ("decision_engine", test_decision_engine),
         ("orchard_planner", test_orchard_planner),

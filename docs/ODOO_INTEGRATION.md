@@ -154,7 +154,7 @@ ODOO_API_KEY=your-long-api-key-here
 docker compose -f docker-compose.light.yml up -d odoo-bridge
 # افحص
  curl http://localhost:8126/healthz
- curl http://localhost:8126/config
+ curl http://localhost:8126/v1/config
 ```
 
 ---
@@ -164,7 +164,7 @@ docker compose -f docker-compose.light.yml up -d odoo-bridge
 ### 1. فحص الاتصال
 
 ```bash
-curl http://localhost:8126/config
+curl http://localhost:8126/v1/config
 ```
 
 **الرد:**
@@ -183,28 +183,28 @@ curl http://localhost:8126/config
 
 ```bash
 # كل المنتجات
- curl -X POST http://localhost:8126/sync   -H "Content-Type: application/json"   -d '{"entity":"products","direction":"odoo_to_sahool"}'
+ curl -X POST http://localhost:8126/v1/sync   -H "Content-Type: application/json"   -d '{"entity":"products","direction":"odoo_to_sahool"}'
 
 # كل الموردين
- curl -X POST http://localhost:8126/sync   -d '{"entity":"suppliers","direction":"odoo_to_sahool"}'
+ curl -X POST http://localhost:8126/v1/sync   -d '{"entity":"suppliers","direction":"odoo_to_sahool"}'
 
 # دفع طلبات الشراء إلى Odoo
- curl -X POST http://localhost:8126/sync   -d '{"entity":"procurement","direction":"sahool_to_odoo"}'
+ curl -X POST http://localhost:8126/v1/sync   -d '{"entity":"procurement","direction":"sahool_to_odoo"}'
 
 # تزامن كامل
- curl -X POST http://localhost:8126/sync   -d '{"entity":"all","direction":"bidirectional"}'
+ curl -X POST http://localhost:8126/v1/sync   -d '{"entity":"all","direction":"bidirectional"}'
 ```
 
 ### 3. استعراض سجلات التزامن
 
 ```bash
-curl "http://localhost:8126/logs?entity=product.product&limit=20"
+curl "http://localhost:8126/v1/logs?entity=product.product&limit=20"
 ```
 
 ### 4. استعراض منتجات Odoo
 
 ```bash
-curl http://localhost:8126/products?limit=10
+curl http://localhost:8126/v1/products?limit=10
 ```
 
 ---
@@ -236,7 +236,7 @@ curl http://localhost:8126/products?limit=10
 import requests
 import json
 
-url = "http://sahool-odoo-bridge:8126/webhook/odoo"
+url = "http://sahool-odoo-bridge:8126/v1/webhook/odoo"
 payload = {
     "event": "purchase.order:confirmed",
     "model": "purchase.order",
@@ -299,7 +299,7 @@ WHERE field_id = 'field_A3' AND season = '2026-summer';
 ### دفع التكاليف إلى Odoo Analytic Accounting:
 
 ```bash
-curl -X POST http://localhost:8126/sync -d '{"entity":"costs"}'
+curl -X POST http://localhost:8126/v1/sync -d '{"entity":"costs"}'
 ```
 
 يُنشئ في Odoo:

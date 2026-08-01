@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends
 router = APIRouter()
 
 
-@router.get("/erp/provider")
+@router.get("/v1/erp/provider")
 async def erp_provider_status(_auth: dict = Depends(main.require_auth)):
     """يكشف مزوّد ERP النشط (مفتاح التبديل) وحالته.
 
@@ -29,7 +29,7 @@ async def erp_provider_status(_auth: dict = Depends(main.require_auth)):
     return {"selected": selected, "active_provider": provider.name, "health": hp}
 
 
-@router.get("/config")
+@router.get("/v1/config")
 async def get_config(_auth: dict = Depends(main.require_auth)):
     provider = main.get_active_erp_provider()
     connected = False
@@ -46,7 +46,7 @@ async def get_config(_auth: dict = Depends(main.require_auth)):
     }
 
 
-@router.get("/logs")
+@router.get("/v1/logs")
 async def get_logs(
     limit: int = 50, entity: str | None = None, _auth: dict = Depends(main.require_auth)
 ):
@@ -67,14 +67,14 @@ async def get_logs(
     return {"logs": [dict(r) for r in rows]}
 
 
-@router.get("/products")
+@router.get("/v1/products")
 async def list_erp_products(limit: int = 20, _auth: dict = Depends(main.require_auth)):
     provider = main.get_active_erp_provider()
     products = await provider.list_products()
     return {"provider": provider.name, "products": products[:limit]}
 
 
-@router.get("/suppliers")
+@router.get("/v1/suppliers")
 async def list_erp_suppliers(limit: int = 20, _auth: dict = Depends(main.require_auth)):
     provider = main.get_active_erp_provider()
     suppliers = await provider.list_suppliers()

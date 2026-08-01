@@ -11,6 +11,7 @@ from __future__ import annotations
 import ast
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -31,11 +32,46 @@ def _service_for(path: Path) -> str:
     return parts[0]
 
 
+# APIRouter(prefix=...) العمى: collect() كان يقرأ نصّ الديكوريتر وحده — @router.get("/plan")
+# — بلا تركيب بادئة الراوتر نفسه (`router = APIRouter(prefix="/v1/phase9/autonomy")`)، فمسار
+# مُصدَّر فعلاً على الشبكة (`/v1/phase9/autonomy/plan`) يُصنَّف «غير مُصدَّر» لأنّ نصّه الحرفيّ
+# لا يبدأ بمقطع إصدار. مسح شامل للمستودع (`include_router(..., prefix=...)` عبر خدمة) لم يجد
+# ولا استخداماً واحداً — البادئة الوحيدة المُستعمَلة فعليّاً هي `APIRouter(prefix=...)` في نفس
+# ملفّ الراوتر، فالتركيب هنا محليّ الملفّ بحت، لا يحتاج تتبّعاً عبر ملفّات. (API-VERSIONING-GUARD-IS-A-MIRROR-01)
+def _router_prefixes(tree: ast.AST) -> dict[str, str]:
+    prefixes: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        call = node.value
+        if not (
+            isinstance(call, ast.Call)
+            and isinstance(call.func, ast.Name)
+            and call.func.id == "APIRouter"
+        ):
+            continue
+        prefix = None
+        for kw in call.keywords:
+            if (
+                kw.arg == "prefix"
+                and isinstance(kw.value, ast.Constant)
+                and isinstance(kw.value.value, str)
+            ):
+                prefix = kw.value.value
+        if prefix is None:
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                prefixes[target.id] = prefix
+    return prefixes
+
+
 def _routes(path: Path):
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     except SyntaxError:
         return []
+    prefixes = _router_prefixes(tree)
     rows = []
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -51,35 +87,111 @@ def _routes(path: Path):
                     and isinstance(dec.args[0], ast.Constant)
                     and isinstance(dec.args[0].value, str)
                 ):
+                    route_path = dec.args[0].value
+                    if isinstance(dec.func.value, ast.Name):
+                        prefix = prefixes.get(dec.func.value.id)
+                        if prefix:
+                            route_path = prefix.rstrip("/") + route_path
                     rows.append(
                         {
                             "service": _service_for(path),
                             "file": path.relative_to(ROOT).as_posix(),
                             "line": getattr(node, "lineno", 0),
                             "method": dec.func.attr.upper(),
-                            "path": dec.args[0].value,
+                            "path": route_path,
                             "handler": node.name,
                         }
                     )
     return rows
 
 
-def _classify(path: str) -> str:
-    if path.startswith("/v1/") or path == "/v1":
+# مقطع إصدار في البادئة: `/v1/...` أو `/api/v1/...`. المُصنِّف الأوّل عرف الأوّل
+# وحده، بينما عرف المنصّة الفعليّ هو الثاني — فصُنِّف **٥١٧ مساراً مُصدَّراً** بوصفه
+# «قديماً غير مُصدَّر». لم يكن خطأ بيانات بل خطأ **تعريف**: قاعدة كُتبت من عرف
+# مُتخيَّل لا من الشجرة. (API-VERSIONING-GUARD-IS-A-MIRROR-01)
+_VERSIONED = re.compile(r"^(?:/api)?/v[0-9]+(?:/|$)")
+
+# عقد التوافق الدائم: المصدر القانونيّ الوحيد لتصنيف مسار غير مُصدَّر عقداً دائماً لا ديناً.
+# مفتاحه (method + مسار مُطبَّع) — التطبيع يستبدل كلّ معامل بـ{} فيُعرَّف **شكل** المسار لا
+# تسمية معاملاته (`/api/raster/{path:path}` ⇒ `/api/raster/{}`)، فإعادة تسمية معامل لا تُسقِط
+# المطابقة ولا تفتح ثغرة. أيّ مسار غير مُصدَّر لا يطابق إدخالاً يبقى legacy_unversioned_business
+# ويسقط على سقف الأساس — فإضافة اسم بديل دائم تتطلّب تعديل ملفّ العقد صراحةً (adjudication
+# مرئيّ في المراجعة). (API-VERSIONING-GUARD-IS-A-MIRROR-01)
+PERMANENT_CONTRACT = ROOT / "docs" / "architecture" / "permanent_compatibility_contract.json"
+_PATH_PARAM = re.compile(r"\{[^}]*\}")
+
+
+def _normalize_path(path: str) -> str:
+    """`/api/raster/{path:path}` ⇒ `/api/raster/{}` — شكل المسار لا تسمية معاملاته."""
+    return _PATH_PARAM.sub("{}", path)
+
+
+def _permanent_contract() -> dict[tuple[str, str], str]:
+    """{(METHOD, normalized_path): category} من العقد المركزيّ. غيابه ⇒ لا فئات دائمة."""
+    if not PERMANENT_CONTRACT.is_file():
+        return {}
+    data = json.loads(PERMANENT_CONTRACT.read_text(encoding="utf-8"))
+    out: dict[tuple[str, str], str] = {}
+    for category, spec in (data.get("categories") or {}).items():
+        for entry in spec.get("routes") or []:
+            method = str(entry["method"]).upper()
+            out[(method, _normalize_path(str(entry["path"])))] = category
+    return out
+
+
+def _classify(path: str, method: str | None = None) -> str:
+    """يصنّف مساراً. مطابقة عقد التوافق الدائم تتطلّب `method` — المفتاح (method + مسار)
+    بالعقد، فاستدعاء بمسار وحده لا يطابق عقداً دائماً بالتصميم لا بالسهو."""
+    if _VERSIONED.match(path):
         return "versioned"
     if path.startswith("/internal/"):
         return "internal_s2s"
     if path == "/graphql":
         return "graphql_facade"
+    # /runtime-identity is grouped with healthz/readyz/metrics as a provenance/
+    # infrastructure route (CLAUDE.md, platform_route_placement_contract.json) and
+    # is contract-declared, probe-configured (functional_probe_runner.py identity_path),
+    # and attestation-tested — not a genuine unversioned business route to migrate.
     if path.startswith("/health") or path in {
         "/readyz",
         "/metrics",
         "/contract",
         "/capabilities",
+        "/runtime-identity",
         "/",
     }:
         return "infra"
+    if method is not None:
+        category = _permanent_contract().get((method.upper(), _normalize_path(path)))
+        if category:
+            return category
     return "legacy_unversioned_business"
+
+
+def _is_test_file(path: Path) -> bool:
+    rel = path.relative_to(ROOT).as_posix()
+    return "/tests/" in rel or rel.startswith("tests/") or path.name.startswith("test_")
+
+
+# وحدات تُعرّف مسارات على تطبيق FastAPI **مستقلّ غير مُركَّب** — أمثلة مرجعيّة لا سطح
+# مخدوم. نفس صنف استبعاد ملفّات الاختبار أعلاه: الجرد يصف ما تخدمه الخدمة فعلاً، وادّعاء
+# مسار غير موجود في التطبيق العامل خطأ صدق لا دَين هجرة.
+#   • services/sahool-platform/api/chat_proxy_reference.py — ثلاثة أقفال بنيويّة مستقلّة:
+#     (١) خارج `api/routers/`، و`register_routers()` يُسجّل تلقائيّاً وحدات تلك الحزمة
+#         وحدها (`pkgutil.iter_modules(_routers_pkg.__path__)`، api/router_registry.py)؛
+#     (٢) صفر استيراد إنتاجيّ في المستودع (المطابقتان الوحيدتان تعليق في
+#         ai_provider_config.py ونصّ docstring داخل الملفّ نفسه — لا `import`)؛
+#     (٣) لا يُصدِّر `router` إطلاقاً، بل `app = FastAPI(...)` داخل try/except كمثال
+#         قابل للتشغيل مستقلّاً (`uvicorn api.chat_proxy_reference:app`).
+#     docstring الملفّ صريح: «هذا ملف مرجعي يوضّح النمط… النواة الحالية لا تتضمّن خادماً».
+#     سابقة مستقلّة قائمة: tests_v9/test_endpoint_auth_coverage.py يستثنيه بالاسم للسبب نفسه.
+#   الحقائق الثلاث مُثبَّتة في tests_v9/test_api_versioning_policy_guard.py — لو رُكِّب
+#   الملفّ يوماً (أو نُقِل إلى api/routers/) يسقط الاختبار ويُجبِر إعادة التقييم.
+_UNMOUNTED_REFERENCE_FILES = frozenset({"services/sahool-platform/api/chat_proxy_reference.py"})
+
+
+def _is_unmounted_reference(path: Path) -> bool:
+    return path.relative_to(ROOT).as_posix() in _UNMOUNTED_REFERENCE_FILES
 
 
 def collect():
@@ -88,9 +200,17 @@ def collect():
     for p in sorted(paths):
         if "__pycache__" in p.parts or ".venv" in p.parts:
             continue
+        # الجرد يقيس الـAPI الإنتاجيّ، لا مسارات الفحص الداخليّة داخل ملفّات الاختبار
+        # (مثل `GET /probe` في test_correlation_middleware.py) — استبعاد بنيويّ لا
+        # يدويّ، حتى يبقى الأساس 250/230/55 قابلاً لإعادة التوليد بلا تدخّل.
+        if _is_test_file(p):
+            continue
+        # تطبيق مرجعيّ مستقلّ غير مُركَّب ⇒ ليس سطحاً مخدوماً (انظر التعليق أعلاه).
+        if _is_unmounted_reference(p):
+            continue
         rows.extend(_routes(p))
     for r in rows:
-        r["classification"] = _classify(r["path"])
+        r["classification"] = _classify(r["path"], r["method"])
     return rows
 
 
@@ -109,8 +229,23 @@ def write(rows):
             if r["classification"] == "legacy_unversioned_business"
         }
     )
+    # الجرد الخام يبقى ظاهراً: العقود الدائمة ليست ديناً لكنّها **ليست مخفيّة** — تُكتَب
+    # بفئتها المُسمّاة بجوار قائمة الدَّين كي يقرأها المراجع بلا فتح ملفّ العقد.
+    permanent: dict[str, list[str]] = {}
+    for r in rows:
+        if r["classification"] in _permanent_contract().values():
+            permanent.setdefault(r["classification"], []).append(f"{r['method']} {r['path']}")
     ALLOW.write_text(
-        json.dumps({"legacy_unversioned_business_routes": legacy}, indent=2, ensure_ascii=False)
+        json.dumps(
+            {
+                "legacy_unversioned_business_routes": legacy,
+                "permanent_compatibility_routes": {
+                    k: sorted(set(v)) for k, v in sorted(permanent.items())
+                },
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
         + "\n",
         encoding="utf-8",
     )
@@ -132,6 +267,67 @@ def main():
             raise SystemExit(
                 "api versioning inventory drift; rerun scripts/ci/api_versioning_policy_guard.py and review unversioned allowlist"
             )
+        # API-VERSIONING-GUARD-IS-A-MIRROR-01: المقارنة أعلاه تكشف الانحراف، لكنّ
+        # علاجها المُوثَّق «أعِد التوليد» — فمسار غير مُصدَّر **جديد** يُقبَل بمجرّد
+        # الالتزام بالقائمة الجديدة. كاشف انحراف لا بوّابة سياسة. الراتشِت أدناه
+        # يمنع **النموّ**: التقلّص مسموح ومطلوب، والزيادة تُسقِط CI.
+        #
+        # شرطان مستقلّان، لا شرط واحد: عدّ فقط (len(current) <= ceiling) لا يمنع
+        # استبدال دَين قديم بدَين جديد — إغلاق مسارَين وفتح مسارَين مختلفَين يُبقي
+        # العدد ثابتاً فيمرّ صامتاً. الشرط الثاني (current_set ⊆ frozen_set) يمنع هذا:
+        # أيّ مسار **جديد** في القائمة الحاليّة لم يكن في المجموعة المُجمَّدة يُسقِط CI
+        # فوراً حتى لو بقي العدد الكلّي تحت السقف.
+        import json as _json
+
+        baseline = ROOT / "docs" / "architecture" / "api_versioning_legacy_baseline.json"
+        if baseline.exists():
+            baseline_data = _json.loads(baseline.read_text(encoding="utf-8"))
+            ceiling = baseline_data["ceiling"]
+            current_routes = _json.loads(ALLOW.read_text(encoding="utf-8"))[
+                "legacy_unversioned_business_routes"
+            ]
+            current = len(current_routes)
+            if current > ceiling:
+                raise SystemExit(
+                    f"قائمة السماح نمت {ceiling} ⇒ {current}. مسار عمل جديد بلا إصدار "
+                    "لا يُقبَل بإعادة التوليد — أصدِره تحت /api/v1/ أو صنّفه بحقّه. "
+                    f"الأساس: {baseline.relative_to(ROOT)} (يتقلّص ولا ينمو)."
+                )
+            if current < ceiling:
+                print(f"  قائمة السماح تقلّصت {ceiling} ⇒ {current} — حدّث ceiling في الأساس.")
+
+            frozen_routes = baseline_data.get("routes")
+            if frozen_routes is not None:
+                current_set = set(current_routes)
+                frozen_set = set(frozen_routes)
+                escaped = current_set - frozen_set
+                if escaped:
+                    raise SystemExit(
+                        "قائمة السماح تحمل مساراً/مسارات جديدة ليست في المجموعة المُجمَّدة "
+                        f"(استبدال دَين لا تقلّصه، مرفوض حتى لو بقي العدد تحت السقف): "
+                        f"{sorted(escaped)}. أصدِرها تحت /api/v1/ أو أضِفها إلى `routes` في "
+                        f"{baseline.relative_to(ROOT)} إن كانت هجرة مُقرَّرة."
+                    )
+                if current_set != frozen_set:
+                    print(
+                        "  المجموعة المُجمَّدة تقلّصت "
+                        f"{len(frozen_set)} ⇒ {len(current_set)} — حدّث `routes` في الأساس."
+                    )
+
+        # إنفاذ عكسيّ لعقد التوافق الدائم: كلّ إدخال في العقد يجب أن يقابله مسار حيّ.
+        # الاتّجاه الأمامي مضمون بنيويّاً (التصنيف يأتي **من** العقد، فلا مسار دائم خارجه)،
+        # لكنّ العكس ليس كذلك: إدخال بائت (حُذِف مساره) يبقى صامتاً ويُغطّي سلفاً أيّ مسار
+        # يُعاد إدخاله بنفس التوقيع لاحقاً بلا adjudication جديد. فيُرفَض.
+        contract = _permanent_contract()
+        if contract:
+            live = {(r["method"].upper(), _normalize_path(r["path"])) for r in rows}
+            stale = sorted(f"{m} {p}" for (m, p) in contract if (m, p) not in live)
+            if stale:
+                raise SystemExit(
+                    "عقد التوافق الدائم يحمل إدخالاً/إدخالات بلا مسار حيّ مطابق "
+                    f"(عقد بائت — يُغطّي مساراً يُعاد إدخاله لاحقاً بلا adjudication): {stale}. "
+                    f"احذفها من {PERMANENT_CONTRACT.relative_to(ROOT)} إن أُزيل المسار عمداً."
+                )
         print("api_versioning_policy_check_ok")
     else:
         counts = {}

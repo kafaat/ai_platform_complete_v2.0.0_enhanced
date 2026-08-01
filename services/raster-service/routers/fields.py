@@ -88,7 +88,7 @@ def _authenticated_tenant(body_tenant: str | None) -> str | None:
     return context_tenant
 
 
-@router.get("/gis/admin-boundaries")
+@router.get("/v1/gis/admin-boundaries")
 async def gis_admin_boundaries(
     level: int = Query(1, ge=1, le=2),
     bbox: str | None = Query(None, description="minx,miny,maxx,maxy (4326) — مقصوص، محدود المساحة"),
@@ -147,7 +147,7 @@ async def process_from_stac(
     """يجسر الاستيراد→المعالجة: يكدّس COGs المنفصلة لنطاقات STAC في VRT
     (عبر /vsicurl/ للبعيد) ثم يشغّل نفس مسار /process (قصّ→مؤشّر→COG→persist).
 
-    مناسب للمزوّد بلا مفتاح (Element84): استدعِ /imagery/best لجلب band hrefs،
+    مناسب للمزوّد بلا مفتاح (Element84): استدعِ /v1/imagery/best لجلب band hrefs،
     ثمّ مرّرها هنا. خلفيّة — يُرجِع job_id.
     """
     _require_service_token(x_agent_token)
@@ -836,7 +836,7 @@ async def process_cdse(
         "job_id": job_id,
         "status": JobStatus.pending,
         "indicators": list(req.indicators),
-        "note": "معالجة CDSE خلفيّة — استعلم /jobs/{job_id} (cdse_results + cdse_failed).",
+        "note": "معالجة CDSE خلفيّة — استعلم /v1/jobs/{job_id} (cdse_results + cdse_failed).",
     }
 
 

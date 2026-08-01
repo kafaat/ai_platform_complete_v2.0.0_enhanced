@@ -219,7 +219,7 @@ def duplicate_blocks(parsed):
     ]
 
 
-def generate():
+def generate(out_dir: Path = OUT):
     parsed = {p: t for p in files() if (t := parse(p)) is not None}
     defs, refs, routes, imports, calls = symbol_index(parsed)
     dead = []
@@ -264,18 +264,18 @@ def generate():
         "dead_code_candidates": sorted(dead, key=lambda x: (x["confidence"], x["file"], x["line"])),
         "duplicate_function_groups": duplicates,
     }
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "execution_dependency_audit.json").write_text(
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "execution_dependency_audit.json").write_text(
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
     )
-    (OUT / "execution_audit_summary.json").write_text(
+    (out_dir / "execution_audit_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n"
     )
-    with (OUT / "route_handlers.csv").open("w", newline="", encoding="utf-8") as f:
+    with (out_dir / "route_handlers.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["owner", "method", "path", "handler", "file", "line"])
         w.writeheader()
         w.writerows(payload["routes"])
-    with (OUT / "dead_code_candidates.csv").open("w", newline="", encoding="utf-8") as f:
+    with (out_dir / "dead_code_candidates.csv").open("w", newline="", encoding="utf-8") as f:
         fields = [
             "confidence",
             "owner",
@@ -328,13 +328,13 @@ def generate():
         "",
         "A candidate can be invoked dynamically through dependency injection, framework registration, reflection, plugins, task queues, or external entrypoints. Review and focused tests are mandatory before deletion.",
     ]
-    (OUT / "EXECUTION_DEPENDENCY_AUDIT_REPORT.md").write_text("\n".join(md) + "\n")
+    (out_dir / "EXECUTION_DEPENDENCY_AUDIT_REPORT.md").write_text("\n".join(md) + "\n")
     return payload
 
 
-def digest():
+def digest(out_dir: Path = OUT):
     h = hashlib.sha256()
-    for p in sorted(OUT.glob("*")):
+    for p in sorted(out_dir.glob("*")):
         if p.name == ".audit.sha256":
             continue
         h.update(p.name.encode())
@@ -348,11 +348,25 @@ def main():
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
     if a.check:
+        import tempfile
+
         before = (
             (OUT / ".audit.sha256").read_text().strip() if (OUT / ".audit.sha256").exists() else ""
         )
-        generate()
-        after = digest()
+        with tempfile.TemporaryDirectory(prefix="sahool-execution-audit-check-") as tmp:
+            import shutil
+
+            candidate = Path(tmp)
+            for existing in OUT.iterdir():
+                if existing.name == ".audit.sha256":
+                    continue
+                target = candidate / existing.name
+                if existing.is_dir():
+                    shutil.copytree(existing, target)
+                else:
+                    shutil.copy2(existing, target)
+            generate(candidate)
+            after = digest(candidate)
         if before != after:
             raise SystemExit("execution dependency audit drift detected; run --generate")
         print("execution dependency audit: PASS")

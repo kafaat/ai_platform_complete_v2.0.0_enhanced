@@ -255,7 +255,7 @@ async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
         return {"error": "encode_failed"}
 
     files = {"file": ("frame.jpg", encoded.tobytes(), "image/jpeg")}
-    # edge /inference/pest-detect يتوقّع حقول Form مسطّحة (لا json متداخل) + توكن الخدمة
+    # edge /v1/inference/pest-detect يتوقّع حقول Form مسطّحة (لا json متداخل) + توكن الخدمة
     data = {
         "field_id": "stream",
         "crop": "wheat",
@@ -267,7 +267,7 @@ async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
-                f"{EDGE_INFERENCE_URL}/inference/pest-detect",
+                f"{EDGE_INFERENCE_URL}/v1/inference/pest-detect",
                 data=data,
                 files=files,
                 headers=headers,

@@ -154,6 +154,17 @@ def _load_auth_main():
 
 
 @pytest.mark.integration
+@pytest.mark.xfail(
+    strict=False,
+    reason=(
+        "AUTH-E2E-UNDER-RESTRICTED-ROLE (فرع CI): خدمة auth ترفض الإقلاع لأنّ قاعدة اختبار "
+        "CI تتّصل بـsahool_test وهو superuser، وحارس تجاوز RLS يفشل مغلقاً — وهو السلوك "
+        "الصحيح. ci.yml:601 يُنشئ القاعدة بهذا الدور. الإصلاح دور مقيَّد "
+        "(NOSUPERUSER NOBYPASSRLS) لقاعدة الاختبار، **لا** SAHOOL_ALLOW_RLS_BYPASS_ROLE=1 "
+        "الذي يُعطّل الحارس في CI. UNIT-TEST-DORMANCY-01 أيقظ الاختبار؛ الوسم يُبقيه "
+        "ظاهراً بفشله المُسمّى بدل إعادته إلى skip صامت، ويُرفع عند إنشاء الدور."
+    ),
+)
 def test_mfa_end_to_end_via_app():
     pytest.importorskip("fastapi")  # DB-only CI job has no fastapi ⇒ skip transparently there
     if not _db_available():
@@ -181,11 +192,11 @@ def test_mfa_end_to_end_via_app():
     email = f"mfa_{uuid.uuid4().hex[:8]}@sahool.ye"
     with TestClient(m.app, raise_server_exceptions=False) as c:
         tok = c.post(
-            "/auth/register",
+            "/v1/auth/register",
             json={"email": email, "password": pw, "full_name": "مزارع MFA", "role": "owner"},
         ).json()["access_token"]
         auth = {"Authorization": f"Bearer {tok}"}
-        r = c.post("/auth/mfa/setup", headers=auth)
+        r = c.post("/v1/auth/mfa/setup", headers=auth)
         assert r.status_code == 200, r.text[:160]
         secret = r.json()["secret"]
         row = asyncio.run(
@@ -193,10 +204,10 @@ def test_mfa_end_to_end_via_app():
         )
         assert row["encrypted_mfa_secret"] and str(row["encrypted_mfa_secret"]).startswith("v1:")
         assert row["mfa_secret"] is None  # never new plaintext
-        r = c.post("/auth/mfa/activate", headers=auth, json={"code": pyotp.TOTP(secret).now()})
+        r = c.post("/v1/auth/mfa/activate", headers=auth, json={"code": pyotp.TOTP(secret).now()})
         assert r.status_code == 200 and len(r.json()["recovery_codes"]) == 10
         r = c.post(
-            "/auth/login",
+            "/v1/auth/login",
             json={"email": email, "password": pw, "mfa_code": pyotp.TOTP(secret).now()},
         )
         assert r.status_code == 200, r.text[:160]

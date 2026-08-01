@@ -1,5 +1,9 @@
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 # The runtime /api/raster/* proxy now lives in nginx (frontend + gateway), not the
 # platform compat router — the gateway verifies JWT via auth_request, injects the

@@ -387,7 +387,7 @@ async def readyz():
     }
 
 
-@app.post("/segment")
+@app.post("/v1/segment")
 async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
     """تقطيع حقل.
 

@@ -51,7 +51,7 @@ docker compose -f docker-compose.erpnext.yml --env-file .env up -d
 
 ### ٥. تحقّق من التبديل
 ```powershell
-curl http://localhost:8126/erp/provider
+curl http://localhost:8126/v1/erp/provider
 # يُفترض: {"selected":"erpnext","active_provider":"erpnext",...}
 ```
 

@@ -116,7 +116,7 @@ def _ai_client():
     return M, TestClient(M.app, raise_server_exceptions=False)
 
 
-@pytest.mark.parametrize("endpoint", ["/query", "/chat", "/explain", "/recommend"])
+@pytest.mark.parametrize("endpoint", ["/v1/query", "/v1/chat", "/v1/explain", "/v1/recommend"])
 def test_ai_missing_tenant_header_rejected(endpoint):
     _M, client = _ai_client()
     r = client.post(endpoint, json={"question": "q", "tenant_id": "tenant-1"})
@@ -124,7 +124,7 @@ def test_ai_missing_tenant_header_rejected(endpoint):
     assert r.json()["detail"] == ERROR_MISSING_TENANT
 
 
-@pytest.mark.parametrize("endpoint", ["/query", "/chat", "/explain", "/recommend"])
+@pytest.mark.parametrize("endpoint", ["/v1/query", "/v1/chat", "/v1/explain", "/v1/recommend"])
 def test_ai_body_tenant_mismatch_rejected(endpoint):
     _M, client = _ai_client()
     r = client.post(
@@ -166,7 +166,7 @@ def test_ai_body_matches_header_passes_guard(monkeypatch):
 
     monkeypatch.setattr(M.httpx, "AsyncClient", _FakeAsyncClient)
     r = client.post(
-        "/query",
+        "/v1/query",
         json={"question": "q", "tenant_id": "tenant-1"},
         headers={"X-Tenant-Id": "tenant-1"},
     )
@@ -205,7 +205,7 @@ def test_ai_header_only_no_body_tenant_passes_guard(monkeypatch):
         },
     )
     monkeypatch.setattr(M.httpx, "AsyncClient", Fake)
-    r = client.post("/query", json={"question": "q"}, headers={"X-Tenant-Id": "tenant-9"})
+    r = client.post("/v1/query", json={"question": "q"}, headers={"X-Tenant-Id": "tenant-9"})
     assert r.status_code == 200
     assert r.json()["tenant_id"] == "tenant-9"
 
@@ -232,7 +232,7 @@ _APPROVAL_BODY = {
 _APPROVAL_HEADERS = {"X-Tenant-Id": "tenant-1", "X-User-Id": "user-1"}
 
 
-@pytest.mark.parametrize("path", ["/approvals/approve", "/approvals/deny"])
+@pytest.mark.parametrize("path", ["/v1/approvals/approve", "/v1/approvals/deny"])
 def test_approvals_without_tenant_rejected(path):
     _M, client = _ai_client()
     r = client.post(path, json=_APPROVAL_BODY)  # no X-Tenant-Id
@@ -240,7 +240,7 @@ def test_approvals_without_tenant_rejected(path):
     assert r.json()["detail"] == "missing_tenant"
 
 
-@pytest.mark.parametrize("path", ["/approvals/approve", "/approvals/deny"])
+@pytest.mark.parametrize("path", ["/v1/approvals/approve", "/v1/approvals/deny"])
 def test_approvals_without_user_rejected(path):
     """Tenant present but no authenticated user ⇒ fail-closed 403 missing_user (SEC-3.1)."""
     _M, client = _ai_client()
@@ -251,7 +251,7 @@ def test_approvals_without_user_rejected(path):
 
 def test_approvals_resume_without_tenant_rejected():
     _M, client = _ai_client()
-    r = client.post("/approvals/resume", json={"approval_id": "whatever"})  # no X-Tenant-Id
+    r = client.post("/v1/approvals/resume", json={"approval_id": "whatever"})  # no X-Tenant-Id
     assert r.status_code == 403
     assert r.json()["detail"] == "missing_tenant"
 
@@ -259,7 +259,9 @@ def test_approvals_resume_without_tenant_rejected():
 def test_approvals_resume_without_user_rejected():
     _M, client = _ai_client()
     r = client.post(
-        "/approvals/resume", json={"approval_id": "whatever"}, headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/approvals/resume",
+        json={"approval_id": "whatever"},
+        headers={"X-Tenant-Id": "tenant-1"},
     )
     assert r.status_code == 403
     assert r.json()["detail"] == "missing_user"
@@ -268,7 +270,7 @@ def test_approvals_resume_without_user_rejected():
 def test_approvals_with_tenant_and_user_passes_auth_gate():
     """With X-Tenant-Id + X-User-Id the auth gate passes (decision logic may 4xx, not 403)."""
     _M, client = _ai_client()
-    r = client.post("/approvals/approve", json=_APPROVAL_BODY, headers=_APPROVAL_HEADERS)
+    r = client.post("/v1/approvals/approve", json=_APPROVAL_BODY, headers=_APPROVAL_HEADERS)
     assert r.status_code != 403
 
 
@@ -277,7 +279,7 @@ def test_approvals_approver_of_record_is_authenticated_user():
     _M, client = _ai_client()
     body = {**_APPROVAL_BODY, "approver": "spoofed-body-user"}
     r = client.post(
-        "/approvals/approve",
+        "/v1/approvals/approve",
         json=body,
         headers={"X-Tenant-Id": "tenant-1", "X-User-Id": "real-user-42"},
     )
@@ -313,7 +315,7 @@ def _rag_search_body(tenant="tenant-1"):
 
 def test_rag_search_missing_header_rejected():
     _M, client = _rag_client()
-    r = client.post("/search", json=_rag_search_body())
+    r = client.post("/v1/search", json=_rag_search_body())
     assert r.status_code == 403
     assert r.json()["detail"] == ERROR_MISSING_TENANT
 
@@ -321,7 +323,7 @@ def test_rag_search_missing_header_rejected():
 def test_rag_search_body_mismatch_rejected():
     _M, client = _rag_client()
     r = client.post(
-        "/search", json=_rag_search_body("tenant-EVIL"), headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/search", json=_rag_search_body("tenant-EVIL"), headers={"X-Tenant-Id": "tenant-1"}
     )
     assert r.status_code == 403
     assert r.json()["detail"] == ERROR_TENANT_MISMATCH
@@ -337,7 +339,7 @@ def test_rag_search_matching_tenant_uses_trusted_value(monkeypatch):
 
     monkeypatch.setattr(M._retriever, "retrieve", _fake_retrieve)
     r = client.post(
-        "/search", json=_rag_search_body("tenant-1"), headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/search", json=_rag_search_body("tenant-1"), headers={"X-Tenant-Id": "tenant-1"}
     )
     assert r.status_code == 200
     assert captured["tenant_id"] == "tenant-1"
@@ -363,7 +365,7 @@ _INGEST_BODY = {
 def test_rag_ingest_without_token_rejected(monkeypatch):
     _M, client = _rag_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post("/ingest", json=_INGEST_BODY)  # no X-Agent-Token
+    r = client.post("/v1/ingest", json=_INGEST_BODY)  # no X-Agent-Token
     assert r.status_code == 403
     assert r.json()["detail"] == "service_token_required"
 
@@ -377,7 +379,7 @@ def test_rag_ingest_with_token_not_rejected(monkeypatch):
     # addition to the SEC-4 service token). A valid internal caller presents both;
     # the chunk tenant_id must echo the trusted header ("tenant-1" in _INGEST_BODY).
     r = client.post(
-        "/ingest",
+        "/v1/ingest",
         json=_INGEST_BODY,
         headers={"X-Agent-Token": _AGENT_TOKEN, "X-Tenant-Id": "tenant-1"},
     )
@@ -390,7 +392,7 @@ def test_rag_ingest_with_token_but_missing_tenant_rejected(monkeypatch):
     # C4: even with a valid service token, a missing gateway tenant fails closed.
     _M, client = _rag_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post("/ingest", json=_INGEST_BODY, headers={"X-Agent-Token": _AGENT_TOKEN})
+    r = client.post("/v1/ingest", json=_INGEST_BODY, headers={"X-Agent-Token": _AGENT_TOKEN})
     assert r.status_code == 403
     assert r.json()["detail"] == "missing_tenant"
 
@@ -427,7 +429,7 @@ _EDGE = {
 }
 
 
-@pytest.mark.parametrize("path,payload", [("/nodes", _NODE), ("/edges", _EDGE)])
+@pytest.mark.parametrize("path,payload", [("/v1/nodes", _NODE), ("/v1/edges", _EDGE)])
 def test_kg_write_without_token_rejected(monkeypatch, path, payload):
     _M, client = _kg_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
@@ -439,7 +441,7 @@ def test_kg_write_without_token_rejected(monkeypatch, path, payload):
 def test_kg_write_with_token_allowed(monkeypatch):
     _M, client = _kg_client()
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post("/nodes", json=_NODE, headers={"X-Agent-Token": _AGENT_TOKEN})
+    r = client.post("/v1/nodes", json=_NODE, headers={"X-Agent-Token": _AGENT_TOKEN})
     assert r.status_code == 200
     assert r.json()["ok"] is True
 
@@ -449,11 +451,11 @@ def test_kg_read_edges_requires_trusted_tenant():
     # gateway-injected X-Tenant-Id (fail-closed 403 missing_tenant when absent),
     # preventing anonymous cross-tenant graph reads. ai_agronomist forwards it (C2).
     _M, client = _kg_client()
-    r_missing = client.get("/edges", params={"subject_id": "anything"})
+    r_missing = client.get("/v1/edges", params={"subject_id": "anything"})
     assert r_missing.status_code == 403
     assert r_missing.json()["detail"] == "missing_tenant"
     r_ok = client.get(
-        "/edges", params={"subject_id": "anything"}, headers={"X-Tenant-Id": "tenant-1"}
+        "/v1/edges", params={"subject_id": "anything"}, headers={"X-Tenant-Id": "tenant-1"}
     )
     assert r_ok.status_code == 200
     assert "edges" in r_ok.json()

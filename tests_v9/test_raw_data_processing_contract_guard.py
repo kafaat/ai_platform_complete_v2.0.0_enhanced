@@ -10,7 +10,7 @@ pytestmark = pytest.mark.unit
 
 def test_raw_data_processing_contract_guard_passes():
     result = subprocess.run(
-        [sys.executable, "scripts/ci/raw_data_processing_contract_guard.py"],
+        [sys.executable, "scripts/ci/raw_data_processing_contract_guard.py", "--check"],
         check=False,
         text=True,
         capture_output=True,

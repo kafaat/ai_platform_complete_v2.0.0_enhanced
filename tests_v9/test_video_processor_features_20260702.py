@@ -331,7 +331,7 @@ def _seed_registry(streams, stream_id="cam1", tenant="tenant_a", state="live"):
 
 def test_snapshot_404_on_unknown_stream(client_ctx):
     tc, _streams, _vmain = client_ctx
-    r = tc.get("/streams/does-not-exist/snapshot", headers=_auth_headers())
+    r = tc.get("/v1/streams/does-not-exist/snapshot", headers=_auth_headers())
     assert r.status_code == 404
 
 
@@ -339,7 +339,7 @@ def test_snapshot_returns_image(client_ctx, monkeypatch):
     tc, streams, _vmain = client_ctx
     _seed_registry(streams)
     monkeypatch.setattr(streams, "_client", lambda: _FakeZLM(ok=True))
-    r = tc.get("/streams/cam1/snapshot", headers=_auth_headers())
+    r = tc.get("/v1/streams/cam1/snapshot", headers=_auth_headers())
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("image/jpeg")
     assert r.content == b"IMG"
@@ -349,7 +349,7 @@ def test_record_start_updates_registry(client_ctx, monkeypatch):
     tc, streams, _vmain = client_ctx
     _seed_registry(streams)
     monkeypatch.setattr(streams, "_client", lambda: _FakeZLM(ok=True))
-    r = tc.post("/streams/cam1/record/start", headers=_auth_headers())
+    r = tc.post("/v1/streams/cam1/record/start", headers=_auth_headers())
     assert r.status_code == 200
     body = r.json()
     assert body["ok"] is True
@@ -361,7 +361,7 @@ def test_record_stop_updates_registry(client_ctx, monkeypatch):
     tc, streams, _vmain = client_ctx
     _seed_registry(streams, state="recording")
     monkeypatch.setattr(streams, "_client", lambda: _FakeZLM(ok=True))
-    r = tc.post("/streams/cam1/record/stop", headers=_auth_headers())
+    r = tc.post("/v1/streams/cam1/record/stop", headers=_auth_headers())
     assert r.status_code == 200
     body = r.json()
     assert body["ok"] is True
@@ -374,7 +374,7 @@ def test_record_start_client_failure_sets_error(client_ctx, monkeypatch):
     tc, streams, _vmain = client_ctx
     _seed_registry(streams)
     monkeypatch.setattr(streams, "_client", lambda: _FakeZLM(ok=False))
-    r = tc.post("/streams/cam1/record/start", headers=_auth_headers())
+    r = tc.post("/v1/streams/cam1/record/start", headers=_auth_headers())
     assert r.status_code == 200
     body = r.json()
     assert body["ok"] is False
@@ -387,5 +387,5 @@ def test_record_cross_tenant_denied(client_ctx, monkeypatch):
     tc, streams, _vmain = client_ctx
     _seed_registry(streams, tenant="tenant_other")
     monkeypatch.setattr(streams, "_client", lambda: _FakeZLM(ok=True))
-    r = tc.post("/streams/cam1/record/start", headers=_auth_headers("tenant_a"))
+    r = tc.post("/v1/streams/cam1/record/start", headers=_auth_headers("tenant_a"))
     assert r.status_code == 404

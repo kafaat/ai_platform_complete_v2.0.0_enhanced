@@ -80,25 +80,16 @@ duplicate_route_classifications:
      decision: "عقد مقاييس Prometheus محلّيّ بالخدمة."}
   - {method: GET, path: /runtime-identity, classification: standard_observability,
      decision: "عقد هويّة بناء/صورة محلّيّ بالخدمة (git_sha/build_id/image_digest من ملفّ صورة للقراءة فقط) — سطح provenance تشغيليّ لربط أدلّة التحقّق بالصورة المنشورة؛ لكلّ خدمة نسختها، ومستثنى من ميزانية مسارات النطاق عبر allowlist صريحة."}
-  - {method: GET, path: /products, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما."}
+  - {method: GET, path: /v1/products, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما. (كان /products قبل API-VERSIONING-GUARD-IS-A-MIRROR-01 شريحة الوكيل A الثانية، 2026-07-30 — نُقل المسار لا الحكم.)"}
   - {method: GET, path: /readyz, classification: standard_readiness,
      decision: "عقد جاهزيّة محلّيّ بالخدمة؛ قيمته تبقى مشتقّة وقت التشغيل."}
-  - {method: GET, path: /stac, classification: legacy_bff_facade,
-     canonical_owner: raster-service, facade: sahool-platform, expires_on: "2026-12-31",
-     decision: "raster-service يملك STAC؛ مسار المنصّة واجهة توافق واعية بالمستأجِر فقط."}
-  - {method: GET, path: /stac/collections, classification: legacy_bff_facade,
-     canonical_owner: raster-service, facade: sahool-platform, expires_on: "2026-12-31",
-     decision: "raster-service يملك مجموعات STAC؛ مسار المنصّة واجهة توافق فقط."}
-  - {method: POST, path: /ingest, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "ابتلاع RAG المحلّيّ وابتلاع الاسترجاع محدودان بخدمتَيهما؛ لا مسار بوّابة مشترك يدمجهما."}
-  - {method: POST, path: /plan, classification: legacy_bff_facade,
-     canonical_owner: agriai-engine, facade: sahool-platform, expires_on: "2026-12-31",
-     decision: "agriai يملك حوسبة التخطيط؛ المنصّة تُنسِّق أو تُمرِّر ولا تُعيد تنفيذها."}
-  - {method: POST, path: /query, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "استعلام المرشد الزراعيّ واستعلام RAG المحلّيّ مختلفان ويحتفظان بفضائَي بوّابة منفصلَين."}
-  - {method: POST, path: /recommend, classification: service_scoped_semantics, expires_on: "2026-12-31",
-     decision: "تقييم agriai وتوصية المرشد عقدان مختلفان خلف نطاقَي خدمة منفصلَين."}
+  - {method: POST, path: /v1/ingest, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "ابتلاع rag-retrieval وابتلاع RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/ingest عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والخامسة، 2026-07-30)."}
+  - {method: POST, path: /v1/query, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "استعلام المرشد الزراعيّ (ai_agronomist) واستعلام RAG المحلّيّ (local-ai-rag) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/query عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الثالثة والرابعة، 2026-07-30)."}
+  - {method: POST, path: /v1/recommend, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "تقييم agriai وتوصية المرشد الزراعيّ (ai_agronomist) عقدان مختلفان تماماً خلف نطاقَي خدمة منفصلَين — تطابق نصّ /v1/recommend عرضيّ بعد أن هاجرت الخدمتان مستقلّتين إلى بادئة /v1/ (API-VERSIONING-GUARD-IS-A-MIRROR-01، شرائح الوكيل D الرابعة والخامسة، 2026-07-30)."}
 
 extra_components:
   # واجهات الاستهلاك — ليست في service_inventory (ليست خدمات backend) لكنّها مكوّنات

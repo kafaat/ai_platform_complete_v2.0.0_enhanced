@@ -14,7 +14,7 @@ from fastapi import APIRouter
 router = APIRouter()
 
 
-@router.get("/idempotency/metrics")
+@router.get("/v1/idempotency/metrics")
 async def idempotency_metrics():
     """مقاييس إزالة التكرار (المراقبة قبل الفرض): الوضع + عدّ القرارات حسب المفتاح.
 

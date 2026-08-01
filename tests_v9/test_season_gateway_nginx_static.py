@@ -69,7 +69,7 @@ def test_edge_sign_subrequest_generates_canonical_and_strips_client() -> None:
     """② البوّابة تُصدِر X-Canonical-* بنفسها فتَطمِس أيّ قيمة عميل (شرط ③، طمس بنيويّ)."""
     body = _location_body(_conf(), r"location\s*=\s*/_auth_edge_sign\b")
     assert "internal;" in body, "edge-sign subrequest must be internal (client cannot reach it)"
-    assert "proxy_pass http://auth_backend/auth/edge-sign;" in body
+    assert "proxy_pass http://auth_backend/v1/auth/edge-sign;" in body
     # الوجهة القانونيّة من المصدر الواحد (لا من العميل): method ثابت POST، path = المتغيّر.
     assert re.search(r'proxy_set_header\s+X-Canonical-Method\s+"POST"', body)
     assert re.search(r"proxy_set_header\s+X-Canonical-Path\s+\$season_canonical_path", body)

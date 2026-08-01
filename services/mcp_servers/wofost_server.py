@@ -47,7 +47,7 @@ class WOFOSTResult(BaseModel):
     stress_days: int
 
 
-@app.get("/mcp/v1/tools", dependencies=[Depends(require_scope("crop:read"))])
+@app.get("/v1/mcp/tools", dependencies=[Depends(require_scope("crop:read"))])
 async def list_tools():
     return {
         "tools": [
@@ -110,7 +110,7 @@ async def list_tools():
     }
 
 
-@app.post("/mcp/v1/tools/call", dependencies=[Depends(require_scope("crop:read"))])
+@app.post("/v1/mcp/tools/call", dependencies=[Depends(require_scope("crop:read"))])
 async def call_tool(request: dict):
     name = request.get("name")
     args = request.get("arguments", {})

@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json as _json
+import logging
 import os
 import tempfile
 import time as _t
@@ -21,6 +22,32 @@ import raster_date_geo
 from raster_security_context import REQ_TENANT
 
 LATEST_WINDOW_DAYS = int(os.getenv("CDSE_LATEST_WINDOW_DAYS", "365"))
+
+logger = logging.getLogger("raster-service")
+
+
+def _unlink_best_effort(path: str, reason: str) -> None:
+    """يحذف ملفّاً مؤقّتاً بأفضل جهد ويُسجّل تعذّر الحذف بدل ابتلاعه.
+
+    ثلاثة مواضع في هذا الملفّ كانت ``except OSError: pass`` صرفاً
+    (SILENT-EXCEPTION-HANDLERS-11-01). الابتلاع هنا **مشروع**: صحّة المسار لا تتوقّف
+    على نجاح الحذف — الإدخال يُسقَط من الذاكرة على أيّ حال، والفشل الحقيقيّ (قناع فاشل
+    أو مشهد فارغ) مُسجَّل سلفاً في مُستدعي هذه الدالّة. الناقص كان **الرؤية** وحدها:
+    ملفّ يتيم على القرص بلا أثر يُفسّره. فيبقى السلوك كما هو ويُضاف السبب.
+
+    ``debug`` لا ``warning`` عمداً: التعذّر متوقّع (سباق/تنظيف متزامن) وليس عطلاً
+    تشغيليّاً، ورفع مستواه يُغرِق السجلّ بضجيج يُخفي ما يهمّ.
+    """
+    try:
+        os.unlink(path)
+    except OSError as exc:
+        logger.debug(
+            "تعذّر حذف ملفّ مؤقّت (%s): %s — %s: %s",
+            reason,
+            path,
+            type(exc).__name__,
+            exc,
+        )
 
 
 def parse_poly(poly: str) -> dict | None:
@@ -146,10 +173,7 @@ async def ensure_field_cog(
                 return hit
             entry = cdse_singleflight.cdse_tile_cache.get(cache_key)
             if entry and os.path.exists(entry[1]):
-                try:
-                    os.unlink(entry[1])
-                except OSError:
-                    pass
+                _unlink_best_effort(entry[1], "إخلاء إدخال بائت من ذاكرة البلاطات")
                 cdse_singleflight.cdse_tile_cache.pop(cache_key, None)
         try:
             client = _cdse.get_client()
@@ -192,11 +216,47 @@ async def ensure_field_cog(
                         internal,
                         type(e).__name__,
                     )
+                    # يبقى النداء حرفيّاً `os.unlink(cog_path)` هنا لا عبر المساعِد:
+                    # `tests_v9/test_tile_mask_fail_closed_v29_8.py:49` حارس **مصدريّ**
+                    # يفتّش النصّ عن هذه الصيغة بالذات ليُثبِت أنّ فشل القناع ينظّف
+                    # الملفّ المؤقّت (منع تسريب قرص على مسار fail-closed أمنيّ). تليين
+                    # الحارس ليقبل المساعِد كان سيُضعِف حارساً أمنيّاً من أجل إعادة صياغة
+                    # تجميليّة — فالرؤية تُضاف هنا بلا تغيير الصيغة.
                     try:
                         os.unlink(cog_path)
-                    except OSError:
-                        pass
+                    except OSError as unlink_exc:
+                        logger.debug(
+                            "تعذّر حذف ملفّ مؤقّت (قناع المضلّع فشل ⇒ fail-closed): %s — %s",
+                            cog_path,
+                            type(unlink_exc).__name__,
+                        )
                     return None
+            # نجاح النقل ليس نجاحاً للمحتوى (IMAGERY-BLANK-THUMBNAIL-01): استجابة ٢٠٠
+            # بـGeoTIFF سليم البنية وفارغ البكسلات تدخل الكاش ساعةً وتُجمِّد الفراغ،
+            # فلا يُعيد أيّ طلب لاحق المحاولة حتّى بعد نشر إصلاح. نقيس المحتوى قبل
+            # التخزين: بلا مشاهدة ⇒ لا كاش ولا ملفّ (fail-closed، والطلب التالي يعيد
+            # السؤال بدل استهلاك فراغ مُخبّأ).
+            try:
+                import tile_render as _tr
+
+                observable = _tr.raster_has_observable_content(cog_path)
+            except Exception as e:  # noqa: BLE001 — تعذّر القياس ⇒ لا نُخزّن المجهول
+                logger.warning(
+                    "content check failed (%s/%s): %s — fail-closed",
+                    field_id,
+                    internal,
+                    type(e).__name__,
+                )
+                observable = False
+            if not observable:
+                logger.info(
+                    "CDSE returned an empty raster (%s/%s) — not cached: %s",
+                    field_id,
+                    internal,
+                    date_from,
+                )
+                _unlink_best_effort(cog_path, "راستر فارغ من CDSE ⇒ لا يُخزَّن")
+                return None
             async with cdse_singleflight.cdse_lock():
                 cdse_singleflight.cdse_tile_cache[cache_key] = (_t.monotonic() + 3600.0, cog_path)
                 cdse_singleflight.cdse_prune_key_locks_locked()

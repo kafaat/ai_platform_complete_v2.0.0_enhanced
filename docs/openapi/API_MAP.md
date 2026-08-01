@@ -17,32 +17,32 @@
 - `GET /healthz`
 - `GET /metrics`
 - `GET /readyz`
-- `POST /recommend`
+- `POST /v1/recommend`
 
 ## auth — 16 مسار
-- `GET /auth/me`
-- `GET /auth/users`
-- `GET /auth/verify`
 - `GET /health`
 - `GET /healthz`
 - `GET /metrics`
 - `GET /readyz`
-- `PATCH /auth/users/{user_id}/deactivate`
-- `PATCH /auth/users/{user_id}/role`
-- `POST /auth/change-password`
-- `POST /auth/login`
-- `POST /auth/logout`
-- `POST /auth/password-reset/confirm`
-- `POST /auth/password-reset/request`
-- `POST /auth/refresh`
-- `POST /auth/register`
+- `GET /v1/auth/me`
+- `GET /v1/auth/users`
+- `GET /v1/auth/verify`
+- `PATCH /v1/auth/users/{user_id}/deactivate`
+- `PATCH /v1/auth/users/{user_id}/role`
+- `POST /v1/auth/change-password`
+- `POST /v1/auth/login`
+- `POST /v1/auth/logout`
+- `POST /v1/auth/password-reset/confirm`
+- `POST /v1/auth/password-reset/request`
+- `POST /v1/auth/refresh`
+- `POST /v1/auth/register`
 
 ## edge-inference — 5 مسار
 - `GET /healthz`
 - `GET /readyz`
-- `POST /inference/pest-detect`
-- `POST /inference/yield-estimate`
-- `POST /sync/trigger`
+- `POST /v1/inference/pest-detect`
+- `POST /v1/inference/yield-estimate`
+- `POST /v1/sync/trigger`
 
 ## guardrails-engine — 7 مسار
 - `GET /health`
@@ -61,57 +61,57 @@
 - `POST /query`
 
 ## odoo-bridge — 10 مسار
-- `GET /config`
-- `GET /erp/provider`
 - `GET /health`
 - `GET /healthz`
-- `GET /logs`
-- `GET /products`
 - `GET /readyz`
-- `GET /suppliers`
-- `POST /sync`
-- `POST /webhook/odoo`
+- `GET /v1/config`
+- `GET /v1/erp/provider`
+- `GET /v1/logs`
+- `GET /v1/products`
+- `GET /v1/suppliers`
+- `POST /v1/sync`
+- `POST /v1/webhook/odoo`
 
 ## raster-service — 31 مسار
-- `GET /cog/validate`
+- `GET /v1/cog/validate`
 - `GET /healthz`
-- `GET /imagery/best`
-- `GET /imagery/dem`
-- `GET /imagery/search/landsat`
-- `GET /imagery/search/radar`
-- `GET /imagery/search/recent`
-- `GET /imagery/search/season`
-- `GET /imagery/timeseries`
-- `GET /info/{layer_id}`
-- `GET /jobs/{job_id}`
-- `GET /jobs/{job_id}/result`
-- `GET /layers/{layer_id}/tilejson`
+- `GET /v1/imagery/best`
+- `GET /v1/imagery/dem`
+- `GET /v1/imagery/search/landsat`
+- `GET /v1/imagery/search/radar`
+- `GET /v1/imagery/search/recent`
+- `GET /v1/imagery/search/season`
+- `GET /v1/imagery/timeseries`
+- `GET /v1/info/{layer_id}`
+- `GET /v1/jobs/{job_id}`
+- `GET /v1/jobs/{job_id}/result`
+- `GET /v1/layers/{layer_id}/tilejson`
 - `GET /metrics`
-- `GET /offline/packs`
-- `GET /offline/packs/{pack_name}`
+- `GET /v1/offline/packs`
+- `GET /v1/offline/packs/{pack_name}`
 - `GET /readyz`
-- `GET /storage/stats`
-- `GET /tiles/{layer_id}/{z}/{x}/{y}.png`
-- `POST /imagery/search`
-- `POST /imagery/timeseries/analyze`
-- `POST /imagery/timeseries/parallel`
-- `POST /process`
-- `POST /process/batch`
-- `POST /salinity/calibrate`
-- `POST /salinity/classify`
-- `POST /storage/cleanup`
-- `POST /terrain/slope`
-- `POST /upload/drone`
-- `POST /upload/raster`
-- `POST /zones/classify`
+- `GET /v1/storage/stats`
+- `GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png`
+- `POST /v1/imagery/search`
+- `POST /v1/imagery/timeseries/analyze`
+- `POST /v1/imagery/timeseries/parallel`
+- `POST /v1/process`
+- `POST /v1/process/batch`
+- `POST /v1/salinity/calibrate`
+- `POST /v1/salinity/classify`
+- `POST /v1/storage/cleanup`
+- `POST /v1/terrain/slope`
+- `POST /v1/upload/drone`
+- `POST /v1/upload/raster`
+- `POST /v1/zones/classify`
 
 ## soil-service — 6 مسار
 - `GET /health`
 - `GET /healthz`
 - `GET /metrics`
 - `GET /readyz`
-- `GET /soil/readings/{field_id}`
-- `POST /soil/ingest`
+- `GET /v1/soil/readings/{field_id}`
+- `POST /v1/soil/ingest`
 
 ## supervisor-agent — 8 مسار
 - `GET /agent/actuator-audit`
@@ -141,14 +141,14 @@
 - `GET /v1/timeseries/{field_id}`
 
 ## video-processor — 8 مسار
-- `DELETE /streams/{stream_id}`
 - `GET /health`
 - `GET /healthz`
 - `GET /readyz`
-- `GET /streams`
-- `GET /streams/{stream_id}`
-- `POST /streams`
-- `POST /streams/{stream_id}/snapshot`
+- `DELETE /v1/streams/{stream_id}`
+- `GET /v1/streams`
+- `GET /v1/streams/{stream_id}`
+- `POST /v1/streams`
+- `POST /v1/streams/{stream_id}/snapshot`
 
 ## weather-service — 4 مسار
 - `GET /`

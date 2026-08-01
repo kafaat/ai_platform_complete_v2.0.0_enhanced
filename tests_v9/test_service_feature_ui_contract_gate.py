@@ -1,6 +1,10 @@
 from pathlib import Path
 
+import pytest
+
 from scripts.ci.service_feature_ui_contract_gate import run_gate
+
+pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 

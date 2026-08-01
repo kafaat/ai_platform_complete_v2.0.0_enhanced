@@ -88,7 +88,7 @@ def main() -> int:
     seg_env = env_of(gpu_services.get("sahool-field-segmentation", {}))
     if seg_env.get("SEGMENTATION_BACKEND") != "sam2":
         fail("GPU overlay must set SEGMENTATION_BACKEND=sam2")
-    if seg_env.get("SEGMENTATION_INFERENCE_URL") != "http://sahool-sam2-inference:8080/predict":
+    if seg_env.get("SEGMENTATION_INFERENCE_URL") != "http://sahool-sam2-inference:8080/v1/predict":
         fail("GPU overlay must wire field-segmentation to sam2-inference")
 
     sam2_dockerfile = (ROOT / "services/sam2-inference/Dockerfile").read_text(encoding="utf-8")

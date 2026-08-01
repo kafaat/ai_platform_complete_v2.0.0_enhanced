@@ -7,9 +7,9 @@
   /health                — مرادف /healthz (للتوافق الخلفيّ).
   /readyz                — الجاهزية الداخلية: DB داخلي جاهز ⇒ 200، غير ذلك 503.
                            لا يشترط ERP الخارجي الاختياري.
-  /readyz/capabilities   — قدرات ERP (HTTP 200 دائماً): حالة المزوّد كبيانات تشغيلية لا
+  /v1/readyz/capabilities — قدرات ERP (HTTP 200 دائماً): حالة المزوّد كبيانات تشغيلية لا
                            كحكم على صحة الحاوية. fail-closed يحدث عند مسار القدرة
-                           لحظة استدعائها (POST /sync) لا عند إقلاع الحاوية.
+                           لحظة استدعائها (POST /v1/sync) لا عند إقلاع الحاوية.
 
 ERR-BRIDGE-001 (مغلق بالالتزام 36e8656): السبب الجذري كان CREATE TABLE في
 _run_migrations() يفشل برمجياً (InsufficientPrivilegeError على schema public)
@@ -42,7 +42,7 @@ async def readyz():
     """الجاهزية الداخلية — internal readiness.
 
     يفحص قاعدة البيانات الداخلية فقط (SELECT 1). لا يشترط ERP الخارجي الاختياري:
-    حالة ERP معلومة تشغيلية معروضة في /readyz/capabilities (HTTP 200 دائماً).
+    حالة ERP معلومة تشغيلية معروضة في /v1/readyz/capabilities (HTTP 200 دائماً).
     تعذّر DB ⇒ 503. ERP غير مهيّأ لا يُفضي إلى 503 هنا.
     """
     pool = _erp_rt._pool
@@ -72,13 +72,13 @@ async def readyz():
     }
 
 
-@router.get("/readyz/capabilities")
+@router.get("/v1/readyz/capabilities")
 async def readyz_capabilities():
     """قدرات ERP — معلومة تشغيلية، HTTP 200 دائماً.
 
     يعرض حالة المزوّد المختار كبيانات لا كحكم صحة — الحاوية حيّة بلا ERP مهيّأ
     ليست مريضة؛ هي صادقة العجز عن قدرة واحدة. fail-closed يحدث عند مسار القدرة
-    لحظة استدعائها (POST /sync بلا ERP ⇒ 424/503 مُصنَّف) لا هنا.
+    لحظة استدعائها (POST /v1/sync بلا ERP ⇒ 424/503 مُصنَّف) لا هنا.
     لا probe شبكيّ هنا — للمعلومة الحيّة اقرأ /erp/config.
     """
     provider_name = main._selected_erp_provider()
@@ -89,7 +89,7 @@ async def readyz_capabilities():
             "erp_provider": provider_name,
             "erp_configured": configured,
             "note": (
-                "network probe not performed here — call /erp/config or /sync for live ERP status"
+                "network probe not performed here — call /erp/config or /v1/sync for live ERP status"
             ),
         },
     }

@@ -45,7 +45,7 @@ class TestGuardrailsEndpoints:
         from conftest import service_urls
 
         resp = await http_client.post(
-            f"{service_urls['guardrails']}/validate",
+            f"{service_urls['guardrails']}/v1/validate",
             json={"action": "irrigate", "field_id": "field_01", "amount_mm": 25},
             headers=auth_headers,
         )

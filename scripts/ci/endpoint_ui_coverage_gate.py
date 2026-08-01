@@ -136,11 +136,16 @@ def classify(path: str, classifications: list[dict]) -> str:
     return "unclassified"
 
 
+_AUTH_BACKEND_PREFIX_RE = re.compile(r"^/(?:api/v1|v1)/auth")
+
+
 def has_frontend_evidence(path: str, corpus: str) -> bool:
     """هل لجذع المسار دليل نصّيّ في الواجهة؟ (مع تطبيع إعادة كتابة البوّابة للـauth).
 
-    الواجهة تستدعي ``/auth/x`` بينما يعرّف backend المنصّة ``/api/v1/auth/x``؛ nginx
-    يُطبّع بينهما. فنقبل أيّاً من الشكلين كدليل، وإلّا تُنتِج البوّابة أيتاماً كاذبة.
+    الواجهة تستدعي ``/auth/x`` بينما يعرّف backend اصطلاحَين: منصّة sahool-platform تحت
+    ``/api/v1/auth/x`` وخدمة auth المستقلّة تحت ``/v1/auth/x`` (مُرقَّاة —
+    API-VERSIONING-GUARD-IS-A-MIRROR-01)؛ nginx يُطبّع كليهما إلى ``/auth/x`` للعميل.
+    فنقبل أيّاً من الأشكال الثلاثة كدليل، وإلّا تُنتِج البوّابة أيتاماً كاذبة.
     """
     stem = re.split(r"\{", path)[0].rstrip("/")
     if len(stem) <= len("/api/v1/"):
@@ -148,8 +153,8 @@ def has_frontend_evidence(path: str, corpus: str) -> bool:
         return bool(stem) and stem in corpus
     if stem in corpus:
         return True
-    # تطبيع auth: /api/v1/auth/* ⇄ /auth/*
-    alt = stem.replace("/api/v1/auth", "/auth")
+    # تطبيع auth: /api/v1/auth/* ⇄ /v1/auth/* ⇄ /auth/*
+    alt = _AUTH_BACKEND_PREFIX_RE.sub("/auth", stem)
     return alt != stem and alt in corpus
 
 

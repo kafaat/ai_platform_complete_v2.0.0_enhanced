@@ -7,6 +7,7 @@ bounded and terminal failures move to ``dead_letter`` without losing evidence.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
 from typing import Any
@@ -89,9 +90,12 @@ async def worker_loop(pool, *, stop: asyncio.Event, worker_id: str) -> None:
         while not stop.is_set():
             worked = await run_once(pool, worker_id=worker_id)
             if not worked:
-                try:
+                # EXPECTED-CONTROL-FLOW-EXCEPTION — نوم قابل للمقاطعة، لا ابتلاع خطأ.
+                # `wait_for(stop.wait(), timeout)` يعود مبكراً إن رُفِع علم التوقّف،
+                # ويرفع `TimeoutError` على المسار **العاديّ** حين تنقضي فترة الاستطلاع.
+                # فالاستثناء يقع مرّة كلّ `POLL_SECONDS` **إلى الأبد**: تسجيله يُنتِج
+                # ضجيجاً يتناسب مع زمن التشغيل — العيب نفسه في الاتّجاه المعاكس.
+                with contextlib.suppress(TimeoutError):
                     await asyncio.wait_for(stop.wait(), timeout=POLL_SECONDS)
-                except TimeoutError:
-                    pass
     finally:
         obs.WORKER_UP.set(0)

@@ -1,6 +1,6 @@
 """routers/tenants.py — تهيئة مستأجِر B2B (مدير المنصّة فقط).
 
-مسارات: POST /auth/tenants
+مسارات: POST /v1/auth/tenants
 
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقل المُعالِج حرفيّاً
 مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة تبقى في ``main`` ويُشار إليها عبر
@@ -36,7 +36,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 router = APIRouter()
 
 
-@router.post("/auth/tenants", status_code=201)
+@router.post("/v1/auth/tenants", status_code=201)
 async def provision_tenant(
     req: main.TenantProvisionRequest,
     request: Request,

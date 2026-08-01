@@ -244,7 +244,7 @@
     },
     {
       "kind": "router",
-      "line": 18,
+      "line": 24,
       "module": "services.guardrails-engine.routers.validation",
       "node_id": "services.guardrails-engine.routers.validation:router",
       "route_count": 3,
@@ -388,7 +388,7 @@
     },
     {
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.raster-service.routers.cdse_tiles",
       "node_id": "services.raster-service.routers.cdse_tiles:router",
       "route_count": 3,
@@ -514,7 +514,7 @@
     },
     {
       "kind": "app",
-      "line": 190,
+      "line": 191,
       "module": "services.sahool-platform.api.main",
       "node_id": "services.sahool-platform.api.main:app",
       "route_count": 0,
@@ -2215,7 +2215,7 @@
     },
     {
       "kind": "router",
-      "line": 20,
+      "line": 27,
       "module": "services.supervisor-agent.routers.agent",
       "node_id": "services.supervisor-agent.routers.agent:router",
       "route_count": 5,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "a97975346f8353d426f2b563f1b7ad42a61f28f1542fc887a0c1f9e2aa9f5337",
+  "inventory_sha256": "b61682c7af3e92f7a87a7e9974c7c5a991e68d80aa18c49385d256198a31076a",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2732,7 +2732,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 18,
+      "line": 24,
       "module": "services.guardrails-engine.routers.validation",
       "node_id": "services.guardrails-engine.routers.validation:router",
       "route_count": 3,
@@ -2792,7 +2792,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 19,
+      "line": 20,
       "module": "services.raster-service.routers.cdse_tiles",
       "node_id": "services.raster-service.routers.cdse_tiles:router",
       "route_count": 3,
@@ -4732,7 +4732,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 20,
+      "line": 27,
       "module": "services.supervisor-agent.routers.agent",
       "node_id": "services.supervisor-agent.routers.agent:router",
       "route_count": 5,

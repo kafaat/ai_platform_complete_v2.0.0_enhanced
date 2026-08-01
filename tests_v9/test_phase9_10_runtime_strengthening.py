@@ -1,5 +1,9 @@
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 
 def test_phase9_10_strengthening_migration_registered():
     manifest = Path("migrations/MANIFEST.txt").read_text(encoding="utf-8")

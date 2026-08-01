@@ -1,0 +1,49 @@
+{
+  "$comment": "ملفّات tests_v9 بلا علامة (marker). كلّ وظائف CI تنتقي بـ-m، وpytest يستبعد ما لا علامة له من كلّ واحدة منها — فملفّ بلا علامة ولا مسار صريح في workflow لا يعمل في أيّ مكان. هذا الأساس مُجمَّد: يتقلّص ولا ينمو. ملفّ اختبار **جديد** بلا علامة يُسقِط CI؛ ومدخل هنا يُحذف عند وسمه أو حذفه — لا يُضاف مدخل لتمرير بوّابة.",
+  "gap": "TESTS-UNMARKED-DESELECTED-01",
+  "measured_on": "82ba88ad (claude/project-exploration-dtjw3p, 2026-07-28)",
+  "measurement": "٦٩ ملفّاً بلا علامة عند الاكتشاف؛ ٤ منها تُشغَّل بمسار صريح في ci.yml و٦٥ لا تعمل في أيّ مكان. شُغِّلت الـ٦٥ في venv نظيفة مطابقة لوظيفة Unit Tests (‏requirements-test.txt وحدها): **٤١٥ نجح · ١٣ فشل · صفر تخطٍّ**. وُسِمت ٥٥ ملفّاً بـunit (٢٤١ اختباراً) — ٥٤ خضراء أصلاً وواحد أُغلِق سببه في هذه الشريحة (api_versioning_policy_guard: أُعيد توليد جرده البائت فصار --check يخرج بصفر)، وبقي ١٤ هنا. **تحديث 2026-07-29:** أُغلِقت خمسة مداخل بتحويل تأكيداتها من نصّ مصدر إلى مرساة لا تتحرّك بالتفكيك (كائن الراوتر · دالّة بالاسم عبر AST · وحدات الخدمة مضمومة). الأساس ١٤ ⇒ **٩**.",
+  "why_not_mark_the_rest": "وسم ملفّ فيه فشل يُحمِّر الدمج، ووسم فشله بـxfail يُخفيه — وهو ما رُفض صراحةً في decisions/ledger.md (#681⇒#683). كلّ مدخل أدناه يحمل سبب بقائه مقيساً لا مُقدَّراً.",
+  "pattern_observed": "سبعة من التسعة الفاشلة تؤكّد **نصّاً حرفيّاً في ملفّ مصدر** انتقل بتفكيك لاحق (main.py صار خالياً من المسارات بالعقد · تفكيك P2 لخدمة SAM2 · نقل سطر في qdrant_snapshot_manager). أي أنّها لا تكشف انحداراً بل بايتت هي نفسها — وبيّتَها الخمول ذاته. هذه هي الكلفة الثانية للاختبار الخامد: لا يفوت الانحدار فحسب، بل يتعفّن إلى إنذار كاذب فيبدو إيقاظه لاحقاً كسراً. **وقد ثبت بالمعالجة:** الخمسة كلّها كانت قواعدَ قائمة انتقل موضعها — لا انحداراً واحداً بينها. الأسطر المُؤكَّدة موجودة حرفيّاً، في ملفّ آخر.",
+  "unmarked": {
+    "tests_v9/test_docker_build_matrix_verifier_static.py": {
+      "reason": "runs_by_explicit_path",
+      "evidence": "‏ci.yml يشغّلها بالمسار (خطوة Field-forms API integration وأخواتها) — تعمل فعلاً، والعلامة غير لازمة لتشغيلها."
+    },
+    "tests_v9/test_field_forms_api_integration.py": {
+      "reason": "runs_by_explicit_path",
+      "evidence": "‏ci.yml:524-528 يسمّيها ضمن أربعة تُشغَّل **معاً** عمداً (ترتيب HMAC — «ناجح منفصلاً ≠ ناجح مُجمَّعاً»، #590). وسمها بـunit يُدخِلها تشغيلاً آخر بترتيب مختلف."
+    },
+    "tests_v9/test_field_forms_device_rotation_grace.py": {
+      "reason": "runs_by_explicit_path",
+      "evidence": "‏ci.yml:524-528 — نفس المجموعة المُشغَّلة معاً."
+    },
+    "tests_v9/test_field_forms_sync_binding_p02.py": {
+      "reason": "runs_by_explicit_path",
+      "evidence": "‏ci.yml:524-528 — الملفّ الذي فشل عند التجميع وحده وبسببه تُشغَّل الأربعة معاً."
+    },
+    "tests_v9/test_db_integration.py": {
+      "reason": "not_a_pytest_module",
+      "evidence": "‏pytest يجمع منه **صفر** اختبار: سكربت يُشغَّل بـpython مباشرةً (‏`python3 tests_v9/test_db_integration.py`) ويتخطّى بوضوح بلا DATABASE_URL. وسمه لا يُنفّذ شيئاً."
+    },
+    "tests_v9/test_e2e_offline_flow.py": {
+      "reason": "not_a_pytest_module",
+      "evidence": "‏pytest يجمع منه **صفر** اختبار — سكربت تدفّق يستدعي المحرّكات مباشرةً بلا دوالّ test_*."
+    },
+    "tests_v9/test_tool_contracts.py": {
+      "reason": "stale_registry_expectation",
+      "evidence": "يتوقّع `ndvi.compute` في سجلّ الأدوات الافتراضيّ، والسجلّ الآن `['actuator.pump.start', 'ndvi.read_observation', 'weather.forecast']` — الاسم تغيّر (`compute` ⇒ `read_observation`).",
+      "to_close": "حكم مالك: أيّ الاسمين هو العقد؟ إن كان الجديد، يُحدَّث التوقّع؛ وإن كان القديم عقداً منشوراً فهذا انحدار حقيقيّ."
+    },
+    "tests_v9/test_sahool_brain_forensic.py": {
+      "reason": "assertion_fails_needs_judgement",
+      "evidence": "‏test_water_stress_escalation_requires_physics_and_spectral_observation ⇒ assert False is True. ليس نصّاً حرفيّاً بل ادّعاء سلوكيّ — يحتاج تشخيصاً لا وسماً.",
+      "to_close": "تشخيص مستقلّ: هل تصعيد إجهاد الماء يشترط فعلاً مشاهدة فيزيائيّة وطيفيّة؟ إن لا، فهو انحدار حوكمة لا اختبار بائت."
+    },
+    "tests_v9/test_roadmap_phase23.py": {
+      "reason": "missing_test_dependency",
+      "evidence": "أُصلحت انحرافات GDD وscenario_whatif وautomation_persistence وأصبح الملف متوافقاً مع الواجهات الحالية. يبقى اعتماد test_zones على scikit-learn المستوردة من api/zones_kmeans.py؛ التبعية معلنة في requirements_real.txt وليست في tests_v9/requirements-test.txt. في بيئة التنفيذ الحالية التي تحتوي scikit-learn مسبقاً قيس الملف كاملاً: 143/143 نجاحاً؛ لذلك لا يُسجَّل رقم 142/1 كحقيقة عامة، ويجب إثبات الفشل أو النجاح في بيئة CI نظيفة تثبّت requirements-test.txt فقط.",
+      "to_close": "تشغيل الملف في virtualenv نظيف يثبّت tests_v9/requirements-test.txt فقط، ثم إضافة scikit-learn إلى متطلبات الاختبار بعد pip-audit وقياس أثر زمن التثبيت على وظيفة الوحدة. بعد نجاح الوظيفة الفعلية يُضاف وسم الاختبار المناسب ويُخفّض أساس الملفات غير الموسومة من 9 إلى 8."
+    }
+  }
+}

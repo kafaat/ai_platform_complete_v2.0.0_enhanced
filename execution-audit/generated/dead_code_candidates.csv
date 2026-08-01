@@ -6,6 +6,7 @@ high,raster-service,function,_bbox_from_geom,services/raster-service/raster_main
 high,raster-service,function,_evict_field_layers,services/raster-service/raster_main_runtime.py,46,0,review_before_delete,False
 high,raster-service,function,_require_layer_tenant,services/raster-service/raster_main_runtime.py,89,0,review_before_delete,False
 high,raster-service,function,_require_layer_tenant_authorized,services/raster-service/raster_main_runtime.py,93,0,review_before_delete,False
+high,raster-service,function,_clean_cache,services/raster-service/test_cdse_empty_raster_not_cached.py,70,0,review_before_delete,False
 high,sahool-platform,function,_apply_tenant_guc,services/sahool-platform/api/main.py,645,0,review_before_delete,False
 high,sahool-platform,function,_record_to_json,services/sahool-platform/api/routers/field_ai_context.py,59,0,review_before_delete,False
 high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/api/routers/fields.py,1235,0,review_before_delete,False
@@ -35,8 +36,8 @@ high,sahool-platform,function,_patch_engine_gdd,services/sahool-platform/tests/t
 high,sam2-inference,function,_startup,services/sam2-inference/main.py,19,0,review_before_delete,False
 high,soil-service,function,_tenant_context_mw,services/soil-service/main.py,107,0,review_before_delete,False
 high,shared,function,_normalize_feature_vector,shared/precision_agriculture/phase6_intelligence.py,221,0,review_before_delete,False
-medium,agriai-engine,function,salt_engine_applies,services/agriai-engine/aquacrop_adapter.py,53,0,review_before_delete,False
-medium,agriai-engine,function,aquacrop_salt_capability_report,services/agriai-engine/aquacrop_adapter.py,256,0,review_before_delete,False
+medium,agriai-engine,function,salt_engine_applies,services/agriai-engine/aquacrop_adapter.py,56,0,review_before_delete,False
+medium,agriai-engine,function,aquacrop_salt_capability_report,services/agriai-engine/aquacrop_adapter.py,267,0,review_before_delete,False
 medium,agriai-engine,function,canonicalize,services/agriai-engine/replay.py,70,0,review_before_delete,False
 medium,agriai-engine,function,simulation_capability_report,services/agriai-engine/simulation_capability.py,93,0,review_before_delete,False
 medium,agriai-engine,function,teardown_module,services/agriai-engine/tests/test_production_readiness_truth.py,60,0,review_before_delete,False
@@ -151,9 +152,9 @@ medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/ap
 medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,96,0,review_before_delete,False
 medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,898,0,review_before_delete,False
-medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,53,0,review_before_delete,False
-medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,235,0,review_before_delete,False
-medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,261,0,review_before_delete,False
+medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False
+medium,sahool-platform,function,reclaim_stuck_processing,services/sahool-platform/api/offline_pending_db.py,253,0,review_before_delete,False
+medium,sahool-platform,function,clear_processed,services/sahool-platform/api/offline_pending_db.py,279,0,review_before_delete,False
 medium,sahool-platform,class,SyncContractIssue,services/sahool-platform/api/offline_sync_contracts.py,30,0,review_before_delete,False
 medium,sahool-platform,function,validate_sync_batch,services/sahool-platform/api/offline_sync_contracts.py,119,0,review_before_delete,False
 medium,sahool-platform,function,fetch_synced_operations,services/sahool-platform/api/offline_sync_db.py,185,0,review_before_delete,False
@@ -206,7 +207,7 @@ medium,sahool-platform,function,detect_metric_drift,services/sahool-platform/cor
 medium,sahool-platform,function,multi_season_summary,services/sahool-platform/core/multi_season_analytics.py,275,0,review_before_delete,False
 medium,sahool-platform,class,ConnectivityState,services/sahool-platform/core/offline_first.py,334,0,review_before_delete,False
 medium,sahool-platform,function,propagate_add,services/sahool-platform/core/provenance.py,124,0,review_before_delete,False
-medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,119,0,review_before_delete,False
+medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,120,0,review_before_delete,False
 medium,sahool-platform,function,arbitrate_summary,services/sahool-platform/core/source_of_truth.py,273,0,review_before_delete,False
 medium,sahool-platform,function,detect_zones_of_interest,services/sahool-platform/core/spatial/indicators.py,90,0,review_before_delete,False
 medium,sahool-platform,function,link_farmer_knowledge,services/sahool-platform/core/spatial/indicators.py,202,0,review_before_delete,False
@@ -216,7 +217,6 @@ medium,sahool-platform,function,detect_temporal_change,services/sahool-platform/
 medium,sahool-platform,function,transfer_summary,services/sahool-platform/core/transfer_learning.py,242,0,review_before_delete,False
 medium,sahool-platform,function,map_summary_for_print,services/sahool-platform/core/vrt_manual_maps.py,267,0,review_before_delete,False
 medium,sahool-platform,class,StepStatus,services/sahool-platform/core/workflow_engine.py,32,0,review_before_delete,False
-medium,sahool-platform,function,run_workflow_async,services/sahool-platform/core/workflow_engine.py,763,0,review_before_delete,False
 medium,sahool-platform,function,add_yield,services/sahool-platform/storage/lite_store.py,375,0,review_before_delete,False
 medium,sahool-platform,function,add_snippet,services/sahool-platform/storage/lite_store.py,428,0,review_before_delete,False
 medium,sahool-platform,function,search_snippets,services/sahool-platform/storage/lite_store.py,440,0,review_before_delete,False

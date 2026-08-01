@@ -2,6 +2,6 @@
   "schema": "sahool.raw_data_processing_contract/1",
   "status": "ok",
   "errors": [],
-  "endpoint": "POST /raw/process",
+  "endpoint": "POST /v1/raw/process",
   "owner": "services/raster-service/raw_data_processing.py"
 }

@@ -1,0 +1,9 @@
+{
+  "$comment": "الملفّات المستثناة من وظيفة *Repository Tests* التي تشغّل شجرة tests/ كاملةً. الاستثناء يُشتقّ من هنا لا يُكتب في الـYAML: خطوة CI تسأل السكربت عن --ignore، فلا يمكن استثناء ملفّ بلا مدخل مُبرَّر هنا. القائمة تتقلّص ولا تنمو.",
+  "gap": "ARCH-TESTS-UNLISTED-IN-CI-01",
+  "measured_on": "bb53981e (claude/project-exploration-dtjw3p, 2026-07-28)",
+  "measurement": "أُغلقت آخر الاستثناءات في 2026-07-29: ملفا phase3/phase4 لم يكونا بحاجة إلى Compose أو أسرار؛ كانت أربعة تأكيدات نصية بائتة بعد تفكيك ai_evidence_runtime وinternal_service وتغيير healthcheck إلى /healthz. القياس المركّز: 11/11 نجاحاً؛ baseline شجرة tests/ أصبح صفراً.",
+  "why_a_whole_tree_job_not_a_longer_list": "العلّة المُسجَّلة في ARCH-TESTS-UNLISTED-IN-CI-01 هي **قائمة سماح يدويّة**: capability-governance.yml يسمّي ٣٥ ملفّاً اسماً اسماً، وأيّ ملفّ جديد يقع خارجها صامتاً. إطالة القائمة تُعيد إنتاج العلّة. الوظيفة الجديدة تشغّل `pytest tests` كاملةً ناقص هذا الأساس، فالملفّ الجديد **مُغطّى تلقائيّاً** ولا يحتاج أحداً أن يتذكّره.",
+  "pattern_observed": "خمسة من العشرة تؤكّد **نصّاً حرفيّاً** في مصدر (سكربت bash أو ملفّ بايثون) تغيّرت صياغته، بينما **المقصد قائم**: riv_p0_consumer_truth_guard يطلب `LEGACY_DIRECT_SENTINEL_ENABLED = False` والمصدر يُعلن `\"direct_provider_fetch\": False` و`runtime_role: compatibility-only`. أي أنّ الحارس يفشل والحقيقة التي يحرسها **صادقة** — نفس نمط tests_v9 (‏TESTS-UNMARKED-DESELECTED-01) بعيّنة ثانية مستقلّة.",
+  "excluded": {}
+}

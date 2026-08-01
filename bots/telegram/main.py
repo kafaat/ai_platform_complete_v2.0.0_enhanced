@@ -194,7 +194,7 @@ async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
-                f"{TTS_URL}/tts/synthesize",
+                f"{TTS_URL}/v1/tts/synthesize",
                 json={"text": text[:1000], "voice": voice},
                 headers={"Authorization": f"Bearer {TTS_TOKEN}"},
             )
@@ -347,7 +347,7 @@ async def link_account(user_id: int, email: str, password: str) -> bool:
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
-                f"{AUTH_URL}/auth/login",
+                f"{AUTH_URL}/v1/auth/login",
                 json={"email": email, "password": password},
             )
             resp.raise_for_status()
@@ -390,9 +390,9 @@ async def call_supervisor(
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         if "حسّن" in query or "optimize" in query.lower() or "أفضل" in query:
-            endpoint = f"{SUPERVISOR_URL}/agent/optimize"
+            endpoint = f"{SUPERVISOR_URL}/v1/agent/optimize"
         else:
-            endpoint = f"{SUPERVISOR_URL}/agent/query"
+            endpoint = f"{SUPERVISOR_URL}/v1/agent/query"
 
         resp = await client.post(endpoint, json=payload, headers=headers)
         resp.raise_for_status()

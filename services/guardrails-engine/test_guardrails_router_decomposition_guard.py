@@ -8,7 +8,7 @@ guardrails-engine أمنيّ-حرج (/validate بوّابة الحوكمة عل�
   2) لا زوج (method, path) مُسجَّل مرّتين (يمنع تكراراً عند نقل مسار).
   3) register_routers(app) موصول في main (السقالة مفعَّلة).
   4) عدد المسارات أرضيّة ≥ 11 (ثابت لا يهبط).
-  5) المسارات الحرجة حاضرة (وعلى رأسها /validate — بوّابة الحوكمة).
+  5) المسارات الحرجة حاضرة (وعلى رأسها /v1/validate — بوّابة الحوكمة).
   6) لا ``@app.<method>`` في main.py (التفكيك مكتمل — صفر مُعالِج مسار في main).
 
 (يحتاج استيراد main — يُتخطّى إن غابت تبعيّات البيئة الدنيا.)
@@ -34,11 +34,11 @@ except Exception:  # noqa: BLE001 — تبعيّات guardrails الدنيا غ�
 app = _main.app
 _ROUTERS_DIR = _HERE / "routers"
 
-# المسارات الحرجة التي لا يجوز أن تختفي بعد التفكيك (/validate على رأسها).
+# المسارات الحرجة التي لا يجوز أن تختفي بعد التفكيك (/v1/validate على رأسها).
 _CRITICAL_ROUTES = (
-    "/validate",
-    "/approve/{workflow_id}",
-    "/workflow/{workflow_id}",
+    "/v1/validate",
+    "/v1/approve/{workflow_id}",
+    "/v1/workflow/{workflow_id}",
     "/healthz",
 )
 
@@ -80,7 +80,7 @@ def test_route_count_floor():
 
 
 def test_critical_routes_present():
-    """المسارات الحرجة كلّها حاضرة في app.routes (/validate بوّابة الحوكمة)."""
+    """المسارات الحرجة كلّها حاضرة في app.routes (/v1/validate بوّابة الحوكمة)."""
     paths = _app_paths()
     missing = [p for p in _CRITICAL_ROUTES if p not in paths]
     assert not missing, f"مسارات حرجة مفقودة (انحدار حرج): {missing}"

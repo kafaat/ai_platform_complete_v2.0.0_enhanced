@@ -35,7 +35,7 @@ def build_explanation_prompt(decision: dict, rag_context: str | None = None) -> 
     يُرجع dict جاهزاً لإرساله عبر proxy الخادم الآمن (لا مفتاح هنا).
     التعليمات تقيّد Claude بالشرح فقط — لا اختراع.
     rag_context: سياق اختياري من نظام RAG (معرفة الجوف الموثّقة) لإثراء الشرح
-                 بمراجع محلّيّة دقيقة. يُجلب من خدمة local-ai-rag (/query).
+                 بمراجع محلّيّة دقيقة. يُجلب من خدمة local-ai-rag (/v1/query).
     """
     # استخرج الحقائق من ناتج المحرّك (القواعد) لحقنها في السياق
     loc = decision.get("location_ar", {})

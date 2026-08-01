@@ -70,5 +70,6 @@ def test_today_bad_date_with_crop_omits_planting(m):
 
 
 def test_today_route_registered(m):
-    paths = {getattr(r, "path", None) for r in m.app.routes}
-    assert "/api/v1/calendars/today" in paths
+    from conftest import registered_paths
+
+    assert "/api/v1/calendars/today" in registered_paths(m.app)

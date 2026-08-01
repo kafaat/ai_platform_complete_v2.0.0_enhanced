@@ -1,7 +1,7 @@
 """routers/invitations.py — دعوات أعضاء المستأجِر (انضمام بأدوار أدنى).
 
-مسارات: GET /auth/invitations · POST /auth/invitations ·
-        POST /auth/invitations/accept · DELETE /auth/invitations/{invitation_id}
+مسارات: GET /v1/auth/invitations · POST /v1/auth/invitations ·
+        POST /v1/auth/invitations/accept · DELETE /v1/auth/invitations/{invitation_id}
 
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت المُعالِجات
 حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة (can_invite،
@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 router = APIRouter()
 
 
-@router.post("/auth/invitations", status_code=201)
+@router.post("/v1/auth/invitations", status_code=201)
 async def create_invitation(
     req: main.InvitationCreateRequest,
     request: Request,
@@ -80,7 +80,7 @@ async def create_invitation(
     }
 
 
-@router.get("/auth/invitations")
+@router.get("/v1/auth/invitations")
 async def list_invitations(user: Annotated[dict, Depends(main.get_current_user)]):
     """يسرد الدعوات المعلّقة لمستأجِر الداعي (owner/admin فقط)، tenant-scoped."""
     if not main.can_invite(user.get("role")):
@@ -111,7 +111,7 @@ async def list_invitations(user: Annotated[dict, Depends(main.get_current_user)]
     ]
 
 
-@router.post("/auth/invitations/accept", response_model=main.TokenResponse, status_code=201)
+@router.post("/v1/auth/invitations/accept", response_model=main.TokenResponse, status_code=201)
 async def accept_invitation(
     req: main.InvitationAcceptRequest, request: Request, response: Response
 ):
@@ -191,7 +191,7 @@ async def accept_invitation(
     )
 
 
-@router.delete("/auth/invitations/{invitation_id}")
+@router.delete("/v1/auth/invitations/{invitation_id}")
 async def revoke_invitation(
     invitation_id: int,
     request: Request,

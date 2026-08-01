@@ -2819,7 +2819,7 @@ export function useGuardrailsValidate() {
     farmContext:Record<string, unknown>;
   }>({
     mutationFn: ({ actionType, actionData, farmContext }) =>
-      kongApi.post('/api/guardrails/validate', {
+      kongApi.post('/api/guardrails/v1/validate', {
         action_type:  actionType,
         action_data:  actionData,
         farm_context: farmContext,

@@ -186,9 +186,9 @@ def get_indices_sync(
     lon: float,
     timeout_s: float = 20.0,
 ) -> dict[str, Any] | None:
-    """Return point/field index summary from raster-service /indices, fail-soft."""
+    """Return point/field index summary from raster-service /v1/indices, fail-soft."""
     return raster_get_json_sync(
-        "/indices",
+        "/v1/indices",
         params={"field_id": field_id, "lat": lat, "lon": lon},
         timeout_s=timeout_s,
     )
@@ -385,9 +385,9 @@ async def get_best_imagery_scene(
     max_cloud_pct: float,
     timeout_s: float = 30.0,
 ) -> dict[str, Any]:
-    """Return raster-service /imagery/best response for a bbox."""
+    """Return raster-service /v1/imagery/best response for a bbox."""
     return await raster_get_json(
-        "/imagery/best",
+        "/v1/imagery/best",
         params={
             "west": bbox[0],
             "south": bbox[1],
@@ -410,7 +410,7 @@ async def search_imagery_scenes(
 ) -> dict[str, Any]:
     """Search raster-service imagery catalog for scheduler-driven automation."""
     return await raster_post_json(
-        "/imagery/search",
+        "/v1/imagery/search",
         payload={
             "bbox": list(bbox),
             "datetime_start": datetime_start,
@@ -445,7 +445,7 @@ async def process_indicator_batch(
 ) -> dict[str, Any]:
     """Queue raster-service batch indicator processing."""
     return await raster_post_json(
-        "/process/batch",
+        "/v1/process/batch",
         tenant_id=tenant_id,
         payload=payload,
         timeout_s=timeout_s,
@@ -463,7 +463,7 @@ async def get_job_result(
 
     try:
         return await raster_get_json(
-            f"/jobs/{job_id}/result",
+            f"/v1/jobs/{job_id}/result",
             tenant_id=tenant_id,
             timeout_s=timeout_s,
         )

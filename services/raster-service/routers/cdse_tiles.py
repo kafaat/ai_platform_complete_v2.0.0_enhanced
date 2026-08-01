@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 
 import cdse_client as _cdse
 import db_persist as _db
+import layer_lookup
 import raster_cdse_tile_runtime as _cdse_rt
 import raster_date_geo
 from fastapi import APIRouter, Query
@@ -26,6 +27,79 @@ _PUBLIC_PREFIX = os.getenv("RASTER_PUBLIC_PREFIX", "/api/raster").rstrip("/")
 
 async def _require_field(field_id: str) -> None:
     await require_field_tenant(field_id, layers=LAYERS, field_layers=FIELD_LAYERS, logger=logger)
+
+
+def _state_response(state: str, *, body: bytes = TRANSPARENT_PNG, **headers: str) -> Response:
+    """استجابة مصغّرة تحمل حالتها صراحةً في ``X-Imagery-State``.
+
+    ``unavailable`` يعود بـ**404** لا 200: عنصر ``<img>`` **لا يقرأ ترويسات الاستجابة**،
+    فترويسة وحدها فوق 200 + PNG شفّاف تُنتج بالضبط ما جئنا نُنهيه — مربّعاً فارغاً بلا
+    تفسير. رمز 404 هو الإشارة الوحيدة التي تصل الواجهة عبر ``onError``، وهو صادق: المورد
+    المُعلَن غير قابل للتقديم. الترويسة تبقى للفاحص البرمجيّ (curl/اختبار).
+
+    ``ready`` يبقى 200 مع تاريخ الالتقاط الفعليّ. المسار الحيّ (``auto``) لا يمرّ من هنا
+    ولم يتغيّر عقده.
+    """
+    status = 404 if state == "unavailable" else 200
+    return Response(
+        content=body,
+        status_code=status,
+        media_type="image/png",
+        headers={"X-Imagery-State": state, **headers},
+    )
+
+
+async def _persisted_thumbnail(field_id: str, index: str, date: str, size: int) -> Response:
+    """يصيّر المصغّرة من **الأصل المُدَام حصراً** — صفر نداء CDSE في كلّ الفروع.
+
+    عقد صريح: يُحلّ ``raster_assets`` (``asset_status='ready'`` ومقيَّد بالمستأجِر عبر
+    ``fetch_latest_asset``) للتاريخ المطلوب **بالضبط**. غياب الأصل، أو غيابه عن القرص،
+    أو فشل التصيير — كلّها ``unavailable``؛ **لا** يُستبدَل بمشهد قريب ولا يُشتَقّ حيّاً.
+    فالبطاقة إمّا تعرض أصلها المُعلَن أو تُعلن أنّها لا تملكه.
+    """
+    internal = layer_lookup.GRID_INDEX_ALIASES.get(index, index)
+    requested = date if date not in (None, "", "latest", "today") else None
+    tenant_id = REQ_TENANT.get()
+    try:
+        asset = await _db.fetch_latest_asset(field_id, internal, requested, tenant_id=tenant_id)
+    except Exception as e:  # noqa: BLE001 — تعذّر القراءة ⇒ حالة مُعلَنة لا احتياطيّ حيّ
+        logger.warning("persisted thumbnail lookup failed (%s/%s): %s", field_id, internal, e)
+        return _state_response("unavailable")
+
+    cog_url = (asset or {}).get("cog_url")
+    if not cog_url:
+        return _state_response("unavailable")
+
+    import object_store
+
+    if not object_store.exists_locally(cog_url):
+        # القاعدة تقول ready والملفّ غائب ⇒ ادّعاء لا يقابله أصل. يُعلَن ولا يُخفى.
+        logger.warning("persisted asset missing on host (%s): %s", field_id, cog_url)
+        return _state_response("unavailable")
+
+    acquired = str((asset or {}).get("acquisition_date") or "")
+    # النَّسَب: التاريخ المُعاد هو تاريخ الالتقاط الفعليّ. تساويه مع المطلوب مضمون هنا
+    # (الاستعلام يطابق التاريخ بالضبط)، والترويسة تُبقيه قابلاً للفحص من العميل.
+    try:
+        import tile_render
+
+        png = tile_render.render_cog_thumbnail_png(cog_url, internal, max_px=size)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("persisted thumbnail render failed (%s/%s): %s", field_id, internal, e)
+        return _state_response(
+            "unavailable", **({"X-Acquisition-Date": acquired} if acquired else {})
+        )
+
+    if not png:
+        # أصل مُدَام لكنّه غير قابل للعرض (تالف/فارغ) — هذا هو BUG-1A مرئيّاً بدل صمت.
+        return _state_response(
+            "unavailable", **({"X-Acquisition-Date": acquired} if acquired else {})
+        )
+
+    headers = {"Cache-Control": "public, max-age=3600"}
+    if acquired:
+        headers["X-Acquisition-Date"] = acquired
+    return _state_response("ready", body=png, **headers)
 
 
 # Backwards-compatible helper names retained for tests/imports while implementation lives outside router.
@@ -124,9 +198,23 @@ async def field_cdse_thumbnail(
     bbox_n: float | None = Query(None),
     poly: str | None = Query(None),
     size: int = Query(160, ge=48, le=512),
+    source: str = Query(
+        "auto",
+        description=(
+            "persisted = الأصل المحفوظ حصراً بلا أيّ نداء CDSE (مسار بطاقات السجلّ "
+            "الزمنيّ). auto = السلوك القديم (اكتشاف حيّ عند الحاجة)."
+        ),
+    ),
 ):
     """مُصغَّرة كاملة لصورة الحقل (مؤشّر) لتاريخ مُعطى."""
     await _require_field(field_id)
+
+    # IMAGERY-BLANK-THUMBNAIL-01: بطاقة أعلنت has_cog=true تعني أنّ أصلاً مُدَاماً
+    # موجود — فيجب أن تُقرأ من ذلك الأصل لا أن تُعيد تنفيذ اكتشاف حيّ. الاكتشاف الحيّ
+    # هنا كان يفتح باب استبدال صامت: مشهد من تاريخ آخر يُعرَض تحت التاريخ المطلوب.
+    # المسار المُدام fail-closed: لا أصل جاهز ⇒ حالة مُعلَنة، لا احتياطيّ CDSE.
+    if source == "persisted":
+        return await _persisted_thumbnail(field_id, index, date, size)
 
     params = await _normalize_cdse_request(
         field_id, index, date, (bbox_w, bbox_s, bbox_e, bbox_n), poly

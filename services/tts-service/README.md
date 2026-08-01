@@ -13,7 +13,7 @@ Microsoft Edge TTS-powered text-to-speech with native Yemeni Arabic voices.
 
 ## API
 
-### POST /tts/synthesize
+### POST /v1/tts/synthesize
 ```json
 {
   "text": "حقلك يحتاج ري خلال 24 ساعة",
@@ -26,10 +26,10 @@ Microsoft Edge TTS-powered text-to-speech with native Yemeni Arabic voices.
 
 Returns: `audio/mpeg` (MP3 bytes)
 
-### POST /tts/stream
+### POST /v1/tts/stream
 Same body, returns streaming `audio/mpeg`.
 
-### GET /tts/voices
+### GET /v1/tts/voices
 Returns list of available voices.
 
 ## Auth
@@ -49,7 +49,7 @@ import httpx
 async def send_voice_alert(chat_id: int, text: str):
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            "http://sahool-tts:8000/tts/synthesize",
+            "http://sahool-tts:8000/v1/tts/synthesize",
             json={"text": text, "voice": "yemeni_male"},
             headers={"Authorization": f"Bearer {SAHOOL_AGENT_TOKEN}"}
         )

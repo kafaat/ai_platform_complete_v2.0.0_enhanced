@@ -15,6 +15,10 @@ import json
 import pathlib
 import re
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BACKEND = ROOT / "shared/contracts/forms/condition_corpus.json"
 DART = ROOT / "mobile/sahool_app/test/field_forms/condition_corpus_data.dart"

@@ -208,8 +208,8 @@ capabilities:
   - POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633
   - POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684
   - POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523
-  - POST /approvals/approve @ services/ai_agronomist/main.py:146
-  - POST /approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:36
+  - POST /v1/approvals/approve @ services/ai_agronomist/main.py:146
+  - POST /v1/approve/{workflow_id} @ services/guardrails-engine/routers/validation.py:36
   - POST /v1/decisions/{decision_id}/review @ services/decision-service/main.py:709
   - POST /v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2121
   - POST /v1/soil/sampling-plans/{plan_id}/approve @ services/soil-service/routers/p1_products.py:100

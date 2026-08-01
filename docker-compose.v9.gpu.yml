@@ -44,7 +44,7 @@ services:
   sahool-field-segmentation:
     environment:
       SEGMENTATION_BACKEND: sam2
-      SEGMENTATION_INFERENCE_URL: http://sahool-sam2-inference:8080/predict
+      SEGMENTATION_INFERENCE_URL: http://sahool-sam2-inference:8080/v1/predict
       EXG_MAX_SIDE: ${EXG_MAX_SIDE:-1280}
       EXG_MAX_IMAGE_PIXELS: ${EXG_MAX_IMAGE_PIXELS:-12000000}
     depends_on:

@@ -15,6 +15,7 @@ import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Protocol
 
 _TOKEN_RE = re.compile(r"[\w\u0600-\u06FF\.]+", re.UNICODE)
@@ -200,6 +201,35 @@ class BM25Index:
         return sorted(rows, key=lambda x: x[1], reverse=True)[:limit]
 
 
+class QdrantHTTPError(RuntimeError):
+    """خطأ HTTP من Qdrant يحفظ **رمز الحالة** بدل دفنه في نصّ الرسالة.
+
+    يرث ``RuntimeError`` عمداً: مستهلكون قائمون يلتقطون ``RuntimeError`` فيبقون
+    عاملين بلا تعديل، بينما من يحتاج التصنيف يقرأ ``.status``.
+    """
+
+    def __init__(self, status: int, body: str) -> None:
+        super().__init__(f"Qdrant HTTP {status}: {body}")
+        self.status = status
+        self.body = body
+
+
+class CollectionProbeStatus(str, Enum):
+    """نتيجة استجلاء وجود المجموعة — مصنَّفة، لا منطقيّة.
+
+    SILENT-EXCEPTION-HANDLERS-11-01: كان ``ensure_collection`` يلتقط ``RuntimeError``
+    عارياً ويُعامله «المجموعة غير موجودة»، بينما ``_request`` يطوي **كلّ** ``HTTPError``
+    في ``RuntimeError`` واحد. فمفتاح API خاطئ (401) أو خدمة ساقطة (503) كانا يُقرآن
+    «أنشِئ المجموعة»، فيفشل الإنشاء بخطأ ثانٍ مُربِك وقد ضاع السبب الجذريّ.
+    """
+
+    EXISTS = "exists"
+    NOT_FOUND = "not_found"
+    UNAUTHORIZED = "unauthorized"
+    UNAVAILABLE = "unavailable"
+    INVALID_RESPONSE = "invalid_response"
+
+
 class QdrantHttpClient:
     def __init__(
         self,
@@ -231,14 +261,41 @@ class QdrantHttpClient:
                 return json.loads(raw) if raw else {}
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="ignore")
-            raise RuntimeError(f"Qdrant HTTP {exc.code}: {body}") from exc
+            raise QdrantHTTPError(exc.code, body) from exc
 
-    def ensure_collection(self) -> None:
+    def probe_collection(self) -> CollectionProbeStatus:
+        """يستجلي وجود المجموعة ويُصنّف الفشل — لا يبتلعه ولا يختزله إلى «غير موجودة»."""
         try:
             self._request("GET", f"/collections/{self.collection}")
+            return CollectionProbeStatus.EXISTS
+        except QdrantHTTPError as exc:
+            if exc.status == 404:
+                return CollectionProbeStatus.NOT_FOUND
+            if exc.status in (401, 403):
+                return CollectionProbeStatus.UNAUTHORIZED
+            if exc.status in (408, 429) or exc.status >= 500:
+                return CollectionProbeStatus.UNAVAILABLE
+            return CollectionProbeStatus.INVALID_RESPONSE
+        except json.JSONDecodeError:
+            return CollectionProbeStatus.INVALID_RESPONSE
+        except urllib.error.URLError:
+            # تعذّر الوصول/مهلة شبكة — انقطاع مزوّد لا غياب مجموعة.
+            return CollectionProbeStatus.UNAVAILABLE
+
+    def ensure_collection(self) -> None:
+        """يُنشئ المجموعة **فقط** عند إثبات غيابها (404). أيّ تصنيف آخر يفشل مغلقاً.
+
+        الإنشاء بعد 401/503 كان يخفي السبب الحقيقيّ خلف فشل ثانٍ؛ فالآن يُرفَع الخطأ
+        بتصنيفه كي يقرأ المُشغّل «مفتاح غير مصرَّح» لا «تعذّر إنشاء المجموعة».
+        """
+        status = self.probe_collection()
+        if status is CollectionProbeStatus.EXISTS:
             return
-        except RuntimeError:
-            pass
+        if status is not CollectionProbeStatus.NOT_FOUND:
+            raise RuntimeError(
+                f"Qdrant collection probe inconclusive ({status.value}) — "
+                "لا تُنشأ مجموعة على أساس فشل غير مُصنَّف"
+            )
         self._request(
             "PUT",
             f"/collections/{self.collection}",

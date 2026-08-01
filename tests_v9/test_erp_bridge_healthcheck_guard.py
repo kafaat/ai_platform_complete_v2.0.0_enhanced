@@ -8,7 +8,7 @@ CREATE TABLE تحت sahool_app الذي لا يملك CREATE على schema publi
 القواعد الثلاث المفروضة (ساكنة — لا خدمات مطلوبة):
   1. compose: healthcheck على erp-bridge يستخدم /healthz — لا /readyz، لا /capabilities.
   2. /healthz: كود النقطة لا يستدعي get_active_erp_provider() ولا أيّ I/O خارجيّ.
-  3. /readyz/capabilities: كود النقطة لا يرفع HTTPException ولا يُجري probe شبكيّ.
+  3. /v1/readyz/capabilities: كود النقطة لا يرفع HTTPException ولا يُجري probe شبكيّ.
 
 البرهان السلبيّ: اختبار منفصل يُثبت أنّ الحارس نفسه يفشل عند انتهاك القاعدة
 (healthcheck يُضبَط على /readyz/capabilities) ⇒ الحارس ليس فارغاً.

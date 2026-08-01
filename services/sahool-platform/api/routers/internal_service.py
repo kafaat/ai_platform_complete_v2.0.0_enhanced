@@ -41,10 +41,12 @@ async def internal_field_state(
     المتاحة فعلاً** في المنصّة، بلا مسار جديد (سابقة INT-004A).
 
     حدّ صدق صريح: العقد يشترط ``weather`` و``water`` و``soil``؛ والمنصّة تُنتِج **الماء**
-    (``api/canonical_water_state.py``) و**الطيف** (غير مشترط) فقط. لا مُنتِج في الشجرة
-    يُصدِر ``canonical_soil_state.``/``soil-profile.`` ولا ``wx10/canonical-weather-state/``.
-    لذلك يعود ``operational_eligible=false`` مع تسمية الناقص — وهي **الحقيقة**، لا عيب،
-    ولا يجوز اختلاق منتَج لإرضاء العقد.
+    (``api/canonical_water_state.py``)، و**التربة** (``api/canonical_soil_state.py`` — عميل
+    HTTP لِـ``soil-service``'s ``/v1/fields/{field_id}/soil/profile``)، و**الطيف** (غير
+    مشترط). لا مُنتِج في الشجرة يُصدِر ``wx10/canonical-weather-state/`` عبر واجهة تُرجِع
+    الغلاف الكامل بمخطّطه — الطقس قرار معماريّ منفصل مؤجَّل. لذلك يعود
+    ``operational_eligible=false`` ما دام الطقس غائباً، مع تسمية الناقص — وهي **الحقيقة**،
+    لا عيب، ولا يجوز اختلاق منتَج لإرضاء العقد.
     """
     from api.field_state_projection import recompute_field_state
 
@@ -120,6 +122,7 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
     """
     from datetime import UTC, datetime
 
+    from api.canonical_soil_state import resolve_canonical_soil_state
     from api.canonical_water_state import resolve_canonical_water_state
 
     water = await resolve_canonical_water_state(conn, tenant_id=tenant_id, field_id=field_id)
@@ -127,14 +130,16 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
     if str(water_payload.get("schema_version") or "") == "":
         water_payload = None  # حمولة محجوبة بلا مخطّط ⇒ غياب مُعلَن لا قبول صامت
 
+    soil_payload = await resolve_canonical_soil_state(tenant_id=tenant_id, field_id=field_id)
+
     state = compose_canonical_field_state(
         field_id=field_id,
         season_id=None,
         as_of_time=datetime.now(UTC).isoformat(),
         water=water_payload,
-        # لا مُنتِج لهما في هذه الخدمة — يُعلَنان غائبَين بالاسم.
+        soil=soil_payload,
+        # لا مُنتِج للطقس في هذه الخدمة — يُعلَن غائباً بالاسم (قرار معماريّ منفصل).
         weather=None,
-        soil=None,
         spectral=None,
     )
     return state.to_dict()

@@ -5,7 +5,8 @@ CRITICAL-001: جدول users عليه FORCE RLS بسياسة user_self (تسمح
 المستأجِر ⇒ تحتاج سياق admin على كلّ اتّصال؛ بلا ذلك register=500/login=401 (المنصّة معطّلة).
 
 CRITICAL-002: توجيه nginx لـ/auth/ يجب ألّا يُجرّد البادئة فقط بشرطة لاحقة (يكسر العميل
-المباشر /auth/login ⇒ /login ⇒ 404). يُطبَّع المزدوج بـrewrite ويُمرَّر الـURI كما هو.
+المباشر /auth/login ⇒ /login ⇒ 404). يُطبَّع المزدوج والمفرد كلاهما بـrewrite إلى
+/v1/auth/* (API-VERSIONING-GUARD-IS-A-MIRROR-01) — لا يُمرَّر الـURI كما هو بعد الآن.
 """
 
 from __future__ import annotations
@@ -38,8 +39,8 @@ def test_auth_pool_sets_admin_role_context():
 
 @pytest.mark.parametrize("conf", ["nginx/nginx.fixed.conf", "nginx/nginx.v9.conf"])
 def test_nginx_auth_routing_preserves_prefix(conf):
-    """توجيه /auth/ يطبّع المزدوج (/auth/auth/*) ويمرّر الـURI كما هو (لا تجريد يكسر
-    العميل المباشر). أي: rewrite + proxy_pass بلا مسار لاحق على auth_backend."""
+    """توجيه /auth/ يطبّع المزدوج (/auth/auth/*) والمفرد كلاهما إلى /v1/auth/* (لا تجريد
+    يكسر العميل المباشر). أي: rewrite + proxy_pass بلا مسار لاحق على auth_backend."""
     src = _read(conf)
     # يوجد تطبيع المزدوج.
     assert re.search(r"rewrite\s+\^/auth/auth/", src), f"{conf}: لا تطبيع /auth/auth/ (rewrite)"

@@ -95,18 +95,16 @@ def test_deterministic_and_improvement_and_shape_guard():
 def test_placeholder_removed_and_endpoint_wired():
     """الـplaceholder أُزيل من نسختَي المهارة، والنقطة موجودة في raster-service."""
     placeholder = "قيد التطوير"
-    for rel in (
-        "services/supervisor-agent/skills/remote_sensing_skill.py",
-        "services/supervisor-agent/remote_sensing_skill.py",
-    ):
+    # نسخة الجذر حُذِفت (SUPERVISOR-ROOT-SKILLS-DEAD-CODE-01) — كانت ميتة.
+    for rel in ("services/supervisor-agent/skills/remote_sensing_skill.py",):
         txt = open(os.path.join(ROOT, rel), encoding="utf-8").read()
         assert placeholder not in txt, f"placeholder ما زال في {rel}"
         assert "/change/detect" in txt, f"الربط بالنقطة مفقود في {rel}"
     from raster_route_source import raster_combined_source
 
     main = raster_combined_source(ROOT)  # main.py + routers/ (بعد التفكيك)
-    assert '@router.post("/change/detect")' in main or '@app.post("/change/detect")' in main, (
-        "نقطة /change/detect مفقودة"
-    )
+    assert (
+        '@router.post("/v1/change/detect")' in main or '@app.post("/v1/change/detect")' in main
+    ), "نقطة /change/detect مفقودة"
     # حدّ الحجم (413) ضدّ DoS قبل تحويل numpy
     assert "MAX_CHANGE_GRID_CELLS" in main and "status_code=413" in main, "حدّ حجم الشبكة مفقود"

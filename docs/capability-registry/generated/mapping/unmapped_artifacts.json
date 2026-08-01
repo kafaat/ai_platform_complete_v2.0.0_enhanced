@@ -420,6 +420,14 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/components/maphub/ImageryTimelineThumb.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/ImageryTimelineThumb.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",
     "kind": "tests"
   },
@@ -2096,6 +2104,10 @@
     "kind": "tests"
   },
   {
+    "path": "scripts/ci/test_marker_coverage_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "scripts/irr_f01/bootstrap.sql",
     "kind": "database"
   },
@@ -2977,6 +2989,10 @@
   },
   {
     "path": "services/raster-service/test_raster_import_graph_static.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/raster-service/test_raster_observable_content.py",
     "kind": "tests"
   },
   {
@@ -5868,6 +5884,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_workflow_template_completion_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_yemeni_calendars.py",
     "kind": "tests"
   },
@@ -6024,15 +6044,7 @@
     "kind": "backend"
   },
   {
-    "path": "services/supervisor-agent/advisory_skill.py",
-    "kind": "backend"
-  },
-  {
     "path": "services/supervisor-agent/circuit_breaker.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/supervisor-agent/market_skill.py",
     "kind": "backend"
   },
   {
@@ -6340,6 +6352,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/ci/test_tests_tree_coverage_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/deploy/test_phase15_deployment_readiness_contracts.py",
     "kind": "tests"
   },
@@ -6605,10 +6621,6 @@
   },
   {
     "path": "tests_v9/test_aljawf_seed_v31_5.py",
-    "kind": "tests"
-  },
-  {
-    "path": "tests_v9/test_api_versioning_policy_guard.py",
     "kind": "tests"
   },
   {
@@ -6932,7 +6944,15 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_expected_control_flow_exceptions.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_external_submission_contract_v1.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_fake_green_test_guard.py",
     "kind": "tests"
   },
   {
@@ -7320,6 +7340,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_physical_effect_boundary_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_pip_audit_resolution_guard.py",
     "kind": "tests"
   },
@@ -7365,6 +7389,10 @@
   },
   {
     "path": "tests_v9/test_providers_status_endpoint_v63_4.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_qdrant_probe_classification.py",
     "kind": "tests"
   },
   {
@@ -7544,6 +7572,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_service_stub_claim_truth.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_services_functional.py",
     "kind": "tests"
   },
@@ -7608,6 +7640,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_supervisor_skill_canonical_location_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_tasks_endpoints.py",
     "kind": "tests"
   },
@@ -7660,6 +7696,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_unit_environment_completeness.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_v05_certification_guards.py",
     "kind": "tests"
   },
@@ -7697,6 +7737,10 @@
   },
   {
     "path": "tests_v9/test_vegetation_real_only_posture_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_verify_sweep_writer_diagnostics.py",
     "kind": "tests"
   },
   {

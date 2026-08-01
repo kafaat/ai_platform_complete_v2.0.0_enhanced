@@ -50,7 +50,7 @@
           "/healthz"
         ],
         "metrics": [
-          "/idempotency/metrics"
+          "/v1/idempotency/metrics"
         ],
         "readiness": [
           "/readyz"
@@ -677,7 +677,7 @@
         "metrics": [],
         "readiness": [
           "/readyz",
-          "/readyz/capabilities"
+          "/v1/readyz/capabilities"
         ]
       },
       "entrypoint": "services/odoo-bridge/main.py",
@@ -1970,6 +1970,7 @@
           "services/sahool-platform/api/agronomic_context_composer.py",
           "services/sahool-platform/api/ai_provider_config.py",
           "services/sahool-platform/api/alert_senders.py",
+          "services/sahool-platform/api/canonical_soil_state.py",
           "services/sahool-platform/api/chat_proxy_reference.py",
           "services/sahool-platform/api/connectors/metno_wind.py",
           "services/sahool-platform/api/decision_service_client.py",
@@ -2052,6 +2053,7 @@
           "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
           "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
           "services/sahool-platform/api/canonical_root_zone_profile.py",
+          "services/sahool-platform/api/canonical_soil_state.py",
           "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
           "services/sahool-platform/api/canonical_vri_prescription.py",
           "services/sahool-platform/api/canonical_water.py",
@@ -2862,7 +2864,6 @@
       "evidence_paths": {
         "configuration": [
           "services/supervisor-agent/main.py",
-          "services/supervisor-agent/remote_sensing_skill.py",
           "services/supervisor-agent/skills/advisory_skill.py",
           "services/supervisor-agent/skills/remote_sensing_skill.py"
         ],
@@ -2872,11 +2873,8 @@
           "services/supervisor-agent/test_circuit_observability.py"
         ],
         "routes": [
-          "services/supervisor-agent/crop_model_skill.py",
           "services/supervisor-agent/main.py",
-          "services/supervisor-agent/market_skill.py",
           "services/supervisor-agent/mcp_client.py",
-          "services/supervisor-agent/remote_sensing_skill.py",
           "services/supervisor-agent/routers/agent.py",
           "services/supervisor-agent/routers/health.py",
           "services/supervisor-agent/skills/advisory_skill.py",

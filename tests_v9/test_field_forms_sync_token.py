@@ -6,6 +6,8 @@ import pytest
 
 from shared.contracts.forms.sync_token import SyncTokenError, issue_token, verify_token
 
+pytestmark = pytest.mark.unit
+
 NOW = 1_800_000_000.0
 
 

@@ -11,10 +11,10 @@
     ``x_agent_token`` في توقيعها: ليست مكشوفة للمتصفّح بل يستدعيها العامل/الوكيل،
     فتُحمى بـ``_require_service_token`` (مطابقة الشقيقات — منع كشف الحقول). تُدرَج
     صراحةً في ``FIELD_SCOPED_SERVICE_ONLY`` بتبرير لكلّ منها.
-  • **layer_scoped** — ``/tiles/{layer_id}/...`` و``/layers/{layer_id}/tilejson``
+  • **layer_scoped** — ``/v1/tiles/{layer_id}/...`` و``/v1/layers/{layer_id}/tilejson``
     يجب أن تستدعي ``_require_layer_tenant(layer_id)`` (تفويض ملكيّة الطبقة).
-  • **service_only** — معالجة/مهامّ/رفع/أدوات (``/process``، ``/jobs/{id}``،
-    ``/info/{layer_id}``، ``/cog/validate``، ...) يجب أن تستدعي
+  • **service_only** — معالجة/مهامّ/رفع/أدوات (``/v1/process``، ``/v1/jobs/{id}``،
+    ``/v1/info/{layer_id}``، ``/v1/cog/validate``، ...) يجب أن تستدعي
     ``_require_service_token`` (توكن خدمة-لخدمة، لا يُكشف للمتصفّح).
   • **public_catalog** — بحث صور أقمار عامّة بـbbox + فحوص صحّة: لا بيانات مستأجِر،
     مسموح بلا مصادقة، لكن **ضمن قائمة صريحة**
@@ -74,7 +74,7 @@ GUARD_NAMES: frozenset[str] = frozenset({FIELD_GUARD, LAYER_GUARD, SERVICE_GUARD
 # ─────────────────────────────────────────────────────────────────────────────
 FIELD_SCOPED_SERVICE_ONLY: set[str] = {
     # جسر استيراد STAC→معالجة: خلفيّة، يأخذ band hrefs ويبني VRT ثمّ /process.
-    # يستدعيه العامل بعد /imagery/best — لا يُنادى من المتصفّح.
+    # يستدعيه العامل بعد /v1/imagery/best — لا يُنادى من المتصفّح.
     "/v1/fields/{field_id}/process-from-stac",
     # معالجة CDSE (المزوّد الافتراضيّ): يحسب المؤشّر خادميّاً (evalscript) → COG. خلفيّة،
     # يستدعيه المنسّق (imagery_automation) خدمة-لخدمة بترويسة التوكن — لا يُنادى من المتصفّح.
@@ -91,31 +91,31 @@ FIELD_SCOPED_SERVICE_ONLY: set[str] = {
 # مبنيّة من قراءة الكود: كلّ نقطة هنا تستدعي ``_require_service_token``.
 # ─────────────────────────────────────────────────────────────────────────────
 SERVICE_ONLY: set[str] = {
-    "/gis/admin-boundaries",  # A6/A7: قراءة طبقة الحدود المشتركة (خدمة-لخدمة، bbox مُطهَّر).
-    "/imagery/search",  # بحث متقدّم (POST) — توكن خدمة.
-    "/raw/process",  # فحص راستر خام: metadata+إحصاءات نطاقات (require_service_token في processing.py).
-    "/imagery/timeseries/analyze",  # تحليل سلسلة زمنيّة من قيم محسوبة.
-    "/imagery/timeseries/parallel",  # تحليل سلسلة زمنيّة متوازٍ.
-    "/zones/classify",  # تصنيف مناطق الإدارة من بكسلات.
-    "/change/detect",  # كشف تغيّر من شبكتين مُمرَّرتين.
-    "/fvc/compute",  # نسبة التغطية النباتيّة من شبكة NDVI.
-    "/sar/rvi",  # مؤشّر الغطاء الراداري RVI.
-    "/terrain/slope",  # انحدار من DEM.
-    "/salinity/classify",  # تصنيف الملوحة.
-    "/salinity/calibrate",  # معايرة الملوحة.
-    "/upload/raster",  # رفع راستر — يكتب ملفّات.
-    "/upload/drone",  # رفع أورثوموزاييك درون.
-    "/process",  # معالجة مؤشّر (غير متزامن → job).
-    "/process/batch",  # معالجة دفعيّة لعدّة مؤشّرات.
-    "/jobs/{job_id}",  # حالة مهمّة.
-    "/jobs/{job_id}/result",  # نتيجة مهمّة.
-    "/info/{layer_id}",  # معلومات طبقة راستر.
-    "/cog/validate",  # تحقّق COG.
-    "/storage/cleanup",  # تنظيف التخزين — يحذف ملفّات.
-    "/storage/stats",  # إحصاء التخزين يكشف بنية داخلية؛ محمي بتوكن خدمة.
-    "/offline/packs",  # سرد حزم offline محمي بتوكن خدمة.
-    "/offline/packs/{pack_name}",  # تنزيل الحزم محمي بتوكن خدمة.
-    "/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ).
+    "/v1/gis/admin-boundaries",  # A6/A7: قراءة طبقة الحدود المشتركة (خدمة-لخدمة، bbox مُطهَّر). (PR-R3: هُوجِر من /gis/admin-boundaries)
+    "/v1/imagery/search",  # بحث متقدّم (POST) — توكن خدمة.
+    "/v1/raw/process",  # فحص راستر خام: metadata+إحصاءات نطاقات (require_service_token في processing.py). (PR-R3: هُوجِر من /raw/process)
+    "/v1/imagery/timeseries/analyze",  # تحليل سلسلة زمنيّة من قيم محسوبة. (PR-R3: هُوجِر من /imagery/timeseries/analyze)
+    "/v1/imagery/timeseries/parallel",  # تحليل سلسلة زمنيّة متوازٍ. (PR-R3: هُوجِر من /imagery/timeseries/parallel)
+    "/v1/zones/classify",  # تصنيف مناطق الإدارة من بكسلات. (PR-R3: هُوجِر من /zones/classify)
+    "/v1/change/detect",  # كشف تغيّر من شبكتين مُمرَّرتين. (PR-R3: هُوجِر من /change/detect)
+    "/v1/fvc/compute",  # نسبة التغطية النباتيّة من شبكة NDVI. (PR-R3: هُوجِر من /fvc/compute)
+    "/v1/sar/rvi",  # مؤشّر الغطاء الراداري RVI. (PR-R3: هُوجِر من /sar/rvi)
+    "/v1/terrain/slope",  # انحدار من DEM. (PR-R3: هُوجِر من /terrain/slope)
+    "/v1/salinity/classify",  # تصنيف الملوحة. (PR-R3: هُوجِر من /salinity/classify)
+    "/v1/salinity/calibrate",  # معايرة الملوحة. (PR-R3: هُوجِر من /salinity/calibrate)
+    "/v1/upload/raster",  # رفع راستر — يكتب ملفّات. (PR-R2: هُوجِر من /upload/raster)
+    "/v1/upload/drone",  # رفع أورثوموزاييك درون. (PR-R2: هُوجِر من /upload/drone)
+    "/v1/process",  # معالجة مؤشّر (غير متزامن → job). (PR-R3: هُوجِر من /process)
+    "/v1/process/batch",  # معالجة دفعيّة لعدّة مؤشّرات. (PR-R3: هُوجِر من /process/batch)
+    "/v1/jobs/{job_id}",  # حالة مهمّة. (PR-R2: هُوجِر من /jobs/{job_id})
+    "/v1/jobs/{job_id}/result",  # نتيجة مهمّة. (PR-R2: هُوجِر من /jobs/{job_id}/result)
+    "/v1/info/{layer_id}",  # معلومات طبقة راستر. (PR-R3: هُوجِر من /info/{layer_id})
+    "/v1/cog/validate",  # تحقّق COG. (PR-R3: هُوجِر من /cog/validate)
+    "/v1/storage/cleanup",  # تنظيف التخزين — يحذف ملفّات. (PR-R2: هُوجِر من /storage/cleanup)
+    "/v1/storage/stats",  # إحصاء التخزين يكشف بنية داخلية؛ محمي بتوكن خدمة. (PR-R2: هُوجِر من /storage/stats)
+    "/v1/offline/packs",  # سرد حزم offline محمي بتوكن خدمة. (PR-R2: هُوجِر من /offline/packs)
+    "/v1/offline/packs/{pack_name}",  # تنزيل الحزم محمي بتوكن خدمة. (PR-R2: هُوجِر من /offline/packs/{pack_name})
+    "/v1/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ). (PR-R3: هُوجِر من /indices)
     # ── كتالوج GIS سحابيّ + تحليلات حقول: تكشف بنية/تصدير ⇒ توكن خدمة + ترويسة ──
     "/v1/fields/analytics/geoparquet/export",  # تصدير GeoParquet لحقول — توكن خدمة.
     "/v1/tile-cache/stats",  # إحصاء ذاكرة بلاطات يكشف بنية داخلية — توكن خدمة.
@@ -130,23 +130,23 @@ SERVICE_ONLY: set[str] = {
 # ─────────────────────────────────────────────────────────────────────────────
 PUBLIC_CATALOG: set[str] = {
     # ── بحث الصور الفضائيّة العامّ (بـbbox، لا بيانات مستأجِر) ──
-    "/imagery/search/recent",  # آخر صور Sentinel-2 لمنطقة — بحث عامّ بـbbox.
-    "/imagery/search/season",  # صور الموسم الزراعي — بحث عامّ بـbbox.
-    "/imagery/search/radar",  # رادار Sentinel-1 — بحث عامّ بـbbox.
-    "/imagery/search/landsat",  # أرشيف Landsat — بحث عامّ بـbbox.
-    "/imagery/search/landsat-thermal",  # v147: بحث Landsat الحراريّ الفريد — بحث عامّ بـbbox.
-    "/imagery/best",  # أفضل مشهد حديث — اختيار من بحث عامّ بـbbox.
-    "/imagery/dem",  # نموذج ارتفاع Copernicus — مرجع جغرافيّ عامّ بـbbox.
-    "/imagery/timeseries",  # توفّر المشاهد الزمنيّ — بحث عامّ بـbbox (GET، لا قيم).
+    "/v1/imagery/search/recent",  # آخر صور Sentinel-2 لمنطقة — بحث عامّ بـbbox.
+    "/v1/imagery/search/season",  # صور الموسم الزراعي — بحث عامّ بـbbox.
+    "/v1/imagery/search/radar",  # رادار Sentinel-1 — بحث عامّ بـbbox.
+    "/v1/imagery/search/landsat",  # أرشيف Landsat — بحث عامّ بـbbox.
+    "/v1/imagery/search/landsat-thermal",  # v147: بحث Landsat الحراريّ الفريد — بحث عامّ بـbbox.
+    "/v1/imagery/best",  # أفضل مشهد حديث — اختيار من بحث عامّ بـbbox.
+    "/v1/imagery/dem",  # نموذج ارتفاع Copernicus — مرجع جغرافيّ عامّ بـbbox.
+    "/v1/imagery/timeseries",  # توفّر المشاهد الزمنيّ — بحث عامّ بـbbox (GET، لا قيم). (PR-R3: هُوجِر من /imagery/timeseries)
     # ── بنية تحتيّة: فحوص صحّة/جاهزيّة + مقاييس (k8s/Prometheus، لا أسرار) ──
     "/healthz",  # فحص حياة العمليّة — بنية تحتيّة، لا بيانات.
     "/readyz",  # فحص جاهزيّة (وصول Earth Search) — بنية تحتيّة، لا بيانات.
     "/metrics",  # مقاييس Prometheus (عدّ مهامّ/طبقات مُجمَّع، لا بيانات مستأجِر).
     # ── مراقبة تخزين + حزم خرائط offline (خلفيّة ثابتة، لا بيانات مستأجِر) ──
     # ── كتالوج GIS سحابيّ عامّ (STAC/COG/imagery policy) — بحث/سياسة عامّة بـbbox ──
-    "/stac",  # صفحة STAC الجذر — كتالوج صور عامّ، لا بيانات مستأجِر.
-    "/stac/collections",  # مجموعات STAC — كتالوج عامّ.
-    "/stac/mosaicjson",  # MosaicJSON — تركيب فسيفساء عامّ من مشاهد.
+    "/v1/stac",  # صفحة STAC الجذر — كتالوج صور عامّ، لا بيانات مستأجِر. (PR-R3: هُوجِر من /stac)
+    "/v1/stac/collections",  # مجموعات STAC — كتالوج عامّ. (PR-R3: هُوجِر من /stac/collections)
+    "/v1/stac/mosaicjson",  # MosaicJSON — تركيب فسيفساء عامّ من مشاهد. (PR-R3: هُوجِر من /stac/mosaicjson)
     "/v1/scenes/quality-score",  # تقييم جودة مشهد — حساب من بيانات وصفيّة عامّة.
     "/v1/cog/registry/preview",  # معاينة سجلّ COG — كتالوج عامّ، لا بيانات مستأجِر.
     "/v1/tiles/observability",  # مراقبة البلاطات (عدّ مُجمَّع) — لا بيانات مستأجِر.
@@ -313,8 +313,9 @@ def _is_field_scoped(path: str) -> bool:
 
 
 def _is_layer_scoped(path: str) -> bool:
-    # ``/tiles/{layer_id}/...`` أو ``/layers/{layer_id}/...``
-    return path.startswith("/tiles/{layer_id}") or path.startswith("/layers/{layer_id}/")
+    # ``/v1/tiles/{layer_id}/...`` أو ``/v1/layers/{layer_id}/...`` (PR-R4: هُوجِرا من
+    # ``/tiles/{layer_id}/...``/``/layers/{layer_id}/...``)
+    return path.startswith("/v1/tiles/{layer_id}") or path.startswith("/v1/layers/{layer_id}/")
 
 
 def test_raster_main_exists_and_has_routes():

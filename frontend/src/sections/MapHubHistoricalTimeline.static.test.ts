@@ -6,6 +6,7 @@ const source = readFileSync(join(process.cwd(), 'src/sections/MapHub.tsx'), 'utf
 const api = readFileSync(join(process.cwd(), 'src/services/api.ts'), 'utf8');
 const platformFields = readFileSync(join(process.cwd(), '../services/sahool-platform/api/routers/fields.py'), 'utf8');
 const rasterClient = readFileSync(join(process.cwd(), '../services/sahool-platform/api/raster_service_client.py'), 'utf8');
+const thumb = readFileSync(join(process.cwd(), 'src/components/maphub/ImageryTimelineThumb.tsx'), 'utf8');
 
 describe('MapHub historical imagery timeline thumbnails', () => {
   it('timeline follows the SELECTED layer and carries the full provider capture axis', () => {
@@ -32,7 +33,10 @@ describe('MapHub historical imagery timeline thumbnails', () => {
     expect(source).toContain('fieldCdseThumbnailUrl');
     expect(source).toContain("'truecolor'");
     expect(source).toContain('data-testid="imagery-timeline-items"');
-    expect(source).toContain('alt={`مصغّرة صورة الحقل ${d.date}`}');
+    // انتقل عنصر <img> إلى ImageryTimelineThumb (حالات مرئيّة بدل display:none)، فالتأكيد
+    // يتبع الاستخراج بدل أن يضعف: البطاقة تُصيّر المكوّن، والمكوّن يحمل نصّ alt.
+    expect(source).toContain('<ImageryTimelineThumb');
+    expect(thumb).toContain('alt={`مصغّرة صورة الحقل ${date}`}');
     expect(source).toContain('monthLabel(d.date)');
     expect(source).not.toContain('preferredTimelineIndex(d, activeIndicator)');
   });

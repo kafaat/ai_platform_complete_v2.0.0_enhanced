@@ -6,7 +6,7 @@ Validates the production trust boundary:
 
 By default this is a safe live contract gate: it requires a user JWT and calls the public
 platform route.  Set SEGMENTATION_REQUIRE_MODEL=true to require the SAM2 service to report
-model_loaded=true and to execute an auto/hybrid request that should reach /predict.
+model_loaded=true and to execute an auto/hybrid request that should reach /v1/predict.
 
 Environment:
   SAHOOL_BASE_URL=https://localhost
@@ -122,8 +122,8 @@ def main() -> int:
             [min_lon, min_lat],
         ]
 
-    status, body = post_json(f"{BASE_URL}/api/segmentation/segment", payload)
-    print("platform /api/segmentation/segment", status, body)
+    status, body = post_json(f"{BASE_URL}/api/segmentation/v1/segment", payload)
+    print("platform /api/segmentation/v1/segment", status, body)
     if status != 200:
         print(
             "segmentation-platform-live-gate: FAIL: platform segmentation request failed",

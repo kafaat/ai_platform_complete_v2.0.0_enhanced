@@ -33,3 +33,21 @@ hypothesis>=6.100.0
 
 # notification agent imports nats.aio during mobile push tests
 nats-py>=2.3.0
+
+# ── UNIT-TEST-DORMANCY-01: إيقاظ ٤٧٩ اختبار وحدة ─────────────────────────────
+# هذه الثلاث كانت مستبعَدة عمداً (#590) كي تبقى بيئة `-m unit` «دنيا». المبرّر
+# **سقط**: كلّ ما كان ناقصاً هو `scipy` و`pillow`، وscipy مُعلَنة أصلاً في
+# `services/sahool-platform/api/requirements.txt:20`. القياس على هذا الملفّ:
+#   بدونها  → 2999 نجح · 369 تخطٍّ (كلّ ملفّ خامد يُحتسَب تخطّياً واحداً)
+#   معها    → 3478 نجح ·  26 تخطٍّ · **صفر فشل**
+# أي أنّ ٤٧٩ اختباراً لم تكن تُنفَّذ في بوّابة الدمج قطّ.
+#
+# كلّ إصدار مثبَّت على **إصدار الإنتاج** لا على نطاق مفتوح — درس
+# APP-ROUTES-EMPTY-01 (#686): `fastapi>=0.115.0` بلا سقف حلّ إلى 0.140.13، وفيها
+# `include_router` يُدرِج غلاف `_IncludedRouter` بلا `.path` بدل تسطيح المسارات،
+# فيفشل ١١ اختباراً على إصدار **لا تُختبَر عليه المنصّة**. رقِّ هنا والإنتاج معاً.
+fastapi==0.136.3  # = api/requirements.txt:6
+scipy==1.13.1  # = api/requirements.txt:20 — api/trial_engine.py يستورد scipy.stats
+# pillow: مطلوبة لاختبار واحد مُثبَت بالقياس — إسقاطها وحدها يُفشِل
+# test_segmentation_frontend_contract_20260702::test_segment_request_accepts_frontend_field_names
+pillow>=10.0.0  # = services/field-segmentation/requirements.txt:10

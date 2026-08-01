@@ -72,7 +72,7 @@ def _hdr() -> dict:
 def test_manual_returns_closed_geometry(client):
     poly = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.1]]
     r = client.post(
-        "/segment",
+        "/v1/segment",
         json={"mode": "manual", "user_polygon": poly},
         headers=_hdr(),
     )
@@ -92,14 +92,14 @@ def test_manual_accepts_geojson(client):
         "type": "Polygon",
         "coordinates": [[[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.0]]],
     }
-    r = client.post("/segment", json={"mode": "manual", "user_polygon": gj}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "manual", "user_polygon": gj}, headers=_hdr())
     assert r.status_code == 200, r.text
     assert r.json()["source"] == "manual"
 
 
 # ── ٢. auto/hybrid بلا نموذج → 503 صادق ──
 def test_auto_without_model_returns_503(client):
-    r = client.post("/segment", json={"mode": "auto"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr())
     assert r.status_code == 503, r.text
     detail = r.json()["detail"]
     assert detail["error"] == "model_not_configured"
@@ -109,7 +109,7 @@ def test_auto_without_model_returns_503(client):
 def test_hybrid_without_model_returns_503(client):
     poly = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1]]
     r = client.post(
-        "/segment",
+        "/v1/segment",
         json={"mode": "hybrid", "user_polygon": poly},
         headers=_hdr(),
     )
@@ -120,32 +120,32 @@ def test_hybrid_without_model_returns_503(client):
 # ── ٣. تحقّق المضلّع (مسار حقيقيّ يرفض القمامة) ──
 def test_manual_rejects_out_of_range(client):
     poly = [[999.0, 24.0], [46.1, 24.0], [46.1, 24.1]]
-    r = client.post("/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr())
     assert r.status_code == 422, r.text
 
 
 def test_manual_rejects_too_few_points(client):
     poly = [[46.0, 24.0], [46.1, 24.0]]
-    r = client.post("/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr())
     assert r.status_code == 422, r.text
 
 
 def test_manual_requires_polygon(client):
-    r = client.post("/segment", json={"mode": "manual"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "manual"}, headers=_hdr())
     assert r.status_code == 422, r.text
 
 
 # ── ٤. مصادقة توكن الخدمة ──
 def test_missing_token_rejected(client):
     poly = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1]]
-    r = client.post("/segment", json={"mode": "manual", "user_polygon": poly})
+    r = client.post("/v1/segment", json={"mode": "manual", "user_polygon": poly})
     assert r.status_code == 401, r.text
 
 
 def test_wrong_token_rejected(client):
     poly = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1]]
     r = client.post(
-        "/segment",
+        "/v1/segment",
         json={"mode": "manual", "user_polygon": poly},
         headers={"X-Agent-Token": "wrong"},
     )
@@ -157,6 +157,24 @@ def test_healthz(client):
     r = client.get("/healthz")
     assert r.status_code == 200
     assert r.json()["service"] == "field-segmentation"
+
+
+# ── API-VERSIONING-GUARD-IS-A-MIRROR-01: العقد مُصدَّر، لا القديم ──
+def test_segment_route_is_versioned_not_legacy(client):
+    """يُثبِّت شريحة API-VERSIONING-GUARD-IS-A-MIRROR-01: /segment رُحِّل إلى
+    /v1/segment (services/field-segmentation/main.py:390). برهان بالتكذيب: لو
+    عاد الديكوريتر إلى @app.post("/segment") يفشل هذا الاختبار بـ404 على
+    /v1/segment ويُنجَح المسار القديم — الاختبار يُثبِّت الاتّجاه الصحيح فقط."""
+    poly = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.1]]
+    versioned = client.post(
+        "/v1/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr()
+    )
+    assert versioned.status_code == 200, versioned.text
+
+    legacy = client.post("/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr())
+    assert legacy.status_code == 404, (
+        "المسار القديم /segment يجب ألّا يبقى حيّاً — لا alias توافق، تحويل كامل فقط"
+    )
 
 
 def test_readyz_reports_model_state(client):
@@ -208,7 +226,7 @@ def test_auto_configured_backend_polygon_returns_200(monkeypatch):
             json_body={"geometry": {"type": "Polygon", "coordinates": [open_ring]}},
         ),
     )
-    r = client.post("/segment", json={"mode": "auto"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr())
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["mode"] == "auto"
@@ -233,7 +251,7 @@ def test_auto_surfaces_backend_confidence(monkeypatch):
             json_body={"geometry": {"type": "Polygon", "coordinates": [ring]}, "confidence": 0.87},
         ),
     )
-    body = client.post("/segment", json={"mode": "auto"}, headers=_hdr()).json()
+    body = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr()).json()
     assert body["confidence"] == 0.87, "لم تُمرَّر درجة ثقة الخادم في الاستجابة"
     assert body["metadata"]["source"] == "sam2"
     assert body["metadata"]["confidence"] == 0.87
@@ -261,7 +279,7 @@ def test_auto_surfaces_upstream_metadata(monkeypatch):
             },
         ),
     )
-    body = client.post("/segment", json={"mode": "auto"}, headers=_hdr()).json()
+    body = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr()).json()
     assert body["metadata"]["imagery_source"] == "sentinel_truecolor"
     assert body["metadata"]["model_version"] == "sam2-hiera-large"
     assert body["metadata"]["post_processing"]["simplify_tolerance_m"] == 3
@@ -278,7 +296,7 @@ def test_auto_confidence_none_when_backend_omits_it(monkeypatch):
             mod, status_code=200, json_body={"geometry": {"type": "Polygon", "coordinates": [ring]}}
         ),
     )
-    body = client.post("/segment", json={"mode": "auto"}, headers=_hdr()).json()
+    body = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr()).json()
     assert body["confidence"] is None
 
 
@@ -287,7 +305,7 @@ def test_manual_confidence_is_none(monkeypatch):
     mod, client = _configured(monkeypatch, backend="sam2")
     ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.1], [46.0, 24.0]]
     body = client.post(
-        "/segment", json={"mode": "manual", "user_polygon": ring}, headers=_hdr()
+        "/v1/segment", json={"mode": "manual", "user_polygon": ring}, headers=_hdr()
     ).json()
     assert body["source"] == "manual"
     assert body["confidence"] is None
@@ -308,7 +326,7 @@ def test_hybrid_configured_bare_polygon_returns_200(monkeypatch):
     )
     poly = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1]]
     r = client.post(
-        "/segment",
+        "/v1/segment",
         json={"mode": "hybrid", "user_polygon": poly},
         headers=_hdr(),
     )
@@ -324,7 +342,7 @@ def test_inference_unreachable_returns_503(monkeypatch):
         raise httpx.ConnectError("connection refused")
 
     monkeypatch.setattr(mod, "_post_inference", _boom)
-    r = client.post("/segment", json={"mode": "auto"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr())
     assert r.status_code == 503, r.text
     assert r.json()["detail"]["error"] == "inference_unreachable"
 
@@ -337,7 +355,7 @@ def test_inference_timeout_returns_503(monkeypatch):
         raise httpx.TimeoutException("timed out")
 
     monkeypatch.setattr(mod, "_post_inference", _slow)
-    r = client.post("/segment", json={"mode": "auto"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr())
     assert r.status_code == 503, r.text
     assert r.json()["detail"]["error"] == "inference_unreachable"
 
@@ -349,7 +367,7 @@ def test_inference_non_2xx_returns_502(monkeypatch):
         "_post_inference",
         lambda payload: _fake_response(mod, status_code=500, json_body={"err": "boom"}),
     )
-    r = client.post("/segment", json={"mode": "auto"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr())
     assert r.status_code == 502, r.text
     detail = r.json()["detail"]
     assert detail["error"] == "inference_failed"
@@ -364,7 +382,7 @@ def test_inference_missing_geometry_returns_502(monkeypatch):
         "_post_inference",
         lambda payload: _fake_response(mod, status_code=200, json_body={"foo": "bar"}),
     )
-    r = client.post("/segment", json={"mode": "auto"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr())
     assert r.status_code == 502, r.text
     assert r.json()["detail"]["error"] == "inference_bad_geometry"
 
@@ -382,7 +400,7 @@ def test_inference_invalid_geometry_returns_502(monkeypatch):
             json_body={"geometry": {"type": "Polygon", "coordinates": [bad]}},
         ),
     )
-    r = client.post("/segment", json={"mode": "auto"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "auto"}, headers=_hdr())
     assert r.status_code == 502, r.text
     assert r.json()["detail"]["error"] == "inference_bad_geometry"
 
@@ -422,7 +440,7 @@ def test_auto_exg_preprocesses_image_before_sam2(monkeypatch):
     monkeypatch.setattr(mod, "_post_inference", fake_post)
     raw = _png_b64_rgb_square()
     r = client.post(
-        "/segment",
+        "/v1/segment",
         json={"mode": "auto", "image_base64": raw, "preprocessing": "exg"},
         headers=_hdr(),
     )
@@ -453,7 +471,7 @@ def test_auto_exg_without_image_is_explicitly_skipped(monkeypatch):
             )
         ),
     )
-    r = client.post("/segment", json={"mode": "auto", "preprocessing": "exg"}, headers=_hdr())
+    r = client.post("/v1/segment", json={"mode": "auto", "preprocessing": "exg"}, headers=_hdr())
     assert r.status_code == 200, r.text
     assert r.json()["metadata"]["preprocessing"] == "exg_skipped_no_image"
     assert seen["preprocessing"] == "exg_skipped_no_image"

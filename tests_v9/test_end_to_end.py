@@ -26,7 +26,7 @@ class TestEndToEndWorkflow:
             "context": {"date": "2026-05-18"},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=query_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -55,7 +55,7 @@ class TestEndToEndWorkflow:
             "context": {"crop": "wheat", "soil_moisture_30cm": 25, "date": "2026-05-18"},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=query_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -79,7 +79,7 @@ class TestEndToEndWorkflow:
             "tenant_id": mock_field_data["tenant_id"],
         }
         gr_response = await http_client.post(
-            "http://localhost:8097/validate",
+            "http://localhost:8097/v1/validate",
             json=guardrails_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -102,7 +102,7 @@ class TestEndToEndWorkflow:
             "context": {"crop": "wheat"},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=query_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -124,7 +124,7 @@ class TestEndToEndWorkflow:
             "tenant_id": mock_field_data["tenant_id"],
         }
         gr_response = await http_client.post(
-            "http://localhost:8097/validate",
+            "http://localhost:8097/v1/validate",
             json=guardrails_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -145,7 +145,7 @@ class TestEndToEndWorkflow:
             "context": {"crop": "wheat", "planting_date": "2026-01-15"},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/optimize",
+            "http://localhost:8096/v1/agent/optimize",
             json=query_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -179,7 +179,7 @@ class TestEndToEndWorkflow:
             "context": {"crop": "wheat", "market": "sanaa"},
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=query_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -199,7 +199,7 @@ class TestEndToEndWorkflow:
             },
         }
         contract_response = await http_client.post(
-            "http://localhost:8094/mcp/v1/tools/call",
+            "http://localhost:8094/v1/mcp/tools/call",
             json=contract_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -226,7 +226,7 @@ class TestEndToEndWorkflow:
             "preferred_objectives": ["balanced"],
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/optimize",
+            "http://localhost:8096/v1/agent/optimize",
             json=query_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -251,7 +251,7 @@ class TestSystemResilience:
         # In practice, tested via mock or staging environment
         query_payload = {"query": "ما هو NDVI", "user_id": "test", "tenant_id": "test"}
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=query_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
@@ -270,7 +270,7 @@ class TestSystemResilience:
             "tenant_id": "test",
         }
         response = await http_client.post(
-            "http://localhost:8096/agent/query",
+            "http://localhost:8096/v1/agent/query",
             json=query_payload,
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )

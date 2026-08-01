@@ -4,7 +4,7 @@
 
 - File: `services/sahool-platform/api/main.py`
 - Total lines: `2553`
-- Import lines: `132`
+- Import lines: `133`
 - Top-level symbols: `46`
 - Direct route decorators: `0`
 - Status: `route_free_with_embedded_business_logic`
@@ -13,7 +13,7 @@
 
 | Category | Classification | Symbols | LOC |
 |---|---|---:|---:|
-| `idempotency_outbox_events` | `embedded_business_logic` | 9 | 407 |
+| `idempotency_outbox_events` | `embedded_business_logic` | 9 | 406 |
 | `field_task_alert_helpers` | `embedded_business_logic` | 3 | 268 |
 | `auth_jwt_permissions` | `security_runtime` | 8 | 165 |
 | `parsers_mappers_serializers` | `compatibility_runtime` | 8 | 161 |
@@ -24,7 +24,7 @@
 
 ## Business-logic note
 
-- Embedded business logic still present in platform main: `675` LOC.
+- Embedded business logic still present in platform main: `674` LOC.
 - This does not reopen P1 because direct routes remain zero, but it makes P3 a real runtime extraction, not a cosmetic cleanup.
 - Uncategorized/residual line estimate after imports and categorized symbols: `1125` LOC. This must be reviewed before any P3 extraction plan is finalized.
 
@@ -32,15 +32,15 @@
 
 | Symbol | Category | Classification | LOC | Lines |
 |---|---|---|---:|---|
-| `_start_scheduler` | `idempotency_outbox_events` | `embedded_business_logic` | 231 | 297-527 |
+| `_start_scheduler` | `idempotency_outbox_events` | `embedded_business_logic` | 231 | 298-528 |
 | `_evaluate_field_alerts_persist` | `field_task_alert_helpers` | `embedded_business_logic` | 182 | 1676-1857 |
 | `_log_alert_deliveries` | `field_task_alert_helpers` | `embedded_business_logic` | 60 | 1604-1663 |
 | `_emit_domain_event` | `idempotency_outbox_events` | `embedded_business_logic` | 42 | 691-732 |
 | `rate_limit_middleware` | `middleware_and_rate_limit` | `middleware_runtime` | 41 | 898-938 |
 | `get_current_user` | `auth_jwt_permissions` | `security_runtime` | 37 | 1175-1211 |
-| `_init_db_pool` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 36 | 224-259 |
-| `_start_outbox_worker` | `idempotency_outbox_events` | `embedded_business_logic` | 35 | 538-572 |
-| `_assert_db_role_rls_safe` | `auth_jwt_permissions` | `security_runtime` | 33 | 262-294 |
+| `_init_db_pool` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 36 | 225-260 |
+| `_start_outbox_worker` | `idempotency_outbox_events` | `embedded_business_logic` | 35 | 539-573 |
+| `_assert_db_role_rls_safe` | `auth_jwt_permissions` | `security_runtime` | 33 | 263-295 |
 | `require_permission` | `auth_jwt_permissions` | `security_runtime` | 31 | 1214-1244 |
 | `_idempotent` | `idempotency_outbox_events` | `embedded_business_logic` | 30 | 761-790 |
 | `_reverse_geocode` | `parsers_mappers_serializers` | `compatibility_runtime` | 29 | 1292-1320 |

@@ -50,8 +50,21 @@ def test_unregistered_handler_id_raises_clear_error():
     assert "غير مسجَّل" in str(exc.value)
 
 
-def test_end_to_end_built_steps_run_to_completion():
-    # (د) end-to-end: الخطوات المبنيّة تُنفَّذ عبر المحرّك حتّى الاكتمال.
+def test_end_to_end_template_steps_do_not_reach_completion():
+    """(د) end-to-end: الخطوات المبنيّة تُنفَّذ عبر المحرّك — والقوالب **لا** تكتمل.
+
+    هذا الاختبار كان يؤكّد سابقاً أنّ `irrigation_cycle` يبلغ COMPLETED بخطواته
+    الأربع. لكنّ العلم `FEATURE_IRRIGATION_WORKFLOW_REAL` مُطفأ افتراضاً، فالأربعة
+    **قوالب** لا تفعل شيئاً (`_template=True`) — فكان الاختبار يُرمِّز «نجاحاً غير
+    حقيقيّاً» ويحرسه: دورة ريّ كاملة «مكتملة» بلا تحقّق ولا جدولة ولا تنفيذ ولا
+    تحقّق بعديّ.
+
+    بعد حارس `_reject_template_result` في المحرّك، القالب يُعامَل فشلَ خطوة. التوقّع
+    الصحيح إذن هو **عدم** الاكتمال، وأن يسمّي الخطأ سببه. اكتمال المسار الحقيقيّ
+    (العلم مُفعَّل + سياق صالح) مُغطّى في `tests/test_irrigation_workflow_handlers.py
+    ::test_real_workflow_suspends_then_resumes_with_approval` (يؤكّد COMPLETED
+    و`_template is False` عند الاستئناف بموافقة).
+    """
     defn = wd.get_workflow("irrigation_cycle")
     steps = wd.build_steps(defn)
     store = InMemoryWorkflowStore()
@@ -61,5 +74,6 @@ def test_end_to_end_built_steps_run_to_completion():
         store=store,
         tenant_id="t-test",
     )
-    assert state.status == WorkflowStatus.COMPLETED
-    assert state.completed_steps == ["validate", "schedule", "execute", "verify"]
+    assert state.status == WorkflowStatus.FAILED
+    assert state.completed_steps == [], "خطوة قالب سُجِّلت مكتملة — نجاح غير حقيقيّ"
+    assert "_template" in (state.error or "")

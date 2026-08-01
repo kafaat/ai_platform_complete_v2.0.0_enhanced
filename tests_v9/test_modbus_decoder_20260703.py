@@ -2,7 +2,7 @@
 
 يسدّ فجوة حقيقيّة (kundian-iot): لا دعم Modbus/RS485 في المنصّة. يغطّي:
   • ``modbus_decoder`` (نقيّ): CRC-16/MODBUS (متجه معياريّ) + فكّ سجلّات + رفض صادق.
-  • نقطة ``POST /soil/decode/modbus`` (importorskip fastapi/asyncpg).
+  • نقطة ``POST /v1/soil/decode/modbus`` (importorskip fastapi/asyncpg).
 """
 
 from __future__ import annotations
@@ -141,7 +141,7 @@ def test_decode_endpoint_returns_registers_and_readings(monkeypatch):
     frame = _frame(0x01, 0x03, [250, 65])
     client = TestClient(main.app)
     r = client.post(
-        "/soil/decode/modbus",
+        "/v1/soil/decode/modbus",
         json={"frame_hex": frame.hex(), "mapping": {"temperature": {"index": 0, "scale": 10}}},
         headers={"X-Agent-Token": "test-token"},
     )
@@ -159,7 +159,7 @@ def test_decode_endpoint_422_on_bad_crc(monkeypatch):
     frame[-1] ^= 0xFF
     client = TestClient(main.app)
     r = client.post(
-        "/soil/decode/modbus",
+        "/v1/soil/decode/modbus",
         json={"frame_hex": bytes(frame).hex()},
         headers={"X-Agent-Token": "test-token"},
     )
@@ -174,7 +174,7 @@ def test_decode_endpoint_requires_token(monkeypatch):
     client = TestClient(main.app)
     # إطار صالح الطول (يتجاوز تحقّق النموذج) كي نصل لفحص التوكن → 401 لا 422.
     frame = _frame(0x01, 0x03, [10])
-    r = client.post("/soil/decode/modbus", json={"frame_hex": frame.hex()})
+    r = client.post("/v1/soil/decode/modbus", json={"frame_hex": frame.hex()})
     assert r.status_code == 401
 
 

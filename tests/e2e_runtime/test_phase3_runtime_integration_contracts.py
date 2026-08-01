@@ -36,20 +36,21 @@ def test_gateway_routes_cover_runtime_services() -> None:
 
 
 def test_ai_agronomist_is_evidence_only_and_audited() -> None:
-    src = read("services/ai_agronomist/main.py")
-    assert "/internal/fields/{field_id}/state" in src
-    assert "/internal/events/ai-advice" in src
-    assert "audit_event" in src
-    assert "evidence_only" in src
-    assert "field_intelligence_coordinator" in src
+    api_src = read("services/ai_agronomist/main.py")
+    runtime_src = read("services/ai_agronomist/ai_evidence_runtime.py")
+    assert "/internal/fields/{field_id}/state" in runtime_src
+    assert "/internal/events/ai-advice" in runtime_src
+    assert "_record_ai_advice_event" in runtime_src
+    assert "evidence_only" in api_src
+    assert "field_intelligence_coordinator" in runtime_src
     forbidden_payload_keys = ["'recommendations'", '"recommendations"', "'tasks'", '"tasks"']
     for bad in forbidden_payload_keys:
-        assert bad not in src
+        assert bad not in runtime_src
 
 
 def test_platform_has_internal_ai_advice_event_endpoint() -> None:
-    src = read("services/sahool-platform/api/main.py")
-    assert '@app.post("/internal/events/ai-advice")' in src
+    src = read("services/sahool-platform/api/routers/internal_service.py")
+    assert '@router.post("/internal/events/ai-advice")' in src
     assert "AI_SUGGESTION" in src
     assert "_require_service_token" in src
     assert "tenant_connection_for" in src

@@ -161,7 +161,6 @@ jobs:
       contents: read
       actions: read
       packages: read
-      attestations: read
       id-token: write
       attestations: write
     steps:

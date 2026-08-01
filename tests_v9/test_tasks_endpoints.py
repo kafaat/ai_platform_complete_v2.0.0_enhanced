@@ -50,20 +50,19 @@ def _token(
 
 def test_tasks_routes_registered(app_mod):
     """المسارات الجديدة مُسجَّلة فعلاً (لا ديكوريتر مفقود)."""
-    paths = {getattr(r, "path", None) for r in app_mod.app.routes}
+    from conftest import registered_paths
+
+    paths = registered_paths(app_mod.app)
     assert "/api/v1/tasks" in paths, "GET /api/v1/tasks غير مُسجَّل"
     assert "/api/v1/tasks/{task_id}" in paths, "PATCH /api/v1/tasks/{task_id} غير مُسجَّل"
 
 
 def test_tasks_methods(app_mod):
     """GET على القائمة وPATCH على العنصر."""
-    methods: dict[str, set[str]] = {}
-    for r in app_mod.app.routes:
-        p = getattr(r, "path", None)
-        if p in ("/api/v1/tasks", "/api/v1/tasks/{task_id}"):
-            methods.setdefault(p, set()).update(getattr(r, "methods", set()) or set())
-    assert "GET" in methods.get("/api/v1/tasks", set())
-    assert "PATCH" in methods.get("/api/v1/tasks/{task_id}", set())
+    from conftest import registered_methods
+
+    assert "GET" in registered_methods(app_mod.app, "/api/v1/tasks")
+    assert "PATCH" in registered_methods(app_mod.app, "/api/v1/tasks/{task_id}")
 
 
 def test_tasks_list_contract(app_mod):

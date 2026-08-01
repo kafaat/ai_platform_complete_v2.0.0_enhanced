@@ -14,24 +14,24 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'a3182943d4c7468de64299d2e05a939c48968b9274263810c83d6bc562e9a562';
+export const PLATFORM_CATALOG_FINGERPRINT = 'f43ca80e2c8e5bf1c607db6dac596c70b129aa0af0df580de4850f2d3b3ebc69';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
-  "capabilities": 853,
+  "capabilities": 820,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 93,
   "capabilities_idempotent": 46,
   "capabilities_season_scoped": 10,
-  "capabilities_tenant_scoped": 458,
+  "capabilities_tenant_scoped": 477,
   "components": 34,
-  "cross_service_duplicate_method_paths": 15,
-  "duplicate_groups_classified": 15,
+  "cross_service_duplicate_method_paths": 12,
+  "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
   "route_rows": 1105,
   "ui_waivers": 52,
-  "unique_method_path": 991
+  "unique_method_path": 998
 } as const;
 
 export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
@@ -243,7 +243,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 555,
+    "capabilityCount": 522,
     "domain": "platform-core",
     "id": "sahool-platform",
     "tested": true,

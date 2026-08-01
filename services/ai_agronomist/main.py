@@ -122,7 +122,7 @@ async def ai_provider_snapshot() -> dict[str, Any]:
     return ai_generation.public_provider_snapshot()
 
 
-@app.get("/approvals/pending")
+@app.get("/v1/approvals/pending")
 async def list_pending_approvals(
     tenant: str = Depends(require_trusted_tenant),
     _user_id: str = Depends(require_authenticated_user),
@@ -142,7 +142,7 @@ async def list_pending_approvals(
     return {"pending": pending, "count": len(pending)}
 
 
-@app.post("/approvals/approve")
+@app.post("/v1/approvals/approve")
 async def approve_tool_request(
     req: ApprovalDecisionRequest,
     _tenant: str = Depends(require_trusted_tenant),
@@ -194,7 +194,7 @@ async def approve_tool_request(
     }
 
 
-@app.post("/approvals/deny")
+@app.post("/v1/approvals/deny")
 async def deny_tool_request(
     req: ApprovalDecisionRequest,
     _tenant: str = Depends(require_trusted_tenant),
@@ -240,7 +240,7 @@ class ApprovalResumeRequest(BaseModel):
     approval_id: str = Field(min_length=1, max_length=200)
 
 
-@app.post("/approvals/resume")
+@app.post("/v1/approvals/resume")
 async def resume_approved_tool(
     req: ApprovalResumeRequest,
     _tenant: str = Depends(require_trusted_tenant),
@@ -284,7 +284,7 @@ class ExportPreviewRequest(BaseModel):
     format: str = Field(default="geojson", max_length=32)
 
 
-@app.post("/prescription/export-preview")
+@app.post("/v1/prescription/export-preview")
 async def prescription_export_preview(req: ExportPreviewRequest) -> dict[str, Any]:
     """V62.2 — build a machine-format export PREVIEW for a VRA prescription.
 
@@ -356,7 +356,7 @@ async def _build_evidence_response(
     )
 
 
-@app.post("/query")
+@app.post("/v1/query")
 async def query(
     req: AdvisorQuery,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
@@ -367,7 +367,7 @@ async def query(
     )
 
 
-@app.post("/chat")
+@app.post("/v1/chat")
 async def chat(
     req: AdvisorQuery,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
@@ -378,7 +378,7 @@ async def chat(
     )
 
 
-@app.post("/explain")
+@app.post("/v1/explain")
 async def explain(
     req: AdvisorQuery,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
@@ -389,7 +389,7 @@ async def explain(
     )
 
 
-@app.post("/recommend")
+@app.post("/v1/recommend")
 async def recommend(
     req: AdvisorQuery,
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),

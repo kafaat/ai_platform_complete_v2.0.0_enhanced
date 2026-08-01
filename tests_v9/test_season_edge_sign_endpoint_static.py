@@ -1,4 +1,4 @@
-"""حارس ساكن لنقطة auth ``/auth/edge-sign`` (SEASON-RECORD-ENTRY-01 شريحة 3b).
+"""حارس ساكن لنقطة auth ``/v1/auth/edge-sign`` (SEASON-RECORD-ENTRY-01 شريحة 3b).
 
 النواة النقيّة (اشتقاق الأدوار + التوقيع مقيَّد الوجهة) مُثبَتة وحدةً في test_season_edge_attestation.
 هذا الحارس يثبّت **أسلاك** النقطة الحسّاسة بلا تشغيل تطبيق auth الكامل (AST/نصّ):
@@ -27,7 +27,7 @@ def _source() -> str:
 
 
 def test_endpoint_registered_get_edge_sign():
-    """راوتر يُصدِّر router ونقطة GET /auth/edge-sign (auto-register في auth، بلا تضخيم main)."""
+    """راوتر يُصدِّر router ونقطة GET /v1/auth/edge-sign (auto-register في auth، بلا تضخيم main)."""
     src = _source()
     tree = ast.parse(src)
     assert "router = APIRouter()" in src
@@ -43,7 +43,7 @@ def test_endpoint_registered_get_edge_sign():
         and d.args
         and isinstance(d.args[0], ast.Constant)
     }
-    assert ("GET", "/auth/edge-sign") in routes
+    assert ("GET", "/v1/auth/edge-sign") in routes
     assert len(routes) == 1  # نقطة واحدة فقط — لا توسّع صامت
 
 

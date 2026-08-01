@@ -117,6 +117,21 @@ async def metrics():
     except Exception:  # noqa: BLE001 — سطور metrics اختياريّة لا تكسر نقطة المراقبة
         pass
 
+    # جودة البيانات الوصفيّة للمشاهد (SILENT-EXCEPTION-HANDLERS-11-01): قبول
+    # `missing` قرار **مؤقّت مشروط بقياس نسبته**؛ فبلا تعريضه هنا يستحيل القياس
+    # وتتحوّل السياسة المؤقّتة إلى دائمة صامتاً.
+    try:
+        import cdse_client as _cdse_obs
+
+        for key, value in sorted(_cdse_obs.metadata_obs_snapshot().items()):
+            lines += [
+                f"# HELP sahool_raster_{key} CDSE scene metadata quality outcome",
+                f"# TYPE sahool_raster_{key} counter",
+                f"sahool_raster_{key} {int(value)}",
+            ]
+    except Exception as exc:  # noqa: BLE001 — سطور metrics اختياريّة لا تكسر المراقبة
+        logger.debug("تعذّر عرض عدّادات جودة CDSE: %s", type(exc).__name__)
+
     for idx, counters in sorted(TILE_OBS_BY_INDEX.items()):
         safe_idx = idx.replace('"', "_")
         for key, value in sorted(counters.items()):
@@ -194,22 +209,35 @@ async def tile_cache_stats(x_agent_token: str = Header(None)):
     root = os.path.join(UPLOAD_DIR, "tile_cache")
     count = 0
     size = 0
+    skipped = 0
     for base, _dirs, files in os.walk(root) if os.path.exists(root) else []:
         for fn in files:
             if fn.endswith(".png"):
                 count += 1
                 try:
                     size += os.path.getsize(os.path.join(base, fn))
-                except OSError:
-                    pass
+                except OSError as exc:
+                    # SILENT-EXCEPTION-HANDLERS-11-01: السباق مشروع (ملفّ حُذِف بين
+                    # os.walk وgetsize) ولا يجوز أن يُسقِط نقطة مراقبة بـ500. لكنّ
+                    # `count` كان يزيد بينما `size` لا — فيُبلَّغ N بلاطة بحجم **ناقص
+                    # بلا أيّ إشارة**. في نقطة *مراقبة* تحديداً، رقم خاطئ صامت أسوأ
+                    # عطلٍ ممكن. السلوك يبقى (لا رفع، لا 500)، ويُنشَر العدّاد.
+                    skipped += 1
+                    logger.debug(
+                        "تعذّر قياس حجم بلاطة (سباق حذف متوقَّع): %s — %s",
+                        os.path.join(base, fn),
+                        type(exc).__name__,
+                    )
     return {
         "enabled": os.getenv("TILE_CACHE_ENABLED", "true").lower() == "true",
         "tiles": count,
         "bytes": size,
+        # يُميّز «صفر بايت لأنّ المخزن فارغ» عن «صفر بايت لأنّ كلّ قياس فشل».
+        "skipped": skipped,
     }
 
 
-@router.get("/info/{layer_id}")
+@router.get("/v1/info/{layer_id}")
 async def raster_info(layer_id: str, x_agent_token: str = Header(None)):
     """معلومات طبقة راستر معالَجة."""
     require_service_token(x_agent_token, AGENT_TOKEN)
@@ -249,7 +277,7 @@ async def providers_status():
     }
 
 
-@router.get("/indices")
+@router.get("/v1/indices")
 async def field_indices(
     field_id: str,
     lat: float | None = Query(None),

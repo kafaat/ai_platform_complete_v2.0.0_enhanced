@@ -112,7 +112,7 @@ def derive(data: dict) -> dict:
     return result
 
 
-def report(data: dict) -> None:
+def report(data: dict, generated_dir: Path = GENERATED) -> None:
     GENERATED.mkdir(parents=True, exist_ok=True)
     caps = data["capabilities"]
     rows = []
@@ -141,12 +141,12 @@ def report(data: dict) -> None:
         "surface_distribution": dict(sorted(Counter(x["runtime_surfaces"] for x in rows).items())),
         "interpretation": "Pointers prove repository instrumentation only; they do not prove live telemetry or production operation.",
     }
-    (GENERATED / "capability_runtime_evidence_summary.json").write_text(
+    (generated_dir / "capability_runtime_evidence_summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
     import csv
 
-    with (GENERATED / "capability_runtime_evidence.csv").open(
+    with (generated_dir / "capability_runtime_evidence.csv").open(
         "w", encoding="utf-8", newline=""
     ) as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
@@ -164,7 +164,7 @@ def report(data: dict) -> None:
         lines.append(
             f"| {x['id']} | {x['metrics']} | {x['traces']} | {x['receipts']} | {x['audit_events']} | {x['runtime_surfaces']}/4 |"
         )
-    (GENERATED / "CAPABILITY_RUNTIME_EVIDENCE_REPORT.md").write_text(
+    (generated_dir / "CAPABILITY_RUNTIME_EVIDENCE_REPORT.md").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"
     )
 
@@ -176,10 +176,27 @@ def main() -> int:
     args = ap.parse_args()
     original = load()
     derived = derive(original)
-    report(derived)
-    if args.check and derived != original:
-        print("capability_runtime_evidence_drift_detected")
-        return 1
+    if args.check:
+        import tempfile
+
+        with tempfile.TemporaryDirectory(prefix="sahool-runtime-evidence-check-") as tmp:
+            candidate = Path(tmp)
+            report(derived, candidate)
+            report_names = [
+                "capability_runtime_evidence_summary.json",
+                "capability_runtime_evidence.csv",
+                "CAPABILITY_RUNTIME_EVIDENCE_REPORT.md",
+            ]
+            reports_drift = any(
+                not (GENERATED / name).exists()
+                or (GENERATED / name).read_bytes() != (candidate / name).read_bytes()
+                for name in report_names
+            )
+        if derived != original or reports_drift:
+            print("capability_runtime_evidence_drift_detected")
+            return 1
+    else:
+        report(derived)
     if args.apply:
         REGISTRY.write_text(
             json.dumps(derived, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

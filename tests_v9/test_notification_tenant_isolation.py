@@ -15,6 +15,8 @@ import sys
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 AGENT_DIR = os.path.join(ROOT, "agents", "notification")
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-اختبار التدهور اللطيف: عند فتح قاطع خدمة MCP، يجب أن يردّ /agent/query بـ200
+اختبار التدهور اللطيف: عند فتح قاطع خدمة MCP، يجب أن يردّ /v1/agent/query بـ200
 مُوسَّماً `degraded` بدل 500 قاسٍ — المنصّة تبقى مستجيبة والقاطع يتعافى تلقائيّاً.
 
 يعمل offline: يتجاوز المصادقة بـdependency_override، ويحقن مهارة تُحاكي قاطعاً
@@ -44,7 +44,7 @@ def test_circuit_open_returns_graceful_degraded(monkeypatch):
     client = _client_with_open_circuit(monkeypatch)
     try:
         resp = client.post(
-            "/agent/query",
+            "/v1/agent/query",
             json={"query": "محاكاة المحصول", "user_id": "u1", "tenant_id": "t1"},
         )
     finally:
@@ -68,7 +68,7 @@ def test_invalid_token_returns_generic_detail(monkeypatch):
     monkeypatch.delenv("JWT_PUBLIC_KEY", raising=False)
     client = TestClient(main.app)
     resp = client.post(
-        "/agent/query",
+        "/v1/agent/query",
         json={"query": "اختبار", "user_id": "u1", "tenant_id": "t1"},
         headers={"Authorization": "Bearer not-a-valid-jwt"},
     )

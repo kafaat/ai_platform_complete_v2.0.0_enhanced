@@ -271,7 +271,7 @@ async def _fetch_card_signals(
     except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
         _logger.warning("terrain fetch failed for %s: %s", field_id, exc)
 
-    # soil_baseline من soil-service (/soil/soilgrids) — يتطلّب lat/lon؛ آمن الفشل
+    # soil_baseline من soil-service (/v1/soil/soilgrids) — يتطلّب lat/lon؛ آمن الفشل
     # (soil-service/تغطية/توكن متعذّر ⇒ القسم يبقى missing بصدق). خطّ أساس عالميّ لا مختبر.
     if lat is not None and lon is not None:
         try:

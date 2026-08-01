@@ -1,3 +1,5 @@
+import pytest
+
 from shared.autonomous_farm_os_phase9 import (
     event_source_execution_plan,
     plan_closed_loop_execution,
@@ -12,6 +14,8 @@ from shared.continuous_learning_phase10 import (
     run_champion_challenger_cycle,
     run_phase10_learning_cycle,
 )
+
+pytestmark = pytest.mark.unit
 
 
 def _recommendation():

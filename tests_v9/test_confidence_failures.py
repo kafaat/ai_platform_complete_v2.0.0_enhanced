@@ -8,6 +8,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/sahool-platform"))
 from datetime import UTC, datetime, timedelta, timezone
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 
 def test_confidence_engine():
     """تحقّق من حساب confidence المركّب."""

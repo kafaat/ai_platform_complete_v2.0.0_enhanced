@@ -34,13 +34,16 @@ def stac_landing_page(base_url: str = "") -> dict[str, Any]:
         "stac_version": "1.0.0",
         "description": "SAHOOL internal STAC facade for field imagery, COG registry and mosaics.",
         "links": [
-            {"rel": "self", "href": f"{base}/stac" if base else "/stac"},
+            {"rel": "self", "href": f"{base}/v1/stac" if base else "/v1/stac"},
             {
                 "rel": "search",
-                "href": f"{base}/stac/search" if base else "/stac/search",
+                "href": f"{base}/v1/stac/search" if base else "/v1/stac/search",
                 "method": "POST",
             },
-            {"rel": "data", "href": f"{base}/stac/collections" if base else "/stac/collections"},
+            {
+                "rel": "data",
+                "href": f"{base}/v1/stac/collections" if base else "/v1/stac/collections",
+            },
         ],
     }
 

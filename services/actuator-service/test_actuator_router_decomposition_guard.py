@@ -33,8 +33,8 @@ app = _main.app
 
 # مسارات actuator الحرجة (الأمر الفيزيائيّ + سجلّ الأوامر + الجاهزيّة) — فقدانها انحدار.
 _CRITICAL_ROUTES = (
-    "/command",
-    "/commands",
+    "/v1/command",
+    "/v1/commands",
     "/readyz",
 )
 

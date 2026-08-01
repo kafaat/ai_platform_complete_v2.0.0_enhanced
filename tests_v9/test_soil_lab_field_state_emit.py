@@ -75,11 +75,8 @@ def test_publish_routes_through_canonical_state():
 def test_soil_lab_patch_route_registered(core_on_path):
     import api.main as m
 
-    routes = {
-        getattr(r, "path", None)
-        for r in m.app.routes
-        if "soil-lab-tests/{test_id}" in (getattr(r, "path", "") or "")
-    }
-    assert "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}" in routes, (
+    from conftest import registered_paths
+
+    assert "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}" in registered_paths(m.app), (
         "نقطة تحديث فحص التربة غير مُسجَّلة"
     )

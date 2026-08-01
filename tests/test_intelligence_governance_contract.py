@@ -11,8 +11,8 @@ def test_contract_and_brain_alignment():
 
 
 def test_supervisor_reads_not_computes():
+    # نسخة الجذر حُذِفت (SUPERVISOR-ROOT-SKILLS-DEAD-CODE-01) — كانت ميتة.
     for rel in [
-        "services/supervisor-agent/remote_sensing_skill.py",
         "services/supervisor-agent/skills/remote_sensing_skill.py",
     ]:
         t = (ROOT / rel).read_text()

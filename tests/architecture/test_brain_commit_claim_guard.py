@@ -94,3 +94,80 @@ def test_prose_mentions_still_do_not_register_a_gap():
             for line in registry.splitlines()
         )
         assert declared, f"{gid} لم يأتِ من عنوان ولا من عمود معرّف"
+
+
+def test_security_advisory_ids_are_not_treated_as_gap_claims():
+    """`PYSEC-2026-1325` يُطابِق شكل المعرّف ولا يُسجَّل قطّ في السجلّ.
+
+    التقطه الحارس على رسالة `UNIT-TEST-DORMANCY-01` التي تذكره توثيقاً لنتيجة
+    `pip-audit` قبل/بعد. لو بقي، لدفع الحارسُ كلَّ رسالةٍ إلى **كتمان** رقم
+    الاستشارة — عكس ما بُني له. الاستبعاد بالبادئة لا بالحالة الواحدة، لأنّ
+    العلّة صنفيّة: هذه معرّفات تُصدرها جهة خارجيّة.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    for advisory in ("PYSEC-2026-1325", "CVE-2024-24762", "GHSA-XXXX-YYYY-ZZZZ", "OSV-2023-1"):
+        assert mod.is_advisory(advisory), advisory
+
+
+def test_the_advisory_exemption_did_not_swallow_real_gap_ids():
+    """التكذيب: الاستثناء ضيّق بالبادئة — معرّف فجوة حقيقيّ ما زال يُطالَب بالتسجيل."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    for gid in (
+        "UNIT-TEST-DORMANCY-01",
+        "APP-ROUTES-EMPTY-01",
+        "CVE-LIKE-BUT-NOT",
+        "PYSECURITY-A-B",
+    ):
+        assert not mod.is_advisory(gid), f"{gid} استُثني خطأً كاستشارة"
+    # والفشل التاريخيّ ما زال يُلتقَط بعد التعديل.
+    assert _run("4eded7a", "121ab09").returncode == 1
+
+
+def test_an_id_glued_to_arabic_text_is_read_whole_not_from_its_middle():
+    """`\b` كان يقتطع المعرّف الملتصق بالعربيّة — فيخترع وهميّاً ويُفوّت الحقيقيّ معاً.
+
+    الحرف العربيّ حرف كلمة، فلا حدّ كلمة بين `لـ` و`AUTH`؛ فيبدأ التطابق بعد أوّل
+    شرطة. النتيجة عطبان في اتّجاهين متعاكسين: يُطالِب بتسجيل `E2E-UNDER-…` وهو لا
+    وجود له، ويفوته `AUTH-E2E-…` وهو الادّعاء الحقيقيّ الذي بُني الحارس ليفحصه.
+    التقطه الحارس على رسالة التزام فعليّة في هذه الشريحة.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    assert mod._GAP_ID.findall("لـAUTH-E2E-UNDER-RESTRICTED-ROLE،") == [
+        "AUTH-E2E-UNDER-RESTRICTED-ROLE"
+    ]
+    assert mod._GAP_ID.findall("بـUNIT-TEST-DORMANCY-01 و") == ["UNIT-TEST-DORMANCY-01"]
+    # ولا يلتقط ذيل معرّف: لا مطابقة تبدأ بعد شرطة.
+    assert "UNDER-RESTRICTED-ROLE" not in mod._GAP_ID.findall("AUTH-E2E-UNDER-RESTRICTED-ROLE")
+
+
+def test_the_boundary_fix_did_not_break_ordinary_extraction():
+    """التكذيب: الحدّ الجديد ما زال يلتقط المعرّف المحاط بمسافات/علامات، ويرفض الملتصق بحرف."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    assert mod._GAP_ID.findall("ذكر APP-ROUTES-EMPTY-01 هنا") == ["APP-ROUTES-EMPTY-01"]
+    assert mod._GAP_ID.findall("(APP-ROUTES-EMPTY-01)") == ["APP-ROUTES-EMPTY-01"]
+    # الضمانة المقصودة **قراءة كاملة لا رفض**: رمز ملتصق بحرف ASCII — سابق أو لاحق —
+    # يُقرأ كلّه ولا يُقتطَع من منتصفه. (توقّعتُ `[]` في الحالتين مرّتين متتاليتين وكنتُ
+    # مخطئاً: كلاهما رمز صالح الشكل بذاته، والعطب الذي أُصلِح هو الاقتطاع لا القبول.)
+    assert mod._GAP_ID.findall("XAPP-ROUTES-EMPTY-01") == ["XAPP-ROUTES-EMPTY-01"]
+    assert mod._GAP_ID.findall("APP-ROUTES-EMPTY-01X") == ["APP-ROUTES-EMPTY-01X"]
+    # وما لا يجوز بحال: تطابق يبدأ بعد شرطة فيُنتِج معرّفاً وهميّاً.
+    for text in ("لـAUTH-E2E-UNDER-RESTRICTED-ROLE", "XAPP-ROUTES-EMPTY-01"):
+        assert all(not m.startswith(("E2E-", "ROUTES-")) for m in mod._GAP_ID.findall(text))
+    # والفشل التاريخيّ ما زال يُلتقَط بعد تغيير الحدّ.
+    assert _run("4eded7a", "121ab09").returncode == 1

@@ -36,6 +36,18 @@ jobs:
       - name: intelligence-governance-brain-gate
         run: python scripts/ci/intelligence_governance_gate.py
 
+      # P0-7: الشقّ الفيزيائيّ من المبدأ أعلاه، مفروضاً بعقد بدل ثلاث كلمات مفتاحيّة —
+      # HTTP · موضوع أمر على وسيط · استيراد عميل المُشغِّل · غلاف يُخفي النداء.
+      - name: physical-effect-boundary-guard
+        run: python scripts/ci/physical_effect_boundary_guard.py --check
+
+      # EXPECTED-CONTROL-FLOW-EXCEPTION: موضع يطابق نمط المعالِج الصامت والاستثناء فيه
+      # إشارة تحكّم مقصودة — يبقى مُخرَجاً من الدَّين **بشرط** دليله: نوع ضيّق + تعليق
+      # عقديّ + اختبار سلوكيّ. حذف الاختبار لا يُسقِط اختباراً (المحذوف لا يُشغَّل)،
+      # فيلزم سكربت مستقلّ يفحص وجوده — وحذفه يستلزم تعديل هذا الملفّ صراحةً.
+      - name: expected-control-flow-exception-contract
+        run: python scripts/ci/expected_control_flow_guard.py --check
+
       - name: weather-engine-formula-guard
         run: python scripts/ci/weather_engine_formula_guard.py
 
@@ -502,28 +514,63 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       - run: pip install -r tests_v9/requirements-test.txt
+      # TESTS-UNMARKED-DESELECTED-01: ملفّ بلا علامة يستبعده `-m` في **كلّ** وظيفة،
+      # فيبدو حيّاً محلّيّاً وهو ميت في البوّابة. الحارس يمنع وُلود خامد جديد؛ الأساس
+      # المُجمَّد (١٥ ملفّاً بأسبابها المقيسة) يتقلّص ولا ينمو.
+      - run: python scripts/ci/test_marker_coverage_guard.py --check
       - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
-      # بوّابة تغطية حقيقيّة (A1): في بيئة الوحدة الدنيا (بلا fastapi/خدمات) تبلغ
-      # تغطية اختبارات الوحدة لـservices ~44.55% فعليّاً (قياس 2026-07 بنفس أمر CI
-      # وبنفس التبعيّات الدنيا؛ نَمَت من ~24% السابقة). الأرضيّة 40% (هامش ~4.5 نقطة
-      # دون المقيس) — راتشِت غير-كاسر يمنع الانحدار ويصعد فقط.
-      # ratchet: 20→40 (2026-07)؛ ارفعها نحو 55 مع نموّ التغطية. راجع
-      # docs/testing/coverage_ratchet.md للخطّة المرحليّة والتفصيل حسب النطاق.
+      # بوّابة تغطية حقيقيّة (A1): راتشِت غير-كاسر يمنع الانحدار ويصعد فقط.
+      # UNIT-TEST-DORMANCY-01 (2026-07-28): بعد إيقاظ ٤٧٩ اختباراً خامداً (fastapi
+      # وscipy وpillow صارت في `requirements-test.txt`) صار المقيس **46%** بأمر CI
+      # نفسه — كان ~44.55% في البيئة الدنيا. الأرضيّة تصعد 40→42 بنفس هامش
+      # الاتّفاقيّة (~٤ نقاط دون المقيس).
+      # TESTS-UNMARKED-DESELECTED-01 (2026-07-28): وُسِم ٥٤ ملفّاً خامداً (٢٤٠ اختباراً)
+      # فصار المقيس **47%** بنفس الأمر. الأرضيّة تصعد 42→43 بنفس القاعدة (~٤ نقاط دون
+      # المقيس). لم تقفز أكثر لأنّ الإيقاظ يرفع البسط والمقام معاً.
+      # ratchet: 20→40 (2026-07) → 42 → 43 (2026-07-28)؛ ارفعها نحو 55 مع نموّ التغطية.
+      # راجع docs/testing/coverage_ratchet.md للخطّة المرحليّة والتفصيل حسب النطاق.
       - name: Coverage gate (fail-under)
-        run: pytest -m unit --cov=services --cov-fail-under=40 -q || (echo "التغطية انهارت دون الأرضيّة 40%" && exit 1)
+        run: pytest -m unit --cov=services --cov-fail-under=43 -q || (echo "التغطية انهارت دون الأرضيّة 43%" && exit 1)
       - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with: {files: coverage.xml}
-      # خطوة معزولة: تُثبّت fastapi فوق البيئة الدنيا (بعد بوّابة التغطية كي لا تُوقظ
-      # الاختبارات الخامدة في مسار -m unit) وتشغّل الملفّات الثلاثة المقصودة صراحةً
-      # بالمسار — تغطية حقيقيّة لـfield-forms API بلا أثر جانبيّ على البيئة المشتركة.
-      - name: Field-forms API integration (isolated fastapi env)
+      # ثلاثة من هذه الأربعة بلا `pytestmark = unit` ⇒ يستبعدها `-m unit`؛ تُشغَّل
+      # صراحةً بالمسار. لم تعد تحتاج تثبيتاً معزولاً: fastapi صارت في البيئة
+      # المشتركة مثبَّتة على إصدار الإنتاج (UNIT-TEST-DORMANCY-01).
+      # تُشغَّل الأربعة **معاً** عمداً: `test_field_forms_sync_binding_p02` كان يفشل
+      # عند التجميع وحده (ترتيب HMAC) — «ناجح منفصلاً ≠ ناجح مُجمَّعاً» (#590).
+      - name: Field-forms API integration (unmarked files, explicit paths)
         run: |
-          pip install -r tests_v9/requirements-field-forms.txt
           pytest -v \
             tests_v9/test_field_forms_api_integration.py \
             tests_v9/test_field_forms_sync_binding_p02.py \
             tests_v9/test_field_forms_device_rotation_grace.py \
             tests_v9/test_erp_bridge_fail_closed.py
+
+  repository-tests:
+    name: Repository Tests (tests/)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        # تاريخ كامل: الشجرة تحوي حرّاساً يقرؤون تاريخ git نفسه
+        # (`test_brain_commit_claim_guard` يشغّل `git log origin/main..HEAD` وعلى مدايات
+        # تاريخيّة مسمّاة). لم يكشفه شيء قبل هذه الوظيفة لأنّه لم يكن يعمل في أيّ مكان —
+        # وهو بالضبط ما كانت `ARCH-TESTS-UNLISTED-IN-CI-01` تُخفيه.
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with: {python-version: "3.12"}
+      - run: pip install -r tests_v9/requirements-test.txt
+      # ARCH-TESTS-UNLISTED-IN-CI-01: pytest.ini يحصر testpaths في tests_v9، فكان كلّ ما
+      # تحت tests/ يُشغَّل بقائمة مسارات صريحة — وأيّ ملفّ جديد يقع خارجها صامتاً (٦٦ من
+      # ١١٢ عند القياس). الشجرة تُشغَّل هنا **كاملةً**، والاستثناءات **تُشتقّ** من
+      # docs/testing/tests_tree_baseline.json لا تُكتب هنا: استثناء بلا مدخل مُبرَّر مستحيل،
+      # وملفّ جديد مُغطّى تلقائيّاً.
+      - run: python scripts/ci/tests_tree_coverage_guard.py --check
+      - name: Run the tests/ tree minus the justified baseline
+        run: |
+          ignores="$(python scripts/ci/tests_tree_coverage_guard.py --pytest-ignores)"
+          echo "excluded: $ignores"
+          # shellcheck disable=SC2086
+          pytest tests -q -p no:cacheprovider $ignores
 
   platform-unit-tests:
     name: Platform Unit Tests

@@ -1,6 +1,6 @@
 {
   "analysis_kind": "static_repository_evidence",
-  "cross_scope_candidate_count": 19,
+  "cross_scope_candidate_count": 16,
   "cross_scope_candidates": [
     {
       "classification": "review_only_distinct_module_or_router",
@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 553,
+          "line": 560,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 501,
+          "line": 508,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -480,45 +480,6 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "GET",
-      "path": "/mcp/v1/tools",
-      "registrations": [
-        {
-          "function": "list_tools",
-          "line": 134,
-          "method": "GET",
-          "module": "services/mcp_servers/generic_context_server.py",
-          "path": "/mcp/v1/tools",
-          "receiver": "app"
-        },
-        {
-          "function": "list_tools",
-          "line": 199,
-          "method": "GET",
-          "module": "services/mcp_servers/sentinel_hub_server.py",
-          "path": "/mcp/v1/tools",
-          "receiver": "app"
-        },
-        {
-          "function": "list_tools",
-          "line": 85,
-          "method": "GET",
-          "module": "services/mcp_servers/weather_server.py",
-          "path": "/mcp/v1/tools",
-          "receiver": "app"
-        },
-        {
-          "function": "list_tools",
-          "line": 51,
-          "method": "GET",
-          "module": "services/mcp_servers/wofost_server.py",
-          "path": "/mcp/v1/tools",
-          "receiver": "app"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "GET",
       "path": "/metrics",
       "registrations": [
         {
@@ -622,29 +583,6 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "GET",
-      "path": "/products",
-      "registrations": [
-        {
-          "function": "api_search_products",
-          "line": 632,
-          "method": "GET",
-          "module": "services/mcp_servers/market_server.py",
-          "path": "/products",
-          "receiver": "app"
-        },
-        {
-          "function": "list_erp_products",
-          "line": 71,
-          "method": "GET",
-          "module": "services/odoo-bridge/routers/catalog.py",
-          "path": "/products",
-          "receiver": "router"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "GET",
       "path": "/readyz",
       "registrations": [
         {
@@ -681,7 +619,7 @@
         },
         {
           "function": "readyz",
-          "line": 506,
+          "line": 513,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -801,7 +739,7 @@
         },
         {
           "function": "readyz",
-          "line": 171,
+          "line": 186,
           "method": "GET",
           "module": "services/raster-service/routers/observability.py",
           "path": "/readyz",
@@ -915,45 +853,61 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "GET",
-      "path": "/stac",
+      "path": "/v1/mcp/tools",
       "registrations": [
         {
-          "function": "stac_landing",
-          "line": 17,
+          "function": "list_tools",
+          "line": 134,
           "method": "GET",
-          "module": "services/raster-service/routers/stac.py",
-          "path": "/stac",
-          "receiver": "router"
+          "module": "services/mcp_servers/generic_context_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
         },
         {
-          "function": "stac_root",
-          "line": 179,
+          "function": "list_tools",
+          "line": 199,
           "method": "GET",
-          "module": "services/sahool-platform/api/routers/gis_cloud_native.py",
-          "path": "/stac",
-          "receiver": "router"
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
+        },
+        {
+          "function": "list_tools",
+          "line": 85,
+          "method": "GET",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
+        },
+        {
+          "function": "list_tools",
+          "line": 51,
+          "method": "GET",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/v1/mcp/tools",
+          "receiver": "app"
         }
       ]
     },
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "GET",
-      "path": "/stac/collections",
+      "path": "/v1/products",
       "registrations": [
         {
-          "function": "stac_collections",
-          "line": 25,
+          "function": "api_search_products",
+          "line": 632,
           "method": "GET",
-          "module": "services/raster-service/routers/stac.py",
-          "path": "/stac/collections",
-          "receiver": "router"
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/v1/products",
+          "receiver": "app"
         },
         {
-          "function": "list_stac_collections",
-          "line": 200,
+          "function": "list_erp_products",
+          "line": 71,
           "method": "GET",
-          "module": "services/sahool-platform/api/routers/gis_cloud_native.py",
-          "path": "/stac/collections",
+          "module": "services/odoo-bridge/routers/catalog.py",
+          "path": "/v1/products",
           "receiver": "router"
         }
       ]
@@ -1000,76 +954,6 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "POST",
-      "path": "/ingest",
-      "registrations": [
-        {
-          "function": "ingest_endpoint",
-          "line": 430,
-          "method": "POST",
-          "module": "services/local-ai-rag/main.py",
-          "path": "/ingest",
-          "receiver": "app"
-        },
-        {
-          "function": "ingest",
-          "line": 90,
-          "method": "POST",
-          "module": "services/rag-retrieval/main.py",
-          "path": "/ingest",
-          "receiver": "app"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "POST",
-      "path": "/mcp/v1/tools/call",
-      "registrations": [
-        {
-          "function": "call_tool",
-          "line": 151,
-          "method": "POST",
-          "module": "services/mcp_servers/generic_context_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        },
-        {
-          "function": "mcp_tools_call",
-          "line": 578,
-          "method": "POST",
-          "module": "services/mcp_servers/market_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        },
-        {
-          "function": "call_tool",
-          "line": 286,
-          "method": "POST",
-          "module": "services/mcp_servers/sentinel_hub_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        },
-        {
-          "function": "call_tool",
-          "line": 148,
-          "method": "POST",
-          "module": "services/mcp_servers/weather_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        },
-        {
-          "function": "call_tool",
-          "line": 114,
-          "method": "POST",
-          "module": "services/mcp_servers/wofost_server.py",
-          "path": "/mcp/v1/tools/call",
-          "receiver": "app"
-        }
-      ]
-    },
-    {
-      "classification": "review_only_distinct_module_or_router",
-      "method": "POST",
       "path": "/models/register",
       "registrations": [
         {
@@ -1093,37 +977,84 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "POST",
-      "path": "/plan",
+      "path": "/v1/ingest",
       "registrations": [
         {
-          "function": "plan",
-          "line": 311,
+          "function": "ingest_endpoint",
+          "line": 430,
           "method": "POST",
-          "module": "services/agriai-engine/main.py",
-          "path": "/plan",
+          "module": "services/local-ai-rag/main.py",
+          "path": "/v1/ingest",
           "receiver": "app"
         },
         {
-          "function": "create_execution_plan",
-          "line": 112,
+          "function": "ingest",
+          "line": 90,
           "method": "POST",
-          "module": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
-          "path": "/plan",
-          "receiver": "router"
+          "module": "services/rag-retrieval/main.py",
+          "path": "/v1/ingest",
+          "receiver": "app"
         }
       ]
     },
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "POST",
-      "path": "/query",
+      "path": "/v1/mcp/tools/call",
+      "registrations": [
+        {
+          "function": "call_tool",
+          "line": 151,
+          "method": "POST",
+          "module": "services/mcp_servers/generic_context_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "mcp_tools_call",
+          "line": 578,
+          "method": "POST",
+          "module": "services/mcp_servers/market_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 286,
+          "method": "POST",
+          "module": "services/mcp_servers/sentinel_hub_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 148,
+          "method": "POST",
+          "module": "services/mcp_servers/weather_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        },
+        {
+          "function": "call_tool",
+          "line": 114,
+          "method": "POST",
+          "module": "services/mcp_servers/wofost_server.py",
+          "path": "/v1/mcp/tools/call",
+          "receiver": "app"
+        }
+      ]
+    },
+    {
+      "classification": "review_only_distinct_module_or_router",
+      "method": "POST",
+      "path": "/v1/query",
       "registrations": [
         {
           "function": "query",
           "line": 360,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
-          "path": "/query",
+          "path": "/v1/query",
           "receiver": "app"
         },
         {
@@ -1131,7 +1062,7 @@
           "line": 420,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
-          "path": "/query",
+          "path": "/v1/query",
           "receiver": "app"
         }
       ]
@@ -1139,14 +1070,14 @@
     {
       "classification": "review_only_distinct_module_or_router",
       "method": "POST",
-      "path": "/recommend",
+      "path": "/v1/recommend",
       "registrations": [
         {
           "function": "recommend",
           "line": 238,
           "method": "POST",
           "module": "services/agriai-engine/main.py",
-          "path": "/recommend",
+          "path": "/v1/recommend",
           "receiver": "app"
         },
         {
@@ -1154,7 +1085,7 @@
           "line": 393,
           "method": "POST",
           "module": "services/ai_agronomist/main.py",
-          "path": "/recommend",
+          "path": "/v1/recommend",
           "receiver": "app"
         }
       ]
@@ -1164,7 +1095,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "dcbe33b28a7d24b911f45a391f7c3b50fe3607fa11379db8af6a9248b622539f",
+  "route_inventory_sha256": "5cf116753fecc12520495043b74b7c3cfb42744a3bc2c79894fda4bcbbd2193f",
   "runtime_verified": false,
   "schema_version": 1
 }

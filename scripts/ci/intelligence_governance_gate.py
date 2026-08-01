@@ -8,8 +8,9 @@ contract = json.loads((ROOT / "shared/contracts/intelligence_governance.json").r
 errors = []
 if contract["principles"].get("observed_spectral_truth") != "raster-service":
     errors.append("bad spectral owner")
+# الموضع القانونيّ الوحيد بعد حذف نسخة الجذر الميتة
+# (SUPERVISOR-ROOT-SKILLS-DEAD-CODE-01): main.py يستورد skills.* حصراً.
 for rel in [
-    "services/supervisor-agent/remote_sensing_skill.py",
     "services/supervisor-agent/skills/remote_sensing_skill.py",
 ]:
     text = (ROOT / rel).read_text()
@@ -20,15 +21,12 @@ for rel in [
     if "BRAIN_DIRECT_SATELLITE_FETCH_ENABLED" not in text:
         errors.append(f"direct provider fetch not gated: {rel}")
 
-# Brain/agent services must not directly call actuator or MQTT; physical effects belong to Decision-Service.
-for base in ["services/ai_agronomist", "services/agriai-engine", "services/supervisor-agent"]:
-    for py in (ROOT / base).rglob("*.py"):
-        if py.name.startswith("test_"):
-            continue
-        text = py.read_text(errors="ignore")
-        low = text.lower()
-        if "actuator_service_url" in low or "sahool-actuator" in low or "mqtt.publish(" in low:
-            errors.append(f"direct physical-effect path in brain: {py.relative_to(ROOT)}")
+# قاعدة «الدماغ لا يصل فيزيائيّاً» انتقلت إلى موضعها القانونيّ الواحد:
+# scripts/ci/physical_effect_boundary_guard.py + عقد
+# docs/architecture/physical_effect_boundary_contract.json (P0-7).
+# كانت هنا ثلاث كلمات مفتاحيّة تغطّي المسار الأصرح وحده وتترك موضوع أمر NATS
+# واستيراد العميل والغلاف المُرحِّل مفتوحةً؛ والحارس الجديد يغطّي الأربعة ومنطقتين
+# إضافيّتين (mcp_servers · agents). تُركت نسخة هنا كانت تعني مصدرَي حقيقة لقاعدة واحدة.
 
 brain = (ROOT / "sahool-brain/decisions/engine-ownership.md").read_text()
 for token in ["Raster-Service", "Decision-Service", "intelligence_governance.json"]:

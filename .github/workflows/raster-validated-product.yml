@@ -19,7 +19,7 @@ jobs:
       # raster_date_geo التي تستورد fastapi.HTTPException (سلسلة تفكيك الراوترات). درس httpx
       # مكرّراً: مهمّة CI دنيا تستورد موديول خدمة يحمل اعتماديّة تشغيل ⇒ ثبّتها صراحةً.
       - name: Install test dependencies
-        run: python -m pip install -r tests_v9/requirements-test.txt fastapi
+        run: python -m pip install -r tests_v9/requirements-test.txt
       - name: Run raster validated product guard
         run: python scripts/ci/raster_validated_product_guard.py
       - name: Run raster validated product tests

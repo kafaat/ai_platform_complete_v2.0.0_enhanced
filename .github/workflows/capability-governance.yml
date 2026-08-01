@@ -19,6 +19,14 @@ jobs:
         run: pip install pytest==9.1.1 PyYAML==6.0.2
       - name: Validate architecture graph drift
         run: python scripts/ci/architecture_graph.py --check
+      - name: Validate API versioning inventory and legacy-route ratchet
+        run: python scripts/ci/api_versioning_policy_guard.py --check
+      # الخضرة الزائفة: دالّة test_* بلا assert/raises وتُرجِع قيمة لا يمكن أن تفشل
+      # (pytest يُهمِل القيمة الراجعة). المجموعة مُجمَّدة وتتقلّص ولا تنمو.
+      - name: Reject new tests that cannot fail (no assertion, returns a value)
+        run: python scripts/ci/assertion_presence_guard.py --check
+      - name: Validate platform route release source binding
+        run: python scripts/release/platform_route_release_binding.py --check-source
       - name: Validate runtime contract drift
         run: python scripts/ci/runtime_contract_generator.py --check
       - name: Validate decision lineage drift
@@ -73,6 +81,8 @@ jobs:
         run: python scripts/ci/capability_parity_investment_engine.py --check
       - name: Validate roadmap-to-capability linkage
         run: python scripts/ci/capability_roadmap_linker.py --check
+      - name: Validate conservative capability linker drift
+        run: python scripts/ci/capability_linker.py --check
       - name: Validate capability release history
         run: python scripts/ci/capability_release_history.py --check
       - name: Validate unified capability management layer
@@ -127,6 +137,7 @@ jobs:
             tests/architecture/test_capability_evidence_maturity_engine.py \
             tests/architecture/test_capability_parity_investment_engine.py \
             tests/architecture/test_capability_roadmap_linker.py \
+            tests/architecture/test_capability_linker.py \
             tests/architecture/test_capability_release_history.py \
             tests/architecture/test_capability_management_engine.py \
             tests/architecture/test_capability_regression_gate.py \
@@ -134,4 +145,45 @@ jobs:
             tests/architecture/test_path3_run_attestation.py \
             tests/architecture/test_path3_attestation_policy.py \
             tests/architecture/test_path3_live_acceptance_gate.py \
-            tests/architecture/test_static_governance_closure.py
+            tests/architecture/test_static_governance_closure.py \
+            tests/architecture/test_verify_all_generated.py \
+            tests/architecture/test_check_steps_are_read_only.py \
+            tests/architecture/test_marker_coverage_guard.py \
+            tests/architecture/test_arch_test_ci_coverage_guard.py \
+            tests/architecture/test_brain_commit_claim_guard.py \
+            tests/architecture/test_brain_deferral_registry_guard.py \
+            tests/architecture/test_brain_state_consistency.py \
+            tests/architecture/test_brain_state_transition_guard.py \
+            tests/architecture/test_capability_core_consumption_guard.py \
+            tests/architecture/test_immutable_build_wrapper_behaviour.py \
+            tests/architecture/test_immutable_local_build_entrypoints.py \
+            tests/architecture/test_phase21_legacy_quarantine.py \
+            tests/architecture/test_phase21_source_of_truth.py \
+            tests/architecture/test_platform_route_placement_guard.py \
+            tests/architecture/test_provenance_receipt_and_replay.py \
+            tests/architecture/test_runtime_probe_batch.py \
+            tests/architecture/test_runtime_verification_apply.py \
+            tests/architecture/test_runtime_verification_promotion_workflow.py \
+            tests/architecture/test_runtime_environment_preflight.py \
+            tests/architecture/test_compose_runtime_target_resolver.py \
+            tests/architecture/test_path3_runtime_readiness_closure.py \
+            tests/architecture/test_generate_service_inventory.py \
+            tests/architecture/test_raster_service_route_migration_plan.py \
+            tests/release/test_platform_route_release_binding.py
+      # ARCH-TESTS-UNLISTED-IN-CI-01: القائمة أعلاه **يدويّة**، وكانت تبيت بصمت —
+      # ١٧ من ٥٤ اختباراً خارجها، منها حرّاس بُنيت في اليوم نفسه. هذا الحارس يقارنها
+      # بمحتوى المجلّد، فملفّ جديد غير مُدرَج يُسقِط CI بدل أن يمرّ غير منفَّذ.
+      - name: Every architecture test must be run by a workflow
+        run: python scripts/ci/arch_test_ci_coverage_guard.py
+      - name: Verify runtime environment preflight artifact
+        run: python scripts/ci/runtime_environment_preflight.py --check
+      - name: Verify Compose runtime target resolution
+        run: python scripts/ci/compose_runtime_target_resolver.py --check
+      - name: Verify PATH-3 runtime readiness closure
+        run: python scripts/ci/path3_runtime_readiness_closure.py --check
+      # المكنسة (#691) لم تكن موصولة بأيّ workflow — لا هي ولا اختبارها. أداة تُشغَّل
+      # يدويّاً لا تحرس شيئاً؛ وهي الحالة الثالثة اليوم لـARCH-TESTS-UNLISTED-IN-CI-01.
+      # تعمل **أخيراً**: تُعيد فحص ما سبق، وتلتقط ما لا يلتقطه أيّ فحص منفرد —
+      # حارساً كتب أثناء الفحص (CHECK-STEPS-MUTATE-THE-TREE-01).
+      - name: Sweep every generated artifact, and catch guards that write while checking
+        run: python scripts/ci/verify_all_generated.py

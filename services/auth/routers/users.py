@@ -1,7 +1,7 @@
 """routers/users.py — إدارة المستخدمين (admin فقط).
 
-مسارات: GET /auth/users · PATCH /auth/users/{user_id}/role ·
-        PATCH /auth/users/{user_id}/deactivate
+مسارات: GET /v1/auth/users · PATCH /v1/auth/users/{user_id}/role ·
+        PATCH /v1/auth/users/{user_id}/deactivate
 
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت المُعالِجات
 حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ التبعيّات المشتركة (require_role،
@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 router = APIRouter()
 
 
-@router.get("/auth/users", dependencies=[Depends(main.require_role("admin"))])
+@router.get("/v1/auth/users", dependencies=[Depends(main.require_role("admin"))])
 async def list_users():
     async with main._acquire() as conn:
         rows = await conn.fetch(
@@ -27,7 +27,7 @@ async def list_users():
     return [dict(r) for r in rows]
 
 
-@router.patch("/auth/users/{user_id}/role")
+@router.patch("/v1/auth/users/{user_id}/role")
 async def change_role(
     user_id: int,
     role: main.ValidRole,
@@ -69,7 +69,7 @@ async def change_role(
     return dict(row)
 
 
-@router.patch("/auth/users/{user_id}/deactivate")
+@router.patch("/v1/auth/users/{user_id}/deactivate")
 async def deactivate_user(
     user_id: int,
     request: Request,

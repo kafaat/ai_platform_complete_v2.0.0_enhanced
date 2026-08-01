@@ -136,6 +136,7 @@ jobs:
       - name: Verify approval attestation
         env:
           GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
           gh attestation verify approved/runtime-verification-approval.json \
@@ -150,9 +151,6 @@ jobs:
                'approval_attestation_sha256':hashlib.sha256(open(files[1],'rb').read()).hexdigest()}
           open('approved/promotion-verification-receipt.json','w').write(json.dumps(out,sort_keys=True,indent=2)+'\n')
           PY
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TARGET_SHA: ${{ inputs.target_sha }}
       - name: Refuse duplicate promotion PR or ledger
         env:
           GH_TOKEN: ${{ github.token }}

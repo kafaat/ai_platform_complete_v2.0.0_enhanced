@@ -121,6 +121,7 @@ import HubMap, {
   type ScoutPin, type AlertMarker, type DeviceMarker, type WeatherMarker, type OperationalMarker,
 } from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
+import ImageryTimelineThumb from '../components/maphub/ImageryTimelineThumb';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 import type { DrawFeature } from '../components/maphub/drawing';
@@ -2462,28 +2463,28 @@ function MapHubCore() {
                               style={{ background: active ? '#123524' : '#111827', borderColor: active ? '#22c55e99' : T.line, color: T.ink }}
                               title={d.scene_id ?? d.date}
                             >
-                              {/* مصغّرة فقط لتاريخ محفوظ (has_cog): تواريخ المزوّد المعلّقة
-                                  «تنتظر COG» بلا صورة. المؤشّر: truecolor إن كان محفوظاً لهذا
-                                  التاريخ، وإلّا أوّل مؤشّر محفوظ — فلا مصغّرة truecolor فارغة
-                                  لتاريخ له مؤشّر تحليليّ فقط. */}
-                              {selected && d.has_cog && (
-                                <div className="mb-2 h-16 w-full overflow-hidden rounded-lg border" style={{ borderColor: active ? '#22c55e66' : '#334155', background: '#020617' }}>
-                                  <img
-                                    src={fieldCdseThumbnailUrl(
-                                      selected.id,
-                                      d.indices?.includes('truecolor') ? 'truecolor' : (d.indices?.[0] ?? activeIndicator ?? 'ndvi'),
-                                      d.date,
-                                      tenantId ?? null,
-                                      selected.geometry ?? null,
-                                      null,
-                                      160,
-                                    )}
-                                    alt={`مصغّرة صورة الحقل ${d.date}`}
-                                    className="h-full w-full object-cover"
-                                    loading="lazy"
-                                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                                  />
-                                </div>
+                              {/* المؤشّر: truecolor إن كان محفوظاً لهذا التاريخ، وإلّا أوّل
+                                  مؤشّر محفوظ — فلا مصغّرة truecolor فارغة لتاريخ له مؤشّر
+                                  تحليليّ فقط. تاريخ المزوّد المعلّق (has_cog=false) لم يعد
+                                  يختفي: يعرض حالة «قيد المعالجة» بدل مساحة فارغة. */}
+                              {selected && (
+                                <ImageryTimelineThumb
+                                  src={
+                                    d.has_cog
+                                      ? fieldCdseThumbnailUrl(
+                                          selected.id,
+                                          d.indices?.includes('truecolor') ? 'truecolor' : (d.indices?.[0] ?? activeIndicator ?? 'ndvi'),
+                                          d.date,
+                                          tenantId ?? null,
+                                          selected.geometry ?? null,
+                                          null,
+                                          160,
+                                        )
+                                      : null
+                                  }
+                                  date={d.date}
+                                  borderColor={active ? '#22c55e66' : '#334155'}
+                                />
                               )}
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-xs font-bold">{d.date}</span>

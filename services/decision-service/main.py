@@ -223,7 +223,14 @@ def _claim_worker_assertion_once(replay_key: str, production: bool) -> None:
         return
     try:
         import redis
-
+    except ModuleNotFoundError as exc:
+        # عطل نشر لا عطل تشغيل: الحزمة ناقصة من الصورة. دمجه مع «المخزن غير متاح»
+        # كان يُرسِل المشغّل إلى خادم Redis سليم — فيُسمّى صراحةً.
+        raise HTTPException(
+            status_code=503,
+            detail="worker assertion replay store misconfigured: redis not installed",
+        ) from exc
+    try:
         client = redis.Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
         if not client.set(replay_key, "1", nx=True, ex=70):
             raise HTTPException(status_code=403, detail="worker assertion replayed")

@@ -106,6 +106,63 @@ def python_loc(files: Iterable[Path]) -> int:
     return total
 
 
+# APIRouter(prefix=...) العمى: هذا المولِّد مصدر route_inventory.generated.json الذي
+# يقرأه build_platform_catalog.py لكشف التكرار عبر الخدمات — كان يقرأ نصّ الديكوريتر
+# وحده (@router.get("/plan")) بلا تركيب بادئة الراوتر (`router = APIRouter(prefix=
+# "/v1/phase9/autonomy")`) المُصرَّحة في نفس الملفّ، فمسار مُصدَّر فعلاً
+# (/v1/phase9/autonomy/plan) يُسجَّل زوراً كمسار خام (/plan) في الجرد. نفس العمى
+# المُصلَح في api_versioning_policy_guard.py (PR #717) — هذا مولِّد شقيق منفصل، لم
+# يُصلَح هناك. تحقّق قبل الإصلاح: صفر استخدام لـ`include_router(..., prefix=...)` أو
+# راوتر مُستورَد عبر ملفّات (`grep -rn "include_router(" services/ bots/`، ومطابقة
+# استخدام أسماء ديكوريتر المسارات بتعريفاتها المحليّة) — فالتركيب محليّ الملفّ بحت.
+# (API-VERSIONING-GUARD-IS-A-MIRROR-01)
+def router_prefixes(tree: ast.AST) -> dict[str, str]:
+    prefixes: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        call = node.value
+        if not (
+            isinstance(call, ast.Call)
+            and isinstance(call.func, ast.Name)
+            and call.func.id == "APIRouter"
+        ):
+            continue
+        prefix = None
+        for kw in call.keywords:
+            if (
+                kw.arg == "prefix"
+                and isinstance(kw.value, ast.Constant)
+                and isinstance(kw.value.value, str)
+            ):
+                prefix = kw.value.value
+        if prefix is None:
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                prefixes[target.id] = prefix
+    return prefixes
+
+
+def _decorator_object_name(dec: ast.AST) -> str | None:
+    if (
+        isinstance(dec, ast.Call)
+        and isinstance(dec.func, ast.Attribute)
+        and isinstance(dec.func.value, ast.Name)
+    ):
+        return dec.func.value.id
+    return None
+
+
+def _compose(prefixes: dict[str, str], object_name: str | None, path: str) -> str:
+    if object_name is None or path == "<dynamic>":
+        return path
+    prefix = prefixes.get(object_name)
+    if not prefix:
+        return path
+    return prefix.rstrip("/") + path
+
+
 def decorator_route(dec: ast.AST) -> tuple[str, str] | None:
     if not isinstance(dec, ast.Call):
         return None
@@ -170,6 +227,7 @@ def routes_for_file(service: str, path: Path) -> list[RouteRow]:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"))
     except SyntaxError:
         return []
+    prefixes = router_prefixes(tree)
     rows: list[RouteRow] = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -177,6 +235,7 @@ def routes_for_file(service: str, path: Path) -> list[RouteRow]:
                 route = decorator_route(dec)
                 if route:
                     method, route_path = route
+                    route_path = _compose(prefixes, _decorator_object_name(dec), route_path)
                     rows.append(
                         RouteRow(
                             service,
@@ -191,6 +250,15 @@ def routes_for_file(service: str, path: Path) -> list[RouteRow]:
         route = registration_call_route(node)
         if route:
             method, route_path, handler = route
+            inner = node.func if isinstance(node, ast.Call) else None
+            object_name = (
+                inner.func.value.id
+                if isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Attribute)
+                and isinstance(inner.func.value, ast.Name)
+                else None
+            )
+            route_path = _compose(prefixes, object_name, route_path)
             rows.append(
                 RouteRow(
                     service, rel(path), getattr(node, "lineno", 0), method, route_path, handler
@@ -265,20 +333,25 @@ def discover() -> tuple[list[ServiceRow], list[RouteRow]]:
     return service_rows, route_rows
 
 
-def write_outputs(services: list[ServiceRow], routes: list[RouteRow], write_registry: bool) -> None:
+def write_outputs(
+    services: list[ServiceRow],
+    routes: list[RouteRow],
+    write_registry: bool,
+    output_root: Path = ROOT,
+) -> None:
     service_json = [asdict(r) for r in services]
     route_json = [asdict(r) for r in routes]
-    (ROOT / "service_inventory.generated.json").write_text(
+    (output_root / "service_inventory.generated.json").write_text(
         json.dumps(service_json, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    (ROOT / "route_inventory.generated.json").write_text(
+    (output_root / "route_inventory.generated.json").write_text(
         json.dumps(route_json, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    with (ROOT / "service_inventory.csv").open("w", encoding="utf-8", newline="") as f:
+    with (output_root / "service_inventory.csv").open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(asdict(services[0]).keys()))
         writer.writeheader()
         writer.writerows(service_json)
-    with (ROOT / "route_inventory.csv").open("w", encoding="utf-8", newline="") as f:
+    with (output_root / "route_inventory.csv").open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(
             f,
             fieldnames=list(asdict(routes[0]).keys())
@@ -288,10 +361,12 @@ def write_outputs(services: list[ServiceRow], routes: list[RouteRow], write_regi
         writer.writeheader()
         writer.writerows(route_json)
     if write_registry:
-        write_service_registry(services, routes)
+        write_service_registry(services, routes, output_root)
 
 
-def write_service_registry(services: list[ServiceRow], routes: list[RouteRow]) -> None:
+def write_service_registry(
+    services: list[ServiceRow], routes: list[RouteRow], output_root: Path = ROOT
+) -> None:
     by_domain: dict[str, list[str]] = {}
     for svc in services:
         by_domain.setdefault(svc.domain, []).append(svc.service)
@@ -341,30 +416,29 @@ def write_service_registry(services: list[ServiceRow], routes: list[RouteRow]) -
         "5. `sahool-platform` hosts the Field Intelligence Backbone (see `docs/backend/ADR_V50_BACKEND_OWNERSHIP_AND_RAW_IMAGERY_DEFAULT.md`).",
         "",
     ]
-    (ROOT / "SERVICE_REGISTRY.md").write_text("\n".join(lines), encoding="utf-8")
+    (output_root / "SERVICE_REGISTRY.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def check_drift() -> None:
-    before = {
-        "service_inventory.generated.json": (ROOT / "service_inventory.generated.json").read_text(
-            encoding="utf-8"
-        )
-        if (ROOT / "service_inventory.generated.json").exists()
-        else None,
-        "route_inventory.generated.json": (ROOT / "route_inventory.generated.json").read_text(
-            encoding="utf-8"
-        )
-        if (ROOT / "route_inventory.generated.json").exists()
-        else None,
-        "SERVICE_REGISTRY.md": (ROOT / "SERVICE_REGISTRY.md").read_text(encoding="utf-8")
-        if (ROOT / "SERVICE_REGISTRY.md").exists()
-        else None,
-    }
-    services, routes = discover()
-    write_outputs(services, routes, True)
-    drifted = [
-        name for name, text in before.items() if (ROOT / name).read_text(encoding="utf-8") != text
+    import tempfile
+
+    names = [
+        "service_inventory.generated.json",
+        "route_inventory.generated.json",
+        "service_inventory.csv",
+        "route_inventory.csv",
+        "SERVICE_REGISTRY.md",
     ]
+    services, routes = discover()
+    with tempfile.TemporaryDirectory(prefix="sahool-service-inventory-check-") as tmp:
+        candidate_root = Path(tmp)
+        write_outputs(services, routes, True, candidate_root)
+        drifted = []
+        for name in names:
+            committed = ROOT / name
+            candidate = candidate_root / name
+            if not committed.exists() or committed.read_bytes() != candidate.read_bytes():
+                drifted.append(name)
     if drifted:
         raise SystemExit(
             "Inventory drift detected: "

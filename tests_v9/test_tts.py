@@ -69,7 +69,7 @@ class TestTTSEndpoints:
         url = service_urls.get("tts", "http://127.0.0.1:8210")
         try:
             resp = await http_client.post(
-                f"{url}/tts/synthesize", json={"text": "test", "voice": "yemeni_male"}
+                f"{url}/v1/tts/synthesize", json={"text": "test", "voice": "yemeni_male"}
             )
             assert resp.status_code == 401
         except Exception:
@@ -82,7 +82,7 @@ class TestTTSEndpoints:
         url = service_urls.get("tts", "http://127.0.0.1:8210")
         try:
             resp = await http_client.post(
-                f"{url}/tts/synthesize",
+                f"{url}/v1/tts/synthesize",
                 json={"text": "مرحبا", "voice": "yemeni_female"},
                 headers=auth_headers,
             )

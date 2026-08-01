@@ -1,6 +1,9 @@
 from pathlib import Path
 
+import pytest
 import yaml
+
+pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -43,7 +46,7 @@ def test_gpu_overlay_enables_rtx5090_paths():
     assert env(services["sahool-edge"])["EDGE_DEVICE"] == "${EDGE_DEVICE:-rtx5090}"
     seg_env = env(services["sahool-field-segmentation"])
     assert seg_env["SEGMENTATION_BACKEND"] == "sam2"
-    assert seg_env["SEGMENTATION_INFERENCE_URL"] == "http://sahool-sam2-inference:8080/predict"
+    assert seg_env["SEGMENTATION_INFERENCE_URL"] == "http://sahool-sam2-inference:8080/v1/predict"
 
 
 def test_sam2_dockerfile_defaults_to_cuda_128_image():
@@ -61,7 +64,12 @@ def test_edge_detector_accepts_rtx5090_cuda_device():
 def test_sam2_readyz_exposes_actionable_reason():
     # صدق تشغيليّ: /readyz يُصنّف سبب عدم التحميل (weights_missing/…) + مسار الأوزان
     # المتوقّع، كي يعرف المُشغّل ما ينقص دون قراءة السجلّات (حالة «GPU جاهز بلا أوزان»).
-    text = (ROOT / "services/sam2-inference/main.py").read_text(encoding="utf-8")
+    # تفكيك P2 نقل رموز الأسباب من main.py إلى sam2_runtime.py؛ القاعدة المحروسة
+    # (/readyz يُصنّف سبب عدم التحميل) لم تتغيّر. نضمّ وحدات الخدمة بدل تسمية ملفّ.
+    text = "\n".join(
+        p.read_text(encoding="utf-8")
+        for p in sorted((ROOT / "services/sam2-inference").glob("*.py"))
+    )
     assert "reason_code" in text and "checkpoint_expected" in text
     for code in ("weights_missing", "cuda_unavailable", "library_missing", "load_failed"):
         assert code in text, f"reason_code مفقود: {code}"

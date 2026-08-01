@@ -13,7 +13,7 @@
 ## المصادقة والمستخدمون (Auth)
 
 `v9_auth_improvements.sql`, `v21_mfa.sql` (TOTP)، `v40_verification.sql` (تأكيد بريد/هاتف)،
-`v89_invitations.sql`، **`v97_user_self_with_check.sql`** (يُصلح فشل `/auth/register` بـ
+`v89_invitations.sql`، **`v97_user_self_with_check.sql`** (يُصلح فشل `/v1/auth/register` بـ
 `InsufficientPrivilegeError` — `WITH CHECK` صريح يسمح بالتسجيل التأسيسيّ دون كسر العزل،
 `MANIFEST.txt:397-400`؛ يُكمِّل auth-fix #437).
 

@@ -86,8 +86,8 @@ def test_register_routers_wired_in_main():
 
 # مسارات ممثِّلة حرجة — فقدانها انحدار حرج.
 _CRITICAL_ROUTES = (
-    "/streams",
-    "/streams/{stream_id}",
+    "/v1/streams",
+    "/v1/streams/{stream_id}",
     "/healthz",
 )
 
