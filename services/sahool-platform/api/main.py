@@ -35,6 +35,7 @@ api/main.py — FastAPI application للنواة سهول
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import hmac  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 import logging
 import os
@@ -578,10 +579,9 @@ async def _stop_outbox_worker():
         _OUTBOX_WORKER.stop()
     if _OUTBOX_TASK is not None:
         _OUTBOX_TASK.cancel()
-        try:
+        # EXPECTED-CONTROL-FLOW-EXCEPTION (العلّة في docs/architecture/expected_control_flow_exceptions.json)
+        with contextlib.suppress(asyncio.CancelledError):
             await _OUTBOX_TASK
-        except asyncio.CancelledError:
-            pass
     if _NATS_CONN is not None:
         # drain قد يرمي لو انقطع الاتّصال — لا نُفشِل الإيقاف بسببه.
         try:
