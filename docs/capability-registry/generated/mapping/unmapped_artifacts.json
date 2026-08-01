@@ -7728,6 +7728,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_verify_sweep_writer_diagnostics.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_video_processor_features_20260702.py",
     "kind": "tests"
   },

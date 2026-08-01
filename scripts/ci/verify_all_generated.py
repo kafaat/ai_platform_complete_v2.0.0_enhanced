@@ -95,6 +95,29 @@ _GENERATE_FLAG = {
     "static_governance_closure.py": "--generate",
 }
 
+# الثلاثة أدناه انحرفت فعليّاً في شريحة واحدة وكانت غائبة عن الخريطة، فلم تُستدعَ
+# ومرّت ثلاث دورات بلا تغيير ⇒ «لم تثبت» (VERIFY-ALL-GENERATED-WRITER-FLAG-MISMATCH-01).
+# أُضيفت بعلمها الحقيقيّ المُعلَن في مصدرها لا بعلم مُوحَّد مفروض عليها.
+_GENERATE_FLAG.update(
+    {
+        "capability_linker.py": "--apply",
+        "health_readiness_schema_guard.py": "--write",
+        "route_residual_classification_guard.py": "--write",
+    }
+)
+
+# علم كتابة يُعلنه سكربت في مصدره — يُميّز «كاتب لم يُستدعَ» عن «فحص بلا مولّد».
+_WRITE_FLAG_DECL = re.compile(r"""["'](--(?:write|apply|generate)[a-z-]*)["']""")
+
+
+def _declared_write_flags(script: str) -> list[str]:
+    path = ROOT / script
+    try:
+        return sorted(set(_WRITE_FLAG_DECL.findall(path.read_text(encoding="utf-8"))))
+    except OSError:
+        return []
+
+
 # يبصم مخرجات المولّدات ⇒ بعدها دائماً.
 _LATE = ("static_governance_closure.py",)
 
@@ -320,14 +343,38 @@ def main() -> int:
 
     manual: list[str] = []
     if args.fix:
+        stabilized = False
         for attempt in range(1, MAX_PASSES + 1):
             print(f"— دورة توليد {attempt}/{MAX_PASSES}")
             manual = regenerate(steps)
             if not check_all(steps):
+                stabilized = True
                 break
             print()
-        else:
+        if not stabilized:
+            # VERIFY-ALL-GENERATED-WRITER-FLAG-MISMATCH-01: «لم تثبت» وحدها تُقرأ
+            # دورة تبعيّات، فتُرسِل القارئ خلف حلقة غير موجودة. السبب الغالب أنّ
+            # كاتباً **لم يُستدعَ أصلاً** لغيابه عن `_GENERATE_FLAG` رغم إعلانه علم
+            # كتابة في مصدره. التمييز بين الأسباب الثلاثة هو المعلومة المفيدة.
             print("\nلم تثبت المصنوعات بعد الحدّ الأقصى للدورات.")
+            invokable = [s for s in manual if _declared_write_flags(s)]
+            if invokable:
+                print(
+                    "\n  (١) كتّاب يُعلنون علم كتابة في مصدرهم ولم تستدعِهم المكنسة "
+                    "— أضِفهم إلى _GENERATE_FLAG (سبب مُرجَّح لعدم الثبات):"
+                )
+                for script in invokable:
+                    print(f"      · {script} ⇐ يدعم {', '.join(_declared_write_flags(script))}")
+            blind_only = [s for s in manual if not _declared_write_flags(s)]
+            if blind_only:
+                print("\n  (٢) فحوص بلا مولّد مُعلَن — انحرافها يدويّ بالتصميم لا خلل أداة:")
+                for script in blind_only:
+                    print(f"      · {script}")
+            if not manual:
+                print(
+                    "\n  (٣) كلّ الكتّاب استُدعوا ومع ذلك لم تثبت الشجرة ⇒ "
+                    "دورة تبعيّات حقيقيّة أو مخرَج غير حتميّ — شخِّصها يدويّاً."
+                )
             return 1
     else:
         # دفاع إضافي بعد إغلاق CHECK-STEPS-MUTATE-THE-TREE-01: الحرّاس المعروفة
