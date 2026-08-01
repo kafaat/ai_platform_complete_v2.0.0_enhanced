@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4804,
+    "files_scanned": 4806,
     "files_by_kind": {
-      "backend": 1187,
+      "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1263,
-      "tests": 1531,
+      "tests": 1532,
       "web": 448
     },
     "unmapped_artifacts": 1955,
-    "ambiguous_artifacts": 392
+    "ambiguous_artifacts": 394
   },
   "capabilities": [
     {
@@ -17084,6 +17084,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/canonical_spectral_state.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/confidence_engine.py",
           "score": 12,
           "signals": [
@@ -17717,14 +17725,6 @@
         },
         {
           "path": "services/ai_agronomist/tool_governance.py",
-          "score": 8,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "services/gis-workflow-service/bulletin_render.py",
           "score": 8,
           "signals": [
             "content:NDVI",
@@ -19400,6 +19400,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_confidence_aggregation.py",
           "score": 12,
           "signals": [
@@ -19897,14 +19905,6 @@
         },
         {
           "path": "tests_v9/test_fvc.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests_v9/test_imagery_batch_wait_before_read.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -20629,6 +20629,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/canonical_spectral_state.py",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/canonical_water_stress.py",
           "score": 12,
           "signals": [
@@ -20952,6 +20960,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_crop_intelligence_spectral_state.py",
           "score": 12,
           "signals": [
@@ -21112,13 +21128,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 18,
+        "backend": 19,
         "routes": 10,
         "database": 5,
         "events": 12,
         "web": 7,
         "mobile": 0,
-        "tests": 18,
+        "tests": 19,
         "governance": 0,
         "other_evidence": 3
       },
@@ -46787,6 +46803,28 @@
       ]
     },
     {
+      "path": "services/sahool-platform/api/canonical_spectral_state.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SAT-004",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/sahool-platform/api/canonical_vri_prescription.py",
       "kind": "backend",
       "candidates": [
@@ -48904,6 +48942,28 @@
           "signals": [
             "content:farm",
             "content:farms"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SAT-004",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]
