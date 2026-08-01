@@ -739,7 +739,7 @@
         },
         {
           "function": "readyz",
-          "line": 171,
+          "line": 186,
           "method": "GET",
           "module": "services/raster-service/routers/observability.py",
           "path": "/readyz",
@@ -1095,7 +1095,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "d747ee679eacd53a70b40e8ea55fb1bb937a1ee18980fe03f44614938fd5fe06",
+  "route_inventory_sha256": "5cf116753fecc12520495043b74b7c3cfb42744a3bc2c79894fda4bcbbd2193f",
   "runtime_verified": false,
   "schema_version": 1
 }

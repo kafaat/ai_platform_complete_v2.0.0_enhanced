@@ -117,6 +117,21 @@ async def metrics():
     except Exception:  # noqa: BLE001 — سطور metrics اختياريّة لا تكسر نقطة المراقبة
         pass
 
+    # جودة البيانات الوصفيّة للمشاهد (SILENT-EXCEPTION-HANDLERS-11-01): قبول
+    # `missing` قرار **مؤقّت مشروط بقياس نسبته**؛ فبلا تعريضه هنا يستحيل القياس
+    # وتتحوّل السياسة المؤقّتة إلى دائمة صامتاً.
+    try:
+        import cdse_client as _cdse_obs
+
+        for key, value in sorted(_cdse_obs.metadata_obs_snapshot().items()):
+            lines += [
+                f"# HELP sahool_raster_{key} CDSE scene metadata quality outcome",
+                f"# TYPE sahool_raster_{key} counter",
+                f"sahool_raster_{key} {int(value)}",
+            ]
+    except Exception as exc:  # noqa: BLE001 — سطور metrics اختياريّة لا تكسر المراقبة
+        logger.debug("تعذّر عرض عدّادات جودة CDSE: %s", type(exc).__name__)
+
     for idx, counters in sorted(TILE_OBS_BY_INDEX.items()):
         safe_idx = idx.replace('"', "_")
         for key, value in sorted(counters.items()):

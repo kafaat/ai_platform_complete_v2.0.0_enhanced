@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4801,
+    "files_scanned": 4802,
     "files_by_kind": {
       "backend": 1187,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1262,
-      "tests": 1529,
+      "tests": 1530,
       "web": 448
     },
     "unmapped_artifacts": 1955,
@@ -16382,6 +16382,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_cdse_cloud_filter_policy.py",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
           "path": "tests_v9/test_cdse_evalscript.py",
           "score": 14,
           "signals": [
@@ -16814,7 +16822,7 @@
         "events": 32,
         "web": 5,
         "mobile": 0,
-        "tests": 40,
+        "tests": 41,
         "governance": 0,
         "other_evidence": 32
       },
@@ -21884,27 +21892,27 @@
           "score": 18
         },
         {
-          "value": "/readyz @ services/raster-service/routers/observability.py:170",
+          "value": "/readyz @ services/raster-service/routers/observability.py:185",
           "score": 18
         },
         {
-          "value": "/v1/indices @ services/raster-service/routers/observability.py:265",
+          "value": "/v1/indices @ services/raster-service/routers/observability.py:280",
           "score": 18
         },
         {
-          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:225",
+          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:240",
           "score": 18
         },
         {
-          "value": "/v1/providers/status @ services/raster-service/routers/observability.py:235",
+          "value": "/v1/providers/status @ services/raster-service/routers/observability.py:250",
           "score": 18
         },
         {
-          "value": "/v1/tile-cache/stats @ services/raster-service/routers/observability.py:191",
+          "value": "/v1/tile-cache/stats @ services/raster-service/routers/observability.py:206",
           "score": 18
         },
         {
-          "value": "/v1/tiles/observability @ services/raster-service/routers/observability.py:129",
+          "value": "/v1/tiles/observability @ services/raster-service/routers/observability.py:144",
           "score": 18
         },
         {
