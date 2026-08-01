@@ -20,9 +20,12 @@ SIM-GOLDEN-01). **حدّ «لا نقل ملح زمنيّ» يبقى في limits*
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from typing import Any
+
+logger = logging.getLogger("agriai-engine")
 
 # ── حارس استيراد الحزمة الرسميّة (مؤجَّلة — ليست تبعيّة صلبة الآن) ──
 try:  # pragma: no cover — الحزمة غير مُثبَّتة (مؤجَّلة §5-2)
@@ -106,7 +109,15 @@ def _base_yield(crop: dict[str, Any] | None, soil: dict[str, Any] | None) -> flo
             try:
                 return max(0.0, float(v))
             except (TypeError, ValueError):
-                pass
+                # SILENT-EXCEPTION-HANDLERS-11-01: السقوط للافتراض المحافظ مقصود
+                # وموثَّق أدناه، لكنّ ابتلاعه صامتاً كان يجعل **بيانات محصول تالفة**
+                # ("4500 kg") لا تُميَّز عن «لا سقف غلّة مُسجَّل» — كلاهما 4000.0.
+                # السلوك يبقى؛ يُضاف المفتاح وقيمته كي يُرى الفساد.
+                logger.debug(
+                    "قيمة سقف غلّة غير قابلة للتحويل: %s=%r — تجاهُلها ومتابعة البحث",
+                    k,
+                    v,
+                )
     return 4000.0  # افتراض محافظ (uncalibrated؛ لا يُدّعى دقّة)
 
 

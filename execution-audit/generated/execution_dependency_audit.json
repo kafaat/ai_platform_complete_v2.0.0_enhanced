@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1823,
     "route_handlers": 1042,
-    "call_edges": 71411,
+    "call_edges": 71421,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -2095,7 +2095,7 @@
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
-      "line": 213,
+      "line": 226,
       "handler": "raster_info",
       "method": "GET",
       "path": "/v1/info/{layer_id}"
@@ -2103,7 +2103,7 @@
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
-      "line": 223,
+      "line": 236,
       "handler": "providers_status",
       "method": "GET",
       "path": "/v1/providers/status"
@@ -2111,7 +2111,7 @@
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
-      "line": 253,
+      "line": 266,
       "handler": "field_indices",
       "method": "GET",
       "path": "/v1/indices"
@@ -12457,34 +12457,27 @@
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "aquacrop_enabled",
       "target": "getenv",
-      "line": 50
+      "line": 53
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "aquacrop_enabled",
       "target": "lower",
-      "line": 50
+      "line": 53
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "aquacrop_enabled",
       "target": "strip",
-      "line": 50
+      "line": 53
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "salt_engine_applies",
       "target": "float",
-      "line": 60
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/aquacrop_adapter.py",
-      "source": "salt_engine_applies",
-      "target": "get",
       "line": 63
     },
     {
@@ -12492,230 +12485,230 @@
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "salt_engine_applies",
       "target": "get",
-      "line": 65
+      "line": 66
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "salt_engine_applies",
       "target": "get",
-      "line": 65
+      "line": 68
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "salt_engine_applies",
+      "target": "get",
+      "line": 68
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "salt_engine_applies",
       "target": "float",
-      "line": 67
+      "line": 70
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "_salt_tolerance",
       "target": "get",
-      "line": 73
+      "line": 76
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "_salt_tolerance",
       "target": "get",
-      "line": 73
+      "line": 76
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "_salt_tolerance",
       "target": "lower",
-      "line": 73
+      "line": 76
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "_salt_tolerance",
       "target": "strip",
-      "line": 73
+      "line": 76
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "_salt_tolerance",
       "target": "get",
-      "line": 74
+      "line": 77
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "maas_hoffman_ks",
       "target": "max",
-      "line": 85
+      "line": 88
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "maas_hoffman_ks",
       "target": "min",
-      "line": 85
+      "line": 88
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "leaching_fraction",
       "target": "max",
-      "line": 97
+      "line": 100
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "leaching_fraction",
       "target": "min",
-      "line": 97
+      "line": 100
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "_base_yield",
       "target": "get",
-      "line": 104
+      "line": 107
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "_base_yield",
       "target": "float",
-      "line": 107
+      "line": 110
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "_base_yield",
       "target": "max",
-      "line": 107
+      "line": 110
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "_base_yield",
+      "target": "debug",
+      "line": 116
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "getenv",
-      "line": 125
+      "line": 136
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "lower",
-      "line": 125
+      "line": 136
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "aquacrop_enabled",
-      "line": 126
+      "line": 137
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "RuntimeError",
-      "line": 128
+      "line": 139
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "RuntimeError",
-      "line": 132
+      "line": 143
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "get",
-      "line": 136
+      "line": 147
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "get",
-      "line": 136
+      "line": 147
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "get",
-      "line": 136
+      "line": 147
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "float",
-      "line": 138
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/aquacrop_adapter.py",
-      "source": "simulate",
-      "target": "max",
-      "line": 138
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/aquacrop_adapter.py",
-      "source": "simulate",
-      "target": "get",
-      "line": 142
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/aquacrop_adapter.py",
-      "source": "simulate",
-      "target": "float",
-      "line": 144
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/aquacrop_adapter.py",
-      "source": "simulate",
-      "target": "_salt_tolerance",
-      "line": 148
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/aquacrop_adapter.py",
-      "source": "simulate",
-      "target": "maas_hoffman_ks",
       "line": 149
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
+      "target": "max",
+      "line": 149
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "simulate",
+      "target": "get",
+      "line": 153
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "simulate",
+      "target": "float",
+      "line": 155
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "simulate",
+      "target": "_salt_tolerance",
+      "line": 159
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "simulate",
+      "target": "maas_hoffman_ks",
+      "line": 160
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "simulate",
       "target": "leaching_fraction",
-      "line": 150
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/aquacrop_adapter.py",
-      "source": "simulate",
-      "target": "_base_yield",
-      "line": 151
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/aquacrop_adapter.py",
-      "source": "simulate",
-      "target": "round",
       "line": 161
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
-      "target": "round",
+      "target": "_base_yield",
       "line": 162
     },
     {
@@ -12723,56 +12716,70 @@
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "round",
-      "line": 163
+      "line": 172
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "round",
-      "line": 166
+      "line": 173
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "round",
-      "line": 167
+      "line": 174
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "simulate",
       "target": "round",
-      "line": 168
+      "line": 177
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "simulate",
+      "target": "round",
+      "line": 178
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/aquacrop_adapter.py",
+      "source": "simulate",
+      "target": "round",
+      "line": 179
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "to_dict",
       "target": "list",
-      "line": 202
+      "line": 213
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "to_dict",
       "target": "list",
-      "line": 204
+      "line": 215
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "to_dict",
       "target": "list",
-      "line": 205
+      "line": 216
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/aquacrop_adapter.py",
       "source": "aquacrop_salt_capability_report",
       "target": "to_dict",
-      "line": 257
+      "line": 268
     },
     {
       "owner": "agriai-engine",
@@ -112303,499 +112310,534 @@
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_unlink_best_effort",
+      "target": "unlink",
+      "line": 42
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_unlink_best_effort",
+      "target": "debug",
+      "line": 44
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_unlink_best_effort",
+      "target": "type",
+      "line": 48
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "split",
-      "line": 30
+      "line": 57
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "strip",
-      "line": 31
+      "line": 58
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "split",
-      "line": 34
+      "line": 61
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "append",
-      "line": 35
+      "line": 62
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "float",
-      "line": 35
+      "line": 62
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "float",
-      "line": 35
+      "line": 62
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "len",
-      "line": 36
+      "line": 63
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "append",
-      "line": 39
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "is_configured",
-      "line": 58
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "enforce_enabled",
-      "line": 62
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "resolve_active_source",
-      "line": 63
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "get",
       "line": 66
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
-      "target": "is_truecolor",
-      "line": 67
+      "target": "is_configured",
+      "line": 85
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
-      "target": "now",
-      "line": 71
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "strftime",
-      "line": 72
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "strftime",
-      "line": 74
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "timedelta",
-      "line": 74
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "parse_poly",
-      "line": 79
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "fetch_field_geometry",
-      "line": 81
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "float",
-      "line": 86
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "float",
-      "line": 87
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "float",
-      "line": 88
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "float",
+      "target": "enforce_enabled",
       "line": 89
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
+      "target": "resolve_active_source",
+      "line": 90
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "get",
+      "line": 93
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "is_truecolor",
+      "line": 94
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "now",
+      "line": 98
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "strftime",
+      "line": 99
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "strftime",
+      "line": 101
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "timedelta",
+      "line": 101
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "parse_poly",
+      "line": 106
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "fetch_field_geometry",
+      "line": 108
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "float",
+      "line": 113
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "float",
+      "line": 114
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "float",
+      "line": 115
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "float",
+      "line": 116
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
       "target": "bbox_from_geom",
-      "line": 92
+      "line": 119
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "bool",
-      "line": 101
+      "line": 128
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "get",
-      "line": 118
+      "line": 145
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "hexdigest",
-      "line": 122
+      "line": 149
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "sha1",
-      "line": 122
+      "line": 149
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "dumps",
-      "line": 123
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "encode",
-      "line": 123
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "get",
-      "line": 131
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "get",
-      "line": 131
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "exists",
-      "line": 132
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "monotonic",
-      "line": 132
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "exists",
-      "line": 132
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "monotonic",
-      "line": 132
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 136
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_cache_hit",
-      "line": 137
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_key_lock",
-      "line": 140
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 143
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_cache_hit",
-      "line": 144
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "get",
-      "line": 147
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "exists",
-      "line": 148
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "unlink",
       "line": 150
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "pop",
-      "line": 153
+      "target": "encode",
+      "line": 150
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "get",
+      "line": 158
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "get_client",
-      "line": 155
+      "target": "get",
+      "line": 158
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "exists",
+      "line": 159
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "monotonic",
+      "line": 159
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 157
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "get_event_loop",
-      "line": 163
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "run_in_executor",
-      "line": 163
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "process_index",
-      "line": 165
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "list",
-      "line": 167
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "NamedTemporaryFile",
-      "line": 174
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "write",
-      "line": 177
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "close",
-      "line": 178
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "is_truecolor",
-      "line": 184
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "apply_polygon_mask_rgba",
-      "line": 185
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "apply_polygon_mask",
-      "line": 187
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 189
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "type",
-      "line": 193
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "unlink",
-      "line": 196
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "raster_has_observable_content",
-      "line": 208
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 210
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "type",
-      "line": 214
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "info",
-      "line": 218
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "unlink",
-      "line": 225
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 229
+      "target": "exists",
+      "line": 159
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "monotonic",
-      "line": 230
+      "line": 159
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "cdse_prune_key_locks_locked",
-      "line": 231
+      "target": "cdse_lock",
+      "line": 163
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_cache_hit",
+      "line": 164
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_key_lock",
+      "line": 167
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_lock",
+      "line": 170
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_cache_hit",
+      "line": 171
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get",
+      "line": 174
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "exists",
+      "line": 175
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_unlink_best_effort",
+      "line": 176
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "pop",
+      "line": 177
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get_client",
+      "line": 179
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "warning",
-      "line": 234
+      "line": 181
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get_event_loop",
+      "line": 187
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "run_in_executor",
+      "line": 187
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "process_index",
+      "line": 189
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "list",
+      "line": 191
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "NamedTemporaryFile",
+      "line": 198
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "write",
+      "line": 201
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "close",
+      "line": 202
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "is_truecolor",
+      "line": 208
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "apply_polygon_mask_rgba",
+      "line": 209
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "apply_polygon_mask",
+      "line": 211
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 213
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 217
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "unlink",
+      "line": 226
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "debug",
+      "line": 228
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 231
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "raster_has_observable_content",
+      "line": 242
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 244
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 248
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "info",
+      "line": 252
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_unlink_best_effort",
+      "line": 258
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_lock",
+      "line": 260
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "monotonic",
+      "line": 261
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_prune_key_locks_locked",
+      "line": 262
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 265
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "tilejson_availability",
       "target": "get",
-      "line": 247
+      "line": 278
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "tilejson_availability",
       "target": "is_truecolor",
-      "line": 248
+      "line": 279
     },
     {
       "owner": "raster-service",
@@ -128510,252 +128552,273 @@
       "file": "services/raster-service/routers/observability.py",
       "source": "tile_cache_stats",
       "target": "exists",
-      "line": 197
+      "line": 198
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "tile_cache_stats",
       "target": "walk",
-      "line": 197
+      "line": 198
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "tile_cache_stats",
       "target": "endswith",
-      "line": 199
+      "line": 200
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "tile_cache_stats",
       "target": "getsize",
-      "line": 202
+      "line": 203
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "tile_cache_stats",
       "target": "join",
-      "line": 202
+      "line": 203
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "tile_cache_stats",
+      "target": "debug",
+      "line": 211
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "tile_cache_stats",
+      "target": "join",
+      "line": 213
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "tile_cache_stats",
+      "target": "type",
+      "line": 214
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "tile_cache_stats",
       "target": "getenv",
-      "line": 206
+      "line": 217
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "tile_cache_stats",
       "target": "lower",
-      "line": 206
+      "line": 217
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "raster_info",
       "target": "get",
-      "line": 212
+      "line": 225
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "raster_info",
       "target": "Header",
-      "line": 213
+      "line": 226
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "raster_info",
       "target": "require_service_token",
-      "line": 215
+      "line": 228
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "raster_info",
       "target": "get",
-      "line": 216
+      "line": 229
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "raster_info",
       "target": "HTTPException",
-      "line": 218
+      "line": 231
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "providers_status",
       "target": "get",
-      "line": 222
+      "line": 235
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "providers_status",
       "target": "active_providers",
-      "line": 236
+      "line": 249
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "providers_status",
       "target": "planned_providers",
-      "line": 237
+      "line": 250
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "providers_status",
       "target": "olmoearth_runtime_status",
-      "line": 244
+      "line": 257
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "providers_status",
       "target": "wapor_readiness",
-      "line": 247
+      "line": 260
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "providers_status",
       "target": "worldcereal_readiness",
-      "line": 248
+      "line": 261
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "get",
-      "line": 252
+      "line": 265
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "Query",
-      "line": 255
+      "line": 268
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "Query",
-      "line": 256
+      "line": 269
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "Query",
-      "line": 257
+      "line": 270
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "Query",
-      "line": 258
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/observability.py",
-      "source": "field_indices",
-      "target": "Query",
-      "line": 259
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/observability.py",
-      "source": "field_indices",
-      "target": "Header",
-      "line": 260
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/observability.py",
-      "source": "field_indices",
-      "target": "require_service_token",
       "line": 271
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
+      "target": "Query",
+      "line": 272
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "field_indices",
+      "target": "Header",
+      "line": 273
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "field_indices",
+      "target": "require_service_token",
+      "line": 284
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "field_indices",
       "target": "split",
-      "line": 272
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/observability.py",
-      "source": "field_indices",
-      "target": "strip",
-      "line": 272
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/observability.py",
-      "source": "field_indices",
-      "target": "strip",
-      "line": 272
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/routers/observability.py",
-      "source": "field_indices",
-      "target": "rvi_from_sar_cog",
       "line": 285
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
-      "target": "resolve_field_layer",
+      "target": "strip",
+      "line": 285
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "field_indices",
+      "target": "strip",
+      "line": 285
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "field_indices",
+      "target": "rvi_from_sar_cog",
       "line": 298
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
+      "target": "resolve_field_layer",
+      "line": 311
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/routers/observability.py",
+      "source": "field_indices",
       "target": "grid_from_cog",
-      "line": 308
+      "line": 321
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "get",
-      "line": 314
+      "line": 327
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "len",
-      "line": 318
+      "line": 331
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "round",
-      "line": 318
+      "line": 331
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/routers/observability.py",
       "source": "field_indices",
       "target": "sum",
-      "line": 318
+      "line": 331
     },
     {
       "owner": "raster-service",
@@ -204446,238 +204509,245 @@
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_default_max_attempts",
       "target": "getenv",
-      "line": 39
+      "line": 45
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_default_max_attempts",
       "target": "strip",
-      "line": 39
+      "line": 45
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_default_max_attempts",
       "target": "int",
-      "line": 42
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/offline_pending_db.py",
+      "source": "_default_max_attempts",
+      "target": "warning",
+      "line": 59
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_parse_ts",
       "target": "isinstance",
-      "line": 73
+      "line": 91
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_parse_ts",
       "target": "isinstance",
-      "line": 75
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_parse_ts",
       "target": "fromisoformat",
-      "line": 77
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_parse_ts",
       "target": "replace",
-      "line": 77
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_parse_ts",
       "target": "now",
-      "line": 81
+      "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_parse_ts",
       "target": "replace",
-      "line": 83
+      "line": 101
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_kind_value",
       "target": "hasattr",
-      "line": 89
+      "line": 107
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "_kind_value",
       "target": "str",
-      "line": 89
+      "line": 107
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "enqueue_pending",
       "target": "execute",
-      "line": 105
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "enqueue_pending",
       "target": "str",
-      "line": 115
+      "line": 133
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "enqueue_pending",
       "target": "_kind_value",
-      "line": 116
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "enqueue_pending",
       "target": "dumps",
-      "line": 117
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "enqueue_pending",
       "target": "_parse_ts",
-      "line": 118
+      "line": 136
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "fetch_pending",
       "target": "fetch",
-      "line": 129
+      "line": 147
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "fetch_pending",
       "target": "append",
-      "line": 143
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "fetch_pending",
       "target": "str",
-      "line": 145
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "fetch_pending",
       "target": "str",
-      "line": 146
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "fetch_pending",
       "target": "isinstance",
-      "line": 149
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "fetch_pending",
       "target": "loads",
-      "line": 149
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "fetch_pending",
       "target": "isoformat",
-      "line": 150
+      "line": 168
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "claim_pending",
       "target": "fetchrow",
-      "line": 171
+      "line": 189
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "mark_processed",
       "target": "execute",
-      "line": 190
+      "line": 208
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "mark_failed",
       "target": "execute",
-      "line": 219
+      "line": 237
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "reclaim_stuck_processing",
-      "target": "fetchrow",
-      "line": 245
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/offline_pending_db.py",
-      "source": "reclaim_stuck_processing",
-      "target": "int",
-      "line": 258
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/offline_pending_db.py",
-      "source": "clear_processed",
       "target": "fetchrow",
       "line": 263
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
+      "source": "reclaim_stuck_processing",
+      "target": "int",
+      "line": 276
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/offline_pending_db.py",
+      "source": "clear_processed",
+      "target": "fetchrow",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "clear_processed",
       "target": "int",
-      "line": 275
+      "line": 293
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "persist_pending_best_effort",
       "target": "tenant_connection",
-      "line": 304
+      "line": 322
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "persist_pending_best_effort",
       "target": "enqueue_pending",
-      "line": 305
+      "line": 323
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "persist_pending_best_effort",
       "target": "str",
-      "line": 305
+      "line": 323
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/offline_pending_db.py",
       "source": "persist_pending_best_effort",
       "target": "warning",
-      "line": 308
+      "line": 326
     },
     {
       "owner": "sahool-platform",
@@ -508640,7 +508710,7 @@
       "symbol": "salt_engine_applies",
       "kind": "function",
       "file": "services/agriai-engine/aquacrop_adapter.py",
-      "line": 53,
+      "line": 56,
       "owner": "agriai-engine",
       "decorated_route": false,
       "reference_count": 0,
@@ -508651,7 +508721,7 @@
       "symbol": "aquacrop_salt_capability_report",
       "kind": "function",
       "file": "services/agriai-engine/aquacrop_adapter.py",
-      "line": 256,
+      "line": 267,
       "owner": "agriai-engine",
       "decorated_route": false,
       "reference_count": 0,
@@ -509916,7 +509986,7 @@
       "symbol": "should_fail",
       "kind": "function",
       "file": "services/sahool-platform/api/offline_pending_db.py",
-      "line": 53,
+      "line": 71,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -509927,7 +509997,7 @@
       "symbol": "reclaim_stuck_processing",
       "kind": "function",
       "file": "services/sahool-platform/api/offline_pending_db.py",
-      "line": 235,
+      "line": 253,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -509938,7 +510008,7 @@
       "symbol": "clear_processed",
       "kind": "function",
       "file": "services/sahool-platform/api/offline_pending_db.py",
-      "line": 261,
+      "line": 279,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

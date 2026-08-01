@@ -989,7 +989,7 @@
         "GET /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:255",
         "GET /api/v1/indicators/map-layers @ services/sahool-platform/api/routers/indicators.py:47",
         "GET /api/v1/weather/layers @ services/sahool-platform/api/routers/weather.py:2085",
-        "GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:213",
+        "GET /v1/info/{layer_id} @ services/raster-service/routers/observability.py:226",
         "GET /v1/layers/{layer_id}/tilejson @ services/raster-service/routers/tiles.py:37",
         "GET /v1/tiles/{layer_id}/{z}/{x}/{y}.png @ services/raster-service/routers/tiles.py:23",
         "POST /api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:84",

@@ -269,9 +269,9 @@ raster-service,services/raster-service/routers/observability.py,36,GET,/metrics,
 raster-service,services/raster-service/routers/observability.py,130,GET,/v1/tiles/observability,tile_observability
 raster-service,services/raster-service/routers/observability.py,171,GET,/readyz,readyz
 raster-service,services/raster-service/routers/observability.py,192,GET,/v1/tile-cache/stats,tile_cache_stats
-raster-service,services/raster-service/routers/observability.py,213,GET,/v1/info/{layer_id},raster_info
-raster-service,services/raster-service/routers/observability.py,223,GET,/v1/providers/status,providers_status
-raster-service,services/raster-service/routers/observability.py,253,GET,/v1/indices,field_indices
+raster-service,services/raster-service/routers/observability.py,226,GET,/v1/info/{layer_id},raster_info
+raster-service,services/raster-service/routers/observability.py,236,GET,/v1/providers/status,providers_status
+raster-service,services/raster-service/routers/observability.py,266,GET,/v1/indices,field_indices
 raster-service,services/raster-service/routers/processing.py,28,POST,/v1/process,process_raster
 raster-service,services/raster-service/routers/processing.py,59,POST,/v1/raw/process,process_raw_data
 raster-service,services/raster-service/routers/processing.py,78,POST,/v1/process/batch,process_batch

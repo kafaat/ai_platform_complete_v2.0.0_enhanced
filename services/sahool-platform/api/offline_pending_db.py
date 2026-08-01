@@ -20,6 +20,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
@@ -27,6 +28,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # pragma: no cover - نوعيّ فقط
     import asyncpg
     from core.offline_first import PendingOperation
+
+logger = logging.getLogger("sahool-platform")
+
+# الافتراض المحافظ — مصدر واحد بدل تكراره في الشرح والرمز (كانا 5 في موضعين).
+_FALLBACK_MAX_ATTEMPTS = 5
 
 
 def _default_max_attempts() -> int:
@@ -38,13 +44,25 @@ def _default_max_attempts() -> int:
     """
     raw = os.getenv("OFFLINE_PENDING_MAX_ATTEMPTS", "").strip()
     if raw:
+        # SILENT-EXCEPTION-HANDLERS-11-01: الارتداد للافتراض موثَّق أعلاه ومقصود،
+        # لكنّ رفضه كان **صامتاً تماماً**: مشغّل يضبط القيمة خطأً يحصل على 5 بلا أيّ
+        # إشارة، وهذا يُنفَّذ وقت الاستيراد فلا فرصة لاحقة لملاحظته. والرفض له سببان
+        # لا واحد — `parsed <= 0` كان يسقط دون المرور بالمعالِج أصلاً، فيُغطَّى هنا.
+        reason = ""
         try:
             parsed = int(raw)
             if parsed > 0:
                 return parsed
+            reason = "قيمة ≤ 0"
         except ValueError:
-            pass
-    return 5
+            reason = "ليست عدداً صحيحاً"
+        logger.warning(
+            "OFFLINE_PENDING_MAX_ATTEMPTS=%r مرفوضة (%s) — استُعمل الافتراض %d",
+            raw,
+            reason,
+            _FALLBACK_MAX_ATTEMPTS,
+        )
+    return _FALLBACK_MAX_ATTEMPTS
 
 
 MAX_ATTEMPTS = _default_max_attempts()
