@@ -2162,7 +2162,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 213,
+    "line": 226,
     "method": "GET",
     "path": "/v1/info/{layer_id}",
     "function": "raster_info"
@@ -2170,7 +2170,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 223,
+    "line": 236,
     "method": "GET",
     "path": "/v1/providers/status",
     "function": "providers_status"
@@ -2178,7 +2178,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 253,
+    "line": 266,
     "method": "GET",
     "path": "/v1/indices",
     "function": "field_indices"

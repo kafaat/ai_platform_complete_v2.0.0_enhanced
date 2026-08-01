@@ -194,18 +194,31 @@ async def tile_cache_stats(x_agent_token: str = Header(None)):
     root = os.path.join(UPLOAD_DIR, "tile_cache")
     count = 0
     size = 0
+    skipped = 0
     for base, _dirs, files in os.walk(root) if os.path.exists(root) else []:
         for fn in files:
             if fn.endswith(".png"):
                 count += 1
                 try:
                     size += os.path.getsize(os.path.join(base, fn))
-                except OSError:
-                    pass
+                except OSError as exc:
+                    # SILENT-EXCEPTION-HANDLERS-11-01: السباق مشروع (ملفّ حُذِف بين
+                    # os.walk وgetsize) ولا يجوز أن يُسقِط نقطة مراقبة بـ500. لكنّ
+                    # `count` كان يزيد بينما `size` لا — فيُبلَّغ N بلاطة بحجم **ناقص
+                    # بلا أيّ إشارة**. في نقطة *مراقبة* تحديداً، رقم خاطئ صامت أسوأ
+                    # عطلٍ ممكن. السلوك يبقى (لا رفع، لا 500)، ويُنشَر العدّاد.
+                    skipped += 1
+                    logger.debug(
+                        "تعذّر قياس حجم بلاطة (سباق حذف متوقَّع): %s — %s",
+                        os.path.join(base, fn),
+                        type(exc).__name__,
+                    )
     return {
         "enabled": os.getenv("TILE_CACHE_ENABLED", "true").lower() == "true",
         "tiles": count,
         "bytes": size,
+        # يُميّز «صفر بايت لأنّ المخزن فارغ» عن «صفر بايت لأنّ كلّ قياس فشل».
+        "skipped": skipped,
     }
 
 

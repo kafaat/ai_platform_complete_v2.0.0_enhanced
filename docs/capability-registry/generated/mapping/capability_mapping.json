@@ -21888,15 +21888,15 @@
           "score": 18
         },
         {
-          "value": "/v1/indices @ services/raster-service/routers/observability.py:252",
+          "value": "/v1/indices @ services/raster-service/routers/observability.py:265",
           "score": 18
         },
         {
-          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:212",
+          "value": "/v1/info/{layer_id} @ services/raster-service/routers/observability.py:225",
           "score": 18
         },
         {
-          "value": "/v1/providers/status @ services/raster-service/routers/observability.py:222",
+          "value": "/v1/providers/status @ services/raster-service/routers/observability.py:235",
           "score": 18
         },
         {
