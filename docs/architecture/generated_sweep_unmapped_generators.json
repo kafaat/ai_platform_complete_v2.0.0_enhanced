@@ -1,0 +1,30 @@
+{
+  "$comment": "مولّدات تُشغَّل في workflow بـ--check، ويقبل argparse فيها علم كتابة، ولا يذكرها `_GENERATE_FLAG` في scripts/ci/verify_all_generated.py. النتيجة: `--fix` لا يُعيد توليدها **أبداً** — تُصنَّف `manual` وتُتخطّى، فانحرافها يبقى بلا إصلاح. القائمة تتقلّص ولا تنمو: مدخل يُحذف عند وصل السكربت بالخريطة، ولا يُضاف مدخل لتمرير CI — مولّد **جديد** بعلم كتابة وغير مذكور يُسقِط المكنسة.",
+  "gap": "VERIFY-ALL-GENERATED-WRITER-FLAG-MISMATCH-01",
+  "measured_on": "e71844f5 (main, 2026-08-01)",
+  "relationship_to_the_existing_fix": "المداخل الأربعة الكاذبة صُحِّحت سابقاً، وأُضيف تشخيص يميّز «كاتب لم يُستدعَ» عن «دورة تبعيّة». هذا الأساس لا يكرّر ذلك: التشخيص القائم يعمل **داخل فرع عدم الاستقرار وحده** — بعد فشل ثلاث دورات — وهذه القائمة تجعل المجموعة نفسها مرئيّة ومفروضة **والمكنسة خضراء**، فلا تنتظر انحرافاً لتنكشف.",
+  "why_argparse_and_not_a_source_scan": "التمييز مقيس لا نظريّ. مسح المصدر بـ`_WRITE_FLAG_DECL` يكفي للتشخيص ويكذب كحكم: أيّ سلسلة نصّيّة مقتبَسة تُحسَب علماً. على هذه الشجرة خمسة سكربتات «تُعلن» علماً لا يقبله argparse (brain_deferral_registry_guard · decision_sor_cutover_readiness_gate · decision_sor_review_cutover_gate · path3_runtime_activation)، وأطرفها `verify_all_generated.py` نفسه — يُتَّهم بإعلان الأعلام الخمسة جميعاً لأنّ قاموسه يحوي تلك النصوص. لذلك الأساس والحارس يستجوبان `--help`.",
+  "why_these_are_not_simply_mapped": "لأنّ الوصل بلا قياس يُبدِل عيباً بعيب أخطر: وجود علم كتابة في `--help` ليس دليلاً أنّه يُعيد توليد **المصنوعة التي يقارنها `--check` نفسه**. وصلها جميعاً على الثقة يجعل `--fix` يكتب ملفّات لم يُطلب منه كتابتها. فالمُقاس هنا **وجود العلم** (من argparse لا من الظنّ)، والمتبقّي لكلّ مدخل إثبات أنّه يُنتج ما تُقارنه بوّابته.",
+  "to_close_each": "شغّل `<script> <flag>` على شجرة نظيفة، ثمّ `<script> --check`: إن خرج بصفر وكانت الملفّات المتغيّرة هي **نفسها** التي سمّاها الانحراف، يُضاف المدخل إلى `_GENERATE_FLAG` ويُحذف من هنا. إن كتب غيرها، يبقى هنا بسبب مقيس مكتوب.",
+  "unmapped": {
+    "scripts/ci/ai_container_contract_guard.py": "--write",
+    "scripts/ci/capability_management_engine.py": "--generate",
+    "scripts/ci/capability_registry_guard.py": "--generate",
+    "scripts/ci/capability_registry_v1.py": "--generate",
+    "scripts/ci/capability_roadmap_linker.py": "--generate",
+    "scripts/ci/compose_runtime_target_resolver.py": "--generate",
+    "scripts/ci/duplicate_definition_guard.py": "--generate",
+    "scripts/ci/gateway_reachability_guard.py": "--generate",
+    "scripts/ci/integration_runtime_governance_closure.py": "--generate",
+    "scripts/ci/path3_runtime_readiness_closure.py": "--generate",
+    "scripts/ci/platform_main_subinventory_guard.py": "--write",
+    "scripts/ci/production_certification_checklist_guard.py": "--write",
+    "scripts/ci/production_evidence_pack_guard.py": "--write",
+    "scripts/ci/report_index_guard.py": "--write",
+    "scripts/ci/runtime_certification_gate.py": "--generate",
+    "scripts/ci/runtime_container_deep_contract_guard.py": "--write",
+    "scripts/ci/runtime_environment_preflight.py": "--generate",
+    "scripts/ci/runtime_evidence_ingestion.py": "--generate",
+    "scripts/ci/runtime_verification_harness.py": "--generate"
+  }
+}

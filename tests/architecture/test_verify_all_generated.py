@@ -259,3 +259,85 @@ def test_each_step_has_a_diagnosable_timeout(monkeypatch, tmp_path):
     assert code == 124
     assert "TIMEOUT after" in output
     assert "_generated_sweep_timeout_probe.py" in output
+
+
+def test_the_flag_map_is_interrogated_against_argparse_not_trusted():
+    """خريطة أعلام التوليد تُفحَص وهي خضراء — لا بعد أن تفشل ثلاث دورات.
+
+    ``VERIFY-ALL-GENERATED-WRITER-FLAG-MISMATCH-01`` أُصلحت مداخله وأُضيف تشخيص
+    يميّز «كاتب لم يُستدعَ» عن «دورة تبعيّة» — لكنّه يعمل داخل فرع عدم الاستقرار
+    وحده. والخريطة يدويّة فستبيت ثانيةً. هنا تُستجوَب في الوضع الافتراضيّ.
+
+    التكذيب بالاتّجاهات الأربعة، وكلٌّ منها عيب وقع فعلاً أو يمكن أن يقع:
+    علم مُعلَن لا يقبله argparse · سكربت كاتب سقط من الخريطة · مدخل أساس ببائت ·
+    مدخل أساس بعلم خاطئ.
+    """
+    steps = MOD.discover()
+    assert MOD.flag_map_problems(steps) == [], "الخريطة الحاليّة لا تطابق السكربتات"
+
+    saved = dict(MOD._GENERATE_FLAG)
+    try:
+        MOD._GENERATE_FLAG["capability_runtime_evidence.py"] = "--generate"
+        problems = MOD.flag_map_problems(steps)
+        assert any("capability_runtime_evidence.py" in p and "--apply" in p for p in problems), (
+            f"علم مُعلَن غير مقبول لم يُرصَد: {problems}"
+        )
+    finally:
+        MOD._GENERATE_FLAG.clear()
+        MOD._GENERATE_FLAG.update(saved)
+
+    saved = dict(MOD._GENERATE_FLAG)
+    try:
+        MOD._GENERATE_FLAG.pop("capability_linker.py")
+        problems = MOD.flag_map_problems(steps)
+        assert any("capability_linker.py" in p and "--apply" in p for p in problems), (
+            f"سكربت كاتب غائب عن الخريطة لم يُرصَد: {problems}"
+        )
+    finally:
+        MOD._GENERATE_FLAG.clear()
+        MOD._GENERATE_FLAG.update(saved)
+
+
+def test_the_unmapped_baseline_is_itself_held_to_the_truth(tmp_path):
+    """الأساس ليس إعفاءً: مدخله يُقاس هو أيضاً، فلا يصير ملاذاً لادّعاء بائت."""
+    steps = MOD.discover()
+    real = json.loads(MOD.UNMAPPED_BASELINE.read_text(encoding="utf-8"))
+    original = MOD.UNMAPPED_BASELINE
+    try:
+        stale = dict(real)
+        stale["unmapped"] = {**real["unmapped"], "scripts/ci/_gone_forever.py": "--write"}
+        path = tmp_path / "stale.json"
+        path.write_text(json.dumps(stale, ensure_ascii=False), encoding="utf-8")
+        MOD.UNMAPPED_BASELINE = path
+        assert any("_gone_forever.py" in p for p in MOD.flag_map_problems(steps)), (
+            "مدخل بائت في الأساس لم يُرصَد"
+        )
+
+        wrong = dict(real)
+        wrong["unmapped"] = {**real["unmapped"], "scripts/ci/report_index_guard.py": "--generate"}
+        path2 = tmp_path / "wrong.json"
+        path2.write_text(json.dumps(wrong, ensure_ascii=False), encoding="utf-8")
+        MOD.UNMAPPED_BASELINE = path2
+        assert any("report_index_guard.py" in p for p in MOD.flag_map_problems(steps)), (
+            "علم خاطئ مُسجَّل في الأساس لم يُرصَد"
+        )
+    finally:
+        MOD.UNMAPPED_BASELINE = original
+
+
+def test_the_source_scan_is_a_diagnostic_not_a_verdict():
+    """يُثبِّت سبب وجود ``_accepted_flags`` بجانب ``_declared_write_flags``.
+
+    مسح المصدر يعدّ أيّ سلسلة مقتبَسة علماً. أوضح شاهد: المكنسة نفسها — قاموسها
+    يحوي نصوص الأعلام، فيتّهمها مسحُها بإعلانها جميعاً بينما ``argparse`` لا يقبل
+    منها شيئاً. لو تساوى الاثنان يوماً لصار أحدهما زائداً؛ وهذا الاختبار هو ما
+    يُبقي التمييز مقيساً بدل أن يكون رأياً في تعليق.
+    """
+    script = "scripts/ci/verify_all_generated.py"
+    declared = set(MOD._declared_write_flags(script))
+    accepted = MOD._accepted_flags(script)
+    assert declared, "مسح المصدر لم يجد شيئاً — تغيّرت بنية الخريطة"
+    assert not (declared & set(MOD._WRITE_FLAGS) & accepted), (
+        "المكنسة صارت تقبل علم كتابة فعليّاً — راجع الفرضيّة"
+    )
+    assert declared - accepted, "مسح المصدر لم يعد يُنتج إيجابيّة كاذبة هنا"
