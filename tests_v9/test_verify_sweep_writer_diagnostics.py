@@ -32,10 +32,22 @@ assert _SPEC.loader is not None
 _SPEC.loader.exec_module(sweep)
 
 # الثلاثة الذين انحرفوا فعليّاً وكانوا غائبين عن الخريطة.
+# وخمسة آخرون كشفتهم مراجعة الفرع الرئيسيّ لاحقاً — نفس الشكل بالضبط: يُعلن كلٌّ منهم
+# `--generate`، والمكنسة تُشغّل `--check` عليه فيُبلِّغ انحرافاً، و`--fix` لا تستدعيه،
+# ولا هو مُصنَّف «فحص بلا مولّد». أي انحراف بلا سبيل آليّ لإغلاقه.
+#
+# وهم سلسلة تحقّق تشغيليّ واحدة (خطّة الفحص ⇒ أهداف compose ⇒ إغلاق حوكمة التكامل ⇒
+# جاهزيّة Path-3 ⇒ ابتلاع الأدلّة)، فغيابهم لا يظهر إلّا عند تغيير يمسّ عقود التشغيل —
+# وعندها يظهر خمستهم دفعةً واحدة. هذا سبب وجيه لتثبيتهم بالاسم لا بالعدّ.
 _REGRESSION = {
     "capability_linker.py": "--apply",
     "health_readiness_schema_guard.py": "--write",
     "route_residual_classification_guard.py": "--write",
+    "runtime_verification_harness.py": "--generate",
+    "compose_runtime_target_resolver.py": "--generate",
+    "integration_runtime_governance_closure.py": "--generate",
+    "path3_runtime_readiness_closure.py": "--generate",
+    "runtime_evidence_ingestion.py": "--generate",
 }
 
 

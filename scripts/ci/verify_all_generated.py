@@ -87,6 +87,21 @@ _GENERATE_FLAG = {
     "route_conflict_guard.py": "--generate",
     "router_reachability_guard.py": "--generate",
     "runtime_contract_generator.py": "--generate",
+    # ── سلسلة التحقّق التشغيليّ: خمسة كتّاب كانوا خارج الخريطة كلّهم ──────────────
+    # VERIFY-ALL-GENERATED-WRITER-FLAG-MISMATCH-01، امتداداً لِما أُغلِق في #741.
+    # كلٌّ منهم يُعلن `--generate` في واجهته، والمكنسة تُشغّل `--check` عليه فيُبلِّغ
+    # انحرافاً — لكنّ `--fix` لم تكن تستدعيه إطلاقاً، ولا هو مُصنَّف «فحص بلا مولّد».
+    # فالانحراف يبقى بلا سبيل آليّ لإغلاقه ويُصلَح يدويّاً في كلّ مرّة.
+    #
+    # وهم **سلسلة** لا أفراد: خطّة الفحص ⇒ أهداف compose ⇒ إغلاق حوكمة التكامل ⇒
+    # جاهزيّة Path-3 ⇒ ابتلاع الأدلّة. لذا يُصلَح أوّلها فيُحرِّك التالي، وهو ما جعل
+    # غيابهم يظهر دفعةً واحدة عند أوّل تغيير يمسّ عقود التشغيل. الترتيب هنا ترتيب
+    # التبعيّة كي تلتقي المكنسة في أقلّ عدد دورات.
+    "runtime_verification_harness.py": "--generate",
+    "compose_runtime_target_resolver.py": "--generate",
+    "integration_runtime_governance_closure.py": "--generate",
+    "path3_runtime_readiness_closure.py": "--generate",
+    "runtime_evidence_ingestion.py": "--generate",
     "generate_indicator_artifacts.py": "",
     "generate_indicators_frontend_manifest.py": "",
     "pr_capability_impact_gate.py": "--generate-index",
