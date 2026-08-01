@@ -452,7 +452,9 @@ def test_unindexed_files_are_reported_because_no_generator_can_see_them(tmp_path
 
     repo = tmp_path / "repo"
     repo.mkdir()
-    run = lambda *a: subprocess.run(["git", *a], cwd=repo, capture_output=True, text=True)  # noqa: E731
+    run = lambda *a: subprocess.run(  # noqa: E731
+        ["git", *a], cwd=repo, capture_output=True, text=True, encoding="utf-8"
+    )
     run("init", "-q")
     run("config", "user.email", "t@example.invalid")
     run("config", "user.name", "t")

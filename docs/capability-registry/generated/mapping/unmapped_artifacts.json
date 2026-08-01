@@ -7036,6 +7036,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_generated_artifact_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gis_enforce.py",
     "kind": "tests"
   },
@@ -7673,6 +7677,10 @@
   },
   {
     "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_text_encoding_locale.py",
     "kind": "tests"
   },
   {

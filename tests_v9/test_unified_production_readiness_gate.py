@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_unified_gate_is_honest_and_wired_to_critical_checks():
-    src = (ROOT / "scripts/ci/unified_production_readiness_gate.py").read_text()
+    src = (ROOT / "scripts/ci/unified_production_readiness_gate.py").read_text(encoding="utf-8")
     for required in (
         "production_honesty_guard.py",
         "minio_s3_contract_gate.py",
@@ -21,6 +21,6 @@ def test_unified_gate_is_honest_and_wired_to_critical_checks():
 
 
 def test_production_workflow_archives_unified_evidence():
-    workflow = (ROOT / ".github/workflows/sahool-production-gates.yml").read_text()
+    workflow = (ROOT / ".github/workflows/sahool-production-gates.yml").read_text(encoding="utf-8")
     assert "unified_production_readiness_gate.py" in workflow
     assert "unified-readiness-evidence" in workflow

@@ -3,10 +3,18 @@
 
 from __future__ import annotations
 
-import csv
-import json
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from generated_artifact_contract import (  # noqa: E402
+    Artifact,
+    enforce,
+    render_csv,
+    render_json,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -94,6 +102,14 @@ def build_inventory() -> list[dict[str, object]]:
     return rows
 
 
+def artifacts(rows: list[dict[str, object]]) -> list[Artifact]:
+    """المصنوعتان اللتان يملكهما هذا الحارس."""
+    return [
+        Artifact(GENERATED_JSON, render_json(rows)),
+        Artifact(GENERATED_CSV, render_csv(rows, list(rows[0].keys()))),
+    ]
+
+
 def check(write: bool = False) -> list[dict[str, object]]:
     rows = build_inventory()
     failures: list[str] = []
@@ -145,14 +161,9 @@ def check(write: bool = False) -> list[dict[str, object]]:
     ]:
         failures.extend(_has_bad_inline_comment(req))
 
-    if write:
-        GENERATED_JSON.write_text(
-            json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-        with GENERATED_CSV.open("w", encoding="utf-8", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-            writer.writeheader()
-            writer.writerows(rows)
+    # `--check` كان يبني الجرد في الذاكرة ويؤكّد قواعده الدلاليّة عليه، ولا ينظر إلى
+    # الملفّ المُلتزَم مرّة واحدة. الرسم والكتابة يمرّان الآن بالدالّة نفسها.
+    enforce(artifacts(rows), write=write, label="ai_container_contract_guard")
 
     if failures:
         raise SystemExit("\n".join(failures))

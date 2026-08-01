@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
 import json
 import re
@@ -10,7 +9,16 @@ import sys
 from collections import Counter, defaultdict, deque
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 import yaml
+from generated_artifact_contract import (  # noqa: E402
+    Artifact,
+    drift,
+    render_csv,
+    render_json,
+    write_all,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / "docs/capability-registry"
@@ -158,13 +166,10 @@ def canonical(idx, caps):
     }
 
 
-def generate(idx, caps):
-    OUT.mkdir(parents=True, exist_ok=True)
+def artifacts(idx, caps) -> list[Artifact]:
+    """المصنوعات الخمس التي يملكها هذا الحارس — كلّها، لا سجلّ JSON وحده."""
     reg = canonical(idx, caps)
     blob = json.dumps(reg, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
-    (OUT / "capability_registry.json").write_text(
-        json.dumps(reg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
     summary = {
         "schema_version": "1.0.0",
         "capabilities_total": len(caps),
@@ -176,35 +181,29 @@ def generate(idx, caps):
         "unassessed_parity": sum(c["parity_classification"] == "unassessed" for c in caps),
         "production_certified": sum(bool(c["production_certified"]) for c in caps),
     }
-    (OUT / "capability_registry_summary.json").write_text(
-        json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    with (OUT / "capability_registry.csv").open("w", newline="", encoding="utf-8") as f:
-        fields = [
-            "id",
-            "title_en",
-            "title_ar",
-            "domain",
-            "owner",
-            "maturity",
-            "evidence_level",
-            "priority",
-            "business_value",
-            "investment_strategy",
-            "parity_classification",
-            "status",
-            "production_certified",
-        ]
-        w = csv.DictWriter(f, fieldnames=fields)
-        w.writeheader()
-        for c in sorted(caps, key=lambda x: x["id"]):
-            w.writerow(
-                {
-                    **{k: c.get(k, "") for k in fields if not k.startswith("title_")},
-                    "title_en": c["title"]["en"],
-                    "title_ar": c["title"]["ar"],
-                }
-            )
+    fields = [
+        "id",
+        "title_en",
+        "title_ar",
+        "domain",
+        "owner",
+        "maturity",
+        "evidence_level",
+        "priority",
+        "business_value",
+        "investment_strategy",
+        "parity_classification",
+        "status",
+        "production_certified",
+    ]
+    csv_rows = [
+        {
+            **{k: c.get(k, "") for k in fields if not k.startswith("title_")},
+            "title_en": c["title"]["en"],
+            "title_ar": c["title"]["ar"],
+        }
+        for c in sorted(caps, key=lambda x: x["id"])
+    ]
     graph = {
         "nodes": [
             {
@@ -221,9 +220,6 @@ def generate(idx, caps):
             for d in c.get("dependencies", [])
         ],
     }
-    (OUT / "capability_graph.json").write_text(
-        json.dumps(graph, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
     lines = [
         "# Capability Registry v1 Summary",
         "",
@@ -239,7 +235,18 @@ def generate(idx, caps):
         "|---|---:|",
     ]
     lines += [f"| {k} | {v} |" for k, v in summary["by_domain"].items()]
-    (OUT / "CAPABILITY_REGISTRY_SUMMARY.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return [
+        Artifact(OUT / "capability_registry.json", render_json(reg)),
+        Artifact(OUT / "capability_registry_summary.json", render_json(summary)),
+        Artifact(OUT / "capability_registry.csv", render_csv(csv_rows, fields)),
+        Artifact(OUT / "capability_graph.json", render_json(graph)),
+        Artifact(OUT / "CAPABILITY_REGISTRY_SUMMARY.md", "\n".join(lines) + "\n"),
+    ]
+
+
+def generate(idx, caps):
+    OUT.mkdir(parents=True, exist_ok=True)
+    write_all(artifacts(idx, caps))
 
 
 def main(argv=None):
@@ -253,10 +260,14 @@ def main(argv=None):
         print("\n".join(errs), file=sys.stderr)
         return 1
     if a.check:
-        expected = canonical(idx, caps)
-        target = OUT / "capability_registry.json"
-        if not target.exists() or json.loads(target.read_text(encoding="utf-8")) != expected:
-            print("generated capability registry drift; run --generate", file=sys.stderr)
+        # كان يقارن `capability_registry.json` وحده و**بعد تحليل JSON** — فيمرّ
+        # اختلاف التنسيق، وتبقى أربع مصنوعات أُخَر بلا مقارنة إطلاقاً.
+        drifting = drift(artifacts(idx, caps))
+        if drifting:
+            print(
+                "generated capability registry drift; run --generate: " + " · ".join(drifting),
+                file=sys.stderr,
+            )
             return 1
     if a.generate or not a.check:
         generate(idx, caps)

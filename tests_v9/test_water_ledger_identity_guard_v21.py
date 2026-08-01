@@ -48,7 +48,10 @@ def _identity_error(env: dict[str, str]) -> str:
         "spec.loader.exec_module(m)\n"
         "print('ERR::' + (m.water_ledger_identity_startup_error() or ''))\n"
     )
-    full_env = {**os.environ, **env}
+    # `encoding` على الأب يفكّ ما يصل، ولا يُملي على **الابن** بماذا يكتب: مخرَجه
+    # يُرمَّز بترميز لغة الآلة، فرسالة تحوي عربيّة أو «—» تُسقِط الابن نفسه بـ
+    # UnicodeEncodeError تحت لغة غير UTF-8. المتّجهان يُغلقان معاً أو لا يُغلق أيّهما.
+    full_env = {**os.environ, "PYTHONIOENCODING": "utf-8", **env}
     for k in _VOLATILE:
         if k not in env:
             full_env.pop(k, None)
@@ -58,6 +61,7 @@ def _identity_error(env: dict[str, str]) -> str:
         capture_output=True,
         text=True,
         timeout=90,
+        encoding="utf-8",
     )
     assert r.returncode == 0, f"import/probe failed: {r.stderr[-800:]}"
     for line in r.stdout.splitlines():

@@ -146,6 +146,24 @@ _GENERATE_FLAG.update(
     }
 )
 
+# والستّة أدناه لم تكن قابلة للإغلاق حتّى أُصلِح ما يمنع قياسها: شرط الإغلاق يبدأ بـ
+# «أفسِد مصنوعة ⇒ يجب أن يرصد `--check`»، وهذه الستّة **كانت عمياء عن ١٣ من ١٦ مصنوعة
+# تملكها** (GENERATED-CHECK-IGNORES-ITS-OWN-COMPANION-ARTIFACTS-01). فوصلها قبل ذلك كان
+# سيُصلح انحرافاً لا يستطيع أحد رصده. بعد توحيدها على `generated_artifact_contract`
+# صارت ١٦ من ١٦ راصدة، ومرّ الشرط كاملاً على كلٍّ منها: خمول على شجرة نظيفة · رصد
+# الإفساد **مع تسمية الملفّ** · استعادة بايتاً بايت · ولا يمسّ العلم ملفّاً غير الذي
+# سمّاه الانحراف.
+_GENERATE_FLAG.update(
+    {
+        "ai_container_contract_guard.py": "--write",
+        "capability_registry_v1.py": "--generate",
+        "duplicate_definition_guard.py": "--generate",
+        "platform_main_subinventory_guard.py": "--write",
+        "production_certification_checklist_guard.py": "--write",
+        "runtime_container_deep_contract_guard.py": "--write",
+    }
+)
+
 # علم كتابة يُعلنه سكربت في مصدره — يُميّز «كاتب لم يُستدعَ» عن «فحص بلا مولّد».
 _WRITE_FLAG_DECL = re.compile(r"""["'](--(?:write|apply|generate)[a-z-]*)["']""")
 
