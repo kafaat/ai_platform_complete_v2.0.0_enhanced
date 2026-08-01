@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4802,
+    "files_scanned": 4803,
     "files_by_kind": {
       "backend": 1187,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1262,
-      "tests": 1530,
+      "tests": 1531,
       "web": 448
     },
     "unmapped_artifacts": 1955,
-    "ambiguous_artifacts": 391
+    "ambiguous_artifacts": 392
   },
   "capabilities": [
     {
@@ -16092,7 +16092,7 @@
           "score": 18
         },
         {
-          "value": "sahool.imagery_automation @ services/sahool-platform/api/imagery_automation.py:39",
+          "value": "sahool.imagery_automation @ services/sahool-platform/api/imagery_automation.py:42",
           "score": 18
         },
         {
@@ -19904,7 +19904,7 @@
           ]
         },
         {
-          "path": "tests_v9/test_imagery_product_identity_canonical.py",
+          "path": "tests_v9/test_imagery_batch_wait_before_read.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -20992,6 +20992,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_imagery_batch_wait_before_read.py",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
           "path": "tests_v9/test_sahool_brain_forensic.py",
           "score": 12,
           "signals": [
@@ -21110,7 +21118,7 @@
         "events": 12,
         "web": 7,
         "mobile": 0,
-        "tests": 17,
+        "tests": 18,
         "governance": 0,
         "other_evidence": 3
       },
@@ -50667,6 +50675,28 @@
           "signals": [
             "content:Water balance",
             "content:water balance"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_imagery_batch_wait_before_read.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SAT-004",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]
