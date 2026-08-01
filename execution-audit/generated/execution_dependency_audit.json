@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1826,
     "route_handlers": 1042,
-    "call_edges": 71611,
+    "call_edges": 71615,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 26,
@@ -1359,7 +1359,7 @@
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "line": 122,
+      "line": 138,
       "handler": "healthz",
       "method": "GET",
       "path": "/healthz"
@@ -1367,7 +1367,7 @@
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "line": 127,
+      "line": 143,
       "handler": "readyz",
       "method": "GET",
       "path": "/readyz"
@@ -1375,7 +1375,7 @@
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "line": 134,
+      "line": 150,
       "handler": "list_tools",
       "method": "GET",
       "path": "/v1/mcp/tools"
@@ -1383,7 +1383,7 @@
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "line": 151,
+      "line": 167,
       "handler": "call_tool",
       "method": "POST",
       "path": "/v1/mcp/tools/call"
@@ -89387,280 +89387,308 @@
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "_base",
       "target": "get",
-      "line": 26
+      "line": 42
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "_base",
       "target": "get",
-      "line": 27
+      "line": 43
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "_base",
       "target": "isoformat",
-      "line": 28
+      "line": 44
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "_base",
       "target": "now",
-      "line": 28
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_field_state",
-      "target": "_base",
-      "line": 36
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_field_state",
-      "target": "get",
-      "line": 38
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_field_state",
-      "target": "get",
-      "line": 38
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_weather",
-      "target": "_base",
       "line": 44
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_weather",
-      "target": "get",
-      "line": 47
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_weather",
-      "target": "get",
-      "line": 48
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_weather",
-      "target": "get",
-      "line": 49
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_lab",
+      "source": "_field_state",
       "target": "_base",
-      "line": 56
+      "line": 52
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_lab",
+      "source": "_field_state",
       "target": "get",
-      "line": 59
+      "line": 54
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_lab",
+      "source": "_field_state",
       "target": "get",
+      "line": 54
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_weather",
+      "target": "_base",
       "line": 60
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_lab",
+      "source": "_weather",
       "target": "get",
-      "line": 61
+      "line": 63
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_weather",
+      "target": "get",
+      "line": 64
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_weather",
+      "target": "get",
+      "line": 65
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "_lab",
-      "target": "get",
-      "line": 62
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_satellite",
       "target": "_base",
-      "line": 70
+      "line": 72
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_satellite",
-      "target": "get",
-      "line": 73
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_satellite",
-      "target": "get",
-      "line": 74
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_satellite",
+      "source": "_lab",
       "target": "get",
       "line": 75
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_iot",
-      "target": "_base",
-      "line": 83
+      "source": "_lab",
+      "target": "get",
+      "line": 76
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_iot",
+      "source": "_lab",
       "target": "get",
+      "line": 77
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_lab",
+      "target": "get",
+      "line": 78
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_satellite",
+      "target": "_base",
       "line": 86
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_satellite",
+      "target": "get",
+      "line": 89
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_satellite",
+      "target": "get",
+      "line": 90
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_satellite",
+      "target": "get",
+      "line": 91
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_iot",
+      "target": "_base",
+      "line": 99
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
       "source": "_iot",
       "target": "get",
-      "line": 87
+      "line": 102
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_rag",
-      "target": "_base",
-      "line": 94
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_rag",
+      "source": "_iot",
       "target": "get",
-      "line": 96
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_rag",
-      "target": "get",
-      "line": 96
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_kg",
-      "target": "_base",
       "line": 103
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "_kg",
+      "source": "_rag",
+      "target": "_base",
+      "line": 110
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_rag",
       "target": "get",
-      "line": 105
+      "line": 112
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_rag",
+      "target": "get",
+      "line": 112
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "_kg",
-      "target": "get",
-      "line": 105
+      "target": "_base",
+      "line": 119
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
-      "source": "healthz",
+      "source": "_kg",
       "target": "get",
       "line": 121
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
+      "source": "_kg",
+      "target": "get",
+      "line": 121
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "healthz",
+      "target": "get",
+      "line": 137
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
       "source": "readyz",
       "target": "get",
-      "line": 126
+      "line": 142
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "readyz",
       "target": "HTTPException",
-      "line": 129
+      "line": 145
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "list_tools",
+      "target": "Depends",
+      "line": 149
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "list_tools",
       "target": "get",
-      "line": 133
+      "line": 149
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "list_tools",
+      "target": "require_scope",
+      "line": 149
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "list_tools",
       "target": "HTTPException",
-      "line": 136
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "call_tool",
-      "target": "post",
-      "line": 150
-    },
-    {
-      "owner": "mcp-servers",
-      "file": "services/mcp_servers/generic_context_server.py",
-      "source": "call_tool",
-      "target": "get",
       "line": 152
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "call_tool",
-      "target": "HTTPException",
-      "line": 154
+      "target": "Depends",
+      "line": 166
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "call_tool",
+      "target": "post",
+      "line": 166
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "call_tool",
+      "target": "require_scope",
+      "line": 166
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "call_tool",
       "target": "get",
-      "line": 156
+      "line": 168
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "call_tool",
       "target": "HTTPException",
-      "line": 157
+      "line": 170
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "call_tool",
+      "target": "get",
+      "line": 172
     },
     {
       "owner": "mcp-servers",
       "file": "services/mcp_servers/generic_context_server.py",
       "source": "call_tool",
       "target": "HTTPException",
-      "line": 159
+      "line": 173
+    },
+    {
+      "owner": "mcp-servers",
+      "file": "services/mcp_servers/generic_context_server.py",
+      "source": "call_tool",
+      "target": "HTTPException",
+      "line": 175
     },
     {
       "owner": "mcp-servers",

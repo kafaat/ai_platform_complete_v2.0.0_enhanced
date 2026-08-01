@@ -306,11 +306,14 @@ def test_wofost_mcp_call_accepts_correct_scope():
 @pytest.mark.xfail(
     strict=False,
     reason=(
-        "MCP-PREAUTH-STATUS-01: طلب بلا توكن يُجاب بـ400 بدل 401. التخويل موصول فعلاً — "
-        "weather_server.py:147 يُعلن Depends(require_scope) و oauth_middleware.py:43-44 "
-        "يرفع 401 «Missing token» — لكنّ طبقة سابقة للحارس تُجيب أوّلاً. عيب ترتيب ورمز "
-        "حالة، لا غياب حماية. UNIT-TEST-DORMANCY-01 أيقظ الاختبار؛ الوسم يُبقيه ظاهراً "
-        "بفشله المُسمّى بدل إعادته إلى skip صامت، ويُرفع عند إصلاح الترتيب."
+        "MCP-PREAUTH-STATUS-01 صار STALE/MISDIAGNOSED (2026-08-01): ادّعاء «400 بدل 401» "
+        "لم يتكرّر. شُغِّل require_scope على نفس شكل النقطة فأعطى 401 بلا توكن (بجسم "
+        "صالح أو بلا جسم) و401 لتوكن فاسد؛ و422 لـJSON مشوَّه — وهذا فشل تحليل قبل "
+        "استدعاء الـdependency، لا عيب pre-auth (إن اشترطت السياسة auth قبل تحليل الجسم "
+        "فتلك فجوة ترتيب middleware مستقلّة، لم تُسجَّل بعد). والمسار المذكور في الفجوة "
+        "«/mcp/v1/tools/call» غير موجود أصلاً — كلّ الخوادم تُعلن «/v1/mcp/tools/call». "
+        "يبقى الوسم غير صارم لأنّ هذا الاختبار يتخطّى في هذا التخطيط (shared.helpers "
+        "مدموجة داخل الحاوية فقط)، فالسلوك داخل الحاوية غير مقيس — لا لأنّ العيب قائم."
     ),
 )
 @pytest.mark.parametrize("module_name", ["weather_server", "sentinel_hub_server"])

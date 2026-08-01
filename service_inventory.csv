@@ -12,7 +12,7 @@ guardrails-engine,AI Safety & Governance,13,1559,1,7,services/guardrails-engine/
 indicators-service,Vegetation Analytics,8,742,4,11,services/indicators-service/main.py,services/indicators-service/Dockerfile,services/indicators-service/requirements.txt,normal
 knowledge-graph,Edge Inference,2,153,1,7,services/knowledge-graph/main.py,services/knowledge-graph/Dockerfile,services/knowledge-graph/requirements.txt,normal
 local-ai-rag,Knowledge Retrieval,2,445,1,5,services/local-ai-rag/main.py,services/local-ai-rag/Dockerfile,services/local-ai-rag/requirements.txt,normal
-mcp_servers,Agent Tools,11,2045,1,33,-,services/mcp_servers/Dockerfile,services/mcp_servers/requirements.txt,normal
+mcp_servers,Agent Tools,11,2047,1,33,-,services/mcp_servers/Dockerfile,services/mcp_servers/requirements.txt,normal
 model-registry-adapter,Unclassified / Support,7,1137,2,0,-,services/model-registry-adapter/Dockerfile,-,medium-runtime-contract-gap
 odoo-bridge,ERP Integration,11,1720,2,11,services/odoo-bridge/main.py,services/odoo-bridge/Dockerfile,services/odoo-bridge/requirements.txt,normal
 qdrant-seed,Unclassified / Support,4,866,1,0,-,services/qdrant-seed/Dockerfile,services/qdrant-seed/requirements.txt,medium-runtime-contract-gap
