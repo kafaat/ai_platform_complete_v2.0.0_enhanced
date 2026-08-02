@@ -8,7 +8,7 @@ from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from shared.oauth_middleware import require_scope
+from shared.oauth_middleware import MCPPreAuthMiddleware, require_scope
 
 app = FastAPI(title="SAHOOL Independent MCP Context Server", version="2026.2")
 SERVICE = os.getenv("MCP_SERVICE", "field")
@@ -27,6 +27,12 @@ SERVICE = os.getenv("MCP_SERVICE", "field")
 # (عميل المشرف الوحيد يستهدف الأربعة المحروسة)، فلا حاجة إلى فترة سماح — والافتراضيّ
 # الآمن أصدق من علم مؤقّت يصير دائماً بالصمت.
 MCP_CONTEXT_SCOPE = "mcp:context:read"
+
+# Auth-first: this ASGI layer runs before request-body decoding/validation.
+app.add_middleware(
+    MCPPreAuthMiddleware,
+    protected_paths={"/v1/mcp/tools/call": MCP_CONTEXT_SCOPE},
+)
 
 
 class ToolCall(BaseModel):

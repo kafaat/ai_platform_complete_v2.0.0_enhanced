@@ -70,7 +70,7 @@ def _offenders_in(src: str) -> dict[str, int]:
         name = _call_name(node)
         if name in _TEXT_IO:
             # `read_text` كاسم عارٍ ليست طريقة مسار بل دالّة محلّيّة يعرّفها الملفّ
-            # (‏`runtime_contract_generator.py` مثالها) — وهي تتولّى ترميزها بنفسها.
+            # (`runtime_contract_generator.py` مثالها) — وهي تتولّى ترميزها بنفسها.
             # المدمَجة الوحيدة التي تُستدعى باسم عارٍ هي `open`.
             if not is_method and name != "open":
                 continue

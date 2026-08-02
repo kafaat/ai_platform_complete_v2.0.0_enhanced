@@ -2605,7 +2605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e151447e0058e165306324e772ed95947cb22b6bfb6279d0b10471244fd24bc7"
+          "content": "681f7b7011c422f1f3728daa32f8735cb2cefb3cc8c68944620246b2e699b4c3"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -12415,7 +12415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f51e17fcd75e109e7f88ec0c81ac08e07e982ded7dd5db20ae029dd1475bc24a"
+          "content": "8d223cfceafb142f0915d1fd8b6c7e710c37f590520f7a051bf4b44e15dd0156"
         }
       ],
       "name": "services/mcp_servers/generic_context_server.py",
@@ -12475,7 +12475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff9a3b0689e251afbbbf1635fd90f2c1c1c12b589a1908571e2d623ae6a75e8c"
+          "content": "f43d99a2abca6599e274b6650e3d660e381bffc79b5fcdafba082cb95b9d8a7e"
         }
       ],
       "name": "services/mcp_servers/shared/oauth_middleware.py",

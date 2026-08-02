@@ -341,7 +341,7 @@
         },
         {
           "function": "healthz",
-          "line": 138,
+          "line": 144,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/healthz",
@@ -683,7 +683,7 @@
         },
         {
           "function": "readyz",
-          "line": 143,
+          "line": 149,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/readyz",
@@ -857,7 +857,7 @@
       "registrations": [
         {
           "function": "list_tools",
-          "line": 150,
+          "line": 156,
           "method": "GET",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools",
@@ -1004,7 +1004,7 @@
       "registrations": [
         {
           "function": "call_tool",
-          "line": 167,
+          "line": 173,
           "method": "POST",
           "module": "services/mcp_servers/generic_context_server.py",
           "path": "/v1/mcp/tools/call",
@@ -1095,7 +1095,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1089,
-  "route_inventory_sha256": "6059f6607fb5610e761edddbb22aa6947212407ab02e1250be467e615320a417",
+  "route_inventory_sha256": "1460e10192577507e1d3f1c5c9e32cff94d56fa9f9018ff6c6620e724bb99e1c",
   "runtime_verified": false,
   "schema_version": 1
 }

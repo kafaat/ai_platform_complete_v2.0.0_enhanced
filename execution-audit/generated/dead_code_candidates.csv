@@ -64,8 +64,8 @@ medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_b
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,39,0,review_before_delete,False
 medium,gis-workflow-service,function,assemble_print_map_svg,services/gis-workflow-service/svg_print_map.py,82,0,review_before_delete,False
 medium,mcp-servers,class,NDVIRequest,services/mcp_servers/sentinel_hub_server.py,150,0,review_before_delete,False
-medium,mcp-servers,function,set_tenant_context,services/mcp_servers/shared/oauth_middleware.py,30,0,review_before_delete,False
-medium,mcp-servers,function,clear_tenant_context,services/mcp_servers/shared/oauth_middleware.py,35,0,review_before_delete,False
+medium,mcp-servers,function,set_tenant_context,services/mcp_servers/shared/oauth_middleware.py,32,0,review_before_delete,False
+medium,mcp-servers,function,clear_tenant_context,services/mcp_servers/shared/oauth_middleware.py,37,0,review_before_delete,False
 medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,185,0,review_before_delete,False
 medium,raster-service,function,dem_quality_from_num,services/raster-service/dem_quality.py,34,0,review_before_delete,False
 medium,raster-service,function,stability_zones,services/raster-service/management_zones.py,70,0,review_before_delete,False
