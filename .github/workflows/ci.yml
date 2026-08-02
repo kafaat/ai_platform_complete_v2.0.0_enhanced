@@ -455,6 +455,13 @@ jobs:
       # «الأخضر يقيس ما تختبره فقط». سطر structural grep واحد يصطاد الصنف عند الالتزام.
       - name: conflict-marker guard
         run: bash scripts/ci/conflict_marker_guard.sh
+      # TEST-PROBE-LEAKS-INTO-THE-TREE-01: اختبارات الحرّاس تحقن مسارات اصطناعيّة
+      # وتستعيدها في `finally` — و`finally` لا ينجو من SIGKILL ولا من إلغاء وظيفة.
+      # تسريبٌ كهذا أنتج تقرير اعتماد خارجيّاً بـNO-GO و**١٩ إخفاقاً** عُزيت إلى
+      # «تغيير غير محكوم» لمسار لم يدخل المستودع قطّ. هذا الحارس يُسمّي السبب بسطر
+      # واحد ويمنع العلاج الخاطئ (تصنيف المسار أو إضافته إلى allowlist).
+      - name: test probes must not leak into tracked sources or inventories
+        run: python scripts/ci/probe_leak_guard.py
       # حارس أساس الادّعاءات: مصنوعة `docs/architecture/` إمّا **قياس** يَبيت بحركة
       # الشجرة تحته (فيلزمه `measured_on`) أو **قرار** لا يَبيت بها (فيلزمه
       # `adjudicated_on`). المفردتان كانتا مستعملتين في ثماني مصنوعات من ٢٢ بلا

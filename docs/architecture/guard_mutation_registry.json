@@ -145,6 +145,17 @@
           "expect": "test_a_deliberate_history_chain_passes"
         }
       ]
+    },
+    "probe_leak_guard.py": {
+      "test": "tests_v9/test_probe_leak_guard.py",
+      "mutations": [
+        {
+          "why": "نزع استثناء المواضع الشرعيّة ⇒ الحارس يُطلِق على الاختبار الذي يُعرّف المِسبار وعلى الدماغ الذي يشرح الحادثة",
+          "find": "        if _is_allowed(rel):\n            continue\n",
+          "replace": "",
+          "expect": "test_the_guard_does_not_fire_on_the_places_that_legitimately_name_the_probe"
+        }
+      ]
     }
   },
   "unmutated_debt_ceiling": 117,
