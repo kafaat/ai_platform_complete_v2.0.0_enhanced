@@ -67,7 +67,18 @@ GENERATED_MARKERS = (
     "api_versioning_inventory.csv",
 )
 
-CONFLICT_RE = re.compile(r"<<<<<<< (?:HEAD|[^\n]*)\n(.*?)\n=======\n(.*?)\n>>>>>>> [^\n]*\n", re.S)
+# **العلامة علامةٌ في بداية السطر فقط** — CONFLICT-RE-MATCHES-PROSE-MENTIONS-01.
+# النسخة الأولى كانت بلا `^` وبلا `re.M`، فكان أيّ ذكرٍ نصّيّ للرمز وسط سطر يفتح
+# كتلةً كاذبة. وسجلّ هذا المستودع **يصف حوادث تعارض بأسمائها**، فالذكر النصّيّ
+# ليس حالةً نادرة بل مضمون الملفّ الذي يُحلّ. أوّل استعمال حقيقيّ: جملة في
+# `log.md:3404` تقول «تركت علامات تعارض `<<<<<<< …`» فُتِحت كتلةً، وابتلع `.*?`
+# **١٣٦٧ سطراً** حتّى أوّل `=======` حقيقيّ، فأُعيد تركيب السجلّ مقلوباً وبقيت
+# العلامة الحقيقيّة داخل الكتلة. لم يضِع محتوى، لكنّ الترتيب فسد والملفّ خرج
+# بعلامة — ولم يمسكها إلّا `conflict_marker_guard` بعد الحلّ.
+CONFLICT_RE = re.compile(
+    r"^<<<<<<< [^\n]*\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]*(?:\n|\Z)",
+    re.S | re.M,
+)
 
 # أيّ جانبٍ يحمل `main` في كلّ عمليّة. الإعادة تقلب المعنى لأنّ HEAD أثناءها هو
 # المُنبَع لا الفرع؛ فما لا يرِد هنا يُوقِف السكربت بدل أن يُخمَّن.
@@ -112,15 +123,24 @@ def in_progress_operation(root: Path = ROOT) -> str | None:
 
 
 def merge_keeping_both(text: str, main_side: str) -> tuple[str, int]:
-    """يُبقي الجانبين، جانبَ `main` أوّلاً. يُرجِع (النصّ، عدد الكتل المحلولة)."""
+    """يُبقي الجانبين، جانبَ `main` أوّلاً. يُرجِع (النصّ، عدد الكتل المحلولة).
+
+    الجانبان يشملان سطر النهاية، فيكفي `\\n` بينهما لفصلهما بسطر فارغ.
+    """
     resolved = 0
+    pos = 0
     while True:
-        m = CONFLICT_RE.search(text)
+        m = CONFLICT_RE.search(text, pos)
         if not m:
             return text, resolved
         ours, theirs = m.group(1), m.group(2)
         first, second = (ours, theirs) if main_side == "ours" else (theirs, ours)
-        text = text[: m.start()] + first + "\n\n" + second + "\n" + text[m.end() :]
+        body = first + "\n" + second
+        text = text[: m.start()] + body + text[m.end() :]
+        # الاستئناف بعد المُدرَج لا من الصفر: البحث من الصفر يُعيد فحص نصٍّ
+        # قد يذكر الرمز نصّيّاً، وهو ما لا يُفتَح كتلةً بعد التثبيت أصلاً —
+        # لكنّ الاستئناف يجعل الكلفة خطّيّة لا تربيعيّة على ملفّ كبير.
+        pos = m.start() + len(body)
         resolved += 1
 
 

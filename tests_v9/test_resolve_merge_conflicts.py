@@ -163,6 +163,82 @@ def test_merge_keeping_both_is_a_noop_without_conflicts() -> None:
     assert (merged, n) == ("لا تعارض هنا\n", 0)
 
 
+# ------------------------------------- العلامة في بداية السطر فقط (نصّ ≠ علامة)
+
+
+# نثرٌ حقيقيّ من `sahool-brain/log.md` — هذا المستودع **يصف حوادث التعارض
+# بأسمائها**، فالذكر النصّيّ ليس حالةً نادرة بل مضمون الملفّ الذي يُحلّ.
+_PROSE = [
+    "- **جلسة موازية تركت علامات تعارض `<<<<<<< HEAD` في السجلّ.**\n",
+    "- أُزيلت علامات `<<<<<<<`/`=======`/`>>>>>>>` وأُبقيت القيمة الآمنة.\n",
+    "- النمط يطابق `=======` وحدها فيُنذر كاذباً على مسطرة setext.\n",
+    "شرحٌ يذكر >>>>>>> origin/main وسط جملة لا في أوّلها.\n",
+]
+
+
+_REAL_BLOCK = "<<<<<<< HEAD\n- مدخل الفرع\n=======\n- مدخل main\n>>>>>>> origin/main\n"
+
+
+@pytest.mark.parametrize("prose", _PROSE)
+def test_prose_alone_is_not_a_conflict(prose: str) -> None:
+    merged, n = rmc.merge_keeping_both(prose, "theirs")
+    assert (merged, n) == (prose, 0)
+
+
+@pytest.mark.parametrize("prose", _PROSE)
+def test_prose_stays_outside_a_following_block(prose: str) -> None:
+    """**هذه** هي التي تُميّز، والسابقة لا.
+
+    النثر وحده لا يُكمِل مطابقةً (لا `=======` بعده) فيمرّ تحت النمط المعطوب
+    وتحت السليم سواءً — أي أنّه يوثّق النيّة ولا يقيسها. والقياس أن يليه كتلةٌ
+    حقيقيّة: النمط بلا مرساة يبدأ عند الذكر النصّيّ فيبتلع النثر داخل «ours»،
+    والسليم يُبقيه **خارج** الكتلة في موضعه.
+    """
+    merged, n = rmc.merge_keeping_both(prose + _REAL_BLOCK, "theirs")
+    assert n == 1
+    head = merged.split("- مدخل main")[0]
+    assert prose.strip() in head, "ابتُلِع النثر داخل الكتلة"
+    assert merged.index("مدخل main") < merged.index("مدخل الفرع")
+
+
+def test_prose_before_a_real_block_does_not_swallow_it() -> None:
+    """الحادثة بعينها: ذكرٌ نصّيّ قبل كتلة حقيقيّة ابتلع ١٣٦٧ سطراً بينهما.
+
+    النمط بلا `^` بدأ المطابقة عند الذكر النصّيّ في `log.md:3404`، فمدّ `.*?`
+    إلى أوّل `=======` حقيقيّ على بُعد ٣٤٩ ألف حرف وعدّ كلّ ذلك «جانب ours».
+    لم يضِع محتوى، لكنّ الترتيب انقلب و**خرج الملفّ بعلامة حقيقيّة داخله** —
+    ولم يمسكها إلّا `conflict_marker_guard` بعد الحلّ، مصادفةً كالمرّة السابقة.
+    """
+    text = (
+        "- شرحٌ قديم يذكر `<<<<<<< HEAD` نصّاً.\n"
+        "- سطر لا علاقة له.\n"
+        "<<<<<<< HEAD\n"
+        "- مدخل الفرع\n"
+        "=======\n"
+        "- مدخل main\n"
+        ">>>>>>> origin/main\n"
+        "- ذيل.\n"
+    )
+    merged, n = rmc.merge_keeping_both(text, "theirs")
+    assert n == 1
+    assert "<<<<<<<" not in merged.replace("`<<<<<<< HEAD`", "")
+    assert ">>>>>>>" not in merged
+    # السطران السابقان يبقيان في موضعهما قبل المدخلين، لا يُبتلَعان.
+    assert merged.index("شرحٌ قديم") < merged.index("سطر لا علاقة له")
+    assert merged.index("سطر لا علاقة له") < merged.index("مدخل main")
+    assert merged.index("مدخل main") < merged.index("مدخل الفرع")
+    assert merged.index("مدخل الفرع") < merged.index("ذيل")
+
+
+def test_a_real_block_ending_at_end_of_file_is_resolved() -> None:
+    """`>>>>>>>` بلا سطر بعده — يقع حين يكون التعارض في ذيل ملفّ إلحاقيّ."""
+    text = "<<<<<<< HEAD\nأ\n=======\nب\n>>>>>>> origin/main"
+    merged, n = rmc.merge_keeping_both(text, "theirs")
+    assert n == 1
+    assert "<<<<<<<" not in merged
+    assert merged.index("ب") < merged.index("أ")
+
+
 # ------------------------------------------------------- السلوك على مستودع حيّ
 
 
