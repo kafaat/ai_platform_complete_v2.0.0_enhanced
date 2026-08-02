@@ -6712,6 +6712,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_claim_base_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_command_dispatch_race_v65.py",
     "kind": "tests"
   },
@@ -7053,6 +7057,10 @@
   },
   {
     "path": "tests_v9/test_gis_web_mercator_crs.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_guard_mutation_guard.py",
     "kind": "tests"
   },
   {
@@ -7505,6 +7513,10 @@
   },
   {
     "path": "tests_v9/test_requirements_pinning_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_resolve_merge_conflicts.py",
     "kind": "tests"
   },
   {
