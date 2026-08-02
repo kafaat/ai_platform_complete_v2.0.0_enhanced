@@ -126,6 +126,25 @@ python scripts/ci/verify_all_generated.py --fix
 git add -A
 ```
 
+**وقاعدة ترتيب ثانية، أسقطت أربع وظائف دفعةً واحدة:** `release/FILE_CHECKSUMS.sha256`
+يُجزّئ **كلّ** المصنوعات الأخرى، فبناء حزمة الإصدار ثمّ إعادة توليد مصنوعة أخرى بعده
+يترك جزءاً بائتاً. الرسالة تقول `checksum mismatch: <ملفّ>` وتظهر في `release-package`
+و`pytest-contracts` و`Lint & Format` معاً — أربع رسائل لعطل واحد.
+
+```bash
+# ١) كلّ المولّدات الأخرى أوّلاً
+python scripts/ci/verify_all_generated.py --fix
+git add -A
+# ٢) حزمة الإصدار **أخيراً** — لأنّها تُجزّئ ما سبق
+SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) python scripts/release/build_release_bundle.py
+git add -A
+python scripts/release/validate_release_package.py     # يجب أن يقول: checksums verified
+```
+
+> **ولا تُوقِف المكنسة لبطئها.** أوقفتُها مرّةً فمرّ انحراف
+> `integration_runtime_governance_closure` إلى CI. المكنسة تُشغَّل كاملةً أو **لا
+> يُدَّعى أنّها شُغِّلت** — نتيجة جزئيّة ليست نتيجة.
+
 ### ٣.٢ ضريبة التسجيل: أداة غير موصولة لا تحرس شيئاً
 
 قاعدتان منفصلتان، وكلتاهما تحجب:
