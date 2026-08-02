@@ -1541,7 +1541,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 138,
+    "line": 144,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1550,7 +1550,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 143,
+    "line": 149,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1559,7 +1559,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 150,
+    "line": 156,
     "method": "GET",
     "path": "/v1/mcp/tools",
     "handler": "list_tools",
@@ -1568,7 +1568,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/generic_context_server.py",
-    "line": 167,
+    "line": 173,
     "method": "POST",
     "path": "/v1/mcp/tools/call",
     "handler": "call_tool",

@@ -11,9 +11,9 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import sys
-import types
 from pathlib import Path
 
 import pytest
@@ -44,24 +44,28 @@ def test_delegates_to_canonical_engine_endpoint():
 
 # ─── قبول سلوكيّ (mock لـhttpx) ─────────────────────────────────────────────
 
-# صورة الحاوية تدمج `shared/` و`services/mcp_servers/shared/` في مجلّد واحد. في بيئة
-# اختبار عاديّة نستعمل `shared.helpers` الحقيقيّ (جذر المستودع، مُضاف عبر conftest) ونُرقِّع
-# شِيمَي MCP (oauth_middleware/streamable_http) — غير متّصلَين بمنطق ET0 — ليستورد الخادم.
-if "shared.oauth_middleware" not in sys.modules:
-    _oauth = types.ModuleType("shared.oauth_middleware")
-    _oauth.require_scope = lambda *a, **k: lambda: None  # dependency بديل
-    sys.modules["shared.oauth_middleware"] = _oauth
-if "shared.streamable_http" not in sys.modules:
-    _shttp = types.ModuleType("shared.streamable_http")
 
-    class _StubTransport:
-        def __init__(self, *a, **k):
-            pass
+# حمّل تبعيات MCP الحقيقية من موضعها الإنتاجي. ممنوع إنشاء ModuleType باسم
+# shared.oauth_middleware لأن ذلك يلوّث sys.modules أثناء collection ويجعل حراسة
+# المصادقة رهينة ترتيب الملفات الأبجدي.
+def _install_real_module(name: str, path: Path) -> None:
+    existing = sys.modules.get(name)
+    if existing is not None:
+        origin = Path(getattr(existing, "__file__", "")).resolve()
+        assert origin == path.resolve(), f"{name} shadowed by {origin}"
+        return
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
 
-    _shttp.StreamableHTTPTransport = _StubTransport
-    sys.modules["shared.streamable_http"] = _shttp
 
-# نُلحِق (append) مجلّد الخادم فيبقى `import shared` مُحلّاً على جذر المستودع (فيه helpers).
+_install_real_module("shared.oauth_middleware", _MCP_DIR / "shared" / "oauth_middleware.py")
+_install_real_module("shared.streamable_http", _MCP_DIR / "shared" / "streamable_http.py")
+
+# نُلحق مجلّد الخادم فيبقى shared.helpers الجذري متاحاً، بينما الوحدتان الحساستان
+# أعلاه مثبتتان إلى ملفيهما الحقيقيين فقط.
 if str(_MCP_DIR) not in sys.path:
     sys.path.append(str(_MCP_DIR))
 

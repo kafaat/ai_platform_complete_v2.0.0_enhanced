@@ -199,12 +199,6 @@ export interface Task {
   notes?: string; photo_url?: string; tenant_id: string;
 }
 
-export interface AgentResponse {
-  response_ar: string; response_en?: string;
-  structured_data?: Record<string, unknown>;
-  actions_triggered: string[]; confidence: number;
-  sources: string[]; processing_time_ms: number;
-}
 
 export interface GuardrailsResult {
   allowed: boolean;
@@ -2781,34 +2775,9 @@ export function useCancelFieldIntelligenceJob() {
 }
 
 // ── v9: Supervisor Agent ──────────────────────────────────────
-export function useAgentQuery() {
-  const { user } = useAuthStore();
-  return useMutation<AgentResponse, Error, {
-    query: string; fieldId?: string; objectives?: string[]
-  }>({
-    mutationFn: ({ query, fieldId, objectives }) =>
-      kongApi.post('/api/agent/query', {
-        query,
-        field_id:             fieldId,
-        user_id:              user?.id != null ? String(user.id) : 'unknown',
-        tenant_id:            user?.tenant_id ?? UNAUTH_TENANT_KEY,
-        preferred_objectives: objectives ?? ['balanced'],
-      }).then(r => r.data),
-  });
-}
-
-export function useFarmOptimize() {
-  const { user } = useAuthStore();
-  return useMutation<unknown, Error, { fieldId: string; objectives: string[] }>({
-    mutationFn: ({ fieldId, objectives }) =>
-      kongApi.post('/api/agent/optimize', {
-        query: 'optimize farm', field_id: fieldId,
-        user_id:   user?.id != null ? String(user.id) : 'unknown',
-        tenant_id: user?.tenant_id ?? UNAUTH_TENANT_KEY,
-        preferred_objectives: objectives,
-      }).then(r => r.data),
-  });
-}
+// العميل العامّ القديم أزيل: لا مستهلك له، وكان يكرر عقد Chatbot canonical ويصل
+// إلى proxy غير مملوك في بعض البيئات. أي استدعاء جديد يجب أن يمر عبر خدمة API
+// canonical الخاصة بالسطح المستهلك، لا hook عام داخل useApi.ts.
 
 // ── v9: Guardrails ────────────────────────────────────────────
 export function useGuardrailsValidate() {

@@ -41,6 +41,31 @@
 
 ## المرحلة 0 — الأساس وحزمة الدليل الابتدائيّة (إلزاميّة)
 
+### 0.0 — كتلة الإعداد: املأها مرّة واحدة ثمّ الصقها في كلّ صدفة جديدة
+
+كلّ كتلة بعدها تبدأ بحارس `: "${VAR:?...}"`. الغرض ليس التزيين: كتلةٌ تُلصَق في صدفة
+جديدة بلا `EV` كانت ستكتب الأدلّة في جذر النظام، وبلا `FIELD_ID` كانت ستطلب
+`/fields//canonical-state` فتعود بردٍّ يُقرأ نتيجةً وهو خطأ مسار. **الفشل الصاخب أأمن من
+النجاح في المكان الخطأ.**
+
+```bash
+# ═══ 0.0 املأ القيم ثمّ الصق الكتلة كاملة ═══
+export FIELD_ID='ضع-معرّف-حقل-حقيقيّ'
+export SAHOOL_AGENT_TOKEN='...'
+export SAHOOL_APP_PW='...'          # كلمة دور sahool_app المقيَّد
+export VALID_JWT='...'              # توكن صالح بصلاحيّة MCP
+export EXPIRED_JWT='...'            # توكن منتهٍ — لمصفوفة الحالات
+
+# تحقّق من أنّ الجميع مضبوط قبل أيّ خطوة
+for v in FIELD_ID SAHOOL_AGENT_TOKEN SAHOOL_APP_PW VALID_JWT EXPIRED_JWT; do
+  [ -n "${!v:-}" ] || { echo "MISSING: $v"; }
+done; echo "setup check done"
+```
+
+> **بعد كلّ إعادة فتح للصدفة:** أعِد لصق `0.0` ثمّ `export EV=<مسار الأدلّة السابق>`
+> — أو شغّل `0.1` من جديد لإنشاء دليل أدلّة جديد. لا تُكمل بمجلّد أدلّة نصفه في مكان.
+
+
 ```bash
 # ═══ 0.1 التقط الأساس قبل أيّ تشغيل ═══
 mkdir -p evidence/live-$(date -u +%Y%m%dT%H%M%SZ) && cd "$_" && export EV=$PWD && cd -
@@ -54,6 +79,8 @@ date -u +%Y-%m-%dT%H:%M:%SZ       | tee "$EV/00_started_at.txt"
 **توقّف إن لم يكن `00_tree_state.txt` فارغاً.** شجرة متّسخة تجعل كلّ رقم بعدها غير منسوب.
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # ═══ 0.2 الرفع (تفصيله في REAL_ENV_VERIFICATION_RUNBOOK §ب.0) ═══
 cp -n .env.example .env    # ثمّ املأ: JWT_SECRET · SAHOOL_AGENT_TOKEN · REDIS_PASSWORD · ACTIVATION_EVIDENCE_SIGNING_KEY
 python scripts/runtime/env_doctor.py --mode preflight --format json --output "$EV/01_preflight.json"
@@ -68,6 +95,8 @@ BASE_URL=http://localhost python scripts/runtime/env_doctor.py --mode runtime \
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # ═══ 0.3 حالة الهجرات — العنصر ٣ من الحزمة ═══
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres \
   psql -U postgres -d sahool -c "\dt" | tee "$EV/04_schema_tables.txt"
@@ -86,14 +115,17 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres \
 > **قبل أيّ استعلام أدناه — اكتشف الأسماء الفعليّة، لا تثق بما هنا.**
 > أسماء الجداول في هذا الدليل مقيسة من `migrations/` على `4ad1b1cc`، وقد تتغيّر. الاستعلام على
 > جدول غير موجود يُنتِج خطأً يُقرأ خطأً على أنّه «لا بيانات» — وهو أسوأ من الفشل الصريح.
->
-> ```bash
-> docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
->   SELECT table_name FROM information_schema.tables
->   WHERE table_schema='public'
->     AND table_name ~ '(approval|execution|receipt|outbox|snapshot|decision|reservation)'
->   ORDER BY 1;" | tee "$EV/05_table_names.txt"
-> ```
+
+```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
+docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
+  SELECT table_name FROM information_schema.tables
+  WHERE table_schema='public'
+    AND table_name ~ '(approval|execution|receipt|outbox|snapshot|decision|reservation)'
+  ORDER BY 1;" | tee "$EV/05_table_names.txt"
+```
+
 > طابِق ما يظهر مع ما يستعمله كلّ استعلام. إن اختلف اسمٌ، **صحّح الاستعلام وسجّل التصحيح** في
 > حزمة الدليل — لا تُشغّل استعلاماً تعرف أنّه على اسم خاطئ.
 
@@ -103,6 +135,9 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres \
 `sahool_test` (superuser) لا `sahool_app` المقيَّد — فالـRLS **لا يُختبَر فعليّاً في CI**.
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+: "${SAHOOL_APP_PW:?عرّف SAHOOL_APP_PW (كلمة دور sahool_app المقيَّد)}"
+
 # أعِد الإثبات تحت الدور المقيَّد صراحةً — لا تحت superuser
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
   SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('sahool_app','sahool_test');
@@ -123,11 +158,15 @@ DATABASE_URL="postgresql://sahool_app:${SAHOOL_APP_PW}@localhost:5432/sahool" \
 ### ② `DECISION-SOR-TRANSITIONAL` — القلب إلى decision-service
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # 2.1 جاهزيّة القلب — النقطة قائمة في decision-service
 curl -sS http://localhost:8000/v1/cutover/readiness | tee "$EV/20_cutover_readiness.json"
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # 2.2 وضع الكتابة: shadow أوّلاً (لا decision_service_sor مباشرةً)
 export SAHOOL_DECISION_WRITE_MODE=shadow
 docker compose -f docker-compose.v9.yml up -d sahool-platform sahool-decision-service
@@ -137,6 +176,8 @@ pytest -v -m integration tests_v9/test_decision_consistency_auth.py \
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # 2.3 RLS بين مستأجِرَين — البرهان الذي لا يُغني عنه شيء
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U sahool_app -d sahool -c "
   SET app.tenant_id = 'tenant-A';
@@ -147,6 +188,8 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U sahool_a
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # 2.4 idempotency الصندوق الصادر: اقتل العامل بعد commit وتحقّق من نشرة واحدة لا اثنتين
 docker compose -f docker-compose.v9.yml kill sahool-phase-runtime-outbox-worker
 docker compose -f docker-compose.v9.yml up -d sahool-phase-runtime-outbox-worker
@@ -170,6 +213,8 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres
 `policy_version` يتغيّر **ولا يتغيّر** `snapshot_digest`.
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 pytest -v -m integration -k "snapshot or eligibility" \
   > "$EV/30_snapshot_eligibility.log" 2>&1; echo "exit=$?" | tee -a "$EV/30_snapshot_eligibility.log"
 ```
@@ -182,6 +227,10 @@ pytest -v -m integration -k "snapshot or eligibility" \
 > لذلك الإثبات هنا **من الخدمة لا من SQL**:
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+: "${FIELD_ID:?عرّف FIELD_ID في كتلة الإعداد — بلا قيمة يصير المسار /fields//...}"
+: "${SAHOOL_AGENT_TOKEN:?عرّف SAHOOL_AGENT_TOKEN في كتلة الإعداد}"
+
 # اطلب نفس اللقطة مرّتين مع اختلاف نسخة السياسة وحدها، وقارن البصمة المُعادة
 for POL in v1 v2; do
   curl -sS -H "Authorization: Bearer $SAHOOL_AGENT_TOKEN" \
@@ -189,10 +238,13 @@ for POL in v1 v2; do
        "http://localhost:8000/api/v1/fields/${FIELD_ID}/canonical-state" \
     | tee "$EV/31_state_policy_$POL.json"
 done
-python - <<'EOF' | tee "$EV/32_digest_invariance.txt"
-import json
-a = json.load(open("$EV/31_state_policy_v1.json"))
-b = json.load(open("$EV/31_state_policy_v2.json"))
+# المسار يُمرَّر وسيطاً لا داخل النصّ: `<<'EOF'` يمنع توسيع `$EV`، فلو كُتِب في
+# متن بايثون لفُتِح مسارٌ حرفيّ اسمه "$EV/..." وفشلت الكتلة بصمت.
+python - "$EV" <<'EOF' | tee "$EV/32_digest_invariance.txt"
+import json, sys
+ev = sys.argv[1]
+a = json.load(open(f"{ev}/31_state_policy_v1.json", encoding="utf-8"))
+b = json.load(open(f"{ev}/31_state_policy_v2.json", encoding="utf-8"))
 da, db = a.get("state_digest"), b.get("state_digest")
 print("digest_v1:", da); print("digest_v2:", db)
 print("INVARIANT (matches the contract):" if da == db else "DIGEST MOVED WITH POLICY (gap open):", da == db)
@@ -214,6 +266,8 @@ EOF
 ### ④ `EVIDENCE-ENVELOPE-NOT-GENERALIZED` — نفس الغلاف عبر مجالين
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # مجالان مختلفان حقيقةً: ريّ + طيف/رتسر — لا مجال واحد مرّتين
 pytest -v -m integration -k "evidence" \
   > "$EV/40_evidence_envelope.log" 2>&1; echo "exit=$?" | tee -a "$EV/40_evidence_envelope.log"
@@ -224,6 +278,8 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # الرفض المُغلَق: بصمة غير مطابقة · مستأجِر مفقود · طابع زمنيّ مستقبليّ · معرّف مكرّر
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
   -- يجب أن يفشل كلّ إدراج أدناه؛ نجاح أيّها = فجوة مفتوحة
@@ -242,6 +298,10 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres
 ### ⑤ `CANONICAL-WEATHER-CONSUMPTION`
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+: "${FIELD_ID:?عرّف FIELD_ID في كتلة الإعداد — بلا قيمة يصير المسار /fields//...}"
+: "${SAHOOL_AGENT_TOKEN:?عرّف SAHOOL_AGENT_TOKEN في كتلة الإعداد}"
+
 docker compose -f docker-compose.v9.yml up -d sahool-weather-service sahool-platform sahool-redis
 sleep 20
 
@@ -256,6 +316,10 @@ print('schema_version:',(w or {}).get('schema_version'));print('observed_at:',(w
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+: "${FIELD_ID:?عرّف FIELD_ID في كتلة الإعداد — بلا قيمة يصير المسار /fields//...}"
+: "${SAHOOL_AGENT_TOKEN:?عرّف SAHOOL_AGENT_TOKEN في كتلة الإعداد}"
+
 # فشل الخدمة ⇒ يجب 503 أو weather_status=unavailable — **لا قيمة مُختلَقة**
 docker compose -f docker-compose.v9.yml stop sahool-weather-service
 curl -sS -o "$EV/51_weather_down.json" -w "http_code=%{http_code}\n" \
@@ -274,6 +338,10 @@ docker compose -f docker-compose.v9.yml start sahool-weather-service
 ### ⑥ `CANONICAL-SPECTRAL-CONSUMPTION`
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+: "${FIELD_ID:?عرّف FIELD_ID في كتلة الإعداد — بلا قيمة يصير المسار /fields//...}"
+: "${SAHOOL_AGENT_TOKEN:?عرّف SAHOOL_AGENT_TOKEN في كتلة الإعداد}"
+
 docker compose -f docker-compose.v9.yml up -d sahool-raster-service sahool-minio sahool-titiler \
                                              sahool-vegetation-analysis
 sleep 30
@@ -288,6 +356,8 @@ print('real_data:',d.get('real_data'));print('usable:',d.get('usable'))"
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # أصل كاذب: بيانات وصفيّة بلا COG ⇒ usable=false لا استنتاج
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
   SELECT asset_id, usable, quality_status FROM raster_assets ORDER BY created_at DESC LIMIT 10;
@@ -307,6 +377,10 @@ docker compose -f docker-compose.v9.yml logs --tail=200 sahool-raster-service > 
 > فلا تفترض الرقم — **قِسه**، وسجّل ما تراه لا ما قرأتَه في تقرير.
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+: "${EXPIRED_JWT:?عرّف EXPIRED_JWT في كتلة الإعداد}"
+: "${VALID_JWT:?عرّف VALID_JWT في كتلة الإعداد}"
+
 docker compose -f docker-compose.v9.yml up -d sahool-weather-mcp sahool-market-mcp sahool-nginx
 sleep 15
 M=http://localhost:8000/mcp/v1/tools
@@ -330,6 +404,8 @@ done | tee "$EV/70_mcp_preauth_matrix.txt"
 `raster-service:yaml` · `ai_agronomist:redis`.
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # حاوية نظيفة تماماً — لا تستعمل صورة مبنيّة سلفاً
 docker run --rm -v "$PWD":/w -w /w python:3.11-slim bash -lc '
   pip install -q -r services/sahool-platform/api/requirements.txt
@@ -347,6 +423,8 @@ docker run --rm -v "$PWD":/w -w /w python:3.11-slim bash -lc '
 لا تُضِف سطراً بلا فحص:
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 pip-audit -r services/sahool-platform/api/requirements.txt \
   --ignore-vuln PYSEC-2026-1325 2>&1 | tee "$EV/82_pip_audit.txt"
 ```
@@ -359,6 +437,8 @@ pip-audit -r services/sahool-platform/api/requirements.txt \
 ### ⑨ `SUPERVISOR-SKILL-BEHAVIORAL-DIVERGENCE` — دخان Docker
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 docker compose -f docker-compose.v9.yml up -d sahool-supervisor-agent
 sleep 20
 docker compose -f docker-compose.v9.yml logs --tail=300 sahool-supervisor-agent \
@@ -367,6 +447,8 @@ grep -iE "error|traceback|ModuleNotFound|ImportError" "$EV/90_supervisor_boot.tx
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # البرهان: حذف نسخ الجذر الميّتة لا يكسر الإقلاع
 git rm -r --cached skills/ 2>/dev/null; mv skills /tmp/skills_probe
 docker compose -f docker-compose.v9.yml restart sahool-supervisor-agent && sleep 20
@@ -385,6 +467,8 @@ mv /tmp/skills_probe skills && git checkout -- skills 2>/dev/null   # استعا
 ### ⑩ `APPROVAL-EXECUTION-CONTENT-PIN-UNPROVEN` — سباق TOCTOU
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 docker compose -f docker-compose.v9.yml up -d sahool-decision-service sahool-nats sahool-actuator-service
 sleep 25
 
@@ -401,6 +485,8 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres
 **لا** إيصال مُشغّل. غياب أيّها يعني أنّ التثبيت غير مُثبَت.
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # لا أمر تسرّب: راقب الموضوع أثناء المحاولة
 docker compose -f docker-compose.v9.yml exec -T sahool-nats \
   nats sub 'actuator.>' --count=1 --timeout=30s > "$EV/A2_nats_silence.txt" 2>&1 || echo "no message (expected)"
@@ -411,6 +497,8 @@ docker compose -f docker-compose.v9.yml exec -T sahool-nats \
 ### ⑪ `AGENT-TO-ACTUATOR-BYPASS-NOT-GUARDED`
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # تجاوز HTTP مباشر من حاوية وكيل ⇒ يجب أن يفشل بسياسة الشبكة/المصادقة
 docker compose -f docker-compose.v9.yml exec -T sahool-ai-agronomist \
   curl -sS -o /dev/null -w 'direct_bypass_http=%{http_code}\n' \
@@ -419,6 +507,8 @@ docker compose -f docker-compose.v9.yml exec -T sahool-ai-agronomist \
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # تجاوز NATS بهويّة وكيل ⇒ يجب أن يرفضه الوسيط
 docker compose -f docker-compose.v9.yml exec -T sahool-ai-agronomist \
   nats pub 'actuator.command' '{"probe":"bypass"}' 2>&1 | tee "$EV/B1_nats_bypass.txt"
@@ -443,6 +533,10 @@ pytest -v -m integration tests_v9/test_actuation_killswitch_v29_5_op.py \
 > فمهمّتك ليست «هل تمرّ السلسلة؟» بل **«إلى أين يصل المعرّف، وأين ينقطع بالضبط؟»**
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+: "${FIELD_ID:?عرّف FIELD_ID في كتلة الإعداد — بلا قيمة يصير المسار /fields//...}"
+: "${SAHOOL_AGENT_TOKEN:?عرّف SAHOOL_AGENT_TOKEN في كتلة الإعداد}"
+
 export CID="probe-$(date -u +%s)"
 curl -sS -X POST -H "Authorization: Bearer $SAHOOL_AGENT_TOKEN" \
      -H "X-Correlation-ID: $CID" -H 'Content-Type: application/json' \
@@ -451,6 +545,8 @@ curl -sS -X POST -H "Authorization: Bearer $SAHOOL_AGENT_TOKEN" \
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # 1) أيّ جدول يحمل العمود أصلاً — اكتشاف لا افتراض
 docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres -d sahool -c "
   SELECT table_name FROM information_schema.columns
@@ -473,6 +569,8 @@ done | tee "$EV/C3_correlation_in_logs.txt"
 ```
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 # فشل جزئيّ: اقتل المُتابِع وأعِد التشغيل ⇒ لا تنفيذ مزدوج
 docker compose -f docker-compose.v9.yml kill sahool-reservation-dispatch-relay-worker
 docker compose -f docker-compose.v9.yml up -d sahool-reservation-dispatch-relay-worker
@@ -492,6 +590,8 @@ docker compose -f docker-compose.v9.yml exec -T sahool-postgres psql -U postgres
 ### ⑬ Playbook الريّ المغلق الدورة — أربعة عشر سيناريو فشل
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 docker compose -f docker-compose.v9.yml up -d   # الكلّ + محاكي المُشغّل
 sleep 60
 pytest -v -m integration -k "irrigation or reservation or actuator" \
@@ -518,6 +618,8 @@ pytest -v -m integration -k "irrigation or reservation or actuator" \
 | 14 | rollback failure | أفشِل التسوية | حالة صريحة لا صامتة |
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 for i in $(seq 1 14); do echo "=== scenario $i ==="; done | tee "$EV/D1_scenarios_index.txt"
 # سجّل لكلّ سيناريو: الأمر · stdout/stderr · السلوك المرصود · مطابق/مخالف
 ```
@@ -530,6 +632,8 @@ for i in $(seq 1 14); do echo "=== scenario $i ==="; done | tee "$EV/D1_scenario
 ## المرحلة 4 — حزمة الدليل والتسجيل
 
 ```bash
+: "${EV:?شغّل كتلة 0.1 أوّلاً — بلا EV تُكتَب الأدلّة في مكان خاطئ}"
+
 date -u +%Y-%m-%dT%H:%M:%SZ | tee "$EV/99_finished_at.txt"
 python scripts/certification/evidence_lab.py 2>&1 | tee "$EV/99_evidence_lab.txt" || true
 python scripts/release/validate_release_package.py --root . 2>&1 | tee "$EV/99_release_validation.txt"

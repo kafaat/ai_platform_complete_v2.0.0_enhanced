@@ -159,7 +159,7 @@
     "service": "mcp_servers",
     "domain": "Agent Tools",
     "python_files": 11,
-    "python_loc": 2047,
+    "python_loc": 2080,
     "tests": 1,
     "routes": 33,
     "main": "-",

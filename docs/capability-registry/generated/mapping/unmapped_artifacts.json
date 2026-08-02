@@ -7232,6 +7232,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_mcp_auth_first_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_mcp_functional.py",
     "kind": "tests"
   },
@@ -7241,6 +7245,10 @@
   },
   {
     "path": "tests_v9/test_mcp_raster_status_relay_v58.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_mcp_test_double_isolation_guard.py",
     "kind": "tests"
   },
   {
@@ -7669,6 +7677,10 @@
   },
   {
     "path": "tests_v9/test_spatial_e2e_smoke.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
     "kind": "tests"
   },
   {
