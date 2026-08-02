@@ -7508,6 +7508,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_resolve_merge_conflicts.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_root_depth.py",
     "kind": "tests"
   },

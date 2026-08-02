@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4818,
+    "files_scanned": 4820,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1266,
-      "tests": 1541,
+      "other": 1267,
+      "tests": 1542,
       "web": 448
     },
-    "unmapped_artifacts": 1961,
+    "unmapped_artifacts": 1962,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -41205,6 +41205,10 @@
     },
     {
       "path": "tests_v9/test_requirements_pinning_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_resolve_merge_conflicts.py",
       "kind": "tests"
     },
     {
