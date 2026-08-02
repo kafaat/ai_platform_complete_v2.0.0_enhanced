@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4838,
+    "files_scanned": 4839,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
       "other": 1276,
-      "tests": 1551,
+      "tests": 1552,
       "web": 448
     },
-    "unmapped_artifacts": 1971,
+    "unmapped_artifacts": 1972,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -40749,6 +40749,10 @@
     },
     {
       "path": "tests_v9/test_frontend_nginx_service_proxy_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
       "kind": "tests"
     },
     {
