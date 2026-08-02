@@ -14,9 +14,13 @@ import platform
 import shutil
 import socket
 import subprocess
-from datetime import UTC, datetime
+import sys
 from pathlib import Path
 from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from deterministic_time import generated_at_utc  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = ROOT / "runtime-verification" / "generated"
@@ -134,7 +138,10 @@ def build() -> tuple[dict[str, Any], str]:
     state = "RUNNABLE" if runnable else "BLOCKED_ENVIRONMENT"
     payload = {
         "schema_version": "1.0",
-        "generated_at": datetime.now(UTC).isoformat(),
+        # حتميّ كبيان الإصدار. `normalized()` أدناه يُسقِط هذا الحقل قبل المقارنة،
+        # فالانحراف لم يكن يُفشِل الفحص — لكنّه **كان** يُنتِج فرقاً سطريّاً في ملفّ
+        # متعقَّب، وذلك وحده يكفي لصنع تعارض على كلّ فرع متوازٍ.
+        "generated_at": generated_at_utc(cwd=ROOT),
         "state": state,
         "runnable": runnable,
         "runtime_verified": False,

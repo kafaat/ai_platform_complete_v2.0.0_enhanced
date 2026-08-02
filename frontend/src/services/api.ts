@@ -3217,6 +3217,9 @@ export const fieldCdseThumbnailUrl = (
   // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   params.set('size', String(size));
+  // بطاقات السجلّ الزمنيّ تعرض أصلاً مُدَاماً مُعلَناً للتاريخ/المؤشّر، لا اكتشافاً حيّاً.
+  // source=persisted يجعل الغياب fail-closed (404 → onError) بدل 200 + PNG شفّاف صامت.
+  params.set('source', 'persisted');
   // عقد القصّ الموحَّد (poly/bbox) — نفس المصدر المشترك مع البلاطة وTileJSON.
   for (const [k, v] of Object.entries(cdseClipParams(geometry, bbox))) params.set(k, v);
   appendTileAccessToken(params);

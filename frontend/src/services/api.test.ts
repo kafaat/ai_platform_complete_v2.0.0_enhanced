@@ -61,6 +61,7 @@ describe('fieldCdseThumbnailUrl (مُصغَّرة السجلّ الزمنيّ)',
     expect(url).toContain('index=ndvi');
     expect(url).toContain('date=2026-02-23');
     expect(url).toContain('size=160');
+    expect(url).toContain('source=persisted');
     expect(url).toContain('poly=44%2C15');   // lng,lat (مُرمَّز)
     expect(url).not.toContain('{z}');          // صورة واحدة لا بلاطة XYZ
   });
@@ -69,6 +70,7 @@ describe('fieldCdseThumbnailUrl (مُصغَّرة السجلّ الزمنيّ)',
     const url = fieldCdseThumbnailUrl('fld_1', 'ndvi', 'latest');
     expect(url).not.toContain('date=');
     expect(url).toContain('size=160');
+    expect(url).toContain('source=persisted');
   });
 });
 

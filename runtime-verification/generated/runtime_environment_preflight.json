@@ -16,7 +16,7 @@
     "reachable": false,
     "reason": "daemon_unreachable"
   },
-  "generated_at": "2026-07-29T22:37:54.523095+00:00",
+  "generated_at": "2026-08-02T14:44:40Z",
   "loopback_bind_available": true,
   "platform": {
     "machine": "x86_64",

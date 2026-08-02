@@ -134,6 +134,17 @@
           "expect": "test_a_runner_that_never_ran_is_not_evidence"
         }
       ]
+    },
+    "brain_duplicate_gap_identity_guard.py": {
+      "test": "tests_v9/test_brain_duplicate_gap_identity_guard.py",
+      "mutations": [
+        {
+          "why": "التكرار بدل التلاصق ⇒ السلاسل التاريخيّة المقصودة تُرفَع إنذاراً (١٠ من ١١ على الشجرة)",
+          "find": "        if ids[i] is not None and ids[i] == ids[i + 1]:",
+          "replace": "        if ids[i] is not None and ids[i] in ids[i + 1 :]:",
+          "expect": "test_a_deliberate_history_chain_passes"
+        }
+      ]
     }
   },
   "unmutated_debt_ceiling": 117,

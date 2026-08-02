@@ -11,8 +11,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import UTC, datetime
+import sys
 from pathlib import Path
+
+# نفس اصطلاح `generated_artifact_contract` في `scripts/ci/`: مسار مطلق لا حزمة —
+# المستودع بلا `__init__.py` هناك، والاستيراد النسبيّ ينكسر حسب مجلّد التشغيل.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "ci"))
+
+from deterministic_time import generated_at_utc  # noqa: E402
 
 EXCLUDE_DIRS = {
     ".git",
@@ -226,8 +232,15 @@ def main() -> int:
 
     manifest = {
         "release_name": version,
-        "generated_at": datetime.now(UTC).isoformat(),
-        "source_root": root.name,
+        # ختم مشتقّ من المصدر لا من ساعة الحائط — `DETERMINISTIC-GENERATION-AND-MERGE-SAFETY-01`.
+        # `datetime.now()` كان يكتب قيمة جديدة في كلّ تشغيل، فإعادة توليد على فرع لم
+        # يتغيّر حمولته تُنتج فرقاً سطريّاً مضموناً، وفرعان متوازيان يتعارضان حتماً.
+        "generated_at": generated_at_utc(cwd=root),
+        # `source_root: root.name` حُذِف: **صفر قارئ** في المستودع كلّه (المُنتِج وحده)،
+        # وكان يطبع **اسم مجلّد السحب** فيختم الآلة في مصنوعة إصدار. قِيس فعليّاً:
+        # التوليد داخل شجرة عمل اسمها `wt768` كتب `"source_root": "wt768"`. نفس صنف
+        # `RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01`. حقلٌ بلا قارئ يسرّب البيئة
+        # ليس provenance بل ضجيج يتعارض.
         "file_count": len(files),
         "total_size_bytes": sum(int(row["size_bytes"]) for row in files),
         "missing_required_assets": missing,

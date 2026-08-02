@@ -31,6 +31,8 @@ describe('MapHub historical imagery timeline thumbnails', () => {
 
   it('renders truecolor cdse thumbnails for every returned historical date', () => {
     expect(source).toContain('fieldCdseThumbnailUrl');
+    const apiSource = readFileSync(join(process.cwd(), 'src/services/api.ts'), 'utf8');
+    expect(apiSource).toContain("params.set('source', 'persisted')");
     expect(source).toContain("'truecolor'");
     expect(source).toContain('data-testid="imagery-timeline-items"');
     // انتقل عنصر <img> إلى ImageryTimelineThumb (حالات مرئيّة بدل display:none)، فالتأكيد
