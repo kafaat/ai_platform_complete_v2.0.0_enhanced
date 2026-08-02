@@ -24,6 +24,44 @@ def test_api_versioning_policy_guard_inventory_is_current():
     )
 
 
+# ── مِسبار في ملفّ **غير متعقَّب** — CHECK-STEPS-MUTATE-THE-TREE-01 ──────────────
+#
+# كان هذان الاختباران يحقنان المِسبار في `compat_gateway.py` **المتعقَّب** ثمّ
+# يستعيدانه في `finally`. و`finally` لا ينجو من SIGKILL ولا من إلغاء وظيفة CI ولا
+# من إغلاق الطرفيّة — فالمقاطعة تترك مساراً وهميّاً داخل مصدر حقيقيّ.
+#
+# **وهذا وقع فعلاً**: تقرير اعتماد خارجيّ أبلغ عن NO-GO بـ**١٩ إخفاقاً** ونسبها إلى
+# «تغيير غير محكوم أضاف `/api/probe-newservice/readyz`». المسار **لم يدخل المستودع
+# قطّ**؛ كان مِسبار هذا الاختبار، تسرّب إلى شجرتهم. أي أنّ التسريب لم يُوسِّخ شجرةً
+# فحسب، بل أنتج تشخيصاً خاطئاً كلّفَ جولة اعتماد كاملة.
+#
+# مُعاد إنتاجه: `timeout -s KILL 3 pytest <هذا الاختبار>` ⇒ `M compat_gateway.py`.
+#
+# العلاج: المِسبار يعيش في ملفّ **جديد غير متعقَّب**. الحارس يكتشف المسارات بـ
+# `ROOT.glob("services/**/*.py")` ويحلّلها بـAST بلا استيراد ولا تركيب، فملفّ جديد
+# يُرى تماماً كتعديل ملفّ قائم. وإن قُوطِع الاختبار فالأثر ملفّ `??` يُرى في
+# `git status` ولا يمسّ مصدراً حقيقيّاً — و`_probe_leak_guard` يُسمّيه ويُسمّي علاجه.
+_PROBE_MODULE = "_probe_unadjudicated_route.py"
+
+
+def _probe_path(root: Path) -> Path:
+    return root / "services" / "sahool-platform" / "api" / "routers" / _PROBE_MODULE
+
+
+def _write_probe(root: Path, body: str) -> None:
+    _probe_path(root).write_text(
+        "# مِسبار اختبار مؤقّت — غير متعقَّب. إن وجدتَه في شجرتك فاختبارٌ قُوطِع؛\n"
+        "# احذفه: rm services/sahool-platform/api/routers/" + _PROBE_MODULE + "\n"
+        "from fastapi import APIRouter\n\n"
+        "router = APIRouter()\n" + body,
+        encoding="utf-8",
+    )
+
+
+def _remove_probe(root: Path) -> None:
+    _probe_path(root).unlink(missing_ok=True)
+
+
 def test_baseline_check_rejects_legacy_route_swap_not_just_count():
     """The ratchet in --check enforced only len(current) <= ceiling (a bare count),
     not that the *same* set is shrinking — closing 2 routes and opening 2 different
@@ -44,9 +82,7 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
     naming the escaped route, and both the code and the baseline are then restored."""
     root = Path(__file__).resolve().parents[1]
     baseline_path = root / "docs" / "architecture" / "api_versioning_legacy_baseline.json"
-    target = root / "services" / "sahool-platform" / "api" / "routers" / "compat_gateway.py"
     baseline_original = baseline_path.read_text(encoding="utf-8")
-    code_original = target.read_text(encoding="utf-8")
     escaped = "GET /api/probe-swapped-in/status"
     probe = (
         '\n\n@router.get("/api/probe-swapped-in/status")\n'
@@ -62,7 +98,7 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
         )
 
     try:
-        target.write_text(code_original + probe, encoding="utf-8")
+        _write_probe(root, probe)
         data = json.loads(baseline_original)
         # Count admits it (1 <= 1); the frozen set deliberately holds a different route.
         data["ceiling"] = 1
@@ -86,7 +122,7 @@ def test_baseline_check_rejects_legacy_route_swap_not_just_count():
             "must fail on the SET condition, not the count — the ceiling admitted it"
         )
     finally:
-        target.write_text(code_original, encoding="utf-8")
+        _remove_probe(root)
         baseline_path.write_text(baseline_original, encoding="utf-8")
         _regenerate()
 
@@ -1279,8 +1315,6 @@ def test_new_unversioned_route_is_rejected_without_adjudication():
     regenerates and asserts --check STILL fails, now on the ceiling (0 => 1). That proves
     regenerating cannot launder a new unversioned route into the baseline."""
     root = Path(__file__).resolve().parents[1]
-    target = root / "services" / "sahool-platform" / "api" / "routers" / "compat_gateway.py"
-    original = target.read_text(encoding="utf-8")
     probe = (
         '\n\n@router.get("/api/probe-newservice/readyz")\n'
         "async def _probe_unadjudicated_alias():\n"
@@ -1295,7 +1329,7 @@ def test_new_unversioned_route_is_rejected_without_adjudication():
         )
 
     try:
-        target.write_text(original + probe, encoding="utf-8")
+        _write_probe(root, probe)
 
         # Gate 1: the committed inventory no longer matches the tree.
         drifted = _run_check(root)
@@ -1308,7 +1342,7 @@ def test_new_unversioned_route_is_rejected_without_adjudication():
         assert ratcheted.returncode != 0, "regenerating must not launder a new unversioned route"
         assert "0 ⇒ 1" in ratcheted.stdout + ratcheted.stderr, ratcheted.stdout + ratcheted.stderr
     finally:
-        target.write_text(original, encoding="utf-8")
+        _remove_probe(root)
         _regenerate()
     assert _run_check(root).returncode == 0, "restoring must return --check to green"
 
