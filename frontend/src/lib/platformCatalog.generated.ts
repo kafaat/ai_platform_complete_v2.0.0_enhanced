@@ -14,11 +14,11 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'f43ca80e2c8e5bf1c607db6dac596c70b129aa0af0df580de4850f2d3b3ebc69';
+export const PLATFORM_CATALOG_FINGERPRINT = '49879431e7b6b13bc75ba736bcd0b63761acfc2e8bd9004aa55f43f22119b6de';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
-  "capabilities": 820,
+  "capabilities": 821,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 93,
   "capabilities_idempotent": 46,
@@ -29,7 +29,7 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1105,
+  "route_rows": 1106,
   "ui_waivers": 52,
   "unique_method_path": 998
 } as const;
@@ -216,7 +216,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 74,
+    "capabilityCount": 75,
     "domain": "remote-sensing-truth",
     "id": "raster-service",
     "tested": true,

@@ -56,3 +56,12 @@ app = raster_app_factory.create_raster_app(
     lifespan=lifespan,
     cors_origins=CORS_ORIGINS,
 )
+
+
+# Runtime identity is read from a build-time generated, read-only image file.
+# Mutable runtime environment values are deliberately not trusted.
+@app.get("/runtime-identity", include_in_schema=True)
+def runtime_evidence_identity():
+    from shared.runtime_identity import load_build_identity
+
+    return load_build_identity("raster-service")

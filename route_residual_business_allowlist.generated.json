@@ -779,6 +779,14 @@
       "function": "search"
     },
     {
+      "service": "raster-service",
+      "file": "services/raster-service/main.py",
+      "line": 64,
+      "method": "GET",
+      "path": "/runtime-identity",
+      "function": "runtime_evidence_identity"
+    },
+    {
       "service": "remote-sensing-workspace-bff",
       "file": "services/remote-sensing-workspace-bff/main.py",
       "line": 69,

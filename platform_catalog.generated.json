@@ -3125,6 +3125,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "raster-service.runtime-identity",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "raster-service.salinity.calibrate",
       "consumers": [
         "frontend"
@@ -16092,7 +16109,7 @@
           "sahool-raster-service"
         ],
         "healthcheck": "CMD python -c import httpx; httpx.get('http://localhost:8001/healthz')",
-        "mount_status": "factory_delegated_routes",
+        "mount_status": "direct_routes",
         "published_ports": []
       },
       "sources": {
@@ -16961,7 +16978,7 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 820,
+    "capabilities": 821,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
     "capabilities_idempotent": 46,
@@ -16972,7 +16989,7 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1105,
+    "route_rows": 1106,
     "ui_waivers": 52,
     "unique_method_path": 998
   },
@@ -17156,6 +17173,7 @@
       "classification": "standard_observability",
       "classified": true,
       "components": [
+        "raster-service",
         "sahool-platform",
         "soil-service",
         "weather-service"
@@ -17223,7 +17241,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "f43ca80e2c8e5bf1c607db6dac596c70b129aa0af0df580de4850f2d3b3ebc69",
+  "fingerprint": "49879431e7b6b13bc75ba736bcd0b63761acfc2e8bd9004aa55f43f22119b6de",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

@@ -33,6 +33,14 @@ jobs:
           - service: sahool-platform
             dockerfile: services/sahool-platform/Dockerfile
             image_name: sahool-platform
+          # raster-service دخلت هنا مع وصل هويّتها. صورةٌ تحمل SHA صحيحاً وهي مبنيّة
+          # محلّيّاً ما زالت **غير موثَّقة** — والفجوة الأصليّة نصّها «يمكن بناء صورة لا
+          # يمكن ربطها بالـSHA المختبر»، والربط المقصود attestation لا وسم.
+          # وإضافةُ صفٍّ هنا وحدها لا تكفي: `publish-manifest` أدناه يحمل مجموعة
+          # متوقَّعة مثبَّتة نصّاً، وتركُها يُفشِل تجميع البيان بعد بناء ناجح.
+          - service: raster-service
+            dockerfile: services/raster-service/Dockerfile
+            image_name: sahool-raster-service
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -115,7 +123,7 @@ jobs:
           for p in sorted(Path('image-manifest-fragments').glob('*.json')):
               row=json.loads(p.read_text())
               fragments[row['service']]=row
-          expected={'weather-service','soil-service','sahool-platform'}
+          expected={'weather-service','soil-service','raster-service','sahool-platform'}
           if set(fragments)!=expected:
               raise SystemExit(f'image manifest incomplete: {sorted(set(fragments)^expected)}')
           out={'schema_version':'1.0','source_sha':os.environ['SOURCE_SHA'],'repository':os.environ['GITHUB_REPOSITORY'],'source_ref':os.environ['GITHUB_REF'],'builder_workflow':f"{os.environ['GITHUB_REPOSITORY']}/.github/workflows/runtime-image-provenance.yml",'builder_run_id':os.environ['GITHUB_RUN_ID'],'images':fragments}

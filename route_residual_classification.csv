@@ -134,6 +134,7 @@ rag-retrieval,services/rag-retrieval/main.py,60,GET,/metrics,metrics,metrics
 rag-retrieval,services/rag-retrieval/main.py,73,GET,/readyz,readyz,readiness
 rag-retrieval,services/rag-retrieval/main.py,90,POST,/v1/ingest,ingest,business_endpoint
 rag-retrieval,services/rag-retrieval/main.py,115,POST,/v1/search,search,business_endpoint
+raster-service,services/raster-service/main.py,64,GET,/runtime-identity,runtime_evidence_identity,business_endpoint
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,33,GET,/healthz,healthz,health
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,38,GET,/readyz,readyz,readiness
 remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,69,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace,business_endpoint

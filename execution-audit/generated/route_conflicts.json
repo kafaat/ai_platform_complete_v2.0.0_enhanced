@@ -826,6 +826,14 @@
       "registrations": [
         {
           "function": "runtime_evidence_identity",
+          "line": 64,
+          "method": "GET",
+          "module": "services/raster-service/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        },
+        {
+          "function": "runtime_evidence_identity",
           "line": 24,
           "method": "GET",
           "module": "services/sahool-platform/api/routers/platform_health.py",
@@ -1094,8 +1102,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1089,
-  "route_inventory_sha256": "1460e10192577507e1d3f1c5c9e32cff94d56fa9f9018ff6c6620e724bb99e1c",
+  "route_count": 1090,
+  "route_inventory_sha256": "eb681eba0a404e23dba0b5a5ce514ad03795cdedbf126bc3eea18203a0c5b96e",
   "runtime_verified": false,
   "schema_version": 1
 }

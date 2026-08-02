@@ -218,6 +218,7 @@ rag-retrieval,services/rag-retrieval/main.py,60,GET,/metrics,metrics,infra
 rag-retrieval,services/rag-retrieval/main.py,73,GET,/readyz,readyz,infra
 rag-retrieval,services/rag-retrieval/main.py,90,POST,/v1/ingest,ingest,versioned
 rag-retrieval,services/rag-retrieval/main.py,115,POST,/v1/search,search,versioned
+raster-service,services/raster-service/main.py,64,GET,/runtime-identity,runtime_evidence_identity,infra
 raster-service,services/raster-service/routers/analysis.py,30,POST,/v1/zones/classify,zones_classify,versioned
 raster-service,services/raster-service/routers/analysis.py,48,POST,/v1/change/detect,change_detect,versioned
 raster-service,services/raster-service/routers/analysis.py,85,POST,/v1/fvc/compute,fvc_compute,versioned

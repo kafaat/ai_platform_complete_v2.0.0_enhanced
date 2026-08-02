@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
-  "total_residual_main_routes": 149,
+  "total_residual_main_routes": 150,
   "classification_counts": {
-    "business_endpoint": 101,
+    "business_endpoint": 102,
     "capabilities": 2,
     "contract": 3,
     "health": 19,
@@ -12,7 +12,7 @@
     "metrics": 4,
     "readiness": 13
   },
-  "business_endpoint_count": 101,
+  "business_endpoint_count": 102,
   "rows": [
     {
       "service": "agriai-engine",
@@ -1227,6 +1227,15 @@
       "method": "POST",
       "path": "/v1/search",
       "function": "search",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "raster-service",
+      "file": "services/raster-service/main.py",
+      "line": 64,
+      "method": "GET",
+      "path": "/runtime-identity",
+      "function": "runtime_evidence_identity",
       "classification": "business_endpoint"
     },
     {
