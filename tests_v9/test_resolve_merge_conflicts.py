@@ -39,7 +39,12 @@ SOURCE = "services/sahool-platform/api/imagery_automation.py"
 
 def _run(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(
-        ["git", *args], cwd=repo, capture_output=True, text=True, check=check
+        ["git", *args],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=check,
     )
 
 
@@ -129,9 +134,7 @@ def test_classify(path: str, expected: str) -> None:
 
 
 def test_merge_keeping_both_puts_main_first_on_merge() -> None:
-    text = (
-        "head\n<<<<<<< HEAD\n- مدخل الفرع\n=======\n- مدخل main\n>>>>>>> main\ntail\n"
-    )
+    text = "head\n<<<<<<< HEAD\n- مدخل الفرع\n=======\n- مدخل main\n>>>>>>> main\ntail\n"
     merged, n = rmc.merge_keeping_both(text, "theirs")
     assert n == 1
     assert "<<<<<<<" not in merged and ">>>>>>>" not in merged and "=======" not in merged
@@ -140,9 +143,7 @@ def test_merge_keeping_both_puts_main_first_on_merge() -> None:
 
 def test_merge_keeping_both_inverts_when_main_is_ours() -> None:
     """في إعادة التأسيس يكون `main` هو ``ours`` — والترتيب ينقلب معه."""
-    text = (
-        "head\n<<<<<<< HEAD\n- مدخل main\n=======\n- مدخل الفرع\n>>>>>>> x\ntail\n"
-    )
+    text = "head\n<<<<<<< HEAD\n- مدخل main\n=======\n- مدخل الفرع\n>>>>>>> x\ntail\n"
     merged, _ = rmc.merge_keeping_both(text, "ours")
     assert merged.index("مدخل main") < merged.index("مدخل الفرع")
 

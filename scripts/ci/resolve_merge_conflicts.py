@@ -67,9 +67,7 @@ GENERATED_MARKERS = (
     "api_versioning_inventory.csv",
 )
 
-CONFLICT_RE = re.compile(
-    r"<<<<<<< (?:HEAD|[^\n]*)\n(.*?)\n=======\n(.*?)\n>>>>>>> [^\n]*\n", re.S
-)
+CONFLICT_RE = re.compile(r"<<<<<<< (?:HEAD|[^\n]*)\n(.*?)\n=======\n(.*?)\n>>>>>>> [^\n]*\n", re.S)
 
 # أيّ جانبٍ يحمل `main` في كلّ عمليّة. الإعادة تقلب المعنى لأنّ HEAD أثناءها هو
 # المُنبَع لا الفرع؛ فما لا يرِد هنا يُوقِف السكربت بدل أن يُخمَّن.
@@ -87,7 +85,12 @@ def classify(path: str) -> str:
 
 def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
-        ["git", *args], capture_output=True, text=True, check=True, cwd=root
+        ["git", *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+        cwd=root,
     )
 
 
@@ -148,9 +151,7 @@ def resolve(root: Path = ROOT, dry_run: bool = False) -> int:
     # المصدر أوّلاً وقبل أيّ كتابة: لا قاعدة آليّة تصلح لدمج كود، والتوقّف هنا
     # أرخص من اكتشاف سلوك مدموج خطأً بعد الالتزام.
     if buckets["source"]:
-        print(
-            "resolve_merge_conflicts: تعارض في ملفّات مصدر — يلزم إنسان", file=sys.stderr
-        )
+        print("resolve_merge_conflicts: تعارض في ملفّات مصدر — يلزم إنسان", file=sys.stderr)
         for p in buckets["source"]:
             print(f"  ✗ {p}", file=sys.stderr)
         print(
