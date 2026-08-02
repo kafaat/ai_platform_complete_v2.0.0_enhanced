@@ -233,6 +233,39 @@ def test_red_by_the_wrong_test_is_not_proof(tmp_path: Path) -> None:
     assert any("حمرّ بغير الاختبار المُتوقَّع" in f for f in failures)
 
 
+def test_a_runner_that_never_ran_is_not_evidence(tmp_path: Path, monkeypatch) -> None:
+    """خرجٌ بغير صفر يحتمل «سقطت اختبارات» و«لم يُشغَّل شيء»، والثاني ليس دليلاً.
+
+    وقعت الحالة فعلاً: وُضِعت `--run` في وظيفة lint لا تُثبِّت pytest، فانهار
+    المُشغِّل قبل جمع اختبار واحد وأُبلِغ عن ١٨ «حمرّ بغير الاختبار المُتوقَّع» —
+    صحيحٌ حرفيّاً ويُرسِل قارئه إلى المكان الخطأ.
+    """
+    ci = _fake_repo(tmp_path)
+    monkeypatch.setattr(gmg, "_run_tests", lambda *a, **k: (1, "No module named pytest\n"))
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+    assert any("لم يُشغّل اختباراً" in f for f in failures)
+
+
+@pytest.mark.parametrize(
+    "out,expected",
+    [
+        ("1 failed, 2 passed in 0.3s", True),
+        ("2 passed in 0.1s", True),
+        ("no tests ran in 0.01s", True),
+        # خطأ تجميع: pytest عمل وجمع وانهار الاستيراد ⇒ **دليل**، وشرط
+        # `expect` هو من يقول إنّ الطفرة كسرت الاستيراد لا القاعدة.
+        ("1 error in 0.12s", True),
+        # وهذان لم يُشغَّل فيهما اختبار قطّ — لا انهيار ولا سلامة مُثبَتان.
+        ("ERROR: file or directory not found: tests/nope.py", False),
+        ("No module named pytest", False),
+        ("", False),
+    ],
+)
+def test_ran_at_all(out: str, expected: bool) -> None:
+    assert gmg.ran_at_all(out) is expected
+
+
 def test_the_guard_source_is_restored_after_every_mutation(tmp_path: Path) -> None:
     """الزرع يكتب في المصدر الحقيقيّ — واستعادته ليست تفصيلاً بل شرط سلامة."""
     ci = _fake_repo(tmp_path)

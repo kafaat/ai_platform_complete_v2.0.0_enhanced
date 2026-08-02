@@ -117,8 +117,8 @@
         },
         {
           "why": "اعتبار الحارس المزروع فيه العطل ناجحاً إن خرج بصفر",
-          "find": "            if code == 0:",
-          "replace": "            if False:",
+          "find": "            elif code == 0:",
+          "replace": "            elif False:",
           "expect": "test_a_green_suite_under_a_planted_defect_is_a_failure"
         },
         {
@@ -126,6 +126,12 @@
           "find": "            elif test_src and f\"def {expect}(\" not in test_src:",
           "replace": "            elif False:",
           "expect": "test_a_bare_prefix_is_not_an_expected_test"
+        },
+        {
+          "why": "اعتبار انهيار المُشغِّل دليلاً ⇒ بيئة بلا pytest تُبلَّغ «حمرّ بغير الاختبار المُتوقَّع»",
+          "find": "            if not ran_at_all(out):",
+          "replace": "            if False:",
+          "expect": "test_a_runner_that_never_ran_is_not_evidence"
         }
       ]
     }

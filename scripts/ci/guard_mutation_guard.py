@@ -131,6 +131,17 @@ def check(registry: dict, ci: Path = CI, root: Path = ROOT) -> list[str]:
     return failures
 
 
+def ran_at_all(out: str) -> bool:
+    """هل شغّل pytest اختباراً أصلاً؟
+
+    خرجٌ بغير صفر يحتمل معنيين: «سقطت اختبارات» و«لم يُشغَّل شيء». الثاني ليس
+    دليلاً في أيّ اتّجاه — والخلط بينهما وقع فعلاً: وُضِعت `--run` أوّلاً في وظيفة
+    lint لا تُثبِّت pytest، فانهار المُشغِّل قبل جمع اختبار واحد وأُبلِغ عن ١٨
+    «حمرّ بغير الاختبار المُتوقَّع». صحيحٌ حرفيّاً ويُرسِل قارئه إلى المكان الخطأ.
+    """
+    return any(m in out for m in (" passed", " failed", " error", "no tests ran"))
+
+
 def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
     res = subprocess.run(
         [
@@ -168,7 +179,13 @@ def run_mutations(
                 code, out = _run_tests(spec["test"], root)
             finally:
                 src.write_text(original, encoding="utf-8")
-            if code == 0:
+            if not ran_at_all(out):
+                failures.append(
+                    f"✗ {label}: **المُشغِّل لم يُشغّل اختباراً** — لا انهيار الحارس"
+                    "\n    ولا سلامته مُثبَتان هنا. الأرجح بيئة بلا pytest أو بلا"
+                    f"\n    تبعيّات الجناح. آخر ما طُبِع:\n    {out.strip()[-300:]}"
+                )
+            elif code == 0:
                 failures.append(
                     f"✗ {label}: العطل مزروع والاختبار **أخضر**. هذا الحارس لا"
                     "\n    يحرس هذه القاعدة — أو الاختبار يقرأ مصنوعةً مُولَّدة سلفاً"
