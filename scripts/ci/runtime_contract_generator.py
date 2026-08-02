@@ -41,6 +41,19 @@ ROUTE_RE = re.compile(
 )
 ENV_CALL_RE = re.compile(r"(?:os\.getenv|os\.environ\.get|getenv)\(\s*[\"']([A-Z][A-Z0-9_]+)[\"']")
 ENV_INDEX_RE = re.compile(r"os\.environ\[\s*[\"']([A-Z][A-Z0-9_]+)[\"']\s*\]")
+# A variable read through a module constant is still a variable. The two regexes above
+# only see a *literal* inside the call, so `os.getenv(_CLOUD_POLICY_ENV, "strict")` was
+# invisible and CDSE_CLOUD_POLICY appeared in no contract while --check still passed —
+# a completeness gate reporting completeness it did not have. These two capture the
+# indirect form: an identifier passed to the call, resolved against the module-level
+# constants below. A constant that is never passed to a read is never admitted, so the
+# resolution stays as narrow as the literal case.
+ENV_CALL_INDIRECT_RE = re.compile(
+    r"(?:os\.getenv|os\.environ\.get|getenv)\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*[,)]"
+)
+ENV_INDEX_INDIRECT_RE = re.compile(r"os\.environ\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\]")
+# Module-level `NAME = "ENV_VAR"` — the only bindings the indirect forms resolve against.
+ENV_CONST_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*[\"']([A-Z][A-Z0-9_]+)[\"']", re.M)
 SETTING_RE = re.compile(r"^\s*([A-Z][A-Z0-9_]{2,})\s*[:=]", re.M)
 METRIC_RE = re.compile(r"(?:Counter|Gauge|Histogram|Summary)\(\s*[\"']([^\"']+)[\"']")
 TRACE_RE = re.compile(r"(?:start_as_current_span|start_span)\(\s*[\"']([^\"']+)[\"']")
@@ -53,6 +66,48 @@ SECRET_MARKERS = (
     "ACCESS_KEY",
     "CREDENTIAL",
 )
+# RUNTIME-CONTRACT-KEY-SUFFIX-NOT-SECRET-01. The markers above are substrings, so a
+# name had to contain PRIVATE_KEY/API_KEY/ACCESS_KEY to count. Bare `..._KEY` matched
+# none of them, and ten signing and HMAC keys were published as ordinary configuration:
+# FCM_SERVER_KEY, SEASON_EDGE_HMAC_KEY, DECISION_WORKER_ASSERTION_KEY among them. A
+# contract that lists a signing key beside a log level is not merely untidy -- it is
+# reporting the service's secret surface as smaller than it is.
+#
+# Fail closed: the suffix means key material, and the exemptions are declared with the
+# source line that was read, never inferred from the name. Deliberately NOT a cleverer
+# regex: MFA_ALLOW_DERIVED_KEY and MFA_AUDIT_HASH_KEY differ by one word in one service,
+# and one is a boolean flag. A pattern that separated those two would be a pattern
+# fitted to thirteen known names -- a list wearing a pattern's clothes, which decays the
+# moment the fourteenth name arrives.
+KEY_SUFFIXES = ("_KEY", "_KEYS")
+NONSECRET_KEYS_FILE = ROOT / "docs" / "architecture" / "runtime_contract_nonsecret_keys.json"
+
+
+def declared_nonsecret_keys() -> set[str]:
+    """Names exempt from the ``*_KEY`` rule, read from their declaration.
+
+    Missing or malformed file yields an empty set, so every ``*_KEY`` name classifies
+    as a secret. Losing the exemptions must over-report secrets, never under-report
+    them: the failure has to fall on the safe side of the question it answers.
+    """
+    try:
+        data = json.loads(NONSECRET_KEYS_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    return {
+        str(e["name"]) for e in data.get("nonsecret", []) if isinstance(e, dict) and "name" in e
+    }
+
+
+def is_secret(name: str) -> bool:
+    """A variable is a secret by marker, or by carrying a key suffix without exemption."""
+    if any(marker in name for marker in SECRET_MARKERS):
+        return True
+    if name.endswith(KEY_SUFFIXES):
+        return name not in declared_nonsecret_keys()
+    return False
+
+
 CONFIG_EXCLUDE = {"PATH", "HOME", "HOSTNAME", "PWD", "PYTHONPATH"}
 
 
@@ -88,6 +143,39 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except (UnicodeDecodeError, OSError):
         return ""
+
+
+def resolve_indirect_env(content: str) -> set[str]:
+    """Env names read through a module constant rather than a literal.
+
+    Resolution is deliberately one hop and same-file: a bare identifier passed to
+    ``os.getenv``/``os.environ.get``/``os.environ[...]`` is looked up in that module's
+    ``NAME = "ENV_VAR"`` bindings. Anything that does not resolve is dropped rather than
+    guessed — inventing a name would be worse than the omission this repairs.
+    """
+    referenced = set(ENV_CALL_INDIRECT_RE.findall(content)) | set(
+        ENV_INDEX_INDIRECT_RE.findall(content)
+    )
+    if not referenced:
+        return set()
+    constants = dict(ENV_CONST_RE.findall(content))
+    return {constants[name] for name in referenced if name in constants}
+
+
+def extract_env_names(content: str, filename: str = "") -> set[str]:
+    """Every env name one file declares — the single seam the scan reads through.
+
+    This exists as its own function so the indirect resolution can be held by a test at
+    the level the scan actually uses. Asserting on ``resolve_indirect_env`` alone would
+    stay green if that call were dropped from the scan, which is precisely the shape of
+    the original defect: a capability present but never run.
+    """
+    names = set(ENV_CALL_RE.findall(content)) | set(ENV_INDEX_RE.findall(content))
+    names |= resolve_indirect_env(content)
+    # Pydantic settings often declare uppercase fields directly.
+    if filename in {"config.py", "settings.py"}:
+        names |= set(SETTING_RE.findall(content))
+    return names
 
 
 def classify_routes(routes: set[str]) -> dict[str, list[str]]:
@@ -131,10 +219,7 @@ def scan_service(row: dict[str, str]) -> dict[str, Any]:
         if found_routes:
             routes.update(found_routes)
             evidence["routes"].add(rel(path))
-        found_env = set(ENV_CALL_RE.findall(content)) | set(ENV_INDEX_RE.findall(content))
-        # Pydantic settings often declare uppercase fields directly.
-        if path.name in {"config.py", "settings.py"}:
-            found_env |= set(SETTING_RE.findall(content))
+        found_env = extract_env_names(content, path.name)
         if found_env:
             envs.update(found_env)
             evidence["configuration"].add(rel(path))
@@ -148,7 +233,7 @@ def scan_service(row: dict[str, str]) -> dict[str, Any]:
             evidence["tracing"].add(rel(path))
 
     route_groups = classify_routes(routes)
-    secrets = sorted(e for e in envs if any(marker in e for marker in SECRET_MARKERS))
+    secrets = sorted(e for e in envs if is_secret(e))
     configuration = sorted(e for e in envs if e not in secrets and e not in CONFIG_EXCLUDE)
     dockerfile = ROOT / row.get("dockerfile", "") if row.get("dockerfile") else None
     requirements = ROOT / row.get("requirements", "") if row.get("requirements") else None

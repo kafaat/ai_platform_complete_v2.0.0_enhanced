@@ -9,9 +9,18 @@ repo cannot silently mark production certification complete without evidence.
 from __future__ import annotations
 
 import argparse
-import csv
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from generated_artifact_contract import (  # noqa: E402
+    Artifact,
+    enforce,
+    render_csv,
+    render_json,
+    write_all,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 JSON_PATH = ROOT / "production_certification_checklist.generated.json"
@@ -121,30 +130,38 @@ def _payload() -> dict:
     }
 
 
+_CSV_FIELDS = [
+    "id",
+    "name",
+    "severity",
+    "status",
+    "certification_rule",
+    "commands",
+    "required_evidence",
+]
+
+
+def _csv_rows() -> list[dict]:
+    rows = []
+    for item in BLOCKERS:
+        row = dict(item)
+        row["commands"] = " | ".join(item["commands"])
+        row["required_evidence"] = " | ".join(item["required_evidence"])
+        rows.append(row)
+    return rows
+
+
+def artifacts() -> list[Artifact]:
+    """المصنوعات الثلاث التي يملكها هذا الحارس — كلّها، لا الـJSON وحدها."""
+    return [
+        Artifact(JSON_PATH, render_json(_payload())),
+        Artifact(CSV_PATH, render_csv(_csv_rows(), _CSV_FIELDS)),
+        Artifact(RUNBOOK_PATH, _runbook_text()),
+    ]
+
+
 def write_files() -> None:
-    payload = _payload()
-    JSON_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    with CSV_PATH.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=[
-                "id",
-                "name",
-                "severity",
-                "status",
-                "certification_rule",
-                "commands",
-                "required_evidence",
-            ],
-        )
-        writer.writeheader()
-        for item in BLOCKERS:
-            row = dict(item)
-            row["commands"] = " | ".join(item["commands"])
-            row["required_evidence"] = " | ".join(item["required_evidence"])
-            writer.writerow(row)
-    RUNBOOK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    RUNBOOK_PATH.write_text(_runbook_text(), encoding="utf-8")
+    write_all(artifacts())
 
 
 def _runbook_text() -> str:
@@ -200,13 +217,10 @@ def _runbook_text() -> str:
 
 
 def check_files() -> None:
-    expected_json = json.dumps(_payload(), indent=2, ensure_ascii=False) + "\n"
-    if not JSON_PATH.exists() or JSON_PATH.read_text(encoding="utf-8") != expected_json:
-        raise SystemExit("production certification checklist JSON drift; run with --write")
-    if not CSV_PATH.exists():
-        raise SystemExit("production certification checklist CSV missing; run with --write")
-    if not RUNBOOK_PATH.exists():
-        raise SystemExit("production certification checklist runbook missing; run with --write")
+    # كان يقارن الـJSON وحده ويكتفي بـ`exists()` للـCSV والـrunbook.
+    enforce(artifacts(), write=False, label="production certification checklist")
+    # يبقى تأكيد الصدق الدلاليّ أدناه قائماً على النصّ المُنتَج.
+    expected_json = render_json(_payload())
     runbook = RUNBOOK_PATH.read_text(encoding="utf-8")
     for item in BLOCKERS:
         if item["id"] not in runbook or item["name"] not in runbook:

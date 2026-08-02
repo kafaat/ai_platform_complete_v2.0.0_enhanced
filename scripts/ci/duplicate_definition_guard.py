@@ -10,10 +10,18 @@ from __future__ import annotations
 
 import argparse
 import ast
-import json
 import subprocess
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from generated_artifact_contract import (  # noqa: E402
+    Artifact,
+    enforce,
+    render_json,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "execution-audit" / "generated" / "duplicate_definitions.json"
@@ -113,7 +121,7 @@ def scope_findings(path: Path, tree: ast.Module) -> list[Finding]:
     return findings
 
 
-def generate() -> dict:
+def build_payload() -> dict:
     findings: list[Finding] = []
     parsed = 0
     parse_errors: list[str] = []
@@ -136,9 +144,12 @@ def generate() -> dict:
         ],
         "finding_count": len(findings),
     }
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return payload
+
+
+def artifacts(payload: dict) -> list[Artifact]:
+    """المصنوعة الوحيدة التي يملكها هذا الحارس."""
+    return [Artifact(OUT, render_json(payload))]
 
 
 def main() -> None:
@@ -146,7 +157,10 @@ def main() -> None:
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--generate", action="store_true")
     args = parser.parse_args()
-    payload = generate()
+    payload = build_payload()
+    # `--check` كان يستدعي التوليد الكاتب بلا شرط، فيمحو أيّ إفساد قبل أن يقرأه ثمّ
+    # «يفحص» ما كتبه للتوّ. الفحص الآن يقارن ولا يكتب.
+    enforce(artifacts(payload), write=args.generate, label="duplicate definition guard")
     if args.check and payload["finding_count"]:
         for finding in payload["duplicate_definitions"]:
             print(f"{finding['file']}:{finding['lines']} {finding['scope']}.{finding['symbol']}")

@@ -10,9 +10,18 @@ from __future__ import annotations
 
 import argparse
 import ast
-import csv
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from generated_artifact_contract import (  # noqa: E402
+    Artifact,
+    enforce,
+    render_csv,
+    render_json,
+    write_all,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 MAIN = ROOT / "services" / "sahool-platform" / "api" / "main.py"
@@ -198,20 +207,29 @@ def _recommendation(
     }
 
 
+def _csv_rows(data: dict) -> list[dict]:
+    rows = []
+    for item in data["items"]:
+        row = dict(item)
+        row["decorators"] = " | ".join(row["decorators"])
+        rows.append(row)
+    return rows
+
+
+_CSV_FIELDS = ["category", "name", "kind", "line_start", "line_end", "loc", "decorators"]
+
+
+def artifacts(data: dict) -> list[Artifact]:
+    """المصنوعات الثلاث التي يملكها هذا الحارس — كلّها، لا الـJSON وحدها."""
+    return [
+        Artifact(JSON_PATH, render_json(data)),
+        Artifact(CSV_PATH, render_csv(_csv_rows(data), _CSV_FIELDS)),
+        Artifact(REPORT_PATH, _report(data)),
+    ]
+
+
 def write_files() -> None:
-    data = inventory()
-    JSON_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    with CSV_PATH.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=["category", "name", "kind", "line_start", "line_end", "loc", "decorators"],
-        )
-        writer.writeheader()
-        for item in data["items"]:
-            row = dict(item)
-            row["decorators"] = " | ".join(row["decorators"])
-            writer.writerow(row)
-    REPORT_PATH.write_text(_report(data), encoding="utf-8")
+    write_all(artifacts(inventory()))
 
 
 def _report(data: dict) -> str:
@@ -275,14 +293,10 @@ def _report(data: dict) -> str:
 
 
 def check_files() -> None:
-    expected = json.dumps(inventory(), indent=2, ensure_ascii=False) + "\n"
-    if not JSON_PATH.exists() or JSON_PATH.read_text(encoding="utf-8") != expected:
-        raise SystemExit("platform main subinventory JSON drift; run with --write")
-    if not CSV_PATH.exists():
-        raise SystemExit("platform main subinventory CSV missing; run with --write")
-    if not REPORT_PATH.exists():
-        raise SystemExit("platform main subinventory report missing; run with --write")
+    # كان يقارن الـJSON وحده، ويكتفي بـ`exists()` للـCSV والتقرير — أي أنّ إفساد
+    # محتواهما يمرّ أخضر. الثلاثة تُقارَن الآن بمحتواها.
     data = inventory()
+    enforce(artifacts(data), write=False, label="platform main subinventory")
     if data["direct_route_decorators"] != 0:
         raise SystemExit("platform main.py has direct route decorators after P1")
     if (

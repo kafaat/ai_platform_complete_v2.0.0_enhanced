@@ -11,14 +11,21 @@ This guards follow-up fixes discovered after container fleet review:
 
 from __future__ import annotations
 
-import csv
-import json
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from typing import Any
 
 import yaml
+from generated_artifact_contract import (  # noqa: E402
+    Artifact,
+    enforce,
+    render_csv,
+    render_json,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 COMPOSE = ROOT / "docker-compose.v9.yml"
@@ -92,6 +99,14 @@ def build_inventory() -> list[dict[str, object]]:
     return rows
 
 
+def artifacts(rows: list[dict[str, Any]]) -> list[Artifact]:
+    """المصنوعتان اللتان يملكهما هذا الحارس."""
+    return [
+        Artifact(GENERATED_JSON, render_json(rows)),
+        Artifact(GENERATED_CSV, render_csv(rows, list(rows[0].keys()))),
+    ]
+
+
 def check(write: bool = False) -> None:
     failures: list[str] = []
     rows = build_inventory()
@@ -130,14 +145,8 @@ def check(write: bool = False) -> None:
     for req in [ROOT / "services/sahool-platform/api/requirements.txt"]:
         failures.extend(_bad_inline_comments(req))
 
-    if write:
-        GENERATED_JSON.write_text(
-            json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-        with GENERATED_CSV.open("w", encoding="utf-8", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-            writer.writeheader()
-            writer.writerows(rows)
+    # كان يبني الجرد ويؤكّد قواعده عليه بلا نظرة واحدة إلى الملفّ المُلتزَم.
+    enforce(artifacts(rows), write=write, label="runtime_container_deep_contract_guard")
 
     if failures:
         for failure in failures:

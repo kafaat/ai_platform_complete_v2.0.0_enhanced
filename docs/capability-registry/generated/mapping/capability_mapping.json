@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4807,
+    "files_scanned": 4830,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1263,
-      "tests": 1533,
+      "other": 1272,
+      "tests": 1547,
       "web": 448
     },
-    "unmapped_artifacts": 1956,
+    "unmapped_artifacts": 1967,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -8081,11 +8081,11 @@
           "score": 14
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1279",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1285",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:51",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:52",
           "score": 12
         },
         {
@@ -8093,7 +8093,7 @@
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:149",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:153",
           "score": 12
         },
         {
@@ -8101,11 +8101,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:134",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:138",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:145",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:149",
           "score": 12
         },
         {
@@ -8203,7 +8203,7 @@
       ],
       "events": [
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:847",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:851",
           "score": 12
         }
       ],
@@ -9568,7 +9568,7 @@
           "score": 16
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1279",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1285",
           "score": 14
         }
       ],
@@ -9800,7 +9800,7 @@
           "score": 14
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:847",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:851",
           "score": 14
         },
         {
@@ -17990,7 +17990,7 @@
           "score": 8
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:121",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
@@ -17998,7 +17998,7 @@
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:126",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
@@ -18034,11 +18034,11 @@
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:133",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:150",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         },
         {
@@ -20413,6 +20413,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
           "score": 10,
           "signals": [
@@ -20602,7 +20610,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 83
+        "other_evidence": 84
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -20791,19 +20799,19 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:121",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:126",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:133",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:150",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         }
       ],
@@ -20860,6 +20868,14 @@
         },
         {
           "value": "field_state.canonical @ tests_v9/test_field_state_unification.py:223",
+          "score": 12
+        },
+        {
+          "value": "field_state_projection.py @ tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py:33",
+          "score": 12
+        },
+        {
+          "value": "imagery_automation.py @ tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py:214",
           "score": 12
         },
         {
@@ -21024,6 +21040,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_spectral_decision_link_is_bound_to_the_chain.py",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
           "path": "tests_v9/test_tool_loop_budget_v58_2c.py",
           "score": 12,
           "signals": [
@@ -21131,10 +21155,10 @@
         "backend": 19,
         "routes": 10,
         "database": 5,
-        "events": 12,
+        "events": 14,
         "web": 7,
         "mobile": 0,
-        "tests": 19,
+        "tests": 20,
         "governance": 0,
         "other_evidence": 3
       },
@@ -24878,23 +24902,23 @@
           "score": 16
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1279",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1285",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:51",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:52",
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:149",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:153",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:134",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:138",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:145",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:149",
           "score": 12
         },
         {
@@ -25053,7 +25077,7 @@
           "score": 17
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:847",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:851",
           "score": 12
         },
         {
@@ -25270,6 +25294,22 @@
           ]
         },
         {
+          "path": "tests_v9/test_runtime_contract_key_classification.py",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
+          "path": "tests_v9/test_runtime_contract_indirect_env.py",
+          "score": 10,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "tests_v9/test_decomposed_service_dockerfile_guard.py",
           "score": 8,
           "signals": [
@@ -25372,6 +25412,14 @@
           ]
         },
         {
+          "path": "docs/architecture/runtime_contract_nonsecret_keys.json",
+          "score": 12,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "scripts/ci/container_fleet_contract_guard.py",
           "score": 12,
           "signals": [
@@ -25410,6 +25458,14 @@
             "content:MFA",
             "content:mfa"
           ]
+        },
+        {
+          "path": "scripts/ci/runtime_contract_generator.py",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
         }
       ],
       "ambiguous": [],
@@ -25423,9 +25479,9 @@
         "events": 4,
         "web": 5,
         "mobile": 4,
-        "tests": 13,
+        "tests": 15,
         "governance": 0,
-        "other_evidence": 15
+        "other_evidence": 17
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -26271,11 +26327,11 @@
           "score": 22
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1279",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1285",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:51",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:52",
           "score": 12
         },
         {
@@ -26283,7 +26339,7 @@
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:149",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:153",
           "score": 12
         },
         {
@@ -26291,11 +26347,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:134",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:138",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:145",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:149",
           "score": 12
         },
         {
@@ -26727,7 +26783,7 @@
           "score": 12
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:847",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:851",
           "score": 12
         },
         {
@@ -30085,19 +30141,19 @@
           "score": 8
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:121",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:126",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:133",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:150",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         }
       ],
@@ -40324,6 +40380,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_brain_transition_guard_vocabulary.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_c4m1_mobile_push.py",
       "kind": "tests"
     },
@@ -40357,6 +40417,10 @@
     },
     {
       "path": "tests_v9/test_canonical_irrigation_machine_capability.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_claim_base_guard.py",
       "kind": "tests"
     },
     {
@@ -40684,6 +40748,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_generated_artifact_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gis_enforce.py",
       "kind": "tests"
     },
@@ -40697,6 +40765,10 @@
     },
     {
       "path": "tests_v9/test_gis_web_mercator_crs.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_guard_mutation_guard.py",
       "kind": "tests"
     },
     {
@@ -40725,6 +40797,10 @@
     },
     {
       "path": "tests_v9/test_imagery_quality_metadata_v57_5.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_imagery_scan_bounded_concurrency.py",
       "kind": "tests"
     },
     {
@@ -40864,11 +40940,23 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_mcp_auth_first_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_mcp_functional.py",
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_mcp_generic_context_auth.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_mcp_raster_status_relay_v58.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_mcp_test_double_isolation_guard.py",
       "kind": "tests"
     },
     {
@@ -41144,6 +41232,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_resolve_merge_conflicts.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_root_depth.py",
       "kind": "tests"
     },
@@ -41296,6 +41388,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_supervisor_skill_canonical_location_guard.py",
       "kind": "tests"
     },
@@ -41313,6 +41409,10 @@
     },
     {
       "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_text_encoding_locale.py",
       "kind": "tests"
     },
     {

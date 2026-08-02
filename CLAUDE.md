@@ -4,7 +4,7 @@
 
 ## الاختبارات — ابدأ بـ`pytest -m unit`
 
-- **الافتراضيّ للتغذية الراجعة السريعة محليّاً:** `pytest -m unit`. هذه اختبارات منطق صرف بلا خدمات، وعليها تُبنى بوّابة CI (وظيفة *Unit Tests*: `pytest -v -m unit --cov=services` + أرضيّة تغطية `--cov-fail-under=20`).
+- **الافتراضيّ للتغذية الراجعة السريعة محليّاً:** `pytest -m unit`. هذه اختبارات منطق صرف بلا خدمات، وعليها تُبنى بوّابة CI (وظيفة *Unit Tests*: `pytest -v -m unit --cov=services` + أرضيّة تغطية `--cov-fail-under=43`). الأرضيّة راتشِت يصعد ولا ينزل (20 → 40 → 42 → 43)؛ المقيس حاليّاً ~47%. راجع `docs/testing/coverage_ratchet.md`.
 - **العلامات (markers) في `pytest.ini`:** `unit` / `integration` / `security` / `slow` / `mcp`، و`testpaths = tests_v9`.
 - **احتفظ بـ`-m integration` لِما بعد رفع الخدمات/PostGIS** (تتطلّب Postgres+PostGIS وRedis قيد التشغيل). لا تُشغّلها كافتراضيّ.
 - **حارس تفكيك الراوترات:** `services/sahool-platform/tests/test_router_decomposition_guard.py` (مُعلَّم `unit`) يمنع انحدار تفكيك `main.py` إلى `api/routers/` — أبقِه أخضر عند تعديل نقاط `/api/v1/*`.
@@ -13,7 +13,8 @@
 
 - **قبل** إضافة أو ترقية أيّ شيء في `requirements*.txt`، شغّل فحص ثغرات/استشارة تبعيّات (`pip-audit -r <file>`) محليّاً. الفشل المتأخّر في CI مكلِف.
 - **بوّابة CI (*Security Scan*):**
-  - `pip-audit` يحجب الدمج على المسار الحرج: `services/sahool-platform/api/requirements.txt` و`services/auth/requirements.txt` و`services/guardrails-engine/requirements.txt` و`requirements_real.txt`.
+  - `pip-audit` يحجب الدمج على **١٩ ملفّ متطلّبات** (توسعة C1: كان أربعة فقط فتفلت خدمات كاملة) — منها `services/sahool-platform/api/requirements.txt` و`services/auth/requirements.txt` و`services/guardrails-engine/requirements.txt` و`requirements_real.txt`. القائمة القانونيّة في `.github/workflows/ci.yml` تحت `pip-audit (gating — critical path)`؛ لا تُقلَّص.
+  - استثناء واحد موثَّق: `--ignore-vuln PYSEC-2026-1325` (`ecdsa` — تبعيّة عبوريّة لـ`python-jose`، صنّفها صانعوها WONTFIX، ومسارنا يوقّع عبر خلفيّة `cryptography`). تُشغَّل محلّيّاً بنفس الراية وإلّا ظهرت نتيجة حمراء كاذبة.
   - `bandit -r services/ bots/ agents/ --severity-level high` يحجب على HIGH (الباقي إرشاديّ، لا يحجب).
 - **مثال واقعيّ حديث:** `python-multipart` 0.0.27 حمل ثغرة CVE حجبت CI حتى رُفِع إلى `0.0.31` في المسار الحرج. افحص أوّلاً تتجنّب التكرار.
 
@@ -21,7 +22,7 @@
 
 - **`services/sahool-platform/api/main.py` خالٍ من المسارات بالعقد.** `scripts/ci/p1_main_decomposition_guard.py` يرفض **أيّ** مُزخرِف مسار فيه ويحدّ عدد أسطره. كلّ مسار جديد يذهب إلى `api/routers/`.
 - **مسارات البنية/الـprovenance** (`/healthz` · `/readyz` · `/metrics` · `/runtime-identity`) موضعها القانونيّ **`api/routers/platform_health.py`**، مُعلَنة كبيانات في `docs/architecture/platform_route_placement_contract.json` (`required_source` + `forbidden_sources` + `required_function` + `uniqueness`) ومفروضة بـ`scripts/ci/platform_route_placement_guard.py` — حارس مستقلّ يعمل بلا pytest داخل وظيفة `platform-route-budget`، ويفشل برسالة تسمّي الملفّ الصحيح.
-- **الميزانية:** الراتشِت يحدّ **مسارات النطاق فقط** (`domain ≤ 629`). مسارات البنية تُستثنى عبر allowlist صريحة (method + مسار مُطبَّع، لا substring) بينما يبقى **الجرد الخام ظاهراً** (630). التصنيف يقول ما هو المسار؛ خريطة الموضع تقول أين ينتمي — والاستثناء من الميزانية **لا** يرخّص إعلانه في `main.py`.
+- **الميزانية:** الراتشِت يحدّ **مسارات النطاق فقط** (`domain ≤ 629`). مسارات البنية تُستثنى عبر allowlist صريحة (method + مسار مُطبَّع، لا substring) بينما يبقى **الجرد الخام ظاهراً** (631 خام − 4 بنية = 627 نطاق، الهامش ٢). التصنيف يقول ما هو المسار؛ خريطة الموضع تقول أين ينتمي — والاستثناء من الميزانية **لا** يرخّص إعلانه في `main.py`.
 - **لا ترفع السقف ولا تحذف نقطة provenance** لحلّ تعارض ميزانية؛ صنّفها بصدق أو ضعها في خدمتها.
 
 ## الدماغ المعرفيّ (Knowledge Brain)

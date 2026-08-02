@@ -7,8 +7,28 @@ import argparse
 import re
 import subprocess
 
+# BRAIN-TRANSITION-GUARD-MATCHES-FAIL-CLOSED-01. `\b(CLOSED)\b` was wrong in both
+# directions at once, and the two errors hid each other:
+#
+#   false positive — `fail-closed` and `open-closed` are DESIGN descriptions, not state
+#     transitions, and the hyphen is a word boundary. The term appears 273 times in the
+#     brain alone and in 477 files repo-wide, so any brain-only note explaining a
+#     fail-closed rule was rejected with a message about "closure/verification
+#     transition" -- a true block for a false reason, which is worse than no block,
+#     because the message sends the reader to look for a claim that was never made.
+#
+#   false negative — `CLOSED_IN_CODE` and `CLOSED_IN_CODE_AND_PG_PROVEN` are THIS
+#     repository's actual closure vocabulary, and `\b` fails on the trailing `_`, so the
+#     real claims the guard exists to catch walked straight past it.
+#
+# The lookbehind rejects a preceding hyphen or word character (kills `fail-closed`), the
+# optional `_UPPER` tail admits the real status tokens, and the trailing lookahead keeps
+# `closedness` out. Verified against twelve cases, positive and negative, in
+# tests_v9/test_brain_transition_guard_vocabulary.py.
 CLOSED_RE = re.compile(
-    r"^\+[^+].*\b(CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)\b", re.I
+    r"^\+[^+].*(?<![\w-])(CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)"
+    r"(?:_[A-Z][A-Z_]*)?(?![\w-])",
+    re.I,
 )
 SUBSTANTIVE = (
     "services/",

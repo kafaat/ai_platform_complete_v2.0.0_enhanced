@@ -1,0 +1,311 @@
+"""تصنيف حلّ التعارضات — MERGE-RESOLUTION-BY-HAND-LOSES-WORK-01.
+
+الاختبار المحوريّ هنا (`test_resolved_append_only_survives_a_theirs_sweep`) **يُعيد
+تمثيل الحادثة نفسها** لا وصفها: يحلّ ملفّاً إلحاقيّاً، ثمّ يُمرّر عليه بيده حلقةَ
+``git checkout --theirs`` التي أتلفت العمل، ويؤكّد أنّ الحلّ نجا. فإن نُزِعت الفهرسة
+من داخل حلقة الحلّ — وهي **العطل بعينه**: ملفّ محلول غير مُفهرَس يبقى في
+``--diff-filter=U`` — تدوس الحلقة على الملفّ ويسقط الاختبار.
+
+وهذا مقصود: فحصٌ يبحث عن ``git add`` في المصدر كان سيمرّ على سكربتٍ يستدعيها **بعد**
+الحلقة، أي على العطل الأصليّ حرفيّاً. الخاصّيّة ليست «تُستدعى add» بل «لا يبقى ملفّ
+محلول عرضةً لأمرٍ آليّ»، ولا تُقاس إلّا بتشغيل ذلك الأمر.
+
+ويُختبَر انقلاب الجانبين أيضاً: `main` هو ``--theirs`` في الدمج و``--ours`` في إعادة
+التأسيس. سكربتٌ يُثبّت جانباً يكون صحيحاً في عمليّة وخاطئاً في الأخرى بلا إبلاغ.
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import subprocess
+from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.unit
+
+ROOT = Path(__file__).resolve().parents[1]
+_SPEC = importlib.util.spec_from_file_location(
+    "resolve_merge_conflicts", ROOT / "scripts/ci/resolve_merge_conflicts.py"
+)
+rmc = importlib.util.module_from_spec(_SPEC)
+assert _SPEC.loader is not None
+_SPEC.loader.exec_module(rmc)
+
+BRAIN_LOG = "sahool-brain/log.md"
+GENERATED = "capability-registry/generated/mapping/service_map.json"
+SOURCE = "services/sahool-platform/api/imagery_automation.py"
+
+
+def _run(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["git", *args],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=check,
+    )
+
+
+def _write(repo: Path, rel: str, text: str) -> None:
+    p = repo / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(text, encoding="utf-8")
+
+
+def _make_repo(tmp_path: Path, base: dict[str, str]) -> Path:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _run(repo, "init", "-b", "main")
+    _run(repo, "config", "user.email", "t@example.com")
+    _run(repo, "config", "user.name", "t")
+    _run(repo, "config", "commit.gpgsign", "false")
+    for rel, text in base.items():
+        _write(repo, rel, text)
+    _run(repo, "add", "-A")
+    _run(repo, "commit", "-m", "base")
+    return repo
+
+
+def _diverge(
+    tmp_path: Path,
+    base: dict[str, str],
+    on_main: dict[str, str],
+    on_feature: dict[str, str],
+    operation: str = "merge",
+) -> Path:
+    """يبني تعارضاً حقيقيّاً عبر `merge` أو `rebase`، ويترك المستودع في وسطه."""
+    repo = _make_repo(tmp_path, base)
+    _run(repo, "checkout", "-b", "feature")
+    for rel, text in on_feature.items():
+        _write(repo, rel, text)
+    _run(repo, "add", "-A")
+    _run(repo, "commit", "-m", "feature")
+
+    _run(repo, "checkout", "main")
+    for rel, text in on_main.items():
+        _write(repo, rel, text)
+    _run(repo, "add", "-A")
+    _run(repo, "commit", "-m", "main")
+
+    _run(repo, "checkout", "feature")
+    res = _run(repo, operation, "main", check=False)
+    assert res.returncode != 0, f"كان يُفترَض أن يتعارض {operation}"
+    return repo
+
+
+# نصّ ملفّ إلحاقيّ: كلّ جانب يُلحق **مدخلاً مختلفاً** لا نسخةً من مدخل.
+_LOG_BASE = "# سجلّ\n\n- مدخل قديم\n"
+_LOG_MAIN = _LOG_BASE + "- مدخل من main\n"
+_LOG_FEATURE = _LOG_BASE + "- مدخل من الفرع\n"
+
+
+# ------------------------------------------------------------------ التصنيف
+
+
+@pytest.mark.parametrize(
+    "path,expected",
+    [
+        ("sahool-brain/log.md", "append_only"),
+        ("sahool-brain/gaps/registry.md", "append_only"),
+        ("sahool-brain/decisions/ledger.md", "append_only"),
+        ("sahool-brain/hot.md", "append_only"),
+        ("capability-registry/generated/mapping/x.json", "generated"),
+        ("runtime-contracts/generated/runtime_contracts.json", "generated"),
+        ("release/FILE_CHECKSUMS.txt", "generated"),
+        ("docs/SERVICE_REGISTRY.md", "generated"),
+        ("docs/inventory/route_inventory.csv", "generated"),
+        ("something.sha256", "generated"),
+        ("services/auth/main.py", "source"),
+        ("tests_v9/test_x.py", "source"),
+        ("scripts/ci/some_guard.py", "source"),
+        # ملفّ دماغ ليس في القائمة ليس إلحاقيّاً — القائمة صريحة لا نمط مجلَّد،
+        # لأنّ `sahool-brain/README.md` وثيقة تُحرَّر لا سجلّ يُلحَق.
+        ("sahool-brain/README.md", "source"),
+        ("sahool-brain/index.md", "source"),
+    ],
+)
+def test_classify(path: str, expected: str) -> None:
+    assert rmc.classify(path) == expected
+
+
+# --------------------------------------------------- إبقاء الجانبين وترتيبهما
+
+
+def test_merge_keeping_both_puts_main_first_on_merge() -> None:
+    text = "head\n<<<<<<< HEAD\n- مدخل الفرع\n=======\n- مدخل main\n>>>>>>> main\ntail\n"
+    merged, n = rmc.merge_keeping_both(text, "theirs")
+    assert n == 1
+    assert "<<<<<<<" not in merged and ">>>>>>>" not in merged and "=======" not in merged
+    assert merged.index("مدخل main") < merged.index("مدخل الفرع")
+
+
+def test_merge_keeping_both_inverts_when_main_is_ours() -> None:
+    """في إعادة التأسيس يكون `main` هو ``ours`` — والترتيب ينقلب معه."""
+    text = "head\n<<<<<<< HEAD\n- مدخل main\n=======\n- مدخل الفرع\n>>>>>>> x\ntail\n"
+    merged, _ = rmc.merge_keeping_both(text, "ours")
+    assert merged.index("مدخل main") < merged.index("مدخل الفرع")
+
+
+def test_merge_keeping_both_resolves_every_block() -> None:
+    block = "<<<<<<< HEAD\nأ{i}\n=======\nب{i}\n>>>>>>> main\n"
+    text = "".join(block.format(i=i) for i in range(3))
+    merged, n = rmc.merge_keeping_both(text, "theirs")
+    assert n == 3
+    assert "<<<<<<<" not in merged
+    for i in range(3):
+        assert f"أ{i}" in merged and f"ب{i}" in merged
+
+
+def test_merge_keeping_both_is_a_noop_without_conflicts() -> None:
+    merged, n = rmc.merge_keeping_both("لا تعارض هنا\n", "theirs")
+    assert (merged, n) == ("لا تعارض هنا\n", 0)
+
+
+# ------------------------------------------------------- السلوك على مستودع حيّ
+
+
+def test_append_only_keeps_both_entries(tmp_path: Path) -> None:
+    repo = _diverge(
+        tmp_path, {BRAIN_LOG: _LOG_BASE}, {BRAIN_LOG: _LOG_MAIN}, {BRAIN_LOG: _LOG_FEATURE}
+    )
+    assert rmc.resolve(root=repo) == 0
+    text = (repo / BRAIN_LOG).read_text(encoding="utf-8")
+    assert "مدخل من main" in text
+    assert "مدخل من الفرع" in text
+    assert "<<<<<<<" not in text
+
+
+def test_append_only_is_staged_in_the_same_iteration(tmp_path: Path) -> None:
+    repo = _diverge(
+        tmp_path, {BRAIN_LOG: _LOG_BASE}, {BRAIN_LOG: _LOG_MAIN}, {BRAIN_LOG: _LOG_FEATURE}
+    )
+    rmc.resolve(root=repo)
+    assert rmc.conflicted_paths(repo) == []
+
+
+def test_resolved_append_only_survives_a_theirs_sweep(tmp_path: Path) -> None:
+    """الحادثة نفسها، مُعادة: حلٌّ صحيح ثمّ حلقة ``--theirs`` على «المتبقّي».
+
+    الملفّ المُفهرَس خرج من ``--diff-filter=U`` فلم تره الحلقة. ولو أُخِّرت الفهرسة
+    إلى ما بعد الحلقة — كما كان — لدهسته وضاع مدخلا الجانبين معاً.
+    """
+    repo = _diverge(
+        tmp_path, {BRAIN_LOG: _LOG_BASE}, {BRAIN_LOG: _LOG_MAIN}, {BRAIN_LOG: _LOG_FEATURE}
+    )
+    assert rmc.resolve(root=repo) == 0
+
+    # الحلقة المُتلِفة، حرفيّاً كما جرت.
+    for path in rmc.conflicted_paths(repo):
+        _run(repo, "checkout", "--theirs", "--", path, check=False)
+
+    text = (repo / BRAIN_LOG).read_text(encoding="utf-8")
+    assert "مدخل من main" in text, "دهست الحلقة على الحلّ — الفهرسة تأخّرت عن الحلّ"
+    assert "مدخل من الفرع" in text, "ضاع مدخل الفرع — وهو ما لا يُبلِّغ عنه git"
+
+
+def test_interruption_cannot_orphan_a_resolved_file(tmp_path: Path, monkeypatch) -> None:
+    """**هذا** هو اختبار «الفهرسة في نفس التكرار» — والسابق ليس كذلك.
+
+    أوّل تكذيب لهذه الخاصّيّة **مرّ أخضر**: نقلُ الفهرسة إلى حلقة تالية داخل الدالّة
+    نفسها لم يُسقِط شيئاً، لأنّ كنسة `--theirs` في الاختبار تجري **بعد** عودة الدالّة
+    — وعندها يكون كلّ شيء مُفهرَساً في الحالتين. أي أنّ ذلك الاختبار يقيس «هل انتهت
+    الدالّة بفهرسة» لا «هل يبقى ملفّ محلول عارياً لحظةً».
+
+    والفرق هو الحادثة بعينها: الخطر يقع **بين** الحلّ والفهرسة. فيُقطَع هنا الحلّ في
+    منتصف الدفعة، ويُسأل عمّا حلّ بما سبق: مع الفهرسة داخل التكرار يخرج المُنجَز من
+    ``--diff-filter=U`` فيَسلَم؛ ومع تأجيلها يبقى الاثنان عاريين لأيّ أمرٍ تالٍ.
+    """
+    registry = "sahool-brain/gaps/registry.md"
+    repo = _diverge(
+        tmp_path,
+        {BRAIN_LOG: _LOG_BASE, registry: _LOG_BASE},
+        {BRAIN_LOG: _LOG_MAIN, registry: _LOG_MAIN},
+        {BRAIN_LOG: _LOG_FEATURE, registry: _LOG_FEATURE},
+    )
+    assert len(rmc.conflicted_paths(repo)) == 2
+
+    real = rmc.merge_keeping_both
+    calls: list[int] = []
+
+    def interrupted(text: str, main_side: str) -> tuple[str, int]:
+        calls.append(1)
+        if len(calls) == 2:
+            raise RuntimeError("انقطاع في منتصف الدفعة")
+        return real(text, main_side)
+
+    monkeypatch.setattr(rmc, "merge_keeping_both", interrupted)
+    with pytest.raises(RuntimeError):
+        rmc.resolve(root=repo)
+
+    remaining = rmc.conflicted_paths(repo)
+    assert len(remaining) == 1, (
+        "الملفّ الأوّل حُلَّ على القرص وبقي في --diff-filter=U — "
+        "أي عارياً لأيّ أمرٍ آليّ تالٍ. هذه هي الحادثة."
+    )
+    done = ({BRAIN_LOG, registry} - set(remaining)).pop()
+    text = (repo / done).read_text(encoding="utf-8")
+    assert "مدخل من main" in text and "مدخل من الفرع" in text
+
+
+def test_source_conflict_halts_before_writing_anything(tmp_path: Path) -> None:
+    """المصدر يُوقِف السكربت — و**قبل** أن يمسّ ملفّاً إلحاقيّاً في نفس الدفعة."""
+    repo = _diverge(
+        tmp_path,
+        {BRAIN_LOG: _LOG_BASE, SOURCE: "x = 1\n"},
+        {BRAIN_LOG: _LOG_MAIN, SOURCE: "x = 2\n"},
+        {BRAIN_LOG: _LOG_FEATURE, SOURCE: "x = 3\n"},
+    )
+    assert rmc.resolve(root=repo) == 1
+    assert "<<<<<<<" in (repo / BRAIN_LOG).read_text(encoding="utf-8")
+    assert set(rmc.conflicted_paths(repo)) == {BRAIN_LOG, SOURCE}
+
+
+def test_generated_takes_main_side(tmp_path: Path) -> None:
+    repo = _diverge(
+        tmp_path,
+        {GENERATED: '{"n": 0}\n'},
+        {GENERATED: '{"n": 1}\n'},
+        {GENERATED: '{"n": 2}\n'},
+    )
+    assert rmc.resolve(root=repo) == 0
+    assert (repo / GENERATED).read_text(encoding="utf-8") == '{"n": 1}\n'
+    assert rmc.conflicted_paths(repo) == []
+
+
+def test_rebase_inverts_which_side_is_main(tmp_path: Path) -> None:
+    """نفس الشجرة، عمليّة أخرى: `main` صار ``ours`` — والمصنوعة تتبعه لا الجانب."""
+    repo = _diverge(
+        tmp_path,
+        {GENERATED: '{"n": 0}\n'},
+        {GENERATED: '{"n": 1}\n'},
+        {GENERATED: '{"n": 2}\n'},
+        operation="rebase",
+    )
+    assert rmc.in_progress_operation(repo) == "rebase"
+    assert rmc.resolve(root=repo) == 0
+    assert (repo / GENERATED).read_text(encoding="utf-8") == '{"n": 1}\n'
+
+
+def test_halts_when_no_operation_is_in_progress(tmp_path: Path, monkeypatch) -> None:
+    """تعارضٌ بلا دمج ولا إعادة تأسيس: الجانب مجهول، فالتخمين ممنوع."""
+    repo = _make_repo(tmp_path, {BRAIN_LOG: _LOG_BASE})
+    monkeypatch.setattr(rmc, "conflicted_paths", lambda root=repo: [BRAIN_LOG])
+    assert rmc.resolve(root=repo) == 1
+    assert (repo / BRAIN_LOG).read_text(encoding="utf-8") == _LOG_BASE
+
+
+def test_dry_run_writes_nothing(tmp_path: Path) -> None:
+    repo = _diverge(
+        tmp_path, {BRAIN_LOG: _LOG_BASE}, {BRAIN_LOG: _LOG_MAIN}, {BRAIN_LOG: _LOG_FEATURE}
+    )
+    before = (repo / BRAIN_LOG).read_text(encoding="utf-8")
+    assert rmc.resolve(root=repo, dry_run=True) == 0
+    assert (repo / BRAIN_LOG).read_text(encoding="utf-8") == before
+    assert rmc.conflicted_paths(repo) == [BRAIN_LOG]
+
+
+def test_clean_tree_is_not_an_error(tmp_path: Path) -> None:
+    repo = _make_repo(tmp_path, {BRAIN_LOG: _LOG_BASE})
+    assert rmc.resolve(root=repo) == 0

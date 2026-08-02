@@ -7,20 +7,23 @@
   "why_these_are_not_simply_mapped": "لأنّ الوصل بلا قياس يُبدِل عيباً بعيب أخطر: وجود علم كتابة في `--help` ليس دليلاً أنّه يُعيد توليد **المصنوعة التي يقارنها `--check` نفسه**. وصلها جميعاً على الثقة يجعل `--fix` يكتب ملفّات لم يُطلب منه كتابتها. فالمُقاس هنا **وجود العلم** (من argparse لا من الظنّ)، والمتبقّي لكلّ مدخل إثبات أنّه يُنتج ما تُقارنه بوّابته.",
   "to_close_each": "شغّل `<script> <flag>` على شجرة نظيفة، ثمّ `<script> --check`: إن خرج بصفر وكانت الملفّات المتغيّرة هي **نفسها** التي سمّاها الانحراف، يُضاف المدخل إلى `_GENERATE_FLAG` ويُحذف من هنا. إن كتب غيرها، يبقى هنا بسبب مقيس مكتوب.",
   "unmapped": {
-    "scripts/ci/ai_container_contract_guard.py": "--write",
     "scripts/ci/capability_management_engine.py": "--generate",
     "scripts/ci/capability_registry_guard.py": "--generate",
-    "scripts/ci/capability_registry_v1.py": "--generate",
-    "scripts/ci/duplicate_definition_guard.py": "--generate",
-    "scripts/ci/platform_main_subinventory_guard.py": "--write",
-    "scripts/ci/production_certification_checklist_guard.py": "--write",
-    "scripts/ci/runtime_container_deep_contract_guard.py": "--write",
     "scripts/ci/runtime_environment_preflight.py": "--generate"
   },
   "re_derivation": "أُعيد الاشتقاق آليّاً بعد إعادة التأسيس على fde6f955 بدل نقل الرقم: ١٩ مدخلاً، المجموعة نفسها حرفيّاً — صفر جديد، صفر بائت، صفر علم متغيّر. #749 لم يُضِف مولّداً ولم يصِل واحداً. القاعدة تنطبق على نفسها: الرقم السابق (١٦ تقديراً) صار ١٩ بالاشتقاق، وهذا الاشتقاق أكّد الـ١٩ ولم يُفترضها.",
   "closure_round_1": "أُغلِق **عشرة** مداخل بالشرط المُعلَن لا بالثقة (١٩ ⇒ ٩). لكلٍّ منها: أُفسِدت مصنوعة يملكها ⇒ `--check` خرج بغير صفر (رصد الإفساد)، ثمّ شُغِّل العلم ⇒ `--check` بصفر **والملفّ استُعيد بايتاً بايت**. وقبل ذلك ثبت خمولها: تشغيل العلم على شجرة نظيفة لا يُغيّر شيئاً، فوصلها بـ`--fix` لا يُوسّخ شجرة أحد. الملكيّة اكتُشفت بقياس أزمنة التعديل لا بالتخمين.",
-  "why_the_remaining_nine_are_not_closable_yet": {
-    "non_idempotent_3": "‏capability_management_engine · capability_registry_guard · runtime_environment_preflight: تشغيل العلم على شجرة **نظيفة** يُغيّر ملفّاً في كلّ مرّة. وصلها بـ`--fix` يجعل كلّ مكنسة تُوسِّخ الشجرة بفرق لا يقابله تغيير مصدر. و`runtime_environment_preflight` هو الحالة المعروفة سلفاً (RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01): أثره يصف الآلة لا القدرة.",
-    "check_is_blind_6": "ستّة أُخَر لا يصلح إغلاقها لأنّ شرط الإغلاق نفسه غير قابل للتحقّق: `--check` **لا يرصد إفساد مصنوعته**. القياس بإفساد كلّ ملفّ يملكه كلٌّ منها: ‏ai_container_contract_guard (٢ من ٢ عمياء) · duplicate_definition_guard (١ من ١) · runtime_container_deep_contract_guard (٢ من ٢) — هذه الثلاثة **عمياء تماماً**؛ و capability_registry_v1 (٤ من ٥) · platform_main_subinventory_guard (٢ من ٣) · production_certification_checklist_guard (٢ من ٣) — تفحص ملفّ `.generated.json` وحده وتترك رفيقيه `.csv` و`.md` بلا حراسة. الحصيلة: **١٢ مصنوعة من ١٦** يمكن إفسادها وCI أخضر. وصلها بالخريطة يُصلح انحرافاً لا يستطيع أحد رصده — GENERATED-CHECK-IGNORES-ITS-OWN-COMPANION-ARTIFACTS-01، ويستحقّ شريحته."
+  "closure_round_2": "أُغلِقت الستّة التي كان شرط إغلاقها نفسه غير قابل للتحقّق (٩ ⇒ ٣). الشرط يبدأ بـ«أفسِد مصنوعة ⇒ يجب أن يرصد `--check`»، وهي كانت عمياء عن ١٣ من ١٦ مصنوعة تملكها؛ فوصلها قبل إصلاح العمى كان سيُصلح انحرافاً لا يستطيع أحد رصده. بعد توحيدها على `scripts/ci/generated_artifact_contract.py` مرّ الشرط كاملاً على كلٍّ منها: خمول على شجرة نظيفة · رصد الإفساد **مع تسمية الملفّ** · استعادة بايتاً بايت · ولا يمسّ العلم ملفّاً غير الذي سمّاه الانحراف.",
+  "the_blindness_that_blocked_them": {
+    "gap": "GENERATED-CHECK-IGNORES-ITS-OWN-COMPANION-ARTIFACTS-01 — مُغلَقة",
+    "measured": "١٣ من ١٦ مصنوعة تُفسَد و`--check` أخضر، عند bbfe121f. القياس بإفساد كلّ ملفّ على حدة وقراءة رمز الخروج؛ والتكذيب بإعادة المصادر الستّة إلى HEAD أعاد الـ١٣ بالضبط، وبعد الوصل صار **صفراً من ١٦**.",
+    "correction_of_a_recorded_number": "سُجِّل هنا سابقاً «١٢ من ١٦». إعادة القياس على نفس الأرقام لكلّ حارس (٢/٢ · ١/١ · ٢/٢ · ٤/٥ · ٢/٣ · ٢/٣) تُعطي **١٣**. الرقم الأوّل كان جمعاً خاطئاً لا قياساً مختلفاً.",
+    "correction_of_a_recorded_cause": "سُجِّل أنّ الثلاثة العمياء تماماً تعيد التوليد أثناء الفحص فتمحو الإفساد. القياس بأزمنة التعديل كذّب ذلك: **واحد فقط** يكتب أثناء `--check` (duplicate_definition_guard)؛ أمّا ai_container_contract_guard و runtime_container_deep_contract_guard فلا يكتبان ولا **يقارنان الملفّ إطلاقاً** — يعيدان بناء الجرد في الذاكرة ويؤكّدان قواعدهما الدلاليّة عليه. الأثر واحد والسبب مختلف، والعلاج يختلف باختلافه.",
+    "why_one_module_and_not_six_fixes": "الكتابة والفحص يمرّان بدالّة الرسم **نفسها**، فلا يمكن أن يتباعد ما يُكتَب عمّا يُقارَن — وهو الفخّ الذي أوقع `capability_linker` سابقاً حين كُتِبت المصنوعة بترجمة أسطر وقُورنت بغيرها. والمقارنة بالبايت لا بالنصّ المُترجَم: `read_text` يُوحّد نهايات الأسطر فيُخفي إفساداً حقيقيّاً في CSV تنتهي أسطره بـCRLF.",
+    "regression_lock": "tests_v9/test_generated_artifact_contract.py (‏`unit`، ١٦ فحصاً). لا يُفسِد ملفّات مُلتزَمة — إفسادها في كلّ تشغيل وحدات يترك الشجرة موسَّخة إن قُتِل التشغيل قبل الاستعادة. بدلاً منه ثلاثة شروط قراءة صرفة مجموعها يُساوي ما قاسه الإفساد: `drift` ترصد بايتاً واحداً (على tmp_path) · كلّ حارس يُمرّر إلى `drift`/`enforce` نتيجة `artifacts(...)` الخاصّة به (مُتحقَّق بشجرة AST لا بـgrep) · وعدد مصنوعات كلّ حارس مُعلَن كبيانات فلا يمرّ تضييق المجموعة سرّاً.",
+    "a_failed_falsification_that_added_a_test": "جعلتُ `enforce` تكتب بلا شرط (فيصير الفحص إصلاحاً) وبقيت الملفّة خضراء — فالخاصّيّة كانت مُدّعاة في التوثيق وغير محروسة. أُضيف `test_checking_never_repairs_what_it_is_checking`، وأربع تكذيبات تسقط الآن جميعاً."
+  },
+  "why_the_remaining_three_are_not_closable_yet": {
+    "non_idempotent_3": "‏capability_management_engine · capability_registry_guard · runtime_environment_preflight: تشغيل العلم على شجرة **نظيفة** يُغيّر ملفّاً في كلّ مرّة. وصلها بـ`--fix` يجعل كلّ مكنسة تُوسِّخ الشجرة بفرق لا يقابله تغيير مصدر. و`runtime_environment_preflight` هو الحالة المعروفة سلفاً (RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01): أثره يصف الآلة لا القدرة."
   }
 }
