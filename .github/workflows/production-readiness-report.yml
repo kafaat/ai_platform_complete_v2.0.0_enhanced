@@ -21,6 +21,11 @@ on:
         type: boolean
         required: false
         default: false
+      repository_tests:
+        description: Run the blocking Repository Tests job (pytest tests/)
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   contents: read
@@ -48,7 +53,8 @@ jobs:
             --project-dir . \
             --output artifacts/production-readiness/report.json \
             --expected-sha "${{ inputs.expected_sha }}" \
-            ${{ inputs.full_unit && '--full-unit' || '' }}
+            ${{ inputs.full_unit && '--full-unit' || '' }} \
+            ${{ inputs.repository_tests && '--repository-tests' || '' }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: production-readiness-report-${{ github.sha }}

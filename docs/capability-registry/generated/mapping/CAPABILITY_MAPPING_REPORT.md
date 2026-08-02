@@ -12,9 +12,9 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **47**
-- Files scanned: **4844**
+- Files scanned: **4853**
 - Ambiguous artifacts queued: **394**
-- Unmapped artifacts queued: **1973**
+- Unmapped artifacts queued: **1975**
 
 ## Capability coverage
 
@@ -24,12 +24,12 @@
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | DEC-004 | decision | 9 | 20 | 24 | 29 | 0 | 0 | 15 | 5 |
-| DEC-005 | decision | 5 | 85 | 5 | 3 | 0 | 0 | 3 | 5 |
+| DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 7 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 6 | 5 | 3 | 1 | 0 | 2 | 6 |
-| DEC-008 | decision | 5 | 93 | 14 | 4 | 0 | 0 | 1 | 5 |
+| DEC-008 | decision | 5 | 94 | 14 | 4 | 0 | 0 | 1 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
-| DEC-010 | decision | 4 | 88 | 42 | 8 | 0 | 0 | 5 | 5 |
+| DEC-010 | decision | 4 | 89 | 42 | 8 | 0 | 0 | 5 | 5 |
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 23 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 13 | 2 | 25 | 7 |
 | FM-003 | farm_management | 13 | 56 | 6 | 53 | 2 | 2 | 11 | 7 |
@@ -77,16 +77,16 @@
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 2 | 3 |
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 5 | 5 |
-| SAT-009 | satellite | 11 | 67 | 0 | 12 | 1 | 0 | 21 | 5 |
+| SAT-009 | satellite | 12 | 68 | 0 | 12 | 1 | 0 | 21 | 5 |
 | SEC-001 | security | 13 | 36 | 100 | 46 | 0 | 0 | 55 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
-| SEC-004 | security | 7 | 20 | 23 | 4 | 5 | 4 | 15 | 7 |
+| SEC-004 | security | 7 | 21 | 23 | 4 | 5 | 4 | 15 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 1 | 0 | 0 | 8 | 4 |
 | SEC-007 | security | 2 | 0 | 9 | 47 | 0 | 0 | 9 | 4 |
 | SEC-008 | security | 0 | 0 | 0 | 1 | 0 | 0 | 6 | 2 |
-| SOIL-001 | soil | 13 | 90 | 14 | 35 | 1 | 0 | 13 | 6 |
+| SOIL-001 | soil | 13 | 91 | 14 | 35 | 1 | 0 | 13 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 6 | 5 | 0 | 11 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |

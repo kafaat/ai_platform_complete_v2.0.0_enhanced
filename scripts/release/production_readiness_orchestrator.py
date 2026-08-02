@@ -2,7 +2,8 @@
 """SAHOOL v9 — منسّق جاهزيّة الإنتاج (أداة مشغّل، ليست بوّابة CI).
 
 يجمع البوّابات السبع القانونيّة الساكنة + جناح الوحدات (اختياريّاً، ومرّةً ثانية تحت
-لغة C) + مسابير HTTP حيّة + فحوص PostgreSQL، ويُخرِج حكماً واحداً بسند.
+لغة C) + وظيفة Repository Tests المستقلّة (`pytest tests/`) + مسابير HTTP حيّة +
+فحوص PostgreSQL، ويُخرِج حكماً واحداً بسند.
 
 **حدّ الصدق، وهو أهمّ ما فيه:** قد يُقرّر `release_candidate` أو `live_ready` أو
 `production_certified_candidate`. ولا يمسّ `production_certified` المحكوم أبداً —
@@ -141,6 +142,7 @@ class Runner:
 
         self._tests_attempted = False
         self._locale_tests_attempted = False
+        self._repository_tests_attempted = False
         self._http_probes_attempted = False
         self._database_probes_attempted = False
         self._runtime_identity_verified = False
@@ -385,6 +387,102 @@ class Runner:
                     "PYTHONUTF8": "0",
                 },
             )
+
+    def _repository_pytest_ignores(self) -> list[str]:
+        """Return the baseline-derived ignores used by the canonical CI job."""
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "scripts/ci/tests_tree_coverage_guard.py",
+                "--pytest-ignores",
+            ],
+            cwd=self.root,
+            text=True,
+            encoding="utf-8",
+            capture_output=True,
+            timeout=60,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(
+                "cannot derive Repository Tests ignores: "
+                + (proc.stdout + proc.stderr).strip()[-1000:]
+            )
+        ignores = shlex.split(proc.stdout.strip())
+        invalid = [arg for arg in ignores if not arg.startswith("--ignore=tests/")]
+        if invalid:
+            raise RuntimeError(f"invalid derived pytest ignores: {invalid}")
+        return ignores
+
+    def repository_test_suite(self, requested: bool) -> None:
+        """Run the blocking Repository Tests job exactly as CI defines it.
+
+        ``pytest -m unit`` is not a superset of the repository job. The canonical
+        job first validates ``docs/testing/tests_tree_baseline.json`` and then runs
+        the whole ``tests/`` tree minus only the derived, justified exclusions.
+        """
+        if not requested:
+            self.add(
+                Result(
+                    "repository_tests",
+                    "repository-tests",
+                    "skipped",
+                    False,
+                    detail="not requested",
+                )
+            )
+            return
+
+        self._repository_tests_attempted = True
+        coverage = self.command(
+            "repository_tests_tree_coverage",
+            [sys.executable, "scripts/ci/tests_tree_coverage_guard.py", "--check"],
+            category="repository-tests",
+            critical=True,
+            timeout=120,
+        )
+        if coverage.status != "passed":
+            self.add(
+                Result(
+                    "repository_tests",
+                    "repository-tests",
+                    "failed",
+                    True,
+                    detail="tests tree coverage guard failed; pytest was not run",
+                )
+            )
+            return
+
+        try:
+            ignores = self._repository_pytest_ignores()
+        except Exception as exc:  # noqa: BLE001 — configuration failure must block
+            self.add(
+                Result(
+                    "repository_tests",
+                    "repository-tests",
+                    "failed",
+                    True,
+                    detail=str(exc),
+                )
+            )
+            return
+
+        self.command(
+            "repository_tests",
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests",
+                "-q",
+                "-p",
+                "no:cacheprovider",
+                *ignores,
+            ],
+            category="repository-tests",
+            critical=True,
+            timeout=1800,
+        )
 
     # ── HTTP ───────────────────────────────────────────────────────────────
     @staticmethod
@@ -786,11 +884,13 @@ class Runner:
         require_tests: bool,
         require_certified: bool,
         require_locale_tests: bool,
+        require_repository_tests: bool,
     ) -> int:
         if require_certified:
             require_live = True
             require_tests = True
             require_locale_tests = True
+            require_repository_tests = True
 
         static_ready = not any(
             r.critical and r.status != "passed" and r.category in {"source", "static"}
@@ -802,6 +902,20 @@ class Runner:
         )
         locale_tests_ready = self._locale_tests_attempted and any(
             r.name == "unit_suite_c_locale" and r.status == "passed" for r in self.results
+        )
+        repository_tests_ready = (
+            self._repository_tests_attempted
+            and any(
+                r.name == "repository_tests"
+                and r.category == "repository-tests"
+                and r.status == "passed"
+                for r in self.results
+            )
+            and not any(
+                r.critical and r.status != "passed"
+                for r in self.results
+                if r.category == "repository-tests"
+            )
         )
 
         live_results = [r for r in self.results if r.category in {"live-http", "live-db"}]
@@ -820,7 +934,12 @@ class Runner:
         runtime_sha_bound = checkout_sha_bound and self._runtime_identity_verified
 
         certified_candidate_ready = (
-            static_ready and tests_ready and locale_tests_ready and live_ready and runtime_sha_bound
+            static_ready
+            and tests_ready
+            and locale_tests_ready
+            and repository_tests_ready
+            and live_ready
+            and runtime_sha_bound
         )
 
         critical_failures = [r for r in self.results if r.critical and r.status == "failed"]
@@ -833,6 +952,8 @@ class Runner:
         if require_tests and not tests_ready:
             blocked = True
         if require_locale_tests and not locale_tests_ready:
+            blocked = True
+        if require_repository_tests and not repository_tests_ready:
             blocked = True
         if require_live and not live_ready:
             blocked = True
@@ -857,7 +978,7 @@ class Runner:
 
         target = output if output.is_absolute() else self.root / output
         payload: dict[str, Any] = {
-            "schema_version": 5,
+            "schema_version": 6,
             "generated_at_utc": datetime.now(UTC).isoformat(),
             "root": str(self.root),
             "commit_sha": self.commit_sha,
@@ -866,6 +987,7 @@ class Runner:
             "static_ready": static_ready,
             "tests_ready": tests_ready,
             "locale_tests_ready": locale_tests_ready,
+            "repository_tests_ready": repository_tests_ready,
             "live_complete": live_complete,
             "required_probes_passed": required_probes_passed,
             "live_ready": live_ready,
@@ -910,9 +1032,19 @@ def main() -> int:
     parser.add_argument("--expected-sha", default="")
     parser.add_argument("--full-unit", action="store_true")
     parser.add_argument("--locale-unit", action="store_true")
+    parser.add_argument(
+        "--repository-tests",
+        action="store_true",
+        help="run the blocking Repository Tests job: pytest tests/",
+    )
     parser.add_argument("--require-live", action="store_true")
     parser.add_argument("--require-tests", action="store_true")
     parser.add_argument("--require-locale-tests", action="store_true")
+    parser.add_argument(
+        "--require-repository-tests",
+        action="store_true",
+        help="block unless pytest tests/ was executed and passed",
+    )
     parser.add_argument("--require-certified", action="store_true")
     # **العيب المُصلَح:** `action="append"` مع افتراضيّ غير `None` **يُوسّع** الافتراضيّ
     # ولا يستبدله — مقيس: `--required-rls-table audit` يُعطي
@@ -943,10 +1075,17 @@ def main() -> int:
 
     rls_tables = tuple(dict.fromkeys(args.required_rls_table or DEFAULT_REQUIRED_RLS_TABLES))
 
+    # Certification is an execution request, not merely a verdict preference:
+    # it must actually run every blocking test job before ``finalize`` judges it.
+    effective_full_unit = args.full_unit or args.require_certified
+    effective_locale_unit = args.locale_unit or args.require_certified
+    effective_repository_tests = args.repository_tests or args.require_certified
+
     runner = Runner(args.project_dir, verbose=args.verbose)
     runner.static_preflight(args.expected_sha)
     runner.canonical_static_gates()
-    runner.test_suites(args.full_unit, args.locale_unit)
+    runner.test_suites(effective_full_unit, effective_locale_unit)
+    runner.repository_test_suite(effective_repository_tests)
     expected_sha = args.expected_sha or runner.commit_sha
     runner.live_http_probes(args.probe_config, expected_sha)
     runner.database_probes(args.database_url or None, rls_tables, args.migration_table or None)
@@ -956,6 +1095,7 @@ def main() -> int:
         require_tests=args.require_tests,
         require_certified=args.require_certified,
         require_locale_tests=args.require_locale_tests,
+        require_repository_tests=args.require_repository_tests,
     )
 
 

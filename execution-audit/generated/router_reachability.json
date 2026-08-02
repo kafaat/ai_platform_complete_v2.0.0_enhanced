@@ -91,10 +91,10 @@
     },
     {
       "kind": "app",
-      "line": 395,
+      "line": 396,
       "module": "services.auth.main",
       "node_id": "services.auth.main:app",
-      "route_count": 0,
+      "route_count": 1,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -190,10 +190,10 @@
     },
     {
       "kind": "app",
-      "line": 121,
+      "line": 122,
       "module": "services.decision-service.main",
       "node_id": "services.decision-service.main:app",
-      "route_count": 69,
+      "route_count": 70,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -238,7 +238,7 @@
       "line": 17,
       "module": "services.guardrails-engine.routers.health",
       "node_id": "services.guardrails-engine.routers.health:router",
-      "route_count": 4,
+      "route_count": 5,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -2227,7 +2227,7 @@
       "line": 16,
       "module": "services.supervisor-agent.routers.health",
       "node_id": "services.supervisor-agent.routers.health:router",
-      "route_count": 5,
+      "route_count": 6,
       "statically_reachable": false,
       "symbol": "router"
     },
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "dcad70ae7d1b0bd50c430f1c35309c29daba3b73b520d6018bc71b7b6dad3d0d",
+  "inventory_sha256": "4dbd7356e229a284da67e1747b6c7b2bb03518607dd6ac245f6bab3d27a9452d",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -2725,7 +2725,7 @@
       "line": 17,
       "module": "services.guardrails-engine.routers.health",
       "node_id": "services.guardrails-engine.routers.health:router",
-      "route_count": 4,
+      "route_count": 5,
       "safe_to_delete": false,
       "symbol": "router"
     },
@@ -4745,7 +4745,7 @@
       "line": 16,
       "module": "services.supervisor-agent.routers.health",
       "node_id": "services.supervisor-agent.routers.health:router",
-      "route_count": 5,
+      "route_count": 6,
       "safe_to_delete": false,
       "symbol": "router"
     },

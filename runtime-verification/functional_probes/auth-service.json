@@ -1,0 +1,34 @@
+{
+  "base_url_env": "AUTH_SERVICE_BASE_URL",
+  "entrypoint": "services/auth/routers/ops.py",
+  "identity_path": "/runtime-identity",
+  "note": "Deterministic health probe plus immutable runtime identity binding for certification. التأكيدات مقيسة من `services/auth/routers/ops.py:28` ولا تُترك فارغة: `response_assertions: []` يُسقِط تحقّق الخطّة نفسها، ويُنتِج مسباراً يقيس أنّ الخدمة **حيّة** لا أنّها تُجيب بما تعاقدت عليه. ونقطة الدخول هي `routers/ops.py` لا `main.py`: المُحقِّق يقرأ المُزخرِفات ساكناً في الملفّ المُعلَن، و`/healthz` مُعلَن في الراوتر.",
+  "openapi_path": "/openapi.json",
+  "probes": [
+    {
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "method": "GET",
+      "path": "/healthz",
+      "probe_id": "auth-service-health",
+      "response_assertions": [
+        {
+          "field": "status",
+          "equals": "alive"
+        },
+        {
+          "field": "service",
+          "equals": "auth"
+        },
+        {
+          "field": "version",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "service": "auth-service",
+  "source_service": "services/auth"
+}

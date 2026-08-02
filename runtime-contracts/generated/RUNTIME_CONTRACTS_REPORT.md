@@ -36,7 +36,7 @@
 | qdrant-seed | 28.6% | — | — | — | — | ✓ |
 | rag-retrieval | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | raster-service | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
-| raster-tiler-service | 14.3% | — | — | — | — | — |
+| raster-tiler-service | 28.6% | — | — | — | — | — |
 | remote-sensing-workspace-bff | 71.4% | ✓ | ✓ | — | — | ✓ |
 | sahool-platform | 85.7% | ✓ | ✓ | ✓ | — | ✓ |
 | sam2-inference | 71.4% | ✓ | ✓ | — | — | ✓ |

@@ -63,3 +63,11 @@ async def healthz_deps():
         media_type="application/json",
         status_code=503 if degraded else 200,
     )
+
+
+@router.get("/runtime-identity")
+async def runtime_identity():
+    """Immutable build identity emitted from image metadata."""
+    from shared.runtime_identity import load_build_identity
+
+    return load_build_identity("supervisor-agent")

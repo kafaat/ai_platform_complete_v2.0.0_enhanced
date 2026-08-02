@@ -6,7 +6,7 @@
   "compose_name_count": 212,
   "config_count": 4,
   "upstream_count": 51,
-  "proxied_location_count": 68,
+  "proxied_location_count": 70,
   "gateway_authenticated_location_count": 8,
   "tenant_bound_location_count": 8,
   "hard_configuration_errors": [],
@@ -483,6 +483,32 @@
           "security_class": "public_or_service_enforced"
         },
         {
+          "selector": "= /readyz",
+          "proxy_pass": "http://platform_backend/readyz",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 285,
+          "security_class": "public_or_service_enforced"
+        },
+        {
+          "selector": "= /runtime-identity",
+          "proxy_pass": "http://platform_backend/runtime-identity",
+          "upstream": "platform_backend",
+          "upstream_defined": true,
+          "auth_request": false,
+          "tenant_header_cleared": true,
+          "trusted_tenant_injected": false,
+          "internal": false,
+          "sensitive": false,
+          "line": 289,
+          "security_class": "public_or_service_enforced"
+        },
+        {
           "selector": "/metrics",
           "proxy_pass": "http://indicators_backend/metrics",
           "upstream": "indicators_backend",
@@ -492,7 +518,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 285,
+          "line": 293,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -505,7 +531,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 287,
+          "line": 298,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -518,7 +544,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 292,
+          "line": 304,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -531,7 +557,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 301,
+          "line": 312,
           "security_class": "public_or_service_enforced"
         },
         {
@@ -544,7 +570,7 @@
           "trusted_tenant_injected": false,
           "internal": false,
           "sensitive": false,
-          "line": 305,
+          "line": 317,
           "security_class": "public_or_service_enforced"
         }
       ],
@@ -1353,5 +1379,5 @@
     }
   ],
   "boundary": "Static Nginx and Compose evidence only. Service-level authentication and live route behavior require runtime probes.",
-  "content_sha256": "e7dc3faceee5b4c2f8bf409f12da8db2d45e2c2a7b86b2063a855d416f9e4dbf"
+  "content_sha256": "349d23c47c259e6be34f6f579a9cb3027066d42783513b706d47f3b14c299f5e"
 }

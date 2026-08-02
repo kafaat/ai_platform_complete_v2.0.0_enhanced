@@ -48,6 +48,7 @@ def _runner(tmp_path):
     runner.tree_sha = "b" * 40
     runner._tests_attempted = False
     runner._locale_tests_attempted = False
+    runner._repository_tests_attempted = False
     runner._http_probes_attempted = False
     runner._database_probes_attempted = False
     runner._runtime_identity_verified = False
@@ -158,6 +159,7 @@ def test_critical_skips_are_counted_not_hidden_behind_zero_failures(tmp_path):
         require_tests=False,
         require_certified=False,
         require_locale_tests=False,
+        require_repository_tests=False,
     )
     report = _report(tmp_path)
     assert code == 0
@@ -187,6 +189,7 @@ def test_certification_is_blocked_without_a_runtime_identity_match(tmp_path):
     ]
     runner._tests_attempted = True
     runner._locale_tests_attempted = True
+    runner._repository_tests_attempted = True
     runner._http_probes_attempted = True
     runner._database_probes_attempted = True
     runner._required_probe_names = {"http"}
@@ -198,6 +201,7 @@ def test_certification_is_blocked_without_a_runtime_identity_match(tmp_path):
         require_tests=True,
         require_certified=True,
         require_locale_tests=True,
+        require_repository_tests=True,
     )
     report = _report(tmp_path)
     assert code == 1
@@ -219,6 +223,7 @@ def test_http_alone_is_not_live_ready(tmp_path):
         require_tests=False,
         require_certified=False,
         require_locale_tests=False,
+        require_repository_tests=False,
     )
     report = _report(tmp_path)
     assert code == 1
@@ -238,12 +243,14 @@ def test_full_evidence_yields_a_candidate_and_never_certifies(tmp_path):
         _result("static", "static", "passed"),
         _result("unit_suite", "tests", "passed"),
         _result("unit_suite_c_locale", "tests", "passed"),
+        _result("repository_tests", "repository-tests", "passed"),
         _result("platform_runtime_identity", "live-http", "passed"),
         _result("db", "live-db", "passed"),
         _result("expected_sha_matches_checkout", "source", "passed"),
     ]
     runner._tests_attempted = True
     runner._locale_tests_attempted = True
+    runner._repository_tests_attempted = True
     runner._http_probes_attempted = True
     runner._database_probes_attempted = True
     runner._runtime_identity_verified = True
@@ -256,6 +263,7 @@ def test_full_evidence_yields_a_candidate_and_never_certifies(tmp_path):
         require_tests=True,
         require_certified=True,
         require_locale_tests=True,
+        require_repository_tests=True,
     )
     report = _report(tmp_path)
     assert code == 0
@@ -302,3 +310,131 @@ def test_every_required_probe_is_declared_in_the_example_config():
     declared = {p["name"] for p in config["probes"]}
     missing = sorted(set(config["required_probe_names"]) - declared)
     assert not missing, f"مسابير واجبة غير معرَّفة: {missing}"
+
+
+# ── Repository Tests gate ─────────────────────────────────────────────────────
+
+
+def test_repository_tests_are_a_separate_critical_job(monkeypatch, tmp_path):
+    runner = _runner(tmp_path)
+    calls = []
+
+    def fake_command(name, command, **kwargs):
+        calls.append((name, command, kwargs["category"], kwargs["critical"]))
+        result = _result(name, kwargs["category"], "passed", kwargs["critical"])
+        runner.results.append(result)
+        return result
+
+    monkeypatch.setattr(runner, "command", fake_command)
+    monkeypatch.setattr(
+        runner,
+        "_repository_pytest_ignores",
+        lambda: ["--ignore=tests/integration/test_live_only.py"],
+    )
+    runner.repository_test_suite(True)
+
+    assert runner._repository_tests_attempted is True
+    assert calls[0] == (
+        "repository_tests_tree_coverage",
+        [sys.executable, "scripts/ci/tests_tree_coverage_guard.py", "--check"],
+        "repository-tests",
+        True,
+    )
+    assert calls[1] == (
+        "repository_tests",
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "tests",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            "--ignore=tests/integration/test_live_only.py",
+        ],
+        "repository-tests",
+        True,
+    )
+
+
+def test_certification_is_blocked_when_repository_tests_were_not_run(tmp_path):
+    runner = _runner(tmp_path)
+    runner.results = [
+        _result("source", "source", "passed"),
+        _result("static", "static", "passed"),
+        _result("unit_suite", "tests", "passed"),
+        _result("unit_suite_c_locale", "tests", "passed"),
+        _result("platform_runtime_identity", "live-http", "passed"),
+        _result("db", "live-db", "passed"),
+        _result("expected_sha_matches_checkout", "source", "passed"),
+    ]
+    runner._tests_attempted = True
+    runner._locale_tests_attempted = True
+    runner._http_probes_attempted = True
+    runner._database_probes_attempted = True
+    runner._runtime_identity_verified = True
+    runner._required_probe_names = {"platform_runtime_identity"}
+    runner._passed_probe_names = {"platform_runtime_identity"}
+
+    code = runner.finalize(
+        tmp_path / "report.json",
+        require_live=True,
+        require_tests=True,
+        require_certified=True,
+        require_locale_tests=True,
+        require_repository_tests=True,
+    )
+    report = _report(tmp_path)
+    assert code == 1
+    assert report["verdict"] == "blocked"
+    assert report["repository_tests_ready"] is False
+
+
+def test_repository_test_failure_blocks_certification(tmp_path):
+    runner = _runner(tmp_path)
+    runner.results = [
+        _result("source", "source", "passed"),
+        _result("static", "static", "passed"),
+        _result("unit_suite", "tests", "passed"),
+        _result("unit_suite_c_locale", "tests", "passed"),
+        _result("repository_tests", "repository-tests", "failed"),
+        _result("platform_runtime_identity", "live-http", "passed"),
+        _result("db", "live-db", "passed"),
+        _result("expected_sha_matches_checkout", "source", "passed"),
+    ]
+    runner._tests_attempted = True
+    runner._locale_tests_attempted = True
+    runner._repository_tests_attempted = True
+    runner._http_probes_attempted = True
+    runner._database_probes_attempted = True
+    runner._runtime_identity_verified = True
+    runner._required_probe_names = {"platform_runtime_identity"}
+    runner._passed_probe_names = {"platform_runtime_identity"}
+
+    code = runner.finalize(
+        tmp_path / "report.json",
+        require_live=True,
+        require_tests=True,
+        require_certified=True,
+        require_locale_tests=True,
+        require_repository_tests=True,
+    )
+    report = _report(tmp_path)
+    assert code == 1
+    assert report["repository_tests_ready"] is False
+
+
+def test_manual_readiness_workflow_exposes_repository_tests_and_enables_it_by_default():
+    workflow = (_ROOT / ".github" / "workflows" / "production-readiness-report.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "repository_tests:" in workflow
+    assert "default: true" in workflow
+    assert "--repository-tests" in workflow
+
+
+def test_require_certified_executes_repository_tests_not_only_requires_the_verdict():
+    source = _MODULE.read_text(encoding="utf-8")
+    assert "effective_repository_tests = args.repository_tests or args.require_certified" in source
+    assert "runner.repository_test_suite(effective_repository_tests)" in source
+    assert "require_repository_tests = True" in source

@@ -1,0 +1,34 @@
+{
+  "base_url_env": "RASTER_TILER_SERVICE_BASE_URL",
+  "entrypoint": "services/raster-tiler-service/main.py",
+  "identity_path": "/runtime-identity",
+  "note": "هذه الخدمة غلافٌ حول `titiler.application.main.app`، فمسارات TiTiler — ومنها `/healthz` الذي يقصده فحص صحّة الحاوية — **مُورَّثة لا مُعلَنة** في نقطة الدخول. ومُحقِّق الخطط يقرأ المُزخرِفات ساكناً، فمسبارٌ على `/healthz` يُرفَض بحقّ: `GET /healthz is not registered`. فالمقيس هنا هو المسار الوحيد الذي **تُعلنه** هذه النقطة، وتأكيداته على الهويّة غير القابلة للتغيير: الاسم يجب أن يطابق ما تتحقّق منه الخدمة مقابل ملفّ الصورة، والمصدر يجب أن يكون ملفّ الصورة لا البيئة.",
+  "openapi_path": "/openapi.json",
+  "probes": [
+    {
+      "probe_id": "raster-tiler-runtime-identity",
+      "method": "GET",
+      "path": "/runtime-identity",
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "response_assertions": [
+        {
+          "field": "service",
+          "equals": "raster-tiler-service"
+        },
+        {
+          "field": "metadata_source",
+          "equals": "immutable-image-file"
+        },
+        {
+          "field": "git_sha",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "service": "raster-tiler-service",
+  "source_service": "services/raster-tiler-service"
+}

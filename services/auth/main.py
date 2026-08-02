@@ -34,6 +34,7 @@ from jose import JWTError, jwt
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from shared.runtime_identity import load_build_identity
 from shared.security.cors_policy import parse_cors_origins
 from shared.security.jwt_key_validation import validate_rsa_key_pair
 
@@ -393,6 +394,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="SAHOOL Auth Service", version="9.1.0", lifespan=lifespan)
+
+
+@app.get("/runtime-identity", include_in_schema=False)
+def runtime_identity() -> dict[str, object]:
+    """Return immutable image identity; fail closed when build metadata is absent."""
+    return load_build_identity("auth-service")
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,

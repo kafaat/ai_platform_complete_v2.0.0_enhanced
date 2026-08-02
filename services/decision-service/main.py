@@ -92,6 +92,7 @@ from persistence import (
 from pydantic import BaseModel, ConfigDict, Field
 
 from shared.contracts.soil import validate_soil_use
+from shared.runtime_identity import load_build_identity
 from shared.security.service_tenant_assertion import (
     TenantAssertionError,
     verify_tenant_assertion,
@@ -502,6 +503,12 @@ def sor_misconfig_message() -> str | None:
             "degraded until DATABASE_URL is supplied and migrations are verified."
         )
     return None
+
+
+@app.get("/runtime-identity", include_in_schema=False)
+def runtime_identity() -> dict[str, Any]:
+    """Return immutable image identity for runtime-to-source attestation."""
+    return load_build_identity("decision-service")
 
 
 @app.get("/healthz")

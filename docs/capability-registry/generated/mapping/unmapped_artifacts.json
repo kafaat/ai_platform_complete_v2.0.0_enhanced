@@ -6716,6 +6716,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_certification_regression_fixes.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_claim_base_guard.py",
     "kind": "tests"
   },
@@ -7045,6 +7049,10 @@
   },
   {
     "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
     "kind": "tests"
   },
   {
