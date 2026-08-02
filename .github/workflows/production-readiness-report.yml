@@ -1,0 +1,57 @@
+name: Production Readiness Report
+
+# أداة مشغّل تُستدعى يدويّاً — نفس نمط `runtime-image-provenance.yml` و
+# `path3-runtime-verification.yml`. **ليست بوّابة PR عمداً:** البوّابات السبع التي
+# يُشغّلها محجوبة أصلاً كلٌّ في وظيفتها، فتشغيلها هنا على كلّ دفعة تكرارٌ خالص.
+# قيمتها أنّها تجمعها في تقرير واحد مؤرشَف قبل نشرٍ حيّ، حيث لا CI.
+#
+# والوصل ليس شكليّاً: السكربت يُستدعى فعلاً هنا. سكربتٌ يذكر `--check` ولا يعرفه أيّ
+# workflow يُوقِف `verify_all_generated` — والمخرج الخطأ كان تصنيفه «انحرافاً معروفاً»
+# في أساسٍ **صفريّ يتقلّص ولا ينمو**، أي وسمَه مولّداً وهو ليس كذلك.
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Full 40-char commit SHA this checkout must match
+        required: false
+        default: ""
+      full_unit:
+        description: Also run the unit suite (adds ~4 min)
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-readiness-report-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+      - name: Install gate dependencies
+        run: pip install -q -r requirements.txt
+      # المسابير الحيّة وفحوص PostgreSQL تحتاج مكدّساً قائماً، ولا مكدّس هنا؛
+      # فتُتخطّى وتظهر في `critical_skipped` صراحةً — لا تُبتلَع في «صفر إخفاقات».
+      - name: Collect readiness evidence (static gates only)
+        run: |
+          python scripts/release/production_readiness_orchestrator.py \
+            --project-dir . \
+            --output artifacts/production-readiness/report.json \
+            --expected-sha "${{ inputs.expected_sha }}" \
+            ${{ inputs.full_unit && '--full-unit' || '' }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: production-readiness-report-${{ github.sha }}
+          path: artifacts/production-readiness/report.json
+          if-no-files-found: error
+          retention-days: 30

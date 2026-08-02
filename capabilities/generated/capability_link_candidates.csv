@@ -6,6 +6,7 @@ DEC-001,api,GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evid
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,2,applied
+DEC-001,api,GET /runtime-identity @ services/raster-service/main.py:64,2,applied
 DEC-001,api,GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:24,2,applied
 DEC-001,api,GET /runtime-identity @ services/soil-service/main.py:198,2,applied
 DEC-001,api,GET /runtime-identity @ services/weather-service/main.py:55,2,applied
@@ -1468,6 +1469,7 @@ SAT-009,api,GET /api/v1/weather/tile-series/{z}/{x}/{y} @ services/sahool-platfo
 SAT-009,api,GET /healthz @ services/raster-service/routers/observability.py:31,3,applied
 SAT-009,api,GET /metrics @ services/raster-service/routers/observability.py:36,3,applied
 SAT-009,api,GET /readyz @ services/raster-service/routers/observability.py:186,3,applied
+SAT-009,api,GET /runtime-identity @ services/raster-service/main.py:64,3,applied
 SAT-009,api,GET /v1/cog/validate @ services/raster-service/routers/analysis.py:153,5,applied
 SAT-009,api,GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73,5,applied
 SAT-009,api,GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351,3,applied

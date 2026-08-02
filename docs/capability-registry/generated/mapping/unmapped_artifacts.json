@@ -7044,6 +7044,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
     "kind": "tests"
   },
@@ -7425,6 +7429,10 @@
   },
   {
     "path": "tests_v9/test_production_evidence_pack_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_production_readiness_orchestrator.py",
     "kind": "tests"
   },
   {

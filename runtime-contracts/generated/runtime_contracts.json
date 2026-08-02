@@ -1619,6 +1619,7 @@
           "services/raster-service/imagery_source_gate.py",
           "services/raster-service/layer_cache_events.py",
           "services/raster-service/layer_lookup.py",
+          "services/raster-service/main.py",
           "services/raster-service/management_zones.py",
           "services/raster-service/raster_asset_persistence.py",
           "services/raster-service/raster_backfill_scene_processing.py",

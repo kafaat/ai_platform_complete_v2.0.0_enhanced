@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "de6fc49aa188f450249d47a88027310f71c302b0786d11c42b56815ac2822060"
+          "content": "0f661a6d327fab1fe0f46eed118bbf70856bf35483338d206058e43ded19d032"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0af45a3647d91f237c15bf49e32da5746ee5579b36c09c146e678f4a8b41b89c"
+          "content": "70cfb698ec8f736b331f338b918c004ce84003aad36637cc653a759afeac1d1e"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12845,7 +12845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ebcda259270b23bc2a8750f3d1ca1b032669f59a5779d93e90eb60d21e7032f"
+          "content": "8c534d868e607722bd70c17d959dfef572579d3d62e4208709c7cf0f9e791a9d"
         }
       ],
       "name": "services/raster-service/Dockerfile",
@@ -13055,7 +13055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7749cac1f092801248021a3877a9d17453f439db7a78c2861dcabfe5de9e117"
+          "content": "622527e9b22c0e9501ab0baa228e2dcd7697f2bb817f4a338d64f451e378c505"
         }
       ],
       "name": "services/raster-service/main.py",

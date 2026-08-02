@@ -1819,6 +1819,7 @@
         "GET /healthz @ services/raster-service/routers/observability.py:31",
         "GET /metrics @ services/raster-service/routers/observability.py:36",
         "GET /readyz @ services/raster-service/routers/observability.py:186",
+        "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /v1/cog/validate @ services/raster-service/routers/analysis.py:153",
         "GET /v1/elevation/hillshade/{z}/{x}/{y}.png @ services/raster-service/routers/terrain_tiles.py:73",
         "GET /v1/fields/{field_id}/available-dates @ services/raster-service/routers/fields.py:1351",
@@ -1846,8 +1847,7 @@
         "GET /v1/imagery/search/landsat-thermal @ services/raster-service/routers/imagery_search.py:157",
         "GET /v1/imagery/search/radar @ services/raster-service/routers/imagery_search.py:132",
         "GET /v1/imagery/search/recent @ services/raster-service/routers/imagery_search.py:24",
-        "GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43",
-        "GET /v1/imagery/timeseries @ services/raster-service/routers/timeseries_routes.py:24"
+        "GET /v1/imagery/search/season @ services/raster-service/routers/imagery_search.py:43"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -4116,6 +4116,7 @@
         "GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539",
         "GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638",
         "GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571",
+        "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:24",
         "GET /runtime-identity @ services/soil-service/main.py:198",
         "GET /runtime-identity @ services/weather-service/main.py:55",
@@ -4191,7 +4192,7 @@
           "path": "migrations/v86_calibration_evidence_trigger.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=21, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=22, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "1",
         "CropX": "2",

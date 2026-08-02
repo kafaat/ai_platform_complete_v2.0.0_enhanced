@@ -1972,6 +1972,15 @@
   },
   {
     "service": "raster-service",
+    "file": "services/raster-service/main.py",
+    "line": 64,
+    "method": "GET",
+    "path": "/runtime-identity",
+    "handler": "runtime_evidence_identity",
+    "classification": "infra"
+  },
+  {
+    "service": "raster-service",
     "file": "services/raster-service/routers/analysis.py",
     "line": 30,
     "method": "POST",

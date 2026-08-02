@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "service": "raster-service",
+  "source_service": "services/raster-service",
+  "entrypoint": "services/raster-service/routers/analysis.py",
+  "base_url_env": "RASTER_SERVICE_BASE_URL",
+  "note": "Functional probes verify raster-service COMPUTES correctly, not merely that it is alive. Only the compute-only /v1/sar/rvi endpoint is declared: RVI = 4·VH/(VV+VH) on caller-supplied linear-power grids, so a probe run needs no S3/DB/Redis and no outbound CDSE or Element84 call (every tile, imagery and storage route is deliberately excluded — each one reaches an object store or an external provider). The endpoint is token-gated; the plan declares only the ${SAHOOL_AGENT_TOKEN} variable NAME (expanded at --run time), never a secret value. The expected values are derived by executing sar_rvi.compute_rvi directly, not by reading the formula: VV=0.7, VH=0.1 gives 4(0.1)/(0.7+0.1) = 0.5 exactly, strictly inside the [0,1] clip so a clipping regression cannot hide behind a saturated value. Producing evidence and setting runtime_verified is a separate, deliberate step; this plan alone changes nothing in the runtime ledger.",
+  "probes": [
+    {
+      "probe_id": "raster-sar-rvi-linear",
+      "method": "POST",
+      "path": "/v1/sar/rvi",
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "headers": {
+        "X-Agent-Token": "${SAHOOL_AGENT_TOKEN}"
+      },
+      "request_body": {
+        "field_id": "probe-field",
+        "date": "2026-01-01",
+        "vv_grid": [
+          [
+            0.7,
+            0.7
+          ]
+        ],
+        "vh_grid": [
+          [
+            0.1,
+            0.1
+          ]
+        ],
+        "in_db": false
+      },
+      "response_assertions": [
+        {
+          "field": "rvi_mean",
+          "type": "number",
+          "equals": 0.5,
+          "tolerance": 0.0005
+        },
+        {
+          "field": "valid_pixels",
+          "type": "number",
+          "equals": 2
+        },
+        {
+          "field": "coverage_pct",
+          "type": "number",
+          "equals": 100.0,
+          "tolerance": 0.01
+        },
+        {
+          "field": "in_db",
+          "equals": false
+        }
+      ]
+    }
+  ],
+  "identity_path": "/runtime-identity",
+  "openapi_path": "/openapi.json"
+}

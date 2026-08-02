@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4838,
+    "files_scanned": 4844,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
-      "governance": 58,
+      "governance": 59,
       "mobile": 51,
-      "other": 1276,
-      "tests": 1551,
+      "other": 1279,
+      "tests": 1553,
       "web": 448
     },
-    "unmapped_artifacts": 1971,
+    "unmapped_artifacts": 1973,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -9216,23 +9216,23 @@
           "score": 26
         },
         {
-          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:427",
+          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:434",
           "score": 20
         },
         {
-          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:421",
+          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:428",
           "score": 20
         },
         {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:415",
+          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:422",
           "score": 20
         },
         {
-          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:410",
+          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:417",
           "score": 20
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:404",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:411",
           "score": 20
         },
         {
@@ -15860,11 +15860,11 @@
           "score": 17
         },
         {
-          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:427",
+          "value": "/imagery/search/recent @ tests_v9/test_raster_endpoint_auth_coverage.py:434",
           "score": 17
         },
         {
-          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:421",
+          "value": "/process @ tests_v9/test_raster_endpoint_auth_coverage.py:428",
           "score": 17
         },
         {
@@ -15872,7 +15872,7 @@
           "score": 17
         },
         {
-          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:415",
+          "value": "/tiles/{layer_id}/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:422",
           "score": 17
         },
         {
@@ -15888,11 +15888,11 @@
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:410",
+          "value": "/v1/fields/{field_id}/leaky @ tests_v9/test_raster_endpoint_auth_coverage.py:417",
           "score": 17
         },
         {
-          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:404",
+          "value": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png @ tests_v9/test_raster_endpoint_auth_coverage.py:411",
           "score": 17
         },
         {
@@ -40752,6 +40752,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
       "kind": "tests"
     },
@@ -41133,6 +41137,10 @@
     },
     {
       "path": "tests_v9/test_production_evidence_pack_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_production_readiness_orchestrator.py",
       "kind": "tests"
     },
     {

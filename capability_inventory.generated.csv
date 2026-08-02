@@ -190,6 +190,7 @@ raster-service.process,command,raster-service,POST /v1/process,frontend,route,Fa
 raster-service.process.batch,command,raster-service,POST /v1/process/batch,frontend,route,False
 raster-service.providers.status,query,raster-service,GET /v1/providers/status,frontend,route,False
 raster-service.raw.process,command,raster-service,POST /v1/raw/process,frontend,route,False
+raster-service.runtime-identity,query,raster-service,GET /runtime-identity,frontend,route,False
 raster-service.salinity.calibrate,command,raster-service,POST /v1/salinity/calibrate,frontend,route,False
 raster-service.salinity.classify,command,raster-service,POST /v1/salinity/classify,frontend,route,False
 raster-service.sar.rvi,command,raster-service,POST /v1/sar/rvi,frontend,route,False

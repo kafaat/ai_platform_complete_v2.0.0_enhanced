@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -55,6 +56,7 @@ def test_service_endpoints_do_not_read_identity_from_environment():
     for rel, dec in [
         ("services/weather-service/main.py", '@app.get("/runtime-identity"'),
         ("services/soil-service/main.py", '@app.get("/runtime-identity"'),
+        ("services/raster-service/main.py", '@app.get("/runtime-identity"'),
         (
             "services/sahool-platform/api/routers/platform_health.py",
             '@router.get("/runtime-identity"',
@@ -72,6 +74,7 @@ def test_dockerfiles_embed_immutable_metadata_and_oci_labels():
     for rel in [
         "services/weather-service/Dockerfile",
         "services/soil-service/Dockerfile",
+        "services/raster-service/Dockerfile",
         "services/sahool-platform/Dockerfile",
     ]:
         text = (ROOT / rel).read_text()
@@ -83,10 +86,78 @@ def test_dockerfiles_embed_immutable_metadata_and_oci_labels():
 
 def test_compose_requires_build_identity_args():
     compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
-    for name in ["sahool-weather-service", "sahool-soil-service", "sahool-platform"]:
+    for name in [
+        "sahool-weather-service",
+        "sahool-soil-service",
+        "sahool-raster-service",
+        "sahool-platform",
+    ]:
         args = compose["services"][name]["build"]["args"]
         assert "TESTED_SHA required" in args["SAHOOL_GIT_SHA"]
         assert "SAHOOL_BUILD_ID required" in args["SAHOOL_BUILD_ID"]
+
+
+def _services_exposing_runtime_identity() -> set[str]:
+    """يُشتقّ من الشجرة لا من قائمة مصونة يدويّاً.
+
+    قائمةٌ مكتوبة بيد تبقى صحيحة حتّى تُضاف الخدمة الخامسة وينساها كاتبها — وهو
+    بالضبط كيف بقيت `raster-service` بهويّة موصولة **جزئيّاً**: الصورة والنقطة
+    قائمتان، والصورة الموثَّقة والمِسبار غائبان، ولا شيء يُبلِّغ عن الفارق.
+
+    الاسم يُؤخَذ من وسيط `load_build_identity("…")` لأنّه **هو** الاسم الذي تتحقّق
+    منه الخدمة مقابل ملفّ الصورة (`service mismatch`)، فلا مجال لاسمين.
+    """
+    pattern = re.compile(r'load_build_identity\(\s*"([a-z0-9-]+)"')
+    found: set[str] = set()
+    for path in (ROOT / "services").rglob("*.py"):
+        if "/tests/" in path.as_posix() or path.name.startswith("test_"):
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if "/runtime-identity" not in text:
+            continue
+        found.update(pattern.findall(text))
+    return found
+
+
+def test_every_identity_service_is_attested_and_probed():
+    """**الفجوة كانت «موصولة جزئيّاً»، وهذا يمنع الجزئيّة لا الحالة الواحدة.**
+
+    نقطة `/runtime-identity` وحدها لا تُثبِت شيئاً عن النشر: صورةٌ مبنيّة محلّيّاً
+    تحمل SHA صحيحاً وتبقى **غير موثَّقة**. الربط الذي يقصده `TESTED_SHA` هو
+    attestation على digest، وينتجه `runtime-image-provenance.yml` وحده؛ وفحصُه على
+    البيئة الحيّة يمرّ من خطّة المِسبار (`identity_path`). فخدمةٌ تُعلن الهويّة
+    وتغيب عن أيّ منهما تُنتج ثقةً لا سند لها.
+    """
+    services = _services_exposing_runtime_identity()
+    assert len(services) >= 4, f"الاشتقاق عاد بأقلّ ممّا في الشجرة: {sorted(services)}"
+
+    matrix = (ROOT / ".github/workflows/runtime-image-provenance.yml").read_text(encoding="utf-8")
+    attested = set(re.findall(r"^\s*-\s*service:\s*([a-z0-9-]+)\s*$", matrix, re.M))
+    missing_attestation = sorted(services - attested)
+    assert not missing_attestation, (
+        "خدمات تُعلن /runtime-identity ولا تُبنى لها صورة موثَّقة: " + " · ".join(missing_attestation)
+    )
+
+    # **والمصفوفة وحدها لا تكفي — انكشف بالقياس أثناء وصل raster.** وظيفة
+    # `publish-manifest` تحمل مجموعة خدمات **مثبَّتة نصّاً** وتُفشِل التجميع إن
+    # اختلفت عمّا وصل من شظايا. فصفٌّ يُضاف إلى المصفوفة بلا تحديثها يُنتج بناءً
+    # ناجحاً وتوثيقاً ناجحاً ثمّ انهياراً في آخر خطوة — أي الجزئيّة نفسها، طبقةً أعمق.
+    expected = re.search(r"expected\s*=\s*\{([^}]*)\}", matrix)
+    assert expected, "لم يعد `publish-manifest` يُعلن مجموعة متوقَّعة — الحارس أعمى"
+    declared = set(re.findall(r"'([a-z0-9-]+)'", expected.group(1)))
+    assert declared == attested, (
+        "مصفوفة البناء ومجموعة `publish-manifest` المتوقَّعة غير متطابقتين: "
+        f"المصفوفة={sorted(attested)} · المتوقَّع={sorted(declared)}"
+    )
+
+    probe_dir = ROOT / "runtime-verification/functional_probes"
+    for service in sorted(services):
+        plan_path = probe_dir / f"{service}.json"
+        assert plan_path.is_file(), f"لا خطّة مِسبار لـ{service} — الهويّة لا تُفحَص حيّاً"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        assert plan.get("identity_path") == "/runtime-identity", (
+            f"{service}: خطّة المِسبار لا تُعلن identity_path"
+        )
 
 
 def test_path3_produces_transports_and_verifies_oidc_provenance():
