@@ -8,6 +8,32 @@
 *.py    text eol=lf
 *.env   text eol=lf
 Dockerfile* text eol=lf
+# ── شبكة أمان الدمج للملفّات الإلحاقيّة ── DETERMINISTIC-GENERATION-AND-MERGE-SAFETY-01
+#
+# هذه الأربعة **إلحاقيّة ومتعدّدة الكتّاب**: كلّ جلسة تُضيف إلى ذيلها، فتتعارض على
+# كلّ إعادة تأسيس. المقيس منذ 2026-07-01: 89 + 77 + 75 + 32 = **٢٧٣ من ٢٨١** لمسة
+# على `sahool-brain/`. `merge=union` يضمّ سطور الجانبين بدل ترك العلامات، وقد أعاد
+# إنتاج حلّ يدويّ حقيقيّ بالضبط (١٠١ عنوان، نفس المجموعة والترتيب، صفر تكرار).
+#
+# **حدّان يُقالان صراحةً، لا يُكتشَفان لاحقاً:**
+#
+# ① **GitHub يتجاهل `.gitattributes` المُعرَّف من المستخدم.** ردّ دعم GitHub صريح،
+#    والمطلب مفتوح منذ 2021 (community/discussions/9288). فهذه الأسطر تُصلح الدمج
+#    وإعادة التأسيس **على سطر الأوامر**، ولا تُزيل لافتة «This branch has conflicts».
+#    الحلّ الجذريّ للافتة بنيويّ (شظايا مستقلّة) ومؤجَّل إلى شريحته.
+#
+# ② **union يخفي التناقض حين يُحرّر الجانبان نفس السطر**: يُبقي النسختين ويخرج بـ0،
+#    فتصير الفجوة الواحدة بحالتين متناقضتين بلا علامة تعارض ولا اختبار ساقط. لهذا
+#    يسبقه `scripts/ci/brain_duplicate_gap_identity_guard.py` على **نفس** المسارات.
+#    مُثبَت في مستودع مؤقّت: git ينجح والحارس يفشل.
+#
+# النطاق أربعة مسارات صريحة لا `sahool-brain/**/*.md`: الأخير يشمل رنبوكات ووثائق
+# ليست إلحاقيّة، فيُطبَّق union على ملفّات لم تُقَس حركتها.
+sahool-brain/gaps/registry.md    merge=union
+sahool-brain/hot.md              merge=union
+sahool-brain/log.md              merge=union
+sahool-brain/decisions/ledger.md merge=union
+
 *.pt filter=lfs diff=lfs merge=lfs -text
 *.pth filter=lfs diff=lfs merge=lfs -text
 *.safetensors filter=lfs diff=lfs merge=lfs -text

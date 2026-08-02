@@ -6672,6 +6672,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_brain_duplicate_gap_identity_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_brain_transition_guard_vocabulary.py",
     "kind": "tests"
   },
@@ -6865,6 +6869,10 @@
   },
   {
     "path": "tests_v9/test_design_token_contrast_gate.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_deterministic_generation.py",
     "kind": "tests"
   },
   {
@@ -7249,6 +7257,10 @@
   },
   {
     "path": "tests_v9/test_mcp_test_double_isolation_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_merge_safety_bootstrap.py",
     "kind": "tests"
   },
   {
