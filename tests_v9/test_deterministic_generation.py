@@ -11,9 +11,17 @@
 **وتصحيح لرقم ذكرتُه أنا:** قلتُ إنّ «٧٤ من ١٢٨ التزاماً غيّرت الختم فقط». التفصيل
 الأدقّ بعد إعادة القياس: **٣** غيّرت `generated_at` **وحده**، و**٧١** غيّرته مع
 `file_count`/`total_size_bytes` (أي حمولة تغيّرت فعلاً)، و**٥٢** غيّرت محتوى آخر.
-فالمكسب ليس «إلغاء ٧٤ التزاماً» بل خاصّيّة أقوى وأدقّ: **إعادة التوليد على شجرة لم
-تتغيّر حمولتها تُنتج الآن صفر فرق بدل فرق سطريّ مضمون** — وهي الخاصّيّة التي تحوّل
-«أعِد التوليد قبل الالتزام» من مصدر تعارض إلى عمليّة محايدة.
+
+**وتصويب أثقل من الرقم:** كتبتُ أنّ الإصلاح يجعل «إعادة التوليد على شجرة لم تتغيّر
+حمولتها تُنتج صفر فرق». **لم يكن ذلك صحيحاً** كما نُفِّذ أوّلاً: الختم كان يُشتقّ من
+`HEAD`، و`HEAD` يختلف بين فرعين بالضرورة — فبقي الفرعان يكتبان قيمتين مختلفتين في
+نفس السطر. المُنجَز الفعليّ كان أضيق: إزالة اهتزاز الميكروثانية، وثبات القيمة على
+**الالتزام نفسه**.
+
+**ولماذا لم يمسكه هذا الملفّ:** كلّ اختبارات القبول أدناه تُثبّت `SOURCE_DATE_EPOCH`
+صراحةً، فلا تعبر حدّ الالتزام أبداً ولا تستطيع رؤية الفرق. قياسٌ داخل ما افترضتُه —
+وهو رابع وقوع في هذا الصنف بعينه في جلسة واحدة. الثلاثة الأخيرة في هذا الملفّ تُغلقه:
+تبني مستودعاً حقيقيّاً بفرعين وتقيس الختم عبر الحدّ.
 
 **ولا ارتداد إلى الساعة.** العقد الثلاثيّ في `scripts/ci/deterministic_time.py` يفشل
 صراحةً بدل أن يعود إلى `time.time()`، لأنّ الارتداد الصامت يعمل في CI (حيث المتغيّر
@@ -250,3 +258,116 @@ def test_both_known_stamped_generators_route_through_the_contract():
         src = _executable_source(script)
         assert "generated_at_utc" in src, f"{script.name} لا يمرّ بالعقد"
         assert "datetime.now(" not in src, f"{script.name} ما زال يقرأ ساعة الحائط"
+
+
+# ══════════════ الاختبار الذي كان غائباً فأفلت العطل ══════════════
+
+
+def _git(repo: Path, *args: str, when: str | None = None) -> str:
+    env = {
+        "PATH": "/usr/bin:/bin",
+        "HOME": str(repo),
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_AUTHOR_NAME": "t",
+        "GIT_AUTHOR_EMAIL": "t@t",
+        "GIT_COMMITTER_NAME": "t",
+        "GIT_COMMITTER_EMAIL": "t@t",
+    }
+    if when:
+        env["GIT_AUTHOR_DATE"] = when
+        env["GIT_COMMITTER_DATE"] = when
+    return subprocess.run(
+        ["git", *args],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=env,
+        timeout=120,
+    ).stdout.strip()
+
+
+@pytest.fixture()
+def two_branches(tmp_path, monkeypatch):
+    """مستودع بفرعين **لا يمسّان الحمولة** — كلٌّ يُضيف مدخل دماغ فقط.
+
+    هذه هي الحالة الحقيقيّة في هذا المستودع: جلستان تعملان بالتوازي، تُلحق كلٌّ
+    بملفّات `sahool-brain/` ثمّ تُعيد التوليد.
+    """
+    monkeypatch.delenv("SOURCE_DATE_EPOCH", raising=False)
+    repo = tmp_path / "r"
+    repo.mkdir()
+    _git(repo, "init", "-q", ".")
+    (repo / "payload.txt").write_text("real payload\n", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "base", when="2020-01-01T00:00:00Z")
+    base = _git(repo, "rev-parse", "HEAD")
+    for name, when in (("A", "2021-01-01T00:00:00Z"), ("B", "2022-06-01T00:00:00Z")):
+        _git(repo, "checkout", "-q", "-B", f"br{name}", base)
+        # داخل الحلقة: git لا يتعقّب مجلّداً فارغاً، فـ`checkout` على القاعدة يمحوه.
+        (repo / "brain").mkdir(exist_ok=True)
+        (repo / "brain" / f"note_{name}.md").write_text(f"entry {name}\n", encoding="utf-8")
+        _git(repo, "add", "-A")
+        _git(repo, "commit", "-qm", f"note {name}", when=when)
+    return repo
+
+
+def test_head_scoped_stamps_differ_between_branches(two_branches):
+    """**العطل، مُعاد إنتاجه.** بنطاق `HEAD` يكتب الفرعان قيمتين مختلفتين.
+
+    هذا ما كان عليه أوّل تنفيذ للعقد، وما زعمتُ أنّه يُزيل التعارض. الاختبار موجود
+    ليبقى العطل مُقاساً لا موصوفاً — ولو أُعيد النطاق إلى `HEAD` لَسقط الاختبار
+    التالي وبقي هذا أخضر، فيُقرأ الفرق فوراً.
+    """
+    _git(two_branches, "checkout", "-q", "brA")
+    a = source_epoch(cwd=two_branches)
+    _git(two_branches, "checkout", "-q", "brB")
+    b = source_epoch(cwd=two_branches)
+    assert a != b, "لو تساويا لَما كان هناك عطل أصلاً"
+
+
+def test_payload_scoped_stamps_are_identical_across_branches(two_branches):
+    """**الإصلاح.** فرعان لم يمسّا الحمولة ⇒ **نفس الختم** ⇒ صفر تعارض.
+
+    هذا هو الادّعاء الذي كُتِب أوّلاً بلا اختبار يعبر حدّ الالتزام. اختبار القبول
+    القائم يُثبّت `SOURCE_DATE_EPOCH` صراحةً، فلا يعبر ذلك الحدّ أبداً ولا يستطيع
+    رؤية الفرق — قياسٌ داخل ما افترضه كاتبه.
+    """
+    scope = [".", ":(exclude)brain/"]
+    _git(two_branches, "checkout", "-q", "brA")
+    a = source_epoch(cwd=two_branches, payload=scope)
+    _git(two_branches, "checkout", "-q", "brB")
+    b = source_epoch(cwd=two_branches, payload=scope)
+    assert a == b, f"الختم ما زال يتبع HEAD: {a} ≠ {b}"
+    assert generated_at_utc(cwd=two_branches, payload=scope) == "2020-01-01T00:00:00Z"
+
+
+def test_a_real_payload_change_does_move_the_stamp(two_branches):
+    """وحدٌّ مقابل: الإصلاح لا يُجمّد الختم — تغيّر الحمولة **يجب** أن يُحرّكه.
+
+    بلا هذا يمرّ إصلاحٌ يُعيد ثابتاً دائماً، وهو حتميّ وبلا معنى.
+    """
+    scope = [".", ":(exclude)brain/"]
+    _git(two_branches, "checkout", "-q", "brA")
+    before = source_epoch(cwd=two_branches, payload=scope)
+    (two_branches / "payload.txt").write_text("changed\n", encoding="utf-8")
+    _git(two_branches, "add", "-A")
+    _git(two_branches, "commit", "-qm", "payload moved", when="2023-03-03T00:00:00Z")
+    assert source_epoch(cwd=two_branches, payload=scope) > before
+
+
+def test_the_release_payload_scope_is_derived_not_handwritten():
+    """النطاق مُشتقّ من ثوابت المولّد — قائمتان تصفان الشيء نفسه تنحرفان."""
+    sys.path.insert(0, str(_ROOT / "scripts" / "release"))
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("_brb", _BUILDER)
+    brb = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(brb)
+    scope = brb.payload_pathspec()
+    for excluded in brb.EXCLUDE_DIRS:
+        assert f":(exclude){excluded}/" in scope, f"{excluded} خارج نطاق الحمولة"
+    for artifact in brb.SELF_GENERATED:
+        assert f":(exclude){artifact}" in scope, f"{artifact} يُجزّئ نفسه"
+    # `sahool-brain/` تحديداً: كلّ جلسة تُلحق به، فدخوله يُعيد العطل كاملاً.
+    assert ":(exclude)sahool-brain/" in scope
