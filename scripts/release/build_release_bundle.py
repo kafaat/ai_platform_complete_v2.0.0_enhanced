@@ -35,6 +35,31 @@ EXCLUDE_DIRS = {
     "venv",
 }
 EXCLUDE_SUFFIXES = {".pyc", ".pyo", ".DS_Store"}
+
+# مصنوعات هذا السكربت نفسه — لا تدخل بصمتها الخاصّة (دورة ذاتيّة).
+SELF_GENERATED = {
+    "release/FILE_CHECKSUMS.sha256",
+    "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
+    "release/SBOM_MINIMAL.json",
+}
+
+
+def payload_pathspec() -> list[str]:
+    """نطاق **حمولة** البيان لسؤال git عن آخر التزام مسّها.
+
+    مُشتقّ من `EXCLUDE_DIRS` و`SELF_GENERATED` أعلاه لا من قائمة مكتوبة بيدٍ ثانية:
+    قائمتان تصفان الشيء نفسه تنحرفان، فيصير الختم مشتقّاً من نطاق غير الذي يُجزَّأ
+    — وهو عطل صامت لأنّ المصنوعة تبقى صالحة الشكل.
+
+    الأهمّ عمليّاً استبعاد `sahool-brain/`: كلّ جلسة تُلحق به، فلو دخل النطاق لَعاد
+    الختم يتحرّك مع كلّ فرع وعاد التعارض الذي جاء هذا كلّه لإزالته.
+    """
+    spec = ["."]
+    spec += [f":(exclude){d}/" for d in sorted(EXCLUDE_DIRS)]
+    spec += [f":(exclude){f}" for f in sorted(SELF_GENERATED)]
+    return spec
+
+
 REQUIRED_FILES = [
     "VERSION",
     "docker-compose.v9.yml",
@@ -170,11 +195,7 @@ def collect_files(root: Path) -> list[dict[str, object]]:
         if is_excluded(rel):
             continue
         # Do not include generated release checksum files in their own checksum set.
-        if str(rel) in {
-            "release/FILE_CHECKSUMS.sha256",
-            "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
-            "release/SBOM_MINIMAL.json",
-        }:
+        if str(rel) in SELF_GENERATED:
             continue
         rows.append(
             {
@@ -235,7 +256,7 @@ def main() -> int:
         # ختم مشتقّ من المصدر لا من ساعة الحائط — `DETERMINISTIC-GENERATION-AND-MERGE-SAFETY-01`.
         # `datetime.now()` كان يكتب قيمة جديدة في كلّ تشغيل، فإعادة توليد على فرع لم
         # يتغيّر حمولته تُنتج فرقاً سطريّاً مضموناً، وفرعان متوازيان يتعارضان حتماً.
-        "generated_at": generated_at_utc(cwd=root),
+        "generated_at": generated_at_utc(cwd=root, payload=payload_pathspec()),
         # `source_root: root.name` حُذِف: **صفر قارئ** في المستودع كلّه (المُنتِج وحده)،
         # وكان يطبع **اسم مجلّد السحب** فيختم الآلة في مصنوعة إصدار. قِيس فعليّاً:
         # التوليد داخل شجرة عمل اسمها `wt768` كتب `"source_root": "wt768"`. نفس صنف
