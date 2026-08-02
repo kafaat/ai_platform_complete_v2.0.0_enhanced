@@ -95,6 +95,11 @@ run "marker_coverage"       python scripts/ci/test_marker_coverage_guard.py --ch
 # ٧) الجناح — الأغلى، وآخره عمداً
 run "pytest -m unit" python -m pytest -q -m unit
 
+# ٧ب) جناح `tests/` — وظيفة حاجبة مستقلّة، و`-m unit` **لا يشملها**
+#     أُغفِلت من هذه الكتلة حتّى أسقطت بناءً: `tests/architecture/` و`tests/` تعملان
+#     في وظيفة *Repository Tests (tests/)* بـ٦٢٢ اختباراً، ومنها حرّاس اتّساق الدماغ.
+run "pytest tests/" python -m pytest -q tests/
+
 # ٨) المتّجه الذي يخفيه Linux: ترميز لغة الآلة (§٣.١٠)
 run "pytest -m unit تحت لغة C" env LC_ALL=C PYTHONUTF8=0 python -m pytest -q -m unit
 
@@ -230,6 +235,17 @@ bash scripts/dev/enable_rerere.sh
 - الوظيفة تعمل على `pull_request` بلا `edited` ⇒ **تعديل جسم الـPR وحده لا يُعيد
   تشغيلها**. صحّح الجسم ثمّ ادفع التزاماً، أو أعِد تشغيل الوظيفة يدويّاً.
 - احسب الرموز على مدى `base…head` **الفعليّ بعد الدفع**، لا على ما تظنّ أنّك غيّرت.
+
+### ٣.٦ب مثالٌ توضيحيّ في الدماغ يُقرأ ادّعاءً
+
+- `tests/architecture/test_brain_state_consistency.py` يمنع إسناداً عدديّاً
+  (`runtime_verified: N` · `production_certified: N`) في `sahool-brain/` يخالف السجلّ.
+  والقاعدة **ضيّقة وصحيحة**: من يتصفّح السجلّ يرى الرقم لا سياقه.
+- **الفخّ:** شرحُ ما يُطابقه حارسٌ آخر يغري بكتابة الشكل حرفيّاً مثالاً. مقيس: سطر
+  يقول «إعفاء `TOKEN=` كان سيُعفي `runtime_verified: 1`» أسقط الوظيفة، ومعناه نفيٌ لا
+  ادّعاء. **صِف الشكل** («إسناد قيمة موجبة لنفس الحقول») ولا تكتب الإسناد.
+- وهذا **ثاني** حارس في جلسة واحدة يقرأ اقتباساً ادّعاءً — الأوّل
+  `brain_state_transition_guard`. الصنف: مطابقةٌ بلا مرساة على نيّة الكاتب.
 
 ### ٣.٧ `brain_commit_claim_guard`: ذكر معرّف فجوة = ادّعاء وجودها
 
