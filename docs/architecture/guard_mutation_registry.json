@@ -1,0 +1,255 @@
+{
+  "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
+  "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
+  "schema_version": "sahool.guard-mutation-registry.v1",
+  "adjudicated_on": "2026-08-02",
+  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل.",
+  "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
+  "mutated": {
+    "claim_base_guard.py": {
+      "test": "tests_v9/test_claim_base_guard.py",
+      "mutations": [
+        {
+          "why": "مطابقة المفتاح بالبادئة بدل التامّة ⇒ `baseline_route_count` يُقبَل أساساً",
+          "find": "return any(k in data and str(data[k]).strip() for k in keys)",
+          "replace": "return any(any(d.startswith(k) for d in data) for k in keys)",
+          "expect": "test_a_count_is_not_a_base"
+        },
+        {
+          "why": "نزع سقف الدَّين ⇒ قائمة «تتقلّص ولا تنمو» تنمو",
+          "find": "        if len(debt) > ceiling:",
+          "replace": "        if False:",
+          "expect": "test_debt_growth_is_blocked_by_the_ceiling"
+        },
+        {
+          "why": "نزع الإنفاذ العكسيّ ⇒ مدخل اكتسب ختماً يبقى ديناً بائتاً",
+          "find": "        if has and name in unbased:",
+          "replace": "        if False:",
+          "expect": "test_debt_that_gained_a_base_must_leave_the_list"
+        },
+        {
+          "why": "قبول ختم القياس مكان تاريخ الحكم",
+          "find": "        has = _has_base(data, d_keys)",
+          "replace": "        has = _has_base(data, d_keys + m_keys)",
+          "expect": "test_a_measured_stamp_does_not_satisfy_a_decision"
+        },
+        {
+          "why": "قبول تاريخ الحكم مكان ختم القياس",
+          "find": "        has = _has_base(data, m_keys)",
+          "replace": "        has = _has_base(data, m_keys + d_keys)",
+          "expect": "test_a_decision_stamp_does_not_satisfy_a_measurement"
+        },
+        {
+          "why": "نزع حجب المصنوعة غير المصنَّفة ⇒ ملفّ جديد يدخل بلا صنف",
+          "find": "    if unclassified:",
+          "replace": "    if False:",
+          "expect": "test_unclassified_artifact_is_blocked"
+        },
+        {
+          "why": "نزع حجب مدخل الدَّين البائت",
+          "find": "        if gone:",
+          "replace": "        if False:",
+          "expect": "test_stale_debt_entry_is_blocked"
+        },
+        {
+          "why": "SHA مجهول يُبلَّغ «صفر التزام» بدل «غير قابل للحلّ»",
+          "find": "    if res.returncode != 0:\n        return None",
+          "replace": "    if res.returncode != 0:\n        return 0",
+          "expect": "test_an_unknown_sha_reports_unresolvable_not_zero"
+        }
+      ]
+    },
+    "brain_state_transition_guard.py": {
+      "test": "tests_v9/test_brain_transition_guard_vocabulary.py",
+      "mutations": [
+        {
+          "why": "إعادة النمط القديم `\\b(CLOSED|…)\\b` — خاطئ في الاتّجاهين: يطابق داخل fail-closed ولا يطابق CLOSED_IN_CODE",
+          "find": "    r\"^\\+[^+].*(?<![\\w-])(CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)\"\n    r\"(?:_[A-Z][A-Z_]*)?(?![\\w-])\",",
+          "replace": "    r\"^\\+[^+].*\\b(CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)\\b\",",
+          "expect": "test_the_underscore_vocabulary_was_the_false_negative"
+        },
+        {
+          "why": "نزع اشتراط كود تنفيذيّ خارج الدماغ ⇒ ادّعاء إغلاق دماغيّ صرف يمرّ",
+          "find": "    if brain_changed and claims and not outside:",
+          "replace": "    if False:",
+          "expect": "test_brain_only_diff_with_a_real_claim_is_still_rejected"
+        }
+      ]
+    },
+    "guard_mutation_guard.py": {
+      "test": "tests_v9/test_guard_mutation_guard.py",
+      "mutations": [
+        {
+          "why": "نزع حجب الحارس الجديد بلا مواصفة ⇒ الآليّة كلّها تصير اختياريّة",
+          "find": "    if missing:",
+          "replace": "    if False:",
+          "expect": "test_a_new_guard_without_a_mutation_spec_is_blocked"
+        },
+        {
+          "why": "قبول مواصفة بائتة سلسلتها لم تعد في المصدر",
+          "find": "            if occurrences == 0:",
+          "replace": "            if False:",
+          "expect": "test_a_stale_mutation_string_is_blocked"
+        },
+        {
+          "why": "قبول سلسلة متكرّرة ⇒ الزرع غير محدَّد الموضع",
+          "find": "            elif occurrences > 1:",
+          "replace": "            elif False:",
+          "expect": "test_an_ambiguous_mutation_string_is_blocked"
+        },
+        {
+          "why": "قبول «سقط شيء ما» بدل الاختبار المُسمّى ⇒ طفرة تكسر الاستيراد تُحسَب نجاحاً",
+          "find": "            elif m[\"expect\"] not in out:",
+          "replace": "            elif False:",
+          "expect": "test_red_by_the_wrong_test_is_not_proof"
+        },
+        {
+          "why": "نزع سقف الدَّين",
+          "find": "    if len(debt) > ceiling:",
+          "replace": "    if False:",
+          "expect": "test_debt_growth_is_blocked_by_the_ceiling"
+        },
+        {
+          "why": "نزع حجب المدخل البائت لحارس غير موجود",
+          "find": "    if ghost:",
+          "replace": "    if False:",
+          "expect": "test_an_entry_for_a_missing_guard_is_blocked"
+        },
+        {
+          "why": "اعتبار الحارس المزروع فيه العطل ناجحاً إن خرج بصفر",
+          "find": "            if code == 0:",
+          "replace": "            if False:",
+          "expect": "test_a_green_suite_under_a_planted_defect_is_a_failure"
+        },
+        {
+          "why": "قبول `expect` بادئةً عامّة لا اسم اختبار موجود ⇒ الشرط يعود إلى «سقط شيء ما»",
+          "find": "            elif test_src and f\"def {expect}(\" not in test_src:",
+          "replace": "            elif False:",
+          "expect": "test_a_bare_prefix_is_not_an_expected_test"
+        }
+      ]
+    }
+  },
+  "unmutated_debt_ceiling": 117,
+  "unmutated_debt": {
+    "$comment": "حرّاس سبقوا هذه الآليّة، بلا عطلٍ مزروع يُثبِت أنّهم يُطلِقون. القائمة تتقلّص ولا تنمو بسقفٍ مشدود: حارسٌ يُكتَب اليوم لا عذر له — من عرف العطل عرف كيف يزرعه. ولا يُدَّعى أنّ المُدرَجين هنا معطوبون؛ يُدَّعى **أنّه لم يُقَس**، وهو الفارق نفسه بين «لم يجد» و«لم ينظر».",
+    "ai_agronomist_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "ai_container_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "api_versioning_policy_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "arch_test_ci_coverage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "assertion_presence_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "auth_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "brain_commit_claim_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "brain_deferral_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "capability_core_consumption_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "capability_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "conflict_marker_guard.sh": "سابق للآليّة — لم تُقَس تغطيته",
+    "container_fleet_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "container_image_pin_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "contract_capabilities_schema_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "decision_lineage_v183_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "duplicate_definition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "edge_model_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "edge_production_readiness_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "env_compose_drift_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "expected_control_flow_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "fastapi_lifespan_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "frontend_reproducibility_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "gateway_reachability_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "github_actions_policy_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "health_alias_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "health_readiness_schema_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "indicators_container_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "internal_graphql_security_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_as_applied_m2_11_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_capability_graph_m2_8_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_closed_loop_m5_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_closed_loop_runtime_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_commissioning_m2_10_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_controller_edge_m2_9_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_convergence_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_energy_m2_7_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_engineering_m2_1_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_hourly_mpc_m3_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_hydraulic_m2_4_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_machine_m2_5_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_rls_canonical_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_root_zone_m2_2_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_runtime_orchestrator_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_sprinkler_m2_6_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_vri_m4_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrigation_well_digital_twin_m2_3_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_6_manual_volume_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_7_interactive_calculator_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_8_reservoir_booster_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_9_multi_system_calculator_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_authoritative_provenance_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_commissioning_runtime_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_farmer_manual_operations_ui_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_manual_execution_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_pcert_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_vendor_neutral_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "irrx1_verified_manual_ledger_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "jwt_secret_configuration_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "ky_no_economic_coupling_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "migration_graph_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "mpc_lineage_propagation_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "nginx_weather_edge_path_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "no_merge_conflict_markers_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "no_report_only_change_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "p1_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "p2_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "physical_effect_boundary_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "pip_audit_resolution_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "pip_mirror_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "platform_main_subinventory_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "platform_route_budget_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "platform_route_ownership_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "platform_route_placement_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "production_certification_checklist_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "production_evidence_pack_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "production_honesty_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "raster_pixel_qa_indicator_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "raster_production_truth_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "raster_topographic_qa_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "raster_validated_product_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "raw_data_processing_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "raw_weather_processing_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "release_attestation_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "report_index_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "rls_policy_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "route_conflict_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "route_mount_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "route_residual_classification_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "router_reachability_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "runtime_container_deep_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "runtime_replay_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "scene_provenance_ui_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "secret_history_scan_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "service_dependency_conflict_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_canonical_store_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_full_chain_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_lab_projection_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_lab_supersession_lineage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_p1_products_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_p2_products_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_p3_products_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_p4_closed_loop_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_p5_certification_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_p6_runtime_certification_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_profile_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_projection_observability_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_projection_reconciliation_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_runtime_certification_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "soil_supersession_current_pointer_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "test_marker_coverage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "tests_tree_coverage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "vegetation_container_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "vegetation_real_only_posture_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "vegetation_runtime_truth_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "waiver_expiry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "weather_engine_formula_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
+    "weather_hourly_etc_wx_i1_guard.py": "سابق للآليّة — لم تُقَس تغطيته"
+  },
+  "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق»."
+}

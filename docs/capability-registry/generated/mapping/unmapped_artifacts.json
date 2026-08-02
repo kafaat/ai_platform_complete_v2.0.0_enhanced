@@ -7060,6 +7060,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_guard_mutation_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_guardrails.py",
     "kind": "tests"
   },

@@ -29,6 +29,7 @@
     "decision_outcome_learning_bridge_allowlist.json",
     "deferred_import_declaration_contract.json",
     "expected_control_flow_exceptions.json",
+    "guard_mutation_registry.json",
     "permanent_compatibility_contract.json",
     "physical_effect_boundary_contract.json",
     "platform_route_placement_contract.json",

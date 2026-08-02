@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4823,
+    "files_scanned": 4826,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1269,
-      "tests": 1543,
+      "other": 1271,
+      "tests": 1544,
       "web": 448
     },
-    "unmapped_artifacts": 1963,
+    "unmapped_artifacts": 1964,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -40757,6 +40757,10 @@
     },
     {
       "path": "tests_v9/test_gis_web_mercator_crs.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_guard_mutation_guard.py",
       "kind": "tests"
     },
     {
