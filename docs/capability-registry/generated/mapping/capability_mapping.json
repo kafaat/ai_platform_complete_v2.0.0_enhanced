@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4836,
+    "files_scanned": 4838,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1275,
-      "tests": 1550,
+      "other": 1276,
+      "tests": 1551,
       "web": 448
     },
-    "unmapped_artifacts": 1970,
+    "unmapped_artifacts": 1971,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -8081,11 +8081,11 @@
           "score": 14
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1285",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1319",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:52",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:88",
           "score": 12
         },
         {
@@ -8093,7 +8093,7 @@
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:153",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:189",
           "score": 12
         },
         {
@@ -8101,11 +8101,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:138",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:174",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:149",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:185",
           "score": 12
         },
         {
@@ -8203,7 +8203,7 @@
       ],
       "events": [
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:851",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:887",
           "score": 12
         }
       ],
@@ -9568,7 +9568,7 @@
           "score": 16
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1285",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1319",
           "score": 14
         }
       ],
@@ -9800,7 +9800,7 @@
           "score": 14
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:851",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:887",
           "score": 14
         },
         {
@@ -24902,23 +24902,23 @@
           "score": 16
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1285",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1319",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:52",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:88",
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:153",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:189",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:138",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:174",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:149",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:185",
           "score": 12
         },
         {
@@ -25077,7 +25077,7 @@
           "score": 17
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:851",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:887",
           "score": 12
         },
         {
@@ -26327,11 +26327,11 @@
           "score": 22
         },
         {
-          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1285",
+          "value": "/api/probe-newservice/readyz @ tests_v9/test_api_versioning_policy_guard.py:1319",
           "score": 12
         },
         {
-          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:52",
+          "value": "/api/probe-swapped-in/status @ tests_v9/test_api_versioning_policy_guard.py:88",
           "score": 12
         },
         {
@@ -26339,7 +26339,7 @@
           "score": 12
         },
         {
-          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:153",
+          "value": "/health @ tests_v9/test_api_versioning_policy_guard.py:189",
           "score": 12
         },
         {
@@ -26347,11 +26347,11 @@
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:138",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:174",
           "score": 12
         },
         {
-          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:149",
+          "value": "/plan @ tests_v9/test_api_versioning_policy_guard.py:185",
           "score": 12
         },
         {
@@ -26783,7 +26783,7 @@
           "score": 12
         },
         {
-          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:851",
+          "value": "field_intelligence_adapters.py @ tests_v9/test_api_versioning_policy_guard.py:887",
           "score": 12
         },
         {
@@ -41121,6 +41121,10 @@
     },
     {
       "path": "tests_v9/test_prescription_shapefile.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_probe_leak_guard.py",
       "kind": "tests"
     },
     {
