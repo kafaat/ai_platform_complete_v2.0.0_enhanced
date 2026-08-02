@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4826,
+    "files_scanned": 4830,
     "files_by_kind": {
       "backend": 1188,
       "database": 266,
       "governance": 58,
       "mobile": 51,
-      "other": 1271,
-      "tests": 1544,
+      "other": 1272,
+      "tests": 1547,
       "web": 448
     },
-    "unmapped_artifacts": 1964,
+    "unmapped_artifacts": 1967,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -17990,7 +17990,7 @@
           "score": 8
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:137",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
@@ -17998,7 +17998,7 @@
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:142",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
@@ -18034,11 +18034,11 @@
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:149",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:166",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         },
         {
@@ -20413,6 +20413,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/LIVE_GAP_CLOSURE_AGENT_RUNBOOK.md",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "docs/ui/SAHOOL_PRODUCT_MODES_AND_FIELD_OPERATING_CONTRACT.md",
           "score": 10,
           "signals": [
@@ -20602,7 +20610,7 @@
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 83
+        "other_evidence": 84
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -20791,19 +20799,19 @@
           "score": 12
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:137",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:142",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:149",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:166",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         }
       ],
@@ -30133,19 +30141,19 @@
           "score": 8
         },
         {
-          "value": "/healthz @ services/mcp_servers/generic_context_server.py:137",
+          "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
           "score": 8
         },
         {
-          "value": "/readyz @ services/mcp_servers/generic_context_server.py:142",
+          "value": "/readyz @ services/mcp_servers/generic_context_server.py:148",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:149",
+          "value": "/v1/mcp/tools @ services/mcp_servers/generic_context_server.py:155",
           "score": 8
         },
         {
-          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:166",
+          "value": "/v1/mcp/tools/call @ services/mcp_servers/generic_context_server.py:172",
           "score": 8
         }
       ],
@@ -40932,6 +40940,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_mcp_auth_first_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_mcp_functional.py",
       "kind": "tests"
     },
@@ -40941,6 +40953,10 @@
     },
     {
       "path": "tests_v9/test_mcp_raster_status_relay_v58.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_mcp_test_double_isolation_guard.py",
       "kind": "tests"
     },
     {
@@ -41369,6 +41385,10 @@
     },
     {
       "path": "tests_v9/test_spatial_e2e_smoke.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_supervisor_client_single_owner_guard.py",
       "kind": "tests"
     },
     {
