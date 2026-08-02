@@ -23,3 +23,11 @@ jobs:
       # BRAIN-CLAIM-UNVERIFIED-01: رسالة الالتزام تذكر معرّف فجوة ⇒ ادّعاء وجودها.
       - name: Gap IDs claimed in commit messages must exist in the registry
         run: python scripts/ci/brain_commit_claim_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
+      # DETERMINISTIC-GENERATION-AND-MERGE-SAFETY-01 (L2): `merge=union` — المُفعَّل على
+      # هذه الملفّات الأربعة في `.gitattributes` — يحلّ التعارض بضمّ سطور الجانبين.
+      # وحين يُحرّر الجانبان **نفس السطر** (تحديث حالة فجوة من جلستين) يُبقي النسختين
+      # ويخرج بـ0: فجوة واحدة بحالتين متناقضتين، بلا علامة تعارض ولا اختبار ساقط.
+      # هذا الحارس هو الوحيد الذي يرى ذلك. أوّل إصابة له كانت **قائمة في الشجرة**
+      # قبل وصله (`BRANCH-GRAVEYARD-POLICY`، سطران متلاصقان).
+      - name: Union merges must not leave one gap wearing two states
+        run: python scripts/ci/brain_duplicate_gap_identity_guard.py
