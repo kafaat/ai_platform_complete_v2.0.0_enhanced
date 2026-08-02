@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -142,6 +143,19 @@ def ran_at_all(out: str) -> bool:
     return any(m in out for m in (" passed", " failed", " error", "no tests ran"))
 
 
+_FAILED_RE = re.compile(r"^(?:FAILED|ERROR)\s+\S+::(\w+)", re.M)
+
+
+def failing_tests(out: str) -> list[str]:
+    """أسماء الاختبارات الساقطة كما طبعها pytest، بلا تكرار وبترتيب ثابت.
+
+    يُقرأ من سطور `-q` الختاميّة (`FAILED path::name` و`ERROR path::name`). وحين لا
+    يطبع pytest أيّ اسم — انهيار جمع مثلاً — تعود القائمة فارغة، وذلك **بذاته خبر**:
+    يفصل «سقط اختبار آخر» عن «لم يُسمِّ المُشغِّل شيئاً».
+    """
+    return sorted(set(_FAILED_RE.findall(out)))
+
+
 def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
     res = subprocess.run(
         [
@@ -192,9 +206,19 @@ def run_mutations(
                     "\n    بدل أن يمرّ بالقاعدة نفسها."
                 )
             elif m["expect"] not in out:
+                # **يُسمّي ما سقط فعلاً، لا ما لم يسقط — وهذا فرقٌ كلّفني تشخيصاً.**
+                # أخفق هذا الفرع مرّةً على `claim_base_guard.py[4]` ولم يتكرّر في ثلاثة
+                # تشغيلات تالية على الشجرة نفسها، فلم يبقَ منه إلّا نفيُ المتوقَّع — ولا
+                # يُشخَّص منه شيء. والحارس **بوّابة حاجبة**، وفحصٌ يخضرّ بإعادة التشغيل
+                # يُدرّب قارئه على إعادة التشغيل بدل القراءة، فيُطفَأ بلا تعديل سطر.
+                # فالحادثة التالية تُقرأ من سجلّها بدل انتظار إعادة إنتاج قد لا تحدث.
+                observed = failing_tests(out)
+                detail = " · ".join(observed) if observed else "لا اسم اختبار في المخرَج"
                 failures.append(
                     f"✗ {label}: حمرّ بغير الاختبار المُتوقَّع {m['expect']!r} —"
                     "\n    وهذا يمرّ على طفرة كسرت الاستيراد لا القاعدة."
+                    f"\n    الساقط فعلاً: {detail}"
+                    f"\n    آخر ما طُبِع:\n    {out.strip()[-300:]}"
                 )
             else:
                 print(f"  ✓ {label} ⇒ {m['expect']}")

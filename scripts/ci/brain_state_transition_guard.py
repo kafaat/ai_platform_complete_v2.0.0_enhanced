@@ -42,8 +42,41 @@ SUBSTANTIVE = (
 )
 
 
+# BRAIN-TRANSITION-GUARD-MATCHES-A-QUOTED-STATUS-TOKEN-01. The boundary above kills
+# `fail-closed`, but a boundary is not an anchor: `CLOSED_RE` still matches the token
+# ANYWHERE in an added line, so citing a field is read as claiming it. Measured, and it
+# fired on a real commit: a line saying in so many words that `production_certified=0/81`
+# is NOT a defect, and that raising it fails the build, was rejected as a closure claim.
+# Prose explaining this repository's honesty invariants must name these fields — that is
+# what the invariants ARE — so the guard was blocking the very writing it wants.
+#
+# The anchor is semantic, and it is the narrowest one that cannot open a hole: a citation
+# stating the value is ZERO cannot be a claim that something closed. A real transition
+# necessarily asserts a positive state (`runtime_verified: 1`, `— CLOSED`), and those
+# still match. Only `TOKEN=0`, `TOKEN: 0`, `TOKEN=false` and their `0/81`-style ratios are
+# read as quotations of a current, unclosed value.
+#
+# Deliberately NOT "ignore a line containing a negation": that is a list wearing a
+# pattern's clothes, and it fails on the fourteenth phrasing.
+_CITED_AS_ZERO = re.compile(
+    r"(?<![\w-])(?:CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)"
+    r"(?:_[A-Z][A-Z_]*)?\s*[=:]\s*(?:0(?![.1-9])|false\b)",
+    re.I,
+)
+
+
+def _is_claim(line: str) -> bool:
+    """سطرٌ مُضاف يدّعي انتقال حالة — لا سطرٌ يقتبس قيمةً صفريّة."""
+    if not CLOSED_RE.search(line):
+        return False
+    # كلّ ذكرٍ في السطر مقتبَسٌ بقيمة صفر ⇒ ليس ادّعاءً. ويكفي ذِكرٌ واحد غير مقتبَس
+    # ليعود السطر ادّعاءً — فالفشل في الجهة الآمنة.
+    stripped = _CITED_AS_ZERO.sub("", line)
+    return bool(CLOSED_RE.search(stripped))
+
+
 def check(paths: list[str], diff: str) -> None:
-    claims = [line for line in diff.splitlines() if CLOSED_RE.search(line)]
+    claims = [line for line in diff.splitlines() if _is_claim(line)]
     brain_changed = any(p.startswith("sahool-brain/") for p in paths)
     outside = [
         p
