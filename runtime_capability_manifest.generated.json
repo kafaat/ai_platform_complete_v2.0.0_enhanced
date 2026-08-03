@@ -43,7 +43,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 22,
+      "capability_count": 23,
       "component_id": "auth",
       "domain": "identity",
       "status": {
@@ -57,7 +57,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 60,
+      "capability_count": 61,
       "component_id": "decision-service",
       "domain": "decision-governance",
       "status": {
@@ -155,7 +155,7 @@
       "wiring_disposition": "standalone-job"
     },
     {
-      "capability_count": 3,
+      "capability_count": 4,
       "component_id": "guardrails-engine",
       "domain": "decision-governance",
       "status": {
@@ -281,7 +281,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 74,
+      "capability_count": 75,
       "component_id": "raster-service",
       "domain": "remote-sensing-truth",
       "status": {
@@ -295,7 +295,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 0,
+      "capability_count": 1,
       "component_id": "raster-tiler-service",
       "domain": "remote-sensing-truth",
       "status": {
@@ -379,7 +379,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 6,
+      "capability_count": 7,
       "component_id": "supervisor-agent",
       "domain": "agents",
       "status": {
@@ -477,7 +477,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "f43ca80e2c8e5bf1c607db6dac596c70b129aa0af0df580de4850f2d3b3ebc69",
+  "fingerprint": "4f1f315994e76768afe8353ee9f705640df64effcdf8b123c60a109a530f0056",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

@@ -1,0 +1,35 @@
+{
+  "base_url_env": "GUARDRAILS_ENGINE_BASE_URL",
+  "entrypoint": "services/guardrails-engine/routers/health.py",
+  "identity_path": "/runtime-identity",
+  "note": "Deterministic health probe plus immutable runtime identity binding for certification. التأكيدات مقيسة من `services/guardrails-engine/routers/health.py:23` ولا تُترك فارغة: `response_assertions: []` يُسقِط تحقّق الخطّة نفسها، ويُنتِج مسباراً يقيس أنّ الخدمة **حيّة** لا أنّها تُجيب بما تعاقدت عليه.",
+  "openapi_path": "/openapi.json",
+  "probes": [
+    {
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "method": "GET",
+      "path": "/healthz",
+      "probe_id": "guardrails-engine-health",
+      "response_assertions": [
+        {
+          "field": "status",
+          "equals": "alive"
+        },
+        {
+          "field": "service",
+          "equals": "guardrails-engine"
+        },
+        {
+          "field": "tiers",
+          "type": "number",
+          "equals": 3
+        }
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "service": "guardrails-engine",
+  "source_service": "services/guardrails-engine"
+}

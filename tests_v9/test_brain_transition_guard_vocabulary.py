@@ -97,3 +97,60 @@ def test_a_real_claim_with_executable_evidence_passes(capsys):
         "+- **الحالة:** CLOSED\n",
     )
     assert "brain_state_transition_guard_ok" in capsys.readouterr().out
+
+
+# ── BRAIN-TRANSITION-GUARD-MATCHES-A-QUOTED-STATUS-TOKEN-01 ────────────────────
+#
+# الحدّ أعلاه يقتل `fail-closed`، لكنّ الحدّ ليس مرساة: الرمز كان يُطابَق في أيّ موضع
+# من السطر، فاقتباسُ حقلٍ يُقرأ ادّعاءً له. أطلق الحارس فعلاً على سطر يقول حرفيّاً إنّ
+# `production_certified=0/81` **ليس** عيباً — نفيٌ صريح قُرِئ ادّعاءً.
+
+# اقتباسٌ يقول إنّ القيمة صفر — لا يمكن أن يكون ادّعاء إغلاق.
+_CITED_AS_ZERO = [
+    "+- `production_certified=0/81` **ليس عيباً**: ثابت صدق يفرضه CI حرفيّاً",
+    '+- CI يفرض `grep -F "production_certified: 0"` في capability-governance.yml',
+    "+- `runtime_verified=0` كما هو، ولا يُرفَع على برهان ساكن",
+    "+- الجرد يقول runtime_verified: 0 لكلّ القدرات الـ81",
+    "+- production_certified=false في كلّ مصنوعة",
+]
+
+# ادّعاءات حقيقيّة بقيمة موجبة — يجب أن تبقى محجوبة بعد التضييق.
+_POSITIVE_VALUE_CLAIMS = [
+    "+- `production_certified: 1`",
+    "+- runtime_verified: 1 بعد البرهان الحيّ على staging",
+    "+- runtime_verified=1",
+]
+
+
+@pytest.mark.parametrize("line", _CITED_AS_ZERO)
+def test_a_zero_valued_citation_is_not_a_closure_claim(line: str):
+    """**الإيجابيّة الكاذبة المقيسة.**
+
+    نثرُ هذا المستودع الذي يشرح ثوابت الصدق **يجب** أن يسمّي هذه الحقول — فذاك ما
+    الثوابتُ هي. فحارسٌ يحجبه يمنع الكتابة التي يريدها، ويُرسِل قارئه خلف ادّعاء لم
+    يُكتَب: حجبٌ صحيح لسبب خاطئ، وهو أسوأ من غياب الحجب.
+    """
+    assert not guard._is_claim(line), f"إيجابيّة كاذبة على اقتباس صفريّ: {line}"
+
+
+@pytest.mark.parametrize("line", _POSITIVE_VALUE_CLAIMS)
+def test_a_positive_valued_claim_is_still_rejected(line: str):
+    """**الحدّ الذي يمنع التضييق من فتح ثغرة.**
+
+    الاستثناء مشروط بالقيمة **صفراً** لا بوجود `=`/`:` — وإلّا صار `runtime_verified: 1`،
+    وهو شكل الادّعاء الحقيقيّ بعينه، معفىً. أي أنّ إصلاح إيجابيّة كاذبة كان سيصنع
+    سلبيّة كاذبة أخطر منها.
+    """
+    assert guard._is_claim(line), f"ادّعاء بقيمة موجبة أفلت: {line}"
+
+
+def test_one_unquoted_mention_still_makes_the_line_a_claim():
+    """الفشل في الجهة الآمنة: يكفي ذِكرٌ واحد غير مقتبَس ليعود السطر ادّعاءً."""
+    line = "+- `production_certified=0` لكنّ GAP-Y — CLOSED"
+    assert guard._is_claim(line)
+
+
+@pytest.mark.parametrize("line", _REAL_CLAIMS)
+def test_the_narrowing_did_not_weaken_the_original_vocabulary(line: str):
+    """كلّ ادّعاء كان محجوباً قبل التضييق يبقى محجوباً بعده."""
+    assert guard._is_claim(line), f"ادّعاء إغلاق حقيقيّ أفلت بعد التضييق: {line}"

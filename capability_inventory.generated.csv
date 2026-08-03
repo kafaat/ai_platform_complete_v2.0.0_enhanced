@@ -38,6 +38,7 @@ auth.auth.verify,query,auth,GET /v1/auth/verify,frontend,route,False
 auth.auth.verify.confirm,command,auth,POST /v1/auth/verify/confirm,frontend,route,False
 auth.auth.verify.request,command,auth,POST /v1/auth/verify/request,frontend,route,False
 auth.auth.verify.status,query,auth,GET /v1/auth/verify/status,frontend,route,False
+auth.runtime-identity,query,auth,GET /runtime-identity,frontend,route,False
 decision-service.activation.evidence-receipts,command,decision-service,POST /v1/activation/evidence-receipts,,route,False
 decision-service.activation.evidence-receipts.evidence_id,command,decision-service,POST /v1/activation/evidence-receipts/{evidence_id}/revoke,,route,False
 decision-service.activation.irr_f01_reservation,query,decision-service,GET /v1/activation/irr_f01_reservation,,route,False
@@ -98,6 +99,7 @@ decision-service.outcomes.reconciled,query,decision-service,GET /v1/outcomes/rec
 decision-service.outcomes.record,command,decision-service,POST /v1/outcomes/record,,route,False
 decision-service.recommendation-outcomes,command,decision-service,POST /v1/recommendation-outcomes,,route,False
 decision-service.reservation-dispatch-intents,command,decision-service,POST /v1/reservation-dispatch-intents,,route,False
+decision-service.runtime-identity,query,decision-service,GET /runtime-identity,,route,False
 edge-inference.inference.pest-detect,command,edge-inference,POST /v1/inference/pest-detect,frontend,route,False
 edge-inference.inference.yield-estimate,command,edge-inference,POST /v1/inference/yield-estimate,frontend,route,False
 edge-inference.sync.trigger,command,edge-inference,POST /v1/sync/trigger,frontend,route,False
@@ -113,6 +115,7 @@ field-management-service.internal.fields,query,field-management-service,GET /int
 field-management-service.internal.fields.field_id,query,field-management-service,GET /internal/fields/{field_id},,route,False
 field-segmentation.segment,command,field-segmentation,POST /v1/segment,frontend,route,False
 guardrails-engine.approve.workflow_id,command,guardrails-engine,POST /v1/approve/{workflow_id},frontend,route,False
+guardrails-engine.runtime-identity,query,guardrails-engine,GET /runtime-identity,frontend,route,False
 guardrails-engine.validate,command,guardrails-engine,POST /v1/validate,frontend,route,False
 guardrails-engine.workflow.workflow_id,query,guardrails-engine,GET /v1/workflow/{workflow_id},frontend,route,False
 indicators-service.fields.field_id.observation-timeline,query,indicators-service,GET /v1/fields/{field_id}/observation-timeline,frontend,route,False
@@ -190,6 +193,7 @@ raster-service.process,command,raster-service,POST /v1/process,frontend,route,Fa
 raster-service.process.batch,command,raster-service,POST /v1/process/batch,frontend,route,False
 raster-service.providers.status,query,raster-service,GET /v1/providers/status,frontend,route,False
 raster-service.raw.process,command,raster-service,POST /v1/raw/process,frontend,route,False
+raster-service.runtime-identity,query,raster-service,GET /runtime-identity,frontend,route,False
 raster-service.salinity.calibrate,command,raster-service,POST /v1/salinity/calibrate,frontend,route,False
 raster-service.salinity.classify,command,raster-service,POST /v1/salinity/classify,frontend,route,False
 raster-service.sar.rvi,command,raster-service,POST /v1/sar/rvi,frontend,route,False
@@ -212,6 +216,7 @@ raster-service.tiles.observability,query,raster-service,GET /v1/tiles/observabil
 raster-service.upload.drone,command,raster-service,POST /v1/upload/drone,frontend,route,False
 raster-service.upload.raster,command,raster-service,POST /v1/upload/raster,frontend,route,False
 raster-service.zones.classify,command,raster-service,POST /v1/zones/classify,frontend,route,False
+raster-tiler-service.runtime-identity,query,raster-tiler-service,GET /runtime-identity,,route,False
 remote-sensing-workspace-bff.fields.field_id.remote-sensing-workspace,query,remote-sensing-workspace-bff,GET /v1/fields/{field_id}/remote-sensing-workspace,,route,False
 sahool-platform OutboxWorker.event.9fe71469,event,sahool-platform OutboxWorker,NATS sahool.events.>,notification-agent (notif_domain_events),event,False
 sahool-platform.admin.break-glass,command,sahool-platform,POST /api/v1/admin/break-glass,frontend,route,False
@@ -772,6 +777,7 @@ supervisor-agent.agent.optimize,command,supervisor-agent,POST /v1/agent/optimize
 supervisor-agent.agent.query,command,supervisor-agent,POST /v1/agent/query,frontend,route,False
 supervisor-agent.agent.tools,query,supervisor-agent,GET /v1/agent/tools,frontend,route,False
 supervisor-agent.healthz.deps,query,supervisor-agent,GET /healthz/deps,frontend,route,False
+supervisor-agent.runtime-identity,query,supervisor-agent,GET /runtime-identity,frontend,route,False
 tts-service.tts.status,query,tts-service,GET /v1/tts/status,frontend,route,False
 tts-service.tts.stream,command,tts-service,POST /v1/tts/stream,frontend,route,False
 tts-service.tts.synthesize,command,tts-service,POST /v1/tts/synthesize,frontend,route,False

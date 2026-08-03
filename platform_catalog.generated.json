@@ -659,6 +659,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "auth.runtime-identity",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "auth",
+      "producer": "auth",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "decision-service.activation.evidence-receipts",
       "consumers": [],
       "curated": false,
@@ -1567,6 +1584,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "decision-service.runtime-identity",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "decision-service",
+      "producer": "decision-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "edge-inference.inference.pest-detect",
       "consumers": [
         "frontend"
@@ -1798,6 +1830,23 @@
       ],
       "idempotency_required": false,
       "kind": "command",
+      "owner": "guardrails-engine",
+      "producer": "guardrails-engine",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "guardrails-engine.runtime-identity",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
       "owner": "guardrails-engine",
       "producer": "guardrails-engine",
       "required_context": []
@@ -3125,6 +3174,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "raster-service.runtime-identity",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "raster-service",
+      "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "raster-service.salinity.calibrate",
       "consumers": [
         "frontend"
@@ -3495,6 +3561,21 @@
       "kind": "command",
       "owner": "raster-service",
       "producer": "raster-service",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
+      "capability_id": "raster-tiler-service.runtime-identity",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "raster-tiler-service",
+      "producer": "raster-tiler-service",
       "required_context": []
     },
     {
@@ -14190,6 +14271,23 @@
     },
     {
       "approval_required": false,
+      "capability_id": "supervisor-agent.runtime-identity",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "supervisor-agent",
+      "producer": "supervisor-agent",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "tts-service.tts.status",
       "consumers": [
         "frontend"
@@ -15218,7 +15316,7 @@
           "sahool-auth"
         ],
         "healthcheck": "CMD curl -f http://localhost:8000/healthz",
-        "mount_status": "delegated_routes",
+        "mount_status": "direct_routes",
         "published_ports": []
       },
       "sources": {
@@ -16092,7 +16190,7 @@
           "sahool-raster-service"
         ],
         "healthcheck": "CMD python -c import httpx; httpx.get('http://localhost:8001/healthz')",
-        "mount_status": "factory_delegated_routes",
+        "mount_status": "direct_routes",
         "published_ports": []
       },
       "sources": {
@@ -16135,7 +16233,7 @@
           "raster-tiler-service"
         ],
         "healthcheck": "CMD python -c import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/healthz', timeout=3)",
-        "mount_status": null,
+        "mount_status": "direct_routes",
         "published_ports": [
           "127.0.0.1:8088:8088"
         ]
@@ -16961,7 +17059,7 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 820,
+    "capabilities": 826,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
     "capabilities_idempotent": 46,
@@ -16972,7 +17070,7 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1105,
+    "route_rows": 1111,
     "ui_waivers": 52,
     "unique_method_path": 998
   },
@@ -17156,8 +17254,14 @@
       "classification": "standard_observability",
       "classified": true,
       "components": [
+        "auth",
+        "decision-service",
+        "guardrails-engine",
+        "raster-service",
+        "raster-tiler-service",
         "sahool-platform",
         "soil-service",
+        "supervisor-agent",
         "weather-service"
       ],
       "decision": "عقد هويّة بناء/صورة محلّيّ بالخدمة (git_sha/build_id/image_digest من ملفّ صورة للقراءة فقط) — سطح provenance تشغيليّ لربط أدلّة التحقّق بالصورة المنشورة؛ لكلّ خدمة نسختها، ومستثنى من ميزانية مسارات النطاق عبر allowlist صريحة.",
@@ -17223,7 +17327,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "f43ca80e2c8e5bf1c607db6dac596c70b129aa0af0df580de4850f2d3b3ebc69",
+  "fingerprint": "4f1f315994e76768afe8353ee9f705640df64effcdf8b123c60a109a530f0056",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

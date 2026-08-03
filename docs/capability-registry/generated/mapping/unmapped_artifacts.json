@@ -6480,6 +6480,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/test_migration_manifest_execution_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/test_phase10.py",
     "kind": "tests"
   },
@@ -6713,6 +6717,10 @@
   },
   {
     "path": "tests_v9/test_canonical_irrigation_machine_capability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_certification_regression_fixes.py",
     "kind": "tests"
   },
   {
@@ -7041,6 +7049,14 @@
   },
   {
     "path": "tests_v9/test_frontend_nginx_service_proxy_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gap_landing_claims_name_a_real_commit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
     "kind": "tests"
   },
   {
@@ -7425,6 +7441,10 @@
   },
   {
     "path": "tests_v9/test_production_evidence_pack_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_production_readiness_orchestrator.py",
     "kind": "tests"
   },
   {

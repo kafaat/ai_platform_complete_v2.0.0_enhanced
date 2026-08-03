@@ -9,7 +9,14 @@ x-logging: &id001
 # متغيّر، فلم يبقَ أيّ مُشير إلى ``*id002`` وأُزيلت المرساة اليتيمة (لا كتلة ميّتة في المخطّط).
 services:
   raster-tiler-service:
-    build: ./services/raster-tiler-service
+    build:
+      context: .
+      dockerfile: services/raster-tiler-service/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     security_opt:
     - no-new-privileges:true
     environment:
@@ -457,6 +464,11 @@ services:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -665,6 +677,11 @@ services:
     build:
       context: .
       dockerfile: services/supervisor-agent/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     mem_limit: 768m
     security_opt:
     - no-new-privileges:true
@@ -701,6 +718,11 @@ services:
     build:
       context: .
       dockerfile: services/guardrails-engine/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
@@ -1016,7 +1038,7 @@ services:
     networks:
     - sahool-internal
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f projection_worker || exit 1"]
+      test: ["CMD-SHELL", "kill -0 1"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -1057,6 +1079,11 @@ services:
     build:
       context: .
       dockerfile: services/raster-service/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     mem_limit: 1536m
     security_opt:
     - no-new-privileges:true
@@ -1347,6 +1374,11 @@ services:
     build:
       context: .
       dockerfile: services/decision-service/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     mem_limit: 256m
     security_opt:
     - no-new-privileges:true

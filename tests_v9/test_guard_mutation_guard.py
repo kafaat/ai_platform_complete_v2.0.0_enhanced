@@ -273,3 +273,87 @@ def test_the_guard_source_is_restored_after_every_mutation(tmp_path: Path) -> No
     reg = _reg(mutated=_spec("def check(values):", "def chekc(values):", "test_x"))
     gmg.run_mutations(reg, ci=ci, root=tmp_path)
     assert (ci / "fake_guard.py").read_text(encoding="utf-8") == before
+
+
+def test_the_wrong_test_branch_names_what_actually_failed(tmp_path: Path) -> None:
+    """**فرعٌ يقول ما لم يسقط ولا يقول ما سقط لا يُشخَّص من سجلّه.**
+
+    `GUARD-MUTATION-RUN-FLAKED-ONCE-UNREPRODUCED-01`: أخفق هذا الفرع مرّةً على
+    `claim_base_guard.py[4]` ولم يتكرّر في ثلاثة تشغيلات تالية على الشجرة نفسها،
+    فلم يبقَ من الحادثة إلّا نفيُ المتوقَّع. والحارس **بوّابة حاجبة**، وفحصٌ يخضرّ
+    بإعادة التشغيل يُدرّب قارئه على إعادة التشغيل بدل القراءة — فيُطفَأ بلا تعديل سطر.
+
+    **والقياس على `run_mutations` لا على `failing_tests`، لأنّ أوّل صياغة قاست
+    الدالّة وحدها فبقيت خضراء تحت طفرتها**: الطفرة تنزع النداء من الفرع، والدالّة
+    سليمة. أي أنّ اختبار التشخيص وقع في «قدرة موجودة لا تجري» — والمخرَج الجديد نفسه
+    هو ما سمّى لي الاختبار الساقط فانكشف العطل في أوّل تشغيل.
+    """
+    ci = _fake_repo(tmp_path)
+    reg = _reg(mutated=_spec("def check(values):", "def chekc(values):", "test_no_such_name"))
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert any("حمرّ بغير الاختبار المُتوقَّع" in f for f in failures)
+
+    # **التأكيد على سطر `الساقط فعلاً` وحده، لا على الرسالة كلّها.** أوّل صياغة بحثت
+    # عن الاسم في الرسالة — وهي تحمل ذيل مخرَج pytest الخام الذي يحوي الاسم أصلاً،
+    # فكان التأكيد يمرّ ولو نُزِع الاستخراج بالكامل. أمسكته الطفرة المزروعة.
+    named = [
+        line.split("الساقط فعلاً:", 1)[1].strip()
+        for f in failures
+        for line in f.splitlines()
+        if "الساقط فعلاً:" in line
+    ]
+    # الطفرة هنا تكسر الاستيراد، فيسقط **الاختباران** الصناعيّان — والسطر يقول ذلك
+    # صراحةً. وهو الفارق العمليّ: «سقط الملفّ كلّه» تُقرأ انهيار استيراد، و«سقط
+    # اختبارٌ شقيق واحد» تُقرأ تداخلاً بين طفرتين متجاورتين. الأولى شخّصت حادثة
+    # `claim_base_guard.py[4]` في أوّل تشغيل بعد هذا الإصلاح.
+    assert named == ["test_clean_input_passes · test_negative_is_rejected"], named
+
+
+def test_failing_tests_separates_a_named_failure_from_a_silent_runner() -> None:
+    """قائمة فارغة **خبرٌ بذاته**: تفصل «سقط اختبار آخر» عن «لم يُسمِّ المُشغِّل شيئاً»."""
+    out = (
+        "=========================== short test summary info ===========================\n"
+        "FAILED tests_v9/test_x.py::test_something_else_broke - AssertionError\n"
+        "ERROR tests_v9/test_x.py::test_collection_blew_up\n"
+        "========================= 1 failed, 2 passed in 0.10s =========================\n"
+    )
+    assert gmg.failing_tests(out) == ["test_collection_blew_up", "test_something_else_broke"]
+    assert gmg.failing_tests("INTERNALERROR> ImportError: no module named x") == []
+
+
+def test_mutation_runner_pins_deterministic_environment() -> None:
+    source = (ROOT / "scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
+    for contract in (
+        '"PYTHONHASHSEED": "0"',
+        '"PYTHONUTF8": "1"',
+        '"LC_ALL": "C.UTF-8"',
+        '"TZ": "UTC"',
+        'TemporaryDirectory(prefix="sahool-guard-mutation-")',
+    ):
+        assert contract in source
+
+
+def test_inconsistent_wrong_test_repeats_are_classified_non_deterministic(
+    tmp_path: Path, monkeypatch
+) -> None:
+    ci = _fake_repo(tmp_path)
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    outputs = iter(
+        [
+            (1, "FAILED tests/test_fake.py::test_clean_input_passes\n1 failed"),
+            (1, "FAILED tests/test_fake.py::test_clean_input_passes\n1 failed"),
+            (1, "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed"),
+            (1, "FAILED tests/test_fake.py::test_clean_input_passes\n1 failed"),
+        ]
+    )
+    monkeypatch.setattr(gmg, "_run_tests", lambda *a, **k: next(outputs))
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+    assert any("NON_DETERMINISTIC" in failure for failure in failures)
+
+
+def test_sigterm_restoration_ledger_is_installed() -> None:
+    source = (ROOT / "scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
+    assert "_ACTIVE_RESTORES" in source
+    assert "signal.SIGTERM" in source
+    assert "atexit.register(_restore_active_sources)" in source

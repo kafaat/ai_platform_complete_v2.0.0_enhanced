@@ -37,9 +37,14 @@
 from __future__ import annotations
 
 import argparse
+import atexit
 import json
+import os
+import re
+import signal
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,6 +53,30 @@ REGISTRY = ROOT / "docs" / "architecture" / "guard_mutation_registry.json"
 
 # هذا الحارس نفسه ليس استثناءً — يظهر في السجلّ كغيره، ومواصفته تحت الاختبار.
 GUARD_GLOBS = ("*_guard.py", "*_guard.sh")
+
+# In-place mutation is unavoidable because the real tests resolve canonical paths.
+# Keep an explicit restoration ledger so SIGTERM (for example GNU timeout) cannot
+# leave the checkout carrying a planted defect. SIGKILL is not recoverable; CI must
+# use a TERM grace period before KILL.
+_ACTIVE_RESTORES: dict[Path, str] = {}
+
+
+def _restore_active_sources() -> None:
+    for path, original in list(_ACTIVE_RESTORES.items()):
+        try:
+            path.write_text(original, encoding="utf-8")
+        finally:
+            _ACTIVE_RESTORES.pop(path, None)
+
+
+def _termination_handler(signum, _frame) -> None:
+    _restore_active_sources()
+    raise SystemExit(128 + int(signum))
+
+
+atexit.register(_restore_active_sources)
+for _signal in (signal.SIGTERM, signal.SIGINT):
+    signal.signal(_signal, _termination_handler)
 
 
 def load_registry(path: Path = REGISTRY) -> dict:
@@ -142,24 +171,91 @@ def ran_at_all(out: str) -> bool:
     return any(m in out for m in (" passed", " failed", " error", "no tests ran"))
 
 
+_FAILED_RE = re.compile(r"^(?:FAILED|ERROR)\s+\S+::(\w+)", re.M)
+
+
+def failing_tests(out: str) -> list[str]:
+    """أسماء الاختبارات الساقطة كما طبعها pytest، بلا تكرار وبترتيب ثابت.
+
+    يُقرأ من سطور `-q` الختاميّة (`FAILED path::name` و`ERROR path::name`). وحين لا
+    يطبع pytest أيّ اسم — انهيار جمع مثلاً — تعود القائمة فارغة، وذلك **بذاته خبر**:
+    يفصل «سقط اختبار آخر» عن «لم يُسمِّ المُشغِّل شيئاً».
+    """
+    return sorted(set(_FAILED_RE.findall(out)))
+
+
 def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
-    res = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pytest",
-            test_file,
-            "-q",
-            "--no-cov",
-            "-p",
-            "no:cacheprovider",
-        ],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        cwd=root,
+    """Run one mutation test in a deterministic, isolated process environment."""
+    env = os.environ.copy()
+    env.update(
+        {
+            "PYTHONHASHSEED": "0",
+            "PYTHONUTF8": "1",
+            "PYTHONIOENCODING": "utf-8",
+            "LC_ALL": "C.UTF-8",
+            "LANG": "C.UTF-8",
+            "TZ": "UTC",
+        }
     )
+    with tempfile.TemporaryDirectory(prefix="sahool-guard-mutation-") as tmp:
+        env["TMPDIR"] = tmp
+        env["TEMP"] = tmp
+        env["TMP"] = tmp
+        res = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                test_file,
+                "-q",
+                "--no-cov",
+                "-p",
+                "no:cacheprovider",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=root,
+            env=env,
+        )
     return res.returncode, res.stdout + res.stderr
+
+
+def _outcome(code: int, out: str, expected: str) -> tuple[str, tuple[str, ...]]:
+    if not ran_at_all(out):
+        return "runner_did_not_run", tuple()
+    if code == 0:
+        return "unexpected_green", tuple()
+    observed = tuple(failing_tests(out))
+    if expected not in out:
+        return "wrong_test", observed
+    return "expected_red", observed
+
+
+def _diagnose_repeat(
+    src: Path,
+    original: str,
+    mutation: dict,
+    test_file: str,
+    root: Path,
+    repeats: int = 3,
+) -> list[tuple[str, tuple[str, ...]]]:
+    """Repeat only an anomalous plant; inconsistency remains a blocking result."""
+    outcomes: list[tuple[str, tuple[str, ...]]] = []
+    for _ in range(repeats):
+        try:
+            _ACTIVE_RESTORES[src] = original
+            src.write_text(
+                original.replace(mutation["find"], mutation["replace"], 1),
+                encoding="utf-8",
+            )
+            code, out = _run_tests(test_file, root)
+            outcomes.append(_outcome(code, out, mutation["expect"]))
+        finally:
+            src.write_text(original, encoding="utf-8")
+            _ACTIVE_RESTORES.pop(src, None)
+    return outcomes
 
 
 def run_mutations(
@@ -175,10 +271,12 @@ def run_mutations(
         for i, m in enumerate(spec["mutations"]):
             label = f"{name}[{i}] {m.get('why', '')}"
             try:
+                _ACTIVE_RESTORES[src] = original
                 src.write_text(original.replace(m["find"], m["replace"], 1), encoding="utf-8")
                 code, out = _run_tests(spec["test"], root)
             finally:
                 src.write_text(original, encoding="utf-8")
+                _ACTIVE_RESTORES.pop(src, None)
             if not ran_at_all(out):
                 failures.append(
                     f"✗ {label}: **المُشغِّل لم يُشغّل اختباراً** — لا انهيار الحارس"
@@ -192,9 +290,27 @@ def run_mutations(
                     "\n    بدل أن يمرّ بالقاعدة نفسها."
                 )
             elif m["expect"] not in out:
+                repeats = _diagnose_repeat(src, original, m, spec["test"], root)
+                stable = len(set(repeats)) == 1
+                repeat_detail = " · ".join(
+                    f"{kind}:{','.join(names) or '-'}" for kind, names in repeats
+                )
+                # **يُسمّي ما سقط فعلاً، لا ما لم يسقط — وهذا فرقٌ كلّفني تشخيصاً.**
+                # أخفق هذا الفرع مرّةً على `claim_base_guard.py[4]` ولم يتكرّر في ثلاثة
+                # تشغيلات تالية على الشجرة نفسها، فلم يبقَ منه إلّا نفيُ المتوقَّع — ولا
+                # يُشخَّص منه شيء. والحارس **بوّابة حاجبة**، وفحصٌ يخضرّ بإعادة التشغيل
+                # يُدرّب قارئه على إعادة التشغيل بدل القراءة، فيُطفَأ بلا تعديل سطر.
+                # فالحادثة التالية تُقرأ من سجلّها بدل انتظار إعادة إنتاج قد لا تحدث.
+                observed = failing_tests(out)
+                detail = " · ".join(observed) if observed else "لا اسم اختبار في المخرَج"
+                classification = "STABLE_WRONG_TEST" if stable else "NON_DETERMINISTIC"
                 failures.append(
                     f"✗ {label}: حمرّ بغير الاختبار المُتوقَّع {m['expect']!r} —"
                     "\n    وهذا يمرّ على طفرة كسرت الاستيراد لا القاعدة."
+                    f"\n    التصنيف: {classification}"
+                    f"\n    إعادة التشخيص: {repeat_detail}"
+                    f"\n    الساقط فعلاً: {detail}"
+                    f"\n    آخر ما طُبِع:\n    {out.strip()[-300:]}"
                 )
             else:
                 print(f"  ✓ {label} ⇒ {m['expect']}")

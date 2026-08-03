@@ -14,11 +14,11 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'f43ca80e2c8e5bf1c607db6dac596c70b129aa0af0df580de4850f2d3b3ebc69';
+export const PLATFORM_CATALOG_FINGERPRINT = '4f1f315994e76768afe8353ee9f705640df64effcdf8b123c60a109a530f0056';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
-  "capabilities": 820,
+  "capabilities": 826,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 93,
   "capabilities_idempotent": 46,
@@ -29,7 +29,7 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1105,
+  "route_rows": 1111,
   "ui_waivers": 52,
   "unique_method_path": 998
 } as const;
@@ -63,7 +63,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 22,
+    "capabilityCount": 23,
     "domain": "identity",
     "id": "auth",
     "tested": true,
@@ -72,7 +72,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 60,
+    "capabilityCount": 61,
     "domain": "decision-governance",
     "id": "decision-service",
     "tested": true,
@@ -135,7 +135,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "standalone-job"
   },
   {
-    "capabilityCount": 3,
+    "capabilityCount": 4,
     "domain": "decision-governance",
     "id": "guardrails-engine",
     "tested": true,
@@ -216,7 +216,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 74,
+    "capabilityCount": 75,
     "domain": "remote-sensing-truth",
     "id": "raster-service",
     "tested": true,
@@ -225,7 +225,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 0,
+    "capabilityCount": 1,
     "domain": "remote-sensing-truth",
     "id": "raster-tiler-service",
     "tested": false,
@@ -279,7 +279,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 6,
+    "capabilityCount": 7,
     "domain": "agents",
     "id": "supervisor-agent",
     "tested": true,

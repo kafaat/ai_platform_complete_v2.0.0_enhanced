@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 560,
+          "line": 567,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 508,
+          "line": 515,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -619,7 +619,7 @@
         },
         {
           "function": "readyz",
-          "line": 513,
+          "line": 520,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -825,6 +825,46 @@
       "path": "/runtime-identity",
       "registrations": [
         {
+          "function": "runtime_identity",
+          "line": 400,
+          "method": "GET",
+          "module": "services/auth/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        },
+        {
+          "function": "runtime_identity",
+          "line": 509,
+          "method": "GET",
+          "module": "services/decision-service/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        },
+        {
+          "function": "runtime_identity",
+          "line": 54,
+          "method": "GET",
+          "module": "services/guardrails-engine/routers/health.py",
+          "path": "/runtime-identity",
+          "receiver": "router"
+        },
+        {
+          "function": "runtime_evidence_identity",
+          "line": 64,
+          "method": "GET",
+          "module": "services/raster-service/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        },
+        {
+          "function": "runtime_identity",
+          "line": 11,
+          "method": "GET",
+          "module": "services/raster-tiler-service/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        },
+        {
           "function": "runtime_evidence_identity",
           "line": 24,
           "method": "GET",
@@ -839,6 +879,14 @@
           "module": "services/soil-service/main.py",
           "path": "/runtime-identity",
           "receiver": "app"
+        },
+        {
+          "function": "runtime_identity",
+          "line": 69,
+          "method": "GET",
+          "module": "services/supervisor-agent/routers/health.py",
+          "path": "/runtime-identity",
+          "receiver": "router"
         },
         {
           "function": "runtime_evidence_identity",
@@ -1094,8 +1142,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1089,
-  "route_inventory_sha256": "1460e10192577507e1d3f1c5c9e32cff94d56fa9f9018ff6c6620e724bb99e1c",
+  "route_count": 1095,
+  "route_inventory_sha256": "5fc166a2ab1f819851df2804b1da8687b085c1e5758d36a5de2395ac1a7be031",
   "runtime_verified": false,
   "schema_version": 1
 }

@@ -33,6 +33,29 @@ jobs:
           - service: sahool-platform
             dockerfile: services/sahool-platform/Dockerfile
             image_name: sahool-platform
+          # raster-service دخلت هنا مع وصل هويّتها. صورةٌ تحمل SHA صحيحاً وهي مبنيّة
+          # محلّيّاً ما زالت **غير موثَّقة** — والفجوة الأصليّة نصّها «يمكن بناء صورة لا
+          # يمكن ربطها بالـSHA المختبر»، والربط المقصود attestation لا وسم.
+          # وإضافةُ صفٍّ هنا وحدها لا تكفي: `publish-manifest` أدناه يحمل مجموعة
+          # متوقَّعة مثبَّتة نصّاً، وتركُها يُفشِل تجميع البيان بعد بناء ناجح.
+          - service: raster-service
+            dockerfile: services/raster-service/Dockerfile
+            image_name: sahool-raster-service
+          - service: auth-service
+            dockerfile: services/auth/Dockerfile
+            image_name: sahool-auth
+          - service: decision-service
+            dockerfile: services/decision-service/Dockerfile
+            image_name: sahool-decision-service
+          - service: guardrails-engine
+            dockerfile: services/guardrails-engine/Dockerfile
+            image_name: sahool-guardrails-engine
+          - service: supervisor-agent
+            dockerfile: services/supervisor-agent/Dockerfile
+            image_name: sahool-supervisor-agent
+          - service: raster-tiler-service
+            dockerfile: services/raster-tiler-service/Dockerfile
+            image_name: raster-tiler-service
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -44,15 +67,15 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "${{ inputs.source_sha }}"
           [[ "${{ inputs.source_sha }}" =~ ^[0-9a-f]{40}$ ]]
-      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
-      - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v3
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push immutable image
         id: build
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -65,7 +88,7 @@ jobs:
             SAHOOL_SOURCE_REPOSITORY=${{ github.repository }}
             SAHOOL_SOURCE_REF=${{ github.ref }}
       - name: Attest OCI image digest
-        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}
           subject-digest: ${{ steps.build.outputs.digest }}
@@ -99,7 +122,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ inputs.source_sha }}
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: runtime-image-fragment-*
           path: image-manifest-fragments
@@ -115,7 +138,7 @@ jobs:
           for p in sorted(Path('image-manifest-fragments').glob('*.json')):
               row=json.loads(p.read_text())
               fragments[row['service']]=row
-          expected={'weather-service','soil-service','sahool-platform'}
+          expected={'weather-service','soil-service','raster-service','sahool-platform','auth-service','decision-service','guardrails-engine','supervisor-agent','raster-tiler-service'}
           if set(fragments)!=expected:
               raise SystemExit(f'image manifest incomplete: {sorted(set(fragments)^expected)}')
           out={'schema_version':'1.0','source_sha':os.environ['SOURCE_SHA'],'repository':os.environ['GITHUB_REPOSITORY'],'source_ref':os.environ['GITHUB_REF'],'builder_workflow':f"{os.environ['GITHUB_REPOSITORY']}/.github/workflows/runtime-image-provenance.yml",'builder_run_id':os.environ['GITHUB_RUN_ID'],'images':fragments}

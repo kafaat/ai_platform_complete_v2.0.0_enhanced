@@ -1,5 +1,5 @@
 confidence,owner,kind,symbol,file,line,reference_count,action,decorated_route
-high,decision-service,function,_service_token_guard,services/decision-service/main.py,151,0,review_before_delete,False
+high,decision-service,function,_service_token_guard,services/decision-service/main.py,152,0,review_before_delete,False
 high,mcp-servers,function,_simulate_wofost,services/mcp_servers/wofost_server.py,233,0,review_before_delete,False
 high,raster-service,function,_scene_band_mapping,services/raster-service/raster_main_compat_exports.py,92,0,review_before_delete,False
 high,raster-service,function,_bbox_from_geom,services/raster-service/raster_main_compat_exports.py,97,0,review_before_delete,False
@@ -58,7 +58,7 @@ medium,ai-agronomist,function,build_provider_tools,services/ai_agronomist/provid
 medium,ai-agronomist,function,extract_tool_calls,services/ai_agronomist/provider_tooling.py,182,0,review_before_delete,False
 medium,ai-agronomist,class,RecommendationRuntimePipeline,services/ai_agronomist/recommendation_runtime_pipeline.py,38,0,review_before_delete,False
 medium,ai-agronomist,function,trace_decision,services/ai_agronomist/runtime_tracing.py,1,0,review_before_delete,False
-medium,auth,function,tenant_header_middleware,services/auth/main.py,408,0,review_before_delete,False
+medium,auth,function,tenant_header_middleware,services/auth/main.py,417,0,review_before_delete,False
 medium,auth,function,verify_recovery_code,services/auth/mfa_crypto.py,209,0,review_before_delete,False
 medium,auth,function,register_failure,services/auth/mfa_crypto.py,222,0,review_before_delete,False
 medium,decision-service,function,now_iso,services/decision-service/persistence.py,39,0,review_before_delete,False

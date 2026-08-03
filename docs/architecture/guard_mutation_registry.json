@@ -1,164 +1,180 @@
 {
   "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
-  "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
-  "schema_version": "sahool.guard-mutation-registry.v1",
   "adjudicated_on": "2026-08-02",
-  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل.",
-  "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
+  "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
+  "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
-    "claim_base_guard.py": {
-      "test": "tests_v9/test_claim_base_guard.py",
-      "mutations": [
-        {
-          "why": "مطابقة المفتاح بالبادئة بدل التامّة ⇒ `baseline_route_count` يُقبَل أساساً",
-          "find": "return any(k in data and str(data[k]).strip() for k in keys)",
-          "replace": "return any(any(d.startswith(k) for d in data) for k in keys)",
-          "expect": "test_a_count_is_not_a_base"
-        },
-        {
-          "why": "نزع سقف الدَّين ⇒ قائمة «تتقلّص ولا تنمو» تنمو",
-          "find": "        if len(debt) > ceiling:",
-          "replace": "        if False:",
-          "expect": "test_debt_growth_is_blocked_by_the_ceiling"
-        },
-        {
-          "why": "نزع الإنفاذ العكسيّ ⇒ مدخل اكتسب ختماً يبقى ديناً بائتاً",
-          "find": "        if has and name in unbased:",
-          "replace": "        if False:",
-          "expect": "test_debt_that_gained_a_base_must_leave_the_list"
-        },
-        {
-          "why": "قبول ختم القياس مكان تاريخ الحكم",
-          "find": "        has = _has_base(data, d_keys)",
-          "replace": "        has = _has_base(data, d_keys + m_keys)",
-          "expect": "test_a_measured_stamp_does_not_satisfy_a_decision"
-        },
-        {
-          "why": "قبول تاريخ الحكم مكان ختم القياس",
-          "find": "        has = _has_base(data, m_keys)",
-          "replace": "        has = _has_base(data, m_keys + d_keys)",
-          "expect": "test_a_decision_stamp_does_not_satisfy_a_measurement"
-        },
-        {
-          "why": "نزع حجب المصنوعة غير المصنَّفة ⇒ ملفّ جديد يدخل بلا صنف",
-          "find": "    if unclassified:",
-          "replace": "    if False:",
-          "expect": "test_unclassified_artifact_is_blocked"
-        },
-        {
-          "why": "نزع حجب مدخل الدَّين البائت",
-          "find": "        if gone:",
-          "replace": "        if False:",
-          "expect": "test_stale_debt_entry_is_blocked"
-        },
-        {
-          "why": "SHA مجهول يُبلَّغ «صفر التزام» بدل «غير قابل للحلّ»",
-          "find": "    if res.returncode != 0:\n        return None",
-          "replace": "    if res.returncode != 0:\n        return 0",
-          "expect": "test_an_unknown_sha_reports_unresolvable_not_zero"
-        }
-      ]
-    },
-    "brain_state_transition_guard.py": {
-      "test": "tests_v9/test_brain_transition_guard_vocabulary.py",
-      "mutations": [
-        {
-          "why": "إعادة النمط القديم `\\b(CLOSED|…)\\b` — خاطئ في الاتّجاهين: يطابق داخل fail-closed ولا يطابق CLOSED_IN_CODE",
-          "find": "    r\"^\\+[^+].*(?<![\\w-])(CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)\"\n    r\"(?:_[A-Z][A-Z_]*)?(?![\\w-])\",",
-          "replace": "    r\"^\\+[^+].*\\b(CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)\\b\",",
-          "expect": "test_the_underscore_vocabulary_was_the_false_negative"
-        },
-        {
-          "why": "نزع اشتراط كود تنفيذيّ خارج الدماغ ⇒ ادّعاء إغلاق دماغيّ صرف يمرّ",
-          "find": "    if brain_changed and claims and not outside:",
-          "replace": "    if False:",
-          "expect": "test_brain_only_diff_with_a_real_claim_is_still_rejected"
-        }
-      ]
-    },
-    "guard_mutation_guard.py": {
-      "test": "tests_v9/test_guard_mutation_guard.py",
-      "mutations": [
-        {
-          "why": "نزع حجب الحارس الجديد بلا مواصفة ⇒ الآليّة كلّها تصير اختياريّة",
-          "find": "    if missing:",
-          "replace": "    if False:",
-          "expect": "test_a_new_guard_without_a_mutation_spec_is_blocked"
-        },
-        {
-          "why": "قبول مواصفة بائتة سلسلتها لم تعد في المصدر",
-          "find": "            if occurrences == 0:",
-          "replace": "            if False:",
-          "expect": "test_a_stale_mutation_string_is_blocked"
-        },
-        {
-          "why": "قبول سلسلة متكرّرة ⇒ الزرع غير محدَّد الموضع",
-          "find": "            elif occurrences > 1:",
-          "replace": "            elif False:",
-          "expect": "test_an_ambiguous_mutation_string_is_blocked"
-        },
-        {
-          "why": "قبول «سقط شيء ما» بدل الاختبار المُسمّى ⇒ طفرة تكسر الاستيراد تُحسَب نجاحاً",
-          "find": "            elif m[\"expect\"] not in out:",
-          "replace": "            elif False:",
-          "expect": "test_red_by_the_wrong_test_is_not_proof"
-        },
-        {
-          "why": "نزع سقف الدَّين",
-          "find": "    if len(debt) > ceiling:",
-          "replace": "    if False:",
-          "expect": "test_debt_growth_is_blocked_by_the_ceiling"
-        },
-        {
-          "why": "نزع حجب المدخل البائت لحارس غير موجود",
-          "find": "    if ghost:",
-          "replace": "    if False:",
-          "expect": "test_an_entry_for_a_missing_guard_is_blocked"
-        },
-        {
-          "why": "اعتبار الحارس المزروع فيه العطل ناجحاً إن خرج بصفر",
-          "find": "            elif code == 0:",
-          "replace": "            elif False:",
-          "expect": "test_a_green_suite_under_a_planted_defect_is_a_failure"
-        },
-        {
-          "why": "قبول `expect` بادئةً عامّة لا اسم اختبار موجود ⇒ الشرط يعود إلى «سقط شيء ما»",
-          "find": "            elif test_src and f\"def {expect}(\" not in test_src:",
-          "replace": "            elif False:",
-          "expect": "test_a_bare_prefix_is_not_an_expected_test"
-        },
-        {
-          "why": "اعتبار انهيار المُشغِّل دليلاً ⇒ بيئة بلا pytest تُبلَّغ «حمرّ بغير الاختبار المُتوقَّع»",
-          "find": "            if not ran_at_all(out):",
-          "replace": "            if False:",
-          "expect": "test_a_runner_that_never_ran_is_not_evidence"
-        }
-      ]
-    },
     "brain_duplicate_gap_identity_guard.py": {
-      "test": "tests_v9/test_brain_duplicate_gap_identity_guard.py",
       "mutations": [
         {
-          "why": "التكرار بدل التلاصق ⇒ السلاسل التاريخيّة المقصودة تُرفَع إنذاراً (١٠ من ١١ على الشجرة)",
+          "expect": "test_a_deliberate_history_chain_passes",
           "find": "        if ids[i] is not None and ids[i] == ids[i + 1]:",
           "replace": "        if ids[i] is not None and ids[i] in ids[i + 1 :]:",
-          "expect": "test_a_deliberate_history_chain_passes"
+          "why": "التكرار بدل التلاصق ⇒ السلاسل التاريخيّة المقصودة تُرفَع إنذاراً (١٠ من ١١ على الشجرة)"
         }
-      ]
+      ],
+      "test": "tests_v9/test_brain_duplicate_gap_identity_guard.py"
     },
-    "probe_leak_guard.py": {
-      "test": "tests_v9/test_probe_leak_guard.py",
+    "brain_state_transition_guard.py": {
       "mutations": [
         {
-          "why": "نزع استثناء المواضع الشرعيّة ⇒ الحارس يُطلِق على الاختبار الذي يُعرّف المِسبار وعلى الدماغ الذي يشرح الحادثة",
+          "expect": "test_the_underscore_vocabulary_was_the_false_negative",
+          "find": "    r\"^\\+[^+].*(?<![\\w-])(CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)\"\n    r\"(?:_[A-Z][A-Z_]*)?(?![\\w-])\",",
+          "replace": "    r\"^\\+[^+].*\\b(CLOSED|VERIFIED|RUNTIME_VERIFIED|PRODUCTION_CERTIFIED)\\b\",",
+          "why": "إعادة النمط القديم `\\b(CLOSED|…)\\b` — خاطئ في الاتّجاهين: يطابق داخل fail-closed ولا يطابق CLOSED_IN_CODE"
+        },
+        {
+          "expect": "test_brain_only_diff_with_a_real_claim_is_still_rejected",
+          "find": "    if brain_changed and claims and not outside:",
+          "replace": "    if False:",
+          "why": "نزع اشتراط كود تنفيذيّ خارج الدماغ ⇒ ادّعاء إغلاق دماغيّ صرف يمرّ"
+        },
+        {
+          "expect": "test_a_positive_valued_claim_is_still_rejected",
+          "find": "(?:_[A-Z][A-Z_]*)?\\s*[=:]\\s*(?:0(?![.1-9])|false\\b)",
+          "replace": "(?:_[A-Z][A-Z_]*)?\\s*[=:]\\s*\\S+",
+          "why": "نزع اشتراط القيمة الصفريّة من الاستثناء ⇒ `runtime_verified: 1` يصير اقتباساً معفىً — إصلاحُ إيجابيّة كاذبة يصنع سلبيّة كاذبة أخطر"
+        },
+        {
+          "expect": "test_a_zero_valued_citation_is_not_a_closure_claim",
+          "find": "    stripped = _CITED_AS_ZERO.sub(\"\", line)\n    return bool(CLOSED_RE.search(stripped))",
+          "replace": "    return True",
+          "why": "إعادة المطابقة الخام بلا مرساة دلاليّة ⇒ اقتباس `production_certified=0/81` نفياً يُقرأ ادّعاءً"
+        }
+      ],
+      "test": "tests_v9/test_brain_transition_guard_vocabulary.py"
+    },
+    "claim_base_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_count_is_not_a_base",
+          "find": "return any(k in data and str(data[k]).strip() for k in keys)",
+          "replace": "return any(any(d.startswith(k) for d in data) for k in keys)",
+          "why": "مطابقة المفتاح بالبادئة بدل التامّة ⇒ `baseline_route_count` يُقبَل أساساً"
+        },
+        {
+          "expect": "test_debt_growth_is_blocked_by_the_ceiling",
+          "find": "        if len(debt) > ceiling:",
+          "replace": "        if False:",
+          "why": "نزع سقف الدَّين ⇒ قائمة «تتقلّص ولا تنمو» تنمو"
+        },
+        {
+          "expect": "test_debt_that_gained_a_base_must_leave_the_list",
+          "find": "        if has and name in unbased:",
+          "replace": "        if False:",
+          "why": "نزع الإنفاذ العكسيّ ⇒ مدخل اكتسب ختماً يبقى ديناً بائتاً"
+        },
+        {
+          "expect": "test_a_measured_stamp_does_not_satisfy_a_decision",
+          "find": "        has = _has_base(data, d_keys)",
+          "replace": "        has = _has_base(data, d_keys + m_keys)",
+          "why": "قبول ختم القياس مكان تاريخ الحكم"
+        },
+        {
+          "expect": "test_a_decision_stamp_does_not_satisfy_a_measurement",
+          "find": "        has = _has_base(data, m_keys)",
+          "replace": "        has = _has_base(data, m_keys + d_keys)",
+          "why": "قبول تاريخ الحكم مكان ختم القياس"
+        },
+        {
+          "expect": "test_unclassified_artifact_is_blocked",
+          "find": "    if unclassified:",
+          "replace": "    if False:",
+          "why": "نزع حجب المصنوعة غير المصنَّفة ⇒ ملفّ جديد يدخل بلا صنف"
+        },
+        {
+          "expect": "test_stale_debt_entry_is_blocked",
+          "find": "        if gone:",
+          "replace": "        if False:",
+          "why": "نزع حجب مدخل الدَّين البائت"
+        },
+        {
+          "expect": "test_an_unknown_sha_reports_unresolvable_not_zero",
+          "find": "    if res.returncode != 0:\n        return None",
+          "replace": "    if res.returncode != 0:\n        return 0",
+          "why": "SHA مجهول يُبلَّغ «صفر التزام» بدل «غير قابل للحلّ»"
+        }
+      ],
+      "test": "tests_v9/test_claim_base_guard.py"
+    },
+    "guard_mutation_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_new_guard_without_a_mutation_spec_is_blocked",
+          "find": "    if missing:",
+          "replace": "    if False:",
+          "why": "نزع حجب الحارس الجديد بلا مواصفة ⇒ الآليّة كلّها تصير اختياريّة"
+        },
+        {
+          "expect": "test_a_stale_mutation_string_is_blocked",
+          "find": "            if occurrences == 0:",
+          "replace": "            if False:",
+          "why": "قبول مواصفة بائتة سلسلتها لم تعد في المصدر"
+        },
+        {
+          "expect": "test_an_ambiguous_mutation_string_is_blocked",
+          "find": "            elif occurrences > 1:",
+          "replace": "            elif False:",
+          "why": "قبول سلسلة متكرّرة ⇒ الزرع غير محدَّد الموضع"
+        },
+        {
+          "expect": "test_red_by_the_wrong_test_is_not_proof",
+          "find": "            elif m[\"expect\"] not in out:",
+          "replace": "            elif False:",
+          "why": "قبول «سقط شيء ما» بدل الاختبار المُسمّى ⇒ طفرة تكسر الاستيراد تُحسَب نجاحاً"
+        },
+        {
+          "expect": "test_debt_growth_is_blocked_by_the_ceiling",
+          "find": "    if len(debt) > ceiling:",
+          "replace": "    if False:",
+          "why": "نزع سقف الدَّين"
+        },
+        {
+          "expect": "test_an_entry_for_a_missing_guard_is_blocked",
+          "find": "    if ghost:",
+          "replace": "    if False:",
+          "why": "نزع حجب المدخل البائت لحارس غير موجود"
+        },
+        {
+          "expect": "test_a_green_suite_under_a_planted_defect_is_a_failure",
+          "find": "            elif code == 0:",
+          "replace": "            elif False:",
+          "why": "اعتبار الحارس المزروع فيه العطل ناجحاً إن خرج بصفر"
+        },
+        {
+          "expect": "test_a_bare_prefix_is_not_an_expected_test",
+          "find": "            elif test_src and f\"def {expect}(\" not in test_src:",
+          "replace": "            elif False:",
+          "why": "قبول `expect` بادئةً عامّة لا اسم اختبار موجود ⇒ الشرط يعود إلى «سقط شيء ما»"
+        },
+        {
+          "expect": "test_a_runner_that_never_ran_is_not_evidence",
+          "find": "            if not ran_at_all(out):",
+          "replace": "            if False:",
+          "why": "اعتبار انهيار المُشغِّل دليلاً ⇒ بيئة بلا pytest تُبلَّغ «حمرّ بغير الاختبار المُتوقَّع»"
+        },
+        {
+          "expect": "test_the_wrong_test_branch_names_what_actually_failed",
+          "find": "                observed = failing_tests(out)",
+          "replace": "                observed = []",
+          "why": "نزع تسمية الاختبارات الساقطة فعلاً ⇒ فرع «حمرّ بغير المتوقَّع» يعود غير قابل للتشخيص من سجلّه"
+        }
+      ],
+      "test": "tests_v9/test_guard_mutation_guard.py"
+    },
+    "probe_leak_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_guard_does_not_fire_on_the_places_that_legitimately_name_the_probe",
           "find": "        if _is_allowed(rel):\n            continue\n",
           "replace": "",
-          "expect": "test_the_guard_does_not_fire_on_the_places_that_legitimately_name_the_probe"
+          "why": "نزع استثناء المواضع الشرعيّة ⇒ الحارس يُطلِق على الاختبار الذي يُعرّف المِسبار وعلى الدماغ الذي يشرح الحادثة"
         }
-      ]
+      ],
+      "test": "tests_v9/test_probe_leak_guard.py"
     }
   },
-  "unmutated_debt_ceiling": 117,
+  "schema_version": "sahool.guard-mutation-registry.v1",
   "unmutated_debt": {
     "$comment": "حرّاس سبقوا هذه الآليّة، بلا عطلٍ مزروع يُثبِت أنّهم يُطلِقون. القائمة تتقلّص ولا تنمو بسقفٍ مشدود: حارسٌ يُكتَب اليوم لا عذر له — من عرف العطل عرف كيف يزرعه. ولا يُدَّعى أنّ المُدرَجين هنا معطوبون؛ يُدَّعى **أنّه لم يُقَس**، وهو الفارق نفسه بين «لم يجد» و«لم ينظر».",
     "ai_agronomist_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
@@ -279,5 +295,7 @@
     "weather_engine_formula_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "weather_hourly_etc_wx_i1_guard.py": "سابق للآليّة — لم تُقَس تغطيته"
   },
-  "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق»."
+  "unmutated_debt_ceiling": 117,
+  "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
+  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
 }

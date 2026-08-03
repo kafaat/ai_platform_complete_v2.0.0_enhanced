@@ -1,0 +1,70 @@
+{
+  "$comment": [
+    "تهيئة مثال لـ`scripts/release/production_readiness_orchestrator.py`.",
+    "",
+    "**العناوين أسماء DNS داخل شبكة `sahool-internal`، لا منافذ مضيف — وهذا مقيس.**",
+    "لا خدمة من الأربع الحاملة للهويّة تنشر منفذاً: `sahool-platform` و`sahool-raster-service`",
+    "و`sahool-weather-service` و`sahool-soil-service` كلّها `ports=None` في",
+    "`docker-compose.v9.yml`. المنشور على المضيف هو nginx (80/443) وبضع أدوات تشغيل.",
+    "فتهيئةٌ تقصد `http://127.0.0.1:8000` تفشل بـconnection refused — **ويُقرأ ذلك خطأً",
+    "على أنّ النقطة لا تعمل**، وهو نفس صنف التشخيص المقلوب الذي أنتج تقرير اعتماد كامل",
+    "عن مسارٍ لا وجود له.",
+    "",
+    "ولا تُستعمل حافّة nginx لمسارات الجاهزيّة: `/readyz` و`/runtime-identity` بلا",
+    "`location` فيها فتسقط إلى SPA وتُعيد **200 وHTML** — أي مسبار حالةٍ ينجح ومسبار",
+    "هويّةٍ يفشل على تحليل JSON. تلك فجوة مسجَّلة مفتوحة",
+    "(`GATEWAY-READINESS-PATHS-FALL-TO-SPA-01`)، لا شيء يُلتَفّ عليه هنا.",
+    "",
+    "التشغيل الصحيح: من حاوية موصولة بـ`sahool-internal`، مثل ما يفعل",
+    "`docker-compose.runtime-verification.yml` مع `functional_probe_runner.py`.",
+    "",
+    "**والأسرار أسماء متغيّرات لا قيَم.** `${SAHOOL_AGENT_TOKEN}` يُوسَّع وقت التشغيل،",
+    "والأداة **تفشل** إن كان المتغيّر غائباً بدل أن ترسل النصّ حرفيّاً."
+  ],
+  "required_probe_names": [
+    "platform_healthz",
+    "platform_readyz",
+    "platform_runtime_identity",
+    "raster_runtime_identity"
+  ],
+  "probes": [
+    {
+      "name": "platform_healthz",
+      "url": "http://sahool-platform:8000/healthz",
+      "expect_status": [200],
+      "critical": true
+    },
+    {
+      "name": "platform_readyz",
+      "url": "http://sahool-platform:8000/readyz",
+      "expect_status": [200],
+      "critical": true
+    },
+    {
+      "name": "platform_runtime_identity",
+      "url": "http://sahool-platform:8000/runtime-identity",
+      "expect_status": [200],
+      "runtime_identity": true,
+      "critical": true
+    },
+    {
+      "name": "raster_runtime_identity",
+      "url": "http://sahool-raster-service:8001/runtime-identity",
+      "expect_status": [200],
+      "runtime_identity": true,
+      "critical": true
+    },
+    {
+      "name": "mcp_weather_no_token_malformed_body",
+      "url": "http://sahool-weather-mcp:8000/v1/mcp/tools/call",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"broken\":",
+      "expect_status": [401],
+      "critical": false,
+      "$comment": "غير حَرِج عمداً: `/v1/mcp/tools/call` يخدمه خمسة خوادم MCP منفصلة، لا المنصّة — وترتيب المصادقة قبل تحليل الجسم خاصّيّة تخصّ كلّاً منها. أُبقي مسباراً واحداً شاهداً بدل خمسة تُثقِل الجولة."
+    }
+  ]
+}

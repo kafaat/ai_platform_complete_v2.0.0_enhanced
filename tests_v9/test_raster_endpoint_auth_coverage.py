@@ -142,6 +142,13 @@ PUBLIC_CATALOG: set[str] = {
     "/healthz",  # فحص حياة العمليّة — بنية تحتيّة، لا بيانات.
     "/readyz",  # فحص جاهزيّة (وصول Earth Search) — بنية تحتيّة، لا بيانات.
     "/metrics",  # مقاييس Prometheus (عدّ مهامّ/طبقات مُجمَّع، لا بيانات مستأجِر).
+    # هويّة البناء — نفس صنف الثلاثة أعلاه لا استثناءً لها. مُصنَّفة
+    # `infrastructure/provenance` في `platform_route_placement_contract.json`، وتُعيدها
+    # `weather-service` و`soil-service` و`sahool-platform` بلا حارس كذلك. والحمولة نَسَبٌ
+    # عامّ بالكامل — service · git_sha · build_id · source_repository · source_ref ·
+    # metadata_source — تُقرأ من ملفّ صورة للقراءة فقط، ولا سرّ فيها ولا بيانات مستأجِر.
+    # وحجبُها يكسر الغرض: مُنسّق النشر يقرؤها ليُثبِت أنّ الصورة الجارية هي المُختبَرة.
+    "/runtime-identity",  # نَسَب بناء غير قابل للتغيير — بنية تحتيّة، لا بيانات.
     # ── مراقبة تخزين + حزم خرائط offline (خلفيّة ثابتة، لا بيانات مستأجِر) ──
     # ── كتالوج GIS سحابيّ عامّ (STAC/COG/imagery policy) — بحث/سياسة عامّة بـbbox ──
     "/v1/stac",  # صفحة STAC الجذر — كتالوج صور عامّ، لا بيانات مستأجِر. (PR-R3: هُوجِر من /stac)
