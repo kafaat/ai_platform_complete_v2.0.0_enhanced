@@ -6,7 +6,6 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 MIGRATION = ROOT / "migrations/v224_canonical_phenology_state.sql"
 MANIFEST = ROOT / "migrations/MANIFEST.txt"
-SOT = ROOT / "docs/architecture/agricultural_sources_of_truth.yaml"
 REGISTRY = ROOT / "docs/capability-registry/domains/farm_management.yaml"
 
 

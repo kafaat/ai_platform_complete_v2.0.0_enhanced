@@ -54,6 +54,27 @@ def _jsonb(value) -> str:
     return json.dumps(value or {}, ensure_ascii=False, default=str)
 
 
+def _numeric_indicator_map(raw: dict | None) -> dict:
+    """The indicator map contract: ``Mapping[str, float]``, enforced at the edge.
+
+    ``bool`` is rejected explicitly — it is an ``int`` subclass, so a bare
+    ``isinstance(v, (int, float))`` would admit ``True`` as the number 1 and let a
+    flag masquerade as a measurement.
+    """
+    values = dict(raw or {})
+    offenders = sorted(
+        key
+        for key, value in values.items()
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)))
+    )
+    if offenders:
+        raise HTTPException(
+            status_code=422,
+            detail=(f"current_indicators يجب أن تكون خريطة أرقام فقط — قيم غير رقميّة: {offenders}"),
+        )
+    return values
+
+
 async def _persist_recommendation(
     user: UserSchema, req: RecommendationRequest, enriched: dict
 ) -> None:
@@ -201,15 +222,14 @@ async def recommendations_for_field(
             "limitations": ["CANONICAL_CONTEXT_UNAVAILABLE"],
         }
 
-    # `current_indicators` is a FLAT NUMERIC map and must stay one. It becomes
-    # `provenance.input_snapshot` (core/internal_orchestrator.py:238), which
-    # core/cross_reference_finder.py::_compare_indicators later reads key-by-key:
-    # line 96 increments `total` BEFORE the float() conversion, so a non-numeric value
-    # present in both the current and the historical snapshot inflates the denominator
-    # while `matched` can never rise — every later similarity score is diluted and
-    # genuinely similar records slip under `min_similarity`. It does not raise (the
-    # TypeError is caught) — it degrades silently, which is worse. The canonical
-    # context is lineage, so it rides in `provenance` beside `input_snapshot`.
+    # CONTRACT: current_indicators is Mapping[str, float]. Every consumer coerces
+    # its values with float() — cross-reference similarity, ranking, clustering,
+    # feature extraction, analytics, exports. A nested value does not merely risk a
+    # TypeError; it changes the semantic type of the map for all of them.
+    # Rejected fail-closed rather than silently dropped: a caller who sends a
+    # non-numeric indicator has a bug, and swallowing it would hide it.
+    numeric_indicators = _numeric_indicator_map(req.current_indicators)
+
     api_req = ApiRequest(
         user=user,
         payload={
@@ -221,7 +241,7 @@ async def recommendations_for_field(
             "field_id": req.field_id,
             "crop": req.crop,
             "validation": validation,
-            "current_indicators": dict(req.current_indicators or {}),
+            "current_indicators": numeric_indicators,
             "growth_stage": req.growth_stage,
             "district_id": req.district_id,
         },
@@ -231,10 +251,14 @@ async def recommendations_for_field(
     resp = handle_recommendation_request(api_req)
     enriched = getattr(resp, "enriched", None)
     if enriched:
-        # Lineage, not an indicator: a sibling of input_snapshot inside provenance.
+        # The canonical context is decision EVIDENCE, not a feature: it belongs to
+        # the persisted input snapshot, never to the live indicator map the engine
+        # and the similarity comparison read.
         provenance = enriched.setdefault("provenance", {})
         if isinstance(provenance, dict):
-            provenance["canonical_agronomic_context"] = canonical_context
+            input_snapshot = provenance.setdefault("input_snapshot", {})
+            if isinstance(input_snapshot, dict):
+                input_snapshot["canonical_agronomic_context"] = canonical_context
         await _persist_recommendation(user, req, enriched)
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 

@@ -25,7 +25,7 @@
       "tests": 1566,
       "web": 448
     },
-    "unmapped_artifacts": 1981,
+    "unmapped_artifacts": 1980,
     "ambiguous_artifacts": 396
   },
   "capabilities": [
@@ -19733,6 +19733,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_regional_bulletin.py",
           "score": 12,
           "signals": [
@@ -19990,14 +19998,6 @@
         },
         {
           "path": "tests_v9/test_fieldstate_water_canon.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests_v9/test_fvc.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -22887,35 +22887,35 @@
           "score": 15
         },
         {
-          "value": "/api/v1/recommendations @ services/sahool-platform/api/routers/recommendations.py:103",
+          "value": "/api/v1/recommendations @ services/sahool-platform/api/routers/recommendations.py:124",
           "score": 12
         },
         {
-          "value": "/api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:315",
+          "value": "/api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:339",
           "score": 12
         },
         {
-          "value": "/api/v1/recommendations/capacity-profiles @ services/sahool-platform/api/routers/recommendations.py:307",
+          "value": "/api/v1/recommendations/capacity-profiles @ services/sahool-platform/api/routers/recommendations.py:331",
           "score": 12
         },
         {
-          "value": "/api/v1/recommendations/economic-adaptation @ services/sahool-platform/api/routers/recommendations.py:289",
+          "value": "/api/v1/recommendations/economic-adaptation @ services/sahool-platform/api/routers/recommendations.py:313",
           "score": 12
         },
         {
-          "value": "/api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:242",
+          "value": "/api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:266",
           "score": 12
         },
         {
-          "value": "/api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:129",
+          "value": "/api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:150",
           "score": 12
         },
         {
-          "value": "/api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:380",
+          "value": "/api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:404",
           "score": 12
         },
         {
-          "value": "/api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:476",
+          "value": "/api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:500",
           "score": 12
         },
         {
@@ -39620,10 +39620,6 @@
     },
     {
       "path": "services/sahool-platform/tests/test_readyz_db_probe.py",
-      "kind": "tests"
-    },
-    {
-      "path": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
       "kind": "tests"
     },
     {

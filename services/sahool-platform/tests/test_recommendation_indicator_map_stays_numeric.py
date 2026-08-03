@@ -53,15 +53,53 @@ def test_the_route_never_puts_the_canonical_context_into_the_indicator_map():
                 body[0].value.value = ""
     executable = ast.unparse(tree)
     # ast.unparse normalises quoting, so match on the normalised form.
-    assert "'current_indicators': dict(req.current_indicators or {})" in executable, (
-        "the payload must forward the client's indicators unchanged"
+    assert "'current_indicators': numeric_indicators" in executable, (
+        "the payload must forward the validated numeric map"
+    )
+    assert "numeric_indicators = _numeric_indicator_map(req.current_indicators)" in executable, (
+        "the map must pass the contract guard before reaching the engine"
     )
     assert "merged_indicators" not in executable, (
         "the canonical context must never be merged into current_indicators"
     )
 
 
-def test_the_canonical_context_is_recorded_as_provenance_lineage():
+def test_the_canonical_context_is_recorded_in_the_persisted_input_snapshot():
     """Dropping it entirely would lose the lineage the slice exists to persist."""
     source = ROUTER.read_text(encoding="utf-8")
-    assert 'provenance["canonical_agronomic_context"] = canonical_context' in source
+    assert 'input_snapshot["canonical_agronomic_context"] = canonical_context' in source
+
+
+def test_a_non_numeric_indicator_is_rejected_at_the_edge():
+    """The contract guard: the map may not become Mapping[str, float | dict]."""
+    from api.routers.recommendations import _numeric_indicator_map
+    from fastapi import HTTPException
+
+    assert _numeric_indicator_map({"ndvi": 0.7, "ndmi": 0.3}) == {"ndvi": 0.7, "ndmi": 0.3}
+    assert _numeric_indicator_map(None) == {}
+    assert _numeric_indicator_map({"ndvi": None}) == {"ndvi": None}
+
+    for bad in ({"x": {"a": 1}}, {"x": "0.5"}, {"x": [1, 2]}):
+        with pytest.raises(HTTPException) as exc:
+            _numeric_indicator_map(bad)
+        assert exc.value.status_code == 422
+
+
+def test_a_boolean_is_not_accepted_as_an_indicator_value():
+    """bool subclasses int; admitting it lets a flag pose as a measurement."""
+    from api.routers.recommendations import _numeric_indicator_map
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException):
+        _numeric_indicator_map({"irrigated": True})
+
+
+def test_history_carrying_the_context_does_not_disturb_a_clean_live_map():
+    """The persisted snapshot may hold it; the live map decides what is compared."""
+    live = {"ndvi": 0.62, "soil_moisture": 18.0}
+    historical = {**live, "canonical_agronomic_context": {"season_id": "s-1"}}
+    score, _ = _compare_indicators(live, historical)
+    assert score == 1.0, (
+        "only keys present in the LIVE map are compared, so extra provenance in a "
+        "stored snapshot must not dilute the score"
+    )

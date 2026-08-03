@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1834,
     "route_handlers": 1048,
-    "call_edges": 72068,
+    "call_edges": 72084,
     "dead_code_candidates": 616,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -6239,7 +6239,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 104,
+      "line": 125,
       "handler": "recommendations",
       "method": "POST",
       "path": "/api/v1/recommendations"
@@ -6247,7 +6247,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 130,
+      "line": 151,
       "handler": "recommendations_for_field",
       "method": "POST",
       "path": "/api/v1/recommendations/for-field"
@@ -6255,7 +6255,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 243,
+      "line": 267,
       "handler": "recommendation_engines",
       "method": "GET",
       "path": "/api/v1/recommendations/engines"
@@ -6263,7 +6263,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 290,
+      "line": 314,
       "handler": "economic_adaptation_endpoint",
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation"
@@ -6271,7 +6271,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 308,
+      "line": 332,
       "handler": "capacity_profiles_endpoint",
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles"
@@ -6279,7 +6279,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 316,
+      "line": 340,
       "handler": "generate_crop_candidates",
       "method": "POST",
       "path": "/api/v1/recommendations/candidates"
@@ -6287,7 +6287,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 381,
+      "line": 405,
       "handler": "record_recommendation_outcome",
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes"
@@ -6295,7 +6295,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 477,
+      "line": 501,
       "handler": "get_recommendation",
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}"
@@ -264230,114 +264230,44 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
+      "source": "_numeric_indicator_map",
+      "target": "dict",
       "line": 64
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "tenant_connection",
+      "source": "_numeric_indicator_map",
+      "target": "sorted",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_numeric_indicator_map",
+      "target": "items",
+      "line": 67
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_numeric_indicator_map",
+      "target": "isinstance",
       "line": 68
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "execute",
-      "line": 69
+      "source": "_numeric_indicator_map",
+      "target": "isinstance",
+      "line": 68
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "str",
-      "line": 76
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "getattr",
-      "line": 77
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "getattr",
-      "line": 78
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "getattr",
-      "line": 79
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "bool",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 81
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "_jsonb",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "_jsonb",
-      "line": 83
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 83
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "_jsonb",
-      "line": 84
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 84
+      "source": "_numeric_indicator_map",
+      "target": "HTTPException",
+      "line": 71
     },
     {
       "owner": "sahool-platform",
@@ -264350,728 +264280,679 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
-      "target": "_emit_domain_event",
-      "line": 87
+      "target": "tenant_connection",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "execute",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "str",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "getattr",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "getattr",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "getattr",
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "bool",
-      "line": 94
+      "line": 101
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "get",
-      "line": 94
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "_jsonb",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "_jsonb",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "_jsonb",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "_emit_domain_event",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "bool",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 115
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "getattr",
-      "line": 95
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "getattr",
-      "line": 96
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "warning",
-      "line": 100
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "post",
-      "line": 103
+      "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "Depends",
-      "line": 106
+      "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "require_permission",
-      "line": 106
+      "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "HTTPException",
-      "line": 114
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "ApiRequest",
-      "line": 116
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "model_dump",
-      "line": 118
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "handle_recommendation_request",
-      "line": 122
+      "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "getattr",
-      "line": 123
+      "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "_persist_recommendation",
-      "line": 125
+      "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "JSONResponse",
-      "line": 126
+      "line": 147
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "post",
-      "line": 129
+      "line": 150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "Depends",
-      "line": 132
+      "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "require_permission",
-      "line": 132
+      "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "getenv",
-      "line": 148
+      "line": 169
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "dirname",
-      "line": 150
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "join",
-      "line": 150
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_Path",
-      "line": 154
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "resolve",
-      "line": 154
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "resolve",
-      "line": 155
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "str",
-      "line": 155
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "is_relative_to",
-      "line": 156
+      "line": 177
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "HTTPException",
-      "line": 157
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "validate",
-      "line": 159
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "HTTPException",
-      "line": 162
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendations_for_field",
-      "target": "tenant_connection",
-      "line": 182
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendations_for_field",
-      "target": "load_agronomic_context",
       "line": 183
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
+      "target": "tenant_connection",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "load_agronomic_context",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
       "target": "get",
-      "line": 185
+      "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_asdict",
-      "line": 186
+      "line": 207
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_consume_phenology",
-      "line": 186
+      "line": 207
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "append",
-      "line": 186
+      "line": 207
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "get",
-      "line": 187
+      "line": 208
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_asdict",
-      "line": 188
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_consume_salinity",
-      "line": 188
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "append",
-      "line": 188
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "get",
-      "line": 189
+      "line": 210
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_asdict",
-      "line": 190
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_consume_nutrients",
-      "line": 190
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "append",
-      "line": 190
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "get",
-      "line": 192
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendations_for_field",
-      "target": "sorted",
-      "line": 194
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendations_for_field",
-      "target": "warning",
-      "line": 197
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendations_for_field",
-      "target": "ApiRequest",
       "line": 213
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
-      "target": "dict",
-      "line": 224
+      "target": "sorted",
+      "line": 215
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
-      "target": "handle_recommendation_request",
+      "target": "warning",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "_numeric_indicator_map",
       "line": 231
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
+      "target": "ApiRequest",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "handle_recommendation_request",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
       "target": "getattr",
-      "line": 232
+      "line": 252
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "setdefault",
-      "line": 235
+      "line": 257
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "isinstance",
-      "line": 236
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "setdefault",
+      "line": 259
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "isinstance",
+      "line": 260
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_persist_recommendation",
-      "line": 238
+      "line": 262
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "JSONResponse",
-      "line": 239
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendation_engines",
-      "target": "get",
-      "line": 242
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendation_engines",
-      "target": "Depends",
-      "line": 244
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendation_engines",
-      "target": "require_permission",
-      "line": 244
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendation_engines",
-      "target": "list_engines",
-      "line": 258
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendation_engines",
-      "target": "tenant_connection",
-      "line": 262
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendation_engines",
-      "target": "fetchrow",
       "line": 263
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
+      "target": "get",
+      "line": 266
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendation_engines",
+      "target": "Depends",
+      "line": 268
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendation_engines",
+      "target": "require_permission",
+      "line": 268
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendation_engines",
+      "target": "list_engines",
+      "line": 282
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendation_engines",
+      "target": "tenant_connection",
+      "line": 286
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendation_engines",
+      "target": "fetchrow",
+      "line": 287
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendation_engines",
       "target": "isinstance",
-      "line": 269
+      "line": 293
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "loads",
-      "line": 270
+      "line": 294
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "_resolve_recommendation_policy",
-      "line": 271
+      "line": 295
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "exception",
-      "line": 273
+      "line": 297
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "economic_adaptation_endpoint",
       "target": "post",
-      "line": 289
+      "line": 313
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "economic_adaptation_endpoint",
       "target": "Depends",
-      "line": 294
+      "line": 318
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "economic_adaptation_endpoint",
       "target": "require_permission",
-      "line": 294
+      "line": 318
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "economic_adaptation_endpoint",
       "target": "adapt_recommendation",
-      "line": 302
+      "line": 326
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "capacity_profiles_endpoint",
       "target": "get",
-      "line": 307
+      "line": 331
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "capacity_profiles_endpoint",
       "target": "get_capacity_profiles",
-      "line": 312
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "post",
-      "line": 315
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "Depends",
-      "line": 320
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "require_permission",
-      "line": 320
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "FarmerGoal",
       "line": 336
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
-      "target": "HTTPException",
-      "line": 338
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "isinstance",
+      "target": "post",
       "line": 339
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
-      "target": "HTTPException",
-      "line": 340
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_bool",
-      "target": "get",
+      "target": "Depends",
       "line": 344
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
-      "target": "get",
+      "target": "require_permission",
       "line": 344
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_bool",
-      "target": "isinstance",
-      "line": 345
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
-      "target": "isinstance",
-      "line": 345
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_bool",
-      "target": "HTTPException",
-      "line": 346
+      "target": "FarmerGoal",
+      "line": 360
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "HTTPException",
-      "line": 346
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_score",
-      "target": "get",
-      "line": 350
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "get",
-      "line": 350
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_score",
-      "target": "isinstance",
-      "line": 353
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_score",
-      "target": "isinstance",
-      "line": 353
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "isinstance",
-      "line": 353
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "isinstance",
-      "line": 353
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_score",
-      "target": "HTTPException",
-      "line": 354
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "HTTPException",
-      "line": 354
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_score",
-      "target": "float",
-      "line": 355
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "float",
-      "line": 355
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_req_score",
-      "target": "HTTPException",
-      "line": 357
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "HTTPException",
-      "line": 357
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "isinstance",
       "line": 362
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
-      "target": "HTTPException",
+      "target": "isinstance",
       "line": 363
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
-      "target": "append",
+      "target": "HTTPException",
       "line": 364
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "CropCandidate",
-      "line": 365
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "str",
-      "line": 366
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
+      "source": "_req_bool",
       "target": "get",
-      "line": 367
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "str",
-      "line": 367
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "_req_bool",
       "line": 368
     },
     {
@@ -265079,343 +264960,518 @@
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "get",
+      "line": 368
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_req_bool",
+      "target": "isinstance",
       "line": 369
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
-      "target": "str",
+      "target": "isinstance",
       "line": 369
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "generate_crop_candidates",
-      "target": "get",
+      "source": "_req_bool",
+      "target": "HTTPException",
       "line": 370
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
-      "target": "str",
+      "target": "HTTPException",
       "line": 370
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_req_score",
+      "target": "get",
+      "line": 374
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "get",
-      "line": 371
+      "line": 374
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_req_score",
+      "target": "isinstance",
+      "line": 377
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_req_score",
+      "target": "isinstance",
+      "line": 377
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "isinstance",
+      "line": 377
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "isinstance",
+      "line": 377
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_req_score",
+      "target": "HTTPException",
+      "line": 378
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "HTTPException",
+      "line": 378
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_req_score",
+      "target": "float",
+      "line": 379
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "float",
+      "line": 379
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_req_score",
+      "target": "HTTPException",
+      "line": 381
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "HTTPException",
+      "line": 381
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "isinstance",
+      "line": 386
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "HTTPException",
+      "line": 387
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "append",
+      "line": 388
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "CropCandidate",
+      "line": 389
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "str",
-      "line": 371
+      "line": 390
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "get",
+      "line": 391
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "str",
+      "line": 391
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "_req_bool",
-      "line": 372
+      "line": 392
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "get",
+      "line": 393
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "str",
+      "line": 393
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "get",
+      "line": 394
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "str",
+      "line": 394
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "get",
+      "line": 395
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "str",
+      "line": 395
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "generate_crop_candidates",
+      "target": "_req_bool",
+      "line": 396
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "_req_score",
-      "line": 373
+      "line": 397
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "generate_candidates",
-      "line": 377
+      "line": 401
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "post",
-      "line": 380
+      "line": 404
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "Depends",
-      "line": 383
+      "line": 407
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "Depends",
-      "line": 384
+      "line": 408
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "require_permission",
-      "line": 384
+      "line": 408
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "HTTPException",
-      "line": 393
+      "line": 417
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "tenant_connection",
-      "line": 398
+      "line": 422
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_work",
       "target": "assert_platform_may_write_decision_sor",
-      "line": 401
+      "line": 425
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "assert_platform_may_write_decision_sor",
-      "line": 401
+      "line": 425
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_work",
       "target": "fetchrow",
-      "line": 402
+      "line": 426
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "fetchrow",
-      "line": 402
+      "line": 426
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_work",
       "target": "getattr",
-      "line": 410
+      "line": 434
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_work",
       "target": "str",
-      "line": 410
+      "line": 434
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "getattr",
-      "line": 410
+      "line": 434
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "str",
-      "line": 410
+      "line": 434
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "_idempotent",
-      "line": 427
+      "line": 451
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "CommandStore",
-      "line": 428
+      "line": 452
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "get_pool",
-      "line": 428
+      "line": 452
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "str",
-      "line": 432
+      "line": 456
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "str",
-      "line": 433
+      "line": 457
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "_work",
-      "line": 437
+      "line": 461
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "_db_unavailable",
-      "line": 441
+      "line": 465
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "_mirror_recommendation_outcome_to_service",
-      "line": 446
+      "line": 470
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "get",
-      "line": 460
+      "line": 484
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "str",
-      "line": 463
+      "line": 487
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "warning",
-      "line": 466
+      "line": 490
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "get",
-      "line": 476
+      "line": 500
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "Depends",
-      "line": 479
+      "line": 503
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "require_permission",
-      "line": 479
+      "line": 503
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_jb",
       "target": "isinstance",
-      "line": 486
+      "line": 510
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_jb",
       "target": "loads",
-      "line": 486
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "get_recommendation",
-      "target": "isinstance",
-      "line": 486
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "get_recommendation",
-      "target": "loads",
-      "line": 486
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "get_recommendation",
-      "target": "tenant_connection",
-      "line": 488
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "get_recommendation",
-      "target": "fetchrow",
-      "line": 489
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "get_recommendation",
-      "target": "HTTPException",
-      "line": 499
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "get_recommendation",
-      "target": "_jb",
-      "line": 507
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "get_recommendation",
-      "target": "_jb",
       "line": 510
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
-      "target": "_jb",
-      "line": 511
+      "target": "isinstance",
+      "line": 510
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
-      "target": "isoformat",
+      "target": "loads",
+      "line": 510
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "get_recommendation",
+      "target": "tenant_connection",
+      "line": 512
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "get_recommendation",
+      "target": "fetchrow",
       "line": 513
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
+      "target": "HTTPException",
+      "line": 523
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "get_recommendation",
+      "target": "_jb",
+      "line": 531
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "get_recommendation",
+      "target": "_jb",
+      "line": 534
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "get_recommendation",
+      "target": "_jb",
+      "line": 535
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "get_recommendation",
       "target": "isoformat",
-      "line": 514
+      "line": 537
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "get_recommendation",
+      "target": "isoformat",
+      "line": 538
     },
     {
       "owner": "sahool-platform",
@@ -411447,9 +411503,65 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
-      "source": "test_the_canonical_context_is_recorded_as_provenance_lineage",
+      "source": "test_the_canonical_context_is_recorded_in_the_persisted_input_snapshot",
       "target": "read_text",
-      "line": 66
+      "line": 69
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "_numeric_indicator_map",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "_numeric_indicator_map",
+      "line": 79
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "_numeric_indicator_map",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "raises",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "_numeric_indicator_map",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_boolean_is_not_accepted_as_an_indicator_value",
+      "target": "raises",
+      "line": 93
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_boolean_is_not_accepted_as_an_indicator_value",
+      "target": "_numeric_indicator_map",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_history_carrying_the_context_does_not_disturb_a_clean_live_map",
+      "target": "_compare_indicators",
+      "line": 101
     },
     {
       "owner": "sahool-platform",

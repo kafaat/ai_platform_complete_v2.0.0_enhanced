@@ -5668,10 +5668,6 @@
     "kind": "tests"
   },
   {
-    "path": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
-    "kind": "tests"
-  },
-  {
     "path": "services/sahool-platform/tests/test_remaining_engines.py",
     "kind": "tests"
   },

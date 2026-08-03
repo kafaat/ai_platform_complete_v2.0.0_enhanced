@@ -4,7 +4,7 @@
   "runtime_verified": false,
   "python_files_parsed": 1834,
   "route_handlers": 1048,
-  "call_edges": 72068,
+  "call_edges": 72084,
   "dead_code_candidates": 616,
   "duplicate_function_groups": 58,
   "route_owners": 27,
