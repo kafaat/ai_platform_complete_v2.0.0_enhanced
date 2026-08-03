@@ -1,6 +1,6 @@
 [
   {
-    "file": "services/agriai-engine/main.py",
+    "file": "services\\agriai-engine\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 55,
@@ -10,7 +10,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/agriai-engine/main.py",
+    "file": "services\\agriai-engine\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 65,
@@ -20,7 +20,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/ai_agronomist/main.py",
+    "file": "services\\ai_agronomist\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 113,
@@ -30,7 +30,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/ai_agronomist/main.py",
+    "file": "services\\ai_agronomist\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 323,
@@ -40,7 +40,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/decision-service/main.py",
+    "file": "services\\decision-service\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 508,
@@ -50,7 +50,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/decision-service/main.py",
+    "file": "services\\decision-service\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 513,
@@ -60,7 +60,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/edge-inference/main.py",
+    "file": "services\\edge-inference\\main.py",
     "function": "health_check",
     "path": "/healthz",
     "line": 168,
@@ -70,7 +70,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/edge-inference/main.py",
+    "file": "services\\edge-inference\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 365,
@@ -80,7 +80,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/field-management-service/main.py",
+    "file": "services\\field-management-service\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 184,
@@ -90,7 +90,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/field-management-service/main.py",
+    "file": "services\\field-management-service\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 194,
@@ -100,7 +100,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/field-segmentation/main.py",
+    "file": "services\\field-segmentation\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 370,
@@ -110,7 +110,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/field-segmentation/main.py",
+    "file": "services\\field-segmentation\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 380,
@@ -120,7 +120,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/indicators-service/main.py",
+    "file": "services\\indicators-service\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 63,
@@ -130,7 +130,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/indicators-service/main.py",
+    "file": "services\\indicators-service\\main.py",
     "function": "ready",
     "path": "/readyz",
     "line": 73,
@@ -140,7 +140,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/knowledge-graph/main.py",
+    "file": "services\\knowledge-graph\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 89,
@@ -150,7 +150,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/knowledge-graph/main.py",
+    "file": "services\\knowledge-graph\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 111,
@@ -160,7 +160,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/local-ai-rag/main.py",
+    "file": "services\\local-ai-rag\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 482,
@@ -170,7 +170,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/local-ai-rag/main.py",
+    "file": "services\\local-ai-rag\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 505,
@@ -180,7 +180,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/rag-retrieval/main.py",
+    "file": "services\\rag-retrieval\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 55,
@@ -190,7 +190,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/rag-retrieval/main.py",
+    "file": "services\\rag-retrieval\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 73,
@@ -200,7 +200,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/remote-sensing-workspace-bff/main.py",
+    "file": "services\\remote-sensing-workspace-bff\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 33,
@@ -210,7 +210,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/remote-sensing-workspace-bff/main.py",
+    "file": "services\\remote-sensing-workspace-bff\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 38,
@@ -220,7 +220,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/sam2-inference/main.py",
+    "file": "services\\sam2-inference\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 105,
@@ -230,7 +230,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/sam2-inference/main.py",
+    "file": "services\\sam2-inference\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 115,
@@ -240,7 +240,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/scout-ingest-service/main.py",
+    "file": "services\\scout-ingest-service\\main.py",
     "function": "healthz",
     "path": "/healthz",
     "line": 178,
@@ -250,7 +250,7 @@
     "verdict": "ok"
   },
   {
-    "file": "services/scout-ingest-service/main.py",
+    "file": "services\\scout-ingest-service\\main.py",
     "function": "readyz",
     "path": "/readyz",
     "line": 183,
