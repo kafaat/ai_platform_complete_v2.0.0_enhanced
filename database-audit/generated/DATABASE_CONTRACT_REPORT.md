@@ -4,16 +4,16 @@
 
 ## Summary
 
-- **manifest_entries**: 222
-- **sql_files**: 224
+- **manifest_entries**: 225
+- **sql_files**: 227
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
-- **tables**: 324
-- **tenant_tables**: 304
-- **rls_enabled**: 199
-- **rls_forced**: 180
+- **tables**: 330
+- **tenant_tables**: 310
+- **rls_enabled**: 205
+- **rls_forced**: 186
 - **tenant_rls_gaps**: 133
-- **policies**: 186
+- **policies**: 192
 - **runtime_verified**: False
 - **production_certified**: False
 

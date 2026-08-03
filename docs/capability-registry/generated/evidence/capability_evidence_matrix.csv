@@ -12,7 +12,7 @@ DEC-010,Model lifecycle and activation,decision,3,3,aligned,8,True,True,True,Tru
 FM-001,Tenant and organization management,farm_management,3,2,declared_above_evidence,9,True,True,True,True,True,True,True,True,False,True,False,False
 FM-002,Farm registry,farm_management,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
 FM-003,Field registry and boundaries,farm_management,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
-FM-004,Season lifecycle,farm_management,3,2,declared_above_evidence,9,True,True,True,True,True,True,True,True,False,True,False,False
+FM-004,Season lifecycle,farm_management,3,3,aligned,10,True,True,True,True,True,True,True,True,True,True,False,False
 FM-005,Crop and cultivar catalog,farm_management,3,2,declared_above_evidence,7,True,True,True,False,True,True,True,True,False,False,False,False
 FM-006,Farm economics,farm_management,3,1,declared_above_evidence,4,True,True,True,False,False,True,False,False,False,False,False,False
 FM-007,Inventory and procurement,farm_management,3,2,declared_above_evidence,8,True,True,True,True,True,True,True,True,False,False,False,False
@@ -33,7 +33,7 @@ IRR-005,Irrigation recommendation,irrigation,3,2,declared_above_evidence,7,True,
 IRR-006,Irrigation scheduling,irrigation,3,2,declared_above_evidence,4,True,False,True,False,True,False,False,True,False,False,False,False
 IRR-007,Pump and valve control,irrigation,3,1,declared_above_evidence,3,True,False,True,False,False,False,False,False,False,True,False,False
 IRR-008,Execution verification,irrigation,3,1,declared_above_evidence,2,True,False,False,True,False,False,False,False,False,False,False,False
-IRR-009,Water suitability multi-hazard,irrigation,2,3,evidence_above_declared,7,True,True,True,False,True,True,False,True,True,False,False,False
+IRR-009,Water suitability multi-hazard,irrigation,2,3,evidence_above_declared,8,True,True,True,True,True,True,False,True,True,False,False,False
 IRR-010,Leaching and drainage safety,irrigation,2,1,declared_above_evidence,2,True,False,True,False,False,False,False,False,False,False,False,False
 OPS-001,Task management,operations,3,1,declared_above_evidence,3,True,False,True,False,False,False,True,False,False,False,False,False
 OPS-002,Work orders,operations,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
@@ -68,7 +68,7 @@ SEC-008,Secrets and production fail-closed,security,3,1,declared_above_evidence,
 SOIL-001,Soil profile,soil,3,3,aligned,8,True,True,True,True,True,True,False,True,True,False,False,False
 SOIL-002,Soil sampling,soil,3,2,declared_above_evidence,7,True,True,True,True,True,True,False,True,False,False,False,False
 SOIL-003,Laboratory results,soil,3,1,declared_above_evidence,4,True,True,True,True,False,False,False,False,False,False,False,False
-SOIL-004,pH EC SOM nutrients,soil,3,2,declared_above_evidence,3,True,False,True,False,False,False,False,True,False,False,False,False
+SOIL-004,pH EC SOM nutrients,soil,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False
 SOIL-005,Soil water properties,soil,3,1,declared_above_evidence,4,True,True,False,False,True,False,False,True,False,False,False,False
 WX-001,Current weather,weather,3,1,declared_above_evidence,2,True,False,True,False,False,False,False,False,False,False,False,False
 WX-002,Weather forecast,weather,3,3,aligned,8,True,True,True,True,True,True,False,True,True,False,False,False

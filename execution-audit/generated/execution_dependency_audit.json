@@ -3,10 +3,10 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1827,
+    "python_files_parsed": 1834,
     "route_handlers": 1048,
-    "call_edges": 71630,
-    "dead_code_candidates": 609,
+    "call_edges": 72084,
+    "dead_code_candidates": 616,
     "duplicate_function_groups": 58,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -6239,7 +6239,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 104,
+      "line": 125,
       "handler": "recommendations",
       "method": "POST",
       "path": "/api/v1/recommendations"
@@ -6247,7 +6247,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 130,
+      "line": 151,
       "handler": "recommendations_for_field",
       "method": "POST",
       "path": "/api/v1/recommendations/for-field"
@@ -6255,7 +6255,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 190,
+      "line": 267,
       "handler": "recommendation_engines",
       "method": "GET",
       "path": "/api/v1/recommendations/engines"
@@ -6263,7 +6263,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 237,
+      "line": 314,
       "handler": "economic_adaptation_endpoint",
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation"
@@ -6271,7 +6271,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 255,
+      "line": 332,
       "handler": "capacity_profiles_endpoint",
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles"
@@ -6279,7 +6279,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 263,
+      "line": 340,
       "handler": "generate_crop_candidates",
       "method": "POST",
       "path": "/api/v1/recommendations/candidates"
@@ -6287,7 +6287,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 328,
+      "line": 405,
       "handler": "record_recommendation_outcome",
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes"
@@ -6295,7 +6295,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "line": 424,
+      "line": 501,
       "handler": "get_recommendation",
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}"
@@ -154644,6 +154644,272 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "_digest",
+      "target": "dumps",
+      "line": 23
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "_digest",
+      "target": "encode",
+      "line": 23
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "_digest",
+      "target": "hexdigest",
+      "line": 26
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "_digest",
+      "target": "sha256",
+      "line": 26
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "set",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "sorted",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "tuple",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "astimezone",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "isoformat",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "float",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "sorted",
+      "line": 74
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "list",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "AgronomicStateCandidate",
+      "line": 77
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "astimezone",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "tuple",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_phenology_state",
+      "target": "_digest",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "bool",
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "astimezone",
+      "line": 119
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "isoformat",
+      "line": 119
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "sorted",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "sorted",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "AgronomicStateCandidate",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "astimezone",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "tuple",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "tuple",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_salinity_state",
+      "target": "_digest",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "bool",
+      "line": 152
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "asdict",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "list",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "astimezone",
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "isoformat",
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "sorted",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "sorted",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "AgronomicStateCandidate",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "astimezone",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "tuple",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "tuple",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "source": "consume_nutrient_ledger",
+      "target": "_digest",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "_normalize_provider",
       "target": "lower",
@@ -161672,6 +161938,1455 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_aware",
+      "target": "utcoffset",
+      "line": 23
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_aware",
+      "target": "ValueError",
+      "line": 24
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_aware",
+      "target": "astimezone",
+      "line": 25
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_finite_nonnegative",
+      "target": "isfinite",
+      "line": 29
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_finite_nonnegative",
+      "target": "ValueError",
+      "line": 30
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_digest",
+      "target": "any",
+      "line": 34
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_digest",
+      "target": "len",
+      "line": 34
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_digest",
+      "target": "ValueError",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_hash",
+      "target": "dumps",
+      "line": 39
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_hash",
+      "target": "encode",
+      "line": 39
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_hash",
+      "target": "hexdigest",
+      "line": 40
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_hash",
+      "target": "sha256",
+      "line": 40
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "_value",
+      "target": "getattr",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_aware",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "all",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "ValueError",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "ValueError",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "ValueError",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_aware",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_digest",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_finite_nonnegative",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_value",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_finite_nonnegative",
+      "line": 149
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "timedelta",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "timedelta",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_digest",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_finite_nonnegative",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_value",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_finite_nonnegative",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "sorted",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_aware",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "set",
+      "line": 175
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "ValueError",
+      "line": 178
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "ValueError",
+      "line": 180
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "add",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_aware",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "ValueError",
+      "line": 184
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_digest",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_finite_nonnegative",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_value",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_finite_nonnegative",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "ValueError",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "ValueError",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_value",
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "float",
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_value",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_value",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "round",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "float",
+      "line": 213
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "max",
+      "line": 214
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "round",
+      "line": 214
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "max",
+      "line": 215
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "round",
+      "line": 215
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "NutrientBalance",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 227
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "append",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "any",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "isoformat",
+      "line": 253
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "asdict",
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "round",
+      "line": 257
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "sorted",
+      "line": 259
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "set",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "sorted",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "set",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "sorted",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "_hash",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "CanonicalNutrientLedger",
+      "line": 264
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "tuple",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "sorted",
+      "line": 277
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "tuple",
+      "line": 277
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "tuple",
+      "line": 278
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "source": "build_canonical_nutrient_ledger",
+      "target": "tuple",
+      "line": 279
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_aware",
+      "target": "utcoffset",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_aware",
+      "target": "ValueError",
+      "line": 36
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_aware",
+      "target": "astimezone",
+      "line": 37
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "float",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "isfinite",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "ValueError",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "ValueError",
+      "line": 47
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "ValueError",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_digest",
+      "target": "dumps",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_digest",
+      "target": "encode",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_digest",
+      "target": "hexdigest",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_digest",
+      "target": "sha256",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "lower",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "strip",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "any",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "len",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "ValueError",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 77
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "ValueError",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "ValueError",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "ValueError",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "PhenologyObservation",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 86
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_aware",
+      "line": 87
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_finite",
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_valid_sha",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "ValueError",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "RemoteSensingStageEvidence",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_aware",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_finite",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_valid_sha",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "load_crop_card",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "tuple",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "get",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "str",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "strip",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "get",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "get",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "tuple",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "set",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "normalized",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "ValueError",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "add",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 168
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "timedelta",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "set",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "sorted",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "sort",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "timedelta",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "set",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "sorted",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "set",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "sorted",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "str",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "strip",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "ValueError",
+      "line": 232
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_aware",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "date",
+      "line": 234
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "ValueError",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "ValueError",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_finite",
+      "line": 238
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_finite",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "resolve_crop_id",
+      "line": 242
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "lower",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "strip",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_crop_stages",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "date",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_choose_observation",
+      "line": 250
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "extend",
+      "line": 257
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "current_stage",
+      "line": 259
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "phenology_progress",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 275
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "normalized",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 283
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 287
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "min",
+      "line": 289
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "round",
+      "line": 289
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 291
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 296
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "str",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "isoformat",
+      "line": 305
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "isoformat",
+      "line": 306
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 314
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 316
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 318
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 318
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "CanonicalPhenologyState",
+      "line": 320
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "tuple",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "tuple",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "tuple",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_digest",
+      "line": 340
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "state_payload",
+      "target": "asdict",
+      "line": 345
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "state_payload",
+      "target": "isoformat",
+      "line": 346
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "state_payload",
+      "target": "isoformat",
+      "line": 347
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "_digest",
       "target": "dumps",
@@ -162509,6 +164224,552 @@
       "source": "resolve_canonical_root_zone_profile",
       "target": "persist_canonical_root_zone_profile",
       "line": 342
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_aware",
+      "target": "utcoffset",
+      "line": 30
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_aware",
+      "target": "ValueError",
+      "line": 31
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_aware",
+      "target": "astimezone",
+      "line": 32
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_finite_nonnegative",
+      "target": "isfinite",
+      "line": 36
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_finite_nonnegative",
+      "target": "ValueError",
+      "line": 37
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_digest",
+      "target": "any",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_digest",
+      "target": "len",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_digest",
+      "target": "ValueError",
+      "line": 42
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_fresh",
+      "target": "timedelta",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_fresh",
+      "target": "timedelta",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_hash_payload",
+      "target": "dumps",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_hash_payload",
+      "target": "encode",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_hash_payload",
+      "target": "hexdigest",
+      "line": 123
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "_hash_payload",
+      "target": "sha256",
+      "line": 123
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_aware",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "all",
+      "line": 149
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "ValueError",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "ValueError",
+      "line": 152
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "ValueError",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 169
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_finite_nonnegative",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_finite_nonnegative",
+      "line": 172
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_aware",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_digest",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 175
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "classify_soil_salinity",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_fresh",
+      "line": 177
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 178
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_finite_nonnegative",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_aware",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_digest",
+      "line": 192
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 193
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "classify_water_salinity",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "sodium_hazard",
+      "line": 195
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_rsc_class",
+      "line": 196
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_fresh",
+      "line": 197
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 201
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "ValueError",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_finite_nonnegative",
+      "line": 205
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_aware",
+      "line": 206
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_digest",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_fresh",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 213
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 215
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_finite_nonnegative",
+      "line": 227
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "ValueError",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_digest",
+      "line": 230
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "ValueError",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "max",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "max",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "leaching_requirement",
+      "line": 243
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "bool",
+      "line": 244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "get",
+      "line": 244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "get",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 250
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 252
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "append",
+      "line": 257
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "any",
+      "line": 259
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "startswith",
+      "line": 259
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "bool",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "set",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "sorted",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "tuple",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "isoformat",
+      "line": 293
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "set",
+      "line": 305
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "sorted",
+      "line": 305
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "_hash_payload",
+      "line": 308
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "tuple",
+      "line": 309
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "source": "build_canonical_salinity_state",
+      "target": "CanonicalSalinityState",
+      "line": 310
     },
     {
       "owner": "sahool-platform",
@@ -206924,6 +209185,265 @@
       "source": "measure_outcome",
       "target": "len",
       "line": 167
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "_json",
+      "target": "isinstance",
+      "line": 21
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "_json",
+      "target": "loads",
+      "line": 22
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_active_season_id",
+      "target": "fetchrow",
+      "line": 27
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_active_season_id",
+      "target": "str",
+      "line": 32
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "fetchrow",
+      "line": 38
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "CanonicalPhenologyState",
+      "line": 46
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "str",
+      "line": 47
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "_json",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "tuple",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "_json",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "tuple",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "_json",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_phenology_state",
+      "target": "tuple",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_salinity_state",
+      "target": "fetchrow",
+      "line": 73
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_salinity_state",
+      "target": "CanonicalSalinityState",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_salinity_state",
+      "target": "str",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_salinity_state",
+      "target": "_json",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_salinity_state",
+      "target": "tuple",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_salinity_state",
+      "target": "_json",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_salinity_state",
+      "target": "tuple",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "fetchrow",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "NutrientBalance",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "_json",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "tuple",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "CanonicalNutrientLedger",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "str",
+      "line": 119
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "float",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "_json",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "tuple",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "_json",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "tuple",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "_json",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_nutrient_ledger",
+      "target": "tuple",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_agronomic_context",
+      "target": "load_active_season_id",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_agronomic_context",
+      "target": "load_phenology_state",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_agronomic_context",
+      "target": "load_salinity_state",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "load_agronomic_context",
+      "target": "load_nutrient_ledger",
+      "line": 147
     },
     {
       "owner": "sahool-platform",
@@ -261710,114 +264230,44 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
+      "source": "_numeric_indicator_map",
+      "target": "dict",
       "line": 64
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "tenant_connection",
+      "source": "_numeric_indicator_map",
+      "target": "sorted",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_numeric_indicator_map",
+      "target": "items",
+      "line": 67
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_numeric_indicator_map",
+      "target": "isinstance",
       "line": 68
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "execute",
-      "line": 69
+      "source": "_numeric_indicator_map",
+      "target": "isinstance",
+      "line": 68
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "str",
-      "line": 76
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "getattr",
-      "line": 77
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "getattr",
-      "line": 78
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "getattr",
-      "line": 79
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "bool",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 81
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "_jsonb",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "_jsonb",
-      "line": 83
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 83
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "_jsonb",
-      "line": 84
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_persist_recommendation",
-      "target": "get",
-      "line": 84
+      "source": "_numeric_indicator_map",
+      "target": "HTTPException",
+      "line": 71
     },
     {
       "owner": "sahool-platform",
@@ -261830,932 +264280,1198 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
-      "target": "_emit_domain_event",
-      "line": 87
+      "target": "tenant_connection",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "execute",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "str",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "getattr",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "getattr",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "getattr",
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "bool",
-      "line": 94
+      "line": 101
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "get",
-      "line": 94
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "_jsonb",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "_jsonb",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "_jsonb",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "_emit_domain_event",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "bool",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_persist_recommendation",
+      "target": "get",
+      "line": 115
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "getattr",
-      "line": 95
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "getattr",
-      "line": 96
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_persist_recommendation",
       "target": "warning",
-      "line": 100
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "post",
-      "line": 103
+      "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "Depends",
-      "line": 106
+      "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "require_permission",
-      "line": 106
+      "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "HTTPException",
-      "line": 114
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "ApiRequest",
-      "line": 116
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "model_dump",
-      "line": 118
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "handle_recommendation_request",
-      "line": 122
+      "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "getattr",
-      "line": 123
+      "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "_persist_recommendation",
-      "line": 125
+      "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations",
       "target": "JSONResponse",
-      "line": 126
+      "line": 147
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "post",
-      "line": 129
+      "line": 150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "Depends",
-      "line": 132
+      "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "require_permission",
-      "line": 132
+      "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "getenv",
-      "line": 148
+      "line": 169
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "dirname",
-      "line": 150
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "join",
-      "line": 150
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "_Path",
-      "line": 154
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "resolve",
-      "line": 154
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "resolve",
-      "line": 155
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "str",
-      "line": 155
+      "line": 176
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "is_relative_to",
-      "line": 156
+      "line": 177
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "HTTPException",
-      "line": 157
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "validate",
-      "line": 159
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "HTTPException",
-      "line": 162
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendations_for_field",
-      "target": "ApiRequest",
-      "line": 164
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendations_for_field",
-      "target": "handle_recommendation_request",
-      "line": 182
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "recommendations_for_field",
-      "target": "getattr",
       "line": 183
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
+      "target": "tenant_connection",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "load_agronomic_context",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "get",
+      "line": 206
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "_asdict",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "_consume_phenology",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "append",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "get",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "_asdict",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "_consume_salinity",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "append",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "get",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "_asdict",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "_consume_nutrients",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "append",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "get",
+      "line": 213
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "sorted",
+      "line": 215
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "warning",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "_numeric_indicator_map",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "ApiRequest",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "handle_recommendation_request",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "getattr",
+      "line": 252
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "setdefault",
+      "line": 257
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "isinstance",
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "setdefault",
+      "line": 259
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
+      "target": "isinstance",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "recommendations_for_field",
       "target": "_persist_recommendation",
-      "line": 185
+      "line": 262
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendations_for_field",
       "target": "JSONResponse",
-      "line": 186
+      "line": 263
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "get",
-      "line": 189
+      "line": 266
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "Depends",
-      "line": 191
+      "line": 268
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "require_permission",
-      "line": 191
+      "line": 268
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "list_engines",
-      "line": 205
+      "line": 282
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "tenant_connection",
-      "line": 209
+      "line": 286
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "fetchrow",
-      "line": 210
+      "line": 287
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "isinstance",
-      "line": 216
+      "line": 293
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "loads",
-      "line": 217
+      "line": 294
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "_resolve_recommendation_policy",
-      "line": 218
+      "line": 295
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "recommendation_engines",
       "target": "exception",
-      "line": 220
+      "line": 297
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "economic_adaptation_endpoint",
       "target": "post",
-      "line": 236
+      "line": 313
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "economic_adaptation_endpoint",
       "target": "Depends",
-      "line": 241
+      "line": 318
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "economic_adaptation_endpoint",
       "target": "require_permission",
-      "line": 241
+      "line": 318
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "economic_adaptation_endpoint",
       "target": "adapt_recommendation",
-      "line": 249
+      "line": 326
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "capacity_profiles_endpoint",
       "target": "get",
-      "line": 254
+      "line": 331
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "capacity_profiles_endpoint",
       "target": "get_capacity_profiles",
-      "line": 259
+      "line": 336
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "post",
-      "line": 262
+      "line": 339
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "Depends",
-      "line": 267
+      "line": 344
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "require_permission",
-      "line": 267
+      "line": 344
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "FarmerGoal",
-      "line": 283
+      "line": 360
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "HTTPException",
-      "line": 285
+      "line": 362
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "isinstance",
-      "line": 286
+      "line": 363
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "HTTPException",
-      "line": 287
+      "line": 364
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_bool",
       "target": "get",
-      "line": 291
+      "line": 368
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "get",
-      "line": 291
+      "line": 368
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_bool",
       "target": "isinstance",
-      "line": 292
+      "line": 369
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "isinstance",
-      "line": 292
+      "line": 369
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_bool",
       "target": "HTTPException",
-      "line": 293
+      "line": 370
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "HTTPException",
-      "line": 293
+      "line": 370
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_score",
       "target": "get",
-      "line": 297
+      "line": 374
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "get",
-      "line": 297
+      "line": 374
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_score",
       "target": "isinstance",
-      "line": 300
+      "line": 377
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_score",
       "target": "isinstance",
-      "line": 300
+      "line": 377
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "isinstance",
-      "line": 300
+      "line": 377
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "isinstance",
-      "line": 300
+      "line": 377
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_score",
       "target": "HTTPException",
-      "line": 301
+      "line": 378
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "HTTPException",
-      "line": 301
+      "line": 378
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_score",
       "target": "float",
-      "line": 302
+      "line": 379
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "float",
-      "line": 302
+      "line": 379
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_req_score",
       "target": "HTTPException",
-      "line": 304
+      "line": 381
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "HTTPException",
-      "line": 304
+      "line": 381
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "isinstance",
-      "line": 309
+      "line": 386
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "HTTPException",
-      "line": 310
+      "line": 387
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "append",
-      "line": 311
+      "line": 388
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "CropCandidate",
-      "line": 312
+      "line": 389
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "str",
-      "line": 313
+      "line": 390
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "get",
-      "line": 314
+      "line": 391
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "str",
-      "line": 314
+      "line": 391
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "_req_bool",
-      "line": 315
+      "line": 392
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "get",
-      "line": 316
+      "line": 393
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "str",
-      "line": 316
+      "line": 393
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "get",
-      "line": 317
+      "line": 394
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "str",
-      "line": 317
+      "line": 394
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "get",
-      "line": 318
+      "line": 395
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "str",
-      "line": 318
+      "line": 395
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "_req_bool",
-      "line": 319
+      "line": 396
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "_req_score",
-      "line": 320
+      "line": 397
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "generate_crop_candidates",
       "target": "generate_candidates",
-      "line": 324
+      "line": 401
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "post",
-      "line": 327
+      "line": 404
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "Depends",
-      "line": 330
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "Depends",
-      "line": 331
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "require_permission",
-      "line": 331
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "HTTPException",
-      "line": 340
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "tenant_connection",
-      "line": 345
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_work",
-      "target": "assert_platform_may_write_decision_sor",
-      "line": 348
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "assert_platform_may_write_decision_sor",
-      "line": 348
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_work",
-      "target": "fetchrow",
-      "line": 349
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "fetchrow",
-      "line": 349
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_work",
-      "target": "getattr",
-      "line": 357
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "_work",
-      "target": "str",
-      "line": 357
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "getattr",
-      "line": 357
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "str",
-      "line": 357
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "_idempotent",
-      "line": 374
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "CommandStore",
-      "line": 375
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "get_pool",
-      "line": 375
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "str",
-      "line": 379
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "str",
-      "line": 380
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "_work",
-      "line": 384
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "_db_unavailable",
-      "line": 388
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "_mirror_recommendation_outcome_to_service",
-      "line": 393
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/recommendations.py",
-      "source": "record_recommendation_outcome",
-      "target": "get",
       "line": 407
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
+      "target": "Depends",
+      "line": 408
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "require_permission",
+      "line": 408
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "HTTPException",
+      "line": 417
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "tenant_connection",
+      "line": 422
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_work",
+      "target": "assert_platform_may_write_decision_sor",
+      "line": 425
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "assert_platform_may_write_decision_sor",
+      "line": 425
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_work",
+      "target": "fetchrow",
+      "line": 426
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "fetchrow",
+      "line": 426
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_work",
+      "target": "getattr",
+      "line": 434
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "_work",
       "target": "str",
-      "line": 410
+      "line": 434
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "getattr",
+      "line": 434
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "str",
+      "line": 434
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "_idempotent",
+      "line": 451
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "CommandStore",
+      "line": 452
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "get_pool",
+      "line": 452
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "str",
+      "line": 456
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "str",
+      "line": 457
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "_work",
+      "line": 461
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "_db_unavailable",
+      "line": 465
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "_mirror_recommendation_outcome_to_service",
+      "line": 470
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "get",
+      "line": 484
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/recommendations.py",
+      "source": "record_recommendation_outcome",
+      "target": "str",
+      "line": 487
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "record_recommendation_outcome",
       "target": "warning",
-      "line": 413
+      "line": 490
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "get",
-      "line": 423
+      "line": 500
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "Depends",
-      "line": 426
+      "line": 503
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "require_permission",
-      "line": 426
+      "line": 503
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_jb",
       "target": "isinstance",
-      "line": 433
+      "line": 510
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "_jb",
       "target": "loads",
-      "line": 433
+      "line": 510
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "isinstance",
-      "line": 433
+      "line": 510
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "loads",
-      "line": 433
+      "line": 510
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "tenant_connection",
-      "line": 435
+      "line": 512
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "fetchrow",
-      "line": 436
+      "line": 513
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "HTTPException",
-      "line": 446
+      "line": 523
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "_jb",
-      "line": 454
+      "line": 531
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "_jb",
-      "line": 457
+      "line": 534
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "_jb",
-      "line": 458
+      "line": 535
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "isoformat",
-      "line": 460
+      "line": 537
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/recommendations.py",
       "source": "get_recommendation",
       "target": "isoformat",
-      "line": 461
+      "line": 538
     },
     {
       "owner": "sahool-platform",
@@ -350497,6 +353213,286 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_module_files",
+      "target": "rglob",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_module_files",
+      "target": "sorted",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_module_files",
+      "target": "as_posix",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_module_files",
+      "target": "relative_to",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_module_files",
+      "target": "startswith",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "replace",
+      "line": 52
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "defaultdict",
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "items",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "parse",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "read_text",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "walk",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "isinstance",
+      "line": 60
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "add",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "isinstance",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "add",
+      "line": 66
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_import_graph",
+      "target": "add",
+      "line": 71
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "_module_files",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "_import_graph",
+      "line": 77
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "endswith",
+      "line": 79
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "startswith",
+      "line": 79
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "set",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "list",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "pop",
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "add",
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "_reachable_from_mounted_routers",
+      "target": "extend",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_every_declared_canonical_module_is_reachable_from_a_mounted_route",
+      "target": "_reachable_from_mounted_routers",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_persisted_chain_runs_through_a_real_route_not_a_helper",
+      "target": "_module_files",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_persisted_chain_runs_through_a_real_route_not_a_helper",
+      "target": "_import_graph",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_persisted_chain_runs_through_a_real_route_not_a_helper",
+      "target": "startswith",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_persisted_chain_runs_through_a_real_route_not_a_helper",
+      "target": "items",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_repository_layer_reads_persisted_state_rather_than_trusting_the_client",
+      "target": "read_text",
+      "line": 119
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "read_text",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "parse",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "walk",
+      "line": 132
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "isinstance",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "getattr",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "isinstance",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "isinstance",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "isinstance",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "source": "test_the_route_accepts_identifiers_only_and_never_a_canonical_object",
+      "target": "unparse",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_well_capability.py",
       "source": "_inputs",
       "target": "isoformat",
@@ -408415,6 +411411,160 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_key_in_both_snapshots_dilutes_the_similarity_score",
+      "target": "_compare_indicators",
+      "line": 31
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_key_in_both_snapshots_dilutes_the_similarity_score",
+      "target": "dict",
+      "line": 31
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_key_in_both_snapshots_dilutes_the_similarity_score",
+      "target": "_compare_indicators",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_key_in_both_snapshots_dilutes_the_similarity_score",
+      "target": "dict",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "parse",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "read_text",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "walk",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "isinstance",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "getattr",
+      "line": 46
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "isinstance",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "isinstance",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "isinstance",
+      "line": 51
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_route_never_puts_the_canonical_context_into_the_indicator_map",
+      "target": "unparse",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_the_canonical_context_is_recorded_in_the_persisted_input_snapshot",
+      "target": "read_text",
+      "line": 69
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "_numeric_indicator_map",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "_numeric_indicator_map",
+      "line": 79
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "_numeric_indicator_map",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "raises",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_non_numeric_indicator_is_rejected_at_the_edge",
+      "target": "_numeric_indicator_map",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_boolean_is_not_accepted_as_an_indicator_value",
+      "target": "raises",
+      "line": 93
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_a_boolean_is_not_accepted_as_an_indicator_value",
+      "target": "_numeric_indicator_map",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+      "source": "test_history_carrying_the_context_does_not_disturb_a_clean_live_map",
+      "target": "_compare_indicators",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_recommendation_log.py",
       "source": "_csv_path",
       "target": "NamedTemporaryFile",
@@ -415570,30 +418720,58 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_simple_farm_book.py",
+      "source": "test_migration_is_append_only_rls_and_idempotent",
+      "target": "count",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_simple_farm_book.py",
+      "source": "test_migration_is_append_only_rls_and_idempotent",
+      "target": "index",
+      "line": 172
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_simple_farm_book.py",
+      "source": "test_migration_is_append_only_rls_and_idempotent",
+      "target": "sorted",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_simple_farm_book.py",
+      "source": "test_migration_is_append_only_rls_and_idempotent",
+      "target": "index",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_simple_farm_book.py",
       "source": "test_router_guards_scope_offline_conflict_and_exports",
       "target": "Path",
-      "line": 169
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_simple_farm_book.py",
       "source": "test_router_guards_scope_offline_conflict_and_exports",
       "target": "resolve",
-      "line": 169
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_simple_farm_book.py",
       "source": "test_router_guards_scope_offline_conflict_and_exports",
       "target": "read_text",
-      "line": 170
+      "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_simple_farm_book.py",
       "source": "test_router_guards_scope_offline_conflict_and_exports",
       "target": "compile",
-      "line": 183
+      "line": 192
     },
     {
       "owner": "sahool-platform",
@@ -510768,6 +513946,39 @@
       "action": "review_before_delete"
     },
     {
+      "symbol": "consume_phenology_state",
+      "kind": "function",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "line": 47,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "consume_salinity_state",
+      "kind": "function",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "line": 88,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "consume_nutrient_ledger",
+      "kind": "function",
+      "file": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "line": 145,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
       "symbol": "build_canonical_energy_microgrid_capability",
       "kind": "function",
       "file": "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
@@ -510849,6 +514060,50 @@
       "kind": "function",
       "file": "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
       "line": 148,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "build_canonical_nutrient_ledger",
+      "kind": "function",
+      "file": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "line": 110,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "build_canonical_phenology_state",
+      "kind": "function",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "line": 203,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "state_payload",
+      "kind": "function",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "line": 344,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "build_canonical_salinity_state",
+      "kind": "function",
+      "file": "services/sahool-platform/api/canonical_salinity_state.py",
+      "line": 126,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

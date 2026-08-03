@@ -150,7 +150,7 @@ DEC-007,api,POST /api/v1/execution-requests/{execution_request_id}/verify-outcom
 DEC-007,api,POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:43,2,applied
 DEC-007,api,POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:430,2,applied
 DEC-007,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,2,applied
-DEC-007,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:328,2,applied
+DEC-007,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:405,2,applied
 DEC-007,api,POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:67,2,applied
 DEC-007,api,POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1875,3,applied
 DEC-007,api,POST /v1/fields/{field_id}/soil/outcomes @ services/soil-service/routers/p4_workflow.py:95,2,applied
@@ -540,7 +540,7 @@ FM-003,api,POST /api/v1/learning/activation-requests/{activation_request_id}/rev
 FM-003,api,POST /api/v1/learning/evaluation-runs @ services/sahool-platform/api/routers/decision_review.py:633,2,applied
 FM-003,api,POST /api/v1/learning/promotion-decisions @ services/sahool-platform/api/routers/decision_review.py:684,2,applied
 FM-003,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,2,applied
-FM-003,api,POST /api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:130,2,applied
+FM-003,api,POST /api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:151,2,applied
 FM-003,api,POST /internal/field-forms/assignments @ services/scout-ingest-service/field_forms_api.py:361,2,applied
 FM-003,api,POST /internal/field-forms/definitions @ services/scout-ingest-service/field_forms_api.py:195,2,applied
 FM-003,api,POST /internal/field-forms/definitions/{code}/versions @ services/scout-ingest-service/field_forms_api.py:230,2,applied
@@ -812,7 +812,7 @@ FM-005,api,POST /api/v1/crop-twin/decision @ services/sahool-platform/api/router
 FM-005,api,POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302,2,applied
 FM-005,api,POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:535,2,applied
 FM-005,api,POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3432,2,applied
-FM-005,api,POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:263,2,applied
+FM-005,api,POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:340,2,applied
 FM-005,test,services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_crop_cards.py,3,applied
 FM-005,test,services/sahool-platform/tests/test_crop_classification_readiness.py,3,applied
@@ -991,6 +991,7 @@ GIS-002,test,services/gis-workflow-service/tests/test_publication_map_render.py,
 GIS-002,test,services/raster-service/test_raster_map_deep_hardening_static.py,3,applied
 GIS-002,test,services/sahool-platform/tests/test_crop_intelligence_knowledge_layer.py,3,applied
 GIS-002,test,services/sahool-platform/tests/test_map_layer.py,5,applied
+GIS-002,test,services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py,3,applied
 GIS-002,test,services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py,3,applied
 GIS-002,test,services/sahool-platform/tests/test_weather_engine_agronomic_risk_layers.py,3,applied
 GIS-002,test,services/sahool-platform/tests/test_weather_engine_disease_window_layers.py,3,applied
@@ -1054,14 +1055,14 @@ IRR-004,test,services/sahool-platform/tests/test_irrigation_depletion_trigger.py
 IRR-004,test,services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py,3,applied
 IRR-004,test,services/sahool-platform/tests/test_water_balance.py,5,applied
 IRR-004,test,tests_v9/test_h5_water_balance_auto.py,5,applied
-IRR-005,api,GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:190,3,applied
-IRR-005,api,GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:424,3,applied
+IRR-005,api,GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:267,3,applied
+IRR-005,api,GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:501,3,applied
 IRR-005,api,GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2568,3,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:245,7,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:500,3,applied
 IRR-005,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:320,3,applied
 IRR-005,api,POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:169,7,applied
-IRR-005,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:328,3,applied
+IRR-005,api,POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:405,3,applied
 IRR-005,api,POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2897,3,applied
 IRR-005,api,POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303,3,applied
 IRR-005,api,POST /v1/recommendation-outcomes @ services/decision-service/main.py:951,2,applied
@@ -1071,6 +1072,7 @@ IRR-005,test,services/sahool-platform/tests/test_irrigation_mpc_hourly_recommend
 IRR-005,test,services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py,3,applied
 IRR-005,test,services/sahool-platform/tests/test_recommendation_bridge.py,3,applied
 IRR-005,test,services/sahool-platform/tests/test_recommendation_engine.py,3,applied
+IRR-005,test,services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py,3,applied
 IRR-005,test,services/sahool-platform/tests/test_recommendation_log.py,3,applied
 IRR-005,test,services/sahool-platform/tests/test_recommendation_registry.py,3,applied
 IRR-005,test,services/sahool-platform/tests/test_recommendation_replay.py,3,applied
@@ -1134,6 +1136,8 @@ IRR-009,test,services/sahool-platform/tests/test_fao56_dual_kc_salinity_validati
 IRR-009,test,services/sahool-platform/tests/test_h5_salinity_ecw_binding.py,3,applied
 IRR-009,test,services/sahool-platform/tests/test_salinity_capability_contract.py,3,applied
 IRR-009,test,tests_v9/test_canonical_salinity.py,3,applied
+IRR-009,test,tests_v9/test_canonical_salinity_contract_truth.py,3,applied
+IRR-009,test,tests_v9/test_canonical_salinity_state.py,3,applied
 IRR-009,test,tests_v9/test_h5_api_salinity.py,3,applied
 IRR-009,test,tests_v9/test_irrigation_salinity_ks.py,3,applied
 IRR-009,test,tests_v9/test_recommendations_salinity_feed.py,3,applied
@@ -1782,6 +1786,8 @@ SOIL-003,service,services/soil-service/main.py,10,applied
 SOIL-004,api,POST /api/v1/nutrients/4r-plan @ services/sahool-platform/api/routers/nutrients.py:31,2,applied
 SOIL-004,service,services/soil-service/main.py,10,applied
 SOIL-004,test,services/sahool-platform/tests/test_nutrient_4r.py,3,applied
+SOIL-004,test,tests_v9/test_canonical_nutrient_ledger.py,3,applied
+SOIL-004,test,tests_v9/test_canonical_nutrient_ledger_contract.py,3,applied
 SOIL-004,test,tests_v9/test_nutrient_uptake.py,3,applied
 SOIL-005,service,services/soil-service/main.py,10,applied
 SOIL-005,test,tests_v9/test_soil_water.py,3,applied

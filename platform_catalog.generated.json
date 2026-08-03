@@ -16361,7 +16361,10 @@
           "canonical_hydraulic_capabilities",
           "canonical_irrigation_capability_graphs",
           "canonical_irrigation_machine_capabilities",
+          "canonical_nutrient_ledgers",
+          "canonical_phenology_states",
           "canonical_root_zone_profiles",
+          "canonical_salinity_states",
           "canonical_sprinkler_runoff_capabilities",
           "canonical_well_capabilities",
           "command_verification_loop",
@@ -16475,6 +16478,7 @@
           "nl_gis_audit",
           "notification_delivery",
           "notification_preferences",
+          "nutrient_evidence_observations",
           "observations",
           "offline_dataset_versions_runtime",
           "offline_pending_ops",
@@ -16485,6 +16489,7 @@
           "online_learning_updates",
           "outbox_delivery_attempts",
           "outcome_record",
+          "phenology_observations",
           "plugin_permission_audit",
           "prescription_maps",
           "prescriptions",
@@ -16492,6 +16497,7 @@
           "processing_jobs",
           "recommendation_outcomes",
           "runtime_event_outbox",
+          "salinity_evidence_observations",
           "scouting_pins",
           "season_record_links",
           "season_simulation_runs",
@@ -17327,7 +17333,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "4f1f315994e76768afe8353ee9f705640df64effcdf8b123c60a109a530f0056",
+  "fingerprint": "24eaeb47c3005c30ccc0067766c5ac57008aef5f84f7f622907f8b0f2a81f77d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

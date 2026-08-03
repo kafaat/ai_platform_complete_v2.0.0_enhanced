@@ -89,6 +89,10 @@ jobs:
         run: python scripts/ci/capability_management_engine.py --check
       - name: Enforce capability-core production consumption
         run: python scripts/ci/capability_core_consumption_guard.py --check
+      # «مستهلك» ليس «قابل للوصول»: وحدةٌ يستوردها مستهلكٌ لا يستدعيه شيء تبقى ميتة،
+      # ويمرّ عليها كلّ فحص استيراد ساذج. يصنّف كلّ وحدة بجذرها التنفيذيّ الحقيقيّ.
+      - name: Classify platform module reachability by executable root
+        run: python scripts/ci/platform_module_reachability_guard.py --check
       - name: Validate capability impact index drift
         run: python scripts/ci/pr_capability_impact_gate.py --check-index
       - name: Enforce declared PR capability impact

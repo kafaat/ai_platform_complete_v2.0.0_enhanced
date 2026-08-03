@@ -54,6 +54,27 @@ def _jsonb(value) -> str:
     return json.dumps(value or {}, ensure_ascii=False, default=str)
 
 
+def _numeric_indicator_map(raw: dict | None) -> dict:
+    """The indicator map contract: ``Mapping[str, float]``, enforced at the edge.
+
+    ``bool`` is rejected explicitly — it is an ``int`` subclass, so a bare
+    ``isinstance(v, (int, float))`` would admit ``True`` as the number 1 and let a
+    flag masquerade as a measurement.
+    """
+    values = dict(raw or {})
+    offenders = sorted(
+        key
+        for key, value in values.items()
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)))
+    )
+    if offenders:
+        raise HTTPException(
+            status_code=422,
+            detail=(f"current_indicators يجب أن تكون خريطة أرقام فقط — قيم غير رقميّة: {offenders}"),
+        )
+    return values
+
+
 async def _persist_recommendation(
     user: UserSchema, req: RecommendationRequest, enriched: dict
 ) -> None:
@@ -161,6 +182,54 @@ async def recommendations_for_field(
         # لا نُسرّب مسارات ملفات/تفاصيل داخلية من أداة التحقّق في استجابة عامة.
         raise HTTPException(status_code=503, detail="تعذّر بناء شهادة الجودة") from e
 
+    # Load canonical agronomic truth from persisted Sources of Truth under the
+    # current tenant RLS. The client supplies identifiers only; no canonical
+    # object or digest is accepted from the request body.
+    from dataclasses import asdict as _asdict
+
+    from api.agronomic_state_consumers import (
+        consume_nutrient_ledger as _consume_nutrients,
+    )
+    from api.agronomic_state_consumers import (
+        consume_phenology_state as _consume_phenology,
+    )
+    from api.agronomic_state_consumers import (
+        consume_salinity_state as _consume_salinity,
+    )
+    from api.persisted_canonical_repositories import load_agronomic_context
+
+    canonical_context: dict = {"season_id": None, "candidates": []}
+    try:
+        async with tenant_connection(user) as conn:
+            persisted = await load_agronomic_context(conn, field_id=req.field_id)
+        candidates = []
+        if persisted.get("phenology") is not None:
+            candidates.append(_asdict(_consume_phenology(persisted["phenology"])))
+        if persisted.get("salinity") is not None:
+            candidates.append(_asdict(_consume_salinity(persisted["salinity"])))
+        if persisted.get("nutrients") is not None:
+            candidates.append(_asdict(_consume_nutrients(persisted["nutrients"])))
+        canonical_context = {
+            "season_id": persisted.get("season_id"),
+            "candidates": candidates,
+            "source_state_digests": sorted(item["source_state_digest"] for item in candidates),
+        }
+    except Exception:  # noqa: BLE001 — missing canonical data degrades honestly
+        logger.warning("canonical agronomic context load failed", exc_info=True)
+        canonical_context = {
+            "season_id": None,
+            "candidates": [],
+            "limitations": ["CANONICAL_CONTEXT_UNAVAILABLE"],
+        }
+
+    # CONTRACT: current_indicators is Mapping[str, float]. Every consumer coerces
+    # its values with float() — cross-reference similarity, ranking, clustering,
+    # feature extraction, analytics, exports. A nested value does not merely risk a
+    # TypeError; it changes the semantic type of the map for all of them.
+    # Rejected fail-closed rather than silently dropped: a caller who sends a
+    # non-numeric indicator has a bug, and swallowing it would hide it.
+    numeric_indicators = _numeric_indicator_map(req.current_indicators)
+
     api_req = ApiRequest(
         user=user,
         payload={
@@ -172,7 +241,7 @@ async def recommendations_for_field(
             "field_id": req.field_id,
             "crop": req.crop,
             "validation": validation,
-            "current_indicators": req.current_indicators,
+            "current_indicators": numeric_indicators,
             "growth_stage": req.growth_stage,
             "district_id": req.district_id,
         },
@@ -182,6 +251,14 @@ async def recommendations_for_field(
     resp = handle_recommendation_request(api_req)
     enriched = getattr(resp, "enriched", None)
     if enriched:
+        # The canonical context is decision EVIDENCE, not a feature: it belongs to
+        # the persisted input snapshot, never to the live indicator map the engine
+        # and the similarity comparison read.
+        provenance = enriched.setdefault("provenance", {})
+        if isinstance(provenance, dict):
+            input_snapshot = provenance.setdefault("input_snapshot", {})
+            if isinstance(input_snapshot, dict):
+                input_snapshot["canonical_agronomic_context"] = canonical_context
         await _persist_recommendation(user, req, enriched)
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 

@@ -153,16 +153,25 @@ def test_migration_is_append_only_rls_and_idempotent() -> None:
         for line in (root / "migrations/MANIFEST.txt").read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.lstrip().startswith("#")
     ]
-    # v213/v214/v215/v216 are inserted before v206; the invariant is that v206 stays LAST.
-    assert entries[-7:] == [
+    # The invariant is ORDER, not a snapshot of the tail. Every new migration is inserted
+    # before v206_rls_final_hardening.sql (it re-covers RLS across everything preceding
+    # it), so a hardcoded `entries[-7:]` broke on the next insertion and said nothing
+    # about what actually matters. Assert the two things that do:
+    #   1. v206 is last, exactly once;
+    #   2. the farm-book chain keeps its relative order and precedes v206.
+    assert entries[-1] == "v206_rls_final_hardening.sql"
+    assert entries.count("v206_rls_final_hardening.sql") == 1
+    chain = [
         "v211_simple_farm_book.sql",
         "v212_farm_book_one_reversal_index.sql",
         "v213_backfill_runs_single_scene.sql",
         "v214_field_irrigation_source_assignments.sql",
         "v215_yield_map_ingestion.sql",
         "v216_machinery_export.sql",
-        "v206_rls_final_hardening.sql",
     ]
+    positions = [entries.index(name) for name in chain]
+    assert positions == sorted(positions), f"farm-book chain out of order: {positions}"
+    assert positions[-1] < entries.index("v206_rls_final_hardening.sql")
 
 
 def test_router_guards_scope_offline_conflict_and_exports() -> None:

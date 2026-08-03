@@ -14,19 +14,19 @@
     "capabilities_total": 81,
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
-    "capabilities_multidimensional": 47,
-    "files_scanned": 4854,
+    "capabilities_multidimensional": 48,
+    "files_scanned": 4873,
     "files_by_kind": {
-      "backend": 1189,
-      "database": 266,
+      "backend": 1194,
+      "database": 269,
       "governance": 59,
       "mobile": 51,
-      "other": 1285,
-      "tests": 1556,
+      "other": 1286,
+      "tests": 1566,
       "web": 448
     },
-    "unmapped_artifacts": 1976,
-    "ambiguous_artifacts": 394
+    "unmapped_artifacts": 1980,
+    "ambiguous_artifacts": 396
   },
   "capabilities": [
     {
@@ -4587,7 +4587,7 @@
       ],
       "events": [
         {
-          "value": "v214_field_irrigation_source_assignments.sql @ services/sahool-platform/tests/test_simple_farm_book.py:161",
+          "value": "v214_field_irrigation_source_assignments.sql @ services/sahool-platform/tests/test_simple_farm_book.py:168",
           "score": 14
         },
         {
@@ -7300,6 +7300,13 @@
           ]
         },
         {
+          "path": "tests_v9/test_canonical_phenology_contract_truth.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "services/scout-ingest-service/tests/test_season_live.py",
           "score": 17,
           "signals": [
@@ -7691,7 +7698,7 @@
         "events": 54,
         "web": 12,
         "mobile": 1,
-        "tests": 33,
+        "tests": 34,
         "governance": 0,
         "other_evidence": 15
       },
@@ -12462,6 +12469,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/canonical_salinity_state.py",
+          "score": 14,
+          "signals": [
+            "path:salinity",
+            "content:salinity"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/routers/salinity.py",
           "score": 14,
           "signals": [
@@ -12516,7 +12531,40 @@
           "score": 14
         }
       ],
-      "database": [],
+      "database": [
+        {
+          "value": "canonical_salinity_states @ migrations/v225_canonical_salinity_state.sql:16",
+          "score": 14
+        },
+        {
+          "value": "canonical_salinity_states @ migrations/v225_canonical_salinity_state.sql:46",
+          "score": 14
+        },
+        {
+          "value": "canonical_salinity_states @ migrations/v225_canonical_salinity_state.sql:47",
+          "score": 14
+        },
+        {
+          "path": "migrations/v225_canonical_salinity_state.sql",
+          "score": 14,
+          "signals": [
+            "path:salinity",
+            "content:salinity"
+          ]
+        },
+        {
+          "value": "salinity_evidence_observations @ migrations/v225_canonical_salinity_state.sql:2",
+          "score": 14
+        },
+        {
+          "value": "salinity_evidence_observations @ migrations/v225_canonical_salinity_state.sql:44",
+          "score": 14
+        },
+        {
+          "value": "salinity_evidence_observations @ migrations/v225_canonical_salinity_state.sql:45",
+          "score": 14
+        }
+      ],
       "events": [
         {
           "value": "field_state.canonical @ tests_v9/test_canonical_salinity.py:43",
@@ -12532,6 +12580,22 @@
         },
         {
           "value": "irrigation_source_binding.py @ services/sahool-platform/tests/test_h5_salinity_ecw_binding.py:27",
+          "score": 14
+        },
+        {
+          "value": "soil.depth_cm @ services/sahool-platform/api/canonical_salinity_state.py:172",
+          "score": 14
+        },
+        {
+          "value": "soil.ece_dsm @ services/sahool-platform/api/canonical_salinity_state.py:171",
+          "score": 14
+        },
+        {
+          "value": "soil.evidence_digest @ services/sahool-platform/api/canonical_salinity_state.py:174",
+          "score": 14
+        },
+        {
+          "value": "soil.sampled_at @ services/sahool-platform/api/canonical_salinity_state.py:173",
           "score": 14
         },
         {
@@ -12551,6 +12615,15 @@
       ],
       "mobile": [],
       "tests": [
+        {
+          "path": "tests_v9/test_canonical_salinity_contract_truth.py",
+          "score": 34,
+          "signals": [
+            "path:salinity",
+            "content:salinity",
+            "explicit_id"
+          ]
+        },
         {
           "path": "services/sahool-platform/tests/test_fao56_dual_kc_salinity_validation.py",
           "score": 14,
@@ -12577,6 +12650,14 @@
         },
         {
           "path": "tests_v9/test_canonical_salinity.py",
+          "score": 14,
+          "signals": [
+            "path:salinity",
+            "content:salinity"
+          ]
+        },
+        {
+          "path": "tests_v9/test_canonical_salinity_state.py",
           "score": 14,
           "signals": [
             "path:salinity",
@@ -12675,17 +12756,17 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 7,
+        "backend": 8,
         "routes": 1,
-        "database": 0,
-        "events": 5,
+        "database": 7,
+        "events": 9,
         "web": 1,
         "mobile": 0,
-        "tests": 8,
+        "tests": 10,
         "governance": 0,
         "other_evidence": 6
       },
-      "coverage_dimensions": 5,
+      "coverage_dimensions": 6,
       "mapped": true
     },
     {
@@ -19652,6 +19733,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_regional_bulletin.py",
           "score": 12,
           "signals": [
@@ -19909,14 +19998,6 @@
         },
         {
           "path": "tests_v9/test_fieldstate_water_canon.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests_v9/test_fvc.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -22671,6 +22752,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/routers/recommendations.py",
+          "score": 12,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "services/sahool-platform/docs/SOURCE_DOCUMENTATION.md",
           "score": 12,
           "signals": [
@@ -22692,15 +22782,6 @@
           "signals": [
             "content:Tenant RLS",
             "content:rls"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/api/routers/recommendations.py",
-          "score": 10,
-          "signals": [
-            "content:Tenant RLS",
-            "content:rls",
-            "content:tenant isolation"
           ]
         },
         {
@@ -22806,36 +22887,36 @@
           "score": 15
         },
         {
-          "value": "/api/v1/recommendations @ services/sahool-platform/api/routers/recommendations.py:103",
-          "score": 10
+          "value": "/api/v1/recommendations @ services/sahool-platform/api/routers/recommendations.py:124",
+          "score": 12
         },
         {
-          "value": "/api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:262",
-          "score": 10
+          "value": "/api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:339",
+          "score": 12
         },
         {
-          "value": "/api/v1/recommendations/capacity-profiles @ services/sahool-platform/api/routers/recommendations.py:254",
-          "score": 10
+          "value": "/api/v1/recommendations/capacity-profiles @ services/sahool-platform/api/routers/recommendations.py:331",
+          "score": 12
         },
         {
-          "value": "/api/v1/recommendations/economic-adaptation @ services/sahool-platform/api/routers/recommendations.py:236",
-          "score": 10
+          "value": "/api/v1/recommendations/economic-adaptation @ services/sahool-platform/api/routers/recommendations.py:313",
+          "score": 12
         },
         {
-          "value": "/api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:189",
-          "score": 10
+          "value": "/api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:266",
+          "score": 12
         },
         {
-          "value": "/api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:129",
-          "score": 10
+          "value": "/api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:150",
+          "score": 12
         },
         {
-          "value": "/api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:327",
-          "score": 10
+          "value": "/api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:404",
+          "score": 12
         },
         {
-          "value": "/api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:423",
-          "score": 10
+          "value": "/api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:500",
+          "score": 12
         },
         {
           "value": "/api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:243",
@@ -23523,6 +23604,10 @@
           "score": 13
         },
         {
+          "value": "sahool.recommendations @ services/sahool-platform/api/routers/recommendations.py:49",
+          "score": 12
+        },
+        {
           "value": "v148_field_evidence_snapshots.sql @ tests_v9/test_evidence_snapshots_migration_v148.py:20",
           "score": 12
         },
@@ -23552,10 +23637,6 @@
         },
         {
           "value": "field.state_changed @ tests_v9/test_field_state_projection.py:117",
-          "score": 10
-        },
-        {
-          "value": "sahool.recommendations @ services/sahool-platform/api/routers/recommendations.py:49",
           "score": 10
         },
         {
@@ -27995,10 +28076,64 @@
       "capability_id": "SOIL-004",
       "domain": "soil",
       "title": "pH EC SOM nutrients",
-      "backend": [],
+      "backend": [
+        {
+          "path": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+          "score": 11,
+          "signals": [
+            "content:organic matter",
+            "content:soil nutrient"
+          ]
+        }
+      ],
       "routes": [],
-      "database": [],
-      "events": [],
+      "database": [
+        {
+          "value": "canonical_nutrient_ledgers @ migrations/v226_canonical_nutrient_ledger.sql:17",
+          "score": 20
+        },
+        {
+          "value": "canonical_nutrient_ledgers @ migrations/v226_canonical_nutrient_ledger.sql:44",
+          "score": 20
+        },
+        {
+          "value": "canonical_nutrient_ledgers @ migrations/v226_canonical_nutrient_ledger.sql:45",
+          "score": 20
+        },
+        {
+          "path": "migrations/v226_canonical_nutrient_ledger.sql",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "value": "nutrient_evidence_observations @ migrations/v226_canonical_nutrient_ledger.sql:4",
+          "score": 20
+        },
+        {
+          "value": "nutrient_evidence_observations @ migrations/v226_canonical_nutrient_ledger.sql:42",
+          "score": 20
+        },
+        {
+          "value": "nutrient_evidence_observations @ migrations/v226_canonical_nutrient_ledger.sql:43",
+          "score": 20
+        }
+      ],
+      "events": [
+        {
+          "value": "soil.evidence_digest @ services/sahool-platform/api/canonical_nutrient_ledger.py:145",
+          "score": 11
+        },
+        {
+          "value": "soil.organic_matter_pct @ services/sahool-platform/api/canonical_nutrient_ledger.py:149",
+          "score": 11
+        },
+        {
+          "value": "soil.sampled_at @ services/sahool-platform/api/canonical_nutrient_ledger.py:144",
+          "score": 11
+        }
+      ],
       "web": [],
       "mobile": [],
       "tests": [
@@ -28018,17 +28153,17 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 0,
+        "backend": 1,
         "routes": 0,
-        "database": 0,
-        "events": 0,
+        "database": 7,
+        "events": 3,
         "web": 0,
         "mobile": 0,
         "tests": 1,
         "governance": 0,
         "other_evidence": 0
       },
-      "coverage_dimensions": 1,
+      "coverage_dimensions": 4,
       "mapped": true
     },
     {
@@ -31774,7 +31909,23 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/agronomic_state_consumers.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/astronomical_timing.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/canonical_phenology_state.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -31799,6 +31950,14 @@
         },
         {
           "path": "services/sahool-platform/api/field_season_projection.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -32539,12 +32698,44 @@
           "score": 15
         },
         {
+          "value": "canonical_phenology_states @ migrations/v224_canonical_phenology_state.sql:18",
+          "score": 12
+        },
+        {
+          "value": "canonical_phenology_states @ migrations/v224_canonical_phenology_state.sql:46",
+          "score": 12
+        },
+        {
+          "value": "canonical_phenology_states @ migrations/v224_canonical_phenology_state.sql:47",
+          "score": 12
+        },
+        {
+          "path": "migrations/v224_canonical_phenology_state.sql",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "migrations/v39_season_simulation.sql",
           "score": 12,
           "signals": [
             "content:GDD",
             "content:gdd"
           ]
+        },
+        {
+          "value": "phenology_observations @ migrations/v224_canonical_phenology_state.sql:2",
+          "score": 12
+        },
+        {
+          "value": "phenology_observations @ migrations/v224_canonical_phenology_state.sql:44",
+          "score": 12
+        },
+        {
+          "value": "phenology_observations @ migrations/v224_canonical_phenology_state.sql:45",
+          "score": 12
         },
         {
           "value": "seasons @ migrations/v39_season_simulation.sql:14",
@@ -33046,6 +33237,22 @@
           ]
         },
         {
+          "path": "tests_v9/test_agronomic_state_production_consumers.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "path": "tests_v9/test_canonical_phenology_state.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "tests_v9/test_consumer_contract_gate.py",
           "score": 12,
           "signals": [
@@ -33311,13 +33518,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 81,
+        "backend": 84,
         "routes": 26,
-        "database": 26,
+        "database": 33,
         "events": 26,
         "web": 15,
         "mobile": 0,
-        "tests": 41,
+        "tests": 43,
         "governance": 0,
         "other_evidence": 19
       },
@@ -38764,6 +38971,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_canonical_well_capability.py",
       "kind": "tests"
     },
@@ -40468,6 +40679,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_canonical_nutrient_ledger.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_certification_regression_fixes.py",
       "kind": "tests"
     },
@@ -41157,6 +41376,10 @@
     },
     {
       "path": "tests_v9/test_pip_audit_resolution_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_platform_module_reachability_guard.py",
       "kind": "tests"
     },
     {
@@ -45087,6 +45310,50 @@
             "content:Field water-source binding",
             "content:field water source",
             "content:source binding"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "migrations/v224_canonical_phenology_state.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 12,
+          "signals": [
+            "content:row level security",
+            "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "migrations/v225_canonical_salinity_state.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "IRR-009",
+          "score": 14,
+          "signals": [
+            "path:salinity",
+            "content:salinity"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 12,
+          "signals": [
+            "content:row level security",
+            "content:tenant isolation"
           ]
         }
       ]
