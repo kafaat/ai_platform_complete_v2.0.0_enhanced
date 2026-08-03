@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4870,
+    "files_scanned": 4872,
     "files_by_kind": {
       "backend": 1194,
       "database": 269,
       "governance": 59,
       "mobile": 51,
-      "other": 1285,
-      "tests": 1564,
+      "other": 1286,
+      "tests": 1565,
       "web": 448
     },
-    "unmapped_artifacts": 1979,
+    "unmapped_artifacts": 1980,
     "ambiguous_artifacts": 396
   },
   "capabilities": [
@@ -41376,6 +41376,10 @@
     },
     {
       "path": "tests_v9/test_pip_audit_resolution_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_platform_module_reachability_guard.py",
       "kind": "tests"
     },
     {

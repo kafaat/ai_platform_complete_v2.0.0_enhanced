@@ -172,6 +172,29 @@
         }
       ],
       "test": "tests_v9/test_probe_leak_guard.py"
+    },
+    "platform_module_reachability_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_module_behind_a_package_is_reachable_not_terminal",
+          "find": "        if dotted.endswith(\".__init__\"):\n            index[dotted[: -len(\".__init__\")]] = rel\n",
+          "replace": "",
+          "why": "نزع فهرسة الحزمة باسمها ⇒ كلّ سلسلة تمرّ بـ__init__ تبدو مقطوعة، فتُصنَّف وحدات موصولة فعلاً كسلاسل طرفيّة ميتة — الحارس يخترع العطل بدل أن يجده"
+        },
+        {
+          "expect": "test_relative_imports_resolve_against_the_importing_package",
+          "find": "                if node.level:\n",
+          "replace": "                if False:\n",
+          "why": "ترك الاستيراد النسبيّ بلا حلّ ⇒ from .canonical_water import … لا يُنتِج حافّة، فتبدو canonical_water/canonical_boundary ميتتين وهما مستهلَكتان"
+        },
+        {
+          "expect": "test_a_module_nothing_executes_is_terminal",
+          "find": "    verdict: dict[str, str] = {rel: TERMINAL for rel in files}\n",
+          "replace": "    verdict: dict[str, str] = {rel: MOUNTED_ROUTE for rel in files}\n",
+          "why": "جعل كلّ وحدة قابلة للوصول ابتداءً ⇒ التصنيف يفقد قدرته على قول (ميت)، وهو الغرض الوحيد للحارس"
+        }
+      ],
+      "test": "tests_v9/test_platform_module_reachability_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
