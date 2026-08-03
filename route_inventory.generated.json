@@ -6482,7 +6482,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 190,
+    "line": 233,
     "method": "GET",
     "path": "/api/v1/recommendations/engines",
     "function": "recommendation_engines"
@@ -6490,7 +6490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 237,
+    "line": 280,
     "method": "POST",
     "path": "/api/v1/recommendations/economic-adaptation",
     "function": "economic_adaptation_endpoint"
@@ -6498,7 +6498,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 255,
+    "line": 298,
     "method": "GET",
     "path": "/api/v1/recommendations/capacity-profiles",
     "function": "capacity_profiles_endpoint"
@@ -6506,7 +6506,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 263,
+    "line": 306,
     "method": "POST",
     "path": "/api/v1/recommendations/candidates",
     "function": "generate_crop_candidates"
@@ -6514,7 +6514,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 328,
+    "line": 371,
     "method": "POST",
     "path": "/api/v1/recommendations/outcomes",
     "function": "record_recommendation_outcome"
@@ -6522,7 +6522,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/recommendations.py",
-    "line": 424,
+    "line": 467,
     "method": "GET",
     "path": "/api/v1/recommendations/{rec_id}",
     "function": "get_recommendation"

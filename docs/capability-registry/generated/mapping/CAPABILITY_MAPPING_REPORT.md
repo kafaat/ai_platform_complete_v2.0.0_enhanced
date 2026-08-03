@@ -11,10 +11,10 @@
 - Capabilities: **81**
 - Mapped: **74**
 - Unmapped: **7**
-- Multi-dimensional mappings: **47**
-- Files scanned: **4854**
-- Ambiguous artifacts queued: **394**
-- Unmapped artifacts queued: **1976**
+- Multi-dimensional mappings: **48**
+- Files scanned: **4870**
+- Ambiguous artifacts queued: **396**
+- Unmapped artifacts queued: **1979**
 
 ## Capability coverage
 
@@ -33,7 +33,7 @@
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 23 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 13 | 2 | 25 | 7 |
 | FM-003 | farm_management | 13 | 56 | 6 | 53 | 2 | 2 | 11 | 7 |
-| FM-004 | farm_management | 30 | 82 | 86 | 54 | 12 | 1 | 33 | 7 |
+| FM-004 | farm_management | 30 | 82 | 86 | 54 | 12 | 1 | 34 | 7 |
 | FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 5 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
 | FM-007 | farm_management | 8 | 24 | 8 | 1 | 1 | 1 | 5 | 7 |
@@ -54,7 +54,7 @@
 | IRR-006 | irrigation | 0 | 0 | 0 | 2 | 0 | 0 | 1 | 2 |
 | IRR-007 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-008 | irrigation | 0 | 0 | 17 | 0 | 0 | 0 | 0 | 1 |
-| IRR-009 | irrigation | 7 | 1 | 0 | 5 | 1 | 0 | 8 | 5 |
+| IRR-009 | irrigation | 8 | 1 | 7 | 9 | 1 | 0 | 10 | 6 |
 | IRR-010 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-001 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-002 | operations | 3 | 7 | 7 | 1 | 1 | 0 | 4 | 6 |
@@ -89,14 +89,14 @@
 | SOIL-001 | soil | 13 | 91 | 14 | 35 | 1 | 0 | 13 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 6 | 5 | 0 | 11 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
-| SOIL-004 | soil | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
+| SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 5 | 0 | 0 | 2 | 0 | 0 | 2 | 3 |
 | WX-001 | weather | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | WX-002 | weather | 22 | 51 | 9 | 56 | 9 | 0 | 21 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
 | WX-004 | weather | 59 | 53 | 0 | 78 | 19 | 0 | 57 | 5 |
 | WX-005 | weather | 8 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
-| WX-006 | weather | 81 | 26 | 26 | 26 | 15 | 0 | 41 | 6 |
+| WX-006 | weather | 84 | 26 | 33 | 26 | 15 | 0 | 43 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 2 | 6 | 0 | 1 | 0 | 0 | 2 | 4 |
 | WX-009 | weather | 2 | 29 | 0 | 0 | 2 | 0 | 1 | 4 |

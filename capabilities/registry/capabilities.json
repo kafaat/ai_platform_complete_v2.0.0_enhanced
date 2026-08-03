@@ -537,7 +537,7 @@
         "POST /api/v1/crop-twin/decision-candidate @ services/sahool-platform/api/routers/crop_twin.py:302",
         "POST /api/v1/crop-twin/decision/profit-aware @ services/sahool-platform/api/routers/crop_twin.py:535",
         "POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3432",
-        "POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:263"
+        "POST /api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:306"
       ],
       "ui_consumers": [],
       "mobile_consumers": [],
@@ -2592,6 +2592,8 @@
       "mobile_consumers": [],
       "tests": [
         "services/sahool-platform/tests/test_nutrient_4r.py",
+        "tests_v9/test_canonical_nutrient_ledger.py",
+        "tests_v9/test_canonical_nutrient_ledger_contract.py",
         "tests_v9/test_nutrient_uptake.py"
       ],
       "runtime": {
@@ -2604,9 +2606,17 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/nutrient_4r.py"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v226_canonical_nutrient_ledger.sql"
+        },
+        {
+          "type": "repository",
+          "path": "services/sahool-platform/api/canonical_nutrient_ledger.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=2, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=1, tests=4, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -2890,14 +2900,14 @@
         "services/sahool-platform/api/main.py"
       ],
       "apis": [
-        "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:190",
-        "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:424",
+        "GET /api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:233",
+        "GET /api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:467",
         "GET /api/v1/weather/action-recommendation @ services/sahool-platform/api/routers/weather.py:2568",
         "POST /api/v1/fields/{field_id}/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:245",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:500",
         "POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:320",
         "POST /api/v1/irrigation-recommendation @ services/sahool-platform/api/routers/irrigation_recommendation.py:169",
-        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:328",
+        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:371",
         "POST /api/v1/weather/recommendations/from-operation-plan @ services/sahool-platform/api/routers/weather.py:2897",
         "POST /api/v1/work-orders/from-recommendation @ services/sahool-platform/api/routers/agro_intelligence.py:303",
         "POST /v1/recommendation-outcomes @ services/decision-service/main.py:951"
@@ -3177,6 +3187,8 @@
         "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",
         "services/sahool-platform/tests/test_salinity_capability_contract.py",
         "tests_v9/test_canonical_salinity.py",
+        "tests_v9/test_canonical_salinity_contract_truth.py",
+        "tests_v9/test_canonical_salinity_state.py",
         "tests_v9/test_h5_api_salinity.py",
         "tests_v9/test_irrigation_salinity_ks.py",
         "tests_v9/test_recommendations_salinity_feed.py",
@@ -3225,9 +3237,17 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/core/salinity_capability.py"
+        },
+        {
+          "type": "repository",
+          "path": "migrations/v225_canonical_salinity_state.sql"
+        },
+        {
+          "type": "repository",
+          "path": "services/sahool-platform/api/canonical_salinity_state.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=7, tests=9, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=7, tests=11, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -4588,7 +4608,7 @@
         "POST /api/v1/outcome/measure @ services/sahool-platform/api/routers/outcome.py:43",
         "POST /api/v1/outcome/record @ services/sahool-platform/api/routers/decision_record.py:430",
         "POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523",
-        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:328",
+        "POST /api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:371",
         "POST /v1/execution-requests/{execution_request_id}/remote-sensing-outcome @ services/vegetation-analysis-service/routers/outcomes.py:67",
         "POST /v1/execution-requests/{execution_request_id}/verify-outcome @ services/decision-service/main.py:1875",
         "POST /v1/fields/{field_id}/soil/outcomes @ services/soil-service/routers/p4_workflow.py:95",

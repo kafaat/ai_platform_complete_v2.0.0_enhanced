@@ -585,6 +585,7 @@ capabilities:
   - services/sahool-platform/tests/test_h5_salinity_ecw_binding.py
   - services/sahool-platform/tests/test_salinity_capability_contract.py
   - tests_v9/test_canonical_salinity.py
+  - tests_v9/test_canonical_salinity_state.py
   - tests_v9/test_h5_api_salinity.py
   - tests_v9/test_irrigation_salinity_ks.py
   - tests_v9/test_recommendations_salinity_feed.py
@@ -597,25 +598,29 @@ capabilities:
     audit_events: []
   evidence:
   - type: repository
+    path: migrations/v225_canonical_salinity_state.sql
+  - type: repository
     path: sahool-brain/gaps/registry.md
     line_start: 27
     line_end: 27
-  - type: repository
-    path: tests_v9/test_new_modules.py
-    line_start: 39
-    line_end: 54
-  - type: repository
-    path: services/sahool-platform/core/irrigation_water_analysis.py
   - type: repository
     path: services/raster-service/salinity_calibration.py
   - type: repository
     path: services/raster-service/sar_rvi.py
   - type: repository
+    path: services/sahool-platform/api/canonical_salinity_state.py
+  - type: repository
     path: services/sahool-platform/api/routers/salinity.py
   - type: repository
     path: services/sahool-platform/api/salinity_management.py
   - type: repository
+    path: services/sahool-platform/core/irrigation_water_analysis.py
+  - type: repository
     path: services/sahool-platform/core/salinity_capability.py
+  - type: repository
+    path: tests_v9/test_new_modules.py
+    line_start: 39
+    line_end: 54
   rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=7, tests=9, ui=0,
     mobile=0. Runtime and production certification remain manual evidence gates.'
   business_goal: To be completed by the domain owner; repository evidence remains authoritative.
@@ -664,13 +669,18 @@ capabilities:
   - POST /v1/fields/{field_id}/soil/drainage-assessment @ services/soil-service/routers/p3_products.py:94
   ui_consumers: []
   mobile_consumers: []
-  tests: []
+  tests:
+  - tests_v9/test_canonical_salinity_state.py
   runtime:
     metrics: []
     traces: []
     receipts: []
     audit_events: []
-  evidence: []
+  evidence:
+  - type: repository
+    path: migrations/v225_canonical_salinity_state.sql
+  - type: repository
+    path: services/sahool-platform/api/canonical_salinity_state.py
   rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=0, ui=0,
     mobile=0. Runtime and production certification remain manual evidence gates.'
   business_goal: To be completed by the domain owner; repository evidence remains authoritative.

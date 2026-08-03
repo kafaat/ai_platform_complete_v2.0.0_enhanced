@@ -5016,6 +5016,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_canonical_well_capability.py",
     "kind": "tests"
   },
@@ -6717,6 +6721,14 @@
   },
   {
     "path": "tests_v9/test_canonical_irrigation_machine_capability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_nutrient_ledger.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
     "kind": "tests"
   },
   {

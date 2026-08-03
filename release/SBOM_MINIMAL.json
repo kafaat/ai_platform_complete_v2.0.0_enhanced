@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2e0756b9ee1c5ea15d7f5ea7106a6119df955cf522c9bde6ce19707dc18825b"
+          "content": "e80d13885be6861e6ed3c6327c32f7c10193ce899b2e9973cd5f668d8b3a2cb0"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6595,7 +6595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21dd0bcfe566626404a2cfc9a28e65e9eda071062a2da849212b236f2bd476fc"
+          "content": "3fe89ff3f441439a81947044dc9ecb63f0ea9df7e45bfc9eff5adc3ab24078da"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7919,6 +7919,36 @@
         }
       ],
       "name": "migrations/v21_mfa.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8566109a35de00b73f8e77b3fe9d575e68ba1b69a1d15a5b1962745c10381e7a"
+        }
+      ],
+      "name": "migrations/v224_canonical_phenology_state.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "540aa166b2480666c99981288b2db5f082a0b39fae2c62203c9aad09661f0b5e"
+        }
+      ],
+      "name": "migrations/v225_canonical_salinity_state.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9a57583dd3d85f8cbd54806f02bf21eaec8b42a2a3ca20487cc4868592643f18"
+        }
+      ],
+      "name": "migrations/v226_canonical_nutrient_ledger.sql",
       "type": "file"
     },
     {
@@ -14645,6 +14675,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d3c8c5b6479e44519dd603c3a1ef9c2ae7fb38c4c2e6808ef508659597be92ac"
+        }
+      ],
+      "name": "services/sahool-platform/api/agronomic_state_consumers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "61b916b0b9a0738e5ddde322c5d773fd19f8c476e090e4696f7e1ebbce8a1dd8"
         }
       ],
@@ -14835,10 +14875,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "878ddcd1ce73d0ff6b94f6ae609699afc0e0a4a77e0b445f27d97ba6a348f521"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1755cbba8a6855bcd18462bf456d1e619e687c3f1c71f9ea0acd50ab4f53d99"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_phenology_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "27f08c1c48c06ba61b31f6cf9dc2d25845cc9af0ae49036cdaa32f6be1504447"
         }
       ],
       "name": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "270e3d358dc66f69296a8ea64d3921bc0df24afdb2e12af46c882fd7ddcac6d4"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_salinity_state.py",
       "type": "file"
     },
     {
@@ -16435,6 +16505,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1db633948ea83c4c2a2934173eccc94b2523edf78ec0a8341c2192f300671cfb"
+        }
+      ],
+      "name": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4a5345bfba56c6505e4e3eb45a6361d9180f766150054fad0a3ac7c4740f0dc4"
         }
       ],
@@ -17935,7 +18015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95d59374b5cde8aac3f697bebcff7b1181647d65981cb4a61f0dfe64fa83218d"
+          "content": "94faacc6054d5376802bbae65071a23f523f97ccfa814cb20d8d444d9a2e708a"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -23045,6 +23125,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "edece75baafc270cd5d4d5c565ad1478febfa1d4d23aab0397c1fc528defd0b2"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e28d448518f1e398e6bd39ad8473279c2a332db37e00aa3e79ae1066ba4ea642"
         }
       ],
@@ -26205,7 +26295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "457c6ca97c970e0bf66a2f36931dbad6e3d51f1a1c8db0188c9ac3e487b2bcdf"
+          "content": "122557e9347a1ad09740b600dfec038e919e7a6020db5b85b182acac23c2a573"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",

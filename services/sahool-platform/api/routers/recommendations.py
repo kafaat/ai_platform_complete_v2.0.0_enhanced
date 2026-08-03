@@ -161,6 +161,49 @@ async def recommendations_for_field(
         # لا نُسرّب مسارات ملفات/تفاصيل داخلية من أداة التحقّق في استجابة عامة.
         raise HTTPException(status_code=503, detail="تعذّر بناء شهادة الجودة") from e
 
+    # Load canonical agronomic truth from persisted Sources of Truth under the
+    # current tenant RLS. The client supplies identifiers only; no canonical
+    # object or digest is accepted from the request body.
+    from dataclasses import asdict as _asdict
+
+    from api.agronomic_state_consumers import (
+        consume_nutrient_ledger as _consume_nutrients,
+    )
+    from api.agronomic_state_consumers import (
+        consume_phenology_state as _consume_phenology,
+    )
+    from api.agronomic_state_consumers import (
+        consume_salinity_state as _consume_salinity,
+    )
+    from api.persisted_canonical_repositories import load_agronomic_context
+
+    canonical_context: dict = {"season_id": None, "candidates": []}
+    try:
+        async with tenant_connection(user) as conn:
+            persisted = await load_agronomic_context(conn, field_id=req.field_id)
+        candidates = []
+        if persisted.get("phenology") is not None:
+            candidates.append(_asdict(_consume_phenology(persisted["phenology"])))
+        if persisted.get("salinity") is not None:
+            candidates.append(_asdict(_consume_salinity(persisted["salinity"])))
+        if persisted.get("nutrients") is not None:
+            candidates.append(_asdict(_consume_nutrients(persisted["nutrients"])))
+        canonical_context = {
+            "season_id": persisted.get("season_id"),
+            "candidates": candidates,
+            "source_state_digests": sorted(item["source_state_digest"] for item in candidates),
+        }
+    except Exception:  # noqa: BLE001 — missing canonical data degrades honestly
+        logger.warning("canonical agronomic context load failed", exc_info=True)
+        canonical_context = {
+            "season_id": None,
+            "candidates": [],
+            "limitations": ["CANONICAL_CONTEXT_UNAVAILABLE"],
+        }
+
+    merged_indicators = dict(req.current_indicators or {})
+    merged_indicators["canonical_agronomic_context"] = canonical_context
+
     api_req = ApiRequest(
         user=user,
         payload={
@@ -172,7 +215,7 @@ async def recommendations_for_field(
             "field_id": req.field_id,
             "crop": req.crop,
             "validation": validation,
-            "current_indicators": req.current_indicators,
+            "current_indicators": merged_indicators,
             "growth_stage": req.growth_stage,
             "district_id": req.district_id,
         },
