@@ -1879,3 +1879,16 @@ missing` في خدمة الطقس** لا نقصُ وصلٍ هنا — و`weather
 - **مُتحقَّق منه:** `frontend/nginx.conf:23` يُعرّف `location = /healthz` صراحةً (فالادّعاء عنه لا ينطبق على هذا المسار)، لكن **لا يوجد** `location` لـ`/readyz` ولا لـ`/runtime-identity` ⇒ يسقطان إلى SPA.
 - **والأخطر ليس عدم الكشف بل أنّ SPA fallback يُعيد 200 وHTML لمسار جاهزيّة**، فيُخفي خطأ توجيه خلف نجاح ظاهريّ — نفس صنف «PNG شفّاف بحالة 200» في `IMAGERY-BLANK-THUMBNAIL-CLIENT-URL-01`.
 - **الحالة:** OPEN. يلزم أوّلاً حسم العقد الخارجيّ المقصود (داخليّ فقط أم مكشوف لمنسّق النشر)، فالكشف بلا قرار يُوسّع السطح.
+
+## CAPABILITY-WAVE-V217-V231-DEFERRED — OPEN (مؤجَّلة بقرار القاعدة، لا مرفوضة) — رُصِدت عند إعادة تشكيل #775
+- **المصدر (قياس استيراد على كامل الشجرة):** أربع عشرة وحدة في `services/sahool-platform/api/` (`canonical_as_applied_operation` · `canonical_capability_runtime_evidence` · `canonical_mobile_offline_sync` · `canonical_multi_season_analysis` · `canonical_nutrient_ledger` · `canonical_phenology_state` · `canonical_salinity_state` · `canonical_season_outcome` · `canonical_yield_forecast_evaluation` · `governed_runtime_verification_promotion` · `governed_yield_model_activation` · `governed_yield_model_promotion` · `machinery_delivery_confirmation` · `validated_machine_telemetry`) — **صفر مستورد غير اختباريّ** لكلٍّ منها. وجداول `v217`→`v231` **لا يكتب فيها أيّ خدمة**.
+- **القاعدة المُطبَّقة:** `registry.md:383-385` (قرار مالك مُلزِم) ⇒ لا يدخل اسمُ وحدة الأساسَ إلّا في الـPR الذي يضيف مستهلكها الإنتاجيّ وحارساً يثبته. سابقة #676 = إسقاط من الشريحة.
+- **الحالة:** الموجة مؤجَّلة برأس مثبَّت `98283bca` (في سجلّ أحداث #775) وحزمها الأصليّة قائمة. الإغلاق = شريحة لكلّ وحدة: مستهلك إنتاجيّ + حارس + إدامة.
+- **يُحمَل مع أوّل شريحة (عيب حقيقيّ مقيس، لا يُنزَل وحده):** `v219_machinery_delivery_consumption.sql:10` يستشهد بـ`machinery_export_artifacts(tenant_id, id)`؛ العمود الحقيقيّ `artifact_id` (`v216_machinery_export.sql:57`). أثبتته `Integration Tests` بـ`column "id" referenced in foreign key constraint does not exist`.
+- **قيد نطاق مقيس على الوصل:** ميزانية مسارات النطاق 627/629 — الهامش **٢**. وصلُ أربع عشرة وحدة بمسارات جديدة مستحيل داخل الميزانية؛ الوصل يمرّ عبر نقاط قائمة (سابقة INT-004A / `?summary=true`) أو لا يمرّ.
+
+## MIGRATION-DECLARED-BUT-NEVER-EXECUTED-01 — CLOSED (حارس مُثبَت بالتكذيب) — رُصِدت في نفس الجلسة
+- **المصدر:** موجة `v217`→`v231` أضافت خمسة عشر ترحيلاً إلى `migrations/MANIFEST.txt` بلا سطر `\i` في `scripts_v9/run_migrations.sql`. مرّت بكلّ الحرّاس الساكنة و**لم تمسّ PostgreSQL قطّ** — «قدرة موجودة لا تجري» في طبقة المخطّط.
+- **الدليل على أنّ الفجوة مُكلِفة لا نظريّة:** أوّل تشغيل بعد الوصل أسقط `Integration Tests` على عيب مفتاح أجنبيّ حقيقيّ في `v219` كان مستوراً منذ وصول الحزمة.
+- **الإغلاق:** `tests/test_migration_manifest_execution_guard.py` (مُعلَّم `unit`، ويعمل في *Repository Tests* و*Unit Tests* معاً بلا ضريبة تسجيل جديدة) — الاتّجاهان + منع التكرار + بقاء `v206_rls_final_hardening.sql` آخِراً في السجلّين.
+- **مُثبَت بالتكذيب:** إعلانٌ بلا وصل ⇒ FAIL على `test_every_declared_migration_is_wired_into_the_runner` · وصلٌ بعد `v206` ⇒ FAIL على `test_the_runner_executes_each_migration_once` و`test_rls_final_hardening_stays_last_in_both_records`. الشجرة نظيفة بعد استعادة الزرعين. المقيس اليوم: ٢٢٢ مُعلَناً = ٢٢٢ موصولاً.
