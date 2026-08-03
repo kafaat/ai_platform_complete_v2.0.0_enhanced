@@ -58,10 +58,80 @@ def _call_name(node: ast.Call) -> str | None:
     return None
 
 
+def _path_like_names(tree: ast.AST) -> set[str]:
+    """أسماء يُثبِت التحليل المحلّيّ أنّها Path — لا تخميناً من الاسم.
+
+    ثلاثة مصادر إثبات فقط، وكلّها ساكنة: إسنادٌ من `Path(...)`، أو من تعبير مسار
+    (`base / "x"`)، أو تعليقُ نوعٍ `: Path`. وما عداها **لا يُثبَت**، فلا يُدان.
+    """
+    names: set[str] = set()
+
+    def _is_path_expr(node: ast.AST) -> bool:
+        if isinstance(node, ast.Call):
+            fn = node.func
+            if isinstance(fn, ast.Name) and fn.id == "Path":
+                return True
+            if isinstance(fn, ast.Attribute) and fn.attr == "Path":
+                return True
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            return _is_path_expr(node.left) or (
+                isinstance(node.left, ast.Name) and node.left.id in names
+            )
+        if isinstance(node, ast.Name):
+            return node.id in names
+        if isinstance(node, ast.Attribute) and node.attr in {"parent", "resolve"}:
+            return _is_path_expr(node.value)
+        return False
+
+    for _ in range(2):  # تمريرتان: إسنادٌ يعتمد على اسمٍ عُرِف بعده
+        for node in ast.walk(tree):
+            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                ann = node.annotation
+                text = ann.id if isinstance(ann, ast.Name) else getattr(ann, "attr", "")
+                if text == "Path":
+                    names.add(node.target.id)
+            elif isinstance(node, ast.Assign) and _is_path_expr(node.value):
+                for tgt in node.targets:
+                    if isinstance(tgt, ast.Name):
+                        names.add(tgt.id)
+    return names
+
+
+def _receiver_is_path(node: ast.Call, path_names: set[str]) -> bool:
+    """أهذا فتحُ ملفٍّ محلّيّ يعتمد ترميز الآلة، أم `open` لشيء آخر تماماً؟
+
+    **الإيجابيّة الكاذبة الموثَّقة:** `opener.open(request, timeout=…)` من `urllib`
+    يُعيد بايتات، ولا يفكّ ترميزاً، **ولا يقبل `encoding=` أصلاً** — فإدانته تطلب
+    إصلاحاً مستحيلاً، ولا مخرج منها إلّا إضافةُ الملفّ إلى أساسٍ يقول عن نفسه إنّه
+    يتقلّص ولا ينمو. أي أنّ الكاشف غير المُرسى يدفع نحو إفساد الرَّاتشِت.
+
+    والقاعدة **محافظة عمداً**: تُدين ما يُثبَت أنّه مسار، وتصمت عمّا لا يُثبَت.
+    فسكوتها عن `client.open(x)` مجهول النوع أرخص من إدانةٍ لا علاج لها.
+    """
+    fn = node.func
+    if isinstance(fn, ast.Name):  # `open(...)` المدمَجة
+        return True
+    if not isinstance(fn, ast.Attribute):
+        return False
+    recv = fn.value
+    if isinstance(recv, ast.Call):  # `Path("x").open()`
+        rf = recv.func
+        return (isinstance(rf, ast.Name) and rf.id == "Path") or (
+            isinstance(rf, ast.Attribute) and rf.attr == "Path"
+        )
+    if isinstance(recv, ast.Name):  # اسمٌ أُثبِت محلّيّاً أنّه Path
+        return recv.id in path_names
+    if isinstance(recv, ast.BinOp) and isinstance(recv.op, ast.Div):  # `base / "x"`
+        return True
+    return False
+
+
 def _offenders_in(src: str) -> dict[str, int]:
     """المواضع التي تعتمد ترميز الآلة، مفصولةً بمتّجهها."""
     reads = subprocesses = 0
-    for node in ast.walk(ast.parse(src)):
+    tree = ast.parse(src)
+    path_names = _path_like_names(tree)
+    for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
         if any(k.arg == "encoding" for k in node.keywords):
@@ -78,6 +148,12 @@ def _offenders_in(src: str) -> dict[str, int]:
             # و`path.open("rb")` وسيطه **الأوّل**. قراءة الثاني دائماً تجعل كلّ فتح
             # ثنائيّ على كائن مسار يُحسَب عيباً — أربعة ملفّات في هذه الشجرة كانت
             # مُدرَجة دَيناً وهي نظيفة، وأمسك بها فحصٌ خارجيّ لا أنا.
+            # **الإرساء على نوع المتلقّي** — `.open` اسمٌ تتقاسمه مكتبات لا تفكّ
+            # ترميزاً ولا تقبل `encoding=` أصلاً (`opener.open` من urllib مثالها
+            # المقيس). فإدانتها تطلب إصلاحاً مستحيلاً، ومخرجها الوحيد إضافةُ الملفّ
+            # إلى أساسٍ يتقلّص ولا ينمو — أي أنّ الإيجابيّة الكاذبة تُفسِد الرَّاتشِت.
+            if name == "open" and not _receiver_is_path(node, path_names):
+                continue
             mode_args = node.args[0:1] if (is_method and name == "open") else node.args[1:2]
             mode = [
                 a.value
@@ -170,9 +246,11 @@ def test_the_subprocess_vector_is_actually_covered():
     assert _offenders_in("p.read_text(encoding='utf-8')")["reads"] == 0
     assert _offenders_in("open(p, 'rb')")["reads"] == 0, "الوضع الثنائيّ لا يفكّ ترميزاً"
     # موضع وسيط الوضع يختلف بين الشكلين — والخلط بينهما يجعل كلّ فتح ثنائيّ عيباً.
-    assert _offenders_in("p.open('rb')")["reads"] == 0, "الوضع الأوّل في طريقة المسار"
-    assert _offenders_in("p.open('r')")["reads"] == 1, "نصّيّ صريح بلا ترميز يبقى عيباً"
-    assert _offenders_in("p.open()")["reads"] == 1, "الافتراضيّ نصّيّ"
+    assert _offenders_in('p = Path("x")\np.open("rb")')["reads"] == 0, "الوضع الأوّل في طريقة المسار"
+    assert _offenders_in('p = Path("x")\np.open("r")')["reads"] == 1, (
+        "نصّيّ صريح بلا ترميز يبقى عيباً — و`p` مربوطة بـPath فالمتلقّي مُثبَت"
+    )
+    assert _offenders_in('p = Path("x")\np.open()')["reads"] == 1, "الافتراضيّ نصّيّ"
     # `read_text` باسم عارٍ دالّة محلّيّة لا طريقة مسار — إدراجها يضخّم الدَّين بالباطل.
     assert _offenders_in("content = read_text(path)")["reads"] == 0
     assert _offenders_in("p.read_text()")["reads"] == 1
@@ -189,3 +267,59 @@ def test_this_repository_actually_contains_the_bytes_that_trigger_it():
     assert any(b > 0x7F for b in raw), f"{probe} صار ASCII — أعد اختيار المسبار"
     with pytest.raises(UnicodeDecodeError):
         raw.decode("ascii")
+
+
+# ── إرساء الكاشف على نوع المتلقّي (قرار المالك، 2026-08-03) ────────────────────
+#
+# `.open` اسمٌ تتقاسمه مكتبات لا علاقة لها بترميز الملفّات. وإدانتها به تطلب إصلاحاً
+# **مستحيلاً** (لا تقبل `encoding=`)، ولا مخرج منها إلّا إضافة الملفّ إلى أساسٍ
+# يتقلّص ولا ينمو — أي أنّ الإيجابيّة الكاذبة تُفسِد الرَّاتشِت لا تُزعِج فقط.
+
+_NOT_FILE_OPENS = [
+    ("opener.open(request, timeout=5)", "urllib: يُعيد بايتات ولا يقبل encoding"),
+    ("urllib.request.build_opener().open(request)", "بانٍ مباشر"),
+    ("archive.open(member)", "zipfile.ZipFile.open"),
+    ("client.open(resource)", "متلقٍّ مجهول النوع"),
+    ("rasterio.open(path)", "وحدة خارجيّة"),
+    ("tar.extractfile(member)", "tarfile"),
+]
+
+_REAL_TEXT_OPENS = [
+    ('open("file.txt")', "المدمَجة، وضع افتراضيّ"),
+    ('open("file.txt", "r")', "المدمَجة، نصّيّ صريح"),
+    ('Path("file.txt").open()', "بانٍ Path مباشر"),
+    ('path = Path("file.txt")\npath.open()', "اسم مُثبَت محلّيّاً"),
+    ('base = Path("d")\n(base / "f").open()', "تعبير مسار"),
+    ("p: Path = get()\np.open()", "تعليق نوع"),
+]
+
+_ALREADY_SAFE = [
+    ('open("file.txt", encoding="utf-8")', "ترميز صريح"),
+    ('Path("file.txt").open(encoding="utf-8")', "ترميز صريح على Path"),
+    ('open("f", "rb")', "ثنائيّ لا يحتاج ترميزاً"),
+    ('Path("f").open("wb")', "كتابة ثنائيّة"),
+]
+
+
+@pytest.mark.parametrize(("src", "why"), _NOT_FILE_OPENS)
+def test_a_non_file_open_is_not_condemned(src: str, why: str) -> None:
+    """**الإيجابيّة الكاذبة الموثَّقة** — `opener.open` ليس فتحَ ملفّ نصّيّ."""
+    assert _offenders_in(src)["reads"] == 0, f"إيجابيّة كاذبة ({why}): {src}"
+
+
+@pytest.mark.parametrize(("src", "why"), _REAL_TEXT_OPENS)
+def test_a_real_text_open_is_still_condemned(src: str, why: str) -> None:
+    """**الحدّ الذي يمنع الإرساء من فتح ثغرة:** ما بُني الحارس له يبقى مُداناً."""
+    assert _offenders_in(src)["reads"] == 1, f"فتحٌ نصّيّ أفلت ({why}): {src}"
+
+
+@pytest.mark.parametrize(("src", "why"), _ALREADY_SAFE)
+def test_an_encoded_or_binary_open_passes(src: str, why: str) -> None:
+    assert _offenders_in(src)["reads"] == 0, f"سليم أُدين ({why}): {src}"
+
+
+def test_errors_or_newline_alone_do_not_substitute_for_encoding() -> None:
+    """`errors=` و`newline=` يضبطان سلوك الفكّ لا **ترميزه** — فلا يُغنيان عنه."""
+    assert _offenders_in('open("f", errors="ignore")')["reads"] == 1
+    assert _offenders_in('open("f", newline="")')["reads"] == 1
+    assert _offenders_in('open("f", errors="ignore", encoding="utf-8")')["reads"] == 0
