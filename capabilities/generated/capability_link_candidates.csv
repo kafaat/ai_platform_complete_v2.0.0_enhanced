@@ -389,7 +389,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sa
 FM-003,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:77,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3058,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:206,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:294,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:338,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:117,4,applied
@@ -401,7 +401,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/seasons @ services/sahool-platform/api/
 FM-003,api,GET /api/v1/fields/{field_id}/seasons/{season_id}/state @ services/sahool-platform/api/routers/seasons.py:512,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/soil-lab-tests @ services/sahool-platform/api/routers/fields.py:3265,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/soil-moisture @ services/sahool-platform/api/routers/fields.py:2497,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/stage-actions @ services/sahool-platform/api/routers/phenology.py:181,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/stage-actions @ services/sahool-platform/api/routers/phenology.py:266,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/state @ services/sahool-platform/api/routers/fields.py:3990,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/state/full @ services/sahool-platform/api/routers/fields.py:4044,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/sustainability @ services/sahool-platform/api/routers/reports.py:207,4,applied

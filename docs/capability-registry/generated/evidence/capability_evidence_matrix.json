@@ -596,10 +596,11 @@
       ]
     },
     {
-      "assessed_maturity": 2,
+      "assessed_maturity": 3,
       "assessment_reasons": [
         "repository_implementation_present",
         "exposed_surface_and_test_evidence",
+        "api_unit_and_integration_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -614,7 +615,7 @@
         "database": true,
         "documentation": true,
         "events": true,
-        "integration_tests": false,
+        "integration_tests": true,
         "mobile": true,
         "production": false,
         "runtime": false,
@@ -622,11 +623,13 @@
         "unit_tests": true,
         "web": true
       },
-      "evidence_score": 9,
-      "integration_test_paths": [],
+      "evidence_score": 10,
+      "integration_test_paths": [
+        "tests_v9/test_canonical_phenology_contract_truth.py"
+      ],
       "learning_linked": false,
-      "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -1,
+      "maturity_alignment": "aligned",
+      "maturity_delta": 0,
       "production_certified": false,
       "runtime_verified": false,
       "title": "Season lifecycle",
@@ -3583,6 +3586,7 @@
       "title": "GDD",
       "unit_test_paths": [
         "docs/history/TEST_REPORT.md",
+        "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
         "services/sahool-platform/tests/test_capability_plan_closures.py",
         "services/sahool-platform/tests/test_crop_cards.py",
         "services/sahool-platform/tests/test_crop_decision_bridge.py",
@@ -3613,6 +3617,7 @@
         "services/weather-service/tests/test_gdd_view.py",
         "tests/test_real_data.py",
         "tests_v9/test_agriai_engine_features_20260702.py",
+        "tests_v9/test_canonical_phenology_state.py",
         "tests_v9/test_crop_model_uncertainty_v64.py",
         "tests_v9/test_crop_twin.py",
         "tests_v9/test_qualification_suite.py",
@@ -3784,10 +3789,10 @@
   "source_mapping": "docs/capability-registry/generated/mapping/capability_mapping.json",
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
-    "aligned": 25,
-    "average_assessed_maturity": 1.99,
+    "aligned": 26,
+    "average_assessed_maturity": 2.0,
     "capability_count": 81,
-    "declared_above_evidence": 53,
+    "declared_above_evidence": 52,
     "evidence_above_declared": 3,
     "production_certified": 0,
     "runtime_verified": 0

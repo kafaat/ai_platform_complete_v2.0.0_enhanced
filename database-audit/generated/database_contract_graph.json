@@ -222,6 +222,7 @@
       "v214_field_irrigation_source_assignments.sql",
       "v215_yield_map_ingestion.sql",
       "v216_machinery_export.sql",
+      "v224_canonical_phenology_state.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -402,6 +403,13 @@
       "name": "canonical_as_applied_truths_tenant_policy",
       "source": "v178_canonical_as_applied_irrigation_truth.sql",
       "table": "canonical_as_applied_irrigation_truths"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v224_canonical_phenology_state.sql",
+      "table": "canonical_phenology_states"
     },
     {
       "has_using": true,
@@ -1239,6 +1247,13 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v224_canonical_phenology_state.sql",
+      "table": "phenology_observations"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "point_in_time_snapshots_runtime_tenant_policy",
       "source": "v108_phase10_feature_store_model_registry_runtime.sql",
       "table": "point_in_time_snapshots_runtime"
@@ -1533,17 +1548,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 222,
+    "manifest_entries": 223,
     "manifest_missing_count": 0,
-    "policies": 186,
+    "policies": 188,
     "production_certified": false,
-    "rls_enabled": 199,
-    "rls_forced": 180,
+    "rls_enabled": 201,
+    "rls_forced": 182,
     "runtime_verified": false,
-    "sql_files": 224,
-    "tables": 324,
+    "sql_files": 225,
+    "tables": 326,
     "tenant_rls_gaps": 133,
-    "tenant_tables": 304,
+    "tenant_tables": 306,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -2114,6 +2129,19 @@
       "table": "canonical_irrigation_machine_capabilities",
       "tenant_rls_gap": true,
       "write_policy_with_check": false
+    },
+    {
+      "code_readers": [],
+      "code_writers": [],
+      "created_in": "v224_canonical_phenology_state.sql",
+      "has_tenant_id": true,
+      "manifest_position": 221,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "canonical_phenology_states",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
     },
     {
       "code_readers": [],
@@ -5288,6 +5316,21 @@
       "rls_enabled": true,
       "rls_forced": true,
       "table": "outcome_record",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/sahool-platform/api/routers/phenology.py"
+      ],
+      "code_writers": [],
+      "created_in": "v224_canonical_phenology_state.sql",
+      "has_tenant_id": true,
+      "manifest_position": 221,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "phenology_observations",
       "tenant_rls_gap": false,
       "write_policy_with_check": true
     },

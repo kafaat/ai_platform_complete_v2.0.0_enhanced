@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2e0756b9ee1c5ea15d7f5ea7106a6119df955cf522c9bde6ce19707dc18825b"
+          "content": "5a1574e4d62d5ef0ae29096dfff88c6420732e998a0fcaf629b9c45539107ff4"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6595,7 +6595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21dd0bcfe566626404a2cfc9a28e65e9eda071062a2da849212b236f2bd476fc"
+          "content": "aaaa6222f5bb6ea97da357ca4ee0acafec67bc202917d766a117d3a663d22c8b"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7919,6 +7919,16 @@
         }
       ],
       "name": "migrations/v21_mfa.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8566109a35de00b73f8e77b3fe9d575e68ba1b69a1d15a5b1962745c10381e7a"
+        }
+      ],
+      "name": "migrations/v224_canonical_phenology_state.sql",
       "type": "file"
     },
     {
@@ -14835,6 +14845,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e1755cbba8a6855bcd18462bf456d1e619e687c3f1c71f9ea0acd50ab4f53d99"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_phenology_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "27f08c1c48c06ba61b31f6cf9dc2d25845cc9af0ae49036cdaa32f6be1504447"
         }
       ],
@@ -17805,7 +17825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b22ec1b372edbdc530ff813fbf33c779dc8c81b8805aedd8a5f7d58173f18cd"
+          "content": "f2ec6cf64c35df65277cca8a974946121c81fe8308f74a05ba4da9c2d8a1a2dd"
         }
       ],
       "name": "services/sahool-platform/api/routers/phenology.py",
@@ -23015,6 +23035,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "081ac6a36fd81e75123d028f41fa53e28e776e64dcf82a78f52ea995a2858f2c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e6917ae3aff3410ca59fe08a61f4d94a214db1c696aeadde30dab90c49b47d93"
         }
       ],
@@ -26205,7 +26235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "457c6ca97c970e0bf66a2f36931dbad6e3d51f1a1c8db0188c9ac3e487b2bcdf"
+          "content": "122557e9347a1ad09740b600dfec038e919e7a6020db5b85b182acac23c2a573"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",

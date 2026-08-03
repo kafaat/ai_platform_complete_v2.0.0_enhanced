@@ -12,7 +12,7 @@ DEC-010,Model lifecycle and activation,decision,3,3,aligned,8,True,True,True,Tru
 FM-001,Tenant and organization management,farm_management,3,2,declared_above_evidence,9,True,True,True,True,True,True,True,True,False,True,False,False
 FM-002,Farm registry,farm_management,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
 FM-003,Field registry and boundaries,farm_management,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
-FM-004,Season lifecycle,farm_management,3,2,declared_above_evidence,9,True,True,True,True,True,True,True,True,False,True,False,False
+FM-004,Season lifecycle,farm_management,3,3,aligned,10,True,True,True,True,True,True,True,True,True,True,False,False
 FM-005,Crop and cultivar catalog,farm_management,3,2,declared_above_evidence,7,True,True,True,False,True,True,True,True,False,False,False,False
 FM-006,Farm economics,farm_management,3,1,declared_above_evidence,4,True,True,True,False,False,True,False,False,False,False,False,False
 FM-007,Inventory and procurement,farm_management,3,2,declared_above_evidence,8,True,True,True,True,True,True,True,True,False,False,False,False

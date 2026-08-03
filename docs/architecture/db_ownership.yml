@@ -1925,3 +1925,17 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v215_yield_map_ingestion.sql"
+  # v224: الحالة الطوريّة الكنسيّة. المالك sahool-platform — وحدة نطاقها
+  # api/canonical_phenology_state.py ومستهلكها الإنتاجيّ
+  # api/routers/phenology.py::field_phenology (قراءة الرصدات عبر ?canonical=true).
+  # لا كاتب بعدُ: مسار إدخال الرصدات شريحة تالية، والقراءة لا تخترع رصدة عند الخلوّ.
+  canonical_phenology_states:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v224_canonical_phenology_state.sql"
+  phenology_observations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v224_canonical_phenology_state.sql"

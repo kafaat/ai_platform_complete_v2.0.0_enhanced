@@ -1585,7 +1585,7 @@
     },
     {
       "kind": "router",
-      "line": 37,
+      "line": 42,
       "module": "services.sahool-platform.api.routers.phenology",
       "node_id": "services.sahool-platform.api.routers.phenology:router",
       "route_count": 2,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "4dbd7356e229a284da67e1747b6c7b2bb03518607dd6ac245f6bab3d27a9452d",
+  "inventory_sha256": "ba56374d8d1180b1b82968cd09b7427a4f355b2f4df6fd740203464b188ff403",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
@@ -4102,7 +4102,7 @@
     {
       "classification": "review_only_not_statically_reachable",
       "kind": "router",
-      "line": 37,
+      "line": 42,
       "module": "services.sahool-platform.api.routers.phenology",
       "node_id": "services.sahool-platform.api.routers.phenology:router",
       "route_count": 2,

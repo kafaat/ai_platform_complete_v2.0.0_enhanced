@@ -16361,6 +16361,7 @@
           "canonical_hydraulic_capabilities",
           "canonical_irrigation_capability_graphs",
           "canonical_irrigation_machine_capabilities",
+          "canonical_phenology_states",
           "canonical_root_zone_profiles",
           "canonical_sprinkler_runoff_capabilities",
           "canonical_well_capabilities",
@@ -16485,6 +16486,7 @@
           "online_learning_updates",
           "outbox_delivery_attempts",
           "outcome_record",
+          "phenology_observations",
           "plugin_permission_audit",
           "prescription_maps",
           "prescriptions",
@@ -17327,7 +17329,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "4f1f315994e76768afe8353ee9f705640df64effcdf8b123c60a109a530f0056",
+  "fingerprint": "ecf707dd5faed36fa3ab312a6d00461443b98e6a3636126720dfe6e1bcd1fa58",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

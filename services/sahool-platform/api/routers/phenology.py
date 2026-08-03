@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 
 from core.season_phenology import (
     current_stage,
@@ -24,8 +24,13 @@ from core.season_phenology import (
     season_timeline,
     stage_kc,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from api.canonical_phenology_state import (
+    PhenologyObservation,
+    build_canonical_phenology_state,
+    state_payload,
+)
 from api.main import (
     Permission,
     UserSchema,
@@ -135,6 +140,48 @@ def _shape_stage_actions(
     }
 
 
+async def _active_season_identity(conn, field_id: str):
+    """(season_id، الصنف) للموسم النشط — ما تحتاجه الحالة الكنسيّة زيادةً على أعلاه.
+
+    استعلام منفصل عن ``_active_season_crop_and_sowing`` عمداً: ذاك يخدم الردّ
+    الافتراضيّ ولا يجوز أن يتغيّر شكله من أجل مسار اختياريّ.
+    """
+    row = await conn.fetchrow(
+        "SELECT season_id, cultivar FROM seasons "
+        "WHERE field_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1",
+        field_id,
+    )
+    if row is None:
+        return None, None
+    return row["season_id"], row["cultivar"]
+
+
+async def _season_phenology_observations(conn, field_id: str, season_id: str):
+    """رصدات الطور المُدامة (v224) للحقل/الموسم — مصدرها الوحيد جدولها.
+
+    لا تُختلَق رصدة عند غياب الجدول أو خلوّه: الغياب يعني **لا رصد**، وهو ما تعبّر
+    عنه الحالة الكنسيّة بحالة ``predicted`` لا بمرحلة مُلفَّقة تُقدَّم كأنّها مرصودة.
+    """
+    rows = await conn.fetch(
+        "SELECT observation_id, source, stage, observed_at, confidence, evidence_digest "
+        "FROM phenology_observations WHERE field_id = $1 AND season_id = $2 "
+        "ORDER BY observed_at DESC",
+        field_id,
+        season_id,
+    )
+    return [
+        PhenologyObservation(
+            observation_id=row["observation_id"],
+            source=row["source"],
+            stage=row["stage"],
+            observed_at=row["observed_at"],
+            confidence=float(row["confidence"]),
+            evidence_digest=row["evidence_digest"],
+        )
+        for row in rows
+    ]
+
+
 async def _active_season_crop_and_sowing(conn, field_id: str):
     """يقرأ (اسم المحصول، تاريخ البذار) للموسم النشط للحقل — كما ``main``.
 
@@ -158,6 +205,13 @@ async def _active_season_crop_and_sowing(conn, field_id: str):
 @router.get("/api/v1/fields/{field_id}/phenology")
 async def field_phenology(
     field_id: str,
+    canonical: bool = Query(
+        False,
+        description=(
+            "يُرجِع الحالة الطوريّة الكنسيّة (مرصود/متوقَّع مفصولان + نَسَب الأدلّة) "
+            "بدل خطّ الزمن التقويميّ. الافتراضيّ False فالردّ القائم لا يتغيّر."
+        ),
+    ),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """خطّ زمن مراحل النموّ للموسم النشط للحقل + المرحلة الحاليّة وKc الطوريّ.
@@ -166,15 +220,46 @@ async def field_phenology(
     الردّ من المنطق النقيّ في ``core.season_phenology``. صدق: لا موسم نشط/لا تاريخ
     بذار/محصول مجهول ⇒ ``available=False`` بسبب صريح (لا خطّ زمن مُلفَّق). 503 عند
     تعذّر القاعدة.
+
+    ``?canonical=true`` (اختياريّ، **بلا مسار جديد** — سابقة INT-004A): يُرجِع
+    ``canonical_phenology_state`` الذي **يفصل المرصود عن المتوقَّع**. الردّ الافتراضيّ
+    يشتقّ ``current_stage`` من عمر التقويم وحده ويقدّمه بلا تمييز؛ الحالة الكنسيّة
+    تجعل رصدة الحقل الحديثة الموثوقة هي الآمرة، وتعلن ``blocked`` عند تعارض رصدتين
+    عاليتي الثقة بدل الارتداد الصامت إلى التقويم.
+
+    **حدّ صدق مقيس:** ``accumulated_gdd`` يُمرَّر ``None`` هنا. تراكميّ GDD القانونيّ
+    مملوك لمحرّك الطقس ويحتاج سلسلة حرارة يوميّة لا تملكها هذه النقطة، و
+    ``wofost_seasons.gdd_accumulated`` مخرَج محاكاة لا قياس — تمريره كان سيغسل ناتج
+    محاكاة كأنّه حرارة مقيسة. فالنتيجة تُعلِن القيد ولا تخترع رقماً.
     """
     try:
         async with tenant_connection(user) as conn:
             crop, sowing_date = await _active_season_crop_and_sowing(conn, field_id)
+            if not canonical:
+                return _shape_phenology(crop, sowing_date)
+            season_id, cultivar_id = await _active_season_identity(conn, field_id)
+            if season_id is None or sowing_date is None or not crop:
+                return {
+                    "available": False,
+                    "reason_ar": "لا موسم نشط بتاريخ بذار ومحصول — لا حالة طوريّة كنسيّة",
+                }
+            observations = await _season_phenology_observations(conn, field_id, season_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("قراءة مراحل نموّ الموسم", e) from e
-    return _shape_phenology(crop, sowing_date)
+    state = build_canonical_phenology_state(
+        tenant_id=str(user.tenant_id),
+        field_id=field_id,
+        season_id=str(season_id),
+        crop=crop,
+        cultivar_id=cultivar_id,
+        sowing_date=sowing_date,
+        as_of=datetime.now(UTC),
+        accumulated_gdd=None,
+        observations=observations,
+    )
+    return {"available": True, **state_payload(state)}
 
 
 @router.get("/api/v1/fields/{field_id}/stage-actions")

@@ -289,7 +289,7 @@
         "GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:77",
         "GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3058",
         "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396",
-        "GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159",
+        "GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:206",
         "GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:294",
         "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:338",
         "GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:117",

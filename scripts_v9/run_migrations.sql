@@ -587,5 +587,7 @@
 \i migrations/v215_yield_map_ingestion.sql
 \echo '═══ 221. v216_machinery_export.sql ═══'
 \i migrations/v216_machinery_export.sql
-\echo '═══ 222. v206_rls_final_hardening.sql ═══'
+\echo '═══ 222. v224_canonical_phenology_state.sql ═══'
+\i migrations/v224_canonical_phenology_state.sql
+\echo '═══ 223. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

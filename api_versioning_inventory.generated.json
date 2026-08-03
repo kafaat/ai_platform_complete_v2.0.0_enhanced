@@ -6968,7 +6968,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/phenology.py",
-    "line": 159,
+    "line": 206,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/phenology",
     "handler": "field_phenology",
@@ -6977,7 +6977,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/phenology.py",
-    "line": 181,
+    "line": 266,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/stage-actions",
     "handler": "field_stage_actions",

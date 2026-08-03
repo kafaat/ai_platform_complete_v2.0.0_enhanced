@@ -746,8 +746,8 @@ sahool-platform,GET,/api/v1/orchard/plan,orchard_plan_endpoint,services/sahool-p
 sahool-platform,GET,/api/v1/orchard/economics,orchard_economics_endpoint,services/sahool-platform/api/routers/orchard.py,30
 sahool-platform,POST,/api/v1/outcome/measure,measure_decision_outcome,services/sahool-platform/api/routers/outcome.py,43
 sahool-platform,POST,/api/v1/pest-escalation/run,pest_escalation_run,services/sahool-platform/api/routers/pest_escalation.py,34
-sahool-platform,GET,/api/v1/fields/{field_id}/phenology,field_phenology,services/sahool-platform/api/routers/phenology.py,159
-sahool-platform,GET,/api/v1/fields/{field_id}/stage-actions,field_stage_actions,services/sahool-platform/api/routers/phenology.py,181
+sahool-platform,GET,/api/v1/fields/{field_id}/phenology,field_phenology,services/sahool-platform/api/routers/phenology.py,206
+sahool-platform,GET,/api/v1/fields/{field_id}/stage-actions,field_stage_actions,services/sahool-platform/api/routers/phenology.py,266
 sahool-platform,GET,/api/v1/planting/crops,planting_crops_endpoint,services/sahool-platform/api/routers/planting.py,30
 sahool-platform,GET,/api/v1/planting/window,planting_window_endpoint,services/sahool-platform/api/routers/planting.py,36
 sahool-platform,GET,/api/v1/planting/check,planting_check_endpoint,services/sahool-platform/api/routers/planting.py,42

@@ -3438,6 +3438,28 @@
     ]
   },
   {
+    "path": "migrations/v224_canonical_phenology_state.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/v23_equipment.sql",
     "kind": "database",
     "candidates": [

@@ -35,6 +35,7 @@ canonical_energy_capabilities,v174_energy_agricultural_microgrid_capability.sql,
 canonical_hydraulic_capabilities,v171_pump_hydraulic_network_capability.sql,176,True,False,False,0,False,True,1,0
 canonical_irrigation_capability_graphs,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,1,0
 canonical_irrigation_machine_capabilities,v172_irrigation_machine_capability.sql,177,True,False,False,0,False,True,0,0
+canonical_phenology_states,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,0,0
 canonical_root_zone_profiles,v169_canonical_root_zone_hydraulic_profile.sql,174,True,True,True,1,True,False,0,1
 canonical_sprinkler_runoff_capabilities,v173_sprinkler_runoff_capability.sql,178,True,False,False,0,False,True,0,0
 canonical_well_capabilities,v170_water_source_well_digital_twin.sql,175,True,False,False,0,False,True,0,0
@@ -232,6 +233,7 @@ online_feature_values,v106_phase9_10_runtime_strengthening.sql,112,True,True,Tru
 online_learning_updates,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,4
 outbox_delivery_attempts,v140_outbox_delivery_attempts.sql,145,True,True,True,1,True,False,0,1
 outcome_record,v79_outcome_record.sql,84,True,True,True,1,True,False,11,7
+phenology_observations,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,1,0
 plugin_permission_audit,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,0
 point_in_time_snapshots_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,0,1
 prescription_maps,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0

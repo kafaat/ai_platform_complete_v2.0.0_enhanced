@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1827,
+    "python_files_parsed": 1829,
     "route_handlers": 1048,
-    "call_edges": 71630,
+    "call_edges": 71825,
     "dead_code_candidates": 609,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -5991,7 +5991,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
-      "line": 159,
+      "line": 206,
       "handler": "field_phenology",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/phenology"
@@ -5999,7 +5999,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
-      "line": 181,
+      "line": 266,
       "handler": "field_stage_actions",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/stage-actions"
@@ -161672,6 +161672,881 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_aware",
+      "target": "utcoffset",
+      "line": 35
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_aware",
+      "target": "ValueError",
+      "line": 36
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_aware",
+      "target": "astimezone",
+      "line": 37
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "float",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "isfinite",
+      "line": 44
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "ValueError",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "ValueError",
+      "line": 47
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_finite",
+      "target": "ValueError",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_digest",
+      "target": "dumps",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_digest",
+      "target": "encode",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_digest",
+      "target": "hexdigest",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_digest",
+      "target": "sha256",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "lower",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "strip",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "any",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "len",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_valid_sha",
+      "target": "ValueError",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 77
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "ValueError",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "ValueError",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "ValueError",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "PhenologyObservation",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 86
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_aware",
+      "line": 87
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_finite",
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_valid_sha",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "ValueError",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "RemoteSensingStageEvidence",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "strip",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_aware",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_finite",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "normalized",
+      "target": "_valid_sha",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "load_crop_card",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "tuple",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "get",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "str",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "strip",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "get",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "get",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_crop_stages",
+      "target": "tuple",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "set",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "normalized",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "ValueError",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "add",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 168
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "timedelta",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "set",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "sorted",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "sort",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "timedelta",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "append",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "set",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "sorted",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "set",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "sorted",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "_choose_observation",
+      "target": "tuple",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "str",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "strip",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "ValueError",
+      "line": 232
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_aware",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "date",
+      "line": 234
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "ValueError",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "ValueError",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_finite",
+      "line": 238
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_finite",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "resolve_crop_id",
+      "line": 242
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "lower",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "strip",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_crop_stages",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "date",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_choose_observation",
+      "line": 250
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "extend",
+      "line": 257
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "current_stage",
+      "line": 259
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "phenology_progress",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 275
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "normalized",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 283
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 287
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "min",
+      "line": 289
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "round",
+      "line": 289
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "append",
+      "line": 291
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 296
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "str",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "isoformat",
+      "line": 305
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "isoformat",
+      "line": 306
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 314
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 316
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 318
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 318
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "CanonicalPhenologyState",
+      "line": 320
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "get",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "tuple",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "tuple",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "set",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "sorted",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "tuple",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "build_canonical_phenology_state",
+      "target": "_digest",
+      "line": 340
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "state_payload",
+      "target": "asdict",
+      "line": 345
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "state_payload",
+      "target": "isoformat",
+      "line": 346
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_phenology_state.py",
+      "source": "state_payload",
+      "target": "isoformat",
+      "line": 347
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "_digest",
       "target": "dumps",
@@ -259927,112 +260802,91 @@
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_first_season_crop",
       "target": "isinstance",
-      "line": 46
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/phenology.py",
-      "source": "_first_season_crop",
-      "target": "loads",
-      "line": 48
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/phenology.py",
-      "source": "_first_season_crop",
-      "target": "isinstance",
       "line": 51
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_first_season_crop",
+      "target": "loads",
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_first_season_crop",
+      "target": "isinstance",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_first_season_crop",
       "target": "str",
-      "line": 52
+      "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_phenology",
       "target": "resolve_crop_id",
-      "line": 65
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_phenology",
       "target": "today",
-      "line": 71
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_phenology",
       "target": "season_timeline",
-      "line": 73
+      "line": 78
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_phenology",
       "target": "current_stage",
-      "line": 79
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/phenology.py",
-      "source": "_shape_phenology",
-      "target": "isoformat",
       "line": 84
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_phenology",
+      "target": "isoformat",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_shape_phenology",
       "target": "stage_kc",
-      "line": 87
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_stage_actions",
       "target": "resolve_crop_id",
-      "line": 102
+      "line": 107
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_stage_actions",
       "target": "today",
-      "line": 108
+      "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_stage_actions",
       "target": "current_stage",
-      "line": 110
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/phenology.py",
-      "source": "_shape_stage_actions",
-      "target": "get",
-      "line": 117
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/phenology.py",
-      "source": "_shape_stage_actions",
-      "target": "append",
-      "line": 119
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/phenology.py",
-      "source": "_shape_stage_actions",
-      "target": "get",
-      "line": 121
+      "line": 115
     },
     {
       "owner": "sahool-platform",
@@ -260045,134 +260899,239 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_stage_actions",
-      "target": "get",
-      "line": 131
+      "target": "append",
+      "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_shape_stage_actions",
       "target": "get",
-      "line": 132
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_shape_stage_actions",
+      "target": "get",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_shape_stage_actions",
+      "target": "get",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_shape_stage_actions",
+      "target": "get",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_active_season_identity",
+      "target": "fetchrow",
+      "line": 149
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_season_phenology_observations",
+      "target": "fetch",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_season_phenology_observations",
+      "target": "PhenologyObservation",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "_season_phenology_observations",
+      "target": "float",
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_active_season_crop_and_sowing",
       "target": "fetchrow",
-      "line": 145
+      "line": 192
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_active_season_crop_and_sowing",
       "target": "fetchrow",
-      "line": 147
+      "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "_active_season_crop_and_sowing",
       "target": "_first_season_crop",
-      "line": 154
+      "line": 201
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_phenology",
       "target": "get",
-      "line": 158
+      "line": 205
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "Query",
+      "line": 208
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_phenology",
       "target": "Depends",
-      "line": 161
+      "line": 215
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_phenology",
       "target": "require_permission",
-      "line": 161
+      "line": 215
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_phenology",
       "target": "tenant_connection",
-      "line": 171
+      "line": 236
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_phenology",
       "target": "_active_season_crop_and_sowing",
-      "line": 172
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/phenology.py",
-      "source": "field_phenology",
-      "target": "_db_unavailable",
-      "line": 176
+      "line": 237
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_phenology",
       "target": "_shape_phenology",
-      "line": 177
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "_active_season_identity",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "_season_phenology_observations",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "_db_unavailable",
+      "line": 250
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "build_canonical_phenology_state",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "str",
+      "line": 252
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "str",
+      "line": 254
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "now",
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/phenology.py",
+      "source": "field_phenology",
+      "target": "state_payload",
+      "line": 262
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_stage_actions",
       "target": "get",
-      "line": 180
+      "line": 265
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_stage_actions",
       "target": "Depends",
-      "line": 183
+      "line": 268
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_stage_actions",
       "target": "require_permission",
-      "line": 183
+      "line": 268
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_stage_actions",
       "target": "tenant_connection",
-      "line": 192
+      "line": 277
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_stage_actions",
       "target": "_active_season_crop_and_sowing",
-      "line": 193
+      "line": 278
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_stage_actions",
       "target": "_db_unavailable",
-      "line": 197
+      "line": 282
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/phenology.py",
       "source": "field_stage_actions",
       "target": "_shape_stage_actions",
-      "line": 198
+      "line": 283
     },
     {
       "owner": "sahool-platform",
@@ -349790,6 +350749,384 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_state",
+      "target": "update",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_state",
+      "target": "build_canonical_phenology_state",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_observation",
+      "target": "datetime",
+      "line": 58
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_observation",
+      "target": "update",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_observation",
+      "target": "PhenologyObservation",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_a_recent_trusted_observation_becomes_the_canonical_stage",
+      "target": "_observation",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_a_recent_trusted_observation_becomes_the_canonical_stage",
+      "target": "_state",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_without_observations_the_state_says_predicted_not_observed",
+      "target": "_state",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_conflicting_high_confidence_observations_block_instead_of_falling_back",
+      "target": "_state",
+      "line": 86
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_conflicting_high_confidence_observations_block_instead_of_falling_back",
+      "target": "_observation",
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_conflicting_high_confidence_observations_block_instead_of_falling_back",
+      "target": "_observation",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_a_rejected_observation_names_itself_and_never_becomes_observed",
+      "target": "parametrize",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_a_rejected_observation_names_itself_and_never_becomes_observed",
+      "target": "datetime",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_a_rejected_observation_names_itself_and_never_becomes_observed",
+      "target": "datetime",
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_a_rejected_observation_names_itself_and_never_becomes_observed",
+      "target": "_observation",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_a_rejected_observation_names_itself_and_never_becomes_observed",
+      "target": "_state",
+      "line": 107
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_age_beyond_the_defined_cycle_blocks_instead_of_guessing_a_stage",
+      "target": "_state",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_age_beyond_the_defined_cycle_blocks_instead_of_guessing_a_stage",
+      "target": "date",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_absent_gdd_leaves_the_fraction_unknown_rather_than_zero",
+      "target": "_state",
+      "line": 123
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "parse",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "read_text",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "str",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "walk",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "isinstance",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "getattr",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "isinstance",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "isinstance",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "isinstance",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "_executable_source",
+      "target": "unparse",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "parse",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "read_text",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "walk",
+      "line": 153
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "isinstance",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "walk",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "isinstance",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "isinstance",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "sorted",
+      "line": 168
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "walk",
+      "line": 170
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "isinstance",
+      "line": 171
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "isinstance",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "isinstance",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_router_consumes_the_state_builder_and_adds_no_route",
+      "target": "isinstance",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_router_does_not_reimplement_the_reconciliation",
+      "target": "_executable_source",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_router_never_sources_gdd_from_the_simulation_table",
+      "target": "_executable_source",
+      "line": 193
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "parse",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "read_text",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "next",
+      "line": 201
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "walk",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "isinstance",
+      "line": 204
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "index",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "len",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "len",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "isinstance",
+      "line": 212
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+      "source": "test_the_canonical_state_is_opt_in_and_the_default_response_is_unchanged",
+      "target": "_executable_source",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_schemas.py",
       "source": "test_tenant_with_required_fields",
       "target": "TenantSchema",
@@ -415570,30 +416907,58 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_simple_farm_book.py",
+      "source": "test_migration_is_append_only_rls_and_idempotent",
+      "target": "count",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_simple_farm_book.py",
+      "source": "test_migration_is_append_only_rls_and_idempotent",
+      "target": "index",
+      "line": 172
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_simple_farm_book.py",
+      "source": "test_migration_is_append_only_rls_and_idempotent",
+      "target": "sorted",
+      "line": 173
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_simple_farm_book.py",
+      "source": "test_migration_is_append_only_rls_and_idempotent",
+      "target": "index",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_simple_farm_book.py",
       "source": "test_router_guards_scope_offline_conflict_and_exports",
       "target": "Path",
-      "line": 169
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_simple_farm_book.py",
       "source": "test_router_guards_scope_offline_conflict_and_exports",
       "target": "resolve",
-      "line": 169
+      "line": 178
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_simple_farm_book.py",
       "source": "test_router_guards_scope_offline_conflict_and_exports",
       "target": "read_text",
-      "line": 170
+      "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_simple_farm_book.py",
       "source": "test_router_guards_scope_offline_conflict_and_exports",
       "target": "compile",
-      "line": 183
+      "line": 192
     },
     {
       "owner": "sahool-platform",

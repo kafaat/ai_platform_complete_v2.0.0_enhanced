@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4854,
+    "files_scanned": 4859,
     "files_by_kind": {
-      "backend": 1189,
-      "database": 266,
+      "backend": 1190,
+      "database": 267,
       "governance": 59,
       "mobile": 51,
       "other": 1285,
-      "tests": 1556,
+      "tests": 1559,
       "web": 448
     },
     "unmapped_artifacts": 1976,
-    "ambiguous_artifacts": 394
+    "ambiguous_artifacts": 395
   },
   "capabilities": [
     {
@@ -4587,7 +4587,7 @@
       ],
       "events": [
         {
-          "value": "v214_field_irrigation_source_assignments.sql @ services/sahool-platform/tests/test_simple_farm_book.py:161",
+          "value": "v214_field_irrigation_source_assignments.sql @ services/sahool-platform/tests/test_simple_farm_book.py:168",
           "score": 14
         },
         {
@@ -6142,14 +6142,6 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/routers/phenology.py",
-          "score": 10,
-          "signals": [
-            "content:crop season",
-            "content:season"
-          ]
-        },
-        {
           "path": "services/sahool-platform/api/event_replay.py",
           "score": 9,
           "signals": [
@@ -6474,14 +6466,6 @@
         {
           "value": "/v1/auth/edge-sign @ services/auth/routers/season_edge_sign.py:40",
           "score": 14
-        },
-        {
-          "value": "/api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:158",
-          "score": 10
-        },
-        {
-          "value": "/api/v1/fields/{field_id}/stage-actions @ services/sahool-platform/api/routers/phenology.py:180",
-          "score": 10
         },
         {
           "value": "/api/v1/agro/crop-risk @ services/sahool-platform/api/routers/agro_intelligence.py:153",
@@ -7300,6 +7284,13 @@
           ]
         },
         {
+          "path": "tests_v9/test_canonical_phenology_contract_truth.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "services/scout-ingest-service/tests/test_season_live.py",
           "score": 17,
           "signals": [
@@ -7685,13 +7676,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 30,
-        "routes": 82,
+        "backend": 29,
+        "routes": 80,
         "database": 86,
         "events": 54,
         "web": 12,
         "mobile": 1,
-        "tests": 33,
+        "tests": 34,
         "governance": 0,
         "other_evidence": 15
       },
@@ -11363,6 +11354,13 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/routers/phenology.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/routers/prescriptions.py",
           "score": 20,
           "signals": [
@@ -11388,6 +11386,10 @@
           "score": 20
         },
         {
+          "value": "/api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:205",
+          "score": 20
+        },
+        {
           "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:176",
           "score": 20
         },
@@ -11397,6 +11399,10 @@
         },
         {
           "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:337",
+          "score": 20
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/stage-actions @ services/sahool-platform/api/routers/phenology.py:265",
           "score": 20
         },
         {
@@ -11561,8 +11567,8 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 4,
-        "routes": 9,
+        "backend": 5,
+        "routes": 11,
         "database": 8,
         "events": 13,
         "web": 0,
@@ -31782,6 +31788,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/api/canonical_phenology_state.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/crop_decision_bridge.py",
           "score": 12,
           "signals": [
@@ -32539,12 +32553,44 @@
           "score": 15
         },
         {
+          "value": "canonical_phenology_states @ migrations/v224_canonical_phenology_state.sql:18",
+          "score": 12
+        },
+        {
+          "value": "canonical_phenology_states @ migrations/v224_canonical_phenology_state.sql:46",
+          "score": 12
+        },
+        {
+          "value": "canonical_phenology_states @ migrations/v224_canonical_phenology_state.sql:47",
+          "score": 12
+        },
+        {
+          "path": "migrations/v224_canonical_phenology_state.sql",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "migrations/v39_season_simulation.sql",
           "score": 12,
           "signals": [
             "content:GDD",
             "content:gdd"
           ]
+        },
+        {
+          "value": "phenology_observations @ migrations/v224_canonical_phenology_state.sql:2",
+          "score": 12
+        },
+        {
+          "value": "phenology_observations @ migrations/v224_canonical_phenology_state.sql:44",
+          "score": 12
+        },
+        {
+          "value": "phenology_observations @ migrations/v224_canonical_phenology_state.sql:45",
+          "score": 12
         },
         {
           "value": "seasons @ migrations/v39_season_simulation.sql:14",
@@ -32902,6 +32948,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_crop_cards.py",
           "score": 12,
           "signals": [
@@ -33039,6 +33093,14 @@
         },
         {
           "path": "tests_v9/test_agriai_engine_features_20260702.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "path": "tests_v9/test_canonical_phenology_state.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -33311,13 +33373,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 81,
+        "backend": 82,
         "routes": 26,
-        "database": 26,
+        "database": 33,
         "events": 26,
         "web": 15,
         "mobile": 0,
-        "tests": 41,
+        "tests": 43,
         "governance": 0,
         "other_evidence": 19
       },
@@ -45087,6 +45149,28 @@
             "content:Field water-source binding",
             "content:field water source",
             "content:source binding"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "migrations/v224_canonical_phenology_state.sql",
+      "kind": "database",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 12,
+          "signals": [
+            "content:row level security",
+            "content:tenant isolation"
           ]
         }
       ]

@@ -8,16 +8,16 @@
     "docs/capability-registry/benchmark/source/legacy/competitive_benchmark_matrix_v3_precanonical.csv": "4e1db06f13401335ca7ea0a3e37c0312762ab36476096cb1801eb6ff8f11c912",
     "docs/capability-registry/benchmark/source/legacy/competitor_official_evidence_precanonical.csv": "02092f5f58013751d521e0acef5d4433c6f539bb4580ffbdfa23d858f6733c06",
     "docs/capability-registry/benchmark/source/sahool_capability_assessments.csv": "5052821cb29665e0b707a0ed42b4528caebb92caed7d2d413d390908cb37885e",
-    "docs/capability-registry/generated/capability_registry.json": "73a0417925ed396ef5776675d2232358d8855fa9725701460717dc07877bb230",
-    "docs/capability-registry/generated/evidence/capability_maturity_baseline.json": "e0ae0c7eb01c82744d0fcd80de767c4960037b623956838dc8fa3ac46b1bbfa9"
+    "docs/capability-registry/generated/capability_registry.json": "ed57c26437c39593518c25791a684b0cf63a79898ec69d09fb8451cdb81e7615",
+    "docs/capability-registry/generated/evidence/capability_maturity_baseline.json": "3f5bea15ced03286f6142bee457a8a308314b96638ef345d3c03905f35fcaae3"
   },
   "outputs": {
-    "CAPABILITY_PARITY_INVESTMENT_REPORT.md": "276e478b1b8474cf81a105e59fec940c663be33177af3e71c71d618318d387cb",
+    "CAPABILITY_PARITY_INVESTMENT_REPORT.md": "5eb8a4150cfcdeb6af7d450a5a77c908f4554f0ccd6210d65f79bdc766931b75",
     "capability_investment_matrix.csv": "ff14dbf53a5f2206b3f1617034c28fa6a656909982c0c20e6c07b172c6ad6444",
     "capability_investment_matrix.json": "bb15a8ccad4ad6ca6ccf794179c2a539599d7649e8d5b5c5b2efab3505e3e034",
-    "capability_parity_matrix.csv": "b914be1197b4c68560a38baa45a30fe076f9bd5a2c71d45ddd879a0768e292af",
-    "capability_parity_matrix.json": "021f3a071be8b2f25c29ee39e126e928049f5538998a209e81f73efe04703904",
-    "domain_heat_map.json": "989d6ca77fe95fcbf2e3065f8f0bb1de1eb34a11ccfe4a7ab51e64ac45be52bb"
+    "capability_parity_matrix.csv": "178d4395bdde4a3849912f9e934b22d348fb38135ec85ccd763374f61d86018c",
+    "capability_parity_matrix.json": "c0784a80fc22cb15024c2020b9b59d2925c5335e02bf1590a07f5b303a4cb0dd",
+    "domain_heat_map.json": "e09c536ffaee5881d7c502a04ba2df78d7df890842890413b19c71047ba72589"
   },
   "schema_version": "2.0.0"
 }

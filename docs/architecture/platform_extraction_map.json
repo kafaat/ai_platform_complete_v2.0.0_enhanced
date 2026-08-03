@@ -4523,7 +4523,7 @@
       "function": "field_phenology",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/phenology",
-      "line": 158,
+      "line": 205,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/phenology.py::GET /api/v1/fields/{field_id}/phenology::field_phenology"
@@ -4533,7 +4533,7 @@
       "function": "field_stage_actions",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/stage-actions",
-      "line": 180,
+      "line": 265,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/phenology.py::GET /api/v1/fields/{field_id}/stage-actions::field_stage_actions"

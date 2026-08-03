@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 512,
+      "evidence_count": 516,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -72,6 +72,7 @@
         "migrations/v210_erp_reconciliation_ledger.sql",
         "migrations/v215_yield_map_ingestion.sql",
         "migrations/v216_machinery_export.sql",
+        "migrations/v224_canonical_phenology_state.sql",
         "migrations/v78_decision_record.sql",
         "migrations/v79_outcome_record.sql",
         "migrations/v86_calibration_evidence_trigger.sql",
@@ -182,6 +183,7 @@
         "services/sahool-platform/api/canonical_hydraulic_capability.py",
         "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
         "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
+        "services/sahool-platform/api/canonical_phenology_state.py",
         "services/sahool-platform/api/canonical_root_zone_profile.py",
         "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
         "services/sahool-platform/api/canonical_vri_prescription.py",
@@ -259,6 +261,7 @@
         "services/sahool-platform/api/routers/observations.py",
         "services/sahool-platform/api/routers/operational_truth.py",
         "services/sahool-platform/api/routers/pest_escalation.py",
+        "services/sahool-platform/api/routers/phenology.py",
         "services/sahool-platform/api/routers/platform_health.py",
         "services/sahool-platform/api/routers/productivity.py",
         "services/sahool-platform/api/routers/recommendations.py",
@@ -346,6 +349,7 @@
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
         "services/sahool-platform/tests/test_backend_registry_v50_static.py",
         "services/sahool-platform/tests/test_calibration_endpoint.py",
+        "services/sahool-platform/tests/test_canonical_phenology_wiring.py",
         "services/sahool-platform/tests/test_canonical_schemas.py",
         "services/sahool-platform/tests/test_canonical_spectral_state_resolver.py",
         "services/sahool-platform/tests/test_canonical_well_capability.py",
@@ -2223,7 +2227,7 @@
         "services/sahool-platform/core/field_digital_twin.py",
         "services/sahool-platform/core/field_event_sourcing.py"
       ],
-      "source_evidence_count": 512,
+      "source_evidence_count": 516,
       "target_evidence_count": 453,
       "static_supported": true,
       "runtime_verified": false
@@ -2574,5 +2578,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "f5505aab2c821f6fa5d39f0a7bd33a093c670087e0101288047d8dc358526bf0"
+  "content_sha256": "ca0078c648b3d35b6dd5733f5936e53857e931b5731dc953001a426568b03117"
 }

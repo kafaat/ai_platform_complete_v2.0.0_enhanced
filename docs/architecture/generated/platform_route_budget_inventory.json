@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "3da717fdc2c6973ba6e90d1694fa56d968a5d58369558a102dfb1bd95fb4f1df",
+  "inventory_sha256": "2df2af81a29d6e571825d19391e38dd598fb41216f3c010d36511a753ce17df4",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "b454c71bef573d87d2dae0396b86210f1b6ddf9a7fdea6232d513a283b931c2d"
+    "policy_sha256": "7606d187db8950507b7ef8e5655d55d95034652e6291a462b438e8f5ee175390"
   },
   "routes": [
     {
@@ -1194,7 +1194,7 @@
     {
       "classification": "domain",
       "function": "field_phenology",
-      "line": 158,
+      "line": 205,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/phenology",
       "source": "api/routers/phenology.py"
@@ -1290,7 +1290,7 @@
     {
       "classification": "domain",
       "function": "field_stage_actions",
-      "line": 180,
+      "line": 265,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/stage-actions",
       "source": "api/routers/phenology.py"
