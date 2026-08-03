@@ -63,6 +63,12 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/config/endpoints.ts",
+              "pattern": "/auth/",
+              "line": 54
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/hooks/TenantCacheIsolation.static.test.ts",
               "pattern": "refresh",
               "line": 40
@@ -102,15 +108,9 @@
               "path": "frontend/src/pages/LoginPage.tsx",
               "pattern": "LoginPage",
               "line": 2
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/pages/LoginPage.tsx",
-              "pattern": "SignupPage",
-              "line": 224
             }
           ],
-          "match_count": 51
+          "match_count": 52
         },
         {
           "kind": "gateway",
@@ -168,7 +168,7 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/auth/",
-              "line": 171
+              "line": 176
             },
             {
               "root": "nginx",
@@ -304,7 +304,7 @@
               "root": "nginx",
               "path": "nginx/nginx.fixed.conf",
               "pattern": "/api/v1/",
-              "line": 66
+              "line": 68
             },
             {
               "root": "nginx",
@@ -452,7 +452,7 @@
               "root": "nginx",
               "path": "nginx/nginx.fixed.conf",
               "pattern": "/api/raster/",
-              "line": 65
+              "line": 67
             },
             {
               "root": "nginx",
@@ -464,7 +464,7 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/raster/",
-              "line": 246
+              "line": 252
             },
             {
               "root": "nginx",
@@ -600,7 +600,7 @@
               "root": "nginx",
               "path": "nginx/nginx.fixed.conf",
               "pattern": "/api/vegetation/",
-              "line": 64
+              "line": 66
             },
             {
               "root": "nginx",
@@ -612,7 +612,7 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/vegetation/",
-              "line": 224
+              "line": 230
             },
             {
               "root": "nginx",
@@ -680,7 +680,7 @@
               "root": "frontend/src",
               "path": "frontend/src/config/endpoints.ts",
               "pattern": "indicators",
-              "line": 57
+              "line": 61
             },
             {
               "root": "frontend/src",
@@ -747,7 +747,7 @@
               "root": "nginx",
               "path": "nginx/nginx.fixed.conf",
               "pattern": "/api/indicators/",
-              "line": 66
+              "line": 68
             },
             {
               "root": "nginx",
@@ -759,7 +759,7 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/indicators/",
-              "line": 219
+              "line": 225
             },
             {
               "root": "nginx",
@@ -939,6 +939,12 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/canonical_phenology_state.py",
+              "pattern": "weather",
+              "line": 3
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
               "pattern": "weather",
               "line": 63
@@ -960,15 +966,9 @@
               "path": "services/sahool-platform/api/cost_governance.py",
               "pattern": "weather-service",
               "line": 102
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/cost_governance.py",
-              "pattern": "weather",
-              "line": 102
             }
           ],
-          "match_count": 311
+          "match_count": 322
         }
       ]
     },
@@ -1113,6 +1113,12 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/agronomic_state_consumers.py",
+              "pattern": "soil",
+              "line": 105
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/alert_rules.py",
               "pattern": "soil",
               "line": 112
@@ -1137,36 +1143,30 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/canonical_nutrient_ledger.py",
+              "pattern": "soil",
+              "line": 3
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/canonical_root_zone_profile.py",
               "pattern": "soil",
               "line": 3
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/canonical_water_state.py",
+              "path": "services/sahool-platform/api/canonical_salinity_state.py",
               "pattern": "soil",
-              "line": 50
+              "line": 1
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/canonical_water_stress.py",
-              "pattern": "soil",
-              "line": 5
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/confidence_aggregation.py",
-              "pattern": "soil",
-              "line": 15
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/crop_introduction.py",
-              "pattern": "soil",
-              "line": 41
+              "path": "services/sahool-platform/api/canonical_soil_state.py",
+              "pattern": "SOIL_SERVICE_URL",
+              "line": 22
             }
           ],
-          "match_count": 285
+          "match_count": 305
         }
       ]
     },
@@ -1226,7 +1226,7 @@
               "root": "frontend/src",
               "path": "frontend/src/services/api.test.ts",
               "pattern": "/api/segmentation",
-              "line": 176
+              "line": 178
             },
             {
               "root": "frontend/src",
@@ -1302,13 +1302,13 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/segmentation/",
-              "line": 313
+              "line": 319
             },
             {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "segmentation",
-              "line": 310
+              "line": 316
             }
           ],
           "match_count": 8
@@ -1393,31 +1393,31 @@
               "root": "services/field-segmentation",
               "path": "services/field-segmentation/test_segmentation.py",
               "pattern": "sam2",
-              "line": 172
+              "line": 190
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "SEGMENTATION_INFERENCE_URL",
-              "line": 2084
+              "line": 2131
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "SEGMENTATION_BACKEND",
-              "line": 2083
+              "line": 2130
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sam2",
-              "line": 2084
+              "line": 2131
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-sam2-inference",
-              "line": 2084
+              "line": 2131
             }
           ],
           "match_count": 33
@@ -1468,7 +1468,7 @@
               "root": "frontend/src",
               "path": "frontend/src/hooks/useApi.ts",
               "pattern": "ai-agronomist",
-              "line": 1982
+              "line": 1976
             },
             {
               "root": "frontend/src",
@@ -1547,7 +1547,7 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/ai-agronomist/",
-              "line": 359
+              "line": 376
             },
             {
               "root": "nginx",
@@ -1615,27 +1615,39 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_api_versioning_policy_guard.py",
+              "pattern": "rag-retrieval",
+              "line": 435
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
               "pattern": "rag-retrieval",
-              "line": 288
+              "line": 290
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_platform_catalog_gate.py",
+              "pattern": "rag-retrieval",
+              "line": 36
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_real_findings_closure_20260702.py",
               "pattern": "rag-retrieval",
-              "line": 27
+              "line": 43
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_remaining_closure_20260702.py",
               "pattern": "/api/rag/",
-              "line": 57
+              "line": 60
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_service_feature_ui_contract_gate.py",
               "pattern": "rag-retrieval",
-              "line": 28
+              "line": 32
             },
             {
               "root": "tests_v9",
@@ -1648,21 +1660,9 @@
               "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
               "pattern": "/api/rag/",
               "line": 32
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
-              "pattern": "RAG_BASE_URL",
-              "line": 37
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
-              "pattern": "rag-retrieval",
-              "line": 61
             }
           ],
-          "match_count": 16
+          "match_count": 19
         }
       ]
     },
@@ -1727,13 +1727,13 @@
               "root": "services/mcp_servers",
               "path": "services/mcp_servers/generic_context_server.py",
               "pattern": "knowledge-graph",
-              "line": 117
+              "line": 18
             },
             {
               "root": "services/mcp_servers",
               "path": "services/mcp_servers/generic_context_server.py",
               "pattern": "query_kg_annotations",
-              "line": 117
+              "line": 139
             },
             {
               "root": "services/sahool-platform",
@@ -1749,30 +1749,30 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_api_versioning_policy_guard.py",
+              "pattern": "knowledge-graph",
+              "line": 381
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
               "pattern": "knowledge-graph",
-              "line": 398
+              "line": 400
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_mcp_generic_context_auth.py",
+              "pattern": "knowledge-graph",
+              "line": 6
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_real_findings_closure_20260702.py",
               "pattern": "knowledge-graph",
-              "line": 34
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_remaining_closure_20260702.py",
-              "pattern": "knowledge-graph",
-              "line": 58
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_remaining_closure_20260702.py",
-              "pattern": "/api/knowledge-graph/",
-              "line": 58
+              "line": 50
             }
           ],
-          "match_count": 20
+          "match_count": 22
         }
       ]
     },
@@ -1808,19 +1808,19 @@
               "root": "frontend/src",
               "path": "frontend/src/hooks/useApi.ts",
               "pattern": "/api/agent",
-              "line": 248
+              "line": 242
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/hooks/useApi.ts",
               "pattern": "supervisor",
-              "line": 248
+              "line": 242
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/hooks/useApi.ts",
               "pattern": "agent",
-              "line": 248
+              "line": 242
             },
             {
               "root": "frontend/src",
@@ -1899,7 +1899,7 @@
               "root": "nginx",
               "path": "nginx/nginx.fixed.conf",
               "pattern": "/api/agent/",
-              "line": 60
+              "line": 62
             },
             {
               "root": "nginx",
@@ -1911,7 +1911,7 @@
               "root": "nginx",
               "path": "nginx/nginx.light.conf",
               "pattern": "/api/agent/",
-              "line": 76
+              "line": 82
             },
             {
               "root": "nginx",
@@ -1923,7 +1923,7 @@
               "root": "nginx",
               "path": "nginx/nginx.unified.conf",
               "pattern": "/api/agent/",
-              "line": 85
+              "line": 91
             },
             {
               "root": "nginx",
@@ -1935,7 +1935,7 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/agent/",
-              "line": 320
+              "line": 162
             },
             {
               "root": "nginx",
@@ -2071,7 +2071,7 @@
               "root": "nginx",
               "path": "nginx/nginx.fixed.conf",
               "pattern": "/api/guardrails/",
-              "line": 63
+              "line": 65
             },
             {
               "root": "nginx",
@@ -2083,7 +2083,7 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/guardrails/",
-              "line": 336
+              "line": 343
             },
             {
               "root": "nginx",
@@ -2128,13 +2128,13 @@
               "root": "services/agriai-engine",
               "path": "services/agriai-engine/aquacrop_adapter.py",
               "pattern": "AGRIAI_PRODUCTION_MODE",
-              "line": 122
+              "line": 133
             },
             {
               "root": "services/agriai-engine",
               "path": "services/agriai-engine/aquacrop_adapter.py",
               "pattern": "uncalibrated_pending_golden",
-              "line": 251
+              "line": 262
             },
             {
               "root": "services/agriai-engine",
@@ -2235,21 +2235,9 @@
           "matches": [
             {
               "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/advisory_skill.py",
-              "pattern": "MCP",
-              "line": 9
-            },
-            {
-              "root": "services/supervisor-agent",
               "path": "services/supervisor-agent/circuit_breaker.py",
               "pattern": "MCP",
               "line": 2
-            },
-            {
-              "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/crop_model_skill.py",
-              "pattern": "MCP",
-              "line": 10
             },
             {
               "root": "services/supervisor-agent",
@@ -2265,27 +2253,9 @@
             },
             {
               "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/market_skill.py",
-              "pattern": "MCP",
-              "line": 10
-            },
-            {
-              "root": "services/supervisor-agent",
               "path": "services/supervisor-agent/mcp_client.py",
               "pattern": "MCP",
               "line": 3
-            },
-            {
-              "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/remote_sensing_skill.py",
-              "pattern": "MCP",
-              "line": 11
-            },
-            {
-              "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/remote_sensing_skill.py",
-              "pattern": "sentinel",
-              "line": 17
             },
             {
               "root": "services/supervisor-agent",
@@ -2304,6 +2274,36 @@
               "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
               "pattern": "sentinel",
               "line": 112
+            },
+            {
+              "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/test_chaos_resilience.py",
+              "pattern": "sentinel",
+              "line": 94
+            },
+            {
+              "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/test_graceful_degradation.py",
+              "pattern": "MCP",
+              "line": 3
+            },
+            {
+              "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/routers/agent.py",
+              "pattern": "MCP",
+              "line": 69
+            },
+            {
+              "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/routers/health.py",
+              "pattern": "MCP",
+              "line": 27
+            },
+            {
+              "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/skills/advisory_skill.py",
+              "pattern": "MCP",
+              "line": 20
             }
           ],
           "match_count": 101
@@ -2456,7 +2456,7 @@
               "root": "services/decision-service",
               "path": "services/decision-service/main.py",
               "pattern": "/v1/execution-requests/recovery",
-              "line": 1760
+              "line": 1774
             },
             {
               "root": "services/decision-service",
@@ -2750,7 +2750,7 @@
               "root": "nginx",
               "path": "nginx/nginx.light.conf",
               "pattern": "/api/video/",
-              "line": 84
+              "line": 90
             },
             {
               "root": "nginx",
@@ -2762,7 +2762,7 @@
               "root": "nginx",
               "path": "nginx/nginx.unified.conf",
               "pattern": "/api/video/",
-              "line": 116
+              "line": 122
             },
             {
               "root": "nginx",
@@ -2774,7 +2774,7 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/video/",
-              "line": 462
+              "line": 499
             },
             {
               "root": "nginx",
@@ -3091,7 +3091,7 @@
               "root": "nginx",
               "path": "nginx/nginx.unified.conf",
               "pattern": "/api/erp/",
-              "line": 145
+              "line": 156
             },
             {
               "root": "nginx",
@@ -3121,46 +3121,46 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "ERP_BRIDGE_URL",
-              "line": 815
+              "line": 842
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "erp-bridge",
-              "line": 71
+              "line": 78
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-erp-bridge",
-              "line": 71
+              "line": 78
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_api_versioning_policy_guard.py",
+              "pattern": "erp-bridge",
+              "line": 959
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_erp_bridge_alias_contract.py",
               "pattern": "/api/erp/",
-              "line": 60
+              "line": 63
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_erp_bridge_alias_contract.py",
               "pattern": "ERP_BRIDGE_URL",
-              "line": 32
+              "line": 35
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_erp_bridge_alias_contract.py",
               "pattern": "erp-bridge",
               "line": 3
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_erp_bridge_alias_contract.py",
-              "pattern": "sahool-erp-bridge",
-              "line": 23
             }
           ],
-          "match_count": 19
+          "match_count": 20
         }
       ]
     },
@@ -3291,12 +3291,6 @@
           "matches": [
             {
               "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/advisory_skill.py",
-              "pattern": "RAG",
-              "line": 34
-            },
-            {
-              "root": "services/supervisor-agent",
               "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
               "pattern": "LOCAL_AI_RAG_URL",
               "line": 89
@@ -3360,9 +3354,15 @@
               "path": "services/sahool-platform/api/decision_explainer.py",
               "pattern": "local-ai-rag",
               "line": 38
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/decision_explainer.py",
+              "pattern": "RAG",
+              "line": 37
             }
           ],
-          "match_count": 64
+          "match_count": 66
         }
       ]
     },
@@ -3400,7 +3400,7 @@
               "root": "services/raster-service",
               "path": "services/raster-service/cloud_native_catalog.py",
               "pattern": "tilejson",
-              "line": 97
+              "line": 100
             },
             {
               "root": "services/raster-service",
@@ -3412,7 +3412,7 @@
               "root": "services/raster-service",
               "path": "services/raster-service/raster_cdse_tile_runtime.py",
               "pattern": "tilejson",
-              "line": 209
+              "line": 269
             },
             {
               "root": "services/raster-service",
@@ -3469,7 +3469,7 @@
               "line": 28
             }
           ],
-          "match_count": 45
+          "match_count": 46
         }
       ]
     },
@@ -3507,13 +3507,13 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "qdrant-seed",
-              "line": 1708
+              "line": 1750
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "QDRANT",
-              "line": 393
+              "line": 400
             },
             {
               "root": "docker-compose.fixed.yml",
@@ -3538,6 +3538,12 @@
               "path": "tests_v9/conftest.py",
               "pattern": "QDRANT",
               "line": 39
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_api_versioning_policy_guard.py",
+              "pattern": "collection",
+              "line": 703
             },
             {
               "root": "tests_v9",
@@ -3568,15 +3574,9 @@
               "path": "tests_v9/test_gis_kernel_geojson.py",
               "pattern": "collection",
               "line": 72
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_gis_multipolygon_geometry_versioning.py",
-              "pattern": "collection",
-              "line": 30
             }
           ],
-          "match_count": 21
+          "match_count": 27
         }
       ]
     },
@@ -3741,19 +3741,19 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "DECISION_SERVICE_URL",
-              "line": 542
+              "line": 559
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-model-registry-worker",
-              "line": 1403
+              "line": 1445
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "model-registry",
-              "line": 1400
+              "line": 1442
             }
           ],
           "match_count": 7
@@ -3860,7 +3860,7 @@
               "root": "nginx/nginx.v9.conf",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/remote-sensing-workspace/",
-              "line": 266
+              "line": 272
             },
             {
               "root": "nginx/nginx.v9.conf",
@@ -3929,13 +3929,13 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "FIELD_SERVICE_URL",
-              "line": 861
+              "line": 888
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-field-management",
-              "line": 861
+              "line": 888
             }
           ],
           "match_count": 6
@@ -3993,13 +3993,13 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-scout-ingest",
-              "line": 549
+              "line": 566
             },
             {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "scout-ingest-service",
-              "line": 935
+              "line": 962
             },
             {
               "root": "tests_v9/test_scout_ingest_service_ownership.py",

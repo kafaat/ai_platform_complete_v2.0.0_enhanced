@@ -18015,7 +18015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94faacc6054d5376802bbae65071a23f523f97ccfa814cb20d8d444d9a2e708a"
+          "content": "f08e3fcd678872dfc5c34caa3d4d218b5ef2ed82c20ebdf651eaddee906ff9cc"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -25959,6 +25959,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_recommendation_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "888e8b38ed6b2eb4340eff6c4c5f9a253124baa5237d738ed309250f75d9b0e9"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
       "type": "file"
     },
     {

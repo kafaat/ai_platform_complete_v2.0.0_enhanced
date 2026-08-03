@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "2b1079d0a7a5f6f9a7259221fc7e02faed1b412189f329bec86cf844296c7972",
+  "inventory_sha256": "e3a85513a1ab13da79f7c44a067e71f705b5f81e875ebedc4ec2ddb6f0b536bd",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "6fe4daf895c05fa20388604016b5e6c160e4bf26232d69f1ac710acce8f3c678"
+    "policy_sha256": "e9095b6a2b1c959c8120c548011402a5444f62d81938fbceecfc433e5f0247e0"
   },
   "routes": [
     {
@@ -1946,7 +1946,7 @@
     {
       "classification": "domain",
       "function": "capacity_profiles_endpoint",
-      "line": 297,
+      "line": 307,
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles",
       "source": "api/routers/recommendations.py"
@@ -1954,7 +1954,7 @@
     {
       "classification": "domain",
       "function": "recommendation_engines",
-      "line": 232,
+      "line": 242,
       "method": "GET",
       "path": "/api/v1/recommendations/engines",
       "source": "api/routers/recommendations.py"
@@ -1962,7 +1962,7 @@
     {
       "classification": "domain",
       "function": "get_recommendation",
-      "line": 466,
+      "line": 476,
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}",
       "source": "api/routers/recommendations.py"
@@ -4178,7 +4178,7 @@
     {
       "classification": "domain",
       "function": "generate_crop_candidates",
-      "line": 305,
+      "line": 315,
       "method": "POST",
       "path": "/api/v1/recommendations/candidates",
       "source": "api/routers/recommendations.py"
@@ -4186,7 +4186,7 @@
     {
       "classification": "domain",
       "function": "economic_adaptation_endpoint",
-      "line": 279,
+      "line": 289,
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation",
       "source": "api/routers/recommendations.py"
@@ -4202,7 +4202,7 @@
     {
       "classification": "domain",
       "function": "record_recommendation_outcome",
-      "line": 370,
+      "line": 380,
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
       "source": "api/routers/recommendations.py"

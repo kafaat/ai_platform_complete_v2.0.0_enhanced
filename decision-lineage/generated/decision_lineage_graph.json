@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 521,
+      "evidence_count": 522,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -423,6 +423,7 @@
         "services/sahool-platform/tests/test_productivity_router.py",
         "services/sahool-platform/tests/test_productivity_zones_ai_brief.py",
         "services/sahool-platform/tests/test_recommendation_bridge.py",
+        "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
         "services/sahool-platform/tests/test_recommendation_replay.py",
         "services/sahool-platform/tests/test_remaining_gap_completion.py",
         "services/sahool-platform/tests/test_review_fixes.py",
@@ -561,7 +562,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 460,
+      "evidence_count": 461,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -966,6 +967,7 @@
         "services/sahool-platform/tests/test_productivity_zones_ai_brief.py",
         "services/sahool-platform/tests/test_recommendation_bridge.py",
         "services/sahool-platform/tests/test_recommendation_engine.py",
+        "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
         "services/sahool-platform/tests/test_recommendation_log.py",
         "services/sahool-platform/tests/test_recommendation_registry.py",
         "services/sahool-platform/tests/test_recommendation_replay.py",
@@ -1230,7 +1232,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 232,
+      "evidence_count": 233,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1437,6 +1439,7 @@
         "services/sahool-platform/tests/test_ponytail_guardrails.py",
         "services/sahool-platform/tests/test_productivity_zones_ai_brief.py",
         "services/sahool-platform/tests/test_profit_aware_decision_endpoint.py",
+        "services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py",
         "services/sahool-platform/tests/test_recommendation_log.py",
         "services/sahool-platform/tests/test_recommendation_replay.py",
         "services/sahool-platform/tests/test_remaining_engines.py",
@@ -2240,8 +2243,8 @@
         "services/sahool-platform/core/evidence_graph.py",
         "services/sahool-platform/core/evidence_snapshot.py"
       ],
-      "source_evidence_count": 521,
-      "target_evidence_count": 460,
+      "source_evidence_count": 522,
+      "target_evidence_count": 461,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2341,7 +2344,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 460,
+      "source_evidence_count": 461,
       "target_evidence_count": 159,
       "static_supported": true,
       "runtime_verified": false
@@ -2407,7 +2410,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 159,
-      "target_evidence_count": 232,
+      "target_evidence_count": 233,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2437,7 +2440,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 232,
+      "source_evidence_count": 233,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2591,5 +2594,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "095b3c16d8e67752975f9a76bc0c002138d4e40de1dbc573b4c0cff34eeb1349"
+  "content_sha256": "78e22383af64d6d16b35759b8101e14b44a55f80d3ae7d6c3bdbdf1e2b96bff9"
 }
