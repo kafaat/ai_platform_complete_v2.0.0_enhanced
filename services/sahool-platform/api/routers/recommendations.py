@@ -201,9 +201,15 @@ async def recommendations_for_field(
             "limitations": ["CANONICAL_CONTEXT_UNAVAILABLE"],
         }
 
-    merged_indicators = dict(req.current_indicators or {})
-    merged_indicators["canonical_agronomic_context"] = canonical_context
-
+    # `current_indicators` is a FLAT NUMERIC map and must stay one. It becomes
+    # `provenance.input_snapshot` (core/internal_orchestrator.py:238), which
+    # core/cross_reference_finder.py::_compare_indicators later reads key-by-key:
+    # line 96 increments `total` BEFORE the float() conversion, so a non-numeric value
+    # present in both the current and the historical snapshot inflates the denominator
+    # while `matched` can never rise — every later similarity score is diluted and
+    # genuinely similar records slip under `min_similarity`. It does not raise (the
+    # TypeError is caught) — it degrades silently, which is worse. The canonical
+    # context is lineage, so it rides in `provenance` beside `input_snapshot`.
     api_req = ApiRequest(
         user=user,
         payload={
@@ -215,7 +221,7 @@ async def recommendations_for_field(
             "field_id": req.field_id,
             "crop": req.crop,
             "validation": validation,
-            "current_indicators": merged_indicators,
+            "current_indicators": dict(req.current_indicators or {}),
             "growth_stage": req.growth_stage,
             "district_id": req.district_id,
         },
@@ -225,6 +231,10 @@ async def recommendations_for_field(
     resp = handle_recommendation_request(api_req)
     enriched = getattr(resp, "enriched", None)
     if enriched:
+        # Lineage, not an indicator: a sibling of input_snapshot inside provenance.
+        provenance = enriched.setdefault("provenance", {})
+        if isinstance(provenance, dict):
+            provenance["canonical_agronomic_context"] = canonical_context
         await _persist_recommendation(user, req, enriched)
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 

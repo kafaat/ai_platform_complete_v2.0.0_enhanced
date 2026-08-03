@@ -4823,7 +4823,7 @@
       "function": "capacity_profiles_endpoint",
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles",
-      "line": 297,
+      "line": 307,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/capacity-profiles::capacity_profiles_endpoint"
@@ -4833,7 +4833,7 @@
       "function": "recommendation_engines",
       "method": "GET",
       "path": "/api/v1/recommendations/engines",
-      "line": 232,
+      "line": 242,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/engines::recommendation_engines"
@@ -4843,7 +4843,7 @@
       "function": "get_recommendation",
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}",
-      "line": 466,
+      "line": 476,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::GET /api/v1/recommendations/{rec_id}::get_recommendation"
@@ -4853,7 +4853,7 @@
       "function": "generate_crop_candidates",
       "method": "POST",
       "path": "/api/v1/recommendations/candidates",
-      "line": 305,
+      "line": 315,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/candidates::generate_crop_candidates"
@@ -4863,7 +4863,7 @@
       "function": "economic_adaptation_endpoint",
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation",
-      "line": 279,
+      "line": 289,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/economic-adaptation::economic_adaptation_endpoint"
@@ -4883,7 +4883,7 @@
       "function": "record_recommendation_outcome",
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
-      "line": 370,
+      "line": 380,
       "target_owner": "decision-service",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/outcomes::record_recommendation_outcome"
