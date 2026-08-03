@@ -104,7 +104,7 @@ jobs:
       SAHOOL_BUILD_ID: gha-path3-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: path3-verified-images-${{ github.sha }}
           path: verified-images
@@ -165,7 +165,7 @@ jobs:
       attestations: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: path3-unsigned-evidence-${{ github.sha }}
           path: signer-input
@@ -194,7 +194,7 @@ jobs:
               --source-digest "$GITHUB_SHA" --format json > "signer-verify/${service}.json"
           done < signer-verify/image-refs.txt
       - name: Attest evidence bundle in trusted signer boundary
-        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
           subject-path: signer-input/functional-evidence-${{ github.sha }}.tar.gz
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -216,7 +216,7 @@ jobs:
       SAHOOL_RUNTIME_EVIDENCE_HMAC_KEY: ${{ secrets.SAHOOL_RUNTIME_EVIDENCE_HMAC_KEY }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: path3-attested-evidence-${{ github.sha }}
           path: verified-evidence
@@ -263,7 +263,7 @@ jobs:
             --target-sha "$GITHUB_SHA" --provenance-receipt provenance-verification-receipt.json \
             --evidence-bundle "$bundle" --output runtime-verification-candidate.json
       - name: Attest immutable Step-4 candidate
-        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
           subject-path: runtime-verification-candidate.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

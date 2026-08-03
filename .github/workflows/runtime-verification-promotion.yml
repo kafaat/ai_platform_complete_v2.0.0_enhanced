@@ -95,7 +95,7 @@ jobs:
           ref: ${{ inputs.target_sha }}
       - name: Bind approval code to exact tested SHA
         run: test "$(git rev-parse HEAD)" = "${{ inputs.target_sha }}"
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: verified-runtime-candidate-${{ inputs.target_sha }}
           path: approved
@@ -105,7 +105,7 @@ jobs:
             --candidate approved/runtime-verification-candidate.json \
             --output approved/runtime-verification-approval.json \
             --run-id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" --actor "$GITHUB_ACTOR"
-      - uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+      - uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
           subject-path: approved/runtime-verification-approval.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -129,7 +129,7 @@ jobs:
           fetch-depth: 0
       - name: Bind application checkout to exact tested SHA
         run: test "$(git rev-parse HEAD)" = "${{ inputs.target_sha }}"
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: approved-runtime-candidate-${{ inputs.target_sha }}
           path: approved

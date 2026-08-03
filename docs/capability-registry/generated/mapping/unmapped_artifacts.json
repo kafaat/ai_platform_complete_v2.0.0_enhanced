@@ -6480,6 +6480,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests/test_migration_manifest_execution_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests/test_phase10.py",
     "kind": "tests"
   },

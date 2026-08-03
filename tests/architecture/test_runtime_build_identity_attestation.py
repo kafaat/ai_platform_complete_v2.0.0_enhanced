@@ -198,7 +198,11 @@ def test_path3_produces_transports_and_verifies_oidc_provenance():
         "functional_probe_runner.py"
         in (ROOT / "docker-compose.runtime-verification.yml").read_text()
     )
-    assert "actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6" in text
+    # البصمة مثبَّتة عمداً: وسمٌ متحرّك (`@v4`) يسمح باستبدال **المُوقِّع** من تحت
+    # الخطّ بلا تغيير سطر واحد هنا. فالتأكيد يتحرّك **مع** الترقية في نفس الالتزام،
+    # ولا يُرخّى إلى `actions/attest@` مجرّداً — إرخاؤه يُبقي الاختبار أخضر ويُلغي
+    # الخاصّيّة التي وُجِد لها.
+    assert "actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d" in text
     assert "gh attestation verify" in text
     assert "--signer-workflow" in text and "--source-digest" in text and "--source-ref" in text
     assert "verify-and-evaluate:" in text

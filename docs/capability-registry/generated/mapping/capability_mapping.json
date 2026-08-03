@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 47,
-    "files_scanned": 4853,
+    "files_scanned": 4854,
     "files_by_kind": {
       "backend": 1189,
       "database": 266,
       "governance": 59,
       "mobile": 51,
       "other": 1285,
-      "tests": 1555,
+      "tests": 1556,
       "web": 448
     },
-    "unmapped_artifacts": 1975,
+    "unmapped_artifacts": 1976,
     "ambiguous_artifacts": 394
   },
   "capabilities": [
@@ -40225,6 +40225,10 @@
     },
     {
       "path": "tests/test_intelligence_governance_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests/test_migration_manifest_execution_guard.py",
       "kind": "tests"
     },
     {
