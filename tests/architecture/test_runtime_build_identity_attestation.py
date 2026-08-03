@@ -97,6 +97,34 @@ def test_compose_requires_build_identity_args():
         assert "SAHOOL_BUILD_ID required" in args["SAHOOL_BUILD_ID"]
 
 
+def test_build_provenance_args_use_one_convention():
+    """**اصطلاحان لشيء واحد يُنتِجان نَسَباً فارغاً في نصف الصور.**
+
+    الخدمات الأولى تقرأ `${GITHUB_REPOSITORY}`/`${GITHUB_REF}` — وActions تضبطهما
+    تلقائيّاً، فتصل القيَم إلى وسم OCI وإلى ملفّ الهويّة. ثمّ أُضيفت خمس كتل تقرأ
+    `${SAHOOL_SOURCE_REPOSITORY:-}` و`${SAHOOL_SOURCE_REF:-}` — ولا يضبطهما شيء في
+    الخطّ، فالافتراضيّ الفارغ يمرّ صامتاً.
+
+    والعطل **لا يُحمِّر بناءً**: الصورة تُبنى وتُوثَّق، وحقلا `source_repository`
+    و`source_ref` فيها فارغان — أي نَسَبٌ ناقص يُقرأ نَسَباً. أمسكه
+    `compose_env_contract_gate` بالمصادفة (المتغيّران غير مُعلَنين في أمثلة البيئة)،
+    لا لأنّ أحداً كان يقيس الاتّساق. هذا الفحص يقيسه.
+    """
+    compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    sources: set[str] = set()
+    for name, service in compose["services"].items():
+        args = (service.get("build") or {}).get("args") or {}
+        if "SAHOOL_GIT_SHA" not in args:
+            continue
+        for key in ("SAHOOL_SOURCE_REPOSITORY", "SAHOOL_SOURCE_REF"):
+            assert key in args, f"{name}: كتلة هويّة بلا {key}"
+            sources.add(str(args[key]).split(":-", 1)[0].lstrip("${"))
+
+    assert sources == {"GITHUB_REPOSITORY", "GITHUB_REF"}, (
+        "اصطلاحان لنَسَب البناء في نفس الملفّ: " + " · ".join(sorted(sources))
+    )
+
+
 def _services_exposing_runtime_identity() -> set[str]:
     """يُشتقّ من الشجرة لا من قائمة مصونة يدويّاً.
 
