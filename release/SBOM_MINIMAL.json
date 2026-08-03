@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f661a6d327fab1fe0f46eed118bbf70856bf35483338d206058e43ded19d032"
+          "content": "99070040bfebf962265377f652d5013239f288bdf687a7dd013972e23b945aa2"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "335ca0d9ef5325d04a237df65d8f2f51c0460ed0391ca2d12496d86c6d6e8ca9"
+          "content": "3086ccf580fbcb5bf2d59d99f6199287bd9cbfd67ae5e29f21ddb1d97a6487f2"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70cfb698ec8f736b331f338b918c004ce84003aad36637cc653a759afeac1d1e"
+          "content": "c2e0756b9ee1c5ea15d7f5ea7106a6119df955cf522c9bde6ce19707dc18825b"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -10375,7 +10375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13c78bd7acf6b10f9fa3dcde045c20089c149a84737f81125c593326c8262b0b"
+          "content": "a09a62718a93cc7f4245884a01aa4ee634775641dca65036bc0f9f9fb928f0b2"
         }
       ],
       "name": "services/auth/Dockerfile",
@@ -10395,7 +10395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3fa35bb5ea5eac737efa0476e33fb34c8b2dc3c4d2c7da42fc85b790fd3754c2"
+          "content": "4ce2ddec775492f197f6a4a39edd3cf5e0b5ccf56fdb22efa2f503d519562d22"
         }
       ],
       "name": "services/auth/main.py",
@@ -10585,7 +10585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "968e9b6f382a03319229d389728c72a47dd4d2ae40caec91c76bd98023c276a4"
+          "content": "2dbafde181790fa07d3404468f6cc8a0a8461765771202d9929d90ca83d54327"
         }
       ],
       "name": "services/decision-service/Dockerfile",
@@ -10685,7 +10685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1496e929f6b7f46a4a5a22fde3dcb4cbc0a5aae2f4c80f9724e83dee492ca6e4"
+          "content": "77c0b7b20a89faaca713fa5a07fde5dab61704f2e37346a141aa9aebcf870344"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -12045,7 +12045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcb07fe630a1b6801fd6d93f6689bc9271b896859bed2a3a795a78da7c3c1787"
+          "content": "4ed3365258f7cd8088fd7ace9a9a6d90100f2a0f62351fd51ced5519eaf6e2ef"
         }
       ],
       "name": "services/guardrails-engine/Dockerfile",
@@ -12125,7 +12125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "16bcca465ec0bfa0e9729265909c8632870aa97774c3c854b82cf1e8d98dcf0d"
+          "content": "d2b2f9d039f4f602dc4518b4ccee207ba4aeb9389b36ef663647e40dc89e83b5"
         }
       ],
       "name": "services/guardrails-engine/routers/health.py",
@@ -14475,7 +14475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e9479601540a9171ed43334bea232270af2f5f55deaf601ef91b5cbf725b12b"
+          "content": "2967d1e230d41f29e33fe7037f17619a90ba827287d895c67130d926dba13c1c"
         }
       ],
       "name": "services/raster-tiler-service/Dockerfile",
@@ -14489,6 +14489,16 @@
         }
       ],
       "name": "services/raster-tiler-service/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f59f0dae6115024f5bf7cea9352765e8756a904bb55ed94cca9308a59956f881"
+        }
+      ],
+      "name": "services/raster-tiler-service/main.py",
       "type": "file"
     },
     {
@@ -27725,7 +27735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a99532cd8a3878c6e39585f554c70cf025db9e657625d729778fa7d2c4df091f"
+          "content": "95b75dd405963b0de26f4034c6fd26671d2e93f7a465b7020c9b007ea4e3a92e"
         }
       ],
       "name": "services/supervisor-agent/Dockerfile",
@@ -27825,7 +27835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84cdc9bfbbc46b2c3054a105d14af5e3c7c5bf750ff88734fcd1f078f3083c2d"
+          "content": "102edccd675926cd440452d48d58db04b872527c68e43c505b01daed55372833"
         }
       ],
       "name": "services/supervisor-agent/routers/health.py",

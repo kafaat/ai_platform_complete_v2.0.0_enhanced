@@ -48,3 +48,11 @@ async def metrics_endpoint():
     from starlette.responses import Response
 
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@router.get("/runtime-identity")
+async def runtime_identity():
+    """Immutable build identity emitted from image metadata."""
+    from shared.runtime_identity import load_build_identity
+
+    return load_build_identity("guardrails-engine")

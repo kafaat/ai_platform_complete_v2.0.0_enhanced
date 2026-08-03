@@ -41,6 +41,21 @@ jobs:
           - service: raster-service
             dockerfile: services/raster-service/Dockerfile
             image_name: sahool-raster-service
+          - service: auth-service
+            dockerfile: services/auth/Dockerfile
+            image_name: sahool-auth
+          - service: decision-service
+            dockerfile: services/decision-service/Dockerfile
+            image_name: sahool-decision-service
+          - service: guardrails-engine
+            dockerfile: services/guardrails-engine/Dockerfile
+            image_name: sahool-guardrails-engine
+          - service: supervisor-agent
+            dockerfile: services/supervisor-agent/Dockerfile
+            image_name: sahool-supervisor-agent
+          - service: raster-tiler-service
+            dockerfile: services/raster-tiler-service/Dockerfile
+            image_name: raster-tiler-service
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -123,7 +138,7 @@ jobs:
           for p in sorted(Path('image-manifest-fragments').glob('*.json')):
               row=json.loads(p.read_text())
               fragments[row['service']]=row
-          expected={'weather-service','soil-service','raster-service','sahool-platform'}
+          expected={'weather-service','soil-service','raster-service','sahool-platform','auth-service','decision-service','guardrails-engine','supervisor-agent','raster-tiler-service'}
           if set(fragments)!=expected:
               raise SystemExit(f'image manifest incomplete: {sorted(set(fragments)^expected)}')
           out={'schema_version':'1.0','source_sha':os.environ['SOURCE_SHA'],'repository':os.environ['GITHUB_REPOSITORY'],'source_ref':os.environ['GITHUB_REF'],'builder_workflow':f"{os.environ['GITHUB_REPOSITORY']}/.github/workflows/runtime-image-provenance.yml",'builder_run_id':os.environ['GITHUB_RUN_ID'],'images':fragments}

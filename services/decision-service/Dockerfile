@@ -15,6 +15,35 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
 COPY shared/ /app/shared/
 COPY services/decision-service/ /app/
+
+# Immutable source identity: generated at image build, never overridden at runtime.
+ARG SAHOOL_GIT_SHA
+ARG SAHOOL_BUILD_ID
+ARG SAHOOL_SOURCE_REPOSITORY=
+ARG SAHOOL_SOURCE_REF=
+RUN SAHOOL_GIT_SHA="${SAHOOL_GIT_SHA}" SAHOOL_BUILD_ID="${SAHOOL_BUILD_ID}" SAHOOL_SOURCE_REPOSITORY="${SAHOOL_SOURCE_REPOSITORY}" SAHOOL_SOURCE_REF="${SAHOOL_SOURCE_REF}" python - <<'PYID'
+import json, os, re
+from pathlib import Path
+sha = os.environ['SAHOOL_GIT_SHA']
+build_id = os.environ['SAHOOL_BUILD_ID']
+if not re.fullmatch(r"[0-9a-f]{40}", sha):
+    raise SystemExit("SAHOOL_GIT_SHA must be 40 lowercase hex characters")
+if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", build_id):
+    raise SystemExit("SAHOOL_BUILD_ID has invalid format")
+Path("/app/.sahool-build-metadata.json").write_text(json.dumps({
+    "service": 'decision-service',
+    "git_sha": sha,
+    "build_id": build_id,
+    "source_repository": os.environ.get("SAHOOL_SOURCE_REPOSITORY", ""),
+    "source_ref": os.environ.get("SAHOOL_SOURCE_REF", ""),
+}, sort_keys=True) + "\n", encoding="utf-8")
+PYID
+RUN chmod 0444 /app/.sahool-build-metadata.json
+LABEL org.opencontainers.image.revision="${SAHOOL_GIT_SHA}" \
+      org.opencontainers.image.source="${SAHOOL_SOURCE_REPOSITORY}" \
+      org.opencontainers.image.ref.name="${SAHOOL_SOURCE_REF}" \
+      io.sahool.build-id="${SAHOOL_BUILD_ID}"
+
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 EXPOSE 8160

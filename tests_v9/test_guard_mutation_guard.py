@@ -320,3 +320,40 @@ def test_failing_tests_separates_a_named_failure_from_a_silent_runner() -> None:
     )
     assert gmg.failing_tests(out) == ["test_collection_blew_up", "test_something_else_broke"]
     assert gmg.failing_tests("INTERNALERROR> ImportError: no module named x") == []
+
+
+def test_mutation_runner_pins_deterministic_environment() -> None:
+    source = (ROOT / "scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
+    for contract in (
+        '"PYTHONHASHSEED": "0"',
+        '"PYTHONUTF8": "1"',
+        '"LC_ALL": "C.UTF-8"',
+        '"TZ": "UTC"',
+        'TemporaryDirectory(prefix="sahool-guard-mutation-")',
+    ):
+        assert contract in source
+
+
+def test_inconsistent_wrong_test_repeats_are_classified_non_deterministic(
+    tmp_path: Path, monkeypatch
+) -> None:
+    ci = _fake_repo(tmp_path)
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    outputs = iter(
+        [
+            (1, "FAILED tests/test_fake.py::test_clean_input_passes\n1 failed"),
+            (1, "FAILED tests/test_fake.py::test_clean_input_passes\n1 failed"),
+            (1, "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed"),
+            (1, "FAILED tests/test_fake.py::test_clean_input_passes\n1 failed"),
+        ]
+    )
+    monkeypatch.setattr(gmg, "_run_tests", lambda *a, **k: next(outputs))
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+    assert any("NON_DETERMINISTIC" in failure for failure in failures)
+
+
+def test_sigterm_restoration_ledger_is_installed() -> None:
+    source = (ROOT / "scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
+    assert "_ACTIVE_RESTORES" in source
+    assert "signal.SIGTERM" in source
+    assert "atexit.register(_restore_active_sources)" in source

@@ -1707,14 +1707,14 @@
         "gates": {
           "configuration_declared": false,
           "dockerfile": true,
-          "entrypoint": false,
+          "entrypoint": true,
           "health": false,
           "metrics_endpoint_or_instrumentation": false,
           "readiness": false,
           "tracing_instrumentation": false
         },
-        "passed": 1,
-        "score_pct": 14.3,
+        "passed": 2,
+        "score_pct": 28.6,
         "total": 7
       },
       "configuration": [],
@@ -1729,11 +1729,13 @@
         "metrics": [],
         "readiness": []
       },
-      "entrypoint": "-",
+      "entrypoint": "services/raster-tiler-service/main.py",
       "evidence_paths": {
         "configuration": [],
         "metrics": [],
-        "routes": [],
+        "routes": [
+          "services/raster-tiler-service/main.py"
+        ],
         "tracing": []
       },
       "observability": {

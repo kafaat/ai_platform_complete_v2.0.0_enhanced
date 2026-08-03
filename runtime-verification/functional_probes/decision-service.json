@@ -1,0 +1,34 @@
+{
+  "base_url_env": "DECISION_SERVICE_BASE_URL",
+  "entrypoint": "services/decision-service/main.py",
+  "identity_path": "/runtime-identity",
+  "note": "Deterministic health probe plus immutable runtime identity binding for certification. التأكيدات مقيسة من `services/decision-service/main.py:516` ولا تُترك فارغة: `response_assertions: []` يُسقِط تحقّق الخطّة نفسها، ويُنتِج مسباراً يقيس أنّ الخدمة **حيّة** لا أنّها تُجيب بما تعاقدت عليه.",
+  "openapi_path": "/openapi.json",
+  "probes": [
+    {
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "method": "GET",
+      "path": "/healthz",
+      "probe_id": "decision-service-health",
+      "response_assertions": [
+        {
+          "field": "status",
+          "equals": "alive"
+        },
+        {
+          "field": "ok",
+          "equals": true
+        },
+        {
+          "field": "service",
+          "equals": "decision-service"
+        }
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "service": "decision-service",
+  "source_service": "services/decision-service"
+}

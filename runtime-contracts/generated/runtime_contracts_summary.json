@@ -7,12 +7,12 @@
       "service": "gis-workflow-service"
     },
     {
-      "score_pct": 14.3,
-      "service": "raster-tiler-service"
+      "score_pct": 28.6,
+      "service": "qdrant-seed"
     },
     {
       "score_pct": 28.6,
-      "service": "qdrant-seed"
+      "service": "raster-tiler-service"
     },
     {
       "score_pct": 42.9,
