@@ -1926,14 +1926,24 @@ tables:
     readers: []
     source: "migrations/v215_yield_map_ingestion.sql"
   # v224-v226: الحالة الزراعيّة الكنسيّة المُدامة. المالك sahool-platform —
-  # وحدات نطاقها في services/sahool-platform/api/، وتُقرَأ في الإنتاج عبر
-  # api/persisted_canonical_repositories.py من مسار GET التوصيات القائم.
-  # قارئ فعليّ نعم، كاتب فعليّ لا: مسار إدخال الرصدات شريحة تالية، والقراءة
-  # لا تخترع حالة عند الخلوّ بل تُرجِع مرشّحات فارغة.
+  # وحدات نطاقها في services/sahool-platform/api/، والقناة القانونيّة الوحيدة
+  # (قراءةً وكتابةً) هي api/persisted_canonical_repositories.py.
+  #
+  # القراءة موصولة فعليّاً: api/routers/recommendations.py يستدعي
+  # load_agronomic_context ضمن معاملة tenant_connection نفسها التي تكتب التوصية،
+  # فتُسجَّل السلالة من اللقطة التي قُرِئت منها بالضبط.
+  #
+  # الكتابة موجودة كدوالّ ولم تُوصَل بعد — بقياس، لا بتقدير: دوالّ persist_* الستّ
+  # (append-only، idempotent على البصمة، تحت Tenant RLS) لا مستدعي إنتاجيّ لها،
+  # ويُثبِت ذلك حارس مواضع الاستدعاء
+  # services/sahool-platform/tests/test_canonical_writer_call_sites.py بمجموعة
+  # مُثبَّتة تتقلّص ولا تنمو. مسار إدخال الرصدات الخام شريحة تشغيليّة تالية،
+  # وحتّى تصل تبقى الجداول الستّة مقروءة-لا-مكتوبة في الإنتاج. القراءة عند الخلوّ
+  # لا تخترع حالة بل تُرجِع مرشّحات فارغة.
   canonical_phenology_states:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [sahool-platform]
     source: "migrations/v224_canonical_phenology_state.sql"
   phenology_observations:
     owner: sahool-platform
@@ -1943,7 +1953,7 @@ tables:
   canonical_salinity_states:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [sahool-platform]
     source: "migrations/v225_canonical_salinity_state.sql"
   salinity_evidence_observations:
     owner: sahool-platform
@@ -1953,7 +1963,7 @@ tables:
   canonical_nutrient_ledgers:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [sahool-platform]
     source: "migrations/v226_canonical_nutrient_ledger.sql"
   nutrient_evidence_observations:
     owner: sahool-platform

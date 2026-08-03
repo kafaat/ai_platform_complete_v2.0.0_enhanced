@@ -50,14 +50,14 @@ PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
 SAT-001,satellite,Satellite scene search,True,6,36,65,3,32,5,0,41,0
 SAT-002,satellite,True color imagery,True,4,1,1,0,1,0,0,3,0
-SAT-003,satellite,NDVI,True,7,100,80,42,100,49,6,100,0
+SAT-003,satellite,NDVI,True,7,100,82,42,100,49,6,100,0
 SAT-004,satellite,NDMI,True,6,19,10,5,14,7,0,20,0
 SAT-005,satellite,Cloud screening,True,4,8,24,0,1,0,0,9,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,2,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,5,0
 SAT-009,satellite,COG persistence and tiling,True,5,12,68,0,12,1,0,21,0
-SEC-001,security,Tenant RLS,True,5,13,36,100,46,0,0,55,0
+SEC-001,security,Tenant RLS,True,5,14,36,100,46,0,0,55,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
 SEC-004,security,MFA,True,7,7,21,23,4,5,4,15,0
@@ -75,7 +75,7 @@ WX-002,weather,Weather forecast,True,6,22,51,9,56,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
 WX-004,weather,ET0,True,5,59,53,0,78,19,0,57,0
 WX-005,weather,VPD,True,5,8,29,0,6,2,0,6,0
-WX-006,weather,GDD,True,6,84,26,33,26,15,0,43,0
+WX-006,weather,GDD,True,6,84,26,33,26,15,0,44,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0
 WX-008,weather,Operation windows,True,4,2,6,0,1,0,0,2,0
 WX-009,weather,Disease weather models,True,4,2,29,0,0,2,0,1,0

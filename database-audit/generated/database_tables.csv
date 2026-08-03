@@ -35,10 +35,10 @@ canonical_energy_capabilities,v174_energy_agricultural_microgrid_capability.sql,
 canonical_hydraulic_capabilities,v171_pump_hydraulic_network_capability.sql,176,True,False,False,0,False,True,1,0
 canonical_irrigation_capability_graphs,v175_unified_irrigation_capability_graph.sql,180,True,False,False,0,False,True,1,0
 canonical_irrigation_machine_capabilities,v172_irrigation_machine_capability.sql,177,True,False,False,0,False,True,0,0
-canonical_nutrient_ledgers,v226_canonical_nutrient_ledger.sql,223,True,True,True,1,True,False,1,0
-canonical_phenology_states,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,1,0
+canonical_nutrient_ledgers,v226_canonical_nutrient_ledger.sql,223,True,True,True,1,True,False,1,1
+canonical_phenology_states,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,1,2
 canonical_root_zone_profiles,v169_canonical_root_zone_hydraulic_profile.sql,174,True,True,True,1,True,False,0,1
-canonical_salinity_states,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,1,0
+canonical_salinity_states,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,1,1
 canonical_sprinkler_runoff_capabilities,v173_sprinkler_runoff_capability.sql,178,True,False,False,0,False,True,0,0
 canonical_well_capabilities,v170_water_source_well_digital_twin.sql,175,True,False,False,0,False,True,0,0
 command_verification_loop,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
@@ -224,7 +224,7 @@ ndvi_timeseries,init_v8.sql,0,True,True,False,0,False,True,2,0
 nl_gis_audit,v85_nl_gis_audit.sql,90,True,True,True,1,True,False,0,1
 notification_delivery,v83_notification_delivery.sql,88,True,True,True,1,True,False,0,1
 notification_preferences,v9_foundation.sql,1,True,True,False,1,False,True,2,1
-nutrient_evidence_observations,v226_canonical_nutrient_ledger.sql,223,True,True,True,1,True,False,0,0
+nutrient_evidence_observations,v226_canonical_nutrient_ledger.sql,223,True,True,True,1,True,False,0,1
 odoo_sync_log,v9_odoo_bridge.sql,8,False,False,False,0,False,False,1,1
 odoo_sync_state,v9_odoo_bridge.sql,8,False,False,False,0,False,False,1,1
 offline_dataset_versions_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,0,1
@@ -236,7 +236,7 @@ online_feature_values,v106_phase9_10_runtime_strengthening.sql,112,True,True,Tru
 online_learning_updates,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,4
 outbox_delivery_attempts,v140_outbox_delivery_attempts.sql,145,True,True,True,1,True,False,0,1
 outcome_record,v79_outcome_record.sql,84,True,True,True,1,True,False,11,7
-phenology_observations,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,0,0
+phenology_observations,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,0,2
 plugin_permission_audit,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,0
 point_in_time_snapshots_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,0,1
 prescription_maps,v115_precision_agriculture_phase6.sql,121,True,True,True,1,True,False,0,0
@@ -254,7 +254,7 @@ recommendations,v77_recommendations.sql,82,True,True,True,1,True,False,2,2
 retraining_jobs,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0
 review_decisions,v_ai_recommendation_runtime.sql,111,False,True,True,1,True,False,0,0
 runtime_event_outbox,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,2,True,False,1,2
-salinity_evidence_observations,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,0,0
+salinity_evidence_observations,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,0,1
 scenario_runs,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,1
 scouting_pins,v94_scouting_pins.sql,99,True,True,True,2,True,False,1,1
 season_cost_items,v201_season_records.sql,206,True,False,False,0,False,True,2,2

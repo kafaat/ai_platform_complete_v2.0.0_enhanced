@@ -5699,6 +5699,28 @@
     ]
   },
   {
+    "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 11,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/api/phase_runtime_workers.py",
     "kind": "backend",
     "candidates": [

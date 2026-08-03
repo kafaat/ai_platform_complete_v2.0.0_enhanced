@@ -3606,6 +3606,7 @@
         "services/sahool-platform/tests/test_gdd_shadow.py",
         "services/sahool-platform/tests/test_gdd_track_delegation.py",
         "services/sahool-platform/tests/test_gdd_tracker.py",
+        "services/sahool-platform/tests/test_persisted_canonical_writers.py",
         "services/sahool-platform/tests/test_planting_window.py",
         "services/sahool-platform/tests/test_profit_aware_decision_endpoint.py",
         "services/sahool-platform/tests/test_scenario_whatif.py",

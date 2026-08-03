@@ -12,9 +12,9 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4873**
-- Ambiguous artifacts queued: **396**
-- Unmapped artifacts queued: **1980**
+- Files scanned: **4875**
+- Ambiguous artifacts queued: **397**
+- Unmapped artifacts queued: **1981**
 
 ## Capability coverage
 
@@ -71,14 +71,14 @@
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | SAT-001 | satellite | 36 | 65 | 3 | 32 | 5 | 0 | 41 | 6 |
 | SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 3 | 4 |
-| SAT-003 | satellite | 100 | 80 | 42 | 100 | 49 | 6 | 100 | 7 |
+| SAT-003 | satellite | 100 | 82 | 42 | 100 | 49 | 6 | 100 | 7 |
 | SAT-004 | satellite | 19 | 10 | 5 | 14 | 7 | 0 | 20 | 6 |
 | SAT-005 | satellite | 8 | 24 | 0 | 1 | 0 | 0 | 9 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 2 | 3 |
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 5 | 5 |
 | SAT-009 | satellite | 12 | 68 | 0 | 12 | 1 | 0 | 21 | 5 |
-| SEC-001 | security | 13 | 36 | 100 | 46 | 0 | 0 | 55 | 5 |
+| SEC-001 | security | 14 | 36 | 100 | 46 | 0 | 0 | 55 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 7 | 21 | 23 | 4 | 5 | 4 | 15 | 7 |
@@ -96,7 +96,7 @@
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
 | WX-004 | weather | 59 | 53 | 0 | 78 | 19 | 0 | 57 | 5 |
 | WX-005 | weather | 8 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
-| WX-006 | weather | 84 | 26 | 33 | 26 | 15 | 0 | 43 | 6 |
+| WX-006 | weather | 84 | 26 | 33 | 26 | 15 | 0 | 44 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 2 | 6 | 0 | 1 | 0 | 0 | 2 | 4 |
 | WX-009 | weather | 2 | 29 | 0 | 0 | 2 | 0 | 1 | 4 |

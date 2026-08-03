@@ -70,6 +70,46 @@ def test_the_canonical_context_is_recorded_in_the_persisted_input_snapshot():
     assert 'input_snapshot["canonical_agronomic_context"] = canonical_context' in source
 
 
+def test_an_unavailable_canonical_read_still_records_an_explicit_limitation():
+    """Silence and emptiness must not be the same signal.
+
+    If the read fails and the key is simply omitted, "this field has no persisted
+    canonical state" and "the canonical read broke" become indistinguishable to every
+    downstream reader of the persisted provenance.
+    """
+    from api.routers.recommendations import _record_canonical_context
+
+    enriched: dict = {}
+    _record_canonical_context(
+        enriched,
+        {"season_id": None, "candidates": [], "limitations": ["CANONICAL_CONTEXT_UNAVAILABLE"]},
+    )
+    recorded = enriched["provenance"]["input_snapshot"]["canonical_agronomic_context"]
+    assert recorded["limitations"] == ["CANONICAL_CONTEXT_UNAVAILABLE"]
+
+    source = ROUTER.read_text(encoding="utf-8")
+    route = source.split("async def recommendations_for_field(", 1)[1].split(
+        '@router.get("/api/v1/recommendations/engines")', 1
+    )[0]
+    assert route.count("_record_canonical_context(enriched, canonical_context)") == 2, (
+        "the failure path must record the context too, not fall through silently"
+    )
+
+
+def test_for_field_reuses_one_tenant_connection_for_read_and_write():
+    """The persisted SoR read and recommendation/outbox write share one snapshot."""
+    source = ROUTER.read_text(encoding="utf-8")
+    route = source.split("async def recommendations_for_field(", 1)[1].split(
+        '@router.get("/api/v1/recommendations/engines")', 1
+    )[0]
+    assert route.count("async with tenant_connection(user) as conn:") == 1
+    assert "load_agronomic_context(conn, field_id=req.field_id)" in route
+    assert "_persist_recommendation(user, req, enriched, conn=conn)" in route
+    assert route.index("load_agronomic_context(conn") < route.index(
+        "_persist_recommendation(user, req, enriched, conn=conn)"
+    )
+
+
 def test_a_non_numeric_indicator_is_rejected_at_the_edge():
     """The contract guard: the map may not become Mapping[str, float | dict]."""
     from api.routers.recommendations import _numeric_indicator_map

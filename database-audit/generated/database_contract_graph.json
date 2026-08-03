@@ -2164,7 +2164,9 @@
       "code_readers": [
         "services/sahool-platform/api/persisted_canonical_repositories.py"
       ],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
       "created_in": "v226_canonical_nutrient_ledger.sql",
       "has_tenant_id": true,
       "manifest_position": 223,
@@ -2179,7 +2181,10 @@
       "code_readers": [
         "services/sahool-platform/api/persisted_canonical_repositories.py"
       ],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py",
+        "services/sahool-platform/tests/test_persisted_canonical_writers.py"
+      ],
       "created_in": "v224_canonical_phenology_state.sql",
       "has_tenant_id": true,
       "manifest_position": 221,
@@ -2209,7 +2214,9 @@
       "code_readers": [
         "services/sahool-platform/api/persisted_canonical_repositories.py"
       ],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
       "created_in": "v225_canonical_salinity_state.sql",
       "has_tenant_id": true,
       "manifest_position": 222,
@@ -5189,7 +5196,9 @@
     },
     {
       "code_readers": [],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
       "created_in": "v226_canonical_nutrient_ledger.sql",
       "has_tenant_id": true,
       "manifest_position": 223,
@@ -5396,7 +5405,10 @@
     },
     {
       "code_readers": [],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py",
+        "services/sahool-platform/tests/test_persisted_canonical_writers.py"
+      ],
       "created_in": "v224_canonical_phenology_state.sql",
       "has_tenant_id": true,
       "manifest_position": 221,
@@ -5683,7 +5695,9 @@
     },
     {
       "code_readers": [],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
       "created_in": "v225_canonical_salinity_state.sql",
       "has_tenant_id": true,
       "manifest_position": 222,

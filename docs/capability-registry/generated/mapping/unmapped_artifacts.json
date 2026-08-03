@@ -5024,6 +5024,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py",
     "kind": "tests"
   },
