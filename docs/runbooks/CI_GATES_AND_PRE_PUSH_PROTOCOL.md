@@ -80,6 +80,14 @@ run "claim_base_guard"      python scripts/ci/claim_base_guard.py
 run "guard_mutation static" python scripts/ci/guard_mutation_guard.py
 run "guard_mutation --run"  python scripts/ci/guard_mutation_guard.py --run
 
+# ٣ب) عقد compose/البيئة — **خارج المكنسة وخارج هذه الكتلة سابقاً**، وقد أسقط بناءً
+#     فعليّاً: خدمة جديدة أدخلت ${CANONICAL_LEARNING_DURABLE} ولم تُعلَن في
+#     `.env.example`، فاحمرّ CI على تغيير لم يمسّ منطقاً. أيّ متغيّر جديد في compose
+#     يُعلَن في `.env.example` أو `frontend/.env.example` وإلّا حُجِب.
+run "compose_env_contract"    python scripts/ci/compose_env_contract_gate.py
+run "env_compose_drift"       python scripts/ci/env_compose_drift_guard.py --check
+run "compose_runtime_target"  python scripts/ci/compose_runtime_target_resolver.py --check
+
 # ٤) انحراف المصنوعات المولَّدة — راجع §٣.١ قبل تشغيله
 run "verify_all_generated" python scripts/ci/verify_all_generated.py
 
@@ -315,6 +323,24 @@ Linux افتراضيّه UTF-8، فـ`pytest -m unit` أخضر لا يُثبِت
 - الميزانية تحدّ **مسارات النطاق فقط** (`domain ≤ 629`) والجرد الخام يبقى ظاهراً.
 - الاستثناء من الميزانية **لا** يرخّص الإعلان في `main.py`.
 
+### ٣.١٤ `%G?` لا يقيس وجود التوقيع — يقيس قدرتك على التحقّق منه
+
+**لا تستعمل `git log --pretty=%G?` للحكم على أنّ التزاماً موقَّع.** في هذه البيئة
+`gpg.ssh.allowedSignersFile` غير مضبوط، فيطبع git `N` **على التزام يحمل توقيعاً
+كاملاً**. المميّز الصحيح هو الترويسة نفسها:
+
+```bash
+git cat-file commit HEAD | grep -q '^gpgsig' && echo "موقَّع" || echo "بلا توقيع"
+```
+
+المقيس: `%G?` = `N` على التزام محلّيّ ترويسته `gpgsig -----BEGIN SSH SIGNATURE-----`
+حاضرة · و`%G?` = `E` على التزامات `main` (وهي دمجات squash يُوقّعها GitHub). أي أنّ
+**الحرفين معاً يعنيان «لم أستطع التحقّق»**، لا «غير موقَّع».
+
+وحدٌّ منفصل حقيقيّ: ملفّ المفتاح العموميّ `commit_signing_key.pub` بحجم **صفر بايت**،
+فلا سبيل محلّيّاً لبناء `allowedSigners`. **لا تُولّد مفتاحاً عشوائيّاً وتعتبره هويّة
+المستودع** لتجعل الحرف أخضر — التحقّق موضعه GitHub، وهناك يظهر صادقاً.
+
 ### ٣.١٥ مراسي الأسطر في `platform_extraction_map.json` — لا يُعيد توليدها شيء
 
 **العَرَض:** تُعدّل راوتراً، تُشغّل `verify_all_generated.py --fix`، فيخرج بـ`1` ويقول:
@@ -387,23 +413,33 @@ python scripts/release/validate_release_package.py   # يجب أن يقول: che
 
 عُدتَ فعدّلت ملفّاً؟ **أعِد من الخطوة ١**. لا تُصلِح المجموع يدويّاً.
 
-### ٣.١٤ `%G?` لا يقيس وجود التوقيع — يقيس قدرتك على التحقّق منه
+### ٣.١٧ §٢ تُغطّي أقلّيّة البوّابات — اشتقّ الباقي من مساراتك المُعدَّلة
 
-**لا تستعمل `git log --pretty=%G?` للحكم على أنّ التزاماً موقَّع.** في هذه البيئة
-`gpg.ssh.allowedSignersFile` غير مضبوط، فيطبع git `N` **على التزام يحمل توقيعاً
-كاملاً**. المميّز الصحيح هو الترويسة نفسها:
+**مقيس على شجرة هذا التحديث:** الـworkflows تستدعي **٢٠٩** سكربتاً في `scripts/ci/`،
+منها **١٣٩ لا تظهر في §٢ ولا في المكنسة**. §٢ ليست «كلّ بوّابة حاجبة» بل السطح
+المشترك؛ الباقي بوّابات **مُقيَّدة بمسارات نطاقها** (agronomic lineage · main
+decomposition · consumer contract · container fleet …) تُطلَق بتغيّر ملفّاتها وحدها.
+
+**الفشل الذي أثبت الفجوة:** خدمة compose جديدة أدخلت `${CANONICAL_LEARNING_DURABLE}`
+ولم تُعلَن في `.env.example`. `compose_env_contract_gate.py` حاجبة، وليست في §٢ ولا
+في المكنسة، فلم يشغّلها شيء محلّيّاً — واحمرّ CI على تغيير لم يمسّ منطقاً.
+
+**القاعدة العمليّة — اشتقّ البوّابات من الديف لا من الذاكرة:**
 
 ```bash
-git cat-file commit HEAD | grep -q '^gpgsig' && echo "موقَّع" || echo "بلا توقيع"
+# ما الذي غيّرتُه، وأيّ workflow يراقب هذه المسارات؟
+git diff --name-only origin/main...HEAD > /tmp/changed.txt
+for wf in .github/workflows/*.yml; do
+  # اطبع الـworkflow لو ذكر أحد امتداداتك/أدلّتك في paths أو استدعى سكربتاً يقرؤها
+  grep -qFf <(cut -d/ -f1-2 /tmp/changed.txt | sort -u) "$wf" && echo "راجِع: $wf"
+done
 ```
 
-المقيس: `%G?` = `N` على التزام محلّيّ ترويسته `gpgsig -----BEGIN SSH SIGNATURE-----`
-حاضرة · و`%G?` = `E` على التزامات `main` (وهي دمجات squash يُوقّعها GitHub). أي أنّ
-**الحرفين معاً يعنيان «لم أستطع التحقّق»**، لا «غير موقَّع».
+ثمّ شغّل خطوات `python scripts/ci/…` في تلك الملفّات وحدها. أرخص من ٢٠٩ سكربتاً،
+وأصدق من الافتراض بأنّ §٢ كافية.
 
-وحدٌّ منفصل حقيقيّ: ملفّ المفتاح العموميّ `commit_signing_key.pub` بحجم **صفر بايت**،
-فلا سبيل محلّيّاً لبناء `allowedSigners`. **لا تُولّد مفتاحاً عشوائيّاً وتعتبره هويّة
-المستودع** لتجعل الحرف أخضر — التحقّق موضعه GitHub، وهناك يظهر صادقاً.
+**وإن لمستَ `docker-compose*.yml`** فالثلاثة في §٢ (`compose_env_contract` ·
+`env_compose_drift` · `compose_runtime_target`) إلزاميّة — أُضيفت هناك بعد هذا الفشل.
 
 ---
 
