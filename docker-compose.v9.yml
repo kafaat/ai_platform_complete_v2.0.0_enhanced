@@ -1162,6 +1162,9 @@ services:
     build:
       context: .
       dockerfile: services/raster-service/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -1208,6 +1211,9 @@ services:
     build:
       context: .
       dockerfile: services/raster-service/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
     mem_limit: 1024m
     security_opt:
     - no-new-privileges:true
