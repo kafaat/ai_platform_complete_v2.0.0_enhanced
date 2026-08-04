@@ -59,6 +59,10 @@ def compute(paths: list[str]) -> dict[str, object]:
         # blindness rather than a stray entry.
         "matched_paths": result["matched_paths"],
         "matched_sources": result["matched_sources"],
+        # Governance-wide paths (this file among them) make every capability affected.
+        # The declaration for such a diff is the single token ALL, never an enumeration
+        # of all 81 ids — passed through so callers can say so instead of guessing.
+        "governance_wide": result["governance_wide"],
     }
 
 

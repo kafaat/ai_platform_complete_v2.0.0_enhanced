@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4900,
+    "files_scanned": 4902,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1291,
-      "tests": 1582,
+      "other": 1292,
+      "tests": 1583,
       "web": 451
     },
-    "unmapped_artifacts": 1997,
+    "unmapped_artifacts": 1998,
     "ambiguous_artifacts": 398
   },
   "capabilities": [
@@ -14446,6 +14446,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/CI_GATES_AND_PRE_PUSH_PROTOCOL.md",
+          "score": 10,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "shared/contracts/ingest/projection.py",
           "score": 9,
           "signals": [
@@ -14467,7 +14475,7 @@
         "mobile": 12,
         "tests": 20,
         "governance": 1,
-        "other_evidence": 5
+        "other_evidence": 6
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -41402,6 +41410,10 @@
     },
     {
       "path": "tests_v9/test_learning_summary.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_local_preflight_contract.py",
       "kind": "tests"
     },
     {

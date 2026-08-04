@@ -7312,6 +7312,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_local_preflight_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_manifest_completeness.py",
     "kind": "tests"
   },

@@ -535,6 +535,15 @@ def regenerate(steps) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fix", action="store_true", help="أعد التوليد حتّى الثبات ثمّ افحص")
+    # ``--check`` مرادف صريح للسلوك الافتراضيّ، أُضيف لا ليغيّر شيئاً بل ليجعل نيّة
+    # المُستدعي **مكتوبة**. مستدعٍ يكتب `verify_all_generated.py` بلا راية يتّكل على
+    # افتراض: لو تغيّر الافتراضيّ يوماً تغيّر معنى استدعائه بلا تعديل سطر واحد عنده.
+    # الاتّكال على الافتراضات هو صنف «أخضر عن سؤال لم يُطرَح» بشكله الأخفّ.
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="افحص فقط (السلوك الافتراضيّ) — رايةٌ صريحة تجعل نيّة المُستدعي مكتوبة",
+    )
     parser.add_argument(
         "--uncovered",
         action="store_true",
