@@ -3826,6 +3826,40 @@
     ]
   },
   {
+    "path": "scripts/ci/capability_impact.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "INT-002",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
     "path": "scripts/ci/capability_linker.py",
     "kind": "other",
     "candidates": [

@@ -1988,6 +1988,10 @@ nats.js.errors.Error: nats: JetStream.Error consumer is already bound to a subsc
 
 **ما لم يُنزَل ولماذا:** نقل ملكيّة الدفق إلى مُهيِّئ صريح (خطوة provisioning أو الهجرات) قرارٌ معماريّ يمسّ كلّ مشترِك على الناقل، وخارج نطاق شريحة إصلاح العامل. لا يُغيَّر بلا سلطة معماريّة.
 
+**الجرد أُنجِز (2026-08-04):** [`docs/architecture/jetstream_topology_inventory.md`](../../docs/architecture/jetstream_topology_inventory.md) — دفق واحد · **١٣ مستهلكاً دائماً** من **ثلاثة مالكين** (`agents/` · `services/weather-polygon-worker/` · `scripts/workers/`) بلا سجلّ جامع قبل هذا. وكشف أربعة بنود لم تكن معروفة: ① التهيئة **مفتوحة عند الفشل** — `add_stream` يبتلع كلّ استثناء عدا «already exists» ثمّ يُعلن الوكيل `✅ ready` بلا ناقل · ② الدفق **بلا سياسة احتفاظ** (`max_age=0`, `max_msgs=-1`, `max_bytes=-1`)، والحدّ الوحيد `max_file_store: 2GB` على الخادم كلّه ⇒ نموّ حتّى الرفض، **والرفض صامت** (`shared/helpers.py:318-325` يلتقط ويُرجِع `False`) · ③ `num_replicas=1` ⇒ فقد المجلّد يفقد مواضع كلّ المستهلكين · ④ **لا حدّ إعادة تسليم ولا DLQ** على أيّ من الثلاثة عشر (`max_deliver=-1`)، ورسالةٌ تفشل عبوريّاً دائماً تُعاد إلى الأبد.
+
+**الحسم المطلوب قبل النقل (قرارات منتَج لا تنفيذ):** سياسة الاحتفاظ · حدّ إعادة التسليم وDLQ · ملكيّة الأسماء الدائمة (مركزيّة تمنع التصادم الذي وقع فعلاً في `WORKER-REGISTERED-BUT-CANNOT-START-01`، أم لامركزيّة تحفظ استقلال الخدمات) · `num_replicas`.
+
 **المصدر:** [`agents/notification/agent.py:449`](../../agents/notification/agent.py) · [`docker-compose.v9.yml`](../../docker-compose.v9.yml) `sahool-canonical-execution-learning-worker.depends_on` · قياس محلّيّ 2026-08-04.
 
 ## FAKE-CONNECTION-ENFORCES-NOTHING-01 — مفتوحة (P1 منهجيّة، رُصِدت 2026-08-04)
@@ -2056,3 +2060,25 @@ canonical_salinity_states -> canonical_salinity_states_append_only
 **العلاج:** رفض مُغلَق عند الفشل قبل أيّ فحص، **بعد** حلّ الـSHA كي لا يُهرَّب `EXPECTED_SHA` صريحٌ فوق شجرة متّسخة.
 
 **المصدر:** [`scripts/e2e/run_canonical_execution_learning_live_gate.sh`](../../scripts/e2e/run_canonical_execution_learning_live_gate.sh).
+
+
+## CAPABILITY-IMPACT-TOOLS-DISAGREE-01 — CLOSED (مُقاسة على تجهيزة ثابتة، رُصِدت 2026-08-04)
+
+**الصنف:** أداتان تُجيبان سؤالاً واحداً — «ما الذي يمسّه تغييري؟» — بجوابين مختلفين، إحداهما ما يوصي `docs/capabilities/CAPABILITY_GOVERNANCE.md` بتشغيله، والأخرى ما يحجب الدمج.
+
+**القياس على تجهيزة ثابتة من عشرة مسارات** (واجهة المنصّة · هجرة · عامل · سكربتا e2e · compose · الواجهة الأماميّة):
+
+```
+direct      legacy=0   gate=5    (DEC-006, GIS-003, INT-002, SEC-001, WX-006)
+affected    legacy=0   gate=12
+```
+
+**والفرق ليس معرّفاً شارداً بل طبقة كاملة:** `capability_impact.py` كان يمشي على قوائم `capabilities/registry` المصونة يدويّاً وحدها (`services`/`tests`/`ui_consumers`/`evidence`)، بينما تقرأ البوّابة معها `capability_mapping.json` المولَّد — خريطة المسارات الحقيقيّة إلى القدرات بأبعادها (`mapping:backend` · `mapping:events` · `mapping:web` · `mapping:other_evidence`). كلّ قدرة فاتت الأداة وصلت عبر تلك الخريطة، ولذلك **تتّسع الفجوة باتّساع الفرق** لا تبقى ثابتة.
+
+**ولماذا يهمّ:** جوابٌ أصغر من الحقيقة هو كيف يفلت تغيير من إعلان الأثر؛ ومساهمٌ يثق بالأداة يُحجَب ببوّابة تقتبس رقماً آخر — وهو ما وقع لي حرفيّاً في PR #785.
+
+**العلاج:** محرّك واحد لا ثانٍ مُصحَّح. `capability_impact.py` صار غلافاً رفيعاً على `pr_capability_impact_gate.impact` + `current_snapshot`، ومصدر الحقيقة هو محرّك البوّابة لأنّه يقرأ الخريطة المشتقّة من الشجرة لا قائمة تُصان بيد.
+
+**التكذيب:** أُعيدت النسخة القديمة إلى الشجرة وشُغّلت ⇒ سقط اختبارا التكافؤ وعدم-الازدواج؛ استُعيدت ⇒ ثلاثة خضراء. ومع اختبار التكافؤ اختبارُ **عرضٍ للتجهيزة** يمنع الخضرة الفارغة: تجهيزة لا تُطابِق شيئاً تجعل التكافؤ صحيحاً بلا معنى.
+
+**المصدر:** [`tests_v9/test_capability_impact_parity.py`](../../tests_v9/test_capability_impact_parity.py) · [`scripts/ci/capability_impact.py`](../../scripts/ci/capability_impact.py).
