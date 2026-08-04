@@ -16363,6 +16363,7 @@
           "canonical_irrigation_machine_capabilities",
           "canonical_nutrient_ledgers",
           "canonical_phenology_states",
+          "canonical_projection_requests",
           "canonical_root_zone_profiles",
           "canonical_salinity_states",
           "canonical_sprinkler_runoff_capabilities",
@@ -17335,7 +17336,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "da03da9988fea39056026e8d29b01a3318179a98446b77527f150f93b4e03aee",
+  "fingerprint": "1d6d2c250dd47516b4b28f60e6f910d6c4da9bf8b0de51b005a08b739801a276",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

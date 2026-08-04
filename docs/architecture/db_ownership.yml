@@ -1988,3 +1988,12 @@ tables:
     writers: [sahool-platform]
     readers: [sahool-platform]
     source: "migrations/v227_decision_learning_runtime.sql, services/sahool-platform/api/learning_feedback.py"
+  # طابور نيّات الإسقاط الكنسيّ: يقرأه العامل المُسجَّل
+  # sahool-canonical-execution-learning-worker على حدث agronomy.projection.requested
+  # ثمّ يكتب الحالة الناتجة عبر api/persisted_canonical_repositories.py. الحالة
+  # pending/processed/failed تجعل إعادة التشغيل آمنة (لا معالجة مرّتين) والفشل مرئيّاً.
+  canonical_projection_requests:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v227_decision_learning_runtime.sql, scripts/workers/canonical_execution_learning_worker.py"

@@ -188,8 +188,8 @@ async def handle_envelope(pool: Any, envelope: dict[str, Any]) -> dict[str, Any]
         await pool.release(conn)
 
 
-async def preflight() -> None:
-    """Fail-closed connectivity and schema check without consuming messages."""
+async def preflight() -> dict[str, Any]:
+    """Fail-closed connectivity/schema check and return auditable facts."""
     import asyncpg
 
     import nats
@@ -211,6 +211,14 @@ async def preflight() -> None:
             raise RuntimeError(
                 "missing runtime tables: " + ",".join(str(r["name"]) for r in missing)
             )
+        tables = [
+            "decision_learning_runs",
+            "governed_model_promotion_candidates",
+            "irrigation_closed_loop_records",
+            "events",
+            "event_outbox",
+            "canonical_projection_requests",
+        ]
     finally:
         await conn.close()
 
@@ -218,8 +226,24 @@ async def preflight() -> None:
     try:
         js = nc.jetstream()
         await js.account_info()
+        missing_subjects: list[str] = []
+        subject_streams: dict[str, str] = {}
+        for subject in SUBJECTS:
+            try:
+                subject_streams[subject] = await js.find_stream_name_by_subject(subject)
+            except Exception:
+                missing_subjects.append(subject)
+        if missing_subjects:
+            raise RuntimeError(
+                "JetStream has no stream covering required subjects: " + ",".join(missing_subjects)
+            )
     finally:
         await nc.drain()
+
+    return {
+        "database": {"required_tables": tables, "status": "passed"},
+        "jetstream": {"subject_streams": subject_streams, "status": "passed"},
+    }
 
 
 async def run() -> None:
@@ -264,6 +288,16 @@ if __name__ == "__main__":
         action="store_true",
         help="check PostgreSQL schema and NATS JetStream, then exit",
     )
+    parser.add_argument(
+        "--preflight-json",
+        action="store_true",
+        help="emit preflight facts as JSON for SHA-bound runtime evidence",
+    )
     args = parser.parse_args()
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
-    asyncio.run(preflight() if args.preflight else run())
+    if args.preflight or args.preflight_json:
+        result = asyncio.run(preflight())
+        if args.preflight_json:
+            print(json.dumps(result, sort_keys=True))
+    else:
+        asyncio.run(run())

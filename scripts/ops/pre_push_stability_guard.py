@@ -29,7 +29,9 @@ _CACHE_SUFFIXES = {".pyc", ".pyo"}
 
 
 def _git(*args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(["git", *args], cwd=ROOT, text=True, capture_output=True, timeout=30)
+    return subprocess.run(
+        ["git", *args], cwd=ROOT, text=True, encoding="utf-8", capture_output=True, timeout=30
+    )
 
 
 def _tracked_files() -> list[str]:
@@ -68,7 +70,9 @@ def contamination() -> list[str]:
 
 
 def active_mutators() -> list[str]:
-    proc = subprocess.run(["ps", "-eo", "pid=,args="], text=True, capture_output=True, timeout=15)
+    proc = subprocess.run(
+        ["ps", "-eo", "pid=,args="], text=True, encoding="utf-8", capture_output=True, timeout=15
+    )
     if proc.returncode != 0:
         return ["could not inspect process table"]
     own_pid = os.getpid()

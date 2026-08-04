@@ -315,6 +315,78 @@ Linux افتراضيّه UTF-8، فـ`pytest -m unit` أخضر لا يُثبِت
 - الميزانية تحدّ **مسارات النطاق فقط** (`domain ≤ 629`) والجرد الخام يبقى ظاهراً.
 - الاستثناء من الميزانية **لا** يرخّص الإعلان في `main.py`.
 
+### ٣.١٥ مراسي الأسطر في `platform_extraction_map.json` — لا يُعيد توليدها شيء
+
+**العَرَض:** تُعدّل راوتراً، تُشغّل `verify_all_generated.py --fix`، فيخرج بـ`1` ويقول:
+
+```
+AssertionError: platform extraction map source drift:
+  [{'function': 'recommendations_for_field',
+    'documented': 'api/routers/recommendations.py:150',
+    'current':    'api/routers/recommendations.py:181'}, …]
+```
+
+**السبب:** `docs/architecture/platform_extraction_map.json` **وثيقة سياسة لا مصنوعة
+مولَّدة**. كلّ مسار فيها مربوط بسطر مصدره، و`platform_route_ownership_guard.py
+--check-generated` يفشل **مُغلَقاً** عند أيّ انزياح. إضافة عشرة أسطر في أعلى راوتر
+تُزيح كلّ مساراته، فتسقط بوّابتان (`ownership` و`governance_attestation`) على تغيير
+لم يمسّ مساراً واحداً. `--fix` **لا يصلحها**: لا مولّد يكتبها.
+
+**العلاج — اشتقّ الأرقام من مُجمِّع الحارس نفسه، لا تكتبها يدويّاً:**
+
+```python
+import json, pathlib, sys
+sys.path.insert(0, ".")
+from scripts.ci.platform_route_ownership_guard import collect_surface, PLATFORM_ROOT, MAP_PATH
+
+surface = {i.identity: i for i in collect_surface(PLATFORM_ROOT)}
+p = pathlib.Path(MAP_PATH); original = p.read_text(encoding="utf-8")
+doc = json.loads(original)
+for row in doc["routes"]:
+    cur = surface.get((str(row["method"]), str(row["path"]), str(row["function"])))
+    if cur and (row.get("file") != cur.file or int(row.get("line", 0)) != cur.line):
+        row["file"], row["line"] = cur.file, cur.line
+p.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+```
+
+ثمّ `python scripts/ci/platform_route_ownership_guard.py --write-generated` و
+`… platform_route_governance_attestation.py --write-generated`.
+
+**وحافِظ على تسلسل الملفّ:** `sort_keys=True` يُعيد كتابة ٢٥٦٥ سطراً لتصحيح **ثمانية
+أرقام**، فيدفن التغيير الحقيقيّ في ضجيج ويجعل المراجعة مستحيلة. المقيس بعد الالتزام
+بالتسلسل الأصليّ: **٨ أسطر تتغيّر، لا أكثر**.
+
+### ٣.١٦ حزمة الإصدار تُبنى **آخِراً** — وأيّ لمسة بعدها تُبطِلها
+
+`release/FILE_CHECKSUMS.sha256` يُجزّئ **كلّ** مصنوعة أخرى. أيّ ملفّ يُكتَب بعد بناء
+الحزمة — ولو سطراً واحداً — يُسقِط `Repository Tests (tests/)` برسالة تسمّي الملفّ لا
+السبب:
+
+```
+checksum mismatch: scripts/e2e/run_canonical_execution_learning_live_gate.sh
+assert 1 == 0
+```
+
+**والفخّ الذي لا يخطر:** بعض خطوات `--check` **تكتب أثناء الفحص**
+(`service_feature_ui_contract_gate` نموذجاً، وهو صنف `CHECK-STEPS-MUTATE-THE-TREE-01`).
+فتشغيل «تحقّق» بعد بناء الحزمة يُبطِلها بلا أن تُعدّل أنت شيئاً.
+
+**الترتيب الملزِم — ولا استثناء:**
+
+```bash
+git add -A                                   # ١) المولّدات تعدّ المتعقَّب فقط (§٣.١)
+python scripts/ci/verify_all_generated.py --fix
+git add -A
+python scripts/release/platform_route_release_binding.py --write-source   # ٢) `--fix` لا يستدعيه
+git add -A
+SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) \
+  python scripts/release/build_release_bundle.py                          # ٣) آخِراً
+git add -A
+python scripts/release/validate_release_package.py   # يجب أن يقول: checksums verified
+```
+
+عُدتَ فعدّلت ملفّاً؟ **أعِد من الخطوة ١**. لا تُصلِح المجموع يدويّاً.
+
 ### ٣.١٤ `%G?` لا يقيس وجود التوقيع — يقيس قدرتك على التحقّق منه
 
 **لا تستعمل `git log --pretty=%G?` للحكم على أنّ التزاماً موقَّع.** في هذه البيئة

@@ -22,7 +22,7 @@ rag-retrieval,service,knowledge,sahool-rag-retrieval,sahool-rag-retrieval,2,True
 raster-service,service,remote-sensing-truth,sahool-raster-service,sahool-raster-service,14,True,True
 raster-tiler-service,service,remote-sensing-truth,,raster-tiler-service,0,True,False
 remote-sensing-workspace-bff,bff,remote-sensing-workspace,sahool-remote-sensing-workspace-bff,sahool-remote-sensing-workspace-bff,0,True,True
-sahool-platform,service,platform-core,,sahool-platform,194,True,True
+sahool-platform,service,platform-core,,sahool-platform,195,True,True
 sam2-inference,service,fields-boundary,sahool-sam2-inference,sahool-sam2-inference,0,True,False
 scout-ingest-service,service,ground-ingest,,,11,True,True
 soil-service,service,soil,sahool-soil-service,sahool-soil-service,32,True,True

@@ -89,17 +89,19 @@ async def test_season_learning_replay_is_idempotent_and_emits_nothing():
 
 
 def test_v227_is_rls_governed_and_auto_promotion_is_forbidden():
-    text = (ROOT / "migrations/v227_decision_learning_runtime.sql").read_text()
+    text = (ROOT / "migrations/v227_decision_learning_runtime.sql").read_text(encoding="utf-8")
     assert "FORCE ROW LEVEL SECURITY" in text
     assert "auto_promote BOOLEAN NOT NULL DEFAULT FALSE CHECK (NOT auto_promote)" in text
-    manifest = (ROOT / "migrations/MANIFEST.txt").read_text()
+    manifest = (ROOT / "migrations/MANIFEST.txt").read_text(encoding="utf-8")
     assert manifest.index("v227_decision_learning_runtime.sql") < manifest.index(
         "v206_rls_final_hardening.sql"
     )
 
 
 def test_registered_worker_is_an_executable_root_for_both_event_chains():
-    text = (ROOT / "scripts/workers/canonical_execution_learning_worker.py").read_text()
+    text = (ROOT / "scripts/workers/canonical_execution_learning_worker.py").read_text(
+        encoding="utf-8"
+    )
     assert "sahool.events.irrigation.execution.completed" in text
     assert "sahool.events.season.closed" in text
     assert "finalize_irrigation_closed_loop" in text
