@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4889,
+    "files_scanned": 4894,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1290,
-      "tests": 1575,
-      "web": 448
+      "tests": 1577,
+      "web": 451
     },
-    "unmapped_artifacts": 1990,
+    "unmapped_artifacts": 1994,
     "ambiguous_artifacts": 397
   },
   "capabilities": [
@@ -25488,6 +25488,14 @@
           ]
         },
         {
+          "path": "frontend/src/sections/MapHubImageryTimelineUx.static.test.ts",
+          "score": 8,
+          "signals": [
+            "content:MFA",
+            "content:mfa"
+          ]
+        },
+        {
           "path": "tests_v9/test_decomposed_service_dockerfile_guard.py",
           "score": 8,
           "signals": [
@@ -25657,7 +25665,7 @@
         "events": 4,
         "web": 5,
         "mobile": 4,
-        "tests": 15,
+        "tests": 16,
         "governance": 0,
         "other_evidence": 17
       },
@@ -34080,6 +34088,14 @@
       "kind": "tests"
     },
     {
+      "path": "frontend/eslint-suppressions.json",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/eslint.config.js",
+      "kind": "web"
+    },
+    {
       "path": "frontend/package-lock.json",
       "kind": "web"
     },
@@ -34493,6 +34509,14 @@
     },
     {
       "path": "frontend/src/components/maphub/VraPrescriptionPanel.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/maphub/captureTime.test.ts",
+      "kind": "tests"
+    },
+    {
+      "path": "frontend/src/components/maphub/captureTime.ts",
       "kind": "web"
     },
     {

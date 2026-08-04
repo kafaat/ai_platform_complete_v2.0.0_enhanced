@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "lint": "eslint src --ext ts,tsx",
+    "lint": "eslint src e2e",
     "format": "prettier --write src/**/*.{ts,tsx}",
     "build:docker": "vite build",
     "verify:no-demo": "node scripts/verify-no-demo-in-build.mjs",
@@ -24,7 +24,8 @@
     "e2e:weather-smoke": "playwright test e2e/weather-maphub-smoke.spec.ts",
     "e2e:visual": "PW_VISUAL=1 playwright test --project=visual",
     "e2e:visual:update": "PW_VISUAL=1 playwright test --project=visual --update-snapshots",
-    "typecheck:field-workspace-contract": "tsc -p tsconfig.field-workspace-contract.json --noEmit"
+    "typecheck:field-workspace-contract": "tsc -p tsconfig.field-workspace-contract.json --noEmit",
+    "lint:fix": "eslint src e2e --fix"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.33.1-dev57.0",
@@ -58,6 +59,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.49.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -70,11 +72,14 @@
     "@types/shpjs": "^3.4.7",
     "@vitejs/plugin-react": "^6.0.2",
     "autoprefixer": "^10.4.19",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.0",
     "jsdom": "^25.0.1",
     "postcss": "8.5.23",
     "prettier": "^3.2.5",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
+    "typescript-eslint": "^8.46.0",
     "vite": "^8.0.16",
     "vitest": "^4.1.9"
   }
