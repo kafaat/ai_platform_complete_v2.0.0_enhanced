@@ -1949,3 +1949,43 @@ assert "timedelta(days=months" not in b, "الشهر ليس ٣١ يوماً — 
 **الأثر المُصاحَب (مسجَّل بصدق):** لم أُشغّل `pytest -m unit` قبل الدفع لأنّ الشريحة بدت واجهيّة وهي تحمل تغييراً خلفيّاً — عكس القاعدة المكتوبة في §٣.١٧ من دليل البوّابات في اليوم نفسه. الجناح يكشفه في خمس دقائق محلّيّاً؛ كلّف دورتَي CI.
 
 **المصدر:** PR #780 · `2781d6e6` · وظيفة *Unit Tests* على `731d263e`.
+
+## WORKER-REGISTERED-BUT-CANNOT-START-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+
+**الصنف:** وحدةٌ خضراء عند كلّ إشارة ساكنة — مُسجَّلة، ومُعلَنة خدمةً في compose، و`--preflight` يخرج بصفر ويطبع حقائقه — **والعمليّة تموت عند الإقلاع**. لا يكشفه إلّا تشغيلها.
+
+**العطل:** [`scripts/workers/canonical_execution_learning_worker.py`](../../scripts/workers/canonical_execution_learning_worker.py) كان يشترك في **ثلاثة** مواضيع باسم durable **واحد**:
+
+```python
+durable = os.getenv("CANONICAL_LEARNING_DURABLE", "canonical-execution-learning-v1")
+for subject in SUBJECTS:
+    await js.subscribe(subject, durable=durable, cb=callback, manual_ack=True)
+```
+
+والمستهلك المُعمَّر في JetStream يرتبط باشتراك **واحد**. مُعاد إنتاجه على nats-server v2.10.22 مع nats-py:
+
+```
+nats.js.errors.Error: nats: JetStream.Error consumer is already bound to a subscription
+```
+
+الرمية تقع في **الدورة الثانية** من الحلقة، قبل أن يبلغ العامل حلقة الخمول ⇒ **لم يعالج حدثاً واحداً قطّ**، لا محلّيّاً ولا في أيّ نشر.
+
+**ولماذا لم يره شيء:** `--preflight` يسأل «هل يغطّي دفقٌ كلّ موضوع؟» — والجواب نعم؛ وهو سؤال **التغطية** لا سؤال **الارتباط**. وحرّاس الوصول والتسجيل تقيس أنّ الوحدة مُستدعاة من جذر، وهي كذلك. الصنف نفسه المُسجَّل في `MIGRATION-DECLARED-BUT-NEVER-EXECUTED-01`: «مُسجَّل» ≠ «يعمل».
+
+**العلاج المُنزَل:** durable مشتقّ لكلّ موضوع من **الموضوع كاملاً** (النقاط ⇒ شرطات) لا من مقطعه الأخير — `season.closed` و`irrigation.closed` يشتركان في المقطع الأخير، فلاحقةُ المقطع الأخير تُعيد التصادم نفسه تحت اسم يبدو متمايزاً. ولا هجرة مستحقّة على أيّ نشر: مستهلِك الاسم المشترك لم يكن ليُنشَأ لأكثر من موضوع واحد، والعامل الذي يملكه لم يُقلِع قطّ.
+
+**التكذيب (طفرتان، كلٌّ أُعيدت إلى الشجرة وشُغّلت):** ① الاسم المشترك ⇒ سقط اختباران بالرسالة الحيّة نفسها · ② لاحقة المقطع الأخير ⇒ سقط اختبار التصادم بـ`canonical-execution-learning-v1-closed` مرّتين. وبعد الإصلاح: أربعة خضراء، **وتحقّقٌ حيّ** على nats-server يُظهر ثلاثة مستهلكين متمايزين لكلٍّ `filter_subject` الصحيح.
+
+**المصدر:** [`tests_v9/test_canonical_execution_learning_worker_subscriptions.py`](../../tests_v9/test_canonical_execution_learning_worker_subscriptions.py) · القياس الحيّ على nats-server v2.10.22 · الفرع `claude/project-exploration-dtjw3p`.
+
+## JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01 — مفتوحة (P2 معماريّة، رُصِدت 2026-08-04)
+
+**الصنف:** طوبولوجيا ناقل الأحداث يملكها **مستهلِك** لا الناقل ولا الهجرات.
+
+**القياس:** الدفق `sahool` الذي يحمل كلّ مواضيع `sahool.>` يُنشَأ في [`agents/notification/agent.py:449`](../../agents/notification/agent.py) — `await _js.add_stream(StreamConfig(name="sahool", subjects=["sahool.>"]))`. لا `sahool-nats` ينشئه ولا `sahool-migrate`. فصلاحيّة عامل التعلّم القانونيّ معلَّقة على إقلاع **وكيل الإشعارات** أوّلاً؛ وقد ظهر ذلك عمليّاً: أوّل `--preflight` محلّيّ فشل مغلقاً بـ`JetStream has no stream covering required subjects` حتّى أُنشئ الدفق يدويّاً.
+
+**ما أُنزِل الآن (وحدّه):** حافّة `depends_on` صريحة على `sahool-notification-agent` في [`docker-compose.v9.yml`](../../docker-compose.v9.yml) — **ترتيب فقط**: `service_started` يقول إنّ عمليّة الوكيل بدأت، لا إنّ الدفق صار موجوداً. الضمان الحقيقيّ يبقى إقلاع العامل المُغلَق عند الفشل + `restart: unless-stopped`.
+
+**ما لم يُنزَل ولماذا:** نقل ملكيّة الدفق إلى مُهيِّئ صريح (خطوة provisioning أو الهجرات) قرارٌ معماريّ يمسّ كلّ مشترِك على الناقل، وخارج نطاق شريحة إصلاح العامل. لا يُغيَّر بلا سلطة معماريّة.
+
+**المصدر:** [`agents/notification/agent.py:449`](../../agents/notification/agent.py) · [`docker-compose.v9.yml`](../../docker-compose.v9.yml) `sahool-canonical-execution-learning-worker.depends_on` · قياس محلّيّ 2026-08-04.

@@ -6872,10 +6872,6 @@
     "kind": "tests"
   },
   {
-    "path": "tests_v9/test_db_ownership_source_integrity_guard.py",
-    "kind": "tests"
-  },
-  {
     "path": "tests_v9/test_db_role_guard_shared.py",
     "kind": "tests"
   },

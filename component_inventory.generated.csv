@@ -1,12 +1,12 @@
 component_id,type,domain,aliases,compose_services,tables_owned,wired,tested
 actuator-service,service,execution,sahool-actuator-service,sahool-actuator-service,7,True,True
-agriai-engine,service,simulation-experimental,sahool-agriai-engine,sahool-agriai-engine,21,False,True
+agriai-engine,service,simulation-experimental,sahool-agriai-engine,sahool-agriai-engine,22,False,True
 ai_agronomist,service,agents,,,0,True,True
 auth,service,identity,sahool-auth,sahool-auth,0,True,True
 decision-service,service,decision-governance,sahool-decision-service,sahool-decision-service,42,True,True
 edge-inference,service,edge,,,0,True,True
 erp-bridge,service,erp-projection,odoo-bridge|sahool-erp-bridge,sahool-erp-bridge,15,True,True
-field-management-service,service,fields-internal,,,32,True,True
+field-management-service,service,fields-internal,,,33,True,True
 field-segmentation,service,fields-boundary,sahool-field-segmentation,sahool-field-segmentation,0,True,True
 frontend,frontend,user-interface,,,0,,
 gis-workflow-service,batch-job-tool,gis-publication,,,2,,True
@@ -19,7 +19,7 @@ mobile,mobile,user-interface,,,0,,
 model-registry-adapter,adapter,decision-governance,,,0,True,True
 qdrant-seed,job,knowledge,sahool-qdrant-seed,sahool-qdrant-seed,0,,True
 rag-retrieval,service,knowledge,sahool-rag-retrieval,sahool-rag-retrieval,2,True,True
-raster-service,service,remote-sensing-truth,sahool-raster-service,sahool-raster-service,13,True,True
+raster-service,service,remote-sensing-truth,sahool-raster-service,sahool-raster-service,14,True,True
 raster-tiler-service,service,remote-sensing-truth,,raster-tiler-service,0,True,False
 remote-sensing-workspace-bff,bff,remote-sensing-workspace,sahool-remote-sensing-workspace-bff,sahool-remote-sensing-workspace-bff,0,True,True
 sahool-platform,service,platform-core,,sahool-platform,195,True,True
