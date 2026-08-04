@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4896,
+    "files_scanned": 4897,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1290,
-      "tests": 1579,
+      "tests": 1580,
       "web": 451
     },
-    "unmapped_artifacts": 1994,
+    "unmapped_artifacts": 1995,
     "ambiguous_artifacts": 397
   },
   "capabilities": [
@@ -40925,6 +40925,10 @@
     },
     {
       "path": "tests_v9/test_db_integration.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_db_ownership_source_integrity_guard.py",
       "kind": "tests"
     },
     {
