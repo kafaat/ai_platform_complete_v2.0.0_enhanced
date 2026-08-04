@@ -103,16 +103,16 @@
       "runtime_verified": 0
     },
     {
-      "average_assessed_maturity": 2.44,
+      "average_assessed_maturity": 2.56,
       "average_declared_maturity": 3.0,
       "capability_count": 9,
-      "declared_above_evidence": 5,
+      "declared_above_evidence": 4,
       "domain": "satellite",
       "maturity_distribution": {
         "0": 0,
         "1": 0,
-        "2": 5,
-        "3": 4,
+        "2": 4,
+        "3": 5,
         "4": 0,
         "5": 0
       },

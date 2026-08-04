@@ -375,6 +375,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cf4d54f838434026ffddfccdb56cfde4378ca7f922b891b090583dfe1266f9ae"
+        }
+      ],
+      "name": "frontend/eslint-suppressions.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ac692886d29e9daa519a2624a2204c961fbf995a5f15bab01c0506496d7ceac0"
+        }
+      ],
+      "name": "frontend/eslint.config.js",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c4345470f63816ef318331e4e89e805a401a5cdd15d2b21423d74b13fdb4def"
         }
       ],
@@ -415,7 +435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "209d6af7b0f6b1b963be9e4ed03a7fc2de4c1e66319b750b643d62d1f489479d"
+          "content": "ed079675f4456e96da3190ce37b8c319f0c22ab9ed5730a9a6415d1a3ce753e3"
         }
       ],
       "name": "frontend/package-lock.json",
@@ -425,7 +445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "669adc34be526d39e64b8dd07ef9ec2110fa2c56fd58b90788e0075cab131c43"
+          "content": "4fd81a2d1796b19e79c1a9d7218d02b0a31931c339faf90c1a86bc2823b7208d"
         }
       ],
       "name": "frontend/package.json",
@@ -845,7 +865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be0d41001f3d383220b5d2bede4b402eef02ca886a01e1da4b78e45c468cb093"
+          "content": "4d510bcbe0cb034e0bf2121131631e1a2c3b8532f04a1424453c16028571f136"
         }
       ],
       "name": "frontend/src/components/ds/combobox.tsx",
@@ -935,7 +955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2fff630386ee34e4f5262110360c0d73423a9cc1b2e0936344cfddd2711f3ce3"
+          "content": "41d19613c6d45cb9bdd359b099ee5d177f6ced8370cad7c54d71aa9b47456750"
         }
       ],
       "name": "frontend/src/components/ds/table.tsx",
@@ -1785,7 +1805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c192e7d9359e19a43bb2089dfc2fa5d1c2644280c9b14afa997b31249aea7a76"
+          "content": "ddc395bb6dfd8942459997d1182c78cec1872ba39795983335f6a37be71d9d4c"
         }
       ],
       "name": "frontend/src/components/maphub/ImageryTimelineThumb.tsx",
@@ -1979,6 +1999,26 @@
         }
       ],
       "name": "frontend/src/components/maphub/VraPrescriptionPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "47f927e9825c1149d51489be1a287126b0e6c6725fffbbaa37a167dc02ba49b0"
+        }
+      ],
+      "name": "frontend/src/components/maphub/captureTime.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8bbb3fd5a0ef1fbe6a33eb41b55621d4be3a7a42433f80b4ed38e3e2dc3f4f4d"
+        }
+      ],
+      "name": "frontend/src/components/maphub/captureTime.ts",
       "type": "file"
     },
     {
@@ -5565,7 +5605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92e7cf91120fe8ce46ced2b10b0c719199d20d3ddbdf4f80a3525fd1150fc2e9"
+          "content": "fab7e6819ba9284a165de5ba46a68df91b16255efc271d39494a4af2e5e70586"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5579,6 +5619,16 @@
         }
       ],
       "name": "frontend/src/sections/MapHubHistoricalTimeline.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c8bbced120cca991a57095d075c6509d8f9ef1320fb8a160eec02669c5c4b69c"
+        }
+      ],
+      "name": "frontend/src/sections/MapHubImageryTimelineUx.static.test.ts",
       "type": "file"
     },
     {
@@ -6435,7 +6485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3830069c5553ef90270a284f82133d3f9805611f01784f8248799feee5922398"
+          "content": "5b143da704cf5f8abc7349532e04fbde9aa6255e1abb38bc8d93780dd9dcc91f"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -17435,7 +17485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ee818a808565ebf2c607b54d3de6a1ea5116868fbf83d5be94b548cb6b1a00c"
+          "content": "4b442025aff823af856a4fc7aabacbad754849eeabeacec632b6f0058738ce17"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_imagery.py",

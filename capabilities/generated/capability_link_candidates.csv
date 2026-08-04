@@ -375,7 +375,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/activities @ services/sahool-platform/a
 FM-003,api,GET /api/v1/fields/{field_id}/agronomic-replay @ services/sahool-platform/api/routers/agronomic_replay.py:58,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/ai-context-pack @ services/sahool-platform/api/routers/field_ai_context.py:702,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/alerts/derived @ services/sahool-platform/api/routers/fields.py:4018,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:41,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:51,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/boundary-graph @ services/sahool-platform/api/routers/boundaries.py:265,6,applied
 FM-003,api,GET /api/v1/fields/{field_id}/data-completeness @ services/sahool-platform/api/routers/field_completeness.py:56,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/decision-confidence @ services/sahool-platform/api/routers/decision_confidence.py:74,4,applied
@@ -386,7 +386,7 @@ FM-003,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/saho
 FM-003,api,GET /api/v1/fields/{field_id}/geometry/history @ services/sahool-platform/api/routers/fields.py:1558,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/history @ services/sahool-platform/api/routers/fields.py:3715,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1031,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:77,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3058,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159,4,applied
@@ -1402,7 +1402,7 @@ SAT-005,test,tests_v9/test_field_intelligence_cloud.py,3,applied
 SAT-005,test,tests_v9/test_imagery_aoi_cloud_contract.py,3,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,2,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id} @ services/sahool-platform/api/routers/fields.py:1031,2,applied
-SAT-006,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:77,2,applied
+SAT-006,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:87,2,applied
 SAT-006,api,GET /api/v1/fields/{field_id}/unified-timeline @ services/sahool-platform/api/routers/field_workspace_timeline.py:32,2,applied
 SAT-006,api,GET /api/v1/weather/historical @ services/sahool-platform/api/routers/weather.py:2074,2,applied
 SAT-006,api,GET /api/v1/weather/history/coverage @ services/sahool-platform/api/routers/operational_truth.py:202,2,applied
@@ -1434,6 +1434,7 @@ SAT-006,test,tests_v9/test_backfill_incremental_retry_guard_v31_1.py,3,applied
 SAT-006,test,tests_v9/test_backfill_scene_job_threadpool_v30_3.py,3,applied
 SAT-006,test,tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py,3,applied
 SAT-006,test,tests_v9/test_decision_review_backfill_verify.py,3,applied
+SAT-006,test,tests_v9/test_historical_imagery_timeline_contract.py,5,applied
 SAT-006,test,tests_v9/test_historical_search_cdse_v30_8.py,3,applied
 SAT-006,test,tests_v9/test_historical_season_bridge_static.py,3,applied
 SAT-006,test,tests_v9/test_imagery_timeline_endpoint_v31_4.py,3,applied

@@ -40,7 +40,19 @@ def test_route_exists_and_is_month_bounded():
     assert _DECORATOR in b
     assert "months: int = Query(24, ge=1, le=60)" in b
     # server-side time-window cut (not just proxying everything).
-    assert "cutoff" in b and "timedelta(days=months" in b
+    #
+    # كان هذا التأكيد يُثبّت `timedelta(days=months * 31)` — أي **الحساب الخاطئ** لا
+    # الخاصّيّة. الشهر ليس ٣١ يوماً: عند months=24 يُرجِع الحدُّ اليوميّ 2024-07-21
+    # بينما الشهر التقويميّ يُرجِع 2024-08-04 — أربعةَ عشرَ يوماً من المشاهد خارج
+    # النافذة المطلوبة، تدخل بصمت. والنيّة المكتوبة في اسم الاختبار
+    # («month bounded») هي الصحيحة؛ صياغتها هي التي جمّدت العطل.
+    # التأكيد الآن على الخاصّيّة: قصٌّ بالأشهر التقويميّة، ومرجع زمنيّ UTC صريح
+    # (`date.today()` يقرأ توقيت الخادم المحلّيّ بينما كلّ تواريخ هذا المسار مشتقّة
+    # بـUTC، فيزيح الحدَّ يوماً حسب أين تعمل العمليّة).
+    assert "cutoff" in b
+    assert "_subtract_calendar_months(" in b
+    assert "datetime.now(UTC).date()" in b
+    assert "timedelta(days=months" not in b, "الشهر ليس ٣١ يوماً — لا تُعِد الحدّ اليوميّ"
 
 
 def test_items_carry_truecolor_thumbnail_and_real_cog():
