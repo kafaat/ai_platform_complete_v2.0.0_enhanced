@@ -4698,7 +4698,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-    "line": 41,
+    "line": 51,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/available-dates",
     "function": "field_imagery_available_dates_facade"
@@ -4706,7 +4706,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-    "line": 77,
+    "line": 87,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/imagery/timeline",
     "function": "field_imagery_timeline_facade"

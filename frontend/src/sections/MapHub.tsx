@@ -467,6 +467,19 @@ function MapHubCore() {
   const twoYearTimeline = useMemo(() => summarizeTwoYearTimeline(timelineImageryDates), [timelineImageryDates]);
   const imageryTimelineScrollRef = useRef<HTMLDivElement>(null);
 
+  // أزرار تمرير صريحة: شريطٌ أفقيّ بلا مؤشّر بصريّ لا يُكتشَف — يفترض المستخدم أنّ
+  // ما يراه هو كلّ المشاهد. الاتّجاه منطقيّ لا فيزيائيّ: «الأحدث» يمشي نحو بداية
+  // القائمة (المرتّبة تنازليّاً) أيّاً كان اتّجاه الصفحة، و`scrollBy` نسبيّ فلا
+  // يعتمد على اصطلاح أصل `scrollLeft` المختلف بين RTL وLTR.
+  const scrollImageryTimeline = useCallback((direction: 'newer' | 'older') => {
+    const node = imageryTimelineScrollRef.current;
+    if (!node) return;
+    const step = Math.max(280, Math.round(node.clientWidth * 0.75));
+    const rtl = getComputedStyle(node).direction === 'rtl';
+    const toStart = direction === 'newer';
+    node.scrollBy({ left: (toStart ? -1 : 1) * (rtl ? -step : step), behavior: 'smooth' });
+  }, []);
+
   // البطاقة المختارة تُجلَب إلى المرأى عند تغيّر الاختيار من **خارج** الشريط: زرّ
   // «الأحدث»، أو منتقي التاريخ، أو استعادة مساحة عمل محفوظة. بدون هذا يبقى التمييز
   // الأخضر على بطاقة خارج الشاشة، فيبدو الشريط وكأنّه لم يستجب. `inline: 'nearest'`
@@ -478,10 +491,18 @@ function MapHubCore() {
       `[data-date="${CSS.escape(selectedImageryDate)}"]`,
     );
     // scrollIntoView على العنصر يُمرّر كلّ سلف قابل للتمرير — بما فيه الصفحة. نحصر
-    // الأثر في الشريط وحده بحساب الإزاحة يدويّاً، وإلّا قفزت الصفحة عند كلّ اختيار.
+    // الأثر في الشريط وحده.
     if (!target) return;
-    const left = target.offsetLeft - (container.clientWidth - target.clientWidth) / 2;
-    container.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+    // الإزاحة تُحسَب من **فرق المستطيلين** لا من offsetLeft، وتُطبَّق بـscrollBy:
+    // الواجهة RTL، وفيها أصل التمرير عند اليمين و`scrollLeft` يتراوح من سالب إلى
+    // صفر. حسابٌ مطلق مع `Math.max(0, …)` يقصّ كلّ هدف سالب إلى صفر، فلا يصل الشريط
+    // إلى تاريخ أقدم إطلاقاً — يعود دائماً إلى الأحدث. الفرق النسبيّ محايد الاتّجاه
+    // فيعمل تحت RTL وLTR بلا معرفة اصطلاح الأصل.
+    const box = container.getBoundingClientRect();
+    const item = target.getBoundingClientRect();
+    const delta = item.left + item.width / 2 - (box.left + box.width / 2);
+    if (Math.abs(delta) < 1) return; // ظاهرة ومتمركزة أصلاً ⇒ لا حركة
+    container.scrollBy({ left: delta, behavior: 'smooth' });
   }, [selectedImageryDate, twoYearTimeline.items]);
   const dateSelectorDates = availableImageryDates.length > 0 ? availableImageryDates : timelineImageryDates;
 
@@ -2455,6 +2476,25 @@ function MapHubCore() {
                             </div>
                           </div>
                         </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            aria-label="تمرير نحو الصور الأحدث"
+                            onClick={() => scrollImageryTimeline('newer')}
+                            className="px-2 py-1 rounded-lg text-[11px]"
+                            style={{ background: T.card, border: `1px solid ${T.line}`, color: T.muted }}
+                          >
+                            ‹
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="تمرير نحو الصور الأقدم"
+                            onClick={() => scrollImageryTimeline('older')}
+                            className="px-2 py-1 rounded-lg text-[11px]"
+                            style={{ background: T.card, border: `1px solid ${T.line}`, color: T.muted }}
+                          >
+                            ›
+                          </button>
                         <button
                           type="button"
                           onClick={() => setSelectedImageryDate('latest')}
@@ -2463,6 +2503,7 @@ function MapHubCore() {
                         >
                           الأحدث
                         </button>
+                        </div>
                       </div>
                       {/* منطقة تمرير أفقيّة: `tabindex=0` + `role`/`aria-label` كي تُدرَك
                           بلوحة المفاتيح وقارئ الشاشة. المحتوى قابل للتبويب أصلاً (أزرار)،

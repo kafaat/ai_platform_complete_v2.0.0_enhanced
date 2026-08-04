@@ -12,7 +12,7 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4894**
+- Files scanned: **4895**
 - Ambiguous artifacts queued: **397**
 - Unmapped artifacts queued: **1994**
 
@@ -74,7 +74,7 @@
 | SAT-003 | satellite | 100 | 82 | 42 | 100 | 49 | 6 | 100 | 7 |
 | SAT-004 | satellite | 19 | 10 | 5 | 14 | 7 | 0 | 20 | 6 |
 | SAT-005 | satellite | 8 | 24 | 0 | 1 | 0 | 0 | 9 | 4 |
-| SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 2 | 3 |
+| SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 5 | 5 |
 | SAT-009 | satellite | 12 | 68 | 0 | 12 | 1 | 0 | 21 | 5 |

@@ -3577,6 +3577,10 @@ export interface FieldImageryDateOption {
   // وقت الالتقاط الحقيقيّ (ISO8601 UTC) من كتالوج STAC حين يتوفّر — لعرض «تاريخ الالتقاط».
   // غيابه (null) ⇒ الواجهة تعرض التاريخ وحده بصدق (acquisition_date تاريخ بلا وقت).
   acquisition_datetime?: string | null;
+  // رابط المصغّرة القانونيّ حين يأتي العنصر من واجهة `/imagery/timeline`
+  // (تبنيه الواجهة الخلفيّة بـ`source=persisted`). مسار `available-dates`
+  // لا يُرجِعه، فيبنيه العميل بالسياسة نفسها.
+  thumbnail_url?: string | null;
 }
 
 /** تواريخ Sentinel/CDSE المتاحة للحقل؛ تُستخدم لربط زر التاريخ فعلياً برابط البلاطات.

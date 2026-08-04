@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+import calendar
+from datetime import UTC, date, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -29,6 +30,15 @@ from api.main import (
 from api.raster_service_client import get_available_dates
 
 router = APIRouter()
+
+
+def _subtract_calendar_months(value: date, months: int) -> date:
+    """Return the same calendar day N months earlier, clamped to month end."""
+    absolute = value.year * 12 + (value.month - 1) - months
+    year, month0 = divmod(absolute, 12)
+    month = month0 + 1
+    day = min(value.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
 
 
 def _as_list(payload: Any) -> list[dict[str, Any]]:
@@ -98,7 +108,7 @@ async def field_imagery_timeline_facade(
             tenant_id=tenant,
             limit=min(500, max(30, months * 6)),
         )
-        cutoff = (date.today() - timedelta(days=months * 31)).isoformat()
+        cutoff = _subtract_calendar_months(datetime.now(UTC).date(), months).isoformat()
         items: list[dict[str, Any]] = []
         for row in _as_list(payload):
             date_str = str(row.get("date") or "")[:10]
@@ -135,7 +145,10 @@ async def field_imagery_timeline_facade(
                     ),
                 }
             )
-        items.sort(key=lambda item: item["date"], reverse=True)
+        items.sort(
+            key=lambda item: item.get("acquisition_datetime") or f"{item['date']}T00:00:00Z",
+            reverse=True,
+        )
         return {"field_id": field_id, "months": months, "count": len(items), "items": items}
     except HTTPException:
         raise

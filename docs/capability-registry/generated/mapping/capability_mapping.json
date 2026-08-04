@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4894,
+    "files_scanned": 4895,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1290,
-      "tests": 1577,
+      "tests": 1578,
       "web": 451
     },
     "unmapped_artifacts": 1994,
@@ -5436,11 +5436,11 @@
           "score": 18
         },
         {
-          "value": "/api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:40",
+          "value": "/api/v1/fields/{field_id}/available-dates @ services/sahool-platform/api/routers/field_workspace_imagery.py:50",
           "score": 13
         },
         {
-          "value": "/api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:76",
+          "value": "/api/v1/fields/{field_id}/imagery/timeline @ services/sahool-platform/api/routers/field_workspace_imagery.py:86",
           "score": 13
         },
         {
@@ -21684,6 +21684,14 @@
       "mobile": [],
       "tests": [
         {
+          "path": "tests_v9/test_historical_imagery_timeline_contract.py",
+          "score": 16,
+          "signals": [
+            "path:Historical imagery timeline",
+            "path:historical imagery"
+          ]
+        },
+        {
           "path": "services/raster-service/test_backfill_scene_policy.py",
           "score": 14,
           "signals": [
@@ -21712,7 +21720,7 @@
         "events": 1,
         "web": 0,
         "mobile": 0,
-        "tests": 2,
+        "tests": 3,
         "governance": 0,
         "other_evidence": 0
       },

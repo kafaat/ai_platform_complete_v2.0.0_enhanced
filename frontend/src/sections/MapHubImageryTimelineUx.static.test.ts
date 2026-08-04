@@ -47,8 +47,16 @@ describe('شريط المشاهد التاريخيّة — وقت الالتقا
     // scrollIntoView يُمرّر كلّ سلف قابل للتمرير بما فيه الصفحة؛ الإزاحة المحسوبة
     // تحصر الأثر في الشريط وحده.
     expect(source).toContain('imageryTimelineScrollRef');
-    expect(source).toContain('container.scrollTo(');
+    expect(source).toContain('container.scrollBy(');
     expect(source).not.toContain('target.scrollIntoView(');
+  });
+
+  it('التمرير محايد الاتّجاه — الواجهة RTL وأصل scrollLeft فيها عند اليمين', () => {
+    // حسابٌ مطلق من offsetLeft مع Math.max(0, …) يقصّ كلّ هدف سالب إلى صفر تحت RTL،
+    // فيعود الشريط إلى الأحدث بدل الوصول إلى التاريخ الأقدم المختار. الفرق النسبيّ
+    // بين مستطيلَي العنصر والحاوية لا يعتمد على اصطلاح الأصل.
+    expect(source).toContain('getBoundingClientRect()');
+    expect(source).not.toMatch(/scrollTo\(\{\s*left:\s*Math\.max\(0/);
   });
 
   it('البطاقة النشطة مُعلَنة دلاليّاً لا بالحدّ الأخضر وحده', () => {

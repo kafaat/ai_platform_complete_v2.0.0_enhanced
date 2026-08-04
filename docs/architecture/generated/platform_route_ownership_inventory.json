@@ -5,9 +5,9 @@
     "mapped_routes": 635,
     "surface_routes": 635
   },
-  "inventory_sha256": "54c4ae6bf78715e9d1c8eceb46071674905f6b1dd3da02bac9574c95330fd7ed",
+  "inventory_sha256": "38ad99ef53620498811729956f29c2e3b2661a95d675cbbb8c7539c8ccee691e",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "da034218084c98e2d1448aff01474d7a28eb7395617f5dcad11365e0dbec99bf",
+  "map_sha256": "e166f70ab5aac4bec98308b6451276d6401dd82e034a616d767e0b52cddee5f2",
   "routes": [
     {
       "classification": null,
@@ -1891,7 +1891,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/field_workspace_imagery.py",
       "function": "field_imagery_available_dates_facade",
-      "line": 40,
+      "line": 50,
       "method": "GET",
       "owner": "raster-service",
       "owner_type": "bff-facade-to-raster",
@@ -2045,7 +2045,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/field_workspace_imagery.py",
       "function": "field_imagery_timeline_facade",
-      "line": 76,
+      "line": 86,
       "method": "GET",
       "owner": "raster-service",
       "owner_type": "bff-facade-to-raster",

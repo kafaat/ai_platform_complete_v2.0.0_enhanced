@@ -53,7 +53,7 @@ SAT-002,satellite,True color imagery,True,4,1,1,0,1,0,0,3,0
 SAT-003,satellite,NDVI,True,7,100,82,42,100,49,6,100,0
 SAT-004,satellite,NDMI,True,6,19,10,5,14,7,0,20,0
 SAT-005,satellite,Cloud screening,True,4,8,24,0,1,0,0,9,0
-SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,2,0
+SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,5,0
 SAT-009,satellite,COG persistence and tiling,True,5,12,68,0,12,1,0,21,0

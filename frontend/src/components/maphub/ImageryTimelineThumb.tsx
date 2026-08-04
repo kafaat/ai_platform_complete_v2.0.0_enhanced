@@ -23,7 +23,7 @@ export interface ImageryTimelineThumbProps {
   borderColor: string;
 }
 
-const BOX = 'mb-2 h-16 w-full overflow-hidden rounded-lg border';
+const BOX = 'relative mb-2 h-16 w-full overflow-hidden rounded-lg border';
 
 export function ImageryTimelineThumb({ src, date, borderColor }: ImageryTimelineThumbProps) {
   const [state, setState] = useState<ThumbState>(src ? 'loading' : 'pending');
@@ -42,14 +42,25 @@ export function ImageryTimelineThumb({ src, date, borderColor }: ImageryTimeline
         <img
           src={src}
           alt={`مصغّرة صورة الحقل ${date}`}
-          className="h-full w-full object-cover"
+          className={`h-full w-full object-cover ${state === 'ready' ? 'opacity-100' : 'absolute opacity-0'}`}
           loading="lazy"
+          decoding="async"
           data-testid="imagery-thumb-img"
           onLoad={() => setState('ready')}
           // 404 من المسار المُدَام (أصل مُعلَن غير قابل للتقديم) يصل هنا. لا نُخفي
           // العنصر — نستبدله بحالة مقروءة، فالفشل يُرى ولا يُبتلَع.
           onError={() => setState('failed')}
         />
+      )}
+      {/* هيكل تحميل بدل مربّع أسود: الفراغ أثناء الجلب كان يُقرأ «لا صورة».
+          الصورة تبقى مُركَّبة وشفّافة حتّى `ready` فلا وميض عند الاستبدال. */}
+      {state === 'loading' && (
+        <div
+          className="flex h-full w-full animate-pulse items-center justify-center bg-slate-900 text-[10px] text-slate-400"
+          data-testid="imagery-thumb-loading"
+        >
+          جارٍ تحميل المعاينة…
+        </div>
       )}
       {label && (
         <div

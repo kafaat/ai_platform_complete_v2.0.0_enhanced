@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "ecd00137af38d92482ca2c55f051b2344c7c8b0cc391679622f62a1638205a60",
+  "inventory_sha256": "d9bac7fb3591cddca9739aa15a12fb3246be03ca6844e7fb9ac2cfc45ffb3a01",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "da034218084c98e2d1448aff01474d7a28eb7395617f5dcad11365e0dbec99bf"
+    "policy_sha256": "e166f70ab5aac4bec98308b6451276d6401dd82e034a616d767e0b52cddee5f2"
   },
   "routes": [
     {
@@ -1082,7 +1082,7 @@
     {
       "classification": "domain",
       "function": "field_imagery_available_dates_facade",
-      "line": 40,
+      "line": 50,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/available-dates",
       "source": "api/routers/field_workspace_imagery.py"
@@ -1170,7 +1170,7 @@
     {
       "classification": "domain",
       "function": "field_imagery_timeline_facade",
-      "line": 76,
+      "line": 86,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/imagery/timeline",
       "source": "api/routers/field_workspace_imagery.py"

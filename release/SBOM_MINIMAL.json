@@ -1805,7 +1805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c192e7d9359e19a43bb2089dfc2fa5d1c2644280c9b14afa997b31249aea7a76"
+          "content": "ddc395bb6dfd8942459997d1182c78cec1872ba39795983335f6a37be71d9d4c"
         }
       ],
       "name": "frontend/src/components/maphub/ImageryTimelineThumb.tsx",
@@ -5605,7 +5605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aef5bd659a4182d27fe714218f20e57bfe0ac362fd7b5481d6ce2e5c239bd71b"
+          "content": "fab7e6819ba9284a165de5ba46a68df91b16255efc271d39494a4af2e5e70586"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5625,7 +5625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db007c67f7704ac28d700c2ce65a71d508115a8c03e03b1d3d5257a2627ab41b"
+          "content": "c8bbced120cca991a57095d075c6509d8f9ef1320fb8a160eec02669c5c4b69c"
         }
       ],
       "name": "frontend/src/sections/MapHubImageryTimelineUx.static.test.ts",
@@ -6485,7 +6485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3830069c5553ef90270a284f82133d3f9805611f01784f8248799feee5922398"
+          "content": "5b143da704cf5f8abc7349532e04fbde9aa6255e1abb38bc8d93780dd9dcc91f"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -17485,7 +17485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ee818a808565ebf2c607b54d3de6a1ea5116868fbf83d5be94b548cb6b1a00c"
+          "content": "4b442025aff823af856a4fc7aabacbad754849eeabeacec632b6f0058738ce17"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_imagery.py",
