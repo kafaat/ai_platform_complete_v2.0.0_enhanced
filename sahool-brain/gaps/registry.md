@@ -1989,3 +1989,70 @@ nats.js.errors.Error: nats: JetStream.Error consumer is already bound to a subsc
 **ما لم يُنزَل ولماذا:** نقل ملكيّة الدفق إلى مُهيِّئ صريح (خطوة provisioning أو الهجرات) قرارٌ معماريّ يمسّ كلّ مشترِك على الناقل، وخارج نطاق شريحة إصلاح العامل. لا يُغيَّر بلا سلطة معماريّة.
 
 **المصدر:** [`agents/notification/agent.py:449`](../../agents/notification/agent.py) · [`docker-compose.v9.yml`](../../docker-compose.v9.yml) `sahool-canonical-execution-learning-worker.depends_on` · قياس محلّيّ 2026-08-04.
+
+## FAKE-CONNECTION-ENFORCES-NOTHING-01 — مفتوحة (P1 منهجيّة، رُصِدت 2026-08-04)
+
+**الصنف الجامع لأربعة عيوب في جلسة واحدة:** كلّ اختبارات مسار التعلّم القانونيّ تعمل على **اتّصال وهميّ**. والوهميّ لا يفرض `CHECK`، ولا يُطلِق `TRIGGER`، ولا يُعيد الأنواع التي يُعيدها asyncpg. فما مرّ خضراء سنةً كاملة كان يسقط في أوّل لقاء بقاعدة حقيقيّة — والأربعة أدناه سقطت **بالتسلسل**، كلّ واحد يحجب الذي بعده، فلم يُرَ أيّ منها قبل تشغيل الرحلة كاملةً.
+
+**البرهان:** بعد تطبيق **٢٢٦ هجرة** من `MANIFEST.txt` على PG16 نظيفة (v206 آخِراً، صفر فشل) وتشغيل `run_canonical_execution_learning_live_gate.sh`، تعطّلت الرحلة أربع مرّات متتالية بأربعة أسباب مختلفة، وكلّ إصلاح كشف التالي.
+
+**ما لم يُقَس:** كم اختباراً في هذا المستودع يعتمد على وهميّ لا يفرض ما تفرضه القاعدة. الأربعة أدناه هي ما التقته رحلة **واحدة**؛ السطح غير ممسوح.
+
+## WORKER-JSONB-READ-ASSUMES-DECODED-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+
+**العطل:** asyncpg يُعيد `jsonb` **نصّاً** ما لم يُسجَّل codec، ومسبح هذا العامل لا يُسجّل شيئاً. فـ`dict(row["canonical_payload"])` رمى على كلّ حدث إسقاط:
+
+```
+ValueError: dictionary update sequence element #0 has length 1; 2 is required
+```
+
+**والأسوأ من الرمية تصنيفها:** ردّ نداء العامل يُصنّف `ValueError` **مدخلاً باطلاً دائماً** فيستدعي `msg.term()` — أي أنّ عيب فكّ ترميز في كودنا **يتخلّص من حدث صحيح** ويحمّل المنتِج وزره. ولو لم يرمِ الأوّل لكان `list(row["evidence_payload"])` على النصّ `"[]"` يُعطي `['[', ']']` — مشاهدتان مختلقتان **بصمت**.
+
+**العلاج:** `decode_jsonb` — رُقّي من `_json` الخاصّ في `persisted_canonical_repositories.py` إلى اسم عامّ يستورده العامل، فتبقى **تعريفة واحدة** بدل سادسة مكرّرة.
+
+**المصدر:** [`scripts/workers/canonical_execution_learning_worker.py`](../../scripts/workers/canonical_execution_learning_worker.py) · [`tests_v9/test_canonical_event_emission_contracts.py`](../../tests_v9/test_canonical_event_emission_contracts.py) · قياس على PG16.
+
+## EVENT-SOURCE-IS-A-SERVICE-NAME-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+
+**العطل:** `events.source` عمود **enum بسبعة قيم** (`migrations/v11_events_bus.sql:47-48`)، وثلاثة كُتّاب كانوا يمرّرون **اسم خدمة/وحدة**:
+
+| الملفّ | القيمة الممرَّرة |
+|---|---|
+| `persisted_canonical_repositories.py` | `'sahool-platform'` |
+| `learning_feedback.py` | `'sahool-platform.learning_feedback'` |
+| `irrigation_closed_loop_runtime.py` | `'sahool-platform.irrigation_closed_loop_runtime'` |
+
+كلّها مرفوضة: `CheckViolationError: new row for relation "events" violates check constraint "events_source_check"`. أي أنّ **كامل سطح إصدار الأحداث** في مسار التعلّم القانونيّ — الإسقاط، وإغلاق الموسم، وإغلاق حلقة الريّ — لم يلمس قاعدة حقيقيّة قطّ.
+
+**العلاج:** `EventSource.SYSTEM` (نفس القيمة التي يستعملها `irrigation_execution_request_port.py:61`)، وحارس تكافؤ يقارن **الـenum في الكود** بالقائمة المُستخرَجة من الهجرة نفسها — لا بقائمة أُعيدت كتابتها في الاختبار.
+
+**حدّ صدق:** هويّة الوحدة المُصدِرة **لا موطن لها** في مخطّط `events` (لا عمود منتِج؛ و`actor_id` دلالته الفاعل لا المُنتِج). ما كانت تلك السلاسل تحاول قوله ضاع، ولم أخترع له عموداً — بند للمالك.
+
+**المصدر:** [`migrations/v11_events_bus.sql:47-48`](../../migrations/v11_events_bus.sql) · [`api/event_bus.py`](../../services/sahool-platform/api/event_bus.py) `EventSource` · قياس على PG16.
+
+## LIVE-GATE-TEARDOWN-DELETES-APPEND-ONLY-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+
+**العطل:** تنظيف جولة JetStream كان يحذف من جدولين **append-only بالعقد**، فترفضه محفّزات القاعدة:
+
+```
+events                    -> trg_append_only_events
+canonical_salinity_states -> canonical_salinity_states_append_only
+```
+
+**فالبوّابة لم تكن قادرة على الخروج بصفر أبداً:** الرحلة نفسها **نجحت** — الحدث كُتِب، والحالة القانونيّة واحدة، وسجلّ الصادر واحد، وإعادة التشغيل لم تُكرِّر — ثمّ ماتت وهي **تنظّف بعد نفسها**، مرّتين، جدولاً بعد جدول.
+
+**العلاج:** لا يُحذَف ما لا يُحذَف. يُحذَف صفّ الطلب وحده (المتغيّر الوحيد)، ويُعلَن الباقي في حقل `residue` داخل الحقائق المنشورة. إضعاف المحفّز ليتمكّن اختبارٌ من الترتيب كان سيكون الإصلاح الخاطئ: السجلّ المناعيّ صحيح والتنظيف هو الخاطئ.
+
+**ودرس اكتشاف داخل الاختبار نفسه:** أوّل صياغة لحارس «لا تحذف من append-only» مسحت `CREATE TRIGGER` نصّاً فوجدت **٢٤ جدولاً** وفاتها `events` — لأنّ `v9_append_only_enforcement.sql` يبني محفّزاتها **ديناميّاً** من `tables TEXT[] := ARRAY[...]` عبر `EXECUTE format()`. حارسٌ يمسح شكلاً واحداً يُبلِّغ نظافةً وهو أعمى عن أهمّ جدول.
+
+**المصدر:** [`scripts/e2e/canonical_projection_jetstream_roundtrip.py`](../../scripts/e2e/canonical_projection_jetstream_roundtrip.py) · [`migrations/v9_append_only_enforcement.sql`](../../migrations/v9_append_only_enforcement.sql).
+
+## LIVE-EVIDENCE-SHA-UNBOUND-TO-A-CLEAN-TREE-01 — CLOSED (رُصِدت 2026-08-04)
+
+**العطل:** مُشغّل الأدلّة يثبّت `git rev-parse HEAD` في الشاهد، **ولا يفحص نظافة الشجرة**. فأوّل مرّة اخضرّت البوّابة كانت ثلاثة إصلاحات إنتاجيّة **غير ملتزَمة**، والشاهد ختم `e57570f3` — وهي شجرة **لا يمكن أن تكون قد مرّت**.
+
+**ولماذا هذا أخطر من الأحمر:** الأحمر يُوقِف؛ والأخضر المنسوب إلى الالتزام الخطأ يدخل الأرشيف بوصفه إثباتاً. والـSHA لا يُسمّي تشغيلاً بل **شجرة**؛ فإن اختلفت الشجرة سقط كلّ معنى الختم.
+
+**العلاج:** رفض مُغلَق عند الفشل قبل أيّ فحص، **بعد** حلّ الـSHA كي لا يُهرَّب `EXPECTED_SHA` صريحٌ فوق شجرة متّسخة.
+
+**المصدر:** [`scripts/e2e/run_canonical_execution_learning_live_gate.sh`](../../scripts/e2e/run_canonical_execution_learning_live_gate.sh).
