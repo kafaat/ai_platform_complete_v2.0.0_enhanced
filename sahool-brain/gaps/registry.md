@@ -1950,7 +1950,7 @@ assert "timedelta(days=months" not in b, "الشهر ليس ٣١ يوماً — 
 
 **المصدر:** PR #780 · `2781d6e6` · وظيفة *Unit Tests* على `731d263e`.
 
-## WORKER-REGISTERED-BUT-CANNOT-START-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+## WORKER-REGISTERED-BUT-CANNOT-START-01 — CLOSED، هبطت في `6b6ffe82` (PR #785) (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
 
 **الصنف:** وحدةٌ خضراء عند كلّ إشارة ساكنة — مُسجَّلة، ومُعلَنة خدمةً في compose، و`--preflight` يخرج بصفر ويطبع حقائقه — **والعمليّة تموت عند الإقلاع**. لا يكشفه إلّا تشغيلها.
 
@@ -1976,9 +1976,9 @@ nats.js.errors.Error: nats: JetStream.Error consumer is already bound to a subsc
 
 **التكذيب (طفرتان، كلٌّ أُعيدت إلى الشجرة وشُغّلت):** ① الاسم المشترك ⇒ سقط اختباران بالرسالة الحيّة نفسها · ② لاحقة المقطع الأخير ⇒ سقط اختبار التصادم بـ`canonical-execution-learning-v1-closed` مرّتين. وبعد الإصلاح: أربعة خضراء، **وتحقّقٌ حيّ** على nats-server يُظهر ثلاثة مستهلكين متمايزين لكلٍّ `filter_subject` الصحيح.
 
-**المصدر:** [`tests_v9/test_canonical_execution_learning_worker_subscriptions.py`](../../tests_v9/test_canonical_execution_learning_worker_subscriptions.py) · القياس الحيّ على nats-server v2.10.22 · الفرع `claude/project-exploration-dtjw3p`.
+**المصدر:** [`tests_v9/test_canonical_execution_learning_worker_subscriptions.py`](../../tests_v9/test_canonical_execution_learning_worker_subscriptions.py) · القياس الحيّ على nats-server v2.10.22 · PR #785 (`6b6ffe82`).
 
-## JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01 — مفتوحة (P2 معماريّة، رُصِدت 2026-08-04)
+## JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01 — مفتوحة (P2 معماريّة، رُصِدت 2026-08-04؛ الحافّة وحدها هبطت في `6b6ffe82` / PR #785)
 
 **الصنف:** طوبولوجيا ناقل الأحداث يملكها **مستهلِك** لا الناقل ولا الهجرات.
 
