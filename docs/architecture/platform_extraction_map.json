@@ -2803,7 +2803,7 @@
       "function": "field_imagery_available_dates_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/available-dates",
-      "line": 40,
+      "line": 50,
       "target_owner": "raster-service",
       "owner_type": "bff-facade-to-raster",
       "route_key": "api/routers/field_workspace_imagery.py::GET /api/v1/fields/{field_id}/available-dates::field_imagery_available_dates_facade"
@@ -2813,7 +2813,7 @@
       "function": "field_imagery_timeline_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/imagery/timeline",
-      "line": 76,
+      "line": 86,
       "target_owner": "raster-service",
       "owner_type": "bff-facade-to-raster",
       "route_key": "api/routers/field_workspace_imagery.py::GET /api/v1/fields/{field_id}/imagery/timeline::field_imagery_timeline_facade"

@@ -122,6 +122,7 @@ import HubMap, {
 } from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import ImageryTimelineThumb from '../components/maphub/ImageryTimelineThumb';
+import { captureTime } from '../components/maphub/captureTime';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 import type { DrawFeature } from '../components/maphub/drawing';
@@ -464,6 +465,45 @@ function MapHubCore() {
   // Token يلغي polling الخلفيّ عند تغيير الحقل أو تفكيك المكوّن؛ يمنع تحديث Timeline لحقل قديم.
   const backfillPollTokenRef = useRef(0);
   const twoYearTimeline = useMemo(() => summarizeTwoYearTimeline(timelineImageryDates), [timelineImageryDates]);
+  const imageryTimelineScrollRef = useRef<HTMLDivElement>(null);
+
+  // أزرار تمرير صريحة: شريطٌ أفقيّ بلا مؤشّر بصريّ لا يُكتشَف — يفترض المستخدم أنّ
+  // ما يراه هو كلّ المشاهد. الاتّجاه منطقيّ لا فيزيائيّ: «الأحدث» يمشي نحو بداية
+  // القائمة (المرتّبة تنازليّاً) أيّاً كان اتّجاه الصفحة، و`scrollBy` نسبيّ فلا
+  // يعتمد على اصطلاح أصل `scrollLeft` المختلف بين RTL وLTR.
+  const scrollImageryTimeline = useCallback((direction: 'newer' | 'older') => {
+    const node = imageryTimelineScrollRef.current;
+    if (!node) return;
+    const step = Math.max(280, Math.round(node.clientWidth * 0.75));
+    const rtl = getComputedStyle(node).direction === 'rtl';
+    const toStart = direction === 'newer';
+    node.scrollBy({ left: (toStart ? -1 : 1) * (rtl ? -step : step), behavior: 'smooth' });
+  }, []);
+
+  // البطاقة المختارة تُجلَب إلى المرأى عند تغيّر الاختيار من **خارج** الشريط: زرّ
+  // «الأحدث»، أو منتقي التاريخ، أو استعادة مساحة عمل محفوظة. بدون هذا يبقى التمييز
+  // الأخضر على بطاقة خارج الشاشة، فيبدو الشريط وكأنّه لم يستجب. `inline: 'nearest'`
+  // لا يُحرّك الشريط إن كانت البطاقة ظاهرة أصلاً — فلا قفزة عند النقر داخل الشريط.
+  useEffect(() => {
+    const container = imageryTimelineScrollRef.current;
+    if (!container || selectedImageryDate === 'latest') return;
+    const target = container.querySelector<HTMLElement>(
+      `[data-date="${CSS.escape(selectedImageryDate)}"]`,
+    );
+    // scrollIntoView على العنصر يُمرّر كلّ سلف قابل للتمرير — بما فيه الصفحة. نحصر
+    // الأثر في الشريط وحده.
+    if (!target) return;
+    // الإزاحة تُحسَب من **فرق المستطيلين** لا من offsetLeft، وتُطبَّق بـscrollBy:
+    // الواجهة RTL، وفيها أصل التمرير عند اليمين و`scrollLeft` يتراوح من سالب إلى
+    // صفر. حسابٌ مطلق مع `Math.max(0, …)` يقصّ كلّ هدف سالب إلى صفر، فلا يصل الشريط
+    // إلى تاريخ أقدم إطلاقاً — يعود دائماً إلى الأحدث. الفرق النسبيّ محايد الاتّجاه
+    // فيعمل تحت RTL وLTR بلا معرفة اصطلاح الأصل.
+    const box = container.getBoundingClientRect();
+    const item = target.getBoundingClientRect();
+    const delta = item.left + item.width / 2 - (box.left + box.width / 2);
+    if (Math.abs(delta) < 1) return; // ظاهرة ومتمركزة أصلاً ⇒ لا حركة
+    container.scrollBy({ left: delta, behavior: 'smooth' });
+  }, [selectedImageryDate, twoYearTimeline.items]);
   const dateSelectorDates = availableImageryDates.length > 0 ? availableImageryDates : timelineImageryDates;
 
   useEffect(() => {
@@ -2436,6 +2476,25 @@ function MapHubCore() {
                             </div>
                           </div>
                         </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            aria-label="تمرير نحو الصور الأحدث"
+                            onClick={() => scrollImageryTimeline('newer')}
+                            className="px-2 py-1 rounded-lg text-[11px]"
+                            style={{ background: T.card, border: `1px solid ${T.line}`, color: T.muted }}
+                          >
+                            ‹
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="تمرير نحو الصور الأقدم"
+                            onClick={() => scrollImageryTimeline('older')}
+                            className="px-2 py-1 rounded-lg text-[11px]"
+                            style={{ background: T.card, border: `1px solid ${T.line}`, color: T.muted }}
+                          >
+                            ›
+                          </button>
                         <button
                           type="button"
                           onClick={() => setSelectedImageryDate('latest')}
@@ -2444,8 +2503,20 @@ function MapHubCore() {
                         >
                           الأحدث
                         </button>
+                        </div>
                       </div>
-                      <div className="flex gap-2 overflow-x-auto pb-1" data-testid="imagery-timeline-items">
+                      {/* منطقة تمرير أفقيّة: `tabindex=0` + `role`/`aria-label` كي تُدرَك
+                          بلوحة المفاتيح وقارئ الشاشة. المحتوى قابل للتبويب أصلاً (أزرار)،
+                          لكنّ المنطقة بلا اسم كانت تُقرأ مجهولة الغرض. `snap-x` يُثبّت
+                          البطاقة عند حافّتها بدل توقّف عشوائيّ في منتصفها. */}
+                      <div
+                        className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory"
+                        data-testid="imagery-timeline-items"
+                        ref={imageryTimelineScrollRef}
+                        tabIndex={0}
+                        role="group"
+                        aria-label="شريط مشاهد الأقمار التاريخيّة — مرّر أفقيّاً"
+                      >
                         {twoYearTimeline.items.map((d) => {
                           // AOI-CLOUD-CONTRACT (#636): سحابة الحقل (AOI) مفضّلة حين تُحسَب،
                           // وإلّا سحابة المشهد. aoi_cloud_pct=null يعني «لم تُحسب» لا 0%.
@@ -2454,14 +2525,25 @@ function MapHubCore() {
                           const fieldCloud = typeof d.aoi_cloud_pct === 'number' ? d.aoi_cloud_pct : null;
                           const cloud = fieldCloud != null ? fieldCloud : sceneCloud;
                           const active = selectedImageryDate === d.date;
+                          // وقت الالتقاط الحقيقيّ من كتالوج STAC. الخادم يحمله عبر ثلاث
+                          // طبقات ولم تكن الواجهة تقرؤه — فكان «تاريخ الصورة» بلا شاهد.
+                          const capture = captureTime(d.acquisition_datetime, d.date);
                           return (
                             <button
                               key={`${d.date}-${d.scene_id ?? 'scene'}`}
                               type="button"
                               onClick={() => handleSelectImageryTimelineItem(d.date, d)}
-                              className="min-w-[132px] rounded-xl border px-3 py-2 text-right"
+                              className="min-w-[132px] snap-start rounded-xl border px-3 py-2 text-right"
                               style={{ background: active ? '#123524' : '#111827', borderColor: active ? '#22c55e99' : T.line, color: T.ink }}
-                              title={d.scene_id ?? d.date}
+                              aria-current={active ? 'true' : undefined}
+                              data-active={active ? 'true' : undefined}
+                              data-date={d.date}
+                              title={[
+                                `تاريخ الالتقاط ${d.date}`,
+                                capture.label ? `وقت الالتقاط ${capture.label}` : null,
+                                capture.mismatch ? `تنبيه: طابع المشهد ${capture.isoDate}` : null,
+                                d.scene_id ? `المشهد ${d.scene_id}` : null,
+                              ].filter(Boolean).join(' · ')}
                             >
                               {/* المؤشّر: truecolor إن كان محفوظاً لهذا التاريخ، وإلّا أوّل
                                   مؤشّر محفوظ — فلا مصغّرة truecolor فارغة لتاريخ له مؤشّر
@@ -2488,9 +2570,23 @@ function MapHubCore() {
                               )}
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-xs font-bold">{d.date}</span>
-                                <span className="text-[10px]" style={{ color: T.faint }}>{monthLabel(d.date)}</span>
+                                {/* الساعة موسومة UTC صراحةً: التاريخ أعلاه مشتقّ من الطابع
+                                    نفسه بـUTC، فعرضها بتوقيت المتصفّح يضع سطرين متناقضين
+                                    على البطاقة الواحدة. غياب الطابع ⇒ الشهر كما كان. */}
+                                <span className="text-[10px]" style={{ color: T.faint }} data-testid="imagery-capture-time">
+                                  {capture.label ?? monthLabel(d.date)}
+                                </span>
                                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: cloudBandColor(cloud) }} />
                               </div>
+                              {capture.mismatch && (
+                                <div
+                                  className="mt-1 text-[10px]"
+                                  style={{ color: '#fca5a5' }}
+                                  data-testid="imagery-capture-mismatch"
+                                >
+                                  طابع المشهد {capture.isoDate}
+                                </div>
+                              )}
                               <div className="mt-1 flex items-center justify-between text-[10px]" style={{ color: T.faint }}>
                                 <span title={sceneCloud != null ? `سحابة المشهد ${Math.round(sceneCloud)}%` : undefined}>
                                   {cloud != null

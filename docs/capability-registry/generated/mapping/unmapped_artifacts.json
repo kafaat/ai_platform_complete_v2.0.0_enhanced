@@ -56,6 +56,14 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/eslint-suppressions.json",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/eslint.config.js",
+    "kind": "web"
+  },
+  {
     "path": "frontend/package-lock.json",
     "kind": "web"
   },
@@ -469,6 +477,14 @@
   },
   {
     "path": "frontend/src/components/maphub/VraPrescriptionPanel.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/maphub/captureTime.test.ts",
+    "kind": "tests"
+  },
+  {
+    "path": "frontend/src/components/maphub/captureTime.ts",
     "kind": "web"
   },
   {

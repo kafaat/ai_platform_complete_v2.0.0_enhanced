@@ -1,0 +1,37 @@
+{
+  "src/components/AddFieldWithMap.tsx": {
+    "require-atomic-updates": {
+      "count": 2
+    }
+  },
+  "src/sections/HybridIndexPage.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 2
+    }
+  },
+  "src/sections/MapHub.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/sections/MyFieldsPage.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/sections/OperationCenterWallPage.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/sections/SatellitePage.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 3
+    }
+  },
+  "src/sections/SimpleFarmBookPage.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  }
+}
