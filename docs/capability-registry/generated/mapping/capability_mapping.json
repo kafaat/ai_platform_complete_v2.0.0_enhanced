@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4873,
+    "files_scanned": 4889,
     "files_by_kind": {
       "backend": 1194,
-      "database": 269,
+      "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1286,
-      "tests": 1566,
+      "other": 1290,
+      "tests": 1575,
       "web": 448
     },
-    "unmapped_artifacts": 1980,
-    "ambiguous_artifacts": 396
+    "unmapped_artifacts": 1990,
+    "ambiguous_artifacts": 397
   },
   "capabilities": [
     {
@@ -1456,6 +1456,14 @@
         {
           "value": "decision_lineage_summary.json @ scripts/ci/decision_lineage_graph.py:24",
           "score": 8
+        },
+        {
+          "value": "irrigation.closed_loop.completed @ services/sahool-platform/api/irrigation_closed_loop_runtime.py:421",
+          "score": 8
+        },
+        {
+          "value": "sahool-platform.irrigation_closed_loop_runtime @ services/sahool-platform/api/irrigation_closed_loop_runtime.py:428",
+          "score": 8
         }
       ],
       "web": [],
@@ -1505,7 +1513,7 @@
         "backend": 2,
         "routes": 0,
         "database": 0,
-        "events": 7,
+        "events": 9,
         "web": 0,
         "mobile": 0,
         "tests": 3,
@@ -3069,6 +3077,15 @@
           ]
         },
         {
+          "path": "docs/architecture/db_ownership.yml",
+          "score": 15,
+          "signals": [
+            "content:model activation",
+            "content:model promotion",
+            "content:model rollback"
+          ]
+        },
+        {
           "path": "WX11_4_MODEL_ACTIVATION_REQUEST_REPORT_20260711.md",
           "score": 14,
           "signals": [
@@ -3082,15 +3099,6 @@
           "signals": [
             "path:model activation",
             "content:model activation"
-          ]
-        },
-        {
-          "path": "docs/architecture/db_ownership.yml",
-          "score": 14,
-          "signals": [
-            "content:model activation",
-            "content:model promotion",
-            "content:model rollback"
           ]
         },
         {
@@ -10941,6 +10949,10 @@
           "score": 17
         },
         {
+          "value": "sahool.events.agronomy.projection.requested @ scripts/e2e/canonical_projection_jetstream_roundtrip.py:20",
+          "score": 17
+        },
+        {
           "value": "soil.lab.result.published @ services/sahool-platform/api/event_bus.py:245",
           "score": 17
         },
@@ -10977,6 +10989,10 @@
           "score": 14
         },
         {
+          "value": "irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:159",
+          "score": 12
+        },
+        {
           "value": "sahool.> @ agents/notification/agent.py:449",
           "score": 12
         },
@@ -11010,6 +11026,18 @@
         },
         {
           "value": "sahool.events.> @ event_publish_contracts.yaml:20",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.agronomy.projection.requested @ scripts/workers/canonical_execution_learning_worker.py:53",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:51",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.season.closed @ scripts/workers/canonical_execution_learning_worker.py:52",
           "score": 12
         },
         {
@@ -11161,6 +11189,15 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "scripts/e2e/canonical_projection_jetstream_roundtrip.py",
+          "score": 17,
+          "signals": [
+            "path:jetstream",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "docs/ARCHITECTURE_DEPENDENCY_AND_GAPS_2026-06.md",
           "score": 14,
           "signals": [
@@ -11198,6 +11235,14 @@
           "score": 12,
           "signals": [
             "content:event bus",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "scripts/workers/canonical_execution_learning_worker.py",
+          "score": 12,
+          "signals": [
             "content:jetstream",
             "content:nats"
           ]
@@ -11293,12 +11338,12 @@
         "backend": 5,
         "routes": 15,
         "database": 2,
-        "events": 58,
+        "events": 63,
         "web": 0,
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 15
+        "other_evidence": 17
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -17907,6 +17952,14 @@
           "score": 12
         },
         {
+          "value": "/api/v1/recommendations/engines @ services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py:103",
+          "score": 12
+        },
+        {
+          "value": "/api/v1/recommendations/engines @ services/sahool-platform/tests/test_recommendation_indicator_map_stays_numeric.py:92",
+          "score": 12
+        },
+        {
           "value": "/api/v1/regional/bulletin @ services/sahool-platform/api/routers/regional_bulletin.py:52",
           "score": 12
         },
@@ -20696,7 +20749,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 100,
-        "routes": 80,
+        "routes": 82,
         "database": 42,
         "events": 100,
         "web": 49,
@@ -22752,18 +22805,26 @@
           ]
         },
         {
-          "path": "services/sahool-platform/api/routers/recommendations.py",
+          "path": "services/sahool-platform/docs/SOURCE_DOCUMENTATION.md",
           "score": 12,
           "signals": [
-            "content:Tenant RLS",
             "content:rls",
             "content:tenant isolation"
           ]
         },
         {
-          "path": "services/sahool-platform/docs/SOURCE_DOCUMENTATION.md",
-          "score": 12,
+          "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+          "score": 11,
           "signals": [
+            "content:Tenant RLS",
+            "content:rls"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/api/routers/recommendations.py",
+          "score": 11,
+          "signals": [
+            "content:Tenant RLS",
             "content:rls",
             "content:tenant isolation"
           ]
@@ -22887,36 +22948,36 @@
           "score": 15
         },
         {
-          "value": "/api/v1/recommendations @ services/sahool-platform/api/routers/recommendations.py:124",
-          "score": 12
+          "value": "/api/v1/recommendations @ services/sahool-platform/api/routers/recommendations.py:155",
+          "score": 11
         },
         {
-          "value": "/api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:339",
-          "score": 12
+          "value": "/api/v1/recommendations/candidates @ services/sahool-platform/api/routers/recommendations.py:372",
+          "score": 11
         },
         {
-          "value": "/api/v1/recommendations/capacity-profiles @ services/sahool-platform/api/routers/recommendations.py:331",
-          "score": 12
+          "value": "/api/v1/recommendations/capacity-profiles @ services/sahool-platform/api/routers/recommendations.py:364",
+          "score": 11
         },
         {
-          "value": "/api/v1/recommendations/economic-adaptation @ services/sahool-platform/api/routers/recommendations.py:313",
-          "score": 12
+          "value": "/api/v1/recommendations/economic-adaptation @ services/sahool-platform/api/routers/recommendations.py:346",
+          "score": 11
         },
         {
-          "value": "/api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:266",
-          "score": 12
+          "value": "/api/v1/recommendations/engines @ services/sahool-platform/api/routers/recommendations.py:299",
+          "score": 11
         },
         {
-          "value": "/api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:150",
-          "score": 12
+          "value": "/api/v1/recommendations/for-field @ services/sahool-platform/api/routers/recommendations.py:181",
+          "score": 11
         },
         {
-          "value": "/api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:404",
-          "score": 12
+          "value": "/api/v1/recommendations/outcomes @ services/sahool-platform/api/routers/recommendations.py:437",
+          "score": 11
         },
         {
-          "value": "/api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:500",
-          "score": 12
+          "value": "/api/v1/recommendations/{rec_id} @ services/sahool-platform/api/routers/recommendations.py:533",
+          "score": 11
         },
         {
           "value": "/api/v1/fields/boundary-graph/rebuild @ services/sahool-platform/api/routers/boundaries.py:243",
@@ -23604,10 +23665,6 @@
           "score": 13
         },
         {
-          "value": "sahool.recommendations @ services/sahool-platform/api/routers/recommendations.py:49",
-          "score": 12
-        },
-        {
           "value": "v148_field_evidence_snapshots.sql @ tests_v9/test_evidence_snapshots_migration_v148.py:20",
           "score": 12
         },
@@ -23629,6 +23686,10 @@
         },
         {
           "value": "field.created @ tests_v9/test_notification_tenant_isolation.py:50",
+          "score": 11
+        },
+        {
+          "value": "sahool.recommendations @ services/sahool-platform/api/routers/recommendations.py:49",
           "score": 11
         },
         {
@@ -24751,7 +24812,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 13,
+        "backend": 14,
         "routes": 36,
         "database": 100,
         "events": 46,
@@ -33173,6 +33234,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_planting_window.py",
           "score": 12,
           "signals": [
@@ -33524,7 +33593,7 @@
         "events": 26,
         "web": 15,
         "mobile": 0,
-        "tests": 43,
+        "tests": 44,
         "governance": 0,
         "other_evidence": 19
       },
@@ -35835,6 +35904,10 @@
       "kind": "database"
     },
     {
+      "path": "migrations/v227_decision_learning_runtime.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v28_settings.sql",
       "kind": "database"
     },
@@ -36061,6 +36134,10 @@
     {
       "path": "scripts/ci/test_marker_coverage_guard.py",
       "kind": "tests"
+    },
+    {
+      "path": "scripts/e2e/command_event_causality_live_gate.sql",
+      "kind": "database"
     },
     {
       "path": "scripts/irr_f01/bootstrap.sql",
@@ -38979,6 +39056,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py",
       "kind": "tests"
     },
@@ -40667,6 +40748,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_canonical_execution_learning_live_gate_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_canonical_execution_learning_root_closure.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_canonical_hydraulic_capability.py",
       "kind": "tests"
     },
@@ -40699,6 +40788,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_command_event_causality_live_gate_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_command_store_behavior_v66.py",
       "kind": "tests"
     },
@@ -40728,6 +40821,10 @@
     },
     {
       "path": "tests_v9/test_compose_security_audit.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_compose_services_are_declared_as_services.py",
       "kind": "tests"
     },
     {
@@ -41131,6 +41228,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_irrigation_and_decision_architecture.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_irrigation_commissioning_certification.py",
       "kind": "tests"
     },
@@ -41299,6 +41400,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_no_tracked_temporary_probe.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_normalized_scene_wiring_v63_2.py",
       "kind": "tests"
     },
@@ -41392,6 +41497,10 @@
     },
     {
       "path": "tests_v9/test_portfolio_command_shape.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_pre_push_stability_guard.py",
       "kind": "tests"
     },
     {
@@ -42840,7 +42949,7 @@
         },
         {
           "capability_id": "DEC-010",
-          "score": 14,
+          "score": 15,
           "signals": [
             "content:model activation",
             "content:model promotion",
@@ -47571,6 +47680,28 @@
           "signals": [
             "content:Irrigation recommendation",
             "content:irrigation recommendation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 11,
+          "signals": [
+            "content:Tenant RLS",
+            "content:rls"
           ]
         }
       ]

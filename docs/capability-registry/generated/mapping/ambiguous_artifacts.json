@@ -963,7 +963,7 @@
       },
       {
         "capability_id": "DEC-010",
-        "score": 14,
+        "score": 15,
         "signals": [
           "content:model activation",
           "content:model promotion",
@@ -5694,6 +5694,28 @@
         "signals": [
           "content:Irrigation recommendation",
           "content:irrigation recommendation"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 11,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls"
         ]
       }
     ]

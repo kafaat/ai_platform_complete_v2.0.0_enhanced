@@ -257,3 +257,180 @@ async def reconcile_irrigation_run(
         json.dumps(result, default=str),
     )
     return result
+
+
+async def finalize_irrigation_closed_loop(
+    conn,
+    *,
+    run_id: str,
+    measured_at: datetime,
+    expected_depletion_after_mm: float,
+    source_digests: dict[str, str],
+    minimum_samples: int = 5,
+    water_use_efficiency_kg_m3: float | None = None,
+    energy_kwh: float | None = None,
+    stress_days_observed: float | None = None,
+    yield_t_ha: float | None = None,
+) -> dict[str, Any]:
+    """Complete the verified irrigation loop atomically without auto-adjusting models."""
+    from api.irrigation_closed_loop_learning import (
+        build_irrigation_closed_loop_record,
+        build_irrigation_outcome_evidence,
+        propose_governed_irrigation_learning,
+    )
+
+    await conn.execute(
+        "SELECT pg_advisory_xact_lock(hashtext($1))", f"irrigation-learning:{run_id}"
+    )
+    existing = await conn.fetchrow(
+        "SELECT payload FROM irrigation_closed_loop_records WHERE execution_plan_id=(SELECT execution_plan_id FROM as_applied_irrigation_runs WHERE id=$1::uuid)",
+        run_id,
+    )
+    if existing is not None:
+        return {
+            "status": "replayed",
+            "idempotent_replay": True,
+            "payload": dict(existing["payload"] or {}),
+        }
+
+    reconciliation = await reconcile_irrigation_run(conn, run_id=run_id, now=measured_at)
+    if reconciliation.get("status") != "reconciled":
+        return {
+            "status": "blocked",
+            "reason": reconciliation.get("reason", "IRRIGATION_RECONCILIATION_REQUIRED"),
+        }
+
+    plan = await _load_plan(conn, run_id)
+    if plan is None or isinstance(plan, dict):
+        return {"status": "blocked", "reason": "AUTHORIZED_PLAN_REQUIRED"}
+    truth = reconciliation["truth"]
+    ledger_event = {
+        **reconciliation,
+        "status": "persisted",
+        "reconciled": True,
+        "tenant_id": plan.tenant_id,
+        "decision_id": plan.decision_id,
+        "authorization_digest": reconciliation["authorization_digest"],
+        "execution_plan_digest": reconciliation["execution_plan_digest"],
+    }
+    before = reconciliation.get("depletion_before_mm")
+    after = reconciliation.get("depletion_after_mm")
+    if before is None or after is None:
+        return {"status": "blocked", "reason": "DEPLETION_MEASUREMENTS_REQUIRED"}
+
+    outcome = build_irrigation_outcome_evidence(
+        tenant_id=plan.tenant_id,
+        field_id=plan.field_id,
+        season_id=plan.season_id,
+        decision_id=plan.decision_id,
+        execution_plan_id=plan.execution_plan_id,
+        measured_at=measured_at,
+        planned_depth_mm=plan.planned_depth_mm,
+        actual_depth_mm=float(reconciliation["applied_depth_mm"]),
+        depletion_before_mm=float(before),
+        depletion_after_mm=float(after),
+        expected_depletion_after_mm=float(expected_depletion_after_mm),
+        source_digests=source_digests,
+        water_use_efficiency_kg_m3=water_use_efficiency_kg_m3,
+        energy_kwh=energy_kwh,
+        stress_days_observed=stress_days_observed,
+        yield_t_ha=yield_t_ha,
+    )
+    await conn.execute(
+        """INSERT INTO irrigation_outcome_evidence
+        (tenant_id,field_id,season_id,decision_id,execution_plan_id,measured_at,outcome_status,source_digests,payload,outcome_evidence_digest)
+        VALUES (current_setting('app.current_tenant')::uuid,$1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9)
+        ON CONFLICT (tenant_id,outcome_evidence_digest) DO NOTHING""",
+        plan.field_id,
+        plan.season_id,
+        plan.decision_id,
+        plan.execution_plan_id,
+        measured_at,
+        outcome.outcome_status,
+        json.dumps(outcome.source_digests),
+        json.dumps(outcome.to_dict(), default=str),
+        outcome.outcome_evidence_digest,
+    )
+    closed = build_irrigation_closed_loop_record(
+        tenant_id=plan.tenant_id,
+        field_id=plan.field_id,
+        season_id=plan.season_id,
+        decision_id=plan.decision_id,
+        authorization_id=plan.authorization_id,
+        execution_plan_id=plan.execution_plan_id,
+        decision_status="completed",
+        approval_status="approved",
+        execution_status="completed",
+        as_applied_truth=truth,
+        water_ledger_event=ledger_event,
+        outcome_evidence=outcome,
+    )
+    closed_payload = closed.to_dict()
+    await conn.execute(
+        """INSERT INTO irrigation_closed_loop_records
+        (tenant_id,field_id,season_id,decision_id,authorization_id,execution_plan_id,lifecycle_status,verified,water_ledger_reconciled,outcome_verified,learning_eligible,source_lineage,blocking_reasons,closed_loop_digest,payload)
+        VALUES (current_setting('app.current_tenant')::uuid,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb,$13,$14::jsonb)
+        ON CONFLICT (tenant_id,execution_plan_id) DO NOTHING""",
+        plan.field_id,
+        plan.season_id,
+        plan.decision_id,
+        plan.authorization_id,
+        plan.execution_plan_id,
+        closed.lifecycle_status,
+        closed.verified,
+        closed.water_ledger_reconciled,
+        closed.outcome_verified,
+        closed.learning_eligible,
+        json.dumps(closed.source_lineage),
+        json.dumps(closed.blocking_reasons),
+        closed.closed_loop_digest,
+        json.dumps(closed_payload, default=str),
+    )
+    sample_count = int(
+        await conn.fetchval(
+            "SELECT count(*) FROM irrigation_closed_loop_records WHERE field_id=$1 AND season_id=$2 AND learning_eligible",
+            plan.field_id,
+            plan.season_id,
+        )
+        or 0
+    )
+    proposal = propose_governed_irrigation_learning(
+        closed_loop=closed,
+        outcome_evidence=outcome,
+        minimum_samples=minimum_samples,
+        sample_count=sample_count,
+    )
+    await conn.execute(
+        """INSERT INTO irrigation_learning_proposals
+        (tenant_id,field_id,season_id,proposal_id,status,review_required,auto_adjust,proposed_parameter_changes,source_lineage,evidence_digest,proposal_digest)
+        VALUES (current_setting('app.current_tenant')::uuid,$1,$2,$3,$4,TRUE,FALSE,$5::jsonb,$6::jsonb,$7,$8)
+        ON CONFLICT (tenant_id,proposal_id) DO NOTHING""",
+        plan.field_id,
+        plan.season_id,
+        proposal.proposal_id,
+        proposal.status,
+        json.dumps(proposal.proposed_parameter_changes),
+        json.dumps(proposal.source_lineage),
+        proposal.evidence_digest,
+        proposal.proposal_digest,
+    )
+    from uuid import UUID
+
+    event_id = await conn.fetchval(
+        """SELECT emit_event($1::text,$2::text,$3::text,$4::uuid,$5::jsonb,$6::text,NULL::text,$7::uuid,now())""",
+        "irrigation.closed_loop.completed",
+        "irrigation_execution_plan",
+        plan.execution_plan_id,
+        UUID(plan.tenant_id),
+        json.dumps(
+            {"closed_loop": closed_payload, "learning_proposal": proposal.to_dict()}, default=str
+        ),
+        "sahool-platform.irrigation_closed_loop_runtime",
+        None,
+    )
+    return {
+        "status": "completed",
+        "closed_loop": closed_payload,
+        "learning_proposal": proposal.to_dict(),
+        "event_id": str(event_id) if event_id else None,
+    }

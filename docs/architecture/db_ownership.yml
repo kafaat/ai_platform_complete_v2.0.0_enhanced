@@ -1926,14 +1926,29 @@ tables:
     readers: []
     source: "migrations/v215_yield_map_ingestion.sql"
   # v224-v226: الحالة الزراعيّة الكنسيّة المُدامة. المالك sahool-platform —
-  # وحدات نطاقها في services/sahool-platform/api/، وتُقرَأ في الإنتاج عبر
-  # api/persisted_canonical_repositories.py من مسار GET التوصيات القائم.
-  # قارئ فعليّ نعم، كاتب فعليّ لا: مسار إدخال الرصدات شريحة تالية، والقراءة
-  # لا تخترع حالة عند الخلوّ بل تُرجِع مرشّحات فارغة.
+  # وحدات نطاقها في services/sahool-platform/api/، والقناة القانونيّة الوحيدة
+  # (قراءةً وكتابةً) هي api/persisted_canonical_repositories.py.
+  #
+  # القراءة موصولة فعليّاً: api/routers/recommendations.py يستدعي
+  # load_agronomic_context ضمن معاملة tenant_connection نفسها التي تكتب التوصية،
+  # فتُسجَّل السلالة من اللقطة التي قُرِئت منها بالضبط.
+  #
+  # والكتابة صارت موصولة — والراتشِت هو ما أثبت ذلك لا الادّعاء: دوالّ
+  # persist_*_projection الثلاث (append-only، idempotent على البصمة، تحت Tenant RLS)
+  # يستدعيها عامل مُسجَّل في docker-compose.v9.yml
+  # (sahool-canonical-execution-learning-worker) على حدث agronomy.projection.requested.
+  # قبل هذا الوصل كانت الجداول «تُقرأ ولا تُكتَب»، وكان ذلك مكتوباً هنا نصّاً؛ الآن
+  # تقلّصت المجموعة المُثبَّتة في
+  # services/sahool-platform/tests/test_canonical_writer_call_sites.py من ستّ إلى ثلاث،
+  # والثلاث الباقية (persist_*_state / persist_nutrient_ledger) لا مستدعي لها **خارج
+  # وحدتها** — تصلها الإسقاطات الثلاث عبوريّاً، والحارس لا يعدّ نداء الوحدة لنفسها دليلاً.
+  # القراءة عند الخلوّ لا تخترع حالة بل تُرجِع مرشّحات فارغة.
+  # حدّ الصدق الباقي: العامل **مُسجَّل** لا **مُثبَت حيّاً** — runtime_verified
+  # وproduction_certified باقيان صفراً حتّى يُشغَّل مقابل قاعدة وNATS حقيقيّين.
   canonical_phenology_states:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [sahool-platform]
     source: "migrations/v224_canonical_phenology_state.sql"
   phenology_observations:
     owner: sahool-platform
@@ -1943,7 +1958,7 @@ tables:
   canonical_salinity_states:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [sahool-platform]
     source: "migrations/v225_canonical_salinity_state.sql"
   salinity_evidence_observations:
     owner: sahool-platform
@@ -1953,10 +1968,32 @@ tables:
   canonical_nutrient_ledgers:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [sahool-platform]
     source: "migrations/v226_canonical_nutrient_ledger.sql"
   nutrient_evidence_observations:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
     source: "migrations/v226_canonical_nutrient_ledger.sql"
+  # v227: زمن تشغيل تعلّم القرار. يكتبهما ويقرأهما api/learning_feedback.py عبر
+  # العامل المُسجَّل sahool-canonical-execution-learning-worker (حدث season.closed).
+  # الترقية إلى نموذج لا تحدث تلقائيّاً: الصفّ مرشّح مراجعة بشريّة لا أمر تعديل.
+  decision_learning_runs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v227_decision_learning_runtime.sql, services/sahool-platform/api/learning_feedback.py"
+  governed_model_promotion_candidates:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v227_decision_learning_runtime.sql, services/sahool-platform/api/learning_feedback.py"
+  # طابور نيّات الإسقاط الكنسيّ: يقرأه العامل المُسجَّل
+  # sahool-canonical-execution-learning-worker على حدث agronomy.projection.requested
+  # ثمّ يكتب الحالة الناتجة عبر api/persisted_canonical_repositories.py. الحالة
+  # pending/processed/failed تجعل إعادة التشغيل آمنة (لا معالجة مرّتين) والفشل مرئيّاً.
+  canonical_projection_requests:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v227_decision_learning_runtime.sql, scripts/workers/canonical_execution_learning_worker.py"

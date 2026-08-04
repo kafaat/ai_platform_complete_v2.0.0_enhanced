@@ -16363,6 +16363,7 @@
           "canonical_irrigation_machine_capabilities",
           "canonical_nutrient_ledgers",
           "canonical_phenology_states",
+          "canonical_projection_requests",
           "canonical_root_zone_profiles",
           "canonical_salinity_states",
           "canonical_sprinkler_runoff_capabilities",
@@ -16376,6 +16377,7 @@
           "crop_stress_events",
           "crop_stress_memory_snapshots",
           "custody_chain_events",
+          "decision_learning_runs",
           "decision_record",
           "dispatch_decisions",
           "drone_missions",
@@ -16399,6 +16401,7 @@
           "gis_collaboration_sessions",
           "global_gis_release_gate",
           "global_gis_topology",
+          "governed_model_promotion_candidates",
           "harvest_lots",
           "historical_weather_daily",
           "hourly_energy_envelopes",
@@ -17333,7 +17336,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "24eaeb47c3005c30ccc0067766c5ac57008aef5f84f7f622907f8b0f2a81f77d",
+  "fingerprint": "1d6d2c250dd47516b4b28f60e6f910d6c4da9bf8b0de51b005a08b739801a276",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

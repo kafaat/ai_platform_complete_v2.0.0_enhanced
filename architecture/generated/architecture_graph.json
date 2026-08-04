@@ -125,7 +125,7 @@
       "id": "condition",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 70,
+      "incoming": 71,
       "outgoing": 0,
       "orphan": false
     },
@@ -361,7 +361,7 @@
       "id": "healthcheck",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 51,
+      "incoming": 52,
       "outgoing": 0,
       "orphan": false
     },
@@ -379,7 +379,7 @@
       "id": "interval",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 51,
+      "incoming": 52,
       "outgoing": 0,
       "orphan": false
     },
@@ -435,7 +435,7 @@
       "id": "networks",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 82,
+      "incoming": 83,
       "outgoing": 0,
       "orphan": false
     },
@@ -583,7 +583,7 @@
       "id": "retries",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 51,
+      "incoming": 52,
       "outgoing": 0,
       "orphan": false
     },
@@ -625,6 +625,14 @@
       "kind": "compose-service",
       "incoming": 4,
       "outgoing": 27,
+      "orphan": false
+    },
+    {
+      "id": "sahool-canonical-execution-learning-worker",
+      "paths": [],
+      "kind": "compose-service",
+      "incoming": 0,
+      "outgoing": 12,
       "orphan": false
     },
     {
@@ -703,7 +711,7 @@
       "id": "sahool-internal",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 58,
+      "incoming": 59,
       "outgoing": 0,
       "orphan": false
     },
@@ -743,7 +751,7 @@
       "id": "sahool-migrate",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 26,
+      "incoming": 27,
       "outgoing": 8,
       "orphan": false
     },
@@ -783,7 +791,7 @@
       "id": "sahool-nats",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 12,
+      "incoming": 13,
       "outgoing": 0,
       "orphan": false
     },
@@ -855,7 +863,7 @@
       "id": "sahool-postgres",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 38,
+      "incoming": 39,
       "outgoing": 0,
       "orphan": false
     },
@@ -1149,7 +1157,7 @@
       "id": "start-period",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 51,
+      "incoming": 52,
       "outgoing": 0,
       "orphan": false
     },
@@ -1175,7 +1183,7 @@
       "id": "test",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 51,
+      "incoming": 52,
       "outgoing": 0,
       "orphan": false
     },
@@ -1183,7 +1191,7 @@
       "id": "timeout",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 51,
+      "incoming": 52,
       "outgoing": 0,
       "orphan": false
     },
@@ -3011,6 +3019,78 @@
     },
     {
       "source": "sahool-auth",
+      "target": "timeout",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "condition",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "healthcheck",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "interval",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "networks",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "retries",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "sahool-internal",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "sahool-migrate",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "sahool-nats",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "sahool-postgres",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "start-period",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "test",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
       "target": "timeout",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
@@ -6870,12 +6950,12 @@
   ],
   "cycles": [],
   "summary": {
-    "nodes": 152,
-    "edges": 931,
+    "nodes": 153,
+    "edges": 943,
     "orphans": 6,
     "cycles": 0,
     "code_edges": 110,
-    "compose_edges": 821
+    "compose_edges": 833
   },
-  "content_sha256": "28a22a82f1432a292db8b2b82057b03e010f810a32cea1ce322ce4274e1ce8a7"
+  "content_sha256": "f778a02fedaee722fd4a3d69c20b13dd9b668b120b732235b3a89ac45095798c"
 }

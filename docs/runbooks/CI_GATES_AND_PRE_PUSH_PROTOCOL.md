@@ -80,6 +80,14 @@ run "claim_base_guard"      python scripts/ci/claim_base_guard.py
 run "guard_mutation static" python scripts/ci/guard_mutation_guard.py
 run "guard_mutation --run"  python scripts/ci/guard_mutation_guard.py --run
 
+# ٣ب) عقد compose/البيئة — **خارج المكنسة وخارج هذه الكتلة سابقاً**، وقد أسقط بناءً
+#     فعليّاً: خدمة جديدة أدخلت ${CANONICAL_LEARNING_DURABLE} ولم تُعلَن في
+#     `.env.example`، فاحمرّ CI على تغيير لم يمسّ منطقاً. أيّ متغيّر جديد في compose
+#     يُعلَن في `.env.example` أو `frontend/.env.example` وإلّا حُجِب.
+run "compose_env_contract"    python scripts/ci/compose_env_contract_gate.py
+run "env_compose_drift"       python scripts/ci/env_compose_drift_guard.py --check
+run "compose_runtime_target"  python scripts/ci/compose_runtime_target_resolver.py --check
+
 # ٤) انحراف المصنوعات المولَّدة — راجع §٣.١ قبل تشغيله
 run "verify_all_generated" python scripts/ci/verify_all_generated.py
 
@@ -332,6 +340,106 @@ git cat-file commit HEAD | grep -q '^gpgsig' && echo "موقَّع" || echo "ب�
 وحدٌّ منفصل حقيقيّ: ملفّ المفتاح العموميّ `commit_signing_key.pub` بحجم **صفر بايت**،
 فلا سبيل محلّيّاً لبناء `allowedSigners`. **لا تُولّد مفتاحاً عشوائيّاً وتعتبره هويّة
 المستودع** لتجعل الحرف أخضر — التحقّق موضعه GitHub، وهناك يظهر صادقاً.
+
+### ٣.١٥ مراسي الأسطر في `platform_extraction_map.json` — لا يُعيد توليدها شيء
+
+**العَرَض:** تُعدّل راوتراً، تُشغّل `verify_all_generated.py --fix`، فيخرج بـ`1` ويقول:
+
+```
+AssertionError: platform extraction map source drift:
+  [{'function': 'recommendations_for_field',
+    'documented': 'api/routers/recommendations.py:150',
+    'current':    'api/routers/recommendations.py:181'}, …]
+```
+
+**السبب:** `docs/architecture/platform_extraction_map.json` **وثيقة سياسة لا مصنوعة
+مولَّدة**. كلّ مسار فيها مربوط بسطر مصدره، و`platform_route_ownership_guard.py
+--check-generated` يفشل **مُغلَقاً** عند أيّ انزياح. إضافة عشرة أسطر في أعلى راوتر
+تُزيح كلّ مساراته، فتسقط بوّابتان (`ownership` و`governance_attestation`) على تغيير
+لم يمسّ مساراً واحداً. `--fix` **لا يصلحها**: لا مولّد يكتبها.
+
+**العلاج — اشتقّ الأرقام من مُجمِّع الحارس نفسه، لا تكتبها يدويّاً:**
+
+```python
+import json, pathlib, sys
+sys.path.insert(0, ".")
+from scripts.ci.platform_route_ownership_guard import collect_surface, PLATFORM_ROOT, MAP_PATH
+
+surface = {i.identity: i for i in collect_surface(PLATFORM_ROOT)}
+p = pathlib.Path(MAP_PATH); original = p.read_text(encoding="utf-8")
+doc = json.loads(original)
+for row in doc["routes"]:
+    cur = surface.get((str(row["method"]), str(row["path"]), str(row["function"])))
+    if cur and (row.get("file") != cur.file or int(row.get("line", 0)) != cur.line):
+        row["file"], row["line"] = cur.file, cur.line
+p.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+```
+
+ثمّ `python scripts/ci/platform_route_ownership_guard.py --write-generated` و
+`… platform_route_governance_attestation.py --write-generated`.
+
+**وحافِظ على تسلسل الملفّ:** `sort_keys=True` يُعيد كتابة ٢٥٦٥ سطراً لتصحيح **ثمانية
+أرقام**، فيدفن التغيير الحقيقيّ في ضجيج ويجعل المراجعة مستحيلة. المقيس بعد الالتزام
+بالتسلسل الأصليّ: **٨ أسطر تتغيّر، لا أكثر**.
+
+### ٣.١٦ حزمة الإصدار تُبنى **آخِراً** — وأيّ لمسة بعدها تُبطِلها
+
+`release/FILE_CHECKSUMS.sha256` يُجزّئ **كلّ** مصنوعة أخرى. أيّ ملفّ يُكتَب بعد بناء
+الحزمة — ولو سطراً واحداً — يُسقِط `Repository Tests (tests/)` برسالة تسمّي الملفّ لا
+السبب:
+
+```
+checksum mismatch: scripts/e2e/run_canonical_execution_learning_live_gate.sh
+assert 1 == 0
+```
+
+**والفخّ الذي لا يخطر:** بعض خطوات `--check` **تكتب أثناء الفحص**
+(`service_feature_ui_contract_gate` نموذجاً، وهو صنف `CHECK-STEPS-MUTATE-THE-TREE-01`).
+فتشغيل «تحقّق» بعد بناء الحزمة يُبطِلها بلا أن تُعدّل أنت شيئاً.
+
+**الترتيب الملزِم — ولا استثناء:**
+
+```bash
+git add -A                                   # ١) المولّدات تعدّ المتعقَّب فقط (§٣.١)
+python scripts/ci/verify_all_generated.py --fix
+git add -A
+python scripts/release/platform_route_release_binding.py --write-source   # ٢) `--fix` لا يستدعيه
+git add -A
+SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) \
+  python scripts/release/build_release_bundle.py                          # ٣) آخِراً
+git add -A
+python scripts/release/validate_release_package.py   # يجب أن يقول: checksums verified
+```
+
+عُدتَ فعدّلت ملفّاً؟ **أعِد من الخطوة ١**. لا تُصلِح المجموع يدويّاً.
+
+### ٣.١٧ §٢ تُغطّي أقلّيّة البوّابات — اشتقّ الباقي من مساراتك المُعدَّلة
+
+**مقيس على شجرة هذا التحديث:** الـworkflows تستدعي **٢٠٩** سكربتاً في `scripts/ci/`،
+منها **١٣٩ لا تظهر في §٢ ولا في المكنسة**. §٢ ليست «كلّ بوّابة حاجبة» بل السطح
+المشترك؛ الباقي بوّابات **مُقيَّدة بمسارات نطاقها** (agronomic lineage · main
+decomposition · consumer contract · container fleet …) تُطلَق بتغيّر ملفّاتها وحدها.
+
+**الفشل الذي أثبت الفجوة:** خدمة compose جديدة أدخلت `${CANONICAL_LEARNING_DURABLE}`
+ولم تُعلَن في `.env.example`. `compose_env_contract_gate.py` حاجبة، وليست في §٢ ولا
+في المكنسة، فلم يشغّلها شيء محلّيّاً — واحمرّ CI على تغيير لم يمسّ منطقاً.
+
+**القاعدة العمليّة — اشتقّ البوّابات من الديف لا من الذاكرة:**
+
+```bash
+# ما الذي غيّرتُه، وأيّ workflow يراقب هذه المسارات؟
+git diff --name-only origin/main...HEAD > /tmp/changed.txt
+for wf in .github/workflows/*.yml; do
+  # اطبع الـworkflow لو ذكر أحد امتداداتك/أدلّتك في paths أو استدعى سكربتاً يقرؤها
+  grep -qFf <(cut -d/ -f1-2 /tmp/changed.txt | sort -u) "$wf" && echo "راجِع: $wf"
+done
+```
+
+ثمّ شغّل خطوات `python scripts/ci/…` في تلك الملفّات وحدها. أرخص من ٢٠٩ سكربتاً،
+وأصدق من الافتراض بأنّ §٢ كافية.
+
+**وإن لمستَ `docker-compose*.yml`** فالثلاثة في §٢ (`compose_env_contract` ·
+`env_compose_drift` · `compose_runtime_target`) إلزاميّة — أُضيفت هناك بعد هذا الفشل.
 
 ---
 

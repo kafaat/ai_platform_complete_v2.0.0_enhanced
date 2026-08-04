@@ -4,16 +4,16 @@
 
 ## Summary
 
-- **manifest_entries**: 225
-- **sql_files**: 227
+- **manifest_entries**: 226
+- **sql_files**: 228
 - **manifest_missing_count**: 0
 - **unlisted_sql_count**: 0
-- **tables**: 330
-- **tenant_tables**: 310
-- **rls_enabled**: 205
-- **rls_forced**: 186
-- **tenant_rls_gaps**: 133
-- **policies**: 192
+- **tables**: 333
+- **tenant_tables**: 313
+- **rls_enabled**: 206
+- **rls_forced**: 187
+- **tenant_rls_gaps**: 135
+- **policies**: 193
 - **runtime_verified**: False
 - **production_certified**: False
 
@@ -34,6 +34,7 @@
 - `commands` — enabled=True, forced=False, policies=1
 - `crop_rotations` — enabled=False, forced=False, policies=0
 - `crop_stages` — enabled=True, forced=False, policies=0
+- `decision_learning_runs` — enabled=False, forced=False, policies=0
 - `decision_policies` — enabled=False, forced=False, policies=0
 - `device_commands_log` — enabled=False, forced=False, policies=0
 - `device_telemetry` — enabled=False, forced=False, policies=0
@@ -54,6 +55,7 @@
 - `field_tasks` — enabled=False, forced=False, policies=0
 - `field_weather_overlay` — enabled=False, forced=False, policies=0
 - `fields` — enabled=False, forced=False, policies=0
+- `governed_model_promotion_candidates` — enabled=False, forced=False, policies=0
 - `guardrails_log` — enabled=False, forced=False, policies=0
 - `hourly_energy_envelopes` — enabled=False, forced=False, policies=0
 - `hydraulic_capacity_evaluations` — enabled=False, forced=False, policies=0

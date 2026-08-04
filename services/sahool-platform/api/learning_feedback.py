@@ -103,3 +103,124 @@ def learning_feedback(evidence_records: list[dict]) -> dict:
             "عتبات الأولويّة/النجاح تقديريّة؛ هذه اقتراحات مراجعة بشريّة لا أوامر تعديل",
         ],
     }
+
+
+def _stable_digest(payload: dict) -> str:
+    import hashlib
+    import json
+
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
+    ).hexdigest()
+
+
+async def process_season_closed_event(
+    conn,
+    *,
+    event_id: str,
+    tenant_id: str,
+    field_id: str,
+    season_id: str,
+    minimum_outcomes: int = 3,
+) -> dict:
+    """Build one governed learning candidate from persisted outcomes.
+
+    The event provides identifiers only. Outcomes are loaded under tenant RLS;
+    model promotion is never automatic and replay is idempotent by event_id.
+    """
+    import json
+    from uuid import UUID
+
+    existing = await conn.fetchrow(
+        "SELECT evaluation FROM decision_learning_runs WHERE event_id=$1", event_id
+    )
+    if existing is not None:
+        return {
+            "status": "replayed",
+            "idempotent_replay": True,
+            "evaluation": dict(existing["evaluation"] or {}),
+        }
+
+    await conn.execute("SELECT pg_advisory_xact_lock(hashtext($1))", f"season-learning:{event_id}")
+    rows = await conn.fetch(
+        """SELECT recommendation_id,predicted_yield_t_ha,actual_yield_t_ha,accepted,matured_within_lag
+           FROM recommendation_outcomes
+           WHERE field_id=$1 AND season_id=$2 AND actual_yield_t_ha IS NOT NULL
+           ORDER BY created_at,id""",
+        field_id,
+        season_id,
+    )
+    outcomes = [dict(row) for row in rows]
+    source_digests = sorted(_stable_digest(item) for item in outcomes)
+    paired = [
+        o
+        for o in outcomes
+        if o.get("predicted_yield_t_ha") is not None and o.get("actual_yield_t_ha") is not None
+    ]
+    errors = [float(o["actual_yield_t_ha"]) - float(o["predicted_yield_t_ha"]) for o in paired]
+    mae = None if not errors else round(sum(abs(v) for v in errors) / len(errors), 6)
+    bias = None if not errors else round(sum(errors) / len(errors), 6)
+    enough = len(paired) >= minimum_outcomes
+    evaluation = {
+        "field_id": field_id,
+        "season_id": season_id,
+        "outcome_count": len(paired),
+        "minimum_outcomes": minimum_outcomes,
+        "mae_t_ha": mae,
+        "bias_t_ha": bias,
+        "status": "review_ready" if enough else "blocked",
+        "limitations": [] if enough else ["MINIMUM_VERIFIED_OUTCOMES_NOT_MET"],
+        "source_digests": source_digests,
+    }
+    learning_digest = _stable_digest(evaluation)
+    await conn.execute(
+        """INSERT INTO decision_learning_runs
+        (tenant_id,season_id,field_id,event_id,status,outcome_count,source_digests,evaluation,learning_digest)
+        VALUES (current_setting('app.current_tenant')::uuid,$1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8)
+        ON CONFLICT (tenant_id,event_id) DO NOTHING""",
+        season_id,
+        field_id,
+        event_id,
+        evaluation["status"],
+        len(paired),
+        json.dumps(source_digests),
+        json.dumps(evaluation),
+        learning_digest,
+    )
+    candidate = {
+        "candidate_id": f"gmp_{learning_digest[:20]}",
+        "season_id": season_id,
+        "task": "yield_forecast_calibration",
+        "status": "review_ready" if enough else "blocked",
+        "review_required": True,
+        "auto_promote": False,
+        "evidence": evaluation,
+    }
+    candidate_digest = _stable_digest(candidate)
+    await conn.execute(
+        """INSERT INTO governed_model_promotion_candidates
+        (tenant_id,candidate_id,season_id,task,status,review_required,auto_promote,evidence,candidate_digest)
+        VALUES (current_setting('app.current_tenant')::uuid,$1,$2,$3,$4,TRUE,FALSE,$5::jsonb,$6)
+        ON CONFLICT (tenant_id,candidate_id) DO NOTHING""",
+        candidate["candidate_id"],
+        season_id,
+        candidate["task"],
+        candidate["status"],
+        json.dumps(evaluation),
+        candidate_digest,
+    )
+    outbox_event_id = await conn.fetchval(
+        """SELECT emit_event($1::text,'season'::text,$2::text,$3::uuid,$4::jsonb,$5::text,NULL::text,$6::uuid,now())""",
+        "decision.learning.review_requested",
+        season_id,
+        UUID(tenant_id),
+        json.dumps({"learning_digest": learning_digest, "candidate": candidate}),
+        "sahool-platform.learning_feedback",
+        None,
+    )
+    return {
+        "status": evaluation["status"],
+        "evaluation": evaluation,
+        "promotion_candidate": {**candidate, "candidate_digest": candidate_digest},
+        "event_id": str(outbox_event_id) if outbox_event_id else None,
+    }
