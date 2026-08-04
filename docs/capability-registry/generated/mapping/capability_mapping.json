@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4895,
+    "files_scanned": 4896,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1290,
-      "tests": 1578,
+      "tests": 1579,
       "web": 451
     },
     "unmapped_artifacts": 1994,
@@ -10989,7 +10989,7 @@
           "score": 14
         },
         {
-          "value": "irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:159",
+          "value": "irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:202",
           "score": 12
         },
         {
@@ -11029,15 +11029,23 @@
           "score": 12
         },
         {
-          "value": "sahool.events.agronomy.projection.requested @ scripts/workers/canonical_execution_learning_worker.py:53",
+          "value": "sahool.events.agronomy.projection.requested @ scripts/workers/canonical_execution_learning_worker.py:54",
           "score": 12
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:51",
+          "value": "sahool.events.irrigation.closed @ tests_v9/test_canonical_execution_learning_worker_subscriptions.py:95",
           "score": 12
         },
         {
-          "value": "sahool.events.season.closed @ scripts/workers/canonical_execution_learning_worker.py:52",
+          "value": "sahool.events.irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:52",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.season.closed @ scripts/workers/canonical_execution_learning_worker.py:53",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.season.closed @ tests_v9/test_canonical_execution_learning_worker_subscriptions.py:94",
           "score": 12
         },
         {
@@ -11150,6 +11158,14 @@
           "score": 14,
           "signals": [
             "path:nats",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "tests_v9/test_canonical_execution_learning_worker_subscriptions.py",
+          "score": 12,
+          "signals": [
+            "content:jetstream",
             "content:nats"
           ]
         },
@@ -11338,10 +11354,10 @@
         "backend": 5,
         "routes": 15,
         "database": 2,
-        "events": 63,
+        "events": 65,
         "web": 0,
         "mobile": 0,
-        "tests": 7,
+        "tests": 8,
         "governance": 0,
         "other_evidence": 17
       },
