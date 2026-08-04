@@ -2083,7 +2083,7 @@ affected    legacy=0   gate=12
 
 **المصدر:** [`tests_v9/test_capability_impact_parity.py`](../../tests_v9/test_capability_impact_parity.py) · [`scripts/ci/capability_impact.py`](../../scripts/ci/capability_impact.py).
 
-## JSON-SCHEMAS-WITH-NO-VALIDATOR-01 — مفتوحة (P2 حوكمة، رُصِدت 2026-08-04)
+## JSON-SCHEMAS-WITH-NO-VALIDATOR-01 — CLOSED بمُتحقِّق موحَّد (رُصِدت 2026-08-04، أُغلِقت 2026-08-05)
 
 **الصنف:** مصنوعة تبدو بوّابةً ولا تُطلِق أبداً — نفس صنف `npm run lint` الزخرفيّ الذي أُغلِق في PR #780، بشكل آخر.
 
@@ -2135,3 +2135,40 @@ $ grep "^jsonschema" requirements*.txt              → صفر
 مُتحقِّق بالخمسة عشر القائمة**، وهو قرار مالك لأنّه يمسّ عقوداً في أربعة مجالات.
 
 **المصدر:** قياس محلّيّ 2026-08-04 · الحزم المرفوعة (٦ و٧).
+
+**الإغلاق (2026-08-05) — مُتحقِّق واحد لا أربعة:**
+
+`scripts/ci/schema_validation_guard.py`. الجرد **يُشتقّ** من `git ls-files '*.schema.json'`
+لا من قائمة، والسياسة (`docs/architecture/schema_validation_policy.json`، مُصنَّفة
+`decided`) تُعلِن **نوع** المقبول لا **أسماء** الملفّات: الـdrafts المسموحة · قاعدة `$ref`
+المحلّيّ · منع الشبكة · واستثناءات مؤرَّخة تُفشِل الحارس عند انقضائها.
+
+**والأحد عشر عولجت بتحديد الـdraft لا بقيمة عمياء:** القياس أظهر أنّها تستعمل `$defs`
+(2019-09 فما فوق) و**صفر** مفتاح تختلف دلالته بين 2019-09 و2020-12 (`additionalItems` ·
+`prefixItems` · `$recursiveRef` · `items` كمصفوفة)، وتصحّ تحت كليهما. فإعلان 2020-12 —
+المطابق للأربعة المُعلَنة سلفاً — **محايد دلاليّاً ومقيس**. الفرق سطر واحد لكلّ ملفّ، بلا
+إعادة تنسيق.
+
+**والوصل مركزيّ لا مجالّيّ:** خطوة `--check` في وظيفة *Repository Structural Lint*،
+فاكتشفتها المكنسة **تلقائيّاً** من الـworkflow (`[('scripts/ci/schema_validation_guard.py',
+['--check'])]`) بلا تسجيل يدويّ. السلسلة مُثبَتة بزرع عطل حقيقيّ (حذف `$schema` من
+`soil_observation.v1`): الحارس يفشل بـ`NO_META_SCHEMA` ⇒ `verify_all_generated --check`
+⇒ `preflight` ⇒ CI.
+
+**شروط القبول، مقيسة:**
+
+```
+15/15 schemas discovered      15/15 declare $schema      15/15 validated by one validator
+0 unknown meta-schemas        0 external/unresolved refs  0 network dependency
+```
+
+**التكذيب:** ستّ حالات فساد مزروعة (JSON تالف · `$schema` مفقود · ميتا-مخطَّط مجهول ·
+مخطَّط غير صالح لـdraftه · `$ref` محلّيّ مفقود · `$ref` خارجيّ) + ملفّ صحيح يمرّ — ١٤
+اختباراً في `tests_v9/test_schema_validation_guard.py`.
+
+**والتبعيّة مُعلَنة لا ضمنيّة:** `jsonschema>=4.20.0` في `tests_v9/requirements-test.txt`
+(نظيفة عند `pip-audit`) وخطوة تثبيت صريحة في الوظيفة — لأنّها لا تُثبِّت شيئاً آخر.
+والحارس يخرج بـ`2` عند غيابها بدل أن يتخطّى صامتاً.
+
+**حدّ صدق:** هذا يُثبت أنّ المخطَّطات **صالحة كمخطَّطات**، لا أنّ البيانات التي تصفها
+مُتحقَّق منها عند التشغيل. ربط كلّ مخطَّط بمُنتِجه/مستهلِكه سؤال آخر لم يُقَس.

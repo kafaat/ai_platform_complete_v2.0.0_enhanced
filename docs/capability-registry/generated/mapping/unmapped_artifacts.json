@@ -7688,6 +7688,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_schema_validation_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_secret_enforcement_guard_v21.py",
     "kind": "tests"
   },

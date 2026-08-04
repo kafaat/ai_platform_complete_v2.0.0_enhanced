@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4902,
+    "files_scanned": 4905,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1292,
-      "tests": 1583,
+      "other": 1294,
+      "tests": 1584,
       "web": 451
     },
-    "unmapped_artifacts": 1998,
+    "unmapped_artifacts": 1999,
     "ambiguous_artifacts": 398
   },
   "capabilities": [
@@ -2220,7 +2220,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:403",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
           "score": 12
         },
         {
@@ -2982,7 +2982,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:403",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
           "score": 12
         },
         {
@@ -14071,7 +14071,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:403",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
           "score": 12
         },
         {
@@ -27015,7 +27015,7 @@
           "score": 28
         },
         {
-          "value": "soil-profile.v1 @ shared/contracts/soil/soil_profile_snapshot.v1.schema.json:242",
+          "value": "soil-profile.v1 @ shared/contracts/soil/soil_profile_snapshot.v1.schema.json:243",
           "score": 22
         },
         {
@@ -27031,7 +27031,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:403",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
           "score": 12
         },
         {
@@ -41786,6 +41786,10 @@
     },
     {
       "path": "tests_v9/test_sar_rvi.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_schema_validation_guard.py",
       "kind": "tests"
     },
     {

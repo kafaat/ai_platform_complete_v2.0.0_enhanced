@@ -51,3 +51,8 @@ scipy==1.13.1  # = api/requirements.txt:20 — api/trial_engine.py يستورد 
 # pillow: مطلوبة لاختبار واحد مُثبَت بالقياس — إسقاطها وحدها يُفشِل
 # test_segmentation_frontend_contract_20260702::test_segment_request_accepts_frontend_field_names
 pillow>=10.0.0  # = services/field-segmentation/requirements.txt:10
+
+# JSON-SCHEMAS-WITH-NO-VALIDATOR-01: خمسة عشر ملفّ `*.schema.json` في الشجرة كانت
+# بلا مُتحقِّق واحد — المكتبة غير مثبَّتة ولا مُعلَنة ولا مستورَدة في أيّ سطر. المُتحقِّق
+# الموحَّد (`scripts/ci/schema_validation_guard.py`) يفشل مُغلَقاً بدونها، لا يتخطّى صامتاً.
+jsonschema>=4.20.0
