@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99070040bfebf962265377f652d5013239f288bdf687a7dd013972e23b945aa2"
+          "content": "da1cd8dbba39a9b55bfdb5052faaaaa3e15c2bc4b155dcc9b0e456f18fa61b13"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e80d13885be6861e6ed3c6327c32f7c10193ce899b2e9973cd5f668d8b3a2cb0"
+          "content": "34c514ebf2905fa6a2eb8e1a85f6ba7372e8751cafe244fb74600f749200e2ec"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6595,7 +6595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3fe89ff3f441439a81947044dc9ecb63f0ea9df7e45bfc9eff5adc3ab24078da"
+          "content": "edf6b47a90ca5913ccff345a432b96f7951bde3c0eeaba87a812dbf947352548"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7949,6 +7949,16 @@
         }
       ],
       "name": "migrations/v226_canonical_nutrient_ledger.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4189d1740a42b1e2e75b42ba28a9a4f871d9ea3973dd4b1c262aea366a9a9697"
+        }
+      ],
+      "name": "migrations/v227_decision_learning_runtime.sql",
       "type": "file"
     },
     {
@@ -16065,7 +16075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c60d057ca76426a7512ff5b37eeb3c17f34d94591faed1ce6db27f48a797ae9"
+          "content": "fab7be6a89d77bcf01fd2f0140c3b705d43dc3a8891d3660af36e6187d6019e7"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
@@ -16315,7 +16325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c197999841b2c30de797a630437031f7f024c759b9adf9eb36d353371139211"
+          "content": "ae9efb511cc795c5afa016d7bcf3b68f79c2c9f2f26f4474b650c974019bbedd"
         }
       ],
       "name": "services/sahool-platform/api/learning_feedback.py",
@@ -16505,7 +16515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "49f3eabe9648ca63f017e4be80ccbb1d9b250a4b916f8d1bdd73b69ac704092e"
+          "content": "56b04424a7e32ea3111cd9ddb538166ab99e9e1e68736d3727868842560484be"
         }
       ],
       "name": "services/sahool-platform/api/persisted_canonical_repositories.py",
@@ -23145,7 +23155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f611445cea7e6a010dfced6417a3295be03e2b1edc73fe34ef048141367d60fd"
+          "content": "c5079e397b39c60ed6340008f8d91adf0992b8f17d24ad6d2465c52accbf490f"
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
@@ -25685,7 +25695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4533f61cbbbb0acb48f1ddb14d858e80ba9ab4c30720d83edd0e3def01845849"
+          "content": "8e17ccc33b73ecfbf71cae513625271ff18501ddb9ea44c5a9e66ad9b2796b80"
         }
       ],
       "name": "services/sahool-platform/tests/test_persisted_canonical_writers.py",

@@ -1933,13 +1933,18 @@ tables:
   # load_agronomic_context ضمن معاملة tenant_connection نفسها التي تكتب التوصية،
   # فتُسجَّل السلالة من اللقطة التي قُرِئت منها بالضبط.
   #
-  # الكتابة موجودة كدوالّ ولم تُوصَل بعد — بقياس، لا بتقدير: دوالّ persist_* الستّ
-  # (append-only، idempotent على البصمة، تحت Tenant RLS) لا مستدعي إنتاجيّ لها،
-  # ويُثبِت ذلك حارس مواضع الاستدعاء
-  # services/sahool-platform/tests/test_canonical_writer_call_sites.py بمجموعة
-  # مُثبَّتة تتقلّص ولا تنمو. مسار إدخال الرصدات الخام شريحة تشغيليّة تالية،
-  # وحتّى تصل تبقى الجداول الستّة مقروءة-لا-مكتوبة في الإنتاج. القراءة عند الخلوّ
-  # لا تخترع حالة بل تُرجِع مرشّحات فارغة.
+  # والكتابة صارت موصولة — والراتشِت هو ما أثبت ذلك لا الادّعاء: دوالّ
+  # persist_*_projection الثلاث (append-only، idempotent على البصمة، تحت Tenant RLS)
+  # يستدعيها عامل مُسجَّل في docker-compose.v9.yml
+  # (sahool-canonical-execution-learning-worker) على حدث agronomy.projection.requested.
+  # قبل هذا الوصل كانت الجداول «تُقرأ ولا تُكتَب»، وكان ذلك مكتوباً هنا نصّاً؛ الآن
+  # تقلّصت المجموعة المُثبَّتة في
+  # services/sahool-platform/tests/test_canonical_writer_call_sites.py من ستّ إلى ثلاث،
+  # والثلاث الباقية (persist_*_state / persist_nutrient_ledger) لا مستدعي لها **خارج
+  # وحدتها** — تصلها الإسقاطات الثلاث عبوريّاً، والحارس لا يعدّ نداء الوحدة لنفسها دليلاً.
+  # القراءة عند الخلوّ لا تخترع حالة بل تُرجِع مرشّحات فارغة.
+  # حدّ الصدق الباقي: العامل **مُسجَّل** لا **مُثبَت حيّاً** — runtime_verified
+  # وproduction_certified باقيان صفراً حتّى يُشغَّل مقابل قاعدة وNATS حقيقيّين.
   canonical_phenology_states:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1970,3 +1975,16 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v226_canonical_nutrient_ledger.sql"
+  # v227: زمن تشغيل تعلّم القرار. يكتبهما ويقرأهما api/learning_feedback.py عبر
+  # العامل المُسجَّل sahool-canonical-execution-learning-worker (حدث season.closed).
+  # الترقية إلى نموذج لا تحدث تلقائيّاً: الصفّ مرشّح مراجعة بشريّة لا أمر تعديل.
+  decision_learning_runs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v227_decision_learning_runtime.sql, services/sahool-platform/api/learning_feedback.py"
+  governed_model_promotion_candidates:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform]
+    source: "migrations/v227_decision_learning_runtime.sql, services/sahool-platform/api/learning_feedback.py"

@@ -26,26 +26,42 @@ import pytest
 pytestmark = pytest.mark.unit
 
 PLATFORM = Path(__file__).resolve().parents[1]
+REPO = PLATFORM.parents[1]
 REPOSITORIES = PLATFORM / "api" / "persisted_canonical_repositories.py"
 
-# Writers that exist and are tested, but that NO production code calls yet. The
-# observation-ingestion path is a separate slice; until it lands, the six tables stay
-# read-only in production and this set says so in a form that CI can check.
-# SHRINK-ONLY — remove an entry in the change that gives it a caller; never add one
-# without recording why a writer is landing ahead of its call site.
-WRITERS_AWAITING_A_CALL_SITE = frozenset(
+# Writers with no call site OUTSIDE their own module. The ratchet has fired once
+# already: the three ``persist_*_projection`` functions left this set when
+# ``scripts/workers/canonical_execution_learning_worker.py`` — a service registered in
+# docker-compose.v9.yml — began calling them off ``agronomy.projection.requested``.
+#
+# The three that remain are a WEAKER claim than "dead", and the difference is recorded
+# here rather than blurred: each is called by a ``persist_*_projection`` sibling in the
+# same file, so each is now reached transitively from that worker. They stay listed
+# because this guard deliberately does not count a module calling itself as evidence of
+# wiring — that rule is what made the original six visible at all, and relaxing it now
+# to claim a nicer number would retire the measurement, not satisfy it.
+#
+# SHRINK-ONLY — an entry leaves in the change that gives it an external caller; never
+# add one without recording why a writer is landing ahead of its call site.
+WRITERS_AWAITING_AN_EXTERNAL_CALL_SITE = frozenset(
     {
         "persist_nutrient_ledger",
-        "persist_nutrient_projection",
-        "persist_phenology_projection",
         "persist_phenology_state",
-        "persist_salinity_projection",
         "persist_salinity_state",
     }
 )
+WRITERS_AWAITING_A_CALL_SITE = WRITERS_AWAITING_AN_EXTERNAL_CALL_SITE
 
 
 def _production_files() -> list[Path]:
+    """Platform modules PLUS the executable roots that live outside the package.
+
+    Scanning only ``services/sahool-platform`` was a real blind spot, not a
+    simplification: the registered worker lives at ``scripts/workers/``, so when it
+    started calling three of these writers the guard went on reporting all six as
+    uncalled — passing green while asserting something false. A guard that cannot see
+    the caller is worse than no guard, because its silence reads as evidence.
+    """
     out = []
     for path in sorted(PLATFORM.rglob("*.py")):
         rel = path.relative_to(PLATFORM).as_posix()
@@ -54,6 +70,10 @@ def _production_files() -> list[Path]:
         if path == REPOSITORIES:
             continue  # a writer calling its own sibling is not an external call site
         out.append(path)
+    for extra in ("scripts/workers", "scripts/ops"):
+        directory = REPO / extra
+        if directory.exists():
+            out.extend(p for p in sorted(directory.rglob("*.py")) if "__pycache__" not in str(p))
     return out
 
 

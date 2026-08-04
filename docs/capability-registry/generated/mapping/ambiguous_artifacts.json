@@ -963,7 +963,7 @@
       },
       {
         "capability_id": "DEC-010",
-        "score": 14,
+        "score": 15,
         "signals": [
           "content:model activation",
           "content:model promotion",

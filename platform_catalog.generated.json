@@ -16376,6 +16376,7 @@
           "crop_stress_events",
           "crop_stress_memory_snapshots",
           "custody_chain_events",
+          "decision_learning_runs",
           "decision_record",
           "dispatch_decisions",
           "drone_missions",
@@ -16399,6 +16400,7 @@
           "gis_collaboration_sessions",
           "global_gis_release_gate",
           "global_gis_topology",
+          "governed_model_promotion_candidates",
           "harvest_lots",
           "historical_weather_daily",
           "hourly_energy_envelopes",
@@ -17333,7 +17335,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "24eaeb47c3005c30ccc0067766c5ac57008aef5f84f7f622907f8b0f2a81f77d",
+  "fingerprint": "da03da9988fea39056026e8d29b01a3318179a98446b77527f150f93b4e03aee",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

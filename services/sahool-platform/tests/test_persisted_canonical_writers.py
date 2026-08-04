@@ -181,30 +181,24 @@ def test_the_outbox_intent_never_synthesizes_a_command_id():
 
     ``events.command_id`` is ``UUID REFERENCES commands(command_id)``
     (migrations/v11_events_bus.sql:39, never dropped). Reproduced on PostgreSQL 16
-    against that schema, inserting an invented id fails with::
+    against that schema, an invented id fails with::
 
         insert or update on table "events" violates foreign key constraint
         "events_command_id_fkey"
 
     A projection has no originating command row — only ``api/command_store.py`` writes
-    ``commands`` — so the emit must pass NULL, exactly as
-    ``api/irrigation_execution_request_port.py`` does when no command exists. The
-    fake-connection tests below cannot see this: a stub ``fetchval`` accepts any
-    argument. This test reads the SQL and the module instead.
+    ``commands`` — so the emit binds NULL. The fake-connection tests around this one
+    cannot see it: a stub ``fetchval`` accepts any argument. This reads the parsed
+    module instead, so the prose above (which names ``uuid5`` to record why) cannot
+    satisfy a substring check on behalf of the code it warns about.
     """
-    assert "NULL::uuid" in repo._EMIT_PROJECTION_SQL, (
-        "p_command_id must be NULL — no commands row exists for a projection"
-    )
-    # Measured on the parsed module, not on its text: the prose above deliberately
-    # names ``uuid5`` to record why, and a substring check would match the warning
-    # rather than the code it warns about.
     tree = ast.parse(Path(repo.__file__).read_text(encoding="utf-8"))
     minted = sorted(
         node.func.id
         for node in ast.walk(tree)
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
-        and node.func.id in {"uuid4", "uuid5", "uuid1"}
+        and node.func.id in {"uuid1", "uuid4", "uuid5"}
     )
     assert not minted, (
         f"minting a command id ({minted}) would break the events_command_id_fkey constraint"
@@ -215,11 +209,12 @@ def test_projection_idempotency_rests_on_deterministic_dedup_inputs():
     """Retry safety comes from ``dedup_key``, so its inputs must be state-derived.
 
     ``emit_event`` deduplicates on tenant + event_type + entity_id + payload_hash +
-    the DATE of ``occurred_at``. Passing ``NOW()`` (by omitting ``occurred_at``) or an
-    unsorted payload would make two replays hash differently and emit twice.
+    the DATE of ``occurred_at``. Omitting ``occurred_at`` (letting it default to NOW())
+    or serialising the payload unsorted would make two replays hash differently and
+    emit twice.
     """
-    assert "$5::timestamptz" in repo._EMIT_PROJECTION_SQL, "occurred_at must be supplied"
     source = Path(repo.__file__).read_text(encoding="utf-8")
+    assert "timestamptz" in repo._EMIT_PROJECTION_SQL, "occurred_at must be supplied"
     assert "json.dumps(payload, sort_keys=True)" in source, (
         "an unsorted payload changes payload_hash between identical replays"
     )

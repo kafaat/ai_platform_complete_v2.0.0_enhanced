@@ -45,6 +45,14 @@ TERMINAL = "UNREACHABLE_TERMINAL_CHAIN"
 COUNTABLE = (MOUNTED_ROUTE, REGISTERED_WORKER, EVENT_SUBSCRIBER, OPERATOR_CLI)
 
 _WORKER_CMD = re.compile(r"python\s+-m\s+(api\.[A-Za-z0-9_.]+)")
+# A compose service may start a worker by PATH rather than by module — measured on
+# ``sahool-canonical-execution-learning-worker``, whose command is
+# ``python /app/scripts/workers/canonical_execution_learning_worker.py``. Matching only
+# ``python -m api.X`` reported that genuinely-registered worker as no root at all, and
+# every platform module reachable only through it as terminal. The guard was passing
+# while classifying live code as dead — the same failure it exists to catch, one level
+# up. ``/app`` is the image workdir; the repo path is the tail.
+_WORKER_SCRIPT_CMD = re.compile(r"python\s+(?:/app/)?(scripts/[A-Za-z0-9_./-]+\.py)")
 
 # Canonical modules that were already in the baseline and already unreachable when this
 # guard was written. Recorded so the guard blocks NEW unreachable modules without
@@ -140,14 +148,84 @@ def mounted_route_roots(files: dict[str, Path]) -> set[str]:
     }
 
 
+def _compose_service_commands(compose: Path) -> str:
+    """Every ``command``/``entrypoint`` declared under ``services:``, and only there.
+
+    Falls back to the raw text when PyYAML is unavailable or the file will not parse,
+    so a broken compose file cannot silently empty the root set — a guard that finds
+    no roots would classify the whole tree as terminal and fail loudly, which is the
+    behaviour we want over a quiet pass.
+    """
+    try:
+        import yaml
+    except ImportError:  # pragma: no cover - PyYAML is installed in every gate job
+        return compose.read_text(encoding="utf-8", errors="ignore")
+    try:
+        document = yaml.safe_load(compose.read_text(encoding="utf-8", errors="ignore"))
+    except yaml.YAMLError:
+        return compose.read_text(encoding="utf-8", errors="ignore")
+    if not isinstance(document, dict):
+        return ""
+    services = document.get("services")
+    if not isinstance(services, dict):
+        return ""
+    parts: list[str] = []
+    for spec in services.values():
+        if not isinstance(spec, dict):
+            continue
+        for key in ("command", "entrypoint"):
+            value = spec.get(key)
+            if isinstance(value, str):
+                parts.append(value)
+            elif isinstance(value, list):
+                parts.append(" ".join(str(item) for item in value))
+        health = spec.get("healthcheck")
+        if isinstance(health, dict):
+            test = health.get("test")
+            if isinstance(test, str):
+                parts.append(test)
+            elif isinstance(test, list):
+                parts.append(" ".join(str(item) for item in test))
+    return "\n".join(parts)
+
+
 def registered_worker_roots(files: dict[str, Path]) -> set[str]:
-    """Modules a compose service actually starts with ``python -m api.<module>``."""
+    """Platform modules a compose service actually starts.
+
+    Two command shapes, both measured in this repo's compose files: ``python -m
+    api.<module>`` starts a platform module directly, and ``python scripts/...py``
+    starts a launcher outside the platform package whose imports are the real roots.
+    """
     roots: set[str] = set()
+    by_name = _dotted_index(files)
     for compose in sorted(ROOT.glob("docker-compose*.yml")):
-        for dotted in _WORKER_CMD.findall(compose.read_text(encoding="utf-8", errors="ignore")):
+        # Read the SERVICES BLOCK, not the file. Measured: a worker was appended under
+        # ``networks:`` instead of ``services:`` — nothing would ever have started it —
+        # and a text-level grep for its command matched all the same, so this guard
+        # reported a root that did not exist. A command string is evidence of a root
+        # only where Compose would actually execute it.
+        text = _compose_service_commands(compose)
+        for dotted in _WORKER_CMD.findall(text):
             rel = dotted.replace(".", "/") + ".py"
             if rel in files:
                 roots.add(rel)
+        for script_rel in _WORKER_SCRIPT_CMD.findall(text):
+            script = ROOT / script_rel
+            if not script.exists():
+                continue
+            try:
+                tree = ast.parse(script.read_text(encoding="utf-8", errors="ignore"))
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                names: list[str] = []
+                if isinstance(node, ast.Import):
+                    names = [a.name for a in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    names = [node.module] + [f"{node.module}.{a.name}" for a in node.names]
+                for name in names:
+                    if name in by_name:
+                        roots.add(by_name[name])
     return roots
 
 

@@ -593,5 +593,7 @@
 \i migrations/v225_canonical_salinity_state.sql
 \echo '═══ 224. v226_canonical_nutrient_ledger.sql ═══'
 \i migrations/v226_canonical_nutrient_ledger.sql
-\echo '═══ 225. v206_rls_final_hardening.sql ═══'
+\echo '═══ 225. v227_decision_learning_runtime.sql ═══'
+\i migrations/v227_decision_learning_runtime.sql
+\echo '═══ 226. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

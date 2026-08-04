@@ -742,4 +742,5 @@ v216_machinery_export.sql
 v224_canonical_phenology_state.sql
 v225_canonical_salinity_state.sql
 v226_canonical_nutrient_ledger.sql
+v227_decision_learning_runtime.sql
 v206_rls_final_hardening.sql

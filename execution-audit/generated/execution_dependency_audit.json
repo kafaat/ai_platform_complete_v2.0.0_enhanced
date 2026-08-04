@@ -5,8 +5,8 @@
     "runtime_verified": false,
     "python_files_parsed": 1836,
     "route_handlers": 1048,
-    "call_edges": 72241,
-    "dead_code_candidates": 616,
+    "call_edges": 72319,
+    "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -194285,6 +194285,265 @@
     },
     {
       "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "execute",
+      "line": 282
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "fetchrow",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dict",
+      "line": 293
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "reconcile_irrigation_run",
+      "line": 296
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "get",
+      "line": 297
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "get",
+      "line": 300
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "_load_plan",
+      "line": 303
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "isinstance",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "get",
+      "line": 316
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "get",
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "build_irrigation_outcome_evidence",
+      "line": 321
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "float",
+      "line": 329
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "float",
+      "line": 330
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "float",
+      "line": 331
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "float",
+      "line": 332
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "execute",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dumps",
+      "line": 350
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dumps",
+      "line": 351
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "to_dict",
+      "line": 351
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "build_irrigation_closed_loop_record",
+      "line": 354
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "to_dict",
+      "line": 368
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "execute",
+      "line": 369
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dumps",
+      "line": 384
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dumps",
+      "line": 385
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dumps",
+      "line": 387
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "int",
+      "line": 389
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "fetchval",
+      "line": 390
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "propose_governed_irrigation_learning",
+      "line": 397
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "execute",
+      "line": 403
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dumps",
+      "line": 412
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dumps",
+      "line": 413
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "fetchval",
+      "line": 419
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "UUID",
+      "line": 424
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "dumps",
+      "line": 425
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "to_dict",
+      "line": 426
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "to_dict",
+      "line": 434
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "source": "finalize_irrigation_closed_loop",
+      "target": "str",
+      "line": 435
+    },
+    {
+      "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_commissioning_certification.py",
       "source": "_digest",
       "target": "hexdigest",
@@ -201919,6 +202178,258 @@
       "source": "learning_feedback",
       "target": "sum",
       "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "_stable_digest",
+      "target": "hexdigest",
+      "line": 112
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "_stable_digest",
+      "target": "sha256",
+      "line": 112
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "_stable_digest",
+      "target": "dumps",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "_stable_digest",
+      "target": "encode",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "fetchrow",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "dict",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "execute",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "fetch",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "dict",
+      "line": 153
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "_stable_digest",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "sorted",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "get",
+      "line": 158
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "get",
+      "line": 158
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "float",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "float",
+      "line": 160
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "abs",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "len",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "round",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "sum",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "len",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "round",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "sum",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "len",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "len",
+      "line": 167
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "_stable_digest",
+      "line": 175
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "execute",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "len",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "dumps",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "dumps",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "_stable_digest",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "execute",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "dumps",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "fetchval",
+      "line": 212
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "UUID",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "dumps",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "source": "process_season_closed_event",
+      "target": "str",
+      "line": 225
     },
     {
       "owner": "sahool-platform",
@@ -209639,147 +210150,168 @@
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_emit_projection_event",
       "target": "removesuffix",
-      "line": 310
+      "line": 297
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_emit_projection_event",
       "target": "fetchval",
-      "line": 312
+      "line": 299
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_emit_projection_event",
       "target": "UUID",
-      "line": 316
+      "line": 303
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_emit_projection_event",
       "target": "str",
-      "line": 316
+      "line": 303
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_emit_projection_event",
       "target": "dumps",
-      "line": 317
+      "line": 304
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_emit_projection_event",
       "target": "str",
-      "line": 320
+      "line": 308
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_require_same_scope",
       "target": "get",
-      "line": 331
+      "line": 319
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_require_same_scope",
       "target": "str",
-      "line": 331
+      "line": 319
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_require_same_scope",
       "target": "str",
-      "line": 331
+      "line": 319
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "_require_same_scope",
       "target": "ValueError",
-      "line": 332
+      "line": 320
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_phenology_projection",
       "target": "set",
-      "line": 345
+      "line": 333
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_phenology_projection",
       "target": "ValueError",
-      "line": 348
+      "line": 336
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_phenology_projection",
       "target": "normalized",
-      "line": 350
+      "line": 338
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_phenology_projection",
       "target": "set",
-      "line": 351
+      "line": 339
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_phenology_projection",
       "target": "ValueError",
-      "line": 352
+      "line": 340
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_phenology_projection",
       "target": "execute",
-      "line": 353
+      "line": 341
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_phenology_projection",
       "target": "persist_phenology_state",
-      "line": 373
+      "line": 361
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_phenology_projection",
       "target": "_emit_projection_event",
-      "line": 376
+      "line": 364
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_salinity_projection",
       "target": "set",
-      "line": 394
+      "line": 382
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_salinity_projection",
       "target": "_require_same_scope",
-      "line": 396
+      "line": 384
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_salinity_projection",
       "target": "get",
-      "line": 402
+      "line": 390
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "persist_salinity_projection",
+      "target": "str",
+      "line": 390
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "persist_salinity_projection",
+      "target": "ValueError",
+      "line": 392
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
+      "source": "persist_salinity_projection",
+      "target": "execute",
+      "line": 393
     },
     {
       "owner": "sahool-platform",
@@ -209792,134 +210324,113 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_salinity_projection",
-      "target": "ValueError",
-      "line": 404
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
-      "source": "persist_salinity_projection",
-      "target": "execute",
+      "target": "str",
       "line": 405
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_salinity_projection",
-      "target": "str",
-      "line": 414
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
-      "source": "persist_salinity_projection",
-      "target": "str",
-      "line": 417
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
-      "source": "persist_salinity_projection",
       "target": "dumps",
-      "line": 420
+      "line": 408
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_salinity_projection",
       "target": "get",
-      "line": 420
+      "line": 408
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_salinity_projection",
       "target": "persist_salinity_state",
-      "line": 422
+      "line": 410
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_salinity_projection",
       "target": "_emit_projection_event",
-      "line": 425
+      "line": 413
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "set",
-      "line": 443
+      "line": 431
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "_require_same_scope",
-      "line": 445
+      "line": 433
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "get",
-      "line": 451
+      "line": 439
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "str",
-      "line": 451
+      "line": 439
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "ValueError",
-      "line": 453
+      "line": 441
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "execute",
-      "line": 454
+      "line": 442
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "str",
-      "line": 465
+      "line": 453
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "dumps",
-      "line": 468
+      "line": 456
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "get",
-      "line": 468
+      "line": 456
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "persist_nutrient_ledger",
-      "line": 470
+      "line": 458
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "source": "persist_nutrient_projection",
       "target": "_emit_projection_event",
-      "line": 473
+      "line": 461
     },
     {
       "owner": "sahool-platform",
@@ -354189,182 +354700,217 @@
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_production_files",
       "target": "rglob",
-      "line": 50
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_production_files",
       "target": "sorted",
-      "line": 50
+      "line": 66
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_production_files",
       "target": "as_posix",
-      "line": 51
+      "line": 67
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_production_files",
       "target": "relative_to",
-      "line": 51
+      "line": 67
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_production_files",
       "target": "startswith",
-      "line": 52
+      "line": 68
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_production_files",
       "target": "append",
-      "line": 56
+      "line": 72
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
+      "source": "_production_files",
+      "target": "exists",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
+      "source": "_production_files",
+      "target": "extend",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
+      "source": "_production_files",
+      "target": "rglob",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
+      "source": "_production_files",
+      "target": "sorted",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
+      "source": "_production_files",
+      "target": "str",
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_declared_writers",
       "target": "parse",
-      "line": 61
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_declared_writers",
       "target": "read_text",
-      "line": 61
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_declared_writers",
       "target": "isinstance",
-      "line": 65
+      "line": 85
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_declared_writers",
       "target": "startswith",
-      "line": 66
+      "line": 86
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "set",
-      "line": 72
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "_production_files",
-      "line": 73
+      "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "parse",
-      "line": 75
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "read_text",
-      "line": 75
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "walk",
-      "line": 78
+      "line": 98
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "isinstance",
-      "line": 79
+      "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "isinstance",
-      "line": 82
+      "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "add",
-      "line": 83
+      "line": 103
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "isinstance",
-      "line": 84
+      "line": 104
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "_called_names",
       "target": "add",
-      "line": 85
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "test_the_declared_writers_are_exactly_the_ones_measured_as_uncalled",
       "target": "_declared_writers",
-      "line": 91
+      "line": 111
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "test_the_declared_writers_are_exactly_the_ones_measured_as_uncalled",
       "target": "_called_names",
-      "line": 93
+      "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "test_the_declared_writers_are_exactly_the_ones_measured_as_uncalled",
       "target": "set",
-      "line": 94
+      "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "test_the_declared_writers_are_exactly_the_ones_measured_as_uncalled",
       "target": "sorted",
-      "line": 96
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "test_the_declared_writers_are_exactly_the_ones_measured_as_uncalled",
       "target": "sorted",
-      "line": 97
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
       "source": "test_the_reader_the_route_actually_uses_is_not_in_the_deferred_set",
       "target": "_called_names",
-      "line": 105
+      "line": 125
     },
     {
       "owner": "sahool-platform",
@@ -406318,133 +406864,133 @@
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_the_outbox_intent_never_synthesizes_a_command_id",
       "target": "Path",
-      "line": 201
+      "line": 195
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_the_outbox_intent_never_synthesizes_a_command_id",
       "target": "parse",
-      "line": 201
+      "line": 195
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_the_outbox_intent_never_synthesizes_a_command_id",
       "target": "read_text",
-      "line": 201
+      "line": 195
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_the_outbox_intent_never_synthesizes_a_command_id",
       "target": "sorted",
-      "line": 202
+      "line": 196
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_the_outbox_intent_never_synthesizes_a_command_id",
       "target": "walk",
-      "line": 204
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_the_outbox_intent_never_synthesizes_a_command_id",
       "target": "isinstance",
-      "line": 205
+      "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_the_outbox_intent_never_synthesizes_a_command_id",
       "target": "isinstance",
-      "line": 206
+      "line": 200
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_idempotency_rests_on_deterministic_dedup_inputs",
       "target": "Path",
-      "line": 222
+      "line": 216
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_idempotency_rests_on_deterministic_dedup_inputs",
       "target": "read_text",
-      "line": 222
+      "line": 216
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_replay_does_not_emit_second_outbox_event",
       "target": "CanonicalSalinityState",
-      "line": 230
+      "line": 225
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_replay_does_not_emit_second_outbox_event",
       "target": "datetime",
-      "line": 237
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_replay_does_not_emit_second_outbox_event",
       "target": "ProjectionConn",
-      "line": 265
+      "line": 260
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_replay_does_not_emit_second_outbox_event",
       "target": "persist_salinity_projection",
-      "line": 266
+      "line": 261
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_rejects_cross_tenant_evidence_before_writing",
       "target": "CanonicalNutrientLedger",
-      "line": 274
+      "line": 269
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_rejects_cross_tenant_evidence_before_writing",
       "target": "datetime",
-      "line": 281
+      "line": 276
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_rejects_cross_tenant_evidence_before_writing",
       "target": "NutrientBalance",
-      "line": 284
+      "line": 279
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_rejects_cross_tenant_evidence_before_writing",
       "target": "ProjectionConn",
-      "line": 292
+      "line": 287
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_rejects_cross_tenant_evidence_before_writing",
       "target": "raises",
-      "line": 293
+      "line": 288
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_persisted_canonical_writers.py",
       "source": "test_projection_rejects_cross_tenant_evidence_before_writing",
       "target": "persist_nutrient_projection",
-      "line": 294
+      "line": 289
     },
     {
       "owner": "sahool-platform",
@@ -515705,43 +516251,21 @@
       "action": "review_before_delete"
     },
     {
-      "symbol": "build_irrigation_outcome_evidence",
-      "kind": "function",
-      "file": "services/sahool-platform/api/irrigation_closed_loop_learning.py",
-      "line": 162,
-      "owner": "sahool-platform",
-      "decorated_route": false,
-      "reference_count": 0,
-      "confidence": "medium",
-      "action": "review_before_delete"
-    },
-    {
-      "symbol": "build_irrigation_closed_loop_record",
-      "kind": "function",
-      "file": "services/sahool-platform/api/irrigation_closed_loop_learning.py",
-      "line": 235,
-      "owner": "sahool-platform",
-      "decorated_route": false,
-      "reference_count": 0,
-      "confidence": "medium",
-      "action": "review_before_delete"
-    },
-    {
-      "symbol": "propose_governed_irrigation_learning",
-      "kind": "function",
-      "file": "services/sahool-platform/api/irrigation_closed_loop_learning.py",
-      "line": 316,
-      "owner": "sahool-platform",
-      "decorated_route": false,
-      "reference_count": 0,
-      "confidence": "medium",
-      "action": "review_before_delete"
-    },
-    {
       "symbol": "certify_irrigation_production_runtime",
       "kind": "function",
       "file": "services/sahool-platform/api/irrigation_closed_loop_learning.py",
       "line": 375,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "finalize_irrigation_closed_loop",
+      "kind": "function",
+      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+      "line": 262,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -515819,6 +516343,17 @@
       "kind": "function",
       "file": "services/sahool-platform/api/irrigation_reservation_adapter.py",
       "line": 334,
+      "owner": "sahool-platform",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "process_season_closed_event",
+      "kind": "function",
+      "file": "services/sahool-platform/api/learning_feedback.py",
+      "line": 117,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

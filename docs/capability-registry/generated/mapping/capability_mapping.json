@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4875,
+    "files_scanned": 4888,
     "files_by_kind": {
       "backend": 1194,
-      "database": 269,
+      "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1286,
-      "tests": 1568,
+      "other": 1289,
+      "tests": 1575,
       "web": 448
     },
-    "unmapped_artifacts": 1981,
+    "unmapped_artifacts": 1990,
     "ambiguous_artifacts": 397
   },
   "capabilities": [
@@ -1456,6 +1456,14 @@
         {
           "value": "decision_lineage_summary.json @ scripts/ci/decision_lineage_graph.py:24",
           "score": 8
+        },
+        {
+          "value": "irrigation.closed_loop.completed @ services/sahool-platform/api/irrigation_closed_loop_runtime.py:421",
+          "score": 8
+        },
+        {
+          "value": "sahool-platform.irrigation_closed_loop_runtime @ services/sahool-platform/api/irrigation_closed_loop_runtime.py:428",
+          "score": 8
         }
       ],
       "web": [],
@@ -1505,7 +1513,7 @@
         "backend": 2,
         "routes": 0,
         "database": 0,
-        "events": 7,
+        "events": 9,
         "web": 0,
         "mobile": 0,
         "tests": 3,
@@ -3069,6 +3077,15 @@
           ]
         },
         {
+          "path": "docs/architecture/db_ownership.yml",
+          "score": 15,
+          "signals": [
+            "content:model activation",
+            "content:model promotion",
+            "content:model rollback"
+          ]
+        },
+        {
           "path": "WX11_4_MODEL_ACTIVATION_REQUEST_REPORT_20260711.md",
           "score": 14,
           "signals": [
@@ -3082,15 +3099,6 @@
           "signals": [
             "path:model activation",
             "content:model activation"
-          ]
-        },
-        {
-          "path": "docs/architecture/db_ownership.yml",
-          "score": 14,
-          "signals": [
-            "content:model activation",
-            "content:model promotion",
-            "content:model rollback"
           ]
         },
         {
@@ -10977,6 +10985,10 @@
           "score": 14
         },
         {
+          "value": "irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:159",
+          "score": 12
+        },
+        {
           "value": "sahool.> @ agents/notification/agent.py:449",
           "score": 12
         },
@@ -11010,6 +11022,18 @@
         },
         {
           "value": "sahool.events.> @ event_publish_contracts.yaml:20",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.agronomy.projection.requested @ scripts/workers/canonical_execution_learning_worker.py:53",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:51",
+          "score": 12
+        },
+        {
+          "value": "sahool.events.season.closed @ scripts/workers/canonical_execution_learning_worker.py:52",
           "score": 12
         },
         {
@@ -11203,6 +11227,14 @@
           ]
         },
         {
+          "path": "scripts/workers/canonical_execution_learning_worker.py",
+          "score": 12,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "docs/history/AUTOMATION_AND_N8N_REVIEW.md",
           "score": 11,
           "signals": [
@@ -11293,12 +11325,12 @@
         "backend": 5,
         "routes": 15,
         "database": 2,
-        "events": 58,
+        "events": 62,
         "web": 0,
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 15
+        "other_evidence": 16
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -35859,6 +35891,10 @@
       "kind": "database"
     },
     {
+      "path": "migrations/v227_decision_learning_runtime.sql",
+      "kind": "database"
+    },
+    {
       "path": "migrations/v28_settings.sql",
       "kind": "database"
     },
@@ -36085,6 +36121,10 @@
     {
       "path": "scripts/ci/test_marker_coverage_guard.py",
       "kind": "tests"
+    },
+    {
+      "path": "scripts/e2e/command_event_causality_live_gate.sql",
+      "kind": "database"
     },
     {
       "path": "scripts/irr_f01/bootstrap.sql",
@@ -40695,6 +40735,14 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_canonical_execution_learning_live_gate_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_canonical_execution_learning_root_closure.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_canonical_hydraulic_capability.py",
       "kind": "tests"
     },
@@ -40727,6 +40775,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_command_event_causality_live_gate_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_command_store_behavior_v66.py",
       "kind": "tests"
     },
@@ -40756,6 +40808,10 @@
     },
     {
       "path": "tests_v9/test_compose_security_audit.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_compose_services_are_declared_as_services.py",
       "kind": "tests"
     },
     {
@@ -41159,6 +41215,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_irrigation_and_decision_architecture.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_irrigation_commissioning_certification.py",
       "kind": "tests"
     },
@@ -41327,6 +41387,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_no_tracked_temporary_probe.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_normalized_scene_wiring_v63_2.py",
       "kind": "tests"
     },
@@ -41420,6 +41484,10 @@
     },
     {
       "path": "tests_v9/test_portfolio_command_shape.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_pre_push_stability_guard.py",
       "kind": "tests"
     },
     {
@@ -42868,7 +42936,7 @@
         },
         {
           "capability_id": "DEC-010",
-          "score": 14,
+          "score": 15,
           "signals": [
             "content:model activation",
             "content:model promotion",

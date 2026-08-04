@@ -272,23 +272,10 @@ async def persist_nutrient_ledger(conn: Any, ledger: CanonicalNutrientLedger) ->
     return _inserted(status)
 
 
-# ``p_command_id`` is NULL by measurement, not by omission. ``events.command_id`` is
-# ``UUID REFERENCES commands(command_id)`` (migrations/v11_events_bus.sql:39, never
-# dropped), so a *synthesized* id — a uuid5 of the state digest, say — is rejected:
-#   ERROR: insert or update on table "events" violates foreign key constraint
-#          "events_command_id_fkey"
-#   DETAIL: Key (command_id)=(...) is not present in table "commands".
-# Reproduced on a throwaway PostgreSQL 16 against the v11 schema. A projection has no
-# originating command row (only api/command_store.py writes ``commands``), so it passes
-# NULL exactly as api/irrigation_execution_request_port.py does when the envelope
-# carries none. Retry safety does not depend on it: ``emit_event`` deduplicates on
-# ``dedup_key`` = tenant + event_type + entity_id + payload_hash + occurred_at's date,
-# and every component here is derived from the immutable state — plus the emit is
-# reached only when the digest-idempotent state INSERT reported a new row.
 _EMIT_PROJECTION_SQL = """
 SELECT emit_event(
     $1::text, 'field'::text, $2::text, $3::uuid, $4::jsonb,
-    'sahool-platform'::text, NULL::text, NULL::uuid, $5::timestamptz
+    'sahool-platform'::text, NULL::text, $5::uuid, $6::timestamptz
 )
 """
 
@@ -315,6 +302,7 @@ async def _emit_projection_event(
         field_id,
         UUID(str(tenant_id)),
         json.dumps(payload, sort_keys=True),
+        None,
         as_of,
     )
     return str(event_id) if event_id is not None else None
