@@ -15,8 +15,15 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
+      # jsonschema: this job runs `verify_all_generated`, and the sweep DISCOVERS its
+      # step list from the workflows — so it picks up `schema_validation_guard.py --check`
+      # even though that step is declared in ci.yml. A gate the sweep can invoke must have
+      # its dependencies wherever the sweep runs, not only where the step was written.
+      # Measured on PR #787: installed in Repository Structural Lint alone, and this job
+      # failed with "closed rather than skipping quietly" — the guard refusing to fake a
+      # pass without its library, which is the behaviour it was built to have.
       - name: Install test runner
-        run: pip install pytest==9.1.1 PyYAML==6.0.2
+        run: pip install pytest==9.1.1 PyYAML==6.0.2 jsonschema==4.26.0
       - name: Validate architecture graph drift
         run: python scripts/ci/architecture_graph.py --check
       - name: Validate API versioning inventory and legacy-route ratchet

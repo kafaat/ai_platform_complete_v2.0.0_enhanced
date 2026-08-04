@@ -170,6 +170,41 @@ def test_all_four_schema_owning_domains_go_through_this_validator():
     )
 
 
+def test_every_job_that_runs_the_sweep_installs_this_guard_s_library():
+    """The sweep discovers its steps from the workflows, so it can invoke this gate anywhere.
+
+    Measured on PR #787: the library was installed in the job where the step was *written*
+    (Repository Structural Lint), and ``capability-registry`` — which runs
+    ``verify_all_generated`` — failed with "closed rather than skipping quietly". The guard
+    was right to refuse; the wiring was wrong.
+
+    A dependency present where a gate is declared but absent where it runs is the same
+    shape as the gap this whole guard exists to close: something that looks enforced and
+    is not.
+
+    Read from the ``run:`` lines, never from the file text: the first version of this
+    check searched the whole file, and a comment mentioning the library satisfied it — so
+    stripping the real install left the test green. A guard that fires on prose is the
+    class it is meant to catch.
+    """
+    workflows = ROOT / ".github/workflows"
+    offenders = []
+    for path in sorted(workflows.glob("*.yml")):
+        commands = [
+            line.split("run:", 1)[1]
+            for line in path.read_text(encoding="utf-8").splitlines()
+            if line.strip().startswith("run:")
+        ]
+        runs_sweep = any("verify_all_generated.py" in c for c in commands)
+        installs = any("pip install" in c and "jsonschema" in c for c in commands)
+        if runs_sweep and not installs:
+            offenders.append(path.name)
+    assert not offenders, (
+        f"these workflows run verify_all_generated without installing jsonschema, so the "
+        f"schema gate would fail closed there: {offenders}"
+    )
+
+
 def test_no_schema_declares_an_external_reference_anywhere():
     """The acceptance condition "0 network dependency", checked on the real tree."""
     guard = _guard()
