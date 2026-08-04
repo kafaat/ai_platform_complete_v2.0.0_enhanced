@@ -149,7 +149,9 @@ export function Combobox<TValue extends string = string>({
         >
           <div className="flex items-center gap-2" style={{ padding: 8, borderBottom: `1px solid ${T.line}` }}>
             <Search style={{ width: 14, height: 14, color: T.muted, flexShrink: 0 }} aria-hidden="true" />
-            {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+            {/* autoFocus مقصود: القائمة تُفتَح بفعل المستخدم، والتركيز على حقل
+                البحث هو السلوك المتوقَّع لصندوق مركّب. (لا توجيه eslint هنا:
+                jsx-a11y غير مثبَّت، وتوجيهٌ لقاعدة غير موجودة خطأ بذاته.) */}
             <input
               autoFocus
               type="search"

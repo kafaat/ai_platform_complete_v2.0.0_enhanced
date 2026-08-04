@@ -75,6 +75,14 @@ export function DataTable<T extends Record<string, unknown>>({
     });
   }
 
+  // معرّف فريد لحقن CSS الاستجابة (انهيار الموبايل) لهذا الجدول فقط.
+  //
+  // موضعه **قبل** الخروج المبكر للحالة الفارغة عن قصد: كان تحته، فيُستدعى عند وجود
+  // صفوف ولا يُستدعى عند غيابها. اختلاف عدد الـhooks بين تصييرَين يرمي
+  // «Rendered more hooks than during the previous render» لحظة امتلاء جدول كان
+  // فارغاً — وهو المسار الشائع (جدول يُحمَّل ثمّ تصل بياناته).
+  const tid = useMemo(() => `dt-${Math.random().toString(36).slice(2, 9)}`, []);
+
   if (rows.length === 0) {
     return (
       <div
@@ -103,9 +111,6 @@ export function DataTable<T extends Record<string, unknown>>({
     if (v == null || v === '') return '—';
     return v as ReactNode;
   }
-
-  // معرّف فريد لحقن CSS الاستجابة (انهيار الموبايل) لهذا الجدول فقط.
-  const tid = useMemo(() => `dt-${Math.random().toString(36).slice(2, 9)}`, []);
 
   return (
     <div

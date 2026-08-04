@@ -557,8 +557,8 @@ sahool-platform,GET,/api/v1/farms/{farm_id}/priority-queue,farm_priority_queue,s
 sahool-platform,GET,/api/v1/fields/{field_id}/readiness,field_readiness,services/sahool-platform/api/routers/field_readiness.py,56
 sahool-platform,GET,/api/v1/field/operational-state,field_operational_state_endpoint,services/sahool-platform/api/routers/field_single.py,23
 sahool-platform,GET,/api/v1/fields/{field_id}/twin,get_field_twin,services/sahool-platform/api/routers/field_twin.py,39
-sahool-platform,GET,/api/v1/fields/{field_id}/available-dates,field_imagery_available_dates_facade,services/sahool-platform/api/routers/field_workspace_imagery.py,41
-sahool-platform,GET,/api/v1/fields/{field_id}/imagery/timeline,field_imagery_timeline_facade,services/sahool-platform/api/routers/field_workspace_imagery.py,77
+sahool-platform,GET,/api/v1/fields/{field_id}/available-dates,field_imagery_available_dates_facade,services/sahool-platform/api/routers/field_workspace_imagery.py,51
+sahool-platform,GET,/api/v1/fields/{field_id}/imagery/timeline,field_imagery_timeline_facade,services/sahool-platform/api/routers/field_workspace_imagery.py,87
 sahool-platform,GET,/api/v1/fields/{field_id}/unified-timeline,field_unified_timeline_facade,services/sahool-platform/api/routers/field_workspace_timeline.py,32
 sahool-platform,GET,/api/v1/fields/{field_id}/weather/thermal-stress,field_weather_thermal_stress,services/sahool-platform/api/routers/field_workspace_weather.py,69
 sahool-platform,GET,/api/v1/fields/{field_id}/weather/crop-stress,field_weather_crop_stress,services/sahool-platform/api/routers/field_workspace_weather.py,104

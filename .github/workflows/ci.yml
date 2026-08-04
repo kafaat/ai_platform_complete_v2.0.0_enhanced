@@ -501,6 +501,15 @@ jobs:
         working-directory: frontend
       - run: npm run typecheck
         working-directory: frontend
+      # `npm run lint` كان **سكربتاً زخرفيّاً**: لا `eslint` في التبعيّات، ولا ملفّ
+      # تهيئة في الشجرة، ولا وظيفة تستدعيه — و`--ext` فيه محذوف أصلاً في ESLint 9.
+      # سكربتٌ يبدو بوّابةً وليس بوّابة أسوأ من غيابه. أوّل تشغيل حقيقيّ له كشف
+      # `useMemo` بعد خروج مبكر في ds/table.tsx (يرمي «Rendered more hooks…» لحظة
+      # امتلاء جدول فارغ). النطاق أخطاء منطقيّة لا أسلوب: tsc يغطّي الأنواع.
+      # الدَّين الموروث (١١ مخالفة) في `eslint-suppressions.json` — يتقلّص ولا ينمو:
+      # ESLint يخرج بـ2 على تثبيت بائت، فلا يبقى الأساس متضخّماً بصمت.
+      - run: npm run lint
+        working-directory: frontend
 
   frontend-e2e:
     name: Frontend E2E (Playwright · MapLibre/WebGL QA)

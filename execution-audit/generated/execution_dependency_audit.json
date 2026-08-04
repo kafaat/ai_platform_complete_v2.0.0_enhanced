@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1836,
     "route_handlers": 1048,
-    "call_edges": 72319,
+    "call_edges": 72325,
     "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -4479,7 +4479,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "line": 41,
+      "line": 51,
       "handler": "field_imagery_available_dates_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/available-dates"
@@ -4487,7 +4487,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "line": 77,
+      "line": 87,
       "handler": "field_imagery_timeline_facade",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/imagery/timeline"
@@ -243335,338 +243335,380 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "_as_list",
-      "target": "get",
-      "line": 35
+      "source": "_subtract_calendar_months",
+      "target": "divmod",
+      "line": 38
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "_as_list",
-      "target": "isinstance",
-      "line": 35
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "_as_list",
-      "target": "isinstance",
-      "line": 35
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "_as_list",
-      "target": "isinstance",
-      "line": 36
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_available_dates_facade",
-      "target": "get",
+      "source": "_subtract_calendar_months",
+      "target": "min",
       "line": 40
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_available_dates_facade",
-      "target": "Query",
-      "line": 43
+      "source": "_subtract_calendar_months",
+      "target": "monthrange",
+      "line": 40
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_available_dates_facade",
-      "target": "Query",
-      "line": 44
+      "source": "_subtract_calendar_months",
+      "target": "date",
+      "line": 41
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_available_dates_facade",
-      "target": "Query",
+      "source": "_as_list",
+      "target": "get",
       "line": 45
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_available_dates_facade",
-      "target": "Query",
+      "source": "_as_list",
+      "target": "isinstance",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "_as_list",
+      "target": "isinstance",
+      "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "_as_list",
+      "target": "isinstance",
       "line": 46
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_available_dates_facade",
-      "target": "Depends",
-      "line": 47
+      "target": "get",
+      "line": 50
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_available_dates_facade",
-      "target": "require_permission",
-      "line": 47
+      "target": "Query",
+      "line": 53
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_available_dates_facade",
-      "target": "tenant_connection",
+      "target": "Query",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_available_dates_facade",
+      "target": "Query",
       "line": 55
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_available_dates_facade",
-      "target": "fetchval",
+      "target": "Query",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_available_dates_facade",
+      "target": "Depends",
       "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_available_dates_facade",
+      "target": "require_permission",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_available_dates_facade",
+      "target": "tenant_connection",
+      "line": 65
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_available_dates_facade",
+      "target": "fetchval",
+      "line": 67
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_available_dates_facade",
       "target": "str",
-      "line": 60
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_available_dates_facade",
       "target": "get_available_dates",
-      "line": 62
+      "line": 72
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_available_dates_facade",
       "target": "str",
-      "line": 64
+      "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_available_dates_facade",
       "target": "_db_unavailable",
-      "line": 73
+      "line": 83
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
       "target": "get",
-      "line": 76
+      "line": 86
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
       "target": "Query",
-      "line": 79
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "Depends",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "require_permission",
-      "line": 80
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "tenant_connection",
-      "line": 88
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "fetchval",
       "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
-      "target": "str",
-      "line": 92
+      "target": "Depends",
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
-      "target": "str",
-      "line": 95
+      "target": "require_permission",
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
-      "target": "get_available_dates",
-      "line": 96
+      "target": "tenant_connection",
+      "line": 98
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
-      "target": "max",
+      "target": "fetchval",
       "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
-      "target": "min",
-      "line": 99
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "isoformat",
-      "line": 101
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "timedelta",
-      "line": 101
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "today",
-      "line": 101
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "_as_list",
-      "line": 103
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "get",
-      "line": 104
+      "target": "str",
+      "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
       "target": "str",
-      "line": 104
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "len",
       "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
-      "target": "bool",
-      "line": 107
+      "target": "get_available_dates",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "max",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "min",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "_subtract_calendar_months",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "date",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "isoformat",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "now",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "_as_list",
+      "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
       "target": "get",
-      "line": 107
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "get",
-      "line": 108
+      "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
       "target": "str",
-      "line": 108
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "append",
-      "line": 115
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "get",
-      "line": 119
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "get",
-      "line": 120
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "get",
-      "line": 121
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "get",
-      "line": 124
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "get",
-      "line": 125
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-      "source": "field_imagery_timeline_facade",
-      "target": "sort",
-      "line": 138
+      "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
       "target": "len",
-      "line": 139
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "bool",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "get",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "get",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "str",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "append",
+      "line": 125
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "get",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "get",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "get",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "get",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "get",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "sort",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "get",
+      "line": 149
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "source": "field_imagery_timeline_facade",
+      "target": "len",
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
       "source": "field_imagery_timeline_facade",
       "target": "_db_unavailable",
-      "line": 143
+      "line": 156
     },
     {
       "owner": "sahool-platform",
