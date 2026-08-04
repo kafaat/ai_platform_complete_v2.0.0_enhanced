@@ -18,16 +18,16 @@
       "runtime_verified": 0
     },
     {
-      "average_assessed_maturity": 2.1,
+      "average_assessed_maturity": 2.2,
       "average_declared_maturity": 3.0,
       "capability_count": 10,
-      "declared_above_evidence": 7,
+      "declared_above_evidence": 6,
       "domain": "farm_management",
       "maturity_distribution": {
         "0": 0,
         "1": 2,
-        "2": 5,
-        "3": 3,
+        "2": 4,
+        "3": 4,
         "4": 0,
         "5": 0
       },

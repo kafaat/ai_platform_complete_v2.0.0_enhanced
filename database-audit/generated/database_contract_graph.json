@@ -222,6 +222,10 @@
       "v214_field_irrigation_source_assignments.sql",
       "v215_yield_map_ingestion.sql",
       "v216_machinery_export.sql",
+      "v224_canonical_phenology_state.sql",
+      "v225_canonical_salinity_state.sql",
+      "v226_canonical_nutrient_ledger.sql",
+      "v227_decision_learning_runtime.sql",
       "v206_rls_final_hardening.sql"
     ],
     "missing": [],
@@ -406,9 +410,37 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "canonical_nutrient_ledgers_tenant_isolation",
+      "source": "v226_canonical_nutrient_ledger.sql",
+      "table": "canonical_nutrient_ledgers"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v224_canonical_phenology_state.sql",
+      "table": "canonical_phenology_states"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "canonical_projection_requests_tenant_policy",
+      "source": "v227_decision_learning_runtime.sql",
+      "table": "canonical_projection_requests"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "canonical_root_zone_profiles_tenant_isolation",
       "source": "v169_canonical_root_zone_hydraulic_profile.sql",
       "table": "canonical_root_zone_profiles"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v225_canonical_salinity_state.sql",
+      "table": "canonical_salinity_states"
     },
     {
       "has_using": true,
@@ -1183,6 +1215,13 @@
     {
       "has_using": true,
       "has_with_check": true,
+      "name": "nutrient_evidence_tenant_isolation",
+      "source": "v226_canonical_nutrient_ledger.sql",
+      "table": "nutrient_evidence_observations"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
       "name": "offline_dataset_versions_runtime_tenant_policy",
       "source": "v108_phase10_feature_store_model_registry_runtime.sql",
       "table": "offline_dataset_versions_runtime"
@@ -1235,6 +1274,13 @@
       "name": "tenant_isolation",
       "source": "v79_outcome_record.sql",
       "table": "outcome_record"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v224_canonical_phenology_state.sql",
+      "table": "phenology_observations"
     },
     {
       "has_using": true,
@@ -1354,6 +1400,13 @@
       "name": "runtime_event_outbox_tenant_isolation",
       "source": "v106_phase9_10_runtime_strengthening.sql",
       "table": "runtime_event_outbox"
+    },
+    {
+      "has_using": true,
+      "has_with_check": true,
+      "name": "tenant_isolation",
+      "source": "v225_canonical_salinity_state.sql",
+      "table": "salinity_evidence_observations"
     },
     {
       "has_using": true,
@@ -1533,17 +1586,17 @@
   ],
   "schema_version": 1,
   "summary": {
-    "manifest_entries": 222,
+    "manifest_entries": 226,
     "manifest_missing_count": 0,
-    "policies": 186,
+    "policies": 193,
     "production_certified": false,
-    "rls_enabled": 199,
-    "rls_forced": 180,
+    "rls_enabled": 206,
+    "rls_forced": 187,
     "runtime_verified": false,
-    "sql_files": 224,
-    "tables": 324,
-    "tenant_rls_gaps": 133,
-    "tenant_tables": 304,
+    "sql_files": 228,
+    "tables": 333,
+    "tenant_rls_gaps": 135,
+    "tenant_tables": 313,
     "unlisted_sql_count": 0
   },
   "tables": [
@@ -2116,6 +2169,54 @@
       "write_policy_with_check": false
     },
     {
+      "code_readers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
+      "created_in": "v226_canonical_nutrient_ledger.sql",
+      "has_tenant_id": true,
+      "manifest_position": 223,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "canonical_nutrient_ledgers",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py",
+        "services/sahool-platform/tests/test_persisted_canonical_writers.py"
+      ],
+      "created_in": "v224_canonical_phenology_state.sql",
+      "has_tenant_id": true,
+      "manifest_position": 221,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "canonical_phenology_states",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [],
+      "code_writers": [],
+      "created_in": "v227_decision_learning_runtime.sql",
+      "has_tenant_id": true,
+      "manifest_position": 224,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "canonical_projection_requests",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
       "code_readers": [],
       "code_writers": [
         "services/sahool-platform/api/canonical_root_zone_profile.py"
@@ -2127,6 +2228,23 @@
       "rls_enabled": true,
       "rls_forced": true,
       "table": "canonical_root_zone_profiles",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
+      "created_in": "v225_canonical_salinity_state.sql",
+      "has_tenant_id": true,
+      "manifest_position": 222,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "canonical_salinity_states",
       "tenant_rls_gap": false,
       "write_policy_with_check": true
     },
@@ -2310,6 +2428,23 @@
       "rls_forced": true,
       "table": "custody_chain_events",
       "tenant_rls_gap": false,
+      "write_policy_with_check": false
+    },
+    {
+      "code_readers": [
+        "services/sahool-platform/api/learning_feedback.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/learning_feedback.py"
+      ],
+      "created_in": "v227_decision_learning_runtime.sql",
+      "has_tenant_id": true,
+      "manifest_position": 224,
+      "policy_count": 0,
+      "rls_enabled": false,
+      "rls_forced": false,
+      "table": "decision_learning_runs",
+      "tenant_rls_gap": true,
       "write_policy_with_check": false
     },
     {
@@ -3599,6 +3734,21 @@
     },
     {
       "code_readers": [],
+      "code_writers": [
+        "services/sahool-platform/api/learning_feedback.py"
+      ],
+      "created_in": "v227_decision_learning_runtime.sql",
+      "has_tenant_id": true,
+      "manifest_position": 224,
+      "policy_count": 0,
+      "rls_enabled": false,
+      "rls_forced": false,
+      "table": "governed_model_promotion_candidates",
+      "tenant_rls_gap": true,
+      "write_policy_with_check": false
+    },
+    {
+      "code_readers": [],
       "code_writers": [],
       "created_in": "v9_new_tables.sql",
       "has_tenant_id": true,
@@ -3872,8 +4022,12 @@
       "write_policy_with_check": false
     },
     {
-      "code_readers": [],
-      "code_writers": [],
+      "code_readers": [
+        "services/sahool-platform/api/irrigation_closed_loop_runtime.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/api/irrigation_closed_loop_runtime.py"
+      ],
       "created_in": "v181_irrigation_closed_loop_learning_production_certification.sql",
       "has_tenant_id": true,
       "manifest_position": 186,
@@ -4131,7 +4285,9 @@
     },
     {
       "code_readers": [],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/irrigation_closed_loop_runtime.py"
+      ],
       "created_in": "v181_irrigation_closed_loop_learning_production_certification.sql",
       "has_tenant_id": true,
       "manifest_position": 186,
@@ -4249,7 +4405,9 @@
     },
     {
       "code_readers": [],
-      "code_writers": [],
+      "code_writers": [
+        "services/sahool-platform/api/irrigation_closed_loop_runtime.py"
+      ],
       "created_in": "v181_irrigation_closed_loop_learning_production_certification.sql",
       "has_tenant_id": true,
       "manifest_position": 186,
@@ -5098,6 +5256,21 @@
       "write_policy_with_check": false
     },
     {
+      "code_readers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
+      "created_in": "v226_canonical_nutrient_ledger.sql",
+      "has_tenant_id": true,
+      "manifest_position": 223,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "nutrient_evidence_observations",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
       "code_readers": [
         "services/odoo-bridge/routers/catalog.py"
       ],
@@ -5293,6 +5466,22 @@
     },
     {
       "code_readers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py",
+        "services/sahool-platform/tests/test_persisted_canonical_writers.py"
+      ],
+      "created_in": "v224_canonical_phenology_state.sql",
+      "has_tenant_id": true,
+      "manifest_position": 221,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "phenology_observations",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [],
       "code_writers": [],
       "created_in": "v121_marketplace_ecosystem.sql",
       "has_tenant_id": true,
@@ -5468,6 +5657,7 @@
     {
       "code_readers": [
         "services/decision-service/persistence.py",
+        "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/learning.py",
         "services/sahool-platform/api/routers/learning_summary.py",
@@ -5562,6 +5752,21 @@
       "rls_enabled": true,
       "rls_forced": true,
       "table": "runtime_event_outbox",
+      "tenant_rls_gap": false,
+      "write_policy_with_check": true
+    },
+    {
+      "code_readers": [],
+      "code_writers": [
+        "services/sahool-platform/api/persisted_canonical_repositories.py"
+      ],
+      "created_in": "v225_canonical_salinity_state.sql",
+      "has_tenant_id": true,
+      "manifest_position": 222,
+      "policy_count": 1,
+      "rls_enabled": true,
+      "rls_forced": true,
+      "table": "salinity_evidence_observations",
       "tenant_rls_gap": false,
       "write_policy_with_check": true
     },
@@ -5739,6 +5944,7 @@
         "services/sahool-platform/api/canonical_water_state.py",
         "services/sahool-platform/api/field_aggregate_ports.py",
         "services/sahool-platform/api/field_context.py",
+        "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
         "services/sahool-platform/api/routers/field_ai_context.py",
         "services/sahool-platform/api/routers/field_completeness.py",

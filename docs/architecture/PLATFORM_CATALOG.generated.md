@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `4f1f315994e76768afe8353ee9f705640df64effcdf8b123c60a109a530f0056`
+- fingerprint: `1d6d2c250dd47516b4b28f60e6f910d6c4da9bf8b0de51b005a08b739801a276`
 - components: **34** (backend: 32)
 - route rows: **1111** → unique method/path: **998**
 - capabilities (derived, uncurated): **826**
@@ -38,7 +38,7 @@
 | raster-service | service | remote-sensing-truth | sahool-raster-service | 14 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
-| sahool-platform | service | platform-core | — | 186 | True |
+| sahool-platform | service | platform-core | — | 195 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
 | scout-ingest-service | service | ground-ingest | — | 11 | True |
 | soil-service | service | soil | sahool-soil-service | 32 | True |

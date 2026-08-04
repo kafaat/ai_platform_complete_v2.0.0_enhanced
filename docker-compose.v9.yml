@@ -2564,12 +2564,49 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+  sahool-canonical-execution-learning-worker:
+    build: *id003
+    mem_limit: 512m
+    security_opt:
+    - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      CANONICAL_LEARNING_DURABLE: ${CANONICAL_LEARNING_DURABLE:-canonical-execution-learning-v1}
+    command:
+    - python
+    - /app/scripts/workers/canonical_execution_learning_worker.py
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-nats:
+        condition: service_started
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck:
+      test: ["CMD-SHELL", "python /app/scripts/workers/canonical_execution_learning_worker.py --preflight"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
 networks:
   sahool-public:
     driver: bridge
   sahool-internal:
     driver: bridge
     internal: false
+
 volumes:
   postgres-data: null
   raster-data: null

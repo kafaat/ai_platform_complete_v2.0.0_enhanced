@@ -4,7 +4,7 @@ DEC-002,decision,Decision candidate,True,3,1,0,0,2,0,0,4,0
 DEC-003,decision,Human approval,True,1,2,0,0,0,0,0,0,0
 DEC-004,decision,Execution request,True,5,9,20,24,29,0,0,15,0
 DEC-005,decision,Dispatch authorization,True,5,5,86,5,3,0,0,3,0
-DEC-006,decision,Execution receipt,True,3,2,0,0,7,0,0,3,0
+DEC-006,decision,Execution receipt,True,3,2,0,0,9,0,0,3,0
 DEC-007,decision,Outcome recording,True,6,3,6,5,3,1,0,2,0
 DEC-008,decision,Learning attribution,True,5,5,94,14,4,0,0,1,1
 DEC-009,decision,Model calibration,True,1,0,0,2,0,0,0,0,0
@@ -12,7 +12,7 @@ DEC-010,decision,Model lifecycle and activation,True,5,4,89,42,8,0,0,5,1
 FM-001,farm_management,Tenant and organization management,True,6,15,2,20,4,1,0,23,0
 FM-002,farm_management,Farm registry,True,7,34,44,98,22,13,2,25,0
 FM-003,farm_management,Field registry and boundaries,True,7,13,56,6,53,2,2,11,1
-FM-004,farm_management,Season lifecycle,True,7,30,82,86,54,12,1,33,0
+FM-004,farm_management,Season lifecycle,True,7,30,82,86,54,12,1,34,0
 FM-005,farm_management,Crop and cultivar catalog,True,5,6,0,0,7,3,1,5,0
 FM-006,farm_management,Farm economics,True,4,2,3,0,0,2,0,1,0
 FM-007,farm_management,Inventory and procurement,True,7,8,24,8,1,1,1,5,3
@@ -22,7 +22,7 @@ GIS-002,gis,Map layers,True,4,2,3,0,0,2,0,2,0
 GIS-003,gis,Terrain and DEM,True,6,22,100,10,51,11,0,35,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
-INT-002,farm_management,Event bus integration,True,5,5,15,2,58,0,0,7,0
+INT-002,farm_management,Event bus integration,True,5,5,15,2,63,0,0,7,0
 INT-003,irrigation,IoT and sensors,True,1,0,0,0,0,0,0,1,0
 INT-004,precision,External machinery integrations,True,5,4,9,8,13,0,0,3,0
 IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
@@ -33,7 +33,7 @@ IRR-005,irrigation,Irrigation recommendation,True,5,3,2,0,4,3,0,6,0
 IRR-006,irrigation,Irrigation scheduling,True,2,0,0,0,2,0,0,1,0
 IRR-007,irrigation,Pump and valve control,False,0,0,0,0,0,0,0,0,0
 IRR-008,irrigation,Execution verification,True,1,0,0,17,0,0,0,0,0
-IRR-009,irrigation,Water suitability multi-hazard,True,5,7,1,0,5,1,0,8,0
+IRR-009,irrigation,Water suitability multi-hazard,True,6,8,1,7,9,1,0,10,0
 IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
 OPS-001,operations,Task management,False,0,0,0,0,0,0,0,0,0
 OPS-002,operations,Work orders,True,6,3,7,7,1,1,0,4,0
@@ -50,14 +50,14 @@ PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
 SAT-001,satellite,Satellite scene search,True,6,36,65,3,32,5,0,41,0
 SAT-002,satellite,True color imagery,True,4,1,1,0,1,0,0,3,0
-SAT-003,satellite,NDVI,True,7,100,80,42,100,49,6,100,0
+SAT-003,satellite,NDVI,True,7,100,82,42,100,49,6,100,0
 SAT-004,satellite,NDMI,True,6,19,10,5,14,7,0,20,0
 SAT-005,satellite,Cloud screening,True,4,8,24,0,1,0,0,9,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,2,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,5,0
 SAT-009,satellite,COG persistence and tiling,True,5,12,68,0,12,1,0,21,0
-SEC-001,security,Tenant RLS,True,5,13,36,100,46,0,0,55,0
+SEC-001,security,Tenant RLS,True,5,14,36,100,46,0,0,55,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
 SEC-004,security,MFA,True,7,7,21,23,4,5,4,15,0
@@ -68,14 +68,14 @@ SEC-008,security,Secrets and production fail-closed,True,2,0,0,0,1,0,0,6,0
 SOIL-001,soil,Soil profile,True,6,13,91,14,35,1,0,13,1
 SOIL-002,soil,Soil sampling,True,6,14,35,9,6,5,0,11,0
 SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
-SOIL-004,soil,pH EC SOM nutrients,True,1,0,0,0,0,0,0,1,0
+SOIL-004,soil,pH EC SOM nutrients,True,4,1,0,7,3,0,0,1,0
 SOIL-005,soil,Soil water properties,True,3,5,0,0,2,0,0,2,0
 WX-001,weather,Current weather,False,0,0,0,0,0,0,0,0,0
 WX-002,weather,Weather forecast,True,6,22,51,9,56,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
 WX-004,weather,ET0,True,5,59,53,0,78,19,0,57,0
 WX-005,weather,VPD,True,5,8,29,0,6,2,0,6,0
-WX-006,weather,GDD,True,6,81,26,26,26,15,0,41,0
+WX-006,weather,GDD,True,6,84,26,33,26,15,0,44,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0
 WX-008,weather,Operation windows,True,4,2,6,0,1,0,0,2,0
 WX-009,weather,Disease weather models,True,4,2,29,0,0,2,0,1,0

@@ -963,7 +963,7 @@
       },
       {
         "capability_id": "DEC-010",
-        "score": 14,
+        "score": 15,
         "signals": [
           "content:model activation",
           "content:model promotion",
@@ -3438,6 +3438,50 @@
     ]
   },
   {
+    "path": "migrations/v224_canonical_phenology_state.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "migrations/v225_canonical_salinity_state.sql",
+    "kind": "database",
+    "candidates": [
+      {
+        "capability_id": "IRR-009",
+        "score": 14,
+        "signals": [
+          "path:salinity",
+          "content:salinity"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 12,
+        "signals": [
+          "content:row level security",
+          "content:tenant isolation"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/v23_equipment.sql",
     "kind": "database",
     "candidates": [
@@ -5650,6 +5694,28 @@
         "signals": [
           "content:Irrigation recommendation",
           "content:irrigation recommendation"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/sahool-platform/api/persisted_canonical_repositories.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 11,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls"
         ]
       }
     ]

@@ -54,48 +54,100 @@ def _jsonb(value) -> str:
     return json.dumps(value or {}, ensure_ascii=False, default=str)
 
 
-async def _persist_recommendation(
-    user: UserSchema, req: RecommendationRequest, enriched: dict
-) -> None:
-    """تخزين التوصية + إصدار RECOMMENDATION_CREATED (C1/C2).
+def _numeric_indicator_map(raw: dict | None) -> dict:
+    """The indicator map contract: ``Mapping[str, float]``, enforced at the edge.
 
-    أفضل-جهد: فشل التخزين/التدقيق لا يكسر استجابة المستخدم (التوصية حُسِبت بالفعل).
-    الحدث ضمن نفس معاملة الكتابة (نمط outbox) — يُجلب الشرح لاحقاً بـrec_id."""
+    ``bool`` is rejected explicitly — it is an ``int`` subclass, so a bare
+    ``isinstance(v, (int, float))`` would admit ``True`` as the number 1 and let a
+    flag masquerade as a measurement.
+    """
+    values = dict(raw or {})
+    offenders = sorted(
+        key
+        for key, value in values.items()
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)))
+    )
+    if offenders:
+        raise HTTPException(
+            status_code=422,
+            detail=(f"current_indicators يجب أن تكون خريطة أرقام فقط — قيم غير رقميّة: {offenders}"),
+        )
+    return values
+
+
+def _record_canonical_context(enriched: dict, canonical_context: dict) -> None:
+    """File the canonical context as decision EVIDENCE, never as a feature.
+
+    Its home is ``provenance.input_snapshot`` — the persisted record of what was read
+    when the decision was made. It must not enter ``current_indicators``: every
+    consumer of that map coerces values with ``float()`` and compares them key by key,
+    so a nested object there does not raise — it silently changes what similarity,
+    ranking and clustering measure.
+    """
+    provenance = enriched.setdefault("provenance", {})
+    if not isinstance(provenance, dict):
+        return
+    input_snapshot = provenance.setdefault("input_snapshot", {})
+    if isinstance(input_snapshot, dict):
+        input_snapshot["canonical_agronomic_context"] = canonical_context
+
+
+async def _persist_recommendation_on_connection(
+    conn, user: UserSchema, req: RecommendationRequest, enriched: dict
+) -> None:
+    """Persist one recommendation and its outbox event on an existing connection."""
     rec_id = enriched.get("rec_id")
     if not rec_id:
         return
+    await conn.execute(
+        """INSERT INTO recommendations
+            (rec_id, tenant_id, farm_id, field_id, crop, delivered,
+             reason_ar, recommendation, cross_reference, provenance, issued_at)
+           VALUES ($1, $2::uuid, $3, $4, $5, $6, $7,
+                   $8::jsonb, $9::jsonb, $10::jsonb, $11::timestamptz)""",
+        rec_id,
+        str(user.tenant_id),
+        getattr(req, "farm_id", None),
+        getattr(req, "field_id", None),
+        getattr(req, "crop", None),
+        bool(enriched.get("delivered")),
+        enriched.get("reason_ar"),
+        _jsonb(enriched.get("base_recommendation")),
+        _jsonb(enriched.get("cross_reference")),
+        _jsonb(enriched.get("provenance")),
+        enriched.get("timestamp") or None,
+    )
+    await _emit_domain_event(
+        conn,
+        user,
+        "RECOMMENDATION_CREATED",
+        "recommendation",
+        rec_id,
+        {
+            "delivered": bool(enriched.get("delivered")),
+            "field_id": getattr(req, "field_id", None),
+            "crop": getattr(req, "crop", None),
+        },
+    )
+
+
+async def _persist_recommendation(
+    user: UserSchema, req: RecommendationRequest, enriched: dict, *, conn=None
+) -> None:
+    """Store the recommendation and outbox event, reusing ``conn`` when supplied.
+
+    The optional connection lets callers bind persisted Source-of-Truth reads and
+    the recommendation write to one tenant-scoped transaction/snapshot. Failures
+    remain best-effort and do not break the already-computed HTTP response.
+    """
+    if not enriched.get("rec_id"):
+        return
     try:
-        async with tenant_connection(user) as conn:
-            await conn.execute(
-                """INSERT INTO recommendations
-                    (rec_id, tenant_id, farm_id, field_id, crop, delivered,
-                     reason_ar, recommendation, cross_reference, provenance, issued_at)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7,
-                           $8::jsonb, $9::jsonb, $10::jsonb, $11::timestamptz)""",
-                rec_id,
-                str(user.tenant_id),
-                getattr(req, "farm_id", None),
-                getattr(req, "field_id", None),
-                getattr(req, "crop", None),
-                bool(enriched.get("delivered")),
-                enriched.get("reason_ar"),
-                _jsonb(enriched.get("base_recommendation")),
-                _jsonb(enriched.get("cross_reference")),
-                _jsonb(enriched.get("provenance")),
-                enriched.get("timestamp") or None,
-            )
-            await _emit_domain_event(
-                conn,
-                user,
-                "RECOMMENDATION_CREATED",
-                "recommendation",
-                rec_id,
-                {
-                    "delivered": bool(enriched.get("delivered")),
-                    "field_id": getattr(req, "field_id", None),
-                    "crop": getattr(req, "crop", None),
-                },
-            )
+        if conn is not None:
+            await _persist_recommendation_on_connection(conn, user, req, enriched)
+            return
+        async with tenant_connection(user) as owned_conn:
+            await _persist_recommendation_on_connection(owned_conn, user, req, enriched)
     except Exception:  # noqa: BLE001 — تدقيق أفضل-جهد لا يكسر المسار الحرج
         logger.warning("recommendation persist/audit failed (best-effort)", exc_info=True)
 
@@ -161,6 +213,33 @@ async def recommendations_for_field(
         # لا نُسرّب مسارات ملفات/تفاصيل داخلية من أداة التحقّق في استجابة عامة.
         raise HTTPException(status_code=503, detail="تعذّر بناء شهادة الجودة") from e
 
+    # Canonical agronomic truth is read from the persisted Sources of Truth under the
+    # current tenant's RLS, on the SAME tenant-scoped transaction that writes the
+    # recommendation row and its outbox event — one snapshot, so the lineage recorded
+    # with a recommendation is the state that was actually read when it was made.
+    # The client supplies identifiers only; no canonical object or digest is accepted
+    # from the request body.
+    from dataclasses import asdict as _asdict
+
+    from api.agronomic_state_consumers import (
+        consume_nutrient_ledger as _consume_nutrients,
+    )
+    from api.agronomic_state_consumers import (
+        consume_phenology_state as _consume_phenology,
+    )
+    from api.agronomic_state_consumers import (
+        consume_salinity_state as _consume_salinity,
+    )
+    from api.persisted_canonical_repositories import load_agronomic_context
+
+    # CONTRACT: current_indicators is Mapping[str, float]. Every consumer coerces
+    # its values with float() — cross-reference similarity, ranking, clustering,
+    # feature extraction, analytics, exports. A nested value does not merely risk a
+    # TypeError; it changes the semantic type of the map for all of them.
+    # Rejected fail-closed rather than silently dropped: a caller who sends a
+    # non-numeric indicator has a bug, and swallowing it would hide it.
+    numeric_indicators = _numeric_indicator_map(req.current_indicators)
+
     api_req = ApiRequest(
         user=user,
         payload={
@@ -172,7 +251,7 @@ async def recommendations_for_field(
             "field_id": req.field_id,
             "crop": req.crop,
             "validation": validation,
-            "current_indicators": req.current_indicators,
+            "current_indicators": numeric_indicators,
             "growth_stage": req.growth_stage,
             "district_id": req.district_id,
         },
@@ -182,7 +261,38 @@ async def recommendations_for_field(
     resp = handle_recommendation_request(api_req)
     enriched = getattr(resp, "enriched", None)
     if enriched:
-        await _persist_recommendation(user, req, enriched)
+        # A failed load degrades HONESTLY: the response still carries the context key,
+        # carrying an explicit limitation. Omitting the key on failure would make
+        # "no persisted state" and "the read broke" indistinguishable to every reader.
+        canonical_context: dict = {
+            "season_id": None,
+            "candidates": [],
+            "limitations": ["CANONICAL_CONTEXT_UNAVAILABLE"],
+        }
+        try:
+            async with tenant_connection(user) as conn:
+                persisted = await load_agronomic_context(conn, field_id=req.field_id)
+                candidates = []
+                if persisted.get("phenology") is not None:
+                    candidates.append(_asdict(_consume_phenology(persisted["phenology"])))
+                if persisted.get("salinity") is not None:
+                    candidates.append(_asdict(_consume_salinity(persisted["salinity"])))
+                if persisted.get("nutrients") is not None:
+                    candidates.append(_asdict(_consume_nutrients(persisted["nutrients"])))
+                canonical_context = {
+                    "season_id": persisted.get("season_id"),
+                    "candidates": candidates,
+                    "source_state_digests": sorted(
+                        item["source_state_digest"] for item in candidates
+                    ),
+                }
+                _record_canonical_context(enriched, canonical_context)
+                # Same connection ⇒ the recommendation row and its outbox event commit
+                # with the snapshot the lineage above was read from.
+                await _persist_recommendation(user, req, enriched, conn=conn)
+        except Exception:  # noqa: BLE001 — best-effort persistence remains non-fatal
+            logger.warning("canonical context transaction failed", exc_info=True)
+            _record_canonical_context(enriched, canonical_context)
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 

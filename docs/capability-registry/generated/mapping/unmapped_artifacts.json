@@ -1880,6 +1880,10 @@
     "kind": "database"
   },
   {
+    "path": "migrations/v227_decision_learning_runtime.sql",
+    "kind": "database"
+  },
+  {
     "path": "migrations/v28_settings.sql",
     "kind": "database"
   },
@@ -2106,6 +2110,10 @@
   {
     "path": "scripts/ci/test_marker_coverage_guard.py",
     "kind": "tests"
+  },
+  {
+    "path": "scripts/e2e/command_event_causality_live_gate.sql",
+    "kind": "database"
   },
   {
     "path": "scripts/irr_f01/bootstrap.sql",
@@ -5016,7 +5024,15 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_canonical_state_reachability_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_canonical_well_capability.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
     "kind": "tests"
   },
   {
@@ -6708,6 +6724,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_canonical_execution_learning_live_gate_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_execution_learning_root_closure.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_canonical_hydraulic_capability.py",
     "kind": "tests"
   },
@@ -6720,6 +6744,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_canonical_nutrient_ledger.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_certification_regression_fixes.py",
     "kind": "tests"
   },
@@ -6729,6 +6761,10 @@
   },
   {
     "path": "tests_v9/test_command_dispatch_race_v65.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_command_event_causality_live_gate_contract.py",
     "kind": "tests"
   },
   {
@@ -6761,6 +6797,10 @@
   },
   {
     "path": "tests_v9/test_compose_security_audit.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compose_services_are_declared_as_services.py",
     "kind": "tests"
   },
   {
@@ -7164,6 +7204,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_irrigation_and_decision_architecture.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_irrigation_commissioning_certification.py",
     "kind": "tests"
   },
@@ -7332,6 +7376,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_no_tracked_temporary_probe.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_normalized_scene_wiring_v63_2.py",
     "kind": "tests"
   },
@@ -7412,6 +7460,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_platform_module_reachability_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_platform_rs256_production.py",
     "kind": "tests"
   },
@@ -7421,6 +7473,10 @@
   },
   {
     "path": "tests_v9/test_portfolio_command_shape.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_pre_push_stability_guard.py",
     "kind": "tests"
   },
   {

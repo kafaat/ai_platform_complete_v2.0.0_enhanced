@@ -439,6 +439,7 @@ capabilities:
   mobile_consumers: []
   tests:
   - scripts/simulation/test_export_season_runs_for_golden.py
+  - services/sahool-platform/tests/test_canonical_state_reachability_guard.py
   - services/sahool-platform/tests/test_farm_full_season_forensic.py
   - services/sahool-platform/tests/test_field_season_projection.py
   - services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py
@@ -453,6 +454,7 @@ capabilities:
   - services/sahool-platform/tests/test_season_simulation.py
   - services/sahool-platform/tests/test_season_stage_risk.py
   - services/scout-ingest-service/tests/test_season_live.py
+  - tests_v9/test_canonical_phenology_state.py
   - tests_v9/test_fii_prescription_season_context_guard.py
   - tests_v9/test_historical_season_bridge_static.py
   - tests_v9/test_season_api_static.py
@@ -480,6 +482,10 @@ capabilities:
     path: migrations/v203_season_sowing_in_observed_range.sql
   - type: repository
     path: migrations/v207_historical_season_simulation_bridge.sql
+  - type: repository
+    path: migrations/v224_canonical_phenology_state.sql
+  - type: repository
+    path: services/sahool-platform/api/canonical_phenology_state.py
   rationale: 'Capability linkage generated conservatively from repository inventories: services=1, apis=26, tests=25, ui=1,
     mobile=0. Runtime and production certification remain manual evidence gates.'
   business_goal: To be completed by the domain owner; repository evidence remains authoritative.
