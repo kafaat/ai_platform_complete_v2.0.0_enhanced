@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `1d6d2c250dd47516b4b28f60e6f910d6c4da9bf8b0de51b005a08b739801a276`
+- fingerprint: `db927ed1803949fac721d1280ab307e4b066236a5b1f5b7679d0cb657becf45f`
 - components: **34** (backend: 32)
 - route rows: **1111** → unique method/path: **998**
 - capabilities (derived, uncurated): **826**
@@ -16,13 +16,13 @@
 | component | type | domain | aliases | tables | wired |
 |---|---|---|---|---|---|
 | actuator-service | service | execution | sahool-actuator-service | 7 | True |
-| agriai-engine | service | simulation-experimental | sahool-agriai-engine | 22 | False |
+| agriai-engine | service | simulation-experimental | sahool-agriai-engine | 21 | False |
 | ai_agronomist | service | agents | — | 0 | True |
 | auth | service | identity | sahool-auth | 0 | True |
 | decision-service | service | decision-governance | sahool-decision-service | 42 | True |
 | edge-inference | service | edge | — | 0 | True |
 | erp-bridge | service | erp-projection | odoo-bridge, sahool-erp-bridge | 15 | True |
-| field-management-service | service | fields-internal | — | 33 | True |
+| field-management-service | service | fields-internal | — | 32 | True |
 | field-segmentation | service | fields-boundary | sahool-field-segmentation | 0 | True |
 | frontend | frontend | user-interface | — | 0 | None |
 | gis-workflow-service | batch-job-tool | gis-publication | — | 2 | None |
@@ -35,7 +35,7 @@
 | model-registry-adapter | adapter | decision-governance | — | 0 | True |
 | qdrant-seed | job | knowledge | sahool-qdrant-seed | 0 | None |
 | rag-retrieval | service | knowledge | sahool-rag-retrieval | 2 | True |
-| raster-service | service | remote-sensing-truth | sahool-raster-service | 14 | True |
+| raster-service | service | remote-sensing-truth | sahool-raster-service | 13 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
 | sahool-platform | service | platform-core | — | 195 | True |
