@@ -122,6 +122,7 @@ import HubMap, {
 } from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import ImageryTimelineThumb from '../components/maphub/ImageryTimelineThumb';
+import { captureTime } from '../components/maphub/captureTime';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 import type { DrawFeature } from '../components/maphub/drawing';
@@ -464,6 +465,24 @@ function MapHubCore() {
   // Token يلغي polling الخلفيّ عند تغيير الحقل أو تفكيك المكوّن؛ يمنع تحديث Timeline لحقل قديم.
   const backfillPollTokenRef = useRef(0);
   const twoYearTimeline = useMemo(() => summarizeTwoYearTimeline(timelineImageryDates), [timelineImageryDates]);
+  const imageryTimelineScrollRef = useRef<HTMLDivElement>(null);
+
+  // البطاقة المختارة تُجلَب إلى المرأى عند تغيّر الاختيار من **خارج** الشريط: زرّ
+  // «الأحدث»، أو منتقي التاريخ، أو استعادة مساحة عمل محفوظة. بدون هذا يبقى التمييز
+  // الأخضر على بطاقة خارج الشاشة، فيبدو الشريط وكأنّه لم يستجب. `inline: 'nearest'`
+  // لا يُحرّك الشريط إن كانت البطاقة ظاهرة أصلاً — فلا قفزة عند النقر داخل الشريط.
+  useEffect(() => {
+    const container = imageryTimelineScrollRef.current;
+    if (!container || selectedImageryDate === 'latest') return;
+    const target = container.querySelector<HTMLElement>(
+      `[data-date="${CSS.escape(selectedImageryDate)}"]`,
+    );
+    // scrollIntoView على العنصر يُمرّر كلّ سلف قابل للتمرير — بما فيه الصفحة. نحصر
+    // الأثر في الشريط وحده بحساب الإزاحة يدويّاً، وإلّا قفزت الصفحة عند كلّ اختيار.
+    if (!target) return;
+    const left = target.offsetLeft - (container.clientWidth - target.clientWidth) / 2;
+    container.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+  }, [selectedImageryDate, twoYearTimeline.items]);
   const dateSelectorDates = availableImageryDates.length > 0 ? availableImageryDates : timelineImageryDates;
 
   useEffect(() => {
@@ -2445,7 +2464,18 @@ function MapHubCore() {
                           الأحدث
                         </button>
                       </div>
-                      <div className="flex gap-2 overflow-x-auto pb-1" data-testid="imagery-timeline-items">
+                      {/* منطقة تمرير أفقيّة: `tabindex=0` + `role`/`aria-label` كي تُدرَك
+                          بلوحة المفاتيح وقارئ الشاشة. المحتوى قابل للتبويب أصلاً (أزرار)،
+                          لكنّ المنطقة بلا اسم كانت تُقرأ مجهولة الغرض. `snap-x` يُثبّت
+                          البطاقة عند حافّتها بدل توقّف عشوائيّ في منتصفها. */}
+                      <div
+                        className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory"
+                        data-testid="imagery-timeline-items"
+                        ref={imageryTimelineScrollRef}
+                        tabIndex={0}
+                        role="group"
+                        aria-label="شريط مشاهد الأقمار التاريخيّة — مرّر أفقيّاً"
+                      >
                         {twoYearTimeline.items.map((d) => {
                           // AOI-CLOUD-CONTRACT (#636): سحابة الحقل (AOI) مفضّلة حين تُحسَب،
                           // وإلّا سحابة المشهد. aoi_cloud_pct=null يعني «لم تُحسب» لا 0%.
@@ -2454,14 +2484,25 @@ function MapHubCore() {
                           const fieldCloud = typeof d.aoi_cloud_pct === 'number' ? d.aoi_cloud_pct : null;
                           const cloud = fieldCloud != null ? fieldCloud : sceneCloud;
                           const active = selectedImageryDate === d.date;
+                          // وقت الالتقاط الحقيقيّ من كتالوج STAC. الخادم يحمله عبر ثلاث
+                          // طبقات ولم تكن الواجهة تقرؤه — فكان «تاريخ الصورة» بلا شاهد.
+                          const capture = captureTime(d.acquisition_datetime, d.date);
                           return (
                             <button
                               key={`${d.date}-${d.scene_id ?? 'scene'}`}
                               type="button"
                               onClick={() => handleSelectImageryTimelineItem(d.date, d)}
-                              className="min-w-[132px] rounded-xl border px-3 py-2 text-right"
+                              className="min-w-[132px] snap-start rounded-xl border px-3 py-2 text-right"
                               style={{ background: active ? '#123524' : '#111827', borderColor: active ? '#22c55e99' : T.line, color: T.ink }}
-                              title={d.scene_id ?? d.date}
+                              aria-current={active ? 'true' : undefined}
+                              data-active={active ? 'true' : undefined}
+                              data-date={d.date}
+                              title={[
+                                `تاريخ الالتقاط ${d.date}`,
+                                capture.label ? `وقت الالتقاط ${capture.label}` : null,
+                                capture.mismatch ? `تنبيه: طابع المشهد ${capture.isoDate}` : null,
+                                d.scene_id ? `المشهد ${d.scene_id}` : null,
+                              ].filter(Boolean).join(' · ')}
                             >
                               {/* المؤشّر: truecolor إن كان محفوظاً لهذا التاريخ، وإلّا أوّل
                                   مؤشّر محفوظ — فلا مصغّرة truecolor فارغة لتاريخ له مؤشّر
@@ -2488,9 +2529,23 @@ function MapHubCore() {
                               )}
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-xs font-bold">{d.date}</span>
-                                <span className="text-[10px]" style={{ color: T.faint }}>{monthLabel(d.date)}</span>
+                                {/* الساعة موسومة UTC صراحةً: التاريخ أعلاه مشتقّ من الطابع
+                                    نفسه بـUTC، فعرضها بتوقيت المتصفّح يضع سطرين متناقضين
+                                    على البطاقة الواحدة. غياب الطابع ⇒ الشهر كما كان. */}
+                                <span className="text-[10px]" style={{ color: T.faint }} data-testid="imagery-capture-time">
+                                  {capture.label ?? monthLabel(d.date)}
+                                </span>
                                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: cloudBandColor(cloud) }} />
                               </div>
+                              {capture.mismatch && (
+                                <div
+                                  className="mt-1 text-[10px]"
+                                  style={{ color: '#fca5a5' }}
+                                  data-testid="imagery-capture-mismatch"
+                                >
+                                  طابع المشهد {capture.isoDate}
+                                </div>
+                              )}
                               <div className="mt-1 flex items-center justify-between text-[10px]" style={{ color: T.faint }}>
                                 <span title={sceneCloud != null ? `سحابة المشهد ${Math.round(sceneCloud)}%` : undefined}>
                                   {cloud != null
