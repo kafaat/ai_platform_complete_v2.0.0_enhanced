@@ -15213,7 +15213,6 @@
           "model_rollback_history_runtime",
           "model_serving_aliases_runtime",
           "model_versions_runtime",
-          "recommendation_lifecycle_events",
           "recommendation_reviews",
           "recommendations",
           "retraining_jobs",
@@ -15566,7 +15565,6 @@
           "farms",
           "field_boundaries",
           "field_boundary_graph",
-          "field_digital_twin_views",
           "field_feature_store_candidate",
           "field_geometry_history",
           "field_geometry_versions",
@@ -16168,7 +16166,6 @@
       "domain": "remote-sensing-truth",
       "owns": {
         "tables": [
-          "canonical_field_state_snapshots",
           "distributed_raster_jobs",
           "farm_digital_twin_snapshots",
           "farm_ledger_economic_snapshots",
@@ -17336,7 +17333,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "1d6d2c250dd47516b4b28f60e6f910d6c4da9bf8b0de51b005a08b739801a276",
+  "fingerprint": "db927ed1803949fac721d1280ab307e4b066236a5b1f5b7679d0cb657becf45f",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
