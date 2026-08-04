@@ -2586,6 +2586,15 @@ services:
         condition: service_started
       sahool-migrate:
         condition: service_completed_successfully
+      # The `sahool` JetStream stream that carries this worker's subjects is created by
+      # agents/notification/agent.py:449 — not by sahool-nats, not by sahool-migrate.
+      # Without this edge the worker may reach `js.subscribe` before any stream covers
+      # `sahool.>` and exit; `restart: unless-stopped` then retries until the agent is
+      # up. Declaring the edge makes the ordering visible instead of emergent. It is
+      # ordering only: `service_started` says the agent's process began, not that the
+      # stream exists, so the worker's fail-closed startup remains the real guarantee.
+      sahool-notification-agent:
+        condition: service_started
     networks:
     - sahool-internal
     healthcheck:
