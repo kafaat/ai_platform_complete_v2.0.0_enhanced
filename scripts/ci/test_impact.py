@@ -144,6 +144,18 @@ def working_tree_paths(root: Path = ROOT) -> list[str]:
     return sorted(set(paths))
 
 
+def ref_exists(ref: str, root: Path = ROOT) -> bool:
+    """Whether a git ref resolves here. A shallow CI checkout has no ``origin/main``."""
+    return (
+        subprocess.run(
+            ["git", "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
+            cwd=root,
+            capture_output=True,
+        ).returncode
+        == 0
+    )
+
+
 def select(
     snapshot: Any, affected: set[str], tests: list[str]
 ) -> tuple[dict[str, dict[str, Any]], list[str]]:
@@ -293,6 +305,20 @@ def main(argv: list[str] | None = None) -> int:
         help="ignore the working tree and read only the committed diff",
     )
     args = parser.parse_args(argv)
+
+    if not ref_exists(args.base):
+        # Measured on #791: a shallow `actions/checkout` has no `origin/main`, and the
+        # first version died with a raw CalledProcessError traceback. The refusal is
+        # right — a base that does not resolve cannot produce a delta — but a traceback
+        # is not a diagnosis. Name the ref and say what to do.
+        print(
+            f"✗ لا يُحلّ الأساس {args.base!r} في هذا المستودع.\n"
+            f"  استنساخٌ ضحل (`fetch-depth: 1`) لا يحمل `origin/main`. مرّر أساساً قائماً:\n"
+            f"      python {Path(__file__).name} --base HEAD~1\n"
+            f"  أو اجلب الفرع: git fetch origin main",
+            file=sys.stderr,
+        )
+        return 2
 
     try:
         result = plan(args.base, args.head, include_working_tree=not args.committed_only)

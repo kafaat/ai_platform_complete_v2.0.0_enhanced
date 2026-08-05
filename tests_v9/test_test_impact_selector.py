@@ -52,6 +52,21 @@ def snapshot(tool):
     return tool._engine().current_snapshot()
 
 
+def _resolvable_base(tool) -> str:
+    """A base ref that exists **here**.
+
+    Measured on #791: both tests below hardcoded ``origin/main`` and died in CI with a
+    raw `git merge-base` traceback, because `actions/checkout` at depth 1 has no such
+    ref. The selector was right to refuse; the tests were asserting the runner's git
+    topology instead of the selector's behaviour. So the base is derived, and the test
+    fails loudly if nothing resolves rather than skipping.
+    """
+    for candidate in ("origin/main", "HEAD~1", "HEAD"):
+        if tool.ref_exists(candidate):
+            return candidate
+    raise AssertionError("no git ref resolves — the repository has no history to diff")
+
+
 # ── it owns no impact logic ────────────────────────────────────────────────
 
 
@@ -203,7 +218,7 @@ def test_an_unbindable_path_is_disclosed_and_does_not_escalate_on_its_own(tool):
 
 
 def test_the_plan_reports_undecided_paths_for_a_real_change(tool):
-    plan = tool.plan("origin/main", "HEAD")
+    plan = tool.plan(_resolvable_base(tool), "HEAD")
     assert "undecided_changed_paths" in plan
     assert isinstance(plan["undecided_changed_paths"], list)
     assert plan["mode"] in {"selected", "full"}
@@ -276,12 +291,13 @@ def test_the_gate_engine_the_selector_loads_is_the_one_ci_runs():
     ), "the engine this tool trusts must itself be a blocking gate"
 
 
-def test_selection_is_reproducible_from_git_alone():
+def test_selection_is_reproducible_from_git_alone(tool):
     """No network, no cached state: two runs on the same tree must agree."""
+    base = _resolvable_base(tool)
 
     def run():
         return subprocess.run(
-            [sys.executable, str(TOOL), "--base", "origin/main", "--print-paths"],
+            [sys.executable, str(TOOL), "--base", base, "--print-paths"],
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -290,3 +306,26 @@ def test_selection_is_reproducible_from_git_alone():
         ).stdout
 
     assert run() == run()
+
+
+def test_an_unresolvable_base_is_diagnosed_not_a_traceback(tool):
+    """Measured on #791: CI checks out at depth 1, so `origin/main` does not exist there.
+
+    The first version died with a raw `git merge-base ... exit 128` CalledProcessError.
+    Refusing was correct — a base that does not resolve cannot produce a delta — but a
+    traceback is not a diagnosis. It must name the ref and say what to do, the same
+    standard applied to the schema guard's missing-library message in #788.
+    """
+    assert not tool.ref_exists("definitely/not/a/ref")
+    result = subprocess.run(
+        [sys.executable, str(TOOL), "--base", "definitely/not/a/ref"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "definitely/not/a/ref" in result.stderr, (
+        "the message must name the ref it could not resolve"
+    )
+    assert "Traceback" not in result.stderr, result.stderr
