@@ -228,10 +228,10 @@
           "why": "فحصُ والدٍ واحد ⇒ عمى الدمج نفسه الذي أنجى `cb6598fe`: الملفّ محفوظ عند والد ومفقود عند الآخر، فالفحص مقابل أحدهما يمرّ"
         },
         {
-          "expect": "test_the_guard_fails_on_the_truncation_that_created_it",
+          "expect": "test_a_merge_that_takes_the_empty_side_is_caught",
           "find": "                if len(after) < len(before):\n                    blocking.append(",
           "replace": "                if len(after) < len(before):\n                    advisory.append(",
-          "why": "جعلُ التقلّص إرشاديّاً ⇒ يعود ١٬٣٨٣٬٣٦٨ بايت إلى صفر بلا حجب، وهي الواقعة الأصليّة"
+          "why": "جعلُ التقلّص إرشاديّاً ⇒ يعود ١٬٣٨٣٬٣٦٨ بايت إلى صفر بلا حجب، وهي الواقعة الأصليّة. والاختبار المُسمّى **اصطناعيّ عمداً**: اختبار الواقعة الحقيقيّة (test_the_guard_fails_on_the_truncation_that_created_it) يحتاج التاريخ الكامل ويُتخطّى في استنساخ CI الضحل — وطفرةٌ تُسمّي اختباراً مُتخطّى ليست تكذيباً بل صمتاً."
         },
         {
           "expect": "test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare",

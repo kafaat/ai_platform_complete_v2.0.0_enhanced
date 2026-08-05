@@ -262,3 +262,48 @@ def test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare(guard, tm
     assert [f.code for f in blocking] == ["JOURNAL_ABSENT_AT_HEAD"], (
         "zero comparable pairs must not read as a pass"
     )
+
+
+def test_no_registered_mutation_names_a_test_that_can_be_skipped():
+    """A mutation whose named test skips is silence, not falsification.
+
+    Measured on #792: mutation [1] named
+    ``test_the_guard_fails_on_the_truncation_that_created_it``, which is gated on the
+    incident SHAs being present. CI checks out at depth 1, so that test **skipped**, and
+    ``guard_mutation_guard`` correctly reported ``STABLE_WRONG_TEST`` — the defect was
+    caught, but by a different test than the one registered. A registered falsification
+    that cannot run where it matters proves nothing there.
+
+    The history-anchored test stays: on a full clone it is the strongest evidence there
+    is, and it declares its own skip reason rather than passing vacuously. What changes
+    is which test the registry points at.
+
+    Parsed with ``ast`` rather than by reading lines — the first version of this check was
+    a line scanner and did not survive its own quoting.
+    """
+    import ast
+    import json
+
+    registry = json.loads(
+        (ROOT / "docs/architecture/guard_mutation_registry.json").read_text(encoding="utf-8")
+    )
+    spec = registry["mutated"]["brain_append_only_guard.py"]
+    tree = ast.parse((ROOT / spec["test"]).read_text(encoding="utf-8"))
+
+    skippable = {
+        node.name
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef)
+        and any("skipif" in ast.unparse(decorator) for decorator in node.decorator_list)
+    }
+    assert skippable, "no skippable test in this file — the check would be vacuous"
+
+    named = {mutation["expect"] for mutation in spec["mutations"]}
+    assert not (named & skippable), (
+        "these mutations name tests that can skip, so they falsify nothing where the skip "
+        f"fires: {sorted(named & skippable)}"
+    )
+
+    # And every named test must exist, or the mutation names nothing at all.
+    defined = {node.name for node in tree.body if isinstance(node, ast.FunctionDef)}
+    assert named <= defined, f"mutations name absent tests: {sorted(named - defined)}"
