@@ -34,6 +34,7 @@ bash scripts/ci/preflight.sh --full   # ~١٢د · يضيف bandit وpip-audit �
 - **الافتراضيّ للتغذية الراجعة السريعة محليّاً:** `pytest -m unit`. هذه اختبارات منطق صرف بلا خدمات، وعليها تُبنى بوّابة CI (وظيفة *Unit Tests*: `pytest -v -m unit --cov=services` + أرضيّة تغطية `--cov-fail-under=43`). الأرضيّة راتشِت يصعد ولا ينزل (20 → 40 → 42 → 43)؛ المقيس حاليّاً ~47%. راجع `docs/testing/coverage_ratchet.md`.
 - **العلامات (markers) في `pytest.ini`:** `unit` / `integration` / `security` / `slow` / `mcp`، و`testpaths = tests_v9`.
 - **احتفظ بـ`-m integration` لِما بعد رفع الخدمات/PostGIS** (تتطلّب Postgres+PostGIS وRedis قيد التشغيل). لا تُشغّلها كافتراضيّ.
+- **قبل تسجيل طفرة في `guard_mutation_registry.json`:** الاختبار الذي تُسمّيه الطفرة يجب أن يعمل **في كلّ بيئة**. اختبارٌ يحمل `skipif` (مثل المشروط بوجود SHA في التاريخ) **يُتخطّى في استنساخ CI بعمق ١**، فتصير الطفرة صمتاً لا تكذيباً — و`guard_mutation_guard` يُصنّفها `STABLE_WRONG_TEST`. مفروض بـ`test_no_registered_mutation_names_a_test_that_can_be_skipped`. تفصيله §٣.٢٥د.
 - **حارس تفكيك الراوترات:** `services/sahool-platform/tests/test_router_decomposition_guard.py` (مُعلَّم `unit`) يمنع انحدار تفكيك `main.py` إلى `api/routers/` — أبقِه أخضر عند تعديل نقاط `/api/v1/*`.
 
 ## التبعيّات — افحص الثغرات قبل أيّ إضافة أو ترقية
