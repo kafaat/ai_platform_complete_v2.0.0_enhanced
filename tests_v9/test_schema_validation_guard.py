@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 from datetime import date, timedelta
@@ -31,7 +32,7 @@ POLICY = ROOT / "docs/architecture/schema_validation_policy.json"
 
 jsonschema = pytest.importorskip(
     "jsonschema",
-    reason="declared in requirements-preflight.txt; the guard itself fails closed without it",
+    reason="declared in tests_v9/requirements-test.txt; the guard itself fails closed without it",
 )
 
 
@@ -203,6 +204,34 @@ def test_every_job_that_runs_the_sweep_installs_this_guard_s_library():
         f"these workflows run verify_all_generated without installing jsonschema, so the "
         f"schema gate would fail closed there: {offenders}"
     )
+
+
+def test_the_failure_message_names_a_requirements_file_that_exists_and_declares_the_library():
+    """A failure message must point somewhere real, or it costs more than silence.
+
+    Measured on PR #787: the guard, its test and the policy all told the reader to look in
+    ``requirements-preflight.txt`` — a file that exists in an uploaded package and has
+    never existed in this repository. Someone hitting the failure would have searched for
+    a file, found nothing, and concluded the guard was broken.
+
+    That is this repository's own category — something that reads as enforced and is not —
+    turned on the guidance instead of the gate. So the pointer is derived from the tree
+    rather than trusted: the named file must exist and must actually declare the library.
+    """
+    guard_text = GUARD.read_text(encoding="utf-8")
+    policy_text = POLICY.read_text(encoding="utf-8")
+    named = set(re.findall(r"[\w./-]*requirements[\w./-]*\.txt", guard_text + policy_text))
+    assert named, "the failure message must tell the reader where the library is declared"
+
+    for candidate in sorted(named):
+        target = ROOT / candidate
+        assert target.is_file(), (
+            f"{candidate} is named as the source of the dependency but does not exist; "
+            "a message that sends the reader to a missing file is worse than no message"
+        )
+        assert "jsonschema" in target.read_text(encoding="utf-8"), (
+            f"{candidate} exists but declares no jsonschema — the pointer is stale"
+        )
 
 
 def test_no_schema_declares_an_external_reference_anywhere():

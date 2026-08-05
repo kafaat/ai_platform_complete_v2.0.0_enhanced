@@ -215,7 +215,7 @@ def main(argv: list[str] | None = None) -> int:
         import jsonschema  # noqa: F401
     except ImportError:
         print(
-            "✗ jsonschema is not installed — declared in requirements-preflight.txt.\n"
+            "✗ jsonschema is not installed — declared in tests_v9/requirements-test.txt.\n"
             "  A validator without its library is a gate that never fires; this fails\n"
             "  closed rather than skipping quietly.",
             file=sys.stderr,
