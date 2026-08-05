@@ -1,6 +1,6 @@
 {
   "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
-  "adjudicated_on": "2026-08-05",
+  "adjudicated_on": "2026-08-02",
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
   "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
@@ -229,6 +229,35 @@
         }
       ],
       "test": "tests_v9/test_schema_validation_guard.py"
+    },
+    "brain_append_only_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_both_parents_are_examined_not_just_one",
+          "find": "        for parent in parents_of(commit, root=root):",
+          "replace": "        for parent in parents_of(commit, root=root)[:1]:",
+          "why": "فحصُ والدٍ واحد ⇒ عمى الدمج نفسه الذي أنجى `cb6598fe`: الملفّ محفوظ عند والد ومفقود عند الآخر، فالفحص مقابل أحدهما يمرّ"
+        },
+        {
+          "expect": "test_a_merge_that_takes_the_empty_side_is_caught",
+          "find": "                if len(after) < len(before):\n                    blocking.append(",
+          "replace": "                if len(after) < len(before):\n                    advisory.append(",
+          "why": "جعلُ التقلّص إرشاديّاً ⇒ يعود ١٬٣٨٣٬٣٦٨ بايت إلى صفر بلا حجب، وهي الواقعة الأصليّة. والاختبار المُسمّى **اصطناعيّ عمداً**: اختبار الواقعة الحقيقيّة (test_the_guard_fails_on_the_truncation_that_created_it) يحتاج التاريخ الكامل ويُتخطّى في استنساخ CI الضحل — وطفرةٌ تُسمّي اختباراً مُتخطّى ليست تكذيباً بل صمتاً."
+        },
+        {
+          "expect": "test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare",
+          "find": "        if blob(head, path, root=root) is None:",
+          "replace": "        if False:",
+          "why": "إسقاطُ فحص الغياب ⇒ شجرةٌ بلا سجلّات تُنتِج صفر أزواج وتطبع ok — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنف الفجوة نفسه داخل علاجها"
+        },
+        {
+          "expect": "test_the_file_list_comes_from_the_existing_classifier",
+          "find": "    return tuple(module.APPEND_ONLY)",
+          "replace": "    return (\"sahool-brain/log.md\",)",
+          "why": "تصليبُ القائمة ⇒ فهرس ثانٍ ينحرف عن `resolve_merge_conflicts`، وهو صنف «قائمتان تصفان الشيء نفسه»"
+        }
+      ],
+      "test": "tests_v9/test_brain_append_only_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
