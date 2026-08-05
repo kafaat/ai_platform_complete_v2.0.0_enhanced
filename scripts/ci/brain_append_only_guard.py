@@ -83,14 +83,14 @@ def commits_in_range(base: str | None, head: str, *, root: Path = ROOT) -> list[
             f"✗ تعذّرت قراءة تاريخ git ({' '.join(args)}) — يفشل مُغلَقاً.\n"
             f"  {result.stderr.decode('utf-8', 'replace').strip()}"
         )
-    return result.stdout.decode().split()
+    return result.stdout.decode("utf-8").split()
 
 
 def parents_of(commit: str, *, root: Path = ROOT) -> list[str]:
     result = _git("rev-list", "--parents", "-n", "1", commit, root=root)
     if result.returncode != 0:
         raise SystemExit(f"✗ تعذّر تحديد والدَي {commit} — يفشل مُغلَقاً.")
-    return result.stdout.decode().split()[1:]
+    return result.stdout.decode("utf-8").split()[1:]
 
 
 class Finding:

@@ -113,7 +113,10 @@ def _merge_repo(tmp_path: Path, *, take_empty_side: bool) -> Path:
     git("commit", "-qm", "branch appends")
 
     git("checkout", "-q", "main")
-    journal.write_text("" if take_empty_side else "line 1\nline 2\nmain also appends\n")
+    journal.write_text(
+        "" if take_empty_side else "line 1\nline 2\nmain also appends\n",
+        encoding="utf-8",
+    )
     git("add", "-A")
     git("commit", "-qm", "main writes")
 
