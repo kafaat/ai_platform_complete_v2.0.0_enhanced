@@ -40,6 +40,10 @@
     {
       "path": "docs/architecture/schema_validation_policy.json",
       "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/test_impact_policy.json",
+      "kind": "governed"
     }
   ]
 }

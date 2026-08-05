@@ -47,6 +47,7 @@ def tracked_manifests() -> list[str]:
         ["git", "ls-files", f"{SCAN_DIR}/*.json"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         cwd=ROOT,
     )
     return sorted(p for p in out.stdout.split() if p.strip())

@@ -38,7 +38,7 @@ IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
 OPS-001,operations,Task management,False,0,0,0,0,0,0,0,0,0
 OPS-002,operations,Work orders,True,6,3,7,7,1,1,0,4,0
 OPS-003,operations,Scouting,True,7,9,7,7,45,22,1,18,0
-OPS-004,operations,Field forms,True,6,3,12,15,10,0,12,20,1
+OPS-004,operations,Field forms,True,6,3,12,15,10,0,12,21,1
 OPS-005,operations,Offline mobile,True,6,2,2,9,6,1,0,1,0
 OPS-006,operations,Equipment registry,False,0,0,0,0,0,0,0,0,0
 OPS-007,operations,Maintenance,True,3,0,0,3,1,0,0,2,0

@@ -4,6 +4,10 @@
     "kind": "tests"
   },
   {
+    "path": "docs/architecture/test_impact_policy.json",
+    "kind": "tests"
+  },
+  {
     "path": "docs/audits/TEST_SUITE_INSTRUCTIONS.md",
     "kind": "tests"
   },
@@ -2121,6 +2125,10 @@
   },
   {
     "path": "mobile/sahool_app/test/resilience_test.dart",
+    "kind": "tests"
+  },
+  {
+    "path": "scripts/ci/test_impact.py",
     "kind": "tests"
   },
   {
@@ -7833,6 +7841,10 @@
   },
   {
     "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_test_impact_selector.py",
     "kind": "tests"
   },
   {
