@@ -1,6 +1,6 @@
 {
   "$comment": "سجلّ طفرات الحرّاس — لكلّ حارس عطلٌ يُزرَع في مصدره واختبارٌ يجب أن يحمرّ عندها. الحارس الأخضر يقول شيئاً واحداً بيقين: لم يُطلِق؛ و«لم يجد عطلاً» و«لا يرى العطل أصلاً» لا يفرّق بينهما شيء آخر. يفرضه scripts/ci/guard_mutation_guard.py.",
-  "adjudicated_on": "2026-08-02",
+  "adjudicated_on": "2026-08-05",
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
   "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
@@ -161,6 +161,17 @@
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
+    },
+    "manifest_registry_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_unregistered_adjudicated_manifest_is_caught",
+          "find": "    if errors:",
+          "replace": "    if False:",
+          "why": "نزع فرع الفشل ⇒ بيان محكَّم غير مسجَّل يمرّ أخضر وهو العطل الذي بُني له الحارس"
+        }
+      ],
+      "test": "tests_v9/test_manifest_registry_guard.py"
     },
     "probe_leak_guard.py": {
       "mutations": [

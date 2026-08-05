@@ -2,7 +2,7 @@
   "$comment": "سجلّ أساس الادّعاءات — كلّ مصنوعة مُعلَنة في docs/architecture/ إمّا **قياس** أو **قرار**، ولكلٍّ ختمٌ مختلف. القياس (`measured_on`) يُشتقّ بتشغيل ماسح على شجرة في لحظة، فيَبيت حين تتحرّك الشجرة تحته. والقرار (`adjudicated_on`) حكمٌ اتّخذه إنسان، لا يَبيت بحركة الشجرة بل بتغيّر الأسباب. خلطُهما هو العطل: رقمٌ مقيس يُقرأ عقداً فلا يُعاد قياسه أبداً، وعقدٌ يُقرأ قياساً فيُعاد اشتقاقه بلا حكم. يفرضه scripts/ci/claim_base_guard.py.",
   "gap": "CLAIMS-WITHOUT-A-MEASURED-BASE-01",
   "schema_version": "sahool.claim-base-registry.v1",
-  "why_this_is_not_a_new_convention": "المفردتان **موجودتان في هذا المستودع سلفاً** ولم تُسمَّيا قاعدةً قطّ: أربع مصنوعات تحمل `measured_on` وأربع تحمل `adjudicated_on`، اختارها كاتبوها كلٌّ على حدة. هذا السجلّ لا يخترع اصطلاحاً بل يُسمّي القائم ويقيس تغطيته — ٩ قياسات (٥ مؤرَّخة) و١٣ قراراً (٤ مؤرَّخة) من ٢٢.",
+  "why_this_is_not_a_new_convention": "المفردتان **موجودتان في هذا المستودع سلفاً** ولم تُسمَّيا قاعدةً قطّ: مصنوعات تحمل `measured_on` وأخرى تحمل `adjudicated_on`، اختارها كاتبوها كلٌّ على حدة. هذا السجلّ لا يخترع اصطلاحاً بل يُسمّي القائم ويقيس تغطيته — ٩ قياسات (٥ مؤرَّخة) و١٨ قراراً (٩ مؤرَّخة) من ٢٧.",
   "measured_base_keys": [
     "measured_on",
     "baseline"
@@ -30,6 +30,7 @@
     "deferred_import_declaration_contract.json",
     "expected_control_flow_exceptions.json",
     "guard_mutation_registry.json",
+    "manifest_registry.json",
     "permanent_compatibility_contract.json",
     "physical_effect_boundary_contract.json",
     "platform_route_placement_contract.json",
@@ -41,7 +42,7 @@
     "weather_direct_wiring_allowlist.json",
     "weather_engine_formula_allowlist.json"
   ],
-  "adjudicated_on": "2026-08-02",
+  "adjudicated_on": "2026-08-05",
   "unbased_debt_ceiling": 4,
   "undated_debt_ceiling": 9,
   "why_ceilings_and_not_only_a_list": "قائمةٌ يُقال عنها «تتقلّص ولا تنمو» بلا سقف **لا تمنع النموّ**: يكفي إضافة مدخل جديد إليها ليمرّ الحارس. والسقف مشدود على العدد الحاليّ بلا فسحة، فمصنوعة قياسٍ **جديدة** لا تدخل الدَّين — لأنّ من يُنشِئ قياساً اليوم يعرف الشجرة التي قاس عليها، ولا عذر له. ورفعُ السقف ممكن كأيّ راتشِت في هذا المستودع، لكنّه يظهر في الفرق ويُسأل عنه.",
