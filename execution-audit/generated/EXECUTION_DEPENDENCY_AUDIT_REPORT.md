@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **1836**
+- Python files parsed: **1838**
 - FastAPI-style route handlers: **1048**
-- Static function-call edges: **72325**
-- Dead-code candidates: **615**
+- Static function-call edges: **72408**
+- Dead-code candidates: **614**
 - Duplicate function groups: **58**
 - Automatic deletions: **0**
 
@@ -16,7 +16,6 @@
 | Owner | Symbol | Kind | File | Line |
 |---|---|---|---|---:|
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 152 |
-| `mcp-servers` | `_simulate_wofost` | function | `services/mcp_servers/wofost_server.py` | 233 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
 | `raster-service` | `_evict_field_layers` | function | `services/raster-service/raster_main_runtime.py` | 46 |

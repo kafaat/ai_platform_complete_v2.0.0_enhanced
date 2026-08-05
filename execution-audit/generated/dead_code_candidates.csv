@@ -1,6 +1,5 @@
 confidence,owner,kind,symbol,file,line,reference_count,action,decorated_route
 high,decision-service,function,_service_token_guard,services/decision-service/main.py,152,0,review_before_delete,False
-high,mcp-servers,function,_simulate_wofost,services/mcp_servers/wofost_server.py,233,0,review_before_delete,False
 high,raster-service,function,_scene_band_mapping,services/raster-service/raster_main_compat_exports.py,92,0,review_before_delete,False
 high,raster-service,function,_bbox_from_geom,services/raster-service/raster_main_compat_exports.py,97,0,review_before_delete,False
 high,raster-service,function,_evict_field_layers,services/raster-service/raster_main_runtime.py,46,0,review_before_delete,False
