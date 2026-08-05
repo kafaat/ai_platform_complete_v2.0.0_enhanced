@@ -168,9 +168,7 @@ async def _get_weather_real(lat: float, lon: float, days: int = 14) -> list:
         return []
 
 
-def _soil_nitrogen_from_om(
-    om_pct: float, rain_14d: float, et0_14d: float, crop: str
-) -> dict:
+def _soil_nitrogen_from_om(om_pct: float, rain_14d: float, et0_14d: float, crop: str) -> dict:
     """
     N متاح = N معدني + N عضوي قابل للمعدنة
     من: Stanford & Smith (1972) معدّل لظروف اليمن

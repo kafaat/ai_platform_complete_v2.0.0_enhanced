@@ -64,11 +64,7 @@ async def simulate_what_if(
     from datetime import date as _date
 
     try:
-        pd = (
-            _date.fromisoformat(req.planting_date)
-            if req.planting_date
-            else _date.today()
-        )
+        pd = _date.fromisoformat(req.planting_date) if req.planting_date else _date.today()
     except ValueError:
         pd = _date.today()
 
@@ -98,9 +94,7 @@ async def simulate_what_if(
     s_yield = scenario.get("simulation", {}).get("yield_t_ha")
     b_irr = baseline.get("water_balance", {}).get("irrigation_needed_mm")
     s_irr = scenario.get("water_balance", {}).get("irrigation_needed_mm")
-    water_saved = (
-        round(b_irr - s_irr, 1) if (b_irr is not None and s_irr is not None) else None
-    )
+    water_saved = round(b_irr - s_irr, 1) if (b_irr is not None and s_irr is not None) else None
     # هل "الإجراء المقترَح" (الريّ) يُجدي؟ مُجدٍ إن رفع المحصول >2% فوق خطّ الأساس
     # (لا إجراء). خطّ الأساس = s_yield، الإجراء = b_yield ⇒ المقارنة ذات معنى.
     helps = None

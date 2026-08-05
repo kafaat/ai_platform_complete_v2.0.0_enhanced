@@ -46,12 +46,10 @@ def test_engine_lives_inside_docker_context() -> None:
     # عقد سياق Docker: المحرّك يجب أن يسكن حزمةً ينسخها Dockerfile فعلاً.
     engine = ROOT / "shared" / "wofost" / "engine.py"
     assert engine.is_file(), "المحرّك ليس في shared/wofost/engine.py"
-    dockerfile = (ROOT / "services" / "sahool-platform" / "Dockerfile").read_text(
-        encoding="utf-8"
+    dockerfile = (ROOT / "services" / "sahool-platform" / "Dockerfile").read_text(encoding="utf-8")
+    assert re.search(r"^COPY\s+shared/", dockerfile, re.M), (
+        "Dockerfile لا ينسخ shared/ — العقدة مكسورة من جهة الصورة"
     )
-    assert re.search(
-        r"^COPY\s+shared/", dockerfile, re.M
-    ), "Dockerfile لا ينسخ shared/ — العقدة مكسورة من جهة الصورة"
 
 
 def test_old_isolated_package_is_gone() -> None:

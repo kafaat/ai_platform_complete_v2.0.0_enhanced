@@ -118,9 +118,7 @@ async def test_wofost_wheat_real():
         f"   GDD={sim['gdd_accumulated']:.0f} | LAI={sim['lai_max']:.2f} | "
         f"Yield={sim['yield_t_ha']:.2f} t/ha | Progress={sim['progress_pct']:.0f}%"
     )
-    print(
-        f"   ETc={wb['total_etc_mm']:.0f}mm | WP={wb['water_productivity_kg_m3']:.2f} kg/m³"
-    )
+    print(f"   ETc={wb['total_etc_mm']:.0f}mm | WP={wb['water_productivity_kg_m3']:.2f} kg/m³")
     print(f"   مصدر الطقس: {result['data_source']}")
 
 
@@ -175,9 +173,7 @@ def test_agb_model():
         f"\n✅ AGB model: {result['agb_t_ha']:.2f} t/ha "
         f"[{result['agb_t_ha_lower']:.1f}, {result['agb_t_ha_upper']:.1f}]"
     )
-    print(
-        f"   Yield: {result['yield_t_ha']:.3f} t/ha | Total: {result['total_yield_t']:.1f} t"
-    )
+    print(f"   Yield: {result['yield_t_ha']:.3f} t/ha | Total: {result['total_yield_t']:.1f} t")
     print(f"   Method: {result['method']}")
 
 

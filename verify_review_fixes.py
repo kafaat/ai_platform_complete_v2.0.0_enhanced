@@ -24,10 +24,7 @@ PASS, FAIL = [], []
 
 def check(name, cond, detail=""):
     (PASS if cond else FAIL).append((name, detail))
-    print(
-        f"  {'✓' if cond else '✗'} {name}"
-        + (f"  — {detail}" if detail and not cond else "")
-    )
+    print(f"  {'✓' if cond else '✗'} {name}" + (f"  — {detail}" if detail and not cond else ""))
 
 
 def load(path, modname):
@@ -110,9 +107,7 @@ check(
     "_daily_at يُرجع الافتراضي لمفتاح غائب",
     om._daily_at(daily, "precipitation_sum", 0, 0) == 0,
 )
-check(
-    "_daily_at يُرجع الافتراضي لقيمة None", om._daily_at({"x": [None]}, "x", 0, 7) == 7
-)
+check("_daily_at يُرجع الافتراضي لقيمة None", om._daily_at({"x": [None]}, "x", 0, 7) == 7)
 
 print("\n── M3: اتصال دالة ثقة التغطية عند 0.5 ──")
 ce = load("services/sahool-platform/api/confidence_engine.py", "conf_eng")
@@ -204,14 +199,10 @@ async def _fake_weather(lat, lon, start, end):
 
 wf.fetch_weather_real = _fake_weather
 res_irr = asyncio.run(
-    wf.simulate_wofost(
-        "f", "قمح صلب", "loam", 15.3, 44.2, _dt.date(2025, 1, 1), 1.0, True
-    )
+    wf.simulate_wofost("f", "قمح صلب", "loam", 15.3, 44.2, _dt.date(2025, 1, 1), 1.0, True)
 )
 res_rain = asyncio.run(
-    wf.simulate_wofost(
-        "f", "قمح صلب", "loam", 15.3, 44.2, _dt.date(2025, 1, 1), 1.0, False
-    )
+    wf.simulate_wofost("f", "قمح صلب", "loam", 15.3, 44.2, _dt.date(2025, 1, 1), 1.0, False)
 )
 yi = res_irr["simulation"]["yield_t_ha"]
 yr = res_rain["simulation"]["yield_t_ha"]
