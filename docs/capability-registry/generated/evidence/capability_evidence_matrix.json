@@ -1758,6 +1758,7 @@
         "mobile/sahool_app/test/field_forms/no_service_token_guard_test.dart",
         "mobile/sahool_app/test/field_forms/schema_renderer_widget_test.dart",
         "mobile/sahool_app/test/field_forms/submission_queue_test.dart",
+        "tests_v9/test_ci_suite_invocation_budget.py",
         "tests_v9/test_field_forms_api_static_p0.py",
         "tests_v9/test_field_forms_bff_proxy_static.py",
         "tests_v9/test_field_forms_condition_dsl.py",

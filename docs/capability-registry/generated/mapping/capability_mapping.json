@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4908,
+    "files_scanned": 4909,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1294,
-      "tests": 1587,
+      "tests": 1588,
       "web": 451
     },
     "unmapped_artifacts": 2002,
@@ -14398,6 +14398,14 @@
             "path:field form",
             "content:field form"
           ]
+        },
+        {
+          "path": "tests_v9/test_ci_suite_invocation_budget.py",
+          "score": 8,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
         }
       ],
       "governance": [
@@ -14473,7 +14481,7 @@
         "events": 10,
         "web": 0,
         "mobile": 12,
-        "tests": 20,
+        "tests": 21,
         "governance": 1,
         "other_evidence": 6
       },

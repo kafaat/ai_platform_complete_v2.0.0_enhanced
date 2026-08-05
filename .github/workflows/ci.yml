@@ -567,19 +567,32 @@ jobs:
       # حين يكبر عدد المُواصَفين تُنقَل إلى وظيفة مستقلّة.
       - name: guard-mutation guard (plant the defects)
         run: python scripts/ci/guard_mutation_guard.py --run
-      - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
-      # بوّابة تغطية حقيقيّة (A1): راتشِت غير-كاسر يمنع الانحدار ويصعد فقط.
-      # UNIT-TEST-DORMANCY-01 (2026-07-28): بعد إيقاظ ٤٧٩ اختباراً خامداً (fastapi
-      # وscipy وpillow صارت في `requirements-test.txt`) صار المقيس **46%** بأمر CI
-      # نفسه — كان ~44.55% في البيئة الدنيا. الأرضيّة تصعد 40→42 بنفس هامش
-      # الاتّفاقيّة (~٤ نقاط دون المقيس).
-      # TESTS-UNMARKED-DESELECTED-01 (2026-07-28): وُسِم ٥٤ ملفّاً خامداً (٢٤٠ اختباراً)
-      # فصار المقيس **47%** بنفس الأمر. الأرضيّة تصعد 42→43 بنفس القاعدة (~٤ نقاط دون
-      # المقيس). لم تقفز أكثر لأنّ الإيقاظ يرفع البسط والمقام معاً.
-      # ratchet: 20→40 (2026-07) → 42 → 43 (2026-07-28)؛ ارفعها نحو 55 مع نموّ التغطية.
-      # راجع docs/testing/coverage_ratchet.md للخطّة المرحليّة والتفصيل حسب النطاق.
-      - name: Coverage gate (fail-under)
-        run: pytest -m unit --cov=services --cov-fail-under=43 -q || (echo "التغطية انهارت دون الأرضيّة 43%" && exit 1)
+      # UNIT-SUITE-RUN-TWICE-01 (2026-08-05): كانت هنا خطوتان تُشغّلان **الجناح نفسه
+      # مرّتين** — `pytest -v -m unit --cov=services --cov-report=…` ثمّ خطوة بوّابة
+      # التغطية `pytest -m unit --cov=services --cov-fail-under=43 -q`. نفس العلامة،
+      # نفس التغطية، تشغيلان متتاليان. المقيس: ١٩:٠٩ في CI على #788 مقابل ٦:٣٥
+      # محلّيّاً بالتغطية — والحساب ٦:٣٥ × ~١.٤٥ (بطء العدّاء) × ٢ = ١٩:٠٦ يُطابقه.
+      # أي أنّ **نصف المسار الحرج لكلّ PR** كان تكراراً، لا عتاداً ولا تجهيزاً.
+      #
+      # نشأ لأنّ بوّابة التغطية (A1) أُضيفت **بجوار** خطوة قائمة بدل أن تُدمَج فيها.
+      # كلتاهما صحيحة منفردة؛ الكلفة في اجتماعهما — صنفٌ لا يظهر في مراجعة سطر واحد.
+      #
+      # وأُسقِط معها غلاف `|| (echo "التغطية انهارت…" && exit 1)`: رمز خروج pytest
+      # واحد (1) لفشل اختبار ولانهيار التغطية معاً، فكان الغلاف يُشخّص خطأً. مُثبَت
+      # محلّيّاً: تغطية 100% بلغت الأرضيّة + اختبار فاشل ⇒ طبع «التغطية انهارت».
+      # ورسالة pytest-cov نفسها دقيقة ("Required test coverage of 43% not reached")،
+      # فالغلاف كان يستبدل تشخيصاً صحيحاً بآخر خاطئ.
+      #
+      # الراتشِت: 20→40 (2026-07) → 42 → 43 (2026-07-28)؛ ارفعها نحو 55 مع نموّ
+      # التغطية. UNIT-TEST-DORMANCY-01 وTESTS-UNMARKED-DESELECTED-01 رفعا المقيس إلى
+      # ~47% بأمر CI نفسه. راجع docs/testing/coverage_ratchet.md.
+      - name: Unit suite + coverage ratchet (one run — see UNIT-SUITE-RUN-TWICE-01)
+        run: >-
+          pytest -v -m unit
+          --cov=services
+          --cov-report=xml
+          --cov-report=term
+          --cov-fail-under=43
       - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with: {files: coverage.xml}
       # ثلاثة من هذه الأربعة بلا `pytestmark = unit` ⇒ يستبعدها `-m unit`؛ تُشغَّل

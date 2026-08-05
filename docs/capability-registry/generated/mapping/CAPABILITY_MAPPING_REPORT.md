@@ -12,7 +12,7 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4908**
+- Files scanned: **4909**
 - Ambiguous artifacts queued: **398**
 - Unmapped artifacts queued: **2002**
 
@@ -59,7 +59,7 @@
 | OPS-001 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-002 | operations | 3 | 7 | 7 | 1 | 1 | 0 | 4 | 6 |
 | OPS-003 | operations | 9 | 7 | 7 | 45 | 22 | 1 | 18 | 7 |
-| OPS-004 | operations | 3 | 12 | 15 | 10 | 0 | 12 | 20 | 6 |
+| OPS-004 | operations | 3 | 12 | 15 | 10 | 0 | 12 | 21 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 6 | 1 | 0 | 1 | 6 |
 | OPS-006 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | OPS-007 | operations | 0 | 0 | 3 | 1 | 0 | 0 | 2 | 3 |
