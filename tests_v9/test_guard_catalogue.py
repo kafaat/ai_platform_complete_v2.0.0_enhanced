@@ -78,11 +78,23 @@ def test_the_job_attribution_is_parsed_not_pattern_matched(tool):
 
 
 def test_what_each_guard_catches_comes_from_the_mutation_registry(tool):
+    """The detail section must quote the registry verbatim, for guards that actually block.
+
+    The first version skipped a guard when its name was absent from the rendered text —
+    a proxy, not the property. Merging #790 brought in ``manifest_registry_guard.py``,
+    which is spec'd but wired to no workflow, so it appears **by name** in the unwired
+    section while its ``why`` text correctly does not. The proxy said "invoked"; the
+    structure said otherwise, and the test failed on a document that was right.
+
+    Matching text where structure was required — §3.26, and this file asserts that
+    property about the generator while committing it itself.
+    """
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))["mutated"]
     rendered = tool.render()
+    invoked = {Path(path).name for path in tool.discover_invocations()}
     for name, spec in registry.items():
-        if f"`{name}`" not in rendered:
-            continue  # not invoked by any workflow; reported in its own section
+        if name not in invoked:
+            continue  # not invoked by any workflow; listed by name in its own section
         for mutation in spec["mutations"]:
             assert mutation["why"] in rendered, (
                 f"{name}: the registry's own wording must appear, not a paraphrase"
