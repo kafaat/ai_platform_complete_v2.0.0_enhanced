@@ -2,14 +2,15 @@
   "$comment": "سجلّ أساس الادّعاءات — كلّ مصنوعة مُعلَنة في docs/architecture/ إمّا **قياس** أو **قرار**، ولكلٍّ ختمٌ مختلف. القياس (`measured_on`) يُشتقّ بتشغيل ماسح على شجرة في لحظة، فيَبيت حين تتحرّك الشجرة تحته. والقرار (`adjudicated_on`) حكمٌ اتّخذه إنسان، لا يَبيت بحركة الشجرة بل بتغيّر الأسباب. خلطُهما هو العطل: رقمٌ مقيس يُقرأ عقداً فلا يُعاد قياسه أبداً، وعقدٌ يُقرأ قياساً فيُعاد اشتقاقه بلا حكم. يفرضه scripts/ci/claim_base_guard.py.",
   "gap": "CLAIMS-WITHOUT-A-MEASURED-BASE-01",
   "schema_version": "sahool.claim-base-registry.v1",
-
   "why_this_is_not_a_new_convention": "المفردتان **موجودتان في هذا المستودع سلفاً** ولم تُسمَّيا قاعدةً قطّ: أربع مصنوعات تحمل `measured_on` وأربع تحمل `adjudicated_on`، اختارها كاتبوها كلٌّ على حدة. هذا السجلّ لا يخترع اصطلاحاً بل يُسمّي القائم ويقيس تغطيته — ٩ قياسات (٥ مؤرَّخة) و١٣ قراراً (٤ مؤرَّخة) من ٢٢.",
-
-  "measured_base_keys": ["measured_on", "baseline"],
-  "decided_base_keys": ["adjudicated_on"],
-
+  "measured_base_keys": [
+    "measured_on",
+    "baseline"
+  ],
+  "decided_base_keys": [
+    "adjudicated_on"
+  ],
   "why_two_measured_keys": "`s0_s12_execution_baseline.json` يحمل أساسه تحت المفتاح `baseline` منذ إنشائه. إعادة تسميته تكسر قارئاً محتملاً بلا فائدة — فالمقبول هو **وجود الأساس** لا اسم حقله. أمّا `baseline_route_count` فليس أساساً بل عدّاً، ولذلك تُطابَق المفاتيح مطابقةً تامّة لا بادئةً.",
-
   "measured": [
     "api_versioning_legacy_baseline.json",
     "assertion_presence_baseline.json",
@@ -21,7 +22,6 @@
     "s0_s12_execution_baseline.json",
     "text_encoding_locale_baseline.json"
   ],
-
   "decided": [
     "SERVICE_REGISTRY_HARDENING_CONTRACT.json",
     "capability_core_consumption_registry.json",
@@ -33,19 +33,18 @@
     "permanent_compatibility_contract.json",
     "physical_effect_boundary_contract.json",
     "platform_route_placement_contract.json",
+    "preflight_required.json",
     "raster_boundary_allowlist.json",
     "runtime_contract_nonsecret_keys.json",
+    "schema_validation_policy.json",
     "weather_boundary_allowlist.json",
     "weather_direct_wiring_allowlist.json",
     "weather_engine_formula_allowlist.json"
   ],
-
   "adjudicated_on": "2026-08-02",
-
   "unbased_debt_ceiling": 4,
   "undated_debt_ceiling": 9,
   "why_ceilings_and_not_only_a_list": "قائمةٌ يُقال عنها «تتقلّص ولا تنمو» بلا سقف **لا تمنع النموّ**: يكفي إضافة مدخل جديد إليها ليمرّ الحارس. والسقف مشدود على العدد الحاليّ بلا فسحة، فمصنوعة قياسٍ **جديدة** لا تدخل الدَّين — لأنّ من يُنشِئ قياساً اليوم يعرف الشجرة التي قاس عليها، ولا عذر له. ورفعُ السقف ممكن كأيّ راتشِت في هذا المستودع، لكنّه يظهر في الفرق ويُسأل عنه.",
-
   "unbased_debt": {
     "$comment": "قياسات لم يُسجَّل الأساس الذي قِيست عليه. تتقلّص ولا تنمو (بسقفٍ مشدود)، وبإنفاذ عكسيّ: مدخلٌ اكتسب ختماً يجب أن يخرج من هنا وإلّا سقط الحارس — وإلّا صارت القائمة تُطيل نفسها بمداخل بائتة كما فعل كلّ أساس لم يُنفَّذ عكسيّاً.",
     "assertion_presence_baseline.json": "٢٠٧ دالّة اختبار لا يمكن أن تفشل. العدد صحيح على شجرةٍ ما، ولا أحد يعرف أيّها — فلا يُعرَف إن كان الدَّين يتقلّص أم أنّ الماسح توقّف عن رؤيته.",
@@ -53,7 +52,6 @@
     "platform_extraction_map.json": "**دليل حيّ على الضرر:** `baseline_route_count = 633` بينما `routes` تعدّ **635**. القياس انحرف عن القائمة التي يعدّها بمقدار ٢، ولا شيء رصده — لأنّ لا حارس ولا اختبار ولا workflow يقرأ `baseline_route_count` إطلاقاً (مقيس بالبحث في scripts/ وtests_v9/ و.github/). رقمٌ منشور بوصفه واقعاً، بلا أساس وبلا قارئ. لا يُصحَّح هنا بتحرير الرقم: تصحيحه بلا إعادة اشتقاق يُنتِج رقماً آخر لم يحسبه أحد.",
     "platform_python_module_baseline.json": "٦٧٥ وحدة، متّسق مع قائمته اليوم — لكنّ الاتّساق ليس أساساً: لا يُعرَف متى قِيس ولا هل بقي صحيحاً بعد ذلك."
   },
-
   "undated_debt": {
     "$comment": "قرارات بلا تاريخ حكم. أضعف من الشطر المقيس ويُقال ذلك صراحةً: قرارٌ لا يَبيت بحركة الشجرة، فغياب تاريخه لا يُنتج رقماً كاذباً — يُنتج فقط عجزاً عن معرفة متى يُراجَع ولا عن أيّ حالةٍ للعالم اتُّخِذ.",
     "SERVICE_REGISTRY_HARDENING_CONTRACT.json": "عقد ملكيّة نطاقات P5.",
@@ -66,8 +64,6 @@
     "weather_direct_wiring_allowlist.json": "بقايا الوصل المباشر بـOpen-Meteo.",
     "weather_engine_formula_allowlist.json": "حدّ نوى صيَغ ET0/GDD."
   },
-
   "staleness_is_reported_not_blocked": "الحارس يحسب بُعد `measured_on` عن HEAD ويطبعه، ولا يحجب عليه. الحجب على البيات يُحوّل كلّ PR إلى حملة إعادة قياس ويُدرّب قارئه على تجاهل الحارس؛ والمقصود أن يُعرَف عمر الرقم لا أن يُمنَع تقادمه. **ما يُحجَب** هو غياب الأساس أصلاً: ملفّ غير مصنَّف، أو قياسٌ بلا ختم خارج قائمة الدَّين، أو نموّ الدَّين، أو مدخل دَين بائت.",
-
   "honesty_limit": "هذا يحرس **مصنوعات docs/architecture/ المُعلَنة وحدها**. الادّعاءات المقيسة في نثر `sahool-brain/*.md` — وهي الأكثر عدداً بفارق كبير — خارج مداه، ولا يُدَّعى غير ذلك: لا قاعدة آليّة تُميّز رقماً مقيساً من رقمٍ مذكور في جملة."
 }

@@ -6740,6 +6740,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_canonical_event_emission_contracts.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_canonical_execution_learning_live_gate_contract.py",
     "kind": "tests"
   },
@@ -6765,6 +6769,10 @@
   },
   {
     "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_capability_impact_parity.py",
     "kind": "tests"
   },
   {
@@ -7304,6 +7312,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_local_preflight_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_manifest_completeness.py",
     "kind": "tests"
   },
@@ -7673,6 +7685,10 @@
   },
   {
     "path": "tests_v9/test_sar_rvi.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_schema_validation_guard.py",
     "kind": "tests"
   },
   {

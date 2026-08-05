@@ -42,6 +42,7 @@ from api.learning_feedback import (  # noqa: E402  (import after sys.path insert
     process_season_closed_event,
 )
 from api.persisted_canonical_repositories import (  # noqa: E402  (import after sys.path insertion)
+    decode_jsonb,
     persist_nutrient_projection,
     persist_phenology_projection,
     persist_salinity_projection,
@@ -130,8 +131,20 @@ async def _process_projection_request(conn: Any, *, request_id: str) -> dict[str
             "status": "already_processed",
             "event_id": str(row["result_event_id"]) if row["result_event_id"] else None,
         }
-    payload = dict(row["canonical_payload"])
-    evidence = list(row["evidence_payload"] or [])
+    # asyncpg returns jsonb as **str** unless a codec is registered, and this worker's
+    # pool registers none. `dict(row["canonical_payload"])` therefore raised
+    #   ValueError: dictionary update sequence element #0 has length 1; 2 is required
+    # on every projection event — and the callback classifies ValueError as permanent
+    # invalid input, so it called `msg.term()`: a decoding bug in our code discarded a
+    # perfectly valid event and reported it as bad data.
+    #
+    # `list(row["evidence_payload"])` was worse than a raise: on the string "[]" it
+    # yields ['[', ']'] — two bogus observations, silently.
+    #
+    # `decode_jsonb` is the repository's existing idiom for this, imported rather than
+    # re-declared so there is one definition to fix if jsonb handling ever changes.
+    payload = dict(decode_jsonb(row["canonical_payload"], {}))
+    evidence = list(decode_jsonb(row["evidence_payload"], []))
     kind = str(row["projection_type"])
     if kind == "phenology":
         payload.update(

@@ -147,7 +147,7 @@ medium,sahool-platform,function,supported_pests,services/sahool-platform/api/ipm
 medium,sahool-platform,function,reserve_authoritative_intent,services/sahool-platform/api/irrigation_authoritative_reservation.py,18,0,review_before_delete,False
 medium,sahool-platform,function,reserve_and_request_dispatch,services/sahool-platform/api/irrigation_capacity_reservation.py,215,0,review_before_delete,False
 medium,sahool-platform,function,certify_irrigation_production_runtime,services/sahool-platform/api/irrigation_closed_loop_learning.py,375,0,review_before_delete,False
-medium,sahool-platform,function,finalize_irrigation_closed_loop,services/sahool-platform/api/irrigation_closed_loop_runtime.py,262,0,review_before_delete,False
+medium,sahool-platform,function,finalize_irrigation_closed_loop,services/sahool-platform/api/irrigation_closed_loop_runtime.py,263,0,review_before_delete,False
 medium,sahool-platform,function,build_commissioning_evidence,services/sahool-platform/api/irrigation_commissioning_certification.py,123,0,review_before_delete,False
 medium,sahool-platform,function,build_irrigation_commissioning_certification,services/sahool-platform/api/irrigation_commissioning_certification.py,163,0,review_before_delete,False
 medium,sahool-platform,function,apply_commissioning_executability_gate,services/sahool-platform/api/irrigation_commissioning_certification.py,368,0,review_before_delete,False
@@ -155,7 +155,7 @@ medium,sahool-platform,class,PumpEngineeringContract,services/sahool-platform/ap
 medium,sahool-platform,class,EmitEventExecutionRequestPort,services/sahool-platform/api/irrigation_execution_request_port.py,83,0,review_before_delete,False
 medium,sahool-platform,function,resolve_source_paths,services/sahool-platform/api/irrigation_path_query.py,63,0,review_before_delete,False
 medium,sahool-platform,function,compensate_dispatch_failure,services/sahool-platform/api/irrigation_reservation_adapter.py,334,0,review_before_delete,False
-medium,sahool-platform,function,process_season_closed_event,services/sahool-platform/api/learning_feedback.py,117,0,review_before_delete,False
+medium,sahool-platform,function,process_season_closed_event,services/sahool-platform/api/learning_feedback.py,119,0,review_before_delete,False
 medium,sahool-platform,function,plan_and_maybe_emit,services/sahool-platform/api/lexicographic_mpc_bridge.py,96,0,review_before_delete,False
 medium,sahool-platform,function,rate_limit_middleware,services/sahool-platform/api/main.py,898,0,review_before_delete,False
 medium,sahool-platform,function,should_fail,services/sahool-platform/api/offline_pending_db.py,71,0,review_before_delete,False

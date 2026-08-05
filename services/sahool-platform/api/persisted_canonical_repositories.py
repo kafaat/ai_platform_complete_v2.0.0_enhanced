@@ -17,12 +17,22 @@ from api.canonical_phenology_state import CanonicalPhenologyState, PhenologyObse
 from api.canonical_salinity_state import CanonicalSalinityState
 
 
-def _json(value: Any, default: Any) -> Any:
+def decode_jsonb(value: Any, default: Any) -> Any:
+    """Decode an asyncpg jsonb column, which arrives as ``str`` with no codec registered.
+
+    Public because the canonical execution worker reads the same columns through its own
+    pool. It previously called ``dict(...)``/``list(...)`` on the raw value: the first
+    raised, and the second turned the string ``"[]"`` into ``['[', ']']`` silently.
+    """
     if value is None:
         return default
     if isinstance(value, str):
         return json.loads(value)
     return value
+
+
+# Legacy private alias — the call sites in this module predate the public name.
+_json = decode_jsonb
 
 
 async def load_active_season_id(conn: Any, *, field_id: str) -> str | None:
@@ -272,10 +282,18 @@ async def persist_nutrient_ledger(conn: Any, ledger: CanonicalNutrientLedger) ->
     return _inserted(status)
 
 
+# ``source`` is a CONSTRAINED enum, not free text. ``migrations/v11_events_bus.sql:47-48``
+# declares ``CHECK (source IN ('mobile','web','edge','scheduler','system','ai','sensor'))``
+# and ``api/event_bus.py:259`` mirrors it as ``EventSource``. Any other value is rejected:
+#   ERROR: new row for relation "events" violates check constraint "events_source_check"
+# This path emitted a service/module name and had never met the real constraint — every
+# unit test around it runs against a fake connection, which enforces no CHECK at all.
+# ``system`` is the enum member for machine-originated events (the same value
+# ``irrigation_execution_request_port.py:61`` already uses).
 _EMIT_PROJECTION_SQL = """
 SELECT emit_event(
     $1::text, 'field'::text, $2::text, $3::uuid, $4::jsonb,
-    'sahool-platform'::text, NULL::text, $5::uuid, $6::timestamptz
+    'system'::text, NULL::text, $5::uuid, $6::timestamptz
 )
 """
 

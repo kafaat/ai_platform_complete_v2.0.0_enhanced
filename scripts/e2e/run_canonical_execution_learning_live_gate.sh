@@ -31,6 +31,20 @@ else
   }
 fi
 
+# A SHA identifies a tree; uncommitted changes mean the tree that ran is NOT the tree the
+# evidence names. Measured: this gate first passed with three production fixes still
+# unstaged, and stamped a SHA whose checkout could not have passed it — a green result
+# attributed to the wrong commit is worse than a red one. Checked after the SHA is
+# resolved so an explicit EXPECTED_SHA cannot smuggle a dirty tree past it either.
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  dirty="$(git status --porcelain)"
+  if [[ -n "$dirty" ]]; then
+    echo 'working tree is dirty — evidence would name a SHA that was not what ran:' >&2
+    echo "$dirty" >&2
+    exit 2
+  fi
+fi
+
 workdir="$(mktemp -d)"
 trap 'rm -rf "$workdir"' EXIT
 

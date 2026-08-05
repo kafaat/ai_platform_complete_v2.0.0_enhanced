@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4897,
+    "files_scanned": 4905,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1290,
-      "tests": 1580,
+      "other": 1294,
+      "tests": 1584,
       "web": 451
     },
-    "unmapped_artifacts": 1995,
-    "ambiguous_artifacts": 397
+    "unmapped_artifacts": 1999,
+    "ambiguous_artifacts": 398
   },
   "capabilities": [
     {
@@ -1458,11 +1458,7 @@
           "score": 8
         },
         {
-          "value": "irrigation.closed_loop.completed @ services/sahool-platform/api/irrigation_closed_loop_runtime.py:421",
-          "score": 8
-        },
-        {
-          "value": "sahool-platform.irrigation_closed_loop_runtime @ services/sahool-platform/api/irrigation_closed_loop_runtime.py:428",
+          "value": "irrigation.closed_loop.completed @ services/sahool-platform/api/irrigation_closed_loop_runtime.py:422",
           "score": 8
         }
       ],
@@ -1513,7 +1509,7 @@
         "backend": 2,
         "routes": 0,
         "database": 0,
-        "events": 9,
+        "events": 8,
         "web": 0,
         "mobile": 0,
         "tests": 3,
@@ -2224,7 +2220,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:403",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
           "score": 12
         },
         {
@@ -2986,7 +2982,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:403",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
           "score": 12
         },
         {
@@ -10403,6 +10399,13 @@
           ]
         },
         {
+          "path": "scripts/ci/capability_impact.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "config/terrain_sources.yml",
           "score": 19,
           "signals": [
@@ -10609,7 +10612,7 @@
         "mobile": 0,
         "tests": 35,
         "governance": 0,
-        "other_evidence": 33
+        "other_evidence": 34
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -10873,6 +10876,10 @@
       ],
       "events": [
         {
+          "value": "sahool.> @ docs/architecture/jetstream_topology_inventory.md:16",
+          "score": 20
+        },
+        {
           "value": "crop_rotation.added @ services/sahool-platform/api/event_bus.py:227",
           "score": 17
         },
@@ -10989,7 +10996,7 @@
           "score": 14
         },
         {
-          "value": "irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:202",
+          "value": "irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:215",
           "score": 12
         },
         {
@@ -11029,7 +11036,7 @@
           "score": 12
         },
         {
-          "value": "sahool.events.agronomy.projection.requested @ scripts/workers/canonical_execution_learning_worker.py:54",
+          "value": "sahool.events.agronomy.projection.requested @ scripts/workers/canonical_execution_learning_worker.py:55",
           "score": 12
         },
         {
@@ -11037,11 +11044,11 @@
           "score": 12
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:52",
+          "value": "sahool.events.irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:53",
           "score": 12
         },
         {
-          "value": "sahool.events.season.closed @ scripts/workers/canonical_execution_learning_worker.py:53",
+          "value": "sahool.events.season.closed @ scripts/workers/canonical_execution_learning_worker.py:54",
           "score": 12
         },
         {
@@ -11205,6 +11212,22 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/architecture/jetstream_topology_inventory.md",
+          "score": 20,
+          "signals": [
+            "path:jetstream",
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
+          "path": "scripts/ci/capability_impact.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts/e2e/canonical_projection_jetstream_roundtrip.py",
           "score": 17,
           "signals": [
@@ -11354,12 +11377,12 @@
         "backend": 5,
         "routes": 15,
         "database": 2,
-        "events": 65,
+        "events": 66,
         "web": 0,
         "mobile": 0,
         "tests": 8,
         "governance": 0,
-        "other_evidence": 17
+        "other_evidence": 19
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -14048,7 +14071,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:403",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
           "score": 12
         },
         {
@@ -14423,6 +14446,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/CI_GATES_AND_PRE_PUSH_PROTOCOL.md",
+          "score": 10,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
+        },
+        {
           "path": "shared/contracts/ingest/projection.py",
           "score": 9,
           "signals": [
@@ -14444,7 +14475,7 @@
         "mobile": 12,
         "tests": 20,
         "governance": 1,
-        "other_evidence": 5
+        "other_evidence": 6
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -24294,6 +24325,13 @@
           ]
         },
         {
+          "path": "scripts/ci/capability_impact.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "scripts_v9/README_RLS_TESTING.md",
           "score": 18,
           "signals": [
@@ -24844,7 +24882,7 @@
         "mobile": 0,
         "tests": 55,
         "governance": 0,
-        "other_evidence": 67
+        "other_evidence": 68
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -26977,7 +27015,7 @@
           "score": 28
         },
         {
-          "value": "soil-profile.v1 @ shared/contracts/soil/soil_profile_snapshot.v1.schema.json:242",
+          "value": "soil-profile.v1 @ shared/contracts/soil/soil_profile_snapshot.v1.schema.json:243",
           "score": 22
         },
         {
@@ -26993,7 +27031,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:403",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
           "score": 12
         },
         {
@@ -33461,6 +33499,13 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "scripts/ci/capability_impact.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "config/indicators_registry.json",
           "score": 15,
           "signals": [
@@ -33627,7 +33672,7 @@
         "mobile": 0,
         "tests": 44,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 20
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -40796,6 +40841,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_canonical_event_emission_contracts.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_canonical_execution_learning_live_gate_contract.py",
       "kind": "tests"
     },
@@ -40821,6 +40870,10 @@
     },
     {
       "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_capability_impact_parity.py",
       "kind": "tests"
     },
     {
@@ -41360,6 +41413,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_local_preflight_contract.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_manifest_completeness.py",
       "kind": "tests"
     },
@@ -41729,6 +41786,10 @@
     },
     {
       "path": "tests_v9/test_sar_rvi.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_schema_validation_guard.py",
       "kind": "tests"
     },
     {
@@ -45856,6 +45917,40 @@
         },
         {
           "capability_id": "DEC-009",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "scripts/ci/capability_impact.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "INT-002",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
           "score": 20,
           "signals": [
             "explicit_id"

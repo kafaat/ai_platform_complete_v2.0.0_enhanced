@@ -157,6 +157,18 @@ jobs:
         run: python scripts/ci/soil_p6_runtime_certification_guard.py
       - name: no unresolved merge-conflict markers (repo-wide)
         run: python scripts/ci/no_merge_conflict_markers_guard.py
+      # JSON-SCHEMAS-WITH-NO-VALIDATOR-01 — one validator for every *.schema.json in the
+      # tree, discovered from git rather than listed. Placed in the central structural
+      # job on purpose: a per-domain workflow would give remote_sensing, soil,
+      # capabilities and food_grain four checkers that drift apart.
+      #
+      # This job installs nothing else, so the library is installed here explicitly.
+      # The guard exits 2 without it rather than skipping: a validator with no library
+      # is the decorative-gate class this repository has paid for twice.
+      - name: install the schema validator's library
+        run: pip install 'jsonschema>=4.20.0'
+      - name: unified JSON Schema validation (all *.schema.json)
+        run: python scripts/ci/schema_validation_guard.py --check
       - name: irrigation MPC — Ky no-economic-coupling guard
         run: python scripts/ci/ky_no_economic_coupling_guard.py
       - name: irrigation MPC — bridge lineage-propagation guard

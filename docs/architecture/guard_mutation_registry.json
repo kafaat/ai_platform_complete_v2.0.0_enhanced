@@ -195,6 +195,29 @@
         }
       ],
       "test": "tests_v9/test_platform_module_reachability_guard.py"
+    },
+    "schema_validation_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_missing_meta_schema_is_caught",
+          "find": "    meta = document.get(\"$schema\")\n    if not meta:",
+          "replace": "    meta = document.get(\"$schema\")\n    if False:",
+          "why": "قبولُ مخطَّط بلا $schema ⇒ يعود أحد عشر ملفّاً لا يُعرَف بأيّ مواصفة تُقرأ، وهو العطل الأصليّ الذي بُنِيت البوّابة له"
+        },
+        {
+          "expect": "test_an_external_ref_is_caught",
+          "find": "        if policy[\"ref_policy\"][\"local_only\"] and not ref.startswith(\"#\"):",
+          "replace": "        if False and not ref.startswith(\"#\"):",
+          "why": "قبولُ $ref خارجيّ ⇒ يصير الخضوع رهن الشبكة وترتيب الملفّات لا صحّة العقد"
+        },
+        {
+          "expect": "test_a_schema_invalid_for_its_declared_draft_is_caught",
+          "find": "                validator_cls.check_schema(document)",
+          "replace": "                pass  # noqa",
+          "why": "تخطّي التحقّق من صحّة المخطَّط نفسه ⇒ الحارس يُبلِغ خضرةً عن سؤال لم يطرحه"
+        }
+      ],
+      "test": "tests_v9/test_schema_validation_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

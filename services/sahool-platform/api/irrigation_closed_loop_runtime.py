@@ -18,6 +18,7 @@ from api.canonical_as_applied_irrigation import (
     build_canonical_as_applied_irrigation_truth,
     build_execution_receipt,
 )
+from api.event_bus import EventSource
 
 
 def _rowdict(row: Any) -> dict[str, Any]:
@@ -425,7 +426,8 @@ async def finalize_irrigation_closed_loop(
         json.dumps(
             {"closed_loop": closed_payload, "learning_proposal": proposal.to_dict()}, default=str
         ),
-        "sahool-platform.irrigation_closed_loop_runtime",
+        # ``source`` is the constrained enum, not a module name — see EventSource.
+        EventSource.SYSTEM.value,
         None,
     )
     return {

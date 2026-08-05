@@ -13,6 +13,8 @@
 
 from __future__ import annotations
 
+from api.event_bus import EventSource
+
 # عتبة نسبة النجاح التي تحت‌ها تُقترَح مراجعة المعايرة. ⚠ تقديريّة.
 _LOW_SUCCESS_THRESHOLD = 0.6
 
@@ -215,7 +217,8 @@ async def process_season_closed_event(
         season_id,
         UUID(tenant_id),
         json.dumps({"learning_digest": learning_digest, "candidate": candidate}),
-        "sahool-platform.learning_feedback",
+        # ``source`` is the constrained enum, not a module name — see EventSource.
+        EventSource.SYSTEM.value,
         None,
     )
     return {
