@@ -2,9 +2,18 @@
   "$comment": "المولّدات التي تدعم --check ولا يذكرها أيّ workflow. المكنسة تكتشف خطواتها من الـworkflows، فما ليس في workflow خارج مداها بالتصميم — وهذه هي القائمة التي تجعل ذلك الخارج مرئيّاً بدل أن يكون صمتاً. القائمة تتقلّص ولا تنمو: مدخل يُحذف عند وصل السكربت بالبوّابة أو إصلاح سببه، ولا يُضاف مدخل لتمرير CI. كلّ مدخل يحمل حارسه (إن وُجد) وسبب عدم عمل الحارس ودليل الانحراف وشرط الإغلاق.",
   "gap": "GENERATED-ARTIFACT-SWEEP-01",
   "origin": "الزاوية مُستخرَجة من claude/verify-all-generated (GENERATED-CHAIN-UNDOCUMENTED-01): «مولّد موجود لا يشغّله أيّ workflow» — زاوية لا تمسكها المكنسة لأنّها تكتشف من الـworkflows. أُعيد القياس على main الحاليّ بدل نقل نتائجه، فاختلف العدد والتفسير.",
-  "measured_on": "6c966bab + deterministic linker + generated-chain workflow closure (2026-07-29)",
-  "measurement": "وُصل api_versioning_policy_guard وplatform_route_release_binding مباشرةً ببوابة Capability Governance، مع تشغيل اختبار release binding صراحةً. لم يبقَ أي مولّد مصنّف في قائمة الانحراف المعروف.",
+  "measured_on": "cb6598fe + MANIFEST-REGISTRY-01 (2026-08-05)",
+  "measurement": "وُصل api_versioning_policy_guard وplatform_route_release_binding مباشرةً ببوابة Capability Governance، مع تشغيل اختبار release binding صراحةً. أضيف مدخل انتقالي واحد لـMANIFEST-REGISTRY-01 لأنّ حارسه الجديد يدعم --check ولا يمكن وصله بـworkflow من رمز بلا workflow scope.",
   "correction": "قياس أوّليّ في هذه الجلسة عدّ api_versioning_policy_guard سليماً؛ كان خطأ قياس — رمز الخروج قُرئ بعد أنبوب `| tail` فعاد رمز tail لا رمز السكربت. القياس الصحيح: exit=1 لخمسة من الستّة.",
-  "why_the_sweep_does_not_execute_these": "لا توجد مداخل متبقية؛ المولّدان السابقان أصبحا خطوات CI مباشرة، فتتحقق أعلام الفحص الصحيحة في checkout نظيف.",
-  "uncovered": {}
+  "why_the_sweep_does_not_execute_these": "manifest_registry_guard خارج اكتشاف workflows لأنّ تعديل .github/workflows/* محجوب بالرمز الحاليّ؛ إنفاذه الفعليّ في tests_v9/test_manifest_registry_guard.py، وتشغيله هنا يظلّ متاحاً عبر --uncovered.",
+  "uncovered": {
+    "scripts/ci/manifest_registry_guard.py": {
+      "guard": "tests_v9/test_manifest_registry_guard.py",
+      "check_flag": "--check",
+      "drifts": false,
+      "why_guard_does_not_run_in_ci": "الحارس جديد ولا يذكره أيّ workflow؛ دفع تعديل workflows يتطلّب workflow scope غير المتاح في الرمز الحاليّ، فالإنفاذ في هذه الشريحة عبر الاختبار لا عبر خطوة CI.",
+      "drift_evidence": "على cb6598fe: `python3 scripts/ci/manifest_registry_guard.py --check` ⇒ exit 0 بعد توليد السجلّ؛ واختبار الالتزويق يزرع بياناً محكَّماً غير مسجَّل فيرجع الفحص 1 ثم يعود 0 بعد إزالته.",
+      "closure_condition": "يُحذف هذا المدخل عند وصل scripts/ci/manifest_registry_guard.py --check بخطوة workflow من حساب يملك workflow scope."
+    }
+  }
 }

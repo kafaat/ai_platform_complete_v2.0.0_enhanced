@@ -1,0 +1,45 @@
+{
+  "schema": "sahool.manifest_registry",
+  "version": 1,
+  "adjudicated_on": "2026-08-05",
+  "note_ar": "سجلّ البيانات التعريفية التحكيمية (MANIFEST-REGISTRY-01). لا تُحرَّر القائمة يدويّاً: تُشتقّ من `git ls-files docs/architecture/*.json` + قاعدة «يحمل adjudicated_on»، ويعيد توليدها `manifest_registry_guard.py --fix`. الراتش: كلّ بيان جديد يجب أن يكون governed (schema+version+adjudicated_on)؛ الصنفان legacy انتقالان للستّة القائمة فقط.",
+  "derivation_rule_ar": "كل docs/architecture/*.json يحمل adjudicated_on يُسجَّل؛ ما عداه خارج نطاق المرحلة 1.",
+  "entries": [
+    {
+      "path": "docs/architecture/claim_base_registry.json",
+      "kind": "legacy_schema_version"
+    },
+    {
+      "path": "docs/architecture/deferred_import_declaration_contract.json",
+      "kind": "legacy_adjudicated"
+    },
+    {
+      "path": "docs/architecture/expected_control_flow_exceptions.json",
+      "kind": "legacy_adjudicated"
+    },
+    {
+      "path": "docs/architecture/guard_mutation_registry.json",
+      "kind": "legacy_schema_version"
+    },
+    {
+      "path": "docs/architecture/manifest_registry.json",
+      "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/permanent_compatibility_contract.json",
+      "kind": "legacy_adjudicated"
+    },
+    {
+      "path": "docs/architecture/physical_effect_boundary_contract.json",
+      "kind": "legacy_adjudicated"
+    },
+    {
+      "path": "docs/architecture/preflight_required.json",
+      "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/schema_validation_policy.json",
+      "kind": "governed"
+    }
+  ]
+}
