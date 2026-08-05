@@ -7956,6 +7956,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_wofost_runtime_closure.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_worker_assertion_interop.py",
     "kind": "tests"
   },

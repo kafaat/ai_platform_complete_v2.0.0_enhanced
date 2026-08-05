@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4905,
+    "files_scanned": 4906,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1294,
-      "tests": 1584,
+      "tests": 1585,
       "web": 451
     },
-    "unmapped_artifacts": 1999,
+    "unmapped_artifacts": 2000,
     "ambiguous_artifacts": 398
   },
   "capabilities": [
@@ -31464,7 +31464,7 @@
           ]
         },
         {
-          "path": "vegetation_real/indicators_real.py",
+          "path": "shared/wofost/engine.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -31472,7 +31472,7 @@
           ]
         },
         {
-          "path": "wofost_real/wofost_engine.py",
+          "path": "vegetation_real/indicators_real.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -33587,7 +33587,7 @@
           ]
         },
         {
-          "path": "vegetation_real/indicators_real.py",
+          "path": "shared/wofost/engine.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -33595,7 +33595,7 @@
           ]
         },
         {
-          "path": "wofost_real/wofost_engine.py",
+          "path": "vegetation_real/indicators_real.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -42054,6 +42054,10 @@
     },
     {
       "path": "tests_v9/test_weather_signal_engine.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_wofost_runtime_closure.py",
       "kind": "tests"
     },
     {
@@ -50829,6 +50833,28 @@
       ]
     },
     {
+      "path": "shared/wofost/engine.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        }
+      ]
+    },
+    {
       "path": "skills/sahool-gis/MAP_VIEWER.md",
       "kind": "other",
       "candidates": [
@@ -52101,28 +52127,6 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "wofost_real/wofost_engine.py",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
           ]
         }
       ]

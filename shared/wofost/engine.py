@@ -144,7 +144,9 @@ SOIL_PARAMS = {
 # ══════════════════════════════════════════════════════════════
 # OPEN-METEO: جلب بيانات طقس يومية حقيقية
 # ══════════════════════════════════════════════════════════════
-async def fetch_weather_real(lat: float, lon: float, start: date, end: date) -> list[dict]:
+async def fetch_weather_real(
+    lat: float, lon: float, start: date, end: date
+) -> list[dict]:
     """Open-Meteo ERA5 + Forecast — مجاني 100% بدون مفتاح."""
     url = (
         f"https://archive-api.open-meteo.com/v1/archive"
@@ -215,7 +217,10 @@ def hargreaves_et0(tmax: float, tmin: float, lat_deg: float, doy: int) -> float:
         (24 * 60 / math.pi)
         * 0.082
         * dr
-        * (ws * math.sin(lat) * math.sin(delta) + math.cos(lat) * math.cos(delta) * math.sin(ws))
+        * (
+            ws * math.sin(lat) * math.sin(delta)
+            + math.cos(lat) * math.cos(delta) * math.sin(ws)
+        )
     )
     et0 = 0.0023 * (tmean + 17.8) * math.sqrt(trange) * Ra * 0.408
     return max(0.5, round(et0, 2))
@@ -403,7 +408,9 @@ async def simulate_wofost(
     total_etc = sum(d["etc_mm"] for d in daily_series)
     total_rain = sum(d["rain_mm"] for d in daily_series)
     total_irrigation = (
-        max(0, total_etc - total_rain) if not irrigation else max(0, total_etc - total_rain) * 1.1
+        max(0, total_etc - total_rain)
+        if not irrigation
+        else max(0, total_etc - total_rain) * 1.1
     )
 
     water_productivity = yield_kg_ha / max(1, total_etc)  # kg/m³

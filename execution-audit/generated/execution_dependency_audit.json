@@ -3,10 +3,10 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1836,
+    "python_files_parsed": 1838,
     "route_handlers": 1048,
-    "call_edges": 72325,
-    "dead_code_candidates": 615,
+    "call_edges": 72408,
+    "dead_code_candidates": 614,
     "duplicate_function_groups": 58,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -272421,64 +272421,22 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/simulate.py",
       "source": "simulate_what_if",
-      "target": "abspath",
-      "line": 49
+      "target": "staticmethod",
+      "line": 60
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/simulate.py",
       "source": "simulate_what_if",
-      "target": "dirname",
-      "line": 49
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/simulate.py",
-      "source": "simulate_what_if",
-      "target": "join",
-      "line": 49
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/simulate.py",
-      "source": "simulate_what_if",
-      "target": "join",
-      "line": 50
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/simulate.py",
-      "source": "simulate_what_if",
-      "target": "exists",
-      "line": 51
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/simulate.py",
-      "source": "simulate_what_if",
-      "target": "spec_from_file_location",
-      "line": 57
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/simulate.py",
-      "source": "simulate_what_if",
-      "target": "module_from_spec",
-      "line": 58
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/simulate.py",
-      "source": "simulate_what_if",
-      "target": "exec_module",
-      "line": 59
+      "target": "_Eng",
+      "line": 62
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/simulate.py",
       "source": "simulate_what_if",
       "target": "fromisoformat",
-      "line": 70
+      "line": 68
     },
     {
       "owner": "sahool-platform",
@@ -272492,28 +272450,21 @@
       "file": "services/sahool-platform/api/routers/simulate.py",
       "source": "simulate_what_if",
       "target": "today",
-      "line": 72
+      "line": 73
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/simulate.py",
       "source": "_run",
       "target": "simulate_wofost",
-      "line": 75
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/simulate.py",
       "source": "simulate_what_if",
       "target": "simulate_wofost",
-      "line": 75
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/simulate.py",
-      "source": "simulate_what_if",
-      "target": "_run",
-      "line": 86
+      "line": 76
     },
     {
       "owner": "sahool-platform",
@@ -272526,15 +272477,8 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/simulate.py",
       "source": "simulate_what_if",
-      "target": "get",
-      "line": 96
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/simulate.py",
-      "source": "simulate_what_if",
-      "target": "get",
-      "line": 96
+      "target": "_run",
+      "line": 88
     },
     {
       "owner": "sahool-platform",
@@ -272577,13 +272521,27 @@
       "source": "simulate_what_if",
       "target": "get",
       "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/simulate.py",
+      "source": "simulate_what_if",
+      "target": "get",
+      "line": 100
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/simulate.py",
+      "source": "simulate_what_if",
+      "target": "get",
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/simulate.py",
       "source": "simulate_what_if",
       "target": "round",
-      "line": 100
+      "line": 102
     },
     {
       "owner": "sahool-platform",
@@ -514672,6 +514630,629 @@
       "source": "test_plugin_runtime_report_summarizes_actions",
       "target": "build_plugin_runtime_report",
       "line": 110
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "AsyncClient",
+      "line": 159
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "get",
+      "line": 160
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "raise_for_status",
+      "line": 161
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "get",
+      "line": 162
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "json",
+      "line": 162
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "_at",
+      "target": "get",
+      "line": 168
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "get",
+      "line": 168
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "_at",
+      "target": "isinstance",
+      "line": 169
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "_at",
+      "target": "len",
+      "line": 169
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "isinstance",
+      "line": 169
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "len",
+      "line": 169
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "enumerate",
+      "line": 173
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "get",
+      "line": 173
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "append",
+      "line": 174
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "_at",
+      "line": 177
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "_at",
+      "line": 178
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "_at",
+      "line": 179
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "_at",
+      "line": 180
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "fetch_weather_real",
+      "target": "_at",
+      "line": 181
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "max",
+      "line": 209
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "radians",
+      "line": 210
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "cos",
+      "line": 213
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "sin",
+      "line": 214
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "acos",
+      "line": 215
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "tan",
+      "line": 215
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "tan",
+      "line": 215
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "sin",
+      "line": 221
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "sin",
+      "line": 221
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "cos",
+      "line": 222
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "cos",
+      "line": 222
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "sin",
+      "line": 222
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "sqrt",
+      "line": 225
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "max",
+      "line": 226
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "hargreaves_et0",
+      "target": "round",
+      "line": 226
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "get",
+      "line": 287
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "get",
+      "line": 288
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "int",
+      "line": 291
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "min",
+      "line": 293
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "timedelta",
+      "line": 293
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "min",
+      "line": 294
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "today",
+      "line": 294
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "fetch_weather_real",
+      "line": 298
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "warning",
+      "line": 300
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "enumerate",
+      "line": 319
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "timetuple",
+      "line": 320
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "hargreaves_et0",
+      "line": 324
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 328
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "min",
+      "line": 328
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "get_kc",
+      "line": 342
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 348
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "min",
+      "line": 355
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 359
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 364
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "min",
+      "line": 369
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 372
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "exp",
+      "line": 377
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "append",
+      "line": 382
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 385
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 386
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 387
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 388
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 389
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 390
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 391
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 392
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "len",
+      "line": 401
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "timedelta",
+      "line": 402
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "sum",
+      "line": 408
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "sum",
+      "line": 409
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 411
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 413
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 416
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "isoformat",
+      "line": 422
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "isoformat",
+      "line": 423
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 426
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "min",
+      "line": 428
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 428
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 429
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 429
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 430
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 431
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 432
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 433
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 436
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 438
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 439
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 440
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "max",
+      "line": 445
+    },
+    {
+      "owner": "shared",
+      "file": "shared/wofost/engine.py",
+      "source": "simulate_wofost",
+      "target": "round",
+      "line": 445
     }
   ],
   "dead_code_candidates": [
@@ -514681,17 +515262,6 @@
       "file": "services/decision-service/main.py",
       "line": 152,
       "owner": "decision-service",
-      "decorated_route": false,
-      "reference_count": 0,
-      "confidence": "high",
-      "action": "review_before_delete"
-    },
-    {
-      "symbol": "_simulate_wofost",
-      "kind": "function",
-      "file": "services/mcp_servers/wofost_server.py",
-      "line": 233,
-      "owner": "mcp-servers",
       "decorated_route": false,
       "reference_count": 0,
       "confidence": "high",

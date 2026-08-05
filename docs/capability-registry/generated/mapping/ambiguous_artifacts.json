@@ -8730,6 +8730,28 @@
     ]
   },
   {
+    "path": "shared/wofost/engine.py",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "WX-004",
+        "score": 12,
+        "signals": [
+          "content:ET0",
+          "content:et0"
+        ]
+      }
+    ]
+  },
+  {
     "path": "skills/sahool-gis/MAP_VIEWER.md",
     "kind": "other",
     "candidates": [
@@ -10002,28 +10024,6 @@
         "signals": [
           "content:NDVI",
           "content:ndvi"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "wofost_real/wofost_engine.py",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "WX-006",
-        "score": 12,
-        "signals": [
-          "content:GDD",
-          "content:gdd"
-        ]
-      },
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
         ]
       }
     ]

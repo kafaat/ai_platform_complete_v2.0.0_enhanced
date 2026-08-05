@@ -41,33 +41,34 @@ async def simulate_what_if(
             "available": False,
             "note_ar": "lat/lon مطلوبان للطقس الحيّ — لا محاكاة بلا موقع",
         }
-    # استيراد آمن لمحرّك WOFOST (وحدة جذريّة — قد لا تكون على المسار)
+    # استيراد نظاميّ من الحزمة المملوكة (WOFOST Runtime Closure): المحرّك صار في
+    # shared/wofost/ — داخل سياق Docker (COPY shared/) — فلا تحميل ديناميكيّ
+    # بمسار ملفّ، ولا «غير متاح على هذا المسار» صامت في الإنتاج. يبقى الاستيراد
+    # داخل الدالّة حفاظاً على عقدة التهيئة (api.main يستورد هذا الموجِّه أخيراً).
     try:
-        import importlib.util as _ilu
-        import os as _os
-
-        _root = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", "..", ".."))
-        _eng_path = _os.path.join(_root, "wofost_real", "wofost_engine.py")
-        if not _os.path.exists(_eng_path):
-            return {
-                "field_id": req.field_id,
-                "available": False,
-                "note_ar": "محرّك WOFOST غير متاح على هذا المسار",
-            }
-        _spec = _ilu.spec_from_file_location("wofost_engine", _eng_path)
-        _eng = _ilu.module_from_spec(_spec)
-        _spec.loader.exec_module(_eng)
-    except Exception as e:  # noqa: BLE001 — صدق: نُعلن التعذّر
+        from shared.wofost import simulate_wofost as _simulate_wofost
+    except ImportError as e:  # صدق: نُعلن التعذّر — لا أرقام مخترعة
         return {
             "field_id": req.field_id,
             "available": False,
-            "error": f"تعذّر تحميل محرّك المحاكاة: {e}",
+            "error": f"تعذّر استيراد محرّك المحاكاة (shared.wofost): {e}",
         }
+
+    class _Eng:
+        """موائم ضئيل يحفظ شكل الاستدعاء السابق (_eng.simulate_wofost)."""
+
+        simulate_wofost = staticmethod(_simulate_wofost)
+
+    _eng = _Eng()
 
     from datetime import date as _date
 
     try:
-        pd = _date.fromisoformat(req.planting_date) if req.planting_date else _date.today()
+        pd = (
+            _date.fromisoformat(req.planting_date)
+            if req.planting_date
+            else _date.today()
+        )
     except ValueError:
         pd = _date.today()
 
@@ -97,7 +98,9 @@ async def simulate_what_if(
     s_yield = scenario.get("simulation", {}).get("yield_t_ha")
     b_irr = baseline.get("water_balance", {}).get("irrigation_needed_mm")
     s_irr = scenario.get("water_balance", {}).get("irrigation_needed_mm")
-    water_saved = round(b_irr - s_irr, 1) if (b_irr is not None and s_irr is not None) else None
+    water_saved = (
+        round(b_irr - s_irr, 1) if (b_irr is not None and s_irr is not None) else None
+    )
     # هل "الإجراء المقترَح" (الريّ) يُجدي؟ مُجدٍ إن رفع المحصول >2% فوق خطّ الأساس
     # (لا إجراء). خطّ الأساس = s_yield، الإجراء = b_yield ⇒ المقارنة ذات معنى.
     helps = None
