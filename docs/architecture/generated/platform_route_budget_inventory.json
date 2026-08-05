@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "d9bac7fb3591cddca9739aa15a12fb3246be03ca6844e7fb9ac2cfc45ffb3a01",
+  "inventory_sha256": "d0e3b5e7e9627feff4a8990398aeb931d717b716298a642b6bc6414568c9f979",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "e166f70ab5aac4bec98308b6451276d6401dd82e034a616d767e0b52cddee5f2"
+    "policy_sha256": "1d83df9b12631e9716d015277dfe3560716bc1534668bd68c076fc7083998440"
   },
   "routes": [
     {
@@ -4314,7 +4314,7 @@
     {
       "classification": "domain",
       "function": "simulate_what_if",
-      "line": 27,
+      "line": 75,
       "method": "POST",
       "path": "/api/v1/simulate/what-if",
       "source": "api/routers/simulate.py"

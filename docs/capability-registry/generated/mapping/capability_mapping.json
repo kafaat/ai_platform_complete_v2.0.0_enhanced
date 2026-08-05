@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4918,
+    "files_scanned": 4919,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1299,
-      "tests": 1592,
+      "tests": 1593,
       "web": 451
     },
     "unmapped_artifacts": 2006,
@@ -12047,7 +12047,7 @@
           "score": 28
         },
         {
-          "value": "/api/v1/simulate/what-if @ services/sahool-platform/api/routers/simulate.py:27",
+          "value": "/api/v1/simulate/what-if @ services/sahool-platform/api/routers/simulate.py:75",
           "score": 8
         }
       ],
@@ -12065,7 +12065,12 @@
           "score": 10
         }
       ],
-      "events": [],
+      "events": [
+        {
+          "value": "sahool.simulate @ services/sahool-platform/api/routers/simulate.py:47",
+          "score": 8
+        }
+      ],
       "web": [
         {
           "path": "frontend/src/lib/waterFieldOps.ts",
@@ -12131,6 +12136,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_wofost_what_if_contract.py",
+          "score": 12,
+          "signals": [
+            "content:Water balance",
+            "content:water balance"
+          ]
+        },
+        {
           "path": "tests_v9/test_e2e_offline_flow.py",
           "score": 10,
           "signals": [
@@ -12166,14 +12179,14 @@
         "backend": 9,
         "routes": 2,
         "database": 3,
-        "events": 0,
+        "events": 1,
         "web": 2,
         "mobile": 0,
-        "tests": 6,
+        "tests": 7,
         "governance": 0,
         "other_evidence": 2
       },
-      "coverage_dimensions": 5,
+      "coverage_dimensions": 6,
       "mapped": true
     },
     {

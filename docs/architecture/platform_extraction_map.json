@@ -5393,7 +5393,7 @@
       "function": "simulate_what_if",
       "method": "POST",
       "path": "/api/v1/simulate/what-if",
-      "line": 27,
+      "line": 75,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/simulate.py::POST /api/v1/simulate/what-if::simulate_what_if"
