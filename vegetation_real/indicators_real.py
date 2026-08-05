@@ -21,7 +21,7 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from wofost_real.wofost_engine import fetch_weather_real, simulate_wofost
+from shared.wofost import fetch_weather_real, simulate_wofost
 
 logger = logging.getLogger("indicators-real")
 logging.basicConfig(level=logging.INFO)
@@ -199,9 +199,11 @@ def _soil_nitrogen_from_om(om_pct: float, rain_14d: float, et0_14d: float, crop:
         "n_organic_kg_ha": round(n_organic, 1),
         "n_required_kg_ha": n_req,
         "n_deficit_kg_ha": round(n_deficit, 1),
-        "recommendation_ar": f"أضف {round(n_deficit * 2.17, 1)} كجم يوريا/هكتار"
-        if n_deficit > 10
-        else "النيتروجين كافٍ",
+        "recommendation_ar": (
+            f"أضف {round(n_deficit * 2.17, 1)} كجم يوريا/هكتار"
+            if n_deficit > 10
+            else "النيتروجين كافٍ"
+        ),
     }
 
 
@@ -297,7 +299,8 @@ async def compute_all_indicators(field_id: str) -> dict:
             "label": "مؤشر تصحيح التربة",
             "source": "sentinel-2",
             "status": _classify(
-                savi, [(0.65, "excellent"), (0.48, "good"), (0.32, "fair"), (0.18, "poor")]
+                savi,
+                [(0.65, "excellent"), (0.48, "good"), (0.32, "fair"), (0.18, "poor")],
             ),
         },
         "gndvi": {
@@ -306,7 +309,8 @@ async def compute_all_indicators(field_id: str) -> dict:
             "label": "مؤشر الكلوروفيل",
             "source": "sentinel-2",
             "status": _classify(
-                gndvi, [(0.65, "excellent"), (0.48, "good"), (0.32, "fair"), (0.18, "poor")]
+                gndvi,
+                [(0.65, "excellent"), (0.48, "good"), (0.32, "fair"), (0.18, "poor")],
             ),
         },
         "lai": {
@@ -325,7 +329,8 @@ async def compute_all_indicators(field_id: str) -> dict:
             "label": "محتوى المياه النباتي",
             "source": "sentinel-2",
             "status": _classify(
-                ndwi, [(0.1, "excellent"), (-0.05, "good"), (-0.2, "fair"), (-0.4, "poor")]
+                ndwi,
+                [(0.1, "excellent"), (-0.05, "good"), (-0.2, "fair"), (-0.4, "poor")],
             ),
         },
         "et0": {
@@ -378,7 +383,8 @@ async def compute_all_indicators(field_id: str) -> dict:
             "label": "المادة العضوية",
             "source": "isric-soilgrids-yemen",
             "status": _classify(
-                soil["om"], [(3.0, "excellent"), (2.0, "good"), (1.0, "fair"), (0.5, "poor")]
+                soil["om"],
+                [(3.0, "excellent"), (2.0, "good"), (1.0, "fair"), (0.5, "poor")],
             ),
         },
         # ── فئة الطقس والنمو (Agroclimatic) ──────────────────
@@ -416,7 +422,8 @@ async def compute_all_indicators(field_id: str) -> dict:
             "label": "الإنتاجية المتوقعة",
             "source": "wofost-rue + open-meteo",
             "status": _classify(
-                yield_est, [(4.0, "excellent"), (2.5, "good"), (1.5, "fair"), (0.8, "poor")]
+                yield_est,
+                [(4.0, "excellent"), (2.5, "good"), (1.5, "fair"), (0.8, "poor")],
             ),
             "total_yield_t": round(yield_est * f["area_ha"], 1),
         },

@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4909,
+    "files_scanned": 4910,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1294,
-      "tests": 1588,
+      "tests": 1589,
       "web": 451
     },
-    "unmapped_artifacts": 2002,
+    "unmapped_artifacts": 2003,
     "ambiguous_artifacts": 398
   },
   "capabilities": [
@@ -18023,7 +18023,7 @@
           "score": 12
         },
         {
-          "value": "/health @ vegetation_real/indicators_real.py:490",
+          "value": "/health @ vegetation_real/indicators_real.py:497",
           "score": 12
         },
         {
@@ -18031,7 +18031,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ vegetation_real/indicators_real.py:489",
+          "value": "/healthz @ vegetation_real/indicators_real.py:496",
           "score": 12
         },
         {
@@ -18043,11 +18043,11 @@
           "score": 12
         },
         {
-          "value": "/readyz @ vegetation_real/indicators_real.py:495",
+          "value": "/readyz @ vegetation_real/indicators_real.py:502",
           "score": 12
         },
         {
-          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:478",
+          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:485",
           "score": 12
         },
         {
@@ -18075,7 +18075,7 @@
           "score": 12
         },
         {
-          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:480",
           "score": 12
         },
         {
@@ -30371,7 +30371,7 @@
           "score": 12
         },
         {
-          "value": "/health @ vegetation_real/indicators_real.py:490",
+          "value": "/health @ vegetation_real/indicators_real.py:497",
           "score": 12
         },
         {
@@ -30379,7 +30379,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ vegetation_real/indicators_real.py:489",
+          "value": "/healthz @ vegetation_real/indicators_real.py:496",
           "score": 12
         },
         {
@@ -30387,7 +30387,7 @@
           "score": 12
         },
         {
-          "value": "/readyz @ vegetation_real/indicators_real.py:495",
+          "value": "/readyz @ vegetation_real/indicators_real.py:502",
           "score": 12
         },
         {
@@ -30395,11 +30395,11 @@
           "score": 12
         },
         {
-          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:478",
+          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:485",
           "score": 12
         },
         {
-          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:480",
           "score": 12
         },
         {
@@ -31472,7 +31472,7 @@
           ]
         },
         {
-          "path": "vegetation_real/indicators_real.py",
+          "path": "shared/wofost/engine.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -31480,7 +31480,7 @@
           ]
         },
         {
-          "path": "wofost_real/wofost_engine.py",
+          "path": "vegetation_real/indicators_real.py",
           "score": 12,
           "signals": [
             "content:ET0",
@@ -31582,6 +31582,14 @@
             "content:ET0",
             "content:et0"
           ]
+        },
+        {
+          "path": "shared/wofost/__init__.py",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
         }
       ],
       "ambiguous": [],
@@ -31597,7 +31605,7 @@
         "mobile": 0,
         "tests": 57,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 22
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -32710,7 +32718,7 @@
           "score": 12
         },
         {
-          "value": "/health @ vegetation_real/indicators_real.py:490",
+          "value": "/health @ vegetation_real/indicators_real.py:497",
           "score": 12
         },
         {
@@ -32718,7 +32726,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ vegetation_real/indicators_real.py:489",
+          "value": "/healthz @ vegetation_real/indicators_real.py:496",
           "score": 12
         },
         {
@@ -32726,15 +32734,15 @@
           "score": 12
         },
         {
-          "value": "/readyz @ vegetation_real/indicators_real.py:495",
+          "value": "/readyz @ vegetation_real/indicators_real.py:502",
           "score": 12
         },
         {
-          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:478",
+          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:485",
           "score": 12
         },
         {
-          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:480",
           "score": 12
         },
         {
@@ -33595,7 +33603,7 @@
           ]
         },
         {
-          "path": "vegetation_real/indicators_real.py",
+          "path": "shared/wofost/engine.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -33603,7 +33611,7 @@
           ]
         },
         {
-          "path": "wofost_real/wofost_engine.py",
+          "path": "vegetation_real/indicators_real.py",
           "score": 12,
           "signals": [
             "content:GDD",
@@ -42074,6 +42082,10 @@
     },
     {
       "path": "tests_v9/test_weather_signal_engine.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_wofost_runtime_closure.py",
       "kind": "tests"
     },
     {
@@ -50849,6 +50861,28 @@
       ]
     },
     {
+      "path": "shared/wofost/engine.py",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "WX-004",
+          "score": 12,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
+        }
+      ]
+    },
+    {
       "path": "skills/sahool-gis/MAP_VIEWER.md",
       "kind": "other",
       "candidates": [
@@ -52121,28 +52155,6 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "wofost_real/wofost_engine.py",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 12,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "WX-004",
-          "score": 12,
-          "signals": [
-            "content:ET0",
-            "content:et0"
           ]
         }
       ]
