@@ -91,6 +91,9 @@ _GENERATE_FLAG = {
     "generate_indicator_artifacts.py": "",
     "generate_indicators_frontend_manifest.py": "",
     "pr_capability_impact_gate.py": "--generate-index",
+    # كتالوج الحرّاس: مصنوعة مولَّدة من الـworkflows + سجلّ الطفرات + توثيق كلّ حارس.
+    # علمُ التوليد هو التشغيل العاري؛ `--check` يفشل عند الانحراف.
+    "guard_catalogue.py": "",
     "build_platform_catalog.py": "",  # بلا علم — التشغيل العاري يكتب
     "build_service_dependency_bundle.py": "",
     "static_governance_closure.py": "--generate",
