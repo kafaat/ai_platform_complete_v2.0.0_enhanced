@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4912,
+    "files_scanned": 4915,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1295,
-      "tests": 1590,
+      "other": 1297,
+      "tests": 1591,
       "web": 451
     },
-    "unmapped_artifacts": 2004,
-    "ambiguous_artifacts": 398
+    "unmapped_artifacts": 2005,
+    "ambiguous_artifacts": 399
   },
   "capabilities": [
     {
@@ -173,6 +173,14 @@
             "content:Decision candidate",
             "content:decision candidate"
           ]
+        },
+        {
+          "path": "docs/runbooks/GUARD_CATALOGUE.md",
+          "score": 8,
+          "signals": [
+            "content:Decision candidate",
+            "content:decision candidate"
+          ]
         }
       ],
       "ambiguous": [],
@@ -188,7 +196,7 @@
         "mobile": 0,
         "tests": 4,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 3,
       "mapped": true
@@ -2220,7 +2228,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:420",
           "score": 12
         },
         {
@@ -2287,6 +2295,15 @@
           ]
         },
         {
+          "path": "docs/runbooks/GUARD_CATALOGUE.md",
+          "score": 9,
+          "signals": [
+            "content:Learning attribution",
+            "content:learning attribution",
+            "content:outcome attribution"
+          ]
+        },
+        {
           "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
           "score": 8,
           "signals": [
@@ -2316,7 +2333,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 1,
-        "other_evidence": 5
+        "other_evidence": 6
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -2982,7 +2999,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:420",
           "score": 12
         },
         {
@@ -14071,7 +14088,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:420",
           "score": 12
         },
         {
@@ -26358,6 +26375,14 @@
             "content:decision sor",
             "content:system of record"
           ]
+        },
+        {
+          "path": "docs/runbooks/GUARD_CATALOGUE.md",
+          "score": 9,
+          "signals": [
+            "content:decision sor",
+            "content:system of record"
+          ]
         }
       ],
       "ambiguous": [],
@@ -26373,7 +26398,7 @@
         "mobile": 0,
         "tests": 9,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 8
       },
       "coverage_dimensions": 4,
       "mapped": true
@@ -27039,7 +27064,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:415",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:420",
           "score": 12
         },
         {
@@ -27373,6 +27398,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/GUARD_CATALOGUE.md",
+          "score": 8,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "scripts/ci/soil_supersession_current_pointer_guard.py",
           "score": 8,
           "signals": [
@@ -27402,7 +27435,7 @@
         "mobile": 0,
         "tests": 13,
         "governance": 1,
-        "other_evidence": 13
+        "other_evidence": 14
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -41281,6 +41314,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_guard_catalogue.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_guard_mutation_guard.py",
       "kind": "tests"
     },
@@ -43831,6 +43868,45 @@
             "content:Tenant RLS",
             "content:rls",
             "content:tenant isolation"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/runbooks/GUARD_CATALOGUE.md",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "SEC-007",
+          "score": 9,
+          "signals": [
+            "content:decision sor",
+            "content:system of record"
+          ]
+        },
+        {
+          "capability_id": "DEC-008",
+          "score": 9,
+          "signals": [
+            "content:Learning attribution",
+            "content:learning attribution",
+            "content:outcome attribution"
+          ]
+        },
+        {
+          "capability_id": "SOIL-001",
+          "score": 8,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "capability_id": "DEC-002",
+          "score": 8,
+          "signals": [
+            "content:Decision candidate",
+            "content:decision candidate"
           ]
         }
       ]
