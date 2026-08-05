@@ -12067,6 +12067,14 @@
       ],
       "events": [
         {
+          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:84",
+          "score": 20
+        },
+        {
+          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:83",
+          "score": 20
+        },
+        {
           "value": "sahool.simulate @ services/sahool-platform/api/routers/simulate.py:47",
           "score": 8
         }
@@ -12155,6 +12163,20 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/architecture/generated_sweep_unmapped_generators.json",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
+          "path": "scripts/ci/verify_all_generated.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
+        },
+        {
           "path": "docs/history/COMPETITIVE_ANALYSIS.md",
           "score": 10,
           "signals": [
@@ -12179,12 +12201,12 @@
         "backend": 9,
         "routes": 2,
         "database": 3,
-        "events": 1,
+        "events": 3,
         "web": 2,
         "mobile": 0,
         "tests": 7,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 4
       },
       "coverage_dimensions": 6,
       "mapped": true

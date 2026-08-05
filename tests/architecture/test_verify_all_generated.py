@@ -494,3 +494,69 @@ def test_the_completeness_question_is_not_the_change_question():
 
     assert "--untracked-files=no" in inspect.getsource(MOD.tree_state)
     assert "--untracked-files=normal" in inspect.getsource(MOD.unindexed_files)
+
+
+def test_the_management_engine_runs_after_every_artifact_it_reads():
+    """الترتيب الأبجديّ يضعه **قبل ثلاثة من مصادره الخمسة** — `man` < `map` و`pa` و`re`.
+
+    ``capability_management_engine`` كان مستثنى من ``_GENERATE_FLAG`` بسببٍ مُسجَّل صار
+    بائتاً (عدم الخمول)؛ وأُغلِق الاستثناء بعد إعادة قياسه. لكنّ وصله في الطبقة صفر كان
+    سيُنتِج عيباً أهدأ: يقرأ مدخلات بائتة ثمّ «يستقرّ» في الدورة الثانية بمصادفة تكرار
+    ``--fix``، لا بترتيب صحيح — وهو حرفيّاً فخّ ``platform_route_governance_attestation``
+    المُسجَّل فوق. لذلك ``_ORDER_TIER = 1``.
+
+    **المدخلات مُشتقّة من بيان السكربت نفسه** لا مكتوبة هنا، فتغييرها يُرى. وخريطة
+    «أيّ مولّد يملك أيّ مصنوعة» مُعلَنة لأنّها غير مُشتقّة من مصدر واحد في الشجرة —
+    وذلك مذكور بدل أن يُموَّه.
+    """
+    manifest = json.loads(
+        (ROOT / "docs/capability-registry/generated/management/management_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    inputs = set(manifest["inputs"])
+    assert len(inputs) >= 5, f"البيان لم يعد يُعلن مدخلاته ({len(inputs)}) — الاختبار بلا أساس"
+
+    # مُعلَنة لا مُشتقّة: لا سجلّ واحد في الشجرة يربط المصنوعة بمولّدها.
+    owner_of = {
+        "docs/capability-registry/generated/mapping/capability_mapping.json": (
+            "scripts/ci/capability_mapping_engine.py"
+        ),
+        "docs/capability-registry/generated/evidence/capability_evidence_matrix.json": (
+            "scripts/ci/capability_evidence_maturity_engine.py"
+        ),
+        "docs/capability-registry/generated/benchmark/capability_parity_matrix.json": (
+            "scripts/ci/capability_parity_investment_engine.py"
+        ),
+        "docs/capability-registry/generated/benchmark/capability_investment_matrix.json": (
+            "scripts/ci/capability_parity_investment_engine.py"
+        ),
+    }
+    covered = inputs & set(owner_of)
+    assert covered, f"لا مدخل معروف المالك بين {sorted(inputs)} — راجع الخريطة المُعلَنة"
+
+    order = [script for script, _ in sorted(MOD.discover(), key=MOD._sort_key)]
+    position = {script: index for index, script in enumerate(order)}
+    engine = position["scripts/ci/capability_management_engine.py"]
+    for artifact in sorted(covered):
+        producer = owner_of[artifact]
+        assert position[producer] < engine, (
+            f"{producer} يُنتِج {artifact} ويعمل **بعد** المحرّك ⇒ المحرّك يقرأ مدخلاً بائتاً"
+        )
+
+
+def test_the_management_engine_is_wired_not_merely_declared():
+    """الوصل هو الخاصّيّة؛ وبقاؤه في أساس غير المُوصَّلين يُعيد العيب صامتاً.
+
+    ``--fix`` دار ثلاث دورات كاملة بلا استدعائه لأنّه أُعلِن في مصدره ولم يُذكر هنا،
+    فطبع «لم تثبت المصنوعات» بلا سببٍ ظاهر. رُصِد من شريحة عملٍ عاديّة لا من مسح.
+    """
+    assert MOD._GENERATE_FLAG["capability_management_engine.py"] == "--generate"
+    baseline = json.loads(
+        (ROOT / "docs/architecture/generated_sweep_unmapped_generators.json").read_text(
+            encoding="utf-8"
+        )
+    )["unmapped"]
+    assert "scripts/ci/capability_management_engine.py" not in baseline, (
+        "مُسجَّل في _GENERATE_FLAG وباقٍ في أساس غير المُوصَّلين — المصدران يتناقضان"
+    )
