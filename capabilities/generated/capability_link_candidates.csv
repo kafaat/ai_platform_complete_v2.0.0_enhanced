@@ -869,6 +869,7 @@ FM-006,test,services/sahool-platform/tests/test_cost_governance.py,3,applied
 FM-006,test,services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py,3,applied
 FM-006,test,services/sahool-platform/tests/test_profit_aware_decision_endpoint.py,3,applied
 FM-006,test,tests/architecture/test_platform_route_budget_guard.py,3,applied
+FM-006,test,tests_v9/test_ci_suite_invocation_budget.py,3,applied
 FM-006,test,tests_v9/test_cost_analytics.py,3,applied
 FM-006,test,tests_v9/test_tool_loop_budget_v58_2c.py,3,applied
 FM-007,api,GET /api/v1/farm-ledger/inventory-projection/{season_id} @ services/sahool-platform/api/routers/farm_operations_ledger.py:912,2,applied
