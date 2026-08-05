@@ -18015,7 +18015,7 @@
           "score": 12
         },
         {
-          "value": "/health @ vegetation_real/indicators_real.py:490",
+          "value": "/health @ vegetation_real/indicators_real.py:499",
           "score": 12
         },
         {
@@ -18023,7 +18023,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ vegetation_real/indicators_real.py:489",
+          "value": "/healthz @ vegetation_real/indicators_real.py:498",
           "score": 12
         },
         {
@@ -18035,11 +18035,11 @@
           "score": 12
         },
         {
-          "value": "/readyz @ vegetation_real/indicators_real.py:495",
+          "value": "/readyz @ vegetation_real/indicators_real.py:504",
           "score": 12
         },
         {
-          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:478",
+          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:487",
           "score": 12
         },
         {
@@ -18067,7 +18067,7 @@
           "score": 12
         },
         {
-          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:482",
           "score": 12
         },
         {
@@ -30363,7 +30363,7 @@
           "score": 12
         },
         {
-          "value": "/health @ vegetation_real/indicators_real.py:490",
+          "value": "/health @ vegetation_real/indicators_real.py:499",
           "score": 12
         },
         {
@@ -30371,7 +30371,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ vegetation_real/indicators_real.py:489",
+          "value": "/healthz @ vegetation_real/indicators_real.py:498",
           "score": 12
         },
         {
@@ -30379,7 +30379,7 @@
           "score": 12
         },
         {
-          "value": "/readyz @ vegetation_real/indicators_real.py:495",
+          "value": "/readyz @ vegetation_real/indicators_real.py:504",
           "score": 12
         },
         {
@@ -30387,11 +30387,11 @@
           "score": 12
         },
         {
-          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:478",
+          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:487",
           "score": 12
         },
         {
-          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:482",
           "score": 12
         },
         {
@@ -31574,6 +31574,14 @@
             "content:ET0",
             "content:et0"
           ]
+        },
+        {
+          "path": "shared/wofost/__init__.py",
+          "score": 8,
+          "signals": [
+            "content:ET0",
+            "content:et0"
+          ]
         }
       ],
       "ambiguous": [],
@@ -31589,7 +31597,7 @@
         "mobile": 0,
         "tests": 57,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 22
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -32702,7 +32710,7 @@
           "score": 12
         },
         {
-          "value": "/health @ vegetation_real/indicators_real.py:490",
+          "value": "/health @ vegetation_real/indicators_real.py:499",
           "score": 12
         },
         {
@@ -32710,7 +32718,7 @@
           "score": 12
         },
         {
-          "value": "/healthz @ vegetation_real/indicators_real.py:489",
+          "value": "/healthz @ vegetation_real/indicators_real.py:498",
           "score": 12
         },
         {
@@ -32718,15 +32726,15 @@
           "score": 12
         },
         {
-          "value": "/readyz @ vegetation_real/indicators_real.py:495",
+          "value": "/readyz @ vegetation_real/indicators_real.py:504",
           "score": 12
         },
         {
-          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:478",
+          "value": "/v1/all-fields @ vegetation_real/indicators_real.py:487",
           "score": 12
         },
         {
-          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:473",
+          "value": "/v1/indicators/{field_id} @ vegetation_real/indicators_real.py:482",
           "score": 12
         },
         {

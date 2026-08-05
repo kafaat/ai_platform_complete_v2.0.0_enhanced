@@ -6,6 +6,18 @@
 الآن يُستورَد استيراداً عاديّاً: ``from shared.wofost import simulate_wofost``.
 """
 
-from shared.wofost.engine import simulate_wofost
+from shared.wofost.engine import (
+    CROP_PARAMS,
+    fetch_weather_real,
+    get_kc,
+    hargreaves_et0,
+    simulate_wofost,
+)
 
-__all__ = ["simulate_wofost"]
+__all__ = [
+    "CROP_PARAMS",
+    "fetch_weather_real",
+    "get_kc",
+    "hargreaves_et0",
+    "simulate_wofost",
+]

@@ -58,6 +58,19 @@ def test_old_isolated_package_is_gone() -> None:
     assert not (ROOT / "wofost_real").exists(), "wofost_real عادت — نسختان = انحراف"
 
 
+def test_no_python_file_imports_the_old_package_anywhere() -> None:
+    # أُضيف بعد أن فات مستهلك (vegetation_real) بحثاً مقطوعاً بـhead في الجولة
+    # الأولى — الفحص هنا شامل بلا اقتطاع، والحارس لا يعتمد على ذاكرة أحد.
+    offenders = []
+    for p in sorted(ROOT.rglob("*.py")):
+        if ".git" in p.parts or p.name == "test_wofost_runtime_closure.py":
+            continue
+        src = p.read_text(encoding="utf-8", errors="ignore")
+        if "from wofost_real" in src or "import wofost_real" in src:
+            offenders.append(str(p.relative_to(ROOT)))
+    assert not offenders, f"استيرادات من الحزمة المحذوفة: {offenders}"
+
+
 def test_normal_import_works() -> None:
     import inspect
     import sys

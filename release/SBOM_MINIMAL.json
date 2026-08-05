@@ -30655,7 +30655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b23b12a9cff3f64d6335919f48fc667937cdaa8b1c793b691436eee43198c1e1"
+          "content": "9c8508bb3055b017ecbf29da86c5c544f7d28d4a304bba867974a706febef8b3"
         }
       ],
       "name": "shared/wofost/__init__.py",
