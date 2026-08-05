@@ -19,6 +19,7 @@ def _guard():
     spec = importlib.util.spec_from_file_location(
         "manifest_registry_guard", ROOT / "scripts" / "ci" / "manifest_registry_guard.py"
     )
+    assert spec and spec.loader
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -86,3 +87,49 @@ def test_kind_violation_is_caught() -> None:
     guard.validate_manifest("docs/architecture/claim_base_registry.json", "governed", errors)
     assert errors, "ملف legacy مرّ كـgoverned — قيود الصنف مكسورة"
     assert any("schema" in e or "version" in e for e in errors)
+
+
+def test_new_legacy_manifest_is_rejected_by_the_ratchet() -> None:
+    # الراتشة: بيان جديد بلا schema/version لا يكفي تسجيله — يُرفض إن لم يكن governed.
+    fake = ROOT / "docs" / "architecture" / "zz_fake_new_legacy.json"
+    fake.write_text(json.dumps({"adjudicated_on": "2026-08-05"}) + "\n", encoding="utf-8")
+    try:
+        import subprocess
+
+        subprocess.run(["git", "add", "-f", str(fake.relative_to(ROOT))], cwd=ROOT, check=True)
+        errors: list[str] = []
+        expected = _guard().derive_entries(errors)
+        assert expected[fake.relative_to(ROOT).as_posix()] == "legacy_adjudicated"
+        assert _guard().check(fix=False) == 1, "بيان جديد بصنف legacy نجا من الراتشة"
+    finally:
+        fake.unlink(missing_ok=True)
+        import subprocess
+
+        subprocess.run(
+            ["git", "rm", "-q", "--cached", "--ignore-unmatch", str(fake.relative_to(ROOT))],
+            cwd=ROOT,
+        )
+    assert _guard().check(fix=False) == 0
+
+
+def test_corrupt_json_is_caught_not_swallowed() -> None:
+    # fail-closed: ملف JSON فاسد داخل النطاق يجب أن يُبلَّغ لا أن يخرج من الجرد صامتاً.
+    fake = ROOT / "docs" / "architecture" / "zz_fake_corrupt.json"
+    fake.write_text("{فاسد", encoding="utf-8")
+    try:
+        import subprocess
+
+        subprocess.run(["git", "add", "-f", str(fake.relative_to(ROOT))], cwd=ROOT, check=True)
+        errors: list[str] = []
+        _guard().derive_entries(errors)
+        assert errors and "zz_fake_corrupt" in errors[0], "JSON فاسد ابتُلع بصمت"
+        assert _guard().check(fix=False) == 1
+    finally:
+        fake.unlink(missing_ok=True)
+        import subprocess
+
+        subprocess.run(
+            ["git", "rm", "-q", "--cached", "--ignore-unmatch", str(fake.relative_to(ROOT))],
+            cwd=ROOT,
+        )
+    assert _guard().check(fix=False) == 0
