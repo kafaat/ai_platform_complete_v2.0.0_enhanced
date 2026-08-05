@@ -4,6 +4,17 @@
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
   "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
+    "brain_append_only_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare",
+          "find": "        if blob(head, path, root=root) is None:\n            blocking.append(\n                Finding(\n                    \"JOURNAL_ABSENT_AT_HEAD\",\n                    path,\n                    \"—\",\n                    head,\n                    \"سجلّ إلحاقيّ مفقود عند الرأس — «لا شيء للمقارنة» ليس نجاحاً\",\n                )\n            )\n",
+          "replace": "",
+          "why": "نزع الفشل المُغلَق عند غياب السجلّ في الرأس ⇒ مدى بلا أزواج قابلة للمقارنة يمرّ أخضر، وهو نفس الصمت الذي بُني الحارس ليمنعه"
+        }
+      ],
+      "test": "tests_v9/test_brain_append_only_guard.py"
+    },
     "brain_duplicate_gap_identity_guard.py": {
       "mutations": [
         {
