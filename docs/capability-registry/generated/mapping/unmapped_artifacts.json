@@ -6716,6 +6716,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_brain_append_only_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_brain_duplicate_gap_identity_guard.py",
     "kind": "tests"
   },

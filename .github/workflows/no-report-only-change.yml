@@ -31,3 +31,15 @@ jobs:
       # قبل وصله (`BRANCH-GRAVEYARD-POLICY`، سطران متلاصقان).
       - name: Union merges must not leave one gap wearing two states
         run: python scripts/ci/brain_duplicate_gap_identity_guard.py
+      # BRAIN-APPEND-ONLY-TRUNCATION-GUARD-01 (2026-08-05): `sahool-brain/log.md` ذهب من
+      # ١٬٣٨٣٬٣٦٨ بايت إلى **صفر** في `cb6598fe` وبقي فارغاً على `main` نحو خمس ساعات،
+      # وكلّ البوّابات خضراء. لم يكن شيء معطوباً — لم يكن للملفّ حارس: الحرّاس الثلاثة
+      # أعلاه تفحص الادّعاءات والانتقالات لا الحجم، و`resolve_merge_conflicts` يعرف
+      # التصنيف لكنّه لا يعمل إلّا عند تعارض مُبلَّغ (والدمج الصامت لا تعارض فيه)،
+      # و**بصمة ملفّ فارغ بصمة صحيحة** فالمولّدات تختمها راضية.
+      #
+      # ووعي الدمج جوهر الأمر: النجاة وقعت لأنّ والداً يحمل الملفّ والآخر لا. فحصٌ
+      # مقابل **أحد** الوالدَين يمرّ؛ ومقابل **كليهما** يُمسِك. مُثبَت بالتكذيب على
+      # `32efdc90..cb6598fe` (يسقط) وعلى دمج اصطناعيّ يأخذ الجانب الفارغ.
+      - name: An append-only journal may not shrink, on any parent
+        run: python scripts/ci/brain_append_only_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
