@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4915,
+    "files_scanned": 4918,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1297,
-      "tests": 1591,
+      "other": 1299,
+      "tests": 1592,
       "web": 451
     },
-    "unmapped_artifacts": 2005,
+    "unmapped_artifacts": 2006,
     "ambiguous_artifacts": 399
   },
   "capabilities": [
@@ -41483,6 +41483,10 @@
     },
     {
       "path": "tests_v9/test_manifest_completeness.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_manifest_registry_guard.py",
       "kind": "tests"
     },
     {

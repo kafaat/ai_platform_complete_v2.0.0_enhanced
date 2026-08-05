@@ -162,6 +162,17 @@
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
     },
+    "manifest_registry_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_unregistered_adjudicated_manifest_is_caught",
+          "find": "    if errors:",
+          "replace": "    if False:",
+          "why": "نزع فرع الفشل ⇒ بيان محكَّم غير مسجَّل يمرّ أخضر وهو العطل الذي بُني له الحارس"
+        }
+      ],
+      "test": "tests_v9/test_manifest_registry_guard.py"
+    },
     "probe_leak_guard.py": {
       "mutations": [
         {

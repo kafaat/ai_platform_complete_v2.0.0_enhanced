@@ -97,6 +97,7 @@ _GENERATE_FLAG = {
     "build_platform_catalog.py": "",  # بلا علم — التشغيل العاري يكتب
     "build_service_dependency_bundle.py": "",
     "static_governance_closure.py": "--generate",
+    "manifest_registry_guard.py": "",  # بلا علم — التشغيل العاري يولّد,
 }
 
 # الثلاثة أدناه انحرفت فعليّاً في شريحة واحدة وكانت غائبة عن الخريطة، فلم تُستدعَ
