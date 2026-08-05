@@ -16,7 +16,9 @@
     للستّة القائمة — تُصنَّف وتُؤرخَخ ولا تُكسر، وأيّ بيان جديد خارج
     ``governed`` يُرفض.
 
-الاستعمال: ``--check`` فحص، ``--fix`` يعيد توليد السجلّ من الجرد.
+الاستعمال: التشغيل العاري فحص (نمط claim_base_guard)، و``--fix`` يعيد توليد
+السجلّ من الجرد. الفحص يجري في CI عبر tests_v9/test_manifest_registry_guard.py
+وعبر باك-stop المكنسة (شجرة متّسخة بعد الفحص = انحراف).
 """
 
 from __future__ import annotations
@@ -161,9 +163,7 @@ def check(fix: bool) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    g = ap.add_mutually_exclusive_group()
-    g.add_argument("--check", action="store_true")
-    g.add_argument("--fix", action="store_true")
+    ap.add_argument("--fix", action="store_true")
     args = ap.parse_args(argv)
     return check(fix=args.fix)
 
