@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4906,
+    "files_scanned": 4910,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1294,
-      "tests": 1585,
+      "tests": 1589,
       "web": 451
     },
-    "unmapped_artifacts": 2000,
+    "unmapped_artifacts": 2003,
     "ambiguous_artifacts": 398
   },
   "capabilities": [
@@ -14398,6 +14398,14 @@
             "path:field form",
             "content:field form"
           ]
+        },
+        {
+          "path": "tests_v9/test_ci_suite_invocation_budget.py",
+          "score": 8,
+          "signals": [
+            "content:Field forms",
+            "content:field form"
+          ]
         }
       ],
       "governance": [
@@ -14473,7 +14481,7 @@
         "events": 10,
         "web": 0,
         "mobile": 12,
-        "tests": 20,
+        "tests": 21,
         "governance": 1,
         "other_evidence": 6
       },
@@ -34113,6 +34121,10 @@
       "kind": "tests"
     },
     {
+      "path": "docs/architecture/test_impact_policy.json",
+      "kind": "tests"
+    },
+    {
       "path": "docs/audits/TEST_SUITE_INSTRUCTIONS.md",
       "kind": "tests"
     },
@@ -36230,6 +36242,10 @@
     },
     {
       "path": "mobile/sahool_app/test/resilience_test.dart",
+      "kind": "tests"
+    },
+    {
+      "path": "scripts/ci/test_impact.py",
       "kind": "tests"
     },
     {
@@ -41938,6 +41954,10 @@
     },
     {
       "path": "tests_v9/test_telegram_healthcheck_guard_v21.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_test_impact_selector.py",
       "kind": "tests"
     },
     {
