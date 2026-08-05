@@ -632,7 +632,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 0,
-      "outgoing": 12,
+      "outgoing": 13,
       "orphan": false
     },
     {
@@ -815,7 +815,7 @@
       "id": "sahool-notification-agent",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 1,
+      "incoming": 2,
       "outgoing": 27,
       "orphan": false
     },
@@ -3068,6 +3068,12 @@
     {
       "source": "sahool-canonical-execution-learning-worker",
       "target": "sahool-nats",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-canonical-execution-learning-worker",
+      "target": "sahool-notification-agent",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.v9.yml"
     },
@@ -6951,11 +6957,11 @@
   "cycles": [],
   "summary": {
     "nodes": 153,
-    "edges": 943,
+    "edges": 944,
     "orphans": 6,
     "cycles": 0,
     "code_edges": 110,
-    "compose_edges": 833
+    "compose_edges": 834
   },
-  "content_sha256": "f778a02fedaee722fd4a3d69c20b13dd9b668b120b732235b3a89ac45095798c"
+  "content_sha256": "6ee515477d13b3ef130238cc36f5939a0d88fb235f68e31de0f15d75ef83fe78"
 }

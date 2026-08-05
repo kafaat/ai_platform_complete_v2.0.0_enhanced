@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 @pytest.mark.asyncio
 async def test_openmeteo_real():
     """يتصل بـ Open-Meteo ويتحقق من البيانات."""
-    from wofost_real.wofost_engine import fetch_weather_real
+    from shared.wofost import fetch_weather_real
 
     lat, lon = 15.05, 45.55  # حقل وادي سبأ
     end = date.today()
@@ -64,7 +64,7 @@ async def test_openmeteo_real():
 # ══════════════════════════════════════════════════════════════
 def test_hargreaves_et0():
     """يتحقق من صحة معادلة Hargreaves-Samani (FAO-56)."""
-    from wofost_real.wofost_engine import hargreaves_et0
+    from shared.wofost import hargreaves_et0
 
     # قيم مرجعية من FAO-56 Example 17 (اليمن تقريباً)
     # تماز يناير: tmax=24, tmin=11, lat=15°, DOY=15
@@ -85,7 +85,7 @@ def test_hargreaves_et0():
 @pytest.mark.asyncio
 async def test_wofost_wheat_real():
     """محاكاة WOFOST كاملة للقمح بطقس حقيقي."""
-    from wofost_real.wofost_engine import simulate_wofost
+    from shared.wofost import simulate_wofost
 
     result = await simulate_wofost(
         field_id="field_01",
@@ -127,7 +127,7 @@ async def test_wofost_wheat_real():
 # ══════════════════════════════════════════════════════════════
 @pytest.mark.asyncio
 async def test_all_crops():
-    from wofost_real.wofost_engine import simulate_wofost
+    from shared.wofost import simulate_wofost
 
     FIELDS_TEST = [
         ("field_02", "شعير", "clay_loam", 15.02, 45.58),
@@ -181,7 +181,7 @@ def test_agb_model():
 # ٦. اختبار Kc Curve (FAO-56)
 # ══════════════════════════════════════════════════════════════
 def test_kc_curve():
-    from wofost_real.wofost_engine import CROP_PARAMS, get_kc
+    from shared.wofost import CROP_PARAMS, get_kc
 
     p = CROP_PARAMS["قمح صلب"]
     total = p["l_ini"] + p["l_dev"] + p["l_mid"] + p["l_late"]

@@ -6740,6 +6740,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_canonical_event_emission_contracts.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_canonical_execution_learning_live_gate_contract.py",
     "kind": "tests"
   },
@@ -6765,6 +6769,10 @@
   },
   {
     "path": "tests_v9/test_canonical_nutrient_ledger_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_capability_impact_parity.py",
     "kind": "tests"
   },
   {
@@ -6869,6 +6877,10 @@
   },
   {
     "path": "tests_v9/test_db_integration.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_db_ownership_source_integrity_guard.py",
     "kind": "tests"
   },
   {
@@ -7300,6 +7312,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_local_preflight_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_manifest_completeness.py",
     "kind": "tests"
   },
@@ -7672,6 +7688,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_schema_validation_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_secret_enforcement_guard_v21.py",
     "kind": "tests"
   },
@@ -7933,6 +7953,10 @@
   },
   {
     "path": "tests_v9/test_weather_signal_engine.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_wofost_runtime_closure.py",
     "kind": "tests"
   },
   {

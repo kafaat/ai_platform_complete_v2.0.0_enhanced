@@ -13,6 +13,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -41,6 +42,7 @@ from api.learning_feedback import (  # noqa: E402  (import after sys.path insert
     process_season_closed_event,
 )
 from api.persisted_canonical_repositories import (  # noqa: E402  (import after sys.path insertion)
+    decode_jsonb,
     persist_nutrient_projection,
     persist_phenology_projection,
     persist_salinity_projection,
@@ -52,6 +54,48 @@ SUBJECTS = (
     "sahool.events.season.closed",
     "sahool.events.agronomy.projection.requested",
 )
+SUBJECT_PREFIX = "sahool.events."
+_DURABLE_UNSAFE = re.compile(r"[^A-Za-z0-9_-]+")
+
+
+def durable_for_subject(base: str, subject: str) -> str:
+    """Return this subject's own durable consumer name.
+
+    A JetStream durable consumer binds to exactly ONE subscription. Subscribing a
+    second subject under the same durable name is refused by the server — measured
+    against nats-server v2.10.22 with nats-py:
+
+        nats.js.errors.Error: nats: JetStream.Error consumer is already bound to
+        a subscription
+
+    That raise happened on the *second* iteration of the subscribe loop, before the
+    worker reached its idle loop, so the worker never processed a single event. Its
+    ``--preflight`` passed throughout: preflight checks that a stream covers each
+    subject, which it does, and says nothing about consumer binding.
+
+    The suffix is derived from the whole subject (dots → dashes) rather than from its
+    last token: ``season.closed`` and a future ``irrigation.closed`` share a last
+    token, and that collision would reinstate the identical crash under a name that
+    merely looks distinct. Subjects are unique, so full-subject suffixes are too.
+
+    No migration is owed to any deployment: the shared-name consumer could never be
+    created for more than one subject, and the worker it belonged to never started.
+    """
+    suffix = _DURABLE_UNSAFE.sub("-", subject.removeprefix(SUBJECT_PREFIX)).strip("-")
+    if not suffix:
+        raise ValueError(f"subject yields no durable suffix: {subject!r}")
+    return f"{base}-{suffix}"
+
+
+async def subscribe_subjects(js: Any, *, durable_base: str, callback: Any) -> dict[str, str]:
+    """Bind one durable consumer per subject and return the subject → durable map."""
+    bound: dict[str, str] = {}
+    for subject in SUBJECTS:
+        durable = durable_for_subject(durable_base, subject)
+        await js.subscribe(subject, durable=durable, cb=callback, manual_ack=True)
+        bound[subject] = durable
+        LOGGER.info("subscribed %s as durable %s", subject, durable)
+    return bound
 
 
 async def _tenant_transaction(pool: Any, tenant_id: str):
@@ -87,8 +131,20 @@ async def _process_projection_request(conn: Any, *, request_id: str) -> dict[str
             "status": "already_processed",
             "event_id": str(row["result_event_id"]) if row["result_event_id"] else None,
         }
-    payload = dict(row["canonical_payload"])
-    evidence = list(row["evidence_payload"] or [])
+    # asyncpg returns jsonb as **str** unless a codec is registered, and this worker's
+    # pool registers none. `dict(row["canonical_payload"])` therefore raised
+    #   ValueError: dictionary update sequence element #0 has length 1; 2 is required
+    # on every projection event — and the callback classifies ValueError as permanent
+    # invalid input, so it called `msg.term()`: a decoding bug in our code discarded a
+    # perfectly valid event and reported it as bad data.
+    #
+    # `list(row["evidence_payload"])` was worse than a raise: on the string "[]" it
+    # yields ['[', ']'] — two bogus observations, silently.
+    #
+    # `decode_jsonb` is the repository's existing idiom for this, imported rather than
+    # re-declared so there is one definition to fix if jsonb handling ever changes.
+    payload = dict(decode_jsonb(row["canonical_payload"], {}))
+    evidence = list(decode_jsonb(row["evidence_payload"], []))
     kind = str(row["projection_type"])
     if kind == "phenology":
         payload.update(
@@ -270,9 +326,7 @@ async def run() -> None:
             LOGGER.exception("transient event processing failure")
             await msg.nak(delay=5)
 
-    for subject in SUBJECTS:
-        await js.subscribe(subject, durable=durable, cb=callback, manual_ack=True)
-        LOGGER.info("subscribed %s", subject)
+    await subscribe_subjects(js, durable_base=durable, callback=callback)
     try:
         while True:
             await asyncio.sleep(3600)

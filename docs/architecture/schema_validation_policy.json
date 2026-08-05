@@ -1,0 +1,24 @@
+{
+  "schema": "sahool.schema_validation_policy",
+  "version": 1,
+  "adjudicated_on": "2026-08-05",
+  "note_ar": "سياسة التحقّق من مخطَّطات JSON في المستودع. **لا تحوي قائمة الملفّات**: الجرد يُشتقّ من `git ls-files '*.schema.json'` وقتَ التشغيل، لأنّ فهرساً يدويّاً ينحرف عند إضافة مخطَّط جديد — وهو العيب الذي أوجد هذه البوّابة أصلاً (JSON-SCHEMAS-WITH-NO-VALIDATOR-01).",
+  "note_en": "Policy for validating JSON Schemas. Deliberately holds no file list: the inventory is derived from git at run time, because a hand-maintained index drifts the day a schema is added — the very defect this gate exists to close.",
+  "allowed_meta_schemas": {
+    "https://json-schema.org/draft/2020-12/schema": "2020-12",
+    "https://json-schema.org/draft/2019-09/schema": "2019-09",
+    "http://json-schema.org/draft-07/schema#": "draft-07"
+  },
+  "allowed_meta_schemas_note_ar": "المسموح هو ما تدعمه المكتبة المُعلَنة في `tests_v9/requirements-test.txt` **وتُشغَّل به دون شبكة**. أيّ ميتا-مخطَّط خارج هذه الخريطة يُرفَض بالاسم بدل أن يُتجاهَل — «ميتا-مخطَّط مجهول» يعني أنّ أحداً لا يعرف بأيّ مواصفة يُقرأ الملفّ.",
+  "ref_policy": {
+    "local_only": true,
+    "note_ar": "`$ref` خارجيّ (http/https أو مسار ملفّ) مرفوض: يجعل التحقّق معتمداً على الشبكة أو على ترتيب الملفّات، فيصير خضوره رهناً ببيئة التشغيل لا بصحّة العقد. المسموح مراجع محلّيّة داخل الوثيقة (`#/$defs/...`) وتُحلّ كلّها فعليّاً.",
+    "note_en": "External $ref is refused: it makes validation depend on the network or on file ordering, so a green result would describe the environment rather than the contract."
+  },
+  "network_policy": {
+    "allowed": false,
+    "note_ar": "المتحقّق يعمل بلا أيّ وصول شبكيّ. الميتا-مخطَّطات مُجمَّعة داخل مكتبة `jsonschema`، ويُفرَض المنع بمُحلِّل مراجع يرفض كلّ استدعاء خارجيّ بدل أن يصمت أو يتعلّق."
+  },
+  "exceptions": [],
+  "exceptions_contract_ar": "ملفّ يتعذّر تصحيحه فوراً **لا يُتجاوَز صامتاً**. الاستثناء مدخل يحمل: `path` · `reason` · `owner` · `decision_id` · `expires_on` (ISO). والحارس **يفشل** عند انقضاء المهلة — استثناء بلا تاريخ انتهاء ليس استثناءً بل قراراً دائماً بلا من يتّخذه."
+}

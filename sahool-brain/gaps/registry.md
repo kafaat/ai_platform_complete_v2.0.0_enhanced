@@ -1950,3 +1950,229 @@ assert "timedelta(days=months" not in b, "الشهر ليس ٣١ يوماً — 
 **الأثر المُصاحَب (مسجَّل بصدق):** لم أُشغّل `pytest -m unit` قبل الدفع لأنّ الشريحة بدت واجهيّة وهي تحمل تغييراً خلفيّاً — عكس القاعدة المكتوبة في §٣.١٧ من دليل البوّابات في اليوم نفسه. الجناح يكشفه في خمس دقائق محلّيّاً؛ كلّف دورتَي CI.
 
 **المصدر:** PR #780 · `2781d6e6` · وظيفة *Unit Tests* على `731d263e`.
+
+## WORKER-REGISTERED-BUT-CANNOT-START-01 — CLOSED، هبطت في `6b6ffe82` (PR #785) (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+
+**الصنف:** وحدةٌ خضراء عند كلّ إشارة ساكنة — مُسجَّلة، ومُعلَنة خدمةً في compose، و`--preflight` يخرج بصفر ويطبع حقائقه — **والعمليّة تموت عند الإقلاع**. لا يكشفه إلّا تشغيلها.
+
+**العطل:** [`scripts/workers/canonical_execution_learning_worker.py`](../../scripts/workers/canonical_execution_learning_worker.py) كان يشترك في **ثلاثة** مواضيع باسم durable **واحد**:
+
+```python
+durable = os.getenv("CANONICAL_LEARNING_DURABLE", "canonical-execution-learning-v1")
+for subject in SUBJECTS:
+    await js.subscribe(subject, durable=durable, cb=callback, manual_ack=True)
+```
+
+والمستهلك المُعمَّر في JetStream يرتبط باشتراك **واحد**. مُعاد إنتاجه على nats-server v2.10.22 مع nats-py:
+
+```
+nats.js.errors.Error: nats: JetStream.Error consumer is already bound to a subscription
+```
+
+الرمية تقع في **الدورة الثانية** من الحلقة، قبل أن يبلغ العامل حلقة الخمول ⇒ **لم يعالج حدثاً واحداً قطّ**، لا محلّيّاً ولا في أيّ نشر.
+
+**ولماذا لم يره شيء:** `--preflight` يسأل «هل يغطّي دفقٌ كلّ موضوع؟» — والجواب نعم؛ وهو سؤال **التغطية** لا سؤال **الارتباط**. وحرّاس الوصول والتسجيل تقيس أنّ الوحدة مُستدعاة من جذر، وهي كذلك. الصنف نفسه المُسجَّل في `MIGRATION-DECLARED-BUT-NEVER-EXECUTED-01`: «مُسجَّل» ≠ «يعمل».
+
+**العلاج المُنزَل:** durable مشتقّ لكلّ موضوع من **الموضوع كاملاً** (النقاط ⇒ شرطات) لا من مقطعه الأخير — `season.closed` و`irrigation.closed` يشتركان في المقطع الأخير، فلاحقةُ المقطع الأخير تُعيد التصادم نفسه تحت اسم يبدو متمايزاً. ولا هجرة مستحقّة على أيّ نشر: مستهلِك الاسم المشترك لم يكن ليُنشَأ لأكثر من موضوع واحد، والعامل الذي يملكه لم يُقلِع قطّ.
+
+**التكذيب (طفرتان، كلٌّ أُعيدت إلى الشجرة وشُغّلت):** ① الاسم المشترك ⇒ سقط اختباران بالرسالة الحيّة نفسها · ② لاحقة المقطع الأخير ⇒ سقط اختبار التصادم بـ`canonical-execution-learning-v1-closed` مرّتين. وبعد الإصلاح: أربعة خضراء، **وتحقّقٌ حيّ** على nats-server يُظهر ثلاثة مستهلكين متمايزين لكلٍّ `filter_subject` الصحيح.
+
+**المصدر:** [`tests_v9/test_canonical_execution_learning_worker_subscriptions.py`](../../tests_v9/test_canonical_execution_learning_worker_subscriptions.py) · القياس الحيّ على nats-server v2.10.22 · PR #785 (`6b6ffe82`).
+
+## JETSTREAM-STREAM-TOPOLOGY-OWNED-BY-A-CONSUMER-01 — مفتوحة (P2 معماريّة، رُصِدت 2026-08-04؛ الحافّة وحدها هبطت في `6b6ffe82` / PR #785)
+
+**الصنف:** طوبولوجيا ناقل الأحداث يملكها **مستهلِك** لا الناقل ولا الهجرات.
+
+**القياس:** الدفق `sahool` الذي يحمل كلّ مواضيع `sahool.>` يُنشَأ في [`agents/notification/agent.py:449`](../../agents/notification/agent.py) — `await _js.add_stream(StreamConfig(name="sahool", subjects=["sahool.>"]))`. لا `sahool-nats` ينشئه ولا `sahool-migrate`. فصلاحيّة عامل التعلّم القانونيّ معلَّقة على إقلاع **وكيل الإشعارات** أوّلاً؛ وقد ظهر ذلك عمليّاً: أوّل `--preflight` محلّيّ فشل مغلقاً بـ`JetStream has no stream covering required subjects` حتّى أُنشئ الدفق يدويّاً.
+
+**ما أُنزِل الآن (وحدّه):** حافّة `depends_on` صريحة على `sahool-notification-agent` في [`docker-compose.v9.yml`](../../docker-compose.v9.yml) — **ترتيب فقط**: `service_started` يقول إنّ عمليّة الوكيل بدأت، لا إنّ الدفق صار موجوداً. الضمان الحقيقيّ يبقى إقلاع العامل المُغلَق عند الفشل + `restart: unless-stopped`.
+
+**ما لم يُنزَل ولماذا:** نقل ملكيّة الدفق إلى مُهيِّئ صريح (خطوة provisioning أو الهجرات) قرارٌ معماريّ يمسّ كلّ مشترِك على الناقل، وخارج نطاق شريحة إصلاح العامل. لا يُغيَّر بلا سلطة معماريّة.
+
+**الجرد أُنجِز (2026-08-04):** [`docs/architecture/jetstream_topology_inventory.md`](../../docs/architecture/jetstream_topology_inventory.md) — دفق واحد · **١٣ مستهلكاً دائماً** من **ثلاثة مالكين** (`agents/` · `services/weather-polygon-worker/` · `scripts/workers/`) بلا سجلّ جامع قبل هذا. وكشف أربعة بنود لم تكن معروفة: ① التهيئة **مفتوحة عند الفشل** — `add_stream` يبتلع كلّ استثناء عدا «already exists» ثمّ يُعلن الوكيل `✅ ready` بلا ناقل · ② الدفق **بلا سياسة احتفاظ** (`max_age=0`, `max_msgs=-1`, `max_bytes=-1`)، والحدّ الوحيد `max_file_store: 2GB` على الخادم كلّه ⇒ نموّ حتّى الرفض، **والرفض صامت** (`shared/helpers.py:318-325` يلتقط ويُرجِع `False`) · ③ `num_replicas=1` ⇒ فقد المجلّد يفقد مواضع كلّ المستهلكين · ④ **لا حدّ إعادة تسليم ولا DLQ** على أيّ من الثلاثة عشر (`max_deliver=-1`)، ورسالةٌ تفشل عبوريّاً دائماً تُعاد إلى الأبد.
+
+**الحسم المطلوب قبل النقل (قرارات منتَج لا تنفيذ):** سياسة الاحتفاظ · حدّ إعادة التسليم وDLQ · ملكيّة الأسماء الدائمة (مركزيّة تمنع التصادم الذي وقع فعلاً في `WORKER-REGISTERED-BUT-CANNOT-START-01`، أم لامركزيّة تحفظ استقلال الخدمات) · `num_replicas`.
+
+**المصدر:** [`agents/notification/agent.py:449`](../../agents/notification/agent.py) · [`docker-compose.v9.yml`](../../docker-compose.v9.yml) `sahool-canonical-execution-learning-worker.depends_on` · قياس محلّيّ 2026-08-04.
+
+## FAKE-CONNECTION-ENFORCES-NOTHING-01 — مفتوحة (P1 منهجيّة، رُصِدت 2026-08-04)
+
+**الصنف الجامع لأربعة عيوب في جلسة واحدة:** كلّ اختبارات مسار التعلّم القانونيّ تعمل على **اتّصال وهميّ**. والوهميّ لا يفرض `CHECK`، ولا يُطلِق `TRIGGER`، ولا يُعيد الأنواع التي يُعيدها asyncpg. فما مرّ خضراء سنةً كاملة كان يسقط في أوّل لقاء بقاعدة حقيقيّة — والأربعة أدناه سقطت **بالتسلسل**، كلّ واحد يحجب الذي بعده، فلم يُرَ أيّ منها قبل تشغيل الرحلة كاملةً.
+
+**البرهان:** بعد تطبيق **٢٢٦ هجرة** من `MANIFEST.txt` على PG16 نظيفة (v206 آخِراً، صفر فشل) وتشغيل `run_canonical_execution_learning_live_gate.sh`، تعطّلت الرحلة أربع مرّات متتالية بأربعة أسباب مختلفة، وكلّ إصلاح كشف التالي.
+
+**ما لم يُقَس:** كم اختباراً في هذا المستودع يعتمد على وهميّ لا يفرض ما تفرضه القاعدة. الأربعة أدناه هي ما التقته رحلة **واحدة**؛ السطح غير ممسوح.
+
+## WORKER-JSONB-READ-ASSUMES-DECODED-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+
+**العطل:** asyncpg يُعيد `jsonb` **نصّاً** ما لم يُسجَّل codec، ومسبح هذا العامل لا يُسجّل شيئاً. فـ`dict(row["canonical_payload"])` رمى على كلّ حدث إسقاط:
+
+```
+ValueError: dictionary update sequence element #0 has length 1; 2 is required
+```
+
+**والأسوأ من الرمية تصنيفها:** ردّ نداء العامل يُصنّف `ValueError` **مدخلاً باطلاً دائماً** فيستدعي `msg.term()` — أي أنّ عيب فكّ ترميز في كودنا **يتخلّص من حدث صحيح** ويحمّل المنتِج وزره. ولو لم يرمِ الأوّل لكان `list(row["evidence_payload"])` على النصّ `"[]"` يُعطي `['[', ']']` — مشاهدتان مختلقتان **بصمت**.
+
+**العلاج:** `decode_jsonb` — رُقّي من `_json` الخاصّ في `persisted_canonical_repositories.py` إلى اسم عامّ يستورده العامل، فتبقى **تعريفة واحدة** بدل سادسة مكرّرة.
+
+**المصدر:** [`scripts/workers/canonical_execution_learning_worker.py`](../../scripts/workers/canonical_execution_learning_worker.py) · [`tests_v9/test_canonical_event_emission_contracts.py`](../../tests_v9/test_canonical_event_emission_contracts.py) · قياس على PG16.
+
+## EVENT-SOURCE-IS-A-SERVICE-NAME-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+
+**العطل:** `events.source` عمود **enum بسبعة قيم** (`migrations/v11_events_bus.sql:47-48`)، وثلاثة كُتّاب كانوا يمرّرون **اسم خدمة/وحدة**:
+
+| الملفّ | القيمة الممرَّرة |
+|---|---|
+| `persisted_canonical_repositories.py` | `'sahool-platform'` |
+| `learning_feedback.py` | `'sahool-platform.learning_feedback'` |
+| `irrigation_closed_loop_runtime.py` | `'sahool-platform.irrigation_closed_loop_runtime'` |
+
+كلّها مرفوضة: `CheckViolationError: new row for relation "events" violates check constraint "events_source_check"`. أي أنّ **كامل سطح إصدار الأحداث** في مسار التعلّم القانونيّ — الإسقاط، وإغلاق الموسم، وإغلاق حلقة الريّ — لم يلمس قاعدة حقيقيّة قطّ.
+
+**العلاج:** `EventSource.SYSTEM` (نفس القيمة التي يستعملها `irrigation_execution_request_port.py:61`)، وحارس تكافؤ يقارن **الـenum في الكود** بالقائمة المُستخرَجة من الهجرة نفسها — لا بقائمة أُعيدت كتابتها في الاختبار.
+
+**حدّ صدق:** هويّة الوحدة المُصدِرة **لا موطن لها** في مخطّط `events` (لا عمود منتِج؛ و`actor_id` دلالته الفاعل لا المُنتِج). ما كانت تلك السلاسل تحاول قوله ضاع، ولم أخترع له عموداً — بند للمالك.
+
+**المصدر:** [`migrations/v11_events_bus.sql:47-48`](../../migrations/v11_events_bus.sql) · [`api/event_bus.py`](../../services/sahool-platform/api/event_bus.py) `EventSource` · قياس على PG16.
+
+## LIVE-GATE-TEARDOWN-DELETES-APPEND-ONLY-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
+
+**العطل:** تنظيف جولة JetStream كان يحذف من جدولين **append-only بالعقد**، فترفضه محفّزات القاعدة:
+
+```
+events                    -> trg_append_only_events
+canonical_salinity_states -> canonical_salinity_states_append_only
+```
+
+**فالبوّابة لم تكن قادرة على الخروج بصفر أبداً:** الرحلة نفسها **نجحت** — الحدث كُتِب، والحالة القانونيّة واحدة، وسجلّ الصادر واحد، وإعادة التشغيل لم تُكرِّر — ثمّ ماتت وهي **تنظّف بعد نفسها**، مرّتين، جدولاً بعد جدول.
+
+**العلاج:** لا يُحذَف ما لا يُحذَف. يُحذَف صفّ الطلب وحده (المتغيّر الوحيد)، ويُعلَن الباقي في حقل `residue` داخل الحقائق المنشورة. إضعاف المحفّز ليتمكّن اختبارٌ من الترتيب كان سيكون الإصلاح الخاطئ: السجلّ المناعيّ صحيح والتنظيف هو الخاطئ.
+
+**ودرس اكتشاف داخل الاختبار نفسه:** أوّل صياغة لحارس «لا تحذف من append-only» مسحت `CREATE TRIGGER` نصّاً فوجدت **٢٤ جدولاً** وفاتها `events` — لأنّ `v9_append_only_enforcement.sql` يبني محفّزاتها **ديناميّاً** من `tables TEXT[] := ARRAY[...]` عبر `EXECUTE format()`. حارسٌ يمسح شكلاً واحداً يُبلِّغ نظافةً وهو أعمى عن أهمّ جدول.
+
+**المصدر:** [`scripts/e2e/canonical_projection_jetstream_roundtrip.py`](../../scripts/e2e/canonical_projection_jetstream_roundtrip.py) · [`migrations/v9_append_only_enforcement.sql`](../../migrations/v9_append_only_enforcement.sql).
+
+## LIVE-EVIDENCE-SHA-UNBOUND-TO-A-CLEAN-TREE-01 — CLOSED (رُصِدت 2026-08-04)
+
+**العطل:** مُشغّل الأدلّة يثبّت `git rev-parse HEAD` في الشاهد، **ولا يفحص نظافة الشجرة**. فأوّل مرّة اخضرّت البوّابة كانت ثلاثة إصلاحات إنتاجيّة **غير ملتزَمة**، والشاهد ختم `e57570f3` — وهي شجرة **لا يمكن أن تكون قد مرّت**.
+
+**ولماذا هذا أخطر من الأحمر:** الأحمر يُوقِف؛ والأخضر المنسوب إلى الالتزام الخطأ يدخل الأرشيف بوصفه إثباتاً. والـSHA لا يُسمّي تشغيلاً بل **شجرة**؛ فإن اختلفت الشجرة سقط كلّ معنى الختم.
+
+**العلاج:** رفض مُغلَق عند الفشل قبل أيّ فحص، **بعد** حلّ الـSHA كي لا يُهرَّب `EXPECTED_SHA` صريحٌ فوق شجرة متّسخة.
+
+**المصدر:** [`scripts/e2e/run_canonical_execution_learning_live_gate.sh`](../../scripts/e2e/run_canonical_execution_learning_live_gate.sh).
+
+
+## CAPABILITY-IMPACT-TOOLS-DISAGREE-01 — CLOSED (مُقاسة على تجهيزة ثابتة، رُصِدت 2026-08-04)
+
+**الصنف:** أداتان تُجيبان سؤالاً واحداً — «ما الذي يمسّه تغييري؟» — بجوابين مختلفين، إحداهما ما يوصي `docs/capabilities/CAPABILITY_GOVERNANCE.md` بتشغيله، والأخرى ما يحجب الدمج.
+
+**القياس على تجهيزة ثابتة من عشرة مسارات** (واجهة المنصّة · هجرة · عامل · سكربتا e2e · compose · الواجهة الأماميّة):
+
+```
+direct      legacy=0   gate=5    (DEC-006, GIS-003, INT-002, SEC-001, WX-006)
+affected    legacy=0   gate=12
+```
+
+**والفرق ليس معرّفاً شارداً بل طبقة كاملة:** `capability_impact.py` كان يمشي على قوائم `capabilities/registry` المصونة يدويّاً وحدها (`services`/`tests`/`ui_consumers`/`evidence`)، بينما تقرأ البوّابة معها `capability_mapping.json` المولَّد — خريطة المسارات الحقيقيّة إلى القدرات بأبعادها (`mapping:backend` · `mapping:events` · `mapping:web` · `mapping:other_evidence`). كلّ قدرة فاتت الأداة وصلت عبر تلك الخريطة، ولذلك **تتّسع الفجوة باتّساع الفرق** لا تبقى ثابتة.
+
+**ولماذا يهمّ:** جوابٌ أصغر من الحقيقة هو كيف يفلت تغيير من إعلان الأثر؛ ومساهمٌ يثق بالأداة يُحجَب ببوّابة تقتبس رقماً آخر — وهو ما وقع لي حرفيّاً في PR #785.
+
+**العلاج:** محرّك واحد لا ثانٍ مُصحَّح. `capability_impact.py` صار غلافاً رفيعاً على `pr_capability_impact_gate.impact` + `current_snapshot`، ومصدر الحقيقة هو محرّك البوّابة لأنّه يقرأ الخريطة المشتقّة من الشجرة لا قائمة تُصان بيد.
+
+**التكذيب:** أُعيدت النسخة القديمة إلى الشجرة وشُغّلت ⇒ سقط اختبارا التكافؤ وعدم-الازدواج؛ استُعيدت ⇒ ثلاثة خضراء. ومع اختبار التكافؤ اختبارُ **عرضٍ للتجهيزة** يمنع الخضرة الفارغة: تجهيزة لا تُطابِق شيئاً تجعل التكافؤ صحيحاً بلا معنى.
+
+**المصدر:** [`tests_v9/test_capability_impact_parity.py`](../../tests_v9/test_capability_impact_parity.py) · [`scripts/ci/capability_impact.py`](../../scripts/ci/capability_impact.py).
+
+## JSON-SCHEMAS-WITH-NO-VALIDATOR-01 — CLOSED بمُتحقِّق موحَّد (رُصِدت 2026-08-04، أُغلِقت 2026-08-05)
+
+**الصنف:** مصنوعة تبدو بوّابةً ولا تُطلِق أبداً — نفس صنف `npm run lint` الزخرفيّ الذي أُغلِق في PR #780، بشكل آخر.
+
+**القياس — والرقم صُحِّح من ٤ إلى ١٥:** أوّل عدّ لي طابق الملفّات التي **تُعلِن** الميتا-مخطَّط
+(`"$schema": "https://json-schema.org…`) فوجد أربعة. والعدّ بالاسم يعطي **خمسة عشر**:
+
+```
+shared/contracts/soil/{soil_observation,soil_profile_snapshot}.v1.schema.json
+shared/contracts/remote_sensing/schemas/*.schema.json        ← تسعة
+shared/contracts/indicator_observation.schema.json
+services/sahool-platform/api/food_grain_varieties_verified_v1.schema.json
+capabilities/schema/capability-registry.schema.json
+docs/capability-registry/schema/capability-card.schema.json
+```
+
+**والفرق نفسه فجوة داخل فجوة:** أحد عشر ملفّاً اسمه `*.schema.json` **لا يُعلِن أيّ
+ميتا-مخطَّط**، فلا يُعرَف بأيّ مواصفة يُقرَأ. ورقمي الناقص كان **قياساً بمعيار أضيق من
+السؤال**: بحثتُ عمّا يُعلِن الميتا-مخطَّط وأجبتُ عن «كم مخطَّطاً في المستودع».
+
+**ولا مُتحقِّق لأيٍّ منها:**
+
+```bash
+$ python3 -c "import jsonschema"                    → ImportError
+$ grep -rn "import jsonschema\|from jsonschema" .   → صفر
+$ grep "^jsonschema" requirements*.txt              → صفر
+```
+
+فالمخطَّطات موجودة، والمكتبة غير مثبَّتة ولا مُعلَنة تبعيّةً، ولا سطر واحد يستوردها. أي أنّ **أربعة عقود بيانات تُقرَأ كأنّها محروسة وهي غير محروسة** — وقارئُ المخطَّط يفترض أنّ الملفّ المطابق له مُتحقَّق منه.
+
+**كيف ظهرت:** لم أفتّش عنها. حزمة مرفوعة اقترحت إضافة مخطَّط **خامس** (`preflight_required.schema.json`)، ففحصتُ ما إذا كان سيُتحقَّق منه — فظهر أنّ الأربعة القائمة كذلك.
+
+**ولذلك رُفِض المخطَّط الخامس — وبدقّة أعلى بعد تصحيح:** الحزمة تحمل مُتحقِّقاً **مكتوباً صحيحاً** (`test_json_schema_validation_standard`، يستورد `jsonschema` ويفشل صريحاً لا صامتاً). فليست إهمالاً بل **تبعيّة ناقصة**: الاختبار سليم، ونتيجته على هذه الشجرة **فشل** لأنّ المكتبة غير مثبَّتة ولا مُعلَنة. والفرق يهمّ لأنّ العلاج مختلف — الأوّل يُصلَح بكتابة مُتحقِّق، والثاني بإعلان تبعيّة.
+
+وهذا **يُقوّي** الفجوة لا يُضعفها: أربعة مخطَّطات قائمة بلا أيّ مُتحقِّق، وخامسٌ يأتي بمُتحقِّق بلا مكتبة.
+
+**وخطأ مراجعة منّي في الطريق:** قلتُ أوّلاً إنّ الحزمة «بلا مُتحقِّق». السبب أنّي قارنتُ ملفّاتها بـ`diff` مقابل الحزمة **السابقة لها مباشرةً** فقال «unchanged»، ولم أفتح الملفّ — وقد تغيّر قبل ذلك بحزمة (`09c533ce` → `a97f69ff`). **`diff` مقابل الجار الخطأ يُنتج ثقةً كاذبة**؛ قارِن مقابل ما راجعتَه فعلاً لا مقابل ما قبله.
+
+المبدأ الذي حمله المخطَّط («لا مفتاح تشغيليّ مجهول») أُخِذ ونُفِّذ في `tests_v9/test_local_preflight_contract.py` حيث يعمل فعلاً. **والاعتراض الثاني قائم:** المخطَّط يرفض `adjudicated_on` الذي يُلزِم به `claim_base_guard` (مُثبَت بالتكذيب) — واختبارٌ يعمل على مخطَّط خاطئ يُثبّت الخطأ بإحكام أكبر.
+
+**وعيب ثانٍ في المخطَّط المقترح يستحقّ التسجيل:** نمط `patternProperties` فيه يرفض كلّ مفتاح خارج `schema|version|note_ar|required_*` — ومنها **`adjudicated_on`** الذي **يُلزِم به `claim_base_guard`** كلّ مصنوعة `decided` تحت `docs/architecture/`. قاعدةٌ تمنع ما تفرضه الحوكمة ليست أشدّ بل خاطئة.
+
+**ما يلزم لإغلاقها (قرار مالك):** إمّا إعلان `jsonschema` تبعيّةً ووصل مُتحقِّق موحَّد
+بالخمسة عشر، أو حذف ما لا يُراد حراسته. الحالة الوسطى — مخطَّطات بلا مُتحقِّق — هي
+الوحيدة غير المقبولة.
+
+**والحزمة العاشرة أنزلت نصف العلاج صحيحاً:** اقترحت ملفّ متطلّبات جديداً
+(`requirements-preflight.txt` — **ملفّ الحزمة، لم يُعتمَد في هذا المستودع**) يُعلِن
+`pytest>=8.0` و`jsonschema>=4.20`. وهو العلاج المطابق للتصنيف المُصحَّح — تبعيّة ناقصة
+تُعالَج بإعلان تبعيّة، لا بكتابة مُتحقِّق ولا بتليين اختبار. عند الإغلاق أُعلِنت
+`jsonschema>=4.20.0` في **`tests_v9/requirements-test.txt`** (الموضع القائم) بدل استحداث
+ملفّ ثانٍ. يبقى النصف الآخر: **وصل مُتحقِّق بالخمسة عشر القائمة**، وهو قرار مالك لأنّه
+يمسّ عقوداً في أربعة مجالات.
+
+**المصدر:** قياس محلّيّ 2026-08-04 · الحزم المرفوعة (٦ و٧).
+
+**الإغلاق (2026-08-05) — مُتحقِّق واحد لا أربعة:**
+
+`scripts/ci/schema_validation_guard.py`. الجرد **يُشتقّ** من `git ls-files '*.schema.json'`
+لا من قائمة، والسياسة (`docs/architecture/schema_validation_policy.json`، مُصنَّفة
+`decided`) تُعلِن **نوع** المقبول لا **أسماء** الملفّات: الـdrafts المسموحة · قاعدة `$ref`
+المحلّيّ · منع الشبكة · واستثناءات مؤرَّخة تُفشِل الحارس عند انقضائها.
+
+**والأحد عشر عولجت بتحديد الـdraft لا بقيمة عمياء:** القياس أظهر أنّها تستعمل `$defs`
+(2019-09 فما فوق) و**صفر** مفتاح تختلف دلالته بين 2019-09 و2020-12 (`additionalItems` ·
+`prefixItems` · `$recursiveRef` · `items` كمصفوفة)، وتصحّ تحت كليهما. فإعلان 2020-12 —
+المطابق للأربعة المُعلَنة سلفاً — **محايد دلاليّاً ومقيس**. الفرق سطر واحد لكلّ ملفّ، بلا
+إعادة تنسيق.
+
+**والوصل مركزيّ لا مجالّيّ:** خطوة `--check` في وظيفة *Repository Structural Lint*،
+فاكتشفتها المكنسة **تلقائيّاً** من الـworkflow (`[('scripts/ci/schema_validation_guard.py',
+['--check'])]`) بلا تسجيل يدويّ. السلسلة مُثبَتة بزرع عطل حقيقيّ (حذف `$schema` من
+`soil_observation.v1`): الحارس يفشل بـ`NO_META_SCHEMA` ⇒ `verify_all_generated --check`
+⇒ `preflight` ⇒ CI.
+
+**شروط القبول، مقيسة:**
+
+```
+15/15 schemas discovered      15/15 declare $schema      15/15 validated by one validator
+0 unknown meta-schemas        0 external/unresolved refs  0 network dependency
+```
+
+**التكذيب:** ستّ حالات فساد مزروعة (JSON تالف · `$schema` مفقود · ميتا-مخطَّط مجهول ·
+مخطَّط غير صالح لـdraftه · `$ref` محلّيّ مفقود · `$ref` خارجيّ) + ملفّ صحيح يمرّ — ١٤
+اختباراً في `tests_v9/test_schema_validation_guard.py`.
+
+**والتبعيّة مُعلَنة لا ضمنيّة:** `jsonschema>=4.20.0` في `tests_v9/requirements-test.txt`
+(نظيفة عند `pip-audit`) وخطوة تثبيت صريحة في الوظيفة — لأنّها لا تُثبِّت شيئاً آخر.
+والحارس يخرج بـ`2` عند غيابها بدل أن يتخطّى صامتاً.
+
+**حدّ صدق:** هذا يُثبت أنّ المخطَّطات **صالحة كمخطَّطات**، لا أنّ البيانات التي تصفها
+مُتحقَّق منها عند التشغيل. ربط كلّ مخطَّط بمُنتِجه/مستهلِكه سؤال آخر لم يُقَس.

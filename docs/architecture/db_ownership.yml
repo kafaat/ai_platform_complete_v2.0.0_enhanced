@@ -144,11 +144,6 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v80_calibration_override.sql"
-  canonical_field_state_snapshots:
-    owner: raster-service
-    writers: [raster-service]
-    readers: [sahool-platform]
-    source: "alembic/versions/v101_field_runtime_cohesion.sql"
   command_verification_loop:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -163,7 +158,7 @@ tables:
     owner: erp-bridge
     writers: [erp-bridge]
     readers: [sahool-platform]
-    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
+    source: "migrations/v121_marketplace_ecosystem.sql"
   crop_kc_timeseries:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -524,11 +519,6 @@ tables:
     writers: [field-management-service]
     readers: [sahool-platform]
     source: "migrations/v58_field_boundary_quality.sql"
-  field_digital_twin_views:
-    owner: field-management-service
-    writers: [field-management-service]
-    readers: [sahool-platform]
-    source: "alembic/versions/v101_field_runtime_cohesion.sql"
   field_evidence_snapshots:
     owner: raster-service
     writers: [raster-service]
@@ -702,7 +692,7 @@ tables:
   lineage_link:
     owner: sahool-platform
     writers: [sahool-platform]
-    readers: []
+    readers: [sahool-platform]
     source: "migrations/v82_lineage_link.sql, migrations/v194_fii_chemical_chain_rls_fail_closed.sql"
   machine_control_profiles:
     owner: sahool-platform
@@ -733,12 +723,12 @@ tables:
     owner: erp-bridge
     writers: [erp-bridge]
     readers: [sahool-platform]
-    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
+    source: "migrations/v121_marketplace_ecosystem.sql"
   marketplace_installations:
     owner: erp-bridge
     writers: [erp-bridge]
     readers: [sahool-platform]
-    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
+    source: "migrations/v121_marketplace_ecosystem.sql"
   marketplace_plugin_execution_runs:
     owner: erp-bridge
     writers: [erp-bridge]
@@ -897,7 +887,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
+    source: "migrations/v121_marketplace_ecosystem.sql"
   point_in_time_snapshots_runtime:
     owner: raster-service
     writers: [raster-service]
@@ -953,11 +943,6 @@ tables:
     writers: [decision-service]
     readers: [sahool-platform]
     source: "alembic/versions/0002_ai_recommendation_runtime.py, migrations/v_ai_recommendation_runtime.sql"
-  recommendation_lifecycle_events:
-    owner: agriai-engine
-    writers: [agriai-engine]
-    readers: [sahool-platform]
-    source: "alembic/versions/v101_field_runtime_cohesion.sql"
   recommendation_outcomes:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1049,7 +1034,7 @@ tables:
     owner: erp-bridge
     writers: [erp-bridge]
     readers: [sahool-platform]
-    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
+    source: "migrations/v121_marketplace_ecosystem.sql"
   user_consent:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1109,12 +1094,12 @@ tables:
     owner: erp-bridge
     writers: [erp-bridge]
     readers: [sahool-platform]
-    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
+    source: "migrations/v121_marketplace_ecosystem.sql"
   webhook_subscriptions:
     owner: erp-bridge
     writers: [erp-bridge]
     readers: [sahool-platform]
-    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
+    source: "migrations/v121_marketplace_ecosystem.sql"
   wofost_seasons:
     owner: sahool-platform
     writers: [sahool-platform]

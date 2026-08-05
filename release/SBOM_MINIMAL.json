@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da1cd8dbba39a9b55bfdb5052faaaaa3e15c2bc4b155dcc9b0e456f18fa61b13"
+          "content": "78a247d16f60f20245a13b61a01c0e7f8e074cfcf3c7b89a5c5250f32385daea"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4385,7 +4385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86e63c0dc37d570e63d71e509c1bfadbbc147d9971e7afa0c6c10329313abaa4"
+          "content": "9f3ffdc049d328d4ae7606496994e40ea9cce9707f4542b5958fc41d237d6636"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -16125,7 +16125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fab7be6a89d77bcf01fd2f0140c3b705d43dc3a8891d3660af36e6187d6019e7"
+          "content": "1521bf111a28f5ef7c018b2d46935d0837a11f55ad8e865fe2eb4324b8778829"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
@@ -16375,7 +16375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae9efb511cc795c5afa016d7bcf3b68f79c2c9f2f26f4474b650c974019bbedd"
+          "content": "1266c62a09e1c3c5efd22b09003f1a679470b5fb99788f322709465b6926d77e"
         }
       ],
       "name": "services/sahool-platform/api/learning_feedback.py",
@@ -16565,7 +16565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "56b04424a7e32ea3111cd9ddb538166ab99e9e1e68736d3727868842560484be"
+          "content": "959982aad2223f51e3fa04fb34d3170d689840a89cec22372c18cd838552577b"
         }
       ],
       "name": "services/sahool-platform/api/persisted_canonical_repositories.py",
@@ -18275,7 +18275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7962e652bdf89bea61924b5c946b4e447db86d86e16f6c5aff9859fd21189c4"
+          "content": "5e5d59ed8a60edc39b1fcd6b1e3e9272d17d575c79c6c859167732fc8f56d31a"
         }
       ],
       "name": "services/sahool-platform/api/routers/simulate.py",
@@ -29785,7 +29785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc8adff570490d63836f3771a4b376c50bb1f191118f25b4d9e706759cc8b639"
+          "content": "53ecb87c86740347852daab8aebebca0d77b5d38819a9275b2bc5636b1454d37"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/AnomalyDetectedEventV1.schema.json",
@@ -29795,7 +29795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "44ae31f462f8f4d68645fa55563c71917fffc68240b787bec10e5f1795bb7497"
+          "content": "7843ee9402250bf3417882d1c2265774eadb40bd1c14c42dddfd32de5822d762"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/CanonicalObservationV1.schema.json",
@@ -29805,7 +29805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "009d36285ba85a08eb7ca457d89c40fd4c2264aa7e2cb657fb2e747f97a945fc"
+          "content": "a16eadf070671d44cb8b4a3d37743c8ac9819ffdf6c1ab4dd20d9573a0d8d667"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/DiagnosisDecisionReferralV1.schema.json",
@@ -29815,7 +29815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "acba7b1c8bff37ee10a578e46912a813355b52ed6e89f7409dfd70392ca41f4f"
+          "content": "5ac3ed0ef56f89793aae1bde5f223911e988e42860138f06f31e2308ba7e699d"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/DiagnosisHypothesisV1.schema.json",
@@ -29825,7 +29825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5bb7cdfb3ffaa9d189a92ffb168bff0ed7a55b6361591bc14945cdb1d77dbe57"
+          "content": "8f90e90938fa38867e4f35f2e5cc579eaa7b114244eae050d82e8eabe2479544"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/DiagnosisProposedEventV1.schema.json",
@@ -29835,7 +29835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7801c58a1f7e53733f78f30539942aaa9ef56bda2a200d4dda7a157c916843f"
+          "content": "4cce20c9aacb7ee5f6bff87523631903c0679e787aa30fd3158080378893b429"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/ObservationPublishedEventV1.schema.json",
@@ -29845,7 +29845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fec7516d573ae088c65b72e8efe9989877fed1d9f72b8107ad9b6f04e3f69bc2"
+          "content": "8ecf476730bc9d3e8121e8cf05d0d5733fc53e4f23093170cb8d2edf5e901a52"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/RasterAssetPersistedEventV1.schema.json",
@@ -29855,7 +29855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da7903fb632fbcdf0bcbb5e7f5d5c53c263c7da92b7c8bb4c53c375d36bdc439"
+          "content": "b1193eff2f88873e83887c165b5cbd7e85492dade74213a445806319005fb9eb"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/RasterAssetPersistedV1.schema.json",
@@ -29865,7 +29865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdbe5cf0af232f024558dd8c1efd0d44ef12efb8802da4f49d3fa4fd1682093b"
+          "content": "78abda42621e267b35ae32b1b05fb77c33d5618b1d8d7dfabdf97322e99ad1df"
         }
       ],
       "name": "shared/contracts/remote_sensing/schemas/SignalAnomalyV1.schema.json",
@@ -29965,7 +29965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2b0b783e38376db25c3bc6d20253c8b4cdf0483f78664330cedd819107cc5b8"
+          "content": "6fd52757335df115cd3f8196bc897fe765b7c9b50f239564f7a59141a7da99e3"
         }
       ],
       "name": "shared/contracts/soil/soil_observation.v1.schema.json",
@@ -29975,7 +29975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cef732f1a0b7abdf0d360b41d469188184f4f02380e96b655c46bb62106de71a"
+          "content": "f6ee0741ca58c0b8333b456c5512bba5bb8d6c3accb12614e4f13d26df82b831"
         }
       ],
       "name": "shared/contracts/soil/soil_profile_snapshot.v1.schema.json",
@@ -30649,6 +30649,26 @@
         }
       ],
       "name": "shared/test_marketplace_plugin_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9c8508bb3055b017ecbf29da86c5c544f7d28d4a304bba867974a706febef8b3"
+        }
+      ],
+      "name": "shared/wofost/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f2f34f81559fe741f2163643ce47eafbdd995049c76eb824e2741363d2d77df"
+        }
+      ],
+      "name": "shared/wofost/engine.py",
       "type": "file"
     }
   ],

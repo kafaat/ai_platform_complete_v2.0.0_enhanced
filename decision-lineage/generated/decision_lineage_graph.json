@@ -1697,7 +1697,7 @@
       "kind": "lineage_stage",
       "stage": "request",
       "order": 7,
-      "evidence_count": 27,
+      "evidence_count": 28,
       "owners": [
         "actuator-service",
         "database",
@@ -1728,6 +1728,7 @@
         "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
         "services/sahool-platform/api/irrigation_execution_request_port.py",
         "services/sahool-platform/api/irrigation_reservation_adapter.py",
+        "services/sahool-platform/api/persisted_canonical_repositories.py",
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/water_decision_bridge.py",
         "services/sahool-platform/tests/test_water_decision_bridge.py",
@@ -2517,7 +2518,7 @@
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
       "source_evidence_count": 117,
-      "target_evidence_count": 27,
+      "target_evidence_count": 28,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2542,7 +2543,7 @@
         "services/sahool-platform/api/routers/decision_review.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 27,
+      "source_evidence_count": 28,
       "target_evidence_count": 31,
       "static_supported": true,
       "runtime_verified": false
@@ -2606,5 +2607,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "67086ca4679cad41528602f0ce97cf838334d2e71e97f055b0c28b6310e08d45"
+  "content_sha256": "9d3287662af3d0eafc254c7ff84190374b74cdd20f7476f1940201ac1d65a550"
 }

@@ -55,16 +55,36 @@ lai_hi = veg._compute_indices(bands(0.85))["lai"]
 lai_mid = veg._compute_indices(bands(0.6))["lai"]
 lai_lo = veg._compute_indices(bands(0.2))["lai"]
 check("LAI مسقوف ≤ 8.0 للغطاء السليم", lai_hi <= 8.0, f"lai_hi={lai_hi}")
-check("LAI رتيب (NDVI أعلى ⇒ LAI أعلى)", lai_lo < lai_mid < lai_hi, f"{lai_lo}<{lai_mid}<{lai_hi}")
+check(
+    "LAI رتيب (NDVI أعلى ⇒ LAI أعلى)",
+    lai_lo < lai_mid < lai_hi,
+    f"{lai_lo}<{lai_mid}<{lai_hi}",
+)
 check("LAI ليس القيمة المشبّعة القديمة ~13.8", lai_hi < 9.0, f"lai_hi={lai_hi}")
 
 print("\n── H4: EVI بحارس قسمة على صفر ──")
-degenerate = {"B02": 1.0, "B03": 0.1, "B04": 0.0, "B05": 0.2, "B08": 0.0, "B11": 0.15, "B12": 0.1}
+degenerate = {
+    "B02": 1.0,
+    "B03": 0.1,
+    "B04": 0.0,
+    "B05": 0.2,
+    "B08": 0.0,
+    "B11": 0.15,
+    "B12": 0.1,
+}
 # B08 + 6*B04 - 7.5*B02 + 1 = 0 + 0 - 7.5 + 1 = -6.5 (آمن) — نصنع مقام≈0:
 # نريد B08 + 6*B04 - 7.5*B02 + 1 = 0 → B02=(B08+6*B04+1)/7.5
 b = {"B04": 0.0, "B08": 0.0}
 b["B02"] = (0.0 + 0.0 + 1) / 7.5
-bb = {"B02": b["B02"], "B03": 0.1, "B04": 0.0, "B05": 0.2, "B08": 0.0, "B11": 0.15, "B12": 0.1}
+bb = {
+    "B02": b["B02"],
+    "B03": 0.1,
+    "B04": 0.0,
+    "B05": 0.2,
+    "B08": 0.0,
+    "B11": 0.15,
+    "B12": 0.1,
+}
 try:
     out = veg._compute_indices(bb)
     check("EVI لا يرمي ZeroDivisionError عند مقام≈0", True)
@@ -75,12 +95,18 @@ except ZeroDivisionError as e:
 print("\n── H6: Open-Meteo فهرسة آمنة لمصفوفات مُسنّنة ──")
 om = load("services/sahool-platform/api/connectors/openmeteo.py", "om_conn")
 daily = {"time": ["d1", "d2", "d3"], "temperature_2m_max": [30.0]}  # أقصر من time
-check("_daily_at يُرجع القيمة الموجودة", om._daily_at(daily, "temperature_2m_max", 0, 99) == 30.0)
+check(
+    "_daily_at يُرجع القيمة الموجودة",
+    om._daily_at(daily, "temperature_2m_max", 0, 99) == 30.0,
+)
 check(
     "_daily_at يُرجع الافتراضي لفهرس خارج الطول (لا IndexError)",
     om._daily_at(daily, "temperature_2m_max", 2, 99) == 99,
 )
-check("_daily_at يُرجع الافتراضي لمفتاح غائب", om._daily_at(daily, "precipitation_sum", 0, 0) == 0)
+check(
+    "_daily_at يُرجع الافتراضي لمفتاح غائب",
+    om._daily_at(daily, "precipitation_sum", 0, 0) == 0,
+)
 check("_daily_at يُرجع الافتراضي لقيمة None", om._daily_at({"x": [None]}, "x", 0, 7) == 7)
 
 print("\n── M3: اتصال دالة ثقة التغطية عند 0.5 ──")
@@ -93,7 +119,9 @@ def cov(obs, exp):
 
 s49, s50, s51 = cov(49, 100), cov(50, 100), cov(51, 100)
 check(
-    "ثقة التغطية متّصلة عند 0.5 (قفزة < 0.02)", abs(s50 - s49) < 0.02, f"s49={s49:.3f} s50={s50:.3f}"
+    "ثقة التغطية متّصلة عند 0.5 (قفزة < 0.02)",
+    abs(s50 - s49) < 0.02,
+    f"s49={s49:.3f} s50={s50:.3f}",
 )
 check("ثقة التغطية رتيبة حول 0.5", s49 < s50 <= s51, f"{s49:.3f}<{s50:.3f}<={s51:.3f}")
 check("لا قفزة قديمة (0.49→0.245)", s49 > 0.4, f"s49={s49:.3f}")
@@ -147,9 +175,9 @@ k2 = cache_key("c", "f", (1, 2), {"z": 9})
 check("نفس المدخل ⇒ نفس المفتاح (حتميّ)", k1 == k2, f"{k1} vs {k2}")
 
 print("\n── H7: توازن مياه WOFOST (ETc يُطرح؛ ريّ يميّز عن بعلي) ──")
-wf = load("wofost_real/wofost_engine.py", "wofost_eng")
+wf = load("shared/wofost/engine.py", "wofost_eng")
 # مصدر الكود لم يَعُد يحوي الكود الميّت
-src = open(os.path.join(ROOT, "wofost_real/wofost_engine.py"), encoding="utf-8").read()
+src = open(os.path.join(ROOT, "shared/wofost/engine.py"), encoding="utf-8").read()
 check("أُزيل الكود الميّت 'w_demand = etc * (1000 / 1)'", "1000 / 1" not in src)
 check("ETc يُطرح في حلقة التوازن (w_soil - etc)", "w_soil - etc" in src)
 # سلوكي: حقن طقس صناعي (et0 عالٍ، بلا مطر) ومقارنة الريّ بالبعلي
@@ -183,7 +211,11 @@ wsd_rain = res_rain["stress"]["water_stress_days"]
 check("المحاكاة تكتمل (ريّ + بعلي) بلا استثناء", yi is not None and yr is not None)
 check("احتياج ريّ > 0 حين ETc>المطر", need > 0, f"need={need}")
 check("غلّة المرويّ ≥ غلّة البعلي (تمييز مائي سليم)", yi >= yr, f"irr={yi} rain={yr}")
-check("البعلي يُسجّل إجهاداً مائياً (ETc يُطرح فعلاً)", wsd_rain > 0, f"water_stress_days={wsd_rain}")
+check(
+    "البعلي يُسجّل إجهاداً مائياً (ETc يُطرح فعلاً)",
+    wsd_rain > 0,
+    f"water_stress_days={wsd_rain}",
+)
 
 print("\n────────────────────────────────────────────")
 print(f"  النتيجة: {len(PASS)} نجاح | {len(FAIL)} فشل")

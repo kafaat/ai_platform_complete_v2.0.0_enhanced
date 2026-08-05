@@ -150,6 +150,17 @@ async def main() -> None:
                     "command_id": None,
                     "canonical_state_count": int(state_count),
                     "outbox_count": int(replay_outbox_count),
+                    # Disclosed, not hidden: the emitted event and its outbox intent stay
+                    # in the audit log. They cannot be removed — see the teardown note.
+                    "residue": {
+                        "events": 1,
+                        "event_outbox": 1,
+                        "canonical_salinity_states": 1,
+                        "reason": (
+                            "events and canonical_salinity_states are append-only "
+                            "(immutable audit / evidence); DELETE is refused by trigger"
+                        ),
+                    },
                 },
                 sort_keys=True,
             )
@@ -157,17 +168,20 @@ async def main() -> None:
     finally:
         try:
             await conn.execute("SELECT set_config('app.current_tenant',$1,false)", str(tenant_id))
-            row = await conn.fetchrow(
-                "SELECT result_event_id FROM canonical_projection_requests WHERE request_id=$1",
-                request_id,
-            )
-            if row and row["result_event_id"]:
-                await conn.execute("DELETE FROM events WHERE event_id=$1", row["result_event_id"])
-            await conn.execute(
-                "DELETE FROM canonical_salinity_states WHERE tenant_id=$1 AND state_digest=$2",
-                tenant_id,
-                state_digest,
-            )
+            # Two of the three surfaces this round trip writes are append-only by contract,
+            # and each has a trigger that refuses UPDATE/DELETE:
+            #   events                    -> trg_append_only_events
+            #     "الجدول events append-only — UPDATE/DELETE ممنوع (immutable audit)"
+            #   canonical_salinity_states -> canonical_salinity_states_append_only
+            #     "salinity evidence is append-only"
+            # The original teardown deleted from both, so this script could never reach a
+            # zero exit: the round trip itself passed and then died cleaning up after
+            # itself — twice, one table at a time. Weakening either contract so a test can
+            # tidy up would be the wrong repair; the audit log and the evidence table are
+            # right and the teardown was wrong. Only the request row is mutable, so only it
+            # is removed. Each run uses a fresh random tenant_id, so what remains is
+            # tenant-isolated, and it is named in the emitted facts above rather than
+            # quietly left behind.
             await conn.execute(
                 "DELETE FROM canonical_projection_requests WHERE request_id=$1", request_id
             )

@@ -5241,7 +5241,7 @@ def test_cfet_arid_correction():
     import os
 
     base = os.path.join(os.path.dirname(__file__), "..")
-    eng = os.path.join(base, "wofost_real/wofost_engine.py")
+    eng = os.path.join(base, "shared/wofost/engine.py")
     if not os.path.exists(eng):
         return []
     src = open(eng, encoding="utf-8").read()
