@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1839,
     "route_handlers": 1049,
-    "call_edges": 72610,
+    "call_edges": 72614,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -101938,153 +101938,132 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_outcome_from_job",
       "target": "get",
-      "line": 635
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_outcome_from_job",
-      "target": "get",
-      "line": 636
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_outcome_from_job",
-      "target": "get",
-      "line": 637
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_outcome_from_job",
-      "target": "SceneOutcome",
-      "line": 638
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_outcome_from_job",
-      "target": "get",
-      "line": 638
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_outcome_from_job",
-      "target": "get",
-      "line": 639
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_outcome_from_job",
-      "target": "SceneOutcome",
       "line": 641
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_outcome_from_job",
-      "target": "SceneOutcome",
+      "target": "get",
       "line": 642
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "get",
+      "line": 643
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "SceneOutcome",
+      "line": 644
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "get",
+      "line": 644
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "get",
+      "line": 645
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "SceneOutcome",
+      "line": 647
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "SceneOutcome",
+      "line": 648
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 670
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 670
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "startswith",
-      "line": 670
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "RuntimeError",
-      "line": 672
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 673
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 673
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "RuntimeError",
-      "line": 675
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "ProcessRequest",
       "line": 676
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "_safe_raster_source",
+      "target": "get",
+      "line": 676
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "startswith",
+      "line": 676
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "RuntimeError",
+      "line": 678
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
       "line": 679
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "BandMapping",
+      "target": "get",
+      "line": 679
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "RuntimeError",
+      "line": 681
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "ProcessRequest",
       "line": 682
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "get",
-      "line": 686
+      "target": "_safe_raster_source",
+      "line": 685
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "BandMapping",
+      "line": 688
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 687
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "run_processing",
-      "line": 691
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "_outcome_from_job",
       "line": 692
     },
     {
@@ -102092,160 +102071,167 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 696
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "_process_backfill_scene_cdse",
-      "line": 698
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "_outcome_from_job",
-      "line": 699
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "_safe_raster_source",
-      "line": 701
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 701
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "items",
-      "line": 701
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "build_band_vrt",
-      "line": 703
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "ProcessRequest",
-      "line": 706
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "IndicatorKind",
-      "line": 710
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "BandMapping",
-      "line": 712
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "items",
-      "line": 713
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "bool",
-      "line": 716
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 717
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 718
+      "line": 693
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "run_processing",
-      "line": 722
+      "line": 697
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "_outcome_from_job",
-      "line": 723
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "uuid4",
-      "line": 727
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "warning",
-      "line": 728
+      "line": 698
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 730
+      "line": 702
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_process_backfill_scene_cdse",
+      "line": 704
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_outcome_from_job",
+      "line": 705
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_safe_raster_source",
+      "line": 707
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 707
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "items",
+      "line": 707
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "build_band_vrt",
+      "line": 709
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "ProcessRequest",
+      "line": 712
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "IndicatorKind",
+      "line": 716
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "BandMapping",
+      "line": 718
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "items",
+      "line": 719
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "bool",
+      "line": 722
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 723
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 724
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "run_processing",
+      "line": 728
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_outcome_from_job",
+      "line": 729
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "uuid4",
+      "line": 733
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "warning",
+      "line": 734
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 736
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "SceneOutcome",
-      "line": 735
+      "line": 741
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "type",
-      "line": 735
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_as_dt",
-      "target": "isinstance",
-      "line": 740
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_as_dt",
-      "target": "replace",
       "line": 741
     },
     {
@@ -102253,301 +102239,315 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "isinstance",
-      "line": 742
+      "line": 746
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_as_dt",
+      "target": "replace",
+      "line": 747
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_as_dt",
+      "target": "isinstance",
+      "line": 748
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "date",
-      "line": 743
+      "line": 749
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "fromisoformat",
-      "line": 743
+      "line": 749
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "datetime",
-      "line": 744
+      "line": 750
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "HeartbeatState",
-      "line": 754
+      "line": 760
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "write",
-      "line": 755
+      "line": 761
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "_enabled",
-      "line": 757
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "info",
-      "line": 759
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_poll",
-      "line": 762
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
       "line": 763
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
-      "target": "sleep",
-      "line": 764
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "_connect",
-      "line": 769
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "run_once",
-      "line": 770
+      "target": "info",
+      "line": 765
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "mark_poll",
-      "line": 771
+      "line": 768
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "write",
-      "line": 772
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_error",
-      "line": 778
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "str",
-      "line": 778
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
-      "line": 779
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "error",
-      "line": 780
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "close",
-      "line": 788
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_error",
-      "line": 793
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "str",
-      "line": 793
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
-      "line": 794
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "warning",
-      "line": 795
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "close",
-      "line": 798
+      "line": 769
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "sleep",
-      "line": 802
+      "line": 770
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "_connect",
+      "line": 775
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "run_once",
+      "line": 776
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_poll",
+      "line": 777
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 778
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_error",
+      "line": 784
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "str",
+      "line": 784
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 785
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "error",
+      "line": 786
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "close",
+      "line": 794
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_error",
+      "line": 799
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "str",
+      "line": 799
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 800
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "warning",
+      "line": 801
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "close",
+      "line": 804
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "sleep",
+      "line": 808
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "basicConfig",
-      "line": 806
+      "line": 812
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "getenv",
-      "line": 807
+      "line": 813
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "ArgumentParser",
-      "line": 810
+      "line": 816
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "add_argument",
-      "line": 811
+      "line": 817
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "parse_args",
-      "line": 812
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_one",
-      "target": "_connect",
-      "line": 816
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "main_cli",
-      "target": "_connect",
-      "line": 816
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_one",
-      "target": "run_once",
-      "line": 818
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "main_cli",
-      "target": "run_once",
       "line": 818
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_one",
+      "target": "_connect",
+      "line": 822
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "main_cli",
+      "target": "_connect",
+      "line": 822
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_one",
+      "target": "run_once",
+      "line": 824
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "main_cli",
+      "target": "run_once",
+      "line": 824
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_one",
       "target": "info",
-      "line": 819
+      "line": 825
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "info",
-      "line": 819
+      "line": 825
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_one",
       "target": "close",
-      "line": 821
+      "line": 827
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "close",
-      "line": 821
+      "line": 827
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "_one",
-      "line": 823
+      "line": 829
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "run",
-      "line": 823
+      "line": 829
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "loop_worker",
-      "line": 825
+      "line": 831
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "run",
-      "line": 825
+      "line": 831
     },
     {
       "owner": "raster-service",
@@ -106004,189 +106004,168 @@
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "get_backfill_run_status",
+      "target": "fetch",
+      "line": 529
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "get_backfill_run_status",
+      "target": "int",
+      "line": 534
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "get_backfill_run_status",
       "target": "dict",
-      "line": 519
+      "line": 536
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "get_backfill_run_status",
+      "target": "dict",
+      "line": 538
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "get_backfill_run_status",
+      "target": "len",
+      "line": 539
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "get_backfill_run_status",
       "target": "warning",
-      "line": 523
+      "line": 542
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "get_backfill_run_status",
       "target": "close",
-      "line": 526
+      "line": 545
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "_valid_field_id_text",
-      "line": 556
+      "line": 575
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "_valid_uuid_text",
-      "line": 556
+      "line": 575
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "str",
-      "line": 558
+      "line": 577
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "strip",
-      "line": 558
+      "line": 577
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "str",
-      "line": 559
+      "line": 578
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "strip",
-      "line": 559
+      "line": 578
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "str",
-      "line": 560
+      "line": 579
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "len",
-      "line": 561
+      "line": 580
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "_connect",
-      "line": 563
+      "line": 582
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "_Path",
-      "line": 571
+      "line": 590
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "resolve",
-      "line": 571
+      "line": 590
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "str",
-      "line": 571
+      "line": 590
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "insert",
-      "line": 573
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "create",
-      "line": 576
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "canonical_processing_version",
-      "line": 583
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "to_canonical_key",
-      "line": 585
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "execute",
-      "line": 587
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "str",
-      "line": 587
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "transaction",
-      "line": 588
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "legacy_matches_baseline",
-      "line": 591
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "execute",
       "line": 592
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "str",
-      "line": 597
+      "target": "create",
+      "line": 595
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "legacy_backfill_key",
-      "line": 598
+      "target": "canonical_processing_version",
+      "line": 602
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "fetchval",
+      "target": "to_canonical_key",
+      "line": 604
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "execute",
       "line": 606
     },
     {
@@ -106194,55 +106173,62 @@
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "str",
+      "line": 606
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "transaction",
+      "line": 607
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "legacy_matches_baseline",
+      "line": 610
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "execute",
       "line": 611
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "fetchrow",
-      "line": 626
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
       "target": "str",
-      "line": 629
+      "line": 616
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "str",
-      "line": 632
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "str",
-      "line": 637
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "int",
-      "line": 640
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "int",
-      "line": 641
+      "target": "legacy_backfill_key",
+      "line": 617
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "fetchval",
+      "line": 625
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "str",
+      "line": 630
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "fetchrow",
       "line": 645
     },
     {
@@ -106250,83 +106236,97 @@
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "str",
-      "line": 658
+      "line": 648
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "dumps",
-      "line": 661
+      "target": "str",
+      "line": 651
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "dumps",
+      "target": "str",
+      "line": 656
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "int",
+      "line": 659
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "int",
+      "line": 660
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "fetchval",
       "line": 664
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "fetchval",
-      "line": 671
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "int",
-      "line": 675
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
       "target": "str",
-      "line": 676
+      "line": 677
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "fetchval",
+      "target": "dumps",
       "line": 680
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "int",
-      "line": 689
+      "target": "dumps",
+      "line": 683
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "str",
+      "target": "fetchval",
       "line": 690
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "execute",
-      "line": 703
+      "target": "int",
+      "line": 694
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "str",
+      "line": 695
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "fetchval",
+      "line": 699
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "int",
-      "line": 706
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "fetchrow",
       "line": 708
     },
     {
@@ -106334,28 +106334,14 @@
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "str",
-      "line": 711
+      "line": 709
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
-      "target": "int",
-      "line": 717
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "int",
-      "line": 718
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "enqueue_single_scene_process",
-      "target": "int",
-      "line": 724
+      "target": "execute",
+      "line": 722
     },
     {
       "owner": "raster-service",
@@ -106368,561 +106354,603 @@
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
+      "target": "fetchrow",
+      "line": 727
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "str",
+      "line": 730
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "int",
+      "line": 736
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "int",
+      "line": 737
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "int",
+      "line": 743
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
+      "target": "int",
+      "line": 744
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "enqueue_single_scene_process",
       "target": "warning",
-      "line": 729
+      "line": 748
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "enqueue_single_scene_process",
       "target": "close",
-      "line": 732
+      "line": 751
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_latest_asset",
       "target": "_connect",
-      "line": 749
+      "line": 768
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_latest_asset",
       "target": "_iso_date_or_none",
-      "line": 786
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "fetch_latest_asset",
-      "target": "execute",
-      "line": 787
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "fetch_latest_asset",
-      "target": "str",
-      "line": 789
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "fetch_latest_asset",
-      "target": "fetchrow",
-      "line": 791
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "fetch_latest_asset",
-      "target": "str",
-      "line": 792
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "fetch_latest_asset",
-      "target": "float",
-      "line": 800
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "fetch_latest_asset",
-      "target": "float",
-      "line": 803
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "fetch_latest_asset",
-      "target": "float",
       "line": 805
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_latest_asset",
-      "target": "float",
+      "target": "execute",
       "line": 806
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_latest_asset",
+      "target": "str",
+      "line": 808
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "fetch_latest_asset",
+      "target": "fetchrow",
+      "line": 810
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "fetch_latest_asset",
+      "target": "str",
+      "line": 811
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "fetch_latest_asset",
+      "target": "float",
+      "line": 819
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "fetch_latest_asset",
+      "target": "float",
+      "line": 822
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "fetch_latest_asset",
+      "target": "float",
+      "line": 824
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "fetch_latest_asset",
+      "target": "float",
+      "line": 825
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "fetch_latest_asset",
       "target": "_parse_quality_flags",
-      "line": 807
+      "line": 826
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_latest_asset",
       "target": "lower",
-      "line": 822
+      "line": 841
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_latest_asset",
       "target": "str",
-      "line": 822
+      "line": 841
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_latest_asset",
       "target": "warning",
-      "line": 834
+      "line": 853
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_latest_asset",
       "target": "close",
-      "line": 837
+      "line": 856
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "_connect",
-      "line": 857
+      "line": 876
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "execute",
-      "line": 875
+      "line": 894
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "str",
-      "line": 877
+      "line": 896
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "fetch",
-      "line": 879
+      "line": 898
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "int",
-      "line": 880
+      "line": 899
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "str",
-      "line": 880
+      "line": 899
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "str",
-      "line": 882
+      "line": 901
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "warning",
-      "line": 884
+      "line": 903
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_asset_dates",
       "target": "close",
-      "line": 887
+      "line": 906
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "_connect",
-      "line": 901
+      "line": 920
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "execute",
-      "line": 947
+      "line": 966
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "str",
-      "line": 949
+      "line": 968
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "fetch",
-      "line": 951
+      "line": 970
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "str",
-      "line": 954
+      "line": 973
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "list",
-      "line": 955
+      "line": 974
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "int",
-      "line": 956
+      "line": 975
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "dict",
-      "line": 958
+      "line": 977
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "warning",
-      "line": 960
+      "line": 979
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "list_available_asset_dates",
       "target": "close",
-      "line": 963
+      "line": 982
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "field_owner_tenant",
       "target": "_connect",
-      "line": 990
+      "line": 1009
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "field_owner_tenant",
       "target": "OwnerLookupUnavailable",
-      "line": 993
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "field_owner_tenant",
-      "target": "fetchval",
-      "line": 995
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "field_owner_tenant",
-      "target": "str",
-      "line": 996
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "field_owner_tenant",
-      "target": "type",
-      "line": 998
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "field_owner_tenant",
-      "target": "warning",
-      "line": 998
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "field_owner_tenant",
-      "target": "OwnerLookupUnavailable",
-      "line": 999
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "field_owner_tenant",
-      "target": "str",
-      "line": 999
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "field_owner_tenant",
-      "target": "close",
-      "line": 1001
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "layer_owner_tenant",
-      "target": "_connect",
       "line": 1012
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
+      "source": "field_owner_tenant",
+      "target": "fetchval",
+      "line": 1014
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "field_owner_tenant",
+      "target": "str",
+      "line": 1015
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "field_owner_tenant",
+      "target": "type",
+      "line": 1017
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "field_owner_tenant",
+      "target": "warning",
+      "line": 1017
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "field_owner_tenant",
+      "target": "OwnerLookupUnavailable",
+      "line": 1018
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "field_owner_tenant",
+      "target": "str",
+      "line": 1018
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "field_owner_tenant",
+      "target": "close",
+      "line": 1020
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "layer_owner_tenant",
+      "target": "_connect",
+      "line": 1031
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
       "source": "layer_owner_tenant",
       "target": "OwnerLookupUnavailable",
-      "line": 1014
+      "line": 1033
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "layer_owner_tenant",
       "target": "fetchval",
-      "line": 1024
+      "line": 1043
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "layer_owner_tenant",
       "target": "str",
-      "line": 1025
+      "line": 1044
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "layer_owner_tenant",
       "target": "type",
-      "line": 1027
+      "line": 1046
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "layer_owner_tenant",
       "target": "warning",
-      "line": 1027
+      "line": 1046
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "layer_owner_tenant",
       "target": "OwnerLookupUnavailable",
-      "line": 1028
+      "line": 1047
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "layer_owner_tenant",
       "target": "str",
-      "line": 1028
+      "line": 1047
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "layer_owner_tenant",
       "target": "close",
-      "line": 1030
+      "line": 1049
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "insert_field_geometry_version",
       "target": "_connect",
-      "line": 1047
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "insert_field_geometry_version",
-      "target": "dumps",
-      "line": 1050
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "insert_field_geometry_version",
-      "target": "execute",
-      "line": 1062
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "insert_field_geometry_version",
-      "target": "str",
-      "line": 1064
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/db_persist.py",
-      "source": "insert_field_geometry_version",
-      "target": "fetchval",
       "line": 1066
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "insert_field_geometry_version",
+      "target": "dumps",
+      "line": 1069
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "insert_field_geometry_version",
+      "target": "execute",
+      "line": 1081
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "insert_field_geometry_version",
       "target": "str",
-      "line": 1067
+      "line": 1083
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "insert_field_geometry_version",
+      "target": "fetchval",
+      "line": 1085
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/db_persist.py",
+      "source": "insert_field_geometry_version",
+      "target": "str",
+      "line": 1086
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "insert_field_geometry_version",
       "target": "warning",
-      "line": 1070
+      "line": 1089
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "insert_field_geometry_version",
       "target": "close",
-      "line": 1073
+      "line": 1092
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "_connect",
-      "line": 1080
+      "line": 1099
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "execute",
-      "line": 1100
+      "line": 1119
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "str",
-      "line": 1102
+      "line": 1121
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "fetch",
-      "line": 1104
+      "line": 1123
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "int",
-      "line": 1104
+      "line": 1123
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "str",
-      "line": 1104
+      "line": 1123
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "dict",
-      "line": 1105
+      "line": 1124
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "warning",
-      "line": 1107
+      "line": 1126
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_analytics_for_export",
       "target": "close",
-      "line": 1110
+      "line": 1129
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "_connect",
-      "line": 1124
+      "line": 1143
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "fetchval",
-      "line": 1130
+      "line": 1149
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "execute",
-      "line": 1136
+      "line": 1155
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "str",
-      "line": 1138
+      "line": 1157
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "fetchrow",
-      "line": 1140
+      "line": 1159
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "isinstance",
-      "line": 1144
+      "line": 1163
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "loads",
-      "line": 1147
+      "line": 1166
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "warning",
-      "line": 1150
+      "line": 1169
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/db_persist.py",
       "source": "fetch_field_geometry",
       "target": "close",
-      "line": 1153
+      "line": 1172
     },
     {
       "owner": "raster-service",

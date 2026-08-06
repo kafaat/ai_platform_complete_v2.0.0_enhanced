@@ -12945,7 +12945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fee4a305e6408eecc4a6b9d599dfbd16eae1a8fb697dfd769f9edfbd22bb82a2"
+          "content": "eda71bec884342ed326137559ac62730f4acdd5e71a884763baa29df11651cd6"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -13025,7 +13025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f2eaae280053d01d3ed3e6ca0d1c19d506084a4daba7e2f02e1f4b6d7c8c210"
+          "content": "72a21e9baa3090ba141cf271b376fd6e0aee26da7beefe997d4e7893298d1b07"
         }
       ],
       "name": "services/raster-service/db_persist.py",
