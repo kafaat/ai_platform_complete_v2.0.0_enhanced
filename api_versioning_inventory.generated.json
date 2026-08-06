@@ -4105,15 +4105,6 @@
   },
   {
     "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/compat_gateway.py",
-    "line": 145,
-    "method": "GET",
-    "path": "/api/probe-newservice/readyz",
-    "handler": "_probe_unadjudicated_alias",
-    "classification": "legacy_unversioned_business"
-  },
-  {
-    "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/confidence.py",
     "line": 35,
     "method": "POST",

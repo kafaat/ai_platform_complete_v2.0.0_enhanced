@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1838,
     "route_handlers": 1048,
-    "call_edges": 72429,
+    "call_edges": 72454,
     "dead_code_candidates": 614,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -101503,55 +101503,48 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_run",
       "target": "acquire",
-      "line": 419
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_run",
-      "target": "execute",
       "line": 420
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_run",
+      "target": "execute",
+      "line": 421
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_run",
       "target": "info",
-      "line": 430
+      "line": 431
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_run",
       "target": "len",
-      "line": 436
+      "line": 437
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "str",
-      "line": 459
+      "line": 460
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "get",
-      "line": 462
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "_as_dt",
       "line": 463
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "strftime",
+      "target": "_as_dt",
       "line": 464
     },
     {
@@ -101565,49 +101558,49 @@
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "acquire",
-      "line": 467
+      "target": "strftime",
+      "line": 466
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "acquire",
       "line": 468
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
+      "target": "execute",
+      "line": 469
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
       "target": "stac_search_landsat_unique",
-      "line": 474
+      "line": 475
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "stac_search",
-      "line": 479
+      "line": 480
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "str",
-      "line": 483
+      "line": 484
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "stac_search",
-      "line": 485
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "get",
       "line": 486
     },
     {
@@ -101615,252 +101608,231 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "get",
-      "line": 486
+      "line": 487
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "get",
-      "line": 486
+      "line": 487
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
+      "target": "get",
+      "line": 487
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "acquire",
-      "line": 489
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "_set_tenant",
       "line": 490
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "fetch",
+      "target": "_set_tenant",
       "line": 491
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "acquire",
-      "line": 508
+      "target": "fetch",
+      "line": 492
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "transaction",
+      "target": "acquire",
       "line": 509
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 510
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "fetchval",
+      "target": "_set_tenant",
       "line": 511
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "acquire",
-      "line": 525
+      "target": "fetchval",
+      "line": 512
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "transaction",
+      "target": "acquire",
       "line": 526
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 527
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "_set_tenant",
       "line": 528
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
+      "target": "execute",
+      "line": 529
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
       "target": "get",
-      "line": 535
+      "line": 536
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "acquire",
-      "line": 538
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "transaction",
       "line": 539
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 540
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "_set_tenant",
       "line": 541
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "uuid4",
-      "line": 549
+      "target": "execute",
+      "line": 542
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "acquire",
+      "target": "uuid4",
       "line": 550
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "transaction",
+      "target": "acquire",
       "line": 551
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 552
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "_set_tenant",
       "line": 553
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
+      "target": "execute",
+      "line": 554
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
       "target": "to_thread",
-      "line": 558
+      "line": 559
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "acquire",
-      "line": 565
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "transaction",
       "line": 566
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 567
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "_set_tenant",
       "line": 568
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
+      "target": "execute",
+      "line": 569
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
       "target": "acquire",
-      "line": 579
+      "line": 581
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "execute",
-      "line": 580
+      "line": 582
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "len",
-      "line": 590
+      "line": 592
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "info",
-      "line": 592
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 624
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 624
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "startswith",
-      "line": 624
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "RuntimeError",
-      "line": 626
+      "line": 594
     },
     {
       "owner": "raster-service",
@@ -101874,6 +101846,13 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
+      "line": 627
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "startswith",
       "line": 627
     },
     {
@@ -101887,63 +101866,63 @@
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "ProcessRequest",
+      "target": "get",
       "line": 630
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "_safe_raster_source",
+      "target": "get",
+      "line": 630
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "RuntimeError",
+      "line": 632
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "ProcessRequest",
       "line": 633
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "BandMapping",
+      "target": "_safe_raster_source",
       "line": 636
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "get",
-      "line": 640
+      "target": "BandMapping",
+      "line": 639
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 641
+      "line": 643
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 644
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "run_processing",
-      "line": 645
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 646
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 647
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "bool",
       "line": 648
     },
     {
@@ -101964,6 +101943,20 @@
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
+      "target": "bool",
+      "line": 651
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 652
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
       "target": "get",
       "line": 653
     },
@@ -101971,126 +101964,119 @@
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "_process_backfill_scene_cdse",
-      "line": 655
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
       "target": "get",
-      "line": 656
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 657
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "bool",
       "line": 658
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "get",
-      "line": 659
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
+      "target": "_process_backfill_scene_cdse",
       "line": 660
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "_safe_raster_source",
-      "line": 663
+      "target": "get",
+      "line": 661
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 663
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "items",
-      "line": 663
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "build_band_vrt",
-      "line": 665
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "ProcessRequest",
-      "line": 668
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "IndicatorKind",
-      "line": 672
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "BandMapping",
-      "line": 674
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "items",
-      "line": 675
+      "line": 662
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "bool",
-      "line": 678
+      "line": 663
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
+      "line": 664
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 665
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_safe_raster_source",
+      "line": 668
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 668
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "items",
+      "line": 668
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "build_band_vrt",
+      "line": 670
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "ProcessRequest",
+      "line": 673
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "IndicatorKind",
+      "line": 677
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "BandMapping",
       "line": 679
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "get",
+      "target": "items",
       "line": 680
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "run_processing",
+      "target": "bool",
+      "line": 683
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
       "line": 684
     },
     {
@@ -102104,14 +102090,14 @@
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "get",
+      "target": "run_processing",
       "line": 689
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "bool",
+      "target": "get",
       "line": 690
     },
     {
@@ -102119,343 +102105,364 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 691
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 691
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
       "line": 694
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "bool",
+      "line": 695
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 696
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 696
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
+      "line": 699
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "warning",
-      "line": 694
+      "line": 699
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_as_dt",
-      "target": "isinstance",
+      "source": "_process_scene_index",
+      "target": "str",
       "line": 700
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
+      "target": "isinstance",
+      "line": 705
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_as_dt",
       "target": "replace",
-      "line": 701
+      "line": 706
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "isinstance",
-      "line": 702
+      "line": 707
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "date",
-      "line": 703
+      "line": 708
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "fromisoformat",
-      "line": 703
+      "line": 708
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "datetime",
-      "line": 704
+      "line": 709
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "HeartbeatState",
-      "line": 714
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
-      "line": 715
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "_enabled",
-      "line": 717
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "info",
       "line": 719
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
-      "target": "mark_poll",
+      "target": "write",
+      "line": 720
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "_enabled",
       "line": 722
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
-      "target": "write",
-      "line": 723
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "sleep",
+      "target": "info",
       "line": 724
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
-      "target": "_connect",
-      "line": 729
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "run_once",
-      "line": 730
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
       "target": "mark_poll",
-      "line": 731
+      "line": 727
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "write",
-      "line": 732
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_error",
-      "line": 738
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "str",
-      "line": 738
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
-      "line": 739
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "error",
-      "line": 740
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "close",
-      "line": 748
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_error",
-      "line": 753
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "str",
-      "line": 753
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
-      "line": 754
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "warning",
-      "line": 755
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "close",
-      "line": 758
+      "line": 728
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "sleep",
-      "line": 762
+      "line": 729
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "main_cli",
-      "target": "basicConfig",
-      "line": 766
+      "source": "loop_worker",
+      "target": "_connect",
+      "line": 734
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "main_cli",
-      "target": "getenv",
+      "source": "loop_worker",
+      "target": "run_once",
+      "line": 735
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_poll",
+      "line": 736
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 737
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_error",
+      "line": 743
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "str",
+      "line": 743
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 744
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "error",
+      "line": 745
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "close",
+      "line": 753
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_error",
+      "line": 758
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "str",
+      "line": 758
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 759
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "warning",
+      "line": 760
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "close",
+      "line": 763
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "sleep",
       "line": 767
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
-      "target": "ArgumentParser",
-      "line": 770
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "main_cli",
-      "target": "add_argument",
+      "target": "basicConfig",
       "line": 771
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
-      "target": "parse_args",
+      "target": "getenv",
       "line": 772
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_one",
-      "target": "_connect",
+      "source": "main_cli",
+      "target": "ArgumentParser",
+      "line": 775
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "main_cli",
+      "target": "add_argument",
       "line": 776
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
+      "target": "parse_args",
+      "line": 777
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_one",
       "target": "_connect",
-      "line": 776
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_one",
-      "target": "run_once",
-      "line": 778
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "main_cli",
-      "target": "run_once",
-      "line": 778
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_one",
-      "target": "info",
-      "line": 779
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "main_cli",
-      "target": "info",
-      "line": 779
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_one",
-      "target": "close",
       "line": 781
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
-      "target": "close",
+      "target": "_connect",
       "line": 781
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_one",
+      "target": "run_once",
+      "line": 783
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "main_cli",
+      "target": "run_once",
+      "line": 783
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_one",
+      "target": "info",
+      "line": 784
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "main_cli",
+      "target": "info",
+      "line": 784
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_one",
+      "target": "close",
+      "line": 786
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "main_cli",
+      "target": "close",
+      "line": 786
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "_one",
-      "line": 783
+      "line": 788
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "run",
-      "line": 783
+      "line": 788
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "loop_worker",
-      "line": 785
+      "line": 790
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "run",
-      "line": 785
+      "line": 790
     },
     {
       "owner": "raster-service",
@@ -117113,790 +117120,804 @@
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "nullcontext",
-      "line": 349
+      "line": 350
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "_safe_raster_source",
-      "line": 351
+      "line": 352
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "open",
-      "line": 351
+      "line": 352
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "abs",
-      "line": 354
+      "line": 355
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "list",
-      "line": 357
+      "line": 358
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "transform_bounds",
-      "line": 357
+      "line": 358
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "list",
-      "line": 359
+      "line": 360
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "get",
+      "line": 376
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "get",
+      "line": 378
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "transform_geom",
+      "line": 381
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "get",
+      "line": 385
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "get",
+      "line": 385
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "zeros",
-      "line": 365
+      "line": 386
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_read_uint8",
       "target": "zeros",
-      "line": 365
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "int",
-      "line": 366
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_read_uint8",
-      "target": "int",
-      "line": 366
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "astype",
-      "line": 369
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "read",
-      "line": 369
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_read_uint8",
-      "target": "astype",
-      "line": 369
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_read_uint8",
-      "target": "read",
-      "line": 369
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "where",
-      "line": 371
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_read_uint8",
-      "target": "where",
-      "line": 371
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "float",
-      "line": 383
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_read_uint8",
-      "target": "float",
-      "line": 383
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "to_reflectance",
-      "line": 386
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_read_uint8",
-      "target": "to_reflectance",
       "line": 386
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
-      "target": "clip",
+      "target": "int",
+      "line": 387
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "int",
       "line": 387
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
-      "target": "nan_to_num",
-      "line": 387
+      "target": "_rio_mask",
+      "line": 392
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_read_uint8",
-      "target": "clip",
-      "line": 387
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_read_uint8",
-      "target": "nan_to_num",
-      "line": 387
+      "target": "_rio_mask",
+      "line": 392
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "astype",
-      "line": 388
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_read_uint8",
-      "target": "astype",
-      "line": 388
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "_read_uint8",
-      "line": 393
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "_read_uint8",
-      "line": 394
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "_read_uint8",
-      "line": 395
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "uint8",
-      "line": 398
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "uint8",
-      "line": 398
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "where",
-      "line": 398
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "stack",
-      "line": 399
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "int",
-      "line": 400
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "sum",
-      "line": 400
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "int",
       "line": 401
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
-      "target": "str",
-      "line": 411
+      "target": "filled",
+      "line": 401
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "astype",
+      "line": 401
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "filled",
+      "line": 401
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
-      "target": "uuid4",
-      "line": 415
+      "target": "astype",
+      "line": 403
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
-      "target": "join",
-      "line": 416
+      "target": "read",
+      "line": 403
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "astype",
+      "line": 403
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "read",
+      "line": 403
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
-      "target": "write_rgba_cog",
+      "target": "where",
+      "line": 405
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "where",
+      "line": 405
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "float",
+      "line": 417
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "float",
       "line": 417
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
-      "target": "get",
-      "line": 419
+      "target": "to_reflectance",
+      "line": 420
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "_process_pixels_truecolor",
-      "target": "upload_cog",
+      "source": "_read_uint8",
+      "target": "to_reflectance",
       "line": 420
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
+      "target": "clip",
+      "line": 421
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "nan_to_num",
+      "line": 421
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "clip",
+      "line": 421
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "nan_to_num",
+      "line": 421
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "astype",
+      "line": 422
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_read_uint8",
+      "target": "astype",
+      "line": 422
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "_read_uint8",
+      "line": 427
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "_read_uint8",
+      "line": 428
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "_read_uint8",
+      "line": 429
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "get",
+      "line": 430
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "uint8",
+      "line": 432
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "uint8",
+      "line": 432
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "where",
+      "line": 432
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "stack",
+      "line": 433
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "int",
+      "line": 434
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "sum",
+      "line": 434
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "int",
+      "line": 435
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
       "target": "str",
-      "line": 424
+      "line": 445
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "uuid4",
+      "line": 449
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "join",
+      "line": 450
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "write_rgba_cog",
+      "line": 451
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "get",
+      "line": 453
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "upload_cog",
+      "line": 454
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "_process_pixels_truecolor",
+      "target": "str",
+      "line": 458
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "_process_pixels_truecolor",
       "target": "to_epsg",
-      "line": 428
+      "line": 462
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "_process_pixels_truecolor",
-      "line": 448
+      "line": 482
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "nullcontext",
-      "line": 454
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "_safe_raster_source",
-      "line": 456
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "open",
-      "line": 456
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "abs",
-      "line": 459
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "list",
-      "line": 469
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "transform_bounds",
-      "line": 469
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "list",
-      "line": 471
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "get",
-      "line": 486
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "get",
       "line": 488
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "_shape",
+      "target": "_safe_raster_source",
+      "line": 490
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "open",
+      "line": 490
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "abs",
       "line": 493
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
+      "target": "list",
+      "line": 503
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "transform_bounds",
+      "line": 503
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "list",
+      "line": 505
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 520
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 522
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "_shape",
+      "line": 527
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
       "target": "transform_geom",
-      "line": 495
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "int",
-      "line": 520
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "int",
-      "line": 520
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "_rio_mask",
-      "line": 529
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "_rio_mask",
       "line": 529
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "band",
-      "target": "astype",
-      "line": 538
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "filled",
-      "line": 538
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "astype",
-      "line": 538
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "filled",
-      "line": 538
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "astype",
-      "line": 540
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "read",
-      "line": 540
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "astype",
-      "line": 540
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "read",
-      "line": 540
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "where",
-      "line": 543
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "where",
-      "line": 543
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "where",
-      "line": 544
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "where",
-      "line": 544
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "_refl_params",
-      "line": 546
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "_refl_params",
-      "line": 546
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band",
-      "target": "to_reflectance",
-      "line": 547
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "to_reflectance",
-      "line": 547
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band_raw",
       "target": "int",
-      "line": 555
+      "line": 554
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "int",
-      "line": 555
+      "line": 554
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band_raw",
+      "source": "band",
       "target": "_rio_mask",
-      "line": 559
+      "line": 563
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "_rio_mask",
-      "line": 559
+      "line": 563
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "band_raw",
+      "source": "band",
+      "target": "astype",
+      "line": 572
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "band",
+      "target": "filled",
+      "line": 572
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "astype",
+      "line": 572
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "filled",
+      "line": 572
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "band",
+      "target": "astype",
+      "line": 574
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "band",
       "target": "read",
-      "line": 569
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "read",
-      "line": 569
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "band",
-      "line": 573
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "band",
       "line": 574
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "band",
-      "line": 575
+      "target": "astype",
+      "line": 574
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "band",
-      "line": 576
+      "target": "read",
+      "line": 574
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "band",
+      "source": "band",
+      "target": "where",
       "line": 577
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "band",
+      "target": "where",
+      "line": 577
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "band",
+      "target": "where",
       "line": 578
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "band",
-      "line": 579
+      "target": "where",
+      "line": 578
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "seterr",
+      "source": "band",
+      "target": "_refl_params",
       "line": 580
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "compute",
-      "line": 585
+      "target": "_refl_params",
+      "line": 580
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "band",
+      "target": "to_reflectance",
+      "line": 581
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "where",
-      "line": 599
+      "target": "to_reflectance",
+      "line": 581
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "band_raw",
+      "target": "int",
+      "line": 589
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "where",
-      "line": 602
+      "target": "int",
+      "line": 589
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "band_raw",
+      "target": "_rio_mask",
+      "line": 593
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "HTTPException",
-      "line": 605
+      "target": "_rio_mask",
+      "line": 593
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "band_raw",
+      "target": "read",
+      "line": 603
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "where",
-      "line": 606
+      "target": "read",
+      "line": 603
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "where",
+      "target": "band",
+      "line": 607
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "band",
       "line": 608
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "where",
+      "target": "band",
+      "line": 609
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "band",
+      "line": 610
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "band",
+      "line": 611
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "band",
       "line": 612
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "where",
-      "line": 615
+      "target": "band",
+      "line": 613
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "seterr",
+      "line": 614
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "compute",
+      "line": 619
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 618
+      "line": 633
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "where",
+      "line": 636
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "HTTPException",
-      "line": 621
+      "line": 639
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 624
+      "line": 640
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 625
+      "line": 642
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 626
+      "line": 646
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 631
+      "line": 649
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 634
+      "line": 652
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "where",
-      "line": 637
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "where",
-      "line": 641
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "where",
-      "line": 645
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "compute_bsi",
-      "line": 653
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "compute_bi",
+      "target": "HTTPException",
       "line": 655
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "compute_bi2",
-      "line": 657
+      "target": "where",
+      "line": 658
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "compute_ndti",
+      "target": "where",
       "line": 659
     },
     {
@@ -117904,454 +117925,377 @@
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 662
+      "line": 660
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "compute_dbsi",
+      "target": "where",
       "line": 665
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "compute_ndsi",
-      "line": 667
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "compute_satvi",
-      "line": 669
+      "target": "where",
+      "line": 668
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 674
+      "line": 671
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "clip",
+      "target": "where",
       "line": 675
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "strategy_for_source_format",
-      "line": 698
+      "target": "where",
+      "line": 679
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "getattr",
-      "line": 699
+      "target": "compute_bsi",
+      "line": 687
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "str",
-      "line": 699
+      "target": "compute_bi",
+      "line": 689
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "isfinite",
-      "line": 706
+      "target": "compute_bi2",
+      "line": 691
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "apply",
-      "line": 707
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "list",
-      "line": 714
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "list",
-      "line": 721
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "zeros_like",
-      "line": 735
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "getattr",
-      "line": 737
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "logical_or",
-      "line": 738
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "logical_or",
-      "line": 740
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "any",
-      "line": 742
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 742
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "append",
-      "line": 743
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "logical_or",
-      "line": 749
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "float",
-      "line": 753
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "mean",
-      "line": 753
+      "target": "compute_ndti",
+      "line": 693
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "where",
-      "line": 755
+      "line": 696
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "warning",
-      "line": 757
+      "target": "compute_dbsi",
+      "line": 699
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "compute_ndsi",
+      "line": 701
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "compute_satvi",
+      "line": 703
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "where",
+      "line": 708
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "clip",
+      "line": 709
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "strategy_for_source_format",
+      "line": 732
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "getattr",
+      "line": 733
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "str",
+      "line": 733
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "isfinite",
-      "line": 764
+      "line": 740
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "hasattr",
-      "line": 766
+      "target": "apply",
+      "line": 741
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "int",
-      "line": 766
+      "target": "list",
+      "line": 748
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "float",
-      "line": 767
+      "target": "list",
+      "line": 755
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "float",
-      "line": 767
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "sum",
-      "line": 767
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 768
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "_topographic_qa_for_indicator",
-      "line": 775
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "compute_quality_score",
-      "line": 782
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "get",
-      "line": 789
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "get",
-      "line": 790
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 791
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "get",
-      "line": 791
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 792
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 793
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 794
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 795
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 796
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "float",
-      "line": 799
+      "target": "zeros_like",
+      "line": 769
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "getattr",
-      "line": 799
+      "line": 771
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "logical_or",
+      "line": 772
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "logical_or",
+      "line": 774
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "any",
+      "line": 776
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "bool",
-      "line": 801
+      "line": 776
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "getattr",
-      "line": 801
+      "target": "append",
+      "line": 777
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "HTTPException",
-      "line": 804
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "get",
-      "line": 810
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "_quality_from_cloud_pct",
-      "line": 813
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 813
+      "target": "logical_or",
+      "line": 783
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "float",
-      "line": 815
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "min",
-      "line": 815
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "float",
-      "line": 816
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "max",
-      "line": 816
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "float",
-      "line": 817
+      "line": 787
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "mean",
-      "line": 817
+      "line": 787
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "where",
+      "line": 789
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "warning",
+      "line": 791
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "isfinite",
+      "line": 798
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "hasattr",
+      "line": 800
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "int",
+      "line": 800
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "float",
-      "line": 818
+      "line": 801
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "std",
-      "line": 818
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "int",
-      "line": 819
+      "target": "float",
+      "line": 801
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "sum",
-      "line": 819
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "int",
-      "line": 820
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "sum",
-      "line": 820
+      "line": 801
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "bool",
-      "line": 822
+      "line": 802
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "_topographic_qa_for_indicator",
+      "line": 809
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "compute_quality_score",
+      "line": 816
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 823
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 824
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "bool",
+      "line": 825
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 825
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 826
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 827
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 828
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 829
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 830
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "float",
       "line": 833
     },
     {
@@ -118365,183 +118309,330 @@
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "build_quality_flags",
-      "line": 837
+      "target": "bool",
+      "line": 835
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "bool",
-      "line": 840
+      "target": "getattr",
+      "line": 835
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "bool",
-      "line": 841
+      "target": "HTTPException",
+      "line": 838
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "bool",
-      "line": 842
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
-      "line": 843
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "bool",
+      "target": "get",
       "line": 844
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
+      "target": "_quality_from_cloud_pct",
+      "line": 847
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
       "target": "bool",
-      "line": 845
+      "line": 847
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "get",
-      "line": 845
+      "target": "float",
+      "line": 849
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "get",
-      "line": 846
+      "target": "min",
+      "line": 849
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "get",
-      "line": 848
+      "target": "float",
+      "line": 850
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "get",
+      "target": "max",
+      "line": 850
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "float",
+      "line": 851
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "mean",
+      "line": 851
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "float",
+      "line": 852
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "std",
+      "line": 852
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "int",
+      "line": 853
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "sum",
+      "line": 853
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "int",
       "line": 854
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
-      "target": "str",
-      "line": 857
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "build_validated_raster_product",
-      "line": 868
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "getattr",
-      "line": 877
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "assert_indicator_accepts_validated_product",
-      "line": 879
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "model_dump",
-      "line": 880
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "str",
-      "line": 885
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "uuid4",
-      "line": 890
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "join",
-      "line": 891
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "write_cog",
-      "line": 892
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "get",
-      "line": 896
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "upload_cog",
-      "line": 899
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "str",
-      "line": 904
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_pixel_processing.py",
-      "source": "process_pixels",
-      "target": "to_epsg",
-      "line": 909
+      "target": "sum",
+      "line": 854
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "bool",
-      "line": 912
+      "line": 856
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 867
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_pixel_processing.py",
       "source": "process_pixels",
       "target": "getattr",
-      "line": 912
+      "line": 867
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "build_quality_flags",
+      "line": 871
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 874
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 875
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 876
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 877
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 878
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 879
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 879
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 880
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 882
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 888
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "str",
+      "line": 891
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "build_validated_raster_product",
+      "line": 902
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "getattr",
+      "line": 911
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "assert_indicator_accepts_validated_product",
+      "line": 913
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "model_dump",
+      "line": 914
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "str",
+      "line": 919
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "uuid4",
+      "line": 924
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "join",
+      "line": 925
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "write_cog",
+      "line": 926
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "get",
+      "line": 930
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "upload_cog",
+      "line": 933
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "str",
+      "line": 938
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "to_epsg",
+      "line": 943
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "bool",
+      "line": 946
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_pixel_processing.py",
+      "source": "process_pixels",
+      "target": "getattr",
+      "line": 946
     },
     {
       "owner": "raster-service",
@@ -151188,561 +151279,645 @@
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_truecolor_thumbnail_png",
-      "target": "transform_bounds",
-      "line": 547
+      "target": "read",
+      "line": 555
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_truecolor_thumbnail_png",
-      "target": "max",
-      "line": 550
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "max",
-      "line": 551
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "int",
-      "line": 554
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "max",
-      "line": 554
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "round",
-      "line": 554
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "int",
-      "line": 557
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "max",
-      "line": 557
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "round",
-      "line": 557
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "from_bounds",
-      "line": 558
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "zeros",
-      "line": 559
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "range",
-      "line": 560
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "zeros",
-      "line": 561
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "reproject",
-      "line": 562
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "band",
-      "line": 563
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "zeros",
-      "line": 574
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "reproject",
-      "line": 575
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "band",
-      "line": 576
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "full",
-      "line": 587
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "_reproject_dataset_mask",
-      "line": 588
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_truecolor_thumbnail_png",
-      "target": "astype",
-      "line": 592
+      "target": "any",
+      "line": 556
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_truecolor_thumbnail_png",
       "target": "where",
-      "line": 592
+      "line": 556
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_truecolor_thumbnail_png",
       "target": "any",
-      "line": 597
+      "line": 557
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "where",
+      "line": 557
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "len",
+      "line": 558
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "len",
+      "line": 558
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "int",
+      "line": 560
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "int",
+      "line": 561
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "int",
+      "line": 562
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "int",
+      "line": 563
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "transform_bounds",
+      "line": 568
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "transform_bounds",
+      "line": 572
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "max",
+      "line": 574
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "max",
+      "line": 575
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "int",
+      "line": 578
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "max",
+      "line": 578
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "round",
+      "line": 578
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "int",
+      "line": 581
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "max",
+      "line": 581
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "round",
+      "line": 581
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "from_bounds",
+      "line": 582
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "zeros",
+      "line": 583
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "range",
+      "line": 584
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "zeros",
+      "line": 585
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "reproject",
+      "line": 586
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "band",
+      "line": 587
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "zeros",
+      "line": 598
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "reproject",
+      "line": 599
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "band",
+      "line": 600
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "full",
+      "line": 611
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "_reproject_dataset_mask",
+      "line": 612
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "astype",
+      "line": 616
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "where",
+      "line": 616
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_truecolor_thumbnail_png",
+      "target": "any",
+      "line": 621
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_truecolor_thumbnail_png",
       "target": "encode_png_rgba",
-      "line": 600
+      "line": 624
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
       "target": "render_truecolor_thumbnail_png",
-      "line": 615
+      "line": 639
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
       "target": "open",
-      "line": 625
+      "line": 649
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
       "target": "float",
-      "line": 629
+      "line": 653
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
       "target": "isnan",
-      "line": 629
+      "line": 653
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
       "target": "transform_bounds",
-      "line": 634
+      "line": 658
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
       "target": "max",
-      "line": 637
+      "line": 661
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
       "target": "max",
-      "line": 638
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "int",
-      "line": 642
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "max",
-      "line": 642
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "round",
-      "line": 642
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "int",
-      "line": 645
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "max",
-      "line": 645
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "round",
-      "line": 645
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "from_bounds",
-      "line": 646
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "_has_per_dataset_mask",
-      "line": 647
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "full",
-      "line": 648
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "astype",
-      "line": 650
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "filled",
-      "line": 650
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "read",
-      "line": 650
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "reproject",
-      "line": 651
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "reproject",
       "line": 662
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
+      "target": "int",
+      "line": 666
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "max",
+      "line": 666
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "round",
+      "line": 666
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "int",
+      "line": 669
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "max",
+      "line": 669
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "round",
+      "line": 669
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "from_bounds",
+      "line": 670
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "_has_per_dataset_mask",
+      "line": 671
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "full",
+      "line": 672
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "astype",
+      "line": 674
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "filled",
+      "line": 674
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "read",
+      "line": 674
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "reproject",
+      "line": 675
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "reproject",
+      "line": 686
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
       "target": "band",
-      "line": 663
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "_reproject_dataset_mask",
-      "line": 673
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "any",
-      "line": 684
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "isfinite",
-      "line": 684
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/tile_render.py",
-      "source": "render_cog_thumbnail_png",
-      "target": "colorize",
       "line": 687
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "render_cog_thumbnail_png",
+      "target": "_reproject_dataset_mask",
+      "line": 697
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "any",
+      "line": 708
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "isfinite",
+      "line": 708
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
+      "target": "colorize",
+      "line": 711
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/tile_render.py",
+      "source": "render_cog_thumbnail_png",
       "target": "encode_png_rgba",
-      "line": 689
+      "line": 713
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "open",
-      "line": 717
+      "line": 741
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "str",
-      "line": 720
+      "line": 744
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "any",
-      "line": 722
+      "line": 746
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "bool",
-      "line": 722
+      "line": 746
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "read",
-      "line": 722
+      "line": 746
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "read",
-      "line": 723
+      "line": 747
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "all",
-      "line": 724
+      "line": 748
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "bool",
-      "line": 724
+      "line": 748
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "astype",
-      "line": 726
+      "line": 750
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "filled",
-      "line": 726
+      "line": 750
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "any",
-      "line": 727
+      "line": 751
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "bool",
-      "line": 727
+      "line": 751
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "raster_has_observable_content",
       "target": "isfinite",
-      "line": 727
+      "line": 751
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "open",
-      "line": 745
+      "line": 769
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "transform_geom",
-      "line": 746
+      "line": 770
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "_rio_mask",
-      "line": 747
+      "line": 771
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "float",
-      "line": 747
+      "line": 771
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "copy",
-      "line": 748
+      "line": 772
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "float",
-      "line": 749
+      "line": 773
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "update",
-      "line": 749
+      "line": 773
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "open",
-      "line": 750
+      "line": 774
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask",
       "target": "write",
-      "line": 751
+      "line": 775
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask_rgba",
       "target": "open",
-      "line": 766
+      "line": 790
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask_rgba",
       "target": "read",
-      "line": 767
+      "line": 791
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask_rgba",
       "target": "copy",
-      "line": 768
+      "line": 792
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask_rgba",
       "target": "transform_geom",
-      "line": 769
+      "line": 793
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask_rgba",
       "target": "geometry_mask",
-      "line": 770
+      "line": 794
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask_rgba",
       "target": "open",
-      "line": 780
+      "line": 804
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/tile_render.py",
       "source": "apply_polygon_mask_rgba",
       "target": "write",
-      "line": 781
+      "line": 805
     },
     {
       "owner": "raster-service",
