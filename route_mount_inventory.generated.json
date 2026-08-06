@@ -15,7 +15,7 @@
     "path": "services/agriai-engine/main.py",
     "service": "agriai-engine",
     "has_fastapi": true,
-    "direct_routes": 8,
+    "direct_routes": 9,
     "router_routes": 0,
     "delegates_to_router_registry": false,
     "delegates_to_app_factory": false,

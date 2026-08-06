@@ -825,6 +825,14 @@
       "path": "/runtime-identity",
       "registrations": [
         {
+          "function": "runtime_evidence_identity",
+          "line": 97,
+          "method": "GET",
+          "module": "services/agriai-engine/main.py",
+          "path": "/runtime-identity",
+          "receiver": "app"
+        },
+        {
           "function": "runtime_identity",
           "line": 400,
           "method": "GET",
@@ -1122,7 +1130,7 @@
       "registrations": [
         {
           "function": "recommend",
-          "line": 238,
+          "line": 247,
           "method": "POST",
           "module": "services/agriai-engine/main.py",
           "path": "/v1/recommend",
@@ -1142,8 +1150,8 @@
   "hard_conflict_count": 0,
   "hard_conflicts": [],
   "production_certified": false,
-  "route_count": 1095,
-  "route_inventory_sha256": "f8d719a4fb4e8a7c1815893be2a6705a02a4a62224cf45d08693abe9593721b1",
+  "route_count": 1096,
+  "route_inventory_sha256": "8b6d5bda52400f553d80f3a5687169ba372ccdfd01d747334952a21606205433",
   "runtime_verified": false,
   "schema_version": 1
 }

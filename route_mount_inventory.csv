@@ -1,6 +1,6 @@
 path,service,has_fastapi,direct_routes,router_routes,delegates_to_router_registry,delegates_to_app_factory,delegates_to_runtime_module,status,reason
 services/actuator-service/main.py,actuator-service,False,0,6,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
-services/agriai-engine/main.py,agriai-engine,True,8,0,False,False,False,direct_routes,main.py owns direct route handlers
+services/agriai-engine/main.py,agriai-engine,True,9,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/ai_agronomist/main.py,ai_agronomist,True,13,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/auth/main.py,auth,True,1,28,True,False,True,direct_routes,main.py owns direct route handlers
 services/decision-service/main.py,decision-service,True,70,0,False,False,False,direct_routes,main.py owns direct route handlers

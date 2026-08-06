@@ -157,6 +157,11 @@ services:
     build:
       context: .
       dockerfile: services/agriai-engine/Dockerfile
+      args:
+        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
+        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
+        SAHOOL_SOURCE_REPOSITORY: ${GITHUB_REPOSITORY:-local/unknown}
+        SAHOOL_SOURCE_REF: ${GITHUB_REF:-local}
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -1162,9 +1167,6 @@ services:
     build:
       context: .
       dockerfile: services/raster-service/Dockerfile
-      args:
-        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
-        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -1211,9 +1213,6 @@ services:
     build:
       context: .
       dockerfile: services/raster-service/Dockerfile
-      args:
-        SAHOOL_GIT_SHA: ${TESTED_SHA:?TESTED_SHA required for immutable build identity}
-        SAHOOL_BUILD_ID: ${SAHOOL_BUILD_ID:?SAHOOL_BUILD_ID required for immutable build identity}
     mem_limit: 1024m
     security_opt:
     - no-new-privileges:true
@@ -2584,7 +2583,7 @@ services:
       CANONICAL_LEARNING_DURABLE: ${CANONICAL_LEARNING_DURABLE:-canonical-execution-learning-v1}
     command:
     - python
-    - /app/scripts/workers/canonical_execution_learning_worker.py
+    - /app/workers/canonical_execution_learning_worker.py
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -2604,7 +2603,7 @@ services:
     networks:
     - sahool-internal
     healthcheck:
-      test: ["CMD-SHELL", "python /app/scripts/workers/canonical_execution_learning_worker.py --preflight"]
+      test: ["CMD-SHELL", "python /app/workers/canonical_execution_learning_worker.py --preflight"]
       interval: 30s
       timeout: 10s
       retries: 5

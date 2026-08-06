@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "service": "agriai-engine",
+  "source_service": "services/agriai-engine",
+  "entrypoint": "services/agriai-engine/main.py",
+  "base_url_env": "AGRIAI_ENGINE_BASE_URL",
+  "note": "Functional probes verify agriai-engine COMPUTES deterministically, not merely that it is alive. Only the compute-only /v1/replay/verify endpoint is declared: it recomputes replay_hash = sha256(canonical(inputs) + engine_version) from caller-supplied inputs, so a probe run needs no DB/Redis/NATS and no outbound provider call (recommend/simulate/plan are deliberately excluded — they pull agronomic context builders whose sufficiency rules are exercised in the service's own unit tests). The endpoint is token-gated; the plan declares only the ${SAHOOL_AGENT_TOKEN} variable NAME (expanded at --run time), never a secret value. The expected hash is derived by executing replay.compute_replay_hash directly on the same inputs (engine_version defaults to agriai-engine/9.1.0), so a determinism regression flips verified to false. Producing evidence and setting runtime_verified is a separate, deliberate step; this plan alone changes nothing in the runtime ledger.",
+  "probes": [
+    {
+      "probe_id": "agriai-replay-verify-deterministic",
+      "method": "POST",
+      "path": "/v1/replay/verify",
+      "dependency_class": "compute-only",
+      "deterministic": true,
+      "expected_status": 200,
+      "headers": {
+        "X-Agent-Token": "${SAHOOL_AGENT_TOKEN}"
+      },
+      "request_body": {
+        "inputs": {
+          "field_id": "probe-field",
+          "seed": "agriai-replay-probe",
+          "values": [1, 2, 3]
+        },
+        "prior_hash": "964c99ff4b1e3fb2c747b0c89954df7b335bd35bc8d380e09f1ffd40e87c86d4"
+      },
+      "response_assertions": [
+        {
+          "field": "verified",
+          "equals": true
+        },
+        {
+          "field": "recomputed_hash",
+          "type": "string",
+          "equals": "964c99ff4b1e3fb2c747b0c89954df7b335bd35bc8d380e09f1ffd40e87c86d4"
+        },
+        {
+          "field": "prior_hash",
+          "type": "string",
+          "equals": "964c99ff4b1e3fb2c747b0c89954df7b335bd35bc8d380e09f1ffd40e87c86d4"
+        }
+      ]
+    }
+  ],
+  "identity_path": "/runtime-identity",
+  "openapi_path": "/openapi.json"
+}

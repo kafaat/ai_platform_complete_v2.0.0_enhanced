@@ -1,5 +1,34 @@
 FROM python:3.12-slim-bookworm
 WORKDIR /app
+ARG SAHOOL_GIT_SHA
+ARG SAHOOL_BUILD_ID
+ARG SAHOOL_SOURCE_REPOSITORY=""
+ARG SAHOOL_SOURCE_REF=""
+LABEL org.opencontainers.image.revision=$SAHOOL_GIT_SHA \
+      org.opencontainers.image.version=$SAHOOL_BUILD_ID
+RUN python - <<'PY'
+import json
+import os
+import re
+
+sha = os.environ.get("SAHOOL_GIT_SHA", "")
+bid = os.environ.get("SAHOOL_BUILD_ID", "")
+if not re.fullmatch(r"[0-9a-f]{40}", sha):
+    raise SystemExit("SAHOOL_GIT_SHA must be full 40-char SHA")
+if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", bid):
+    raise SystemExit("invalid SAHOOL_BUILD_ID")
+
+payload = {
+    "service": "agriai-engine",
+    "git_sha": sha,
+    "build_id": bid,
+    "source_repository": os.environ.get("SAHOOL_SOURCE_REPOSITORY", ""),
+    "source_ref": os.environ.get("SAHOOL_SOURCE_REF", ""),
+}
+with open("/app/.sahool-build-metadata.json", "w", encoding="utf-8") as f:
+    json.dump(payload, f, sort_keys=True)
+PY
+RUN chmod 0444 /app/.sahool-build-metadata.json
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc libpq-dev curl \
     && rm -rf /var/lib/apt/lists/*

@@ -4142,6 +4142,7 @@
         "GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539",
         "GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638",
         "GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571",
+        "GET /runtime-identity @ services/agriai-engine/main.py:97",
         "GET /runtime-identity @ services/raster-service/main.py:64",
         "GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:24",
         "GET /runtime-identity @ services/soil-service/main.py:198",
@@ -4218,7 +4219,7 @@
           "path": "migrations/v86_calibration_evidence_trigger.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=22, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=23, tests=25, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": "1",
         "CropX": "2",

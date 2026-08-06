@@ -76,7 +76,7 @@
       "line": 51,
       "module": "services.agriai-engine.main",
       "node_id": "services.agriai-engine.main:app",
-      "route_count": 8,
+      "route_count": 9,
       "statically_reachable": true,
       "symbol": "app"
     },
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "34f8726cd010255e4a094d4ad7df235ddb2db000c3bbe8081211c2d2e6f15514",
+  "inventory_sha256": "efc9e42f0b2f5f8143ec71795040ca61e04f18ca5c4a46cb38e09db67ae4951e",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {

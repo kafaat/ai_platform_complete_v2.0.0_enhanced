@@ -8,10 +8,11 @@ agriai-engine,GET,/healthz,healthz,services/agriai-engine/main.py,55
 agriai-engine,GET,/health,legacy_health,services/agriai-engine/main.py,60
 agriai-engine,GET,/readyz,readyz,services/agriai-engine/main.py,65
 agriai-engine,GET,/metrics,metrics,services/agriai-engine/main.py,90
-agriai-engine,POST,/v1/recommend,recommend,services/agriai-engine/main.py,238
-agriai-engine,POST,/v1/simulate,simulate,services/agriai-engine/main.py,298
-agriai-engine,POST,/v1/plan,plan,services/agriai-engine/main.py,311
-agriai-engine,POST,/v1/replay/verify,replay_verify,services/agriai-engine/main.py,327
+agriai-engine,GET,/runtime-identity,runtime_evidence_identity,services/agriai-engine/main.py,97
+agriai-engine,POST,/v1/recommend,recommend,services/agriai-engine/main.py,247
+agriai-engine,POST,/v1/simulate,simulate,services/agriai-engine/main.py,307
+agriai-engine,POST,/v1/plan,plan,services/agriai-engine/main.py,320
+agriai-engine,POST,/v1/replay/verify,replay_verify,services/agriai-engine/main.py,336
 ai-agronomist,GET,/healthz,healthz,services/ai_agronomist/main.py,113
 ai-agronomist,GET,/healthz/ai-provider,ai_provider_snapshot,services/ai_agronomist/main.py,118
 ai-agronomist,GET,/v1/approvals/pending,list_pending_approvals,services/ai_agronomist/main.py,126

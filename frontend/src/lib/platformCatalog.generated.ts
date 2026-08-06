@@ -14,11 +14,11 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'db927ed1803949fac721d1280ab307e4b066236a5b1f5b7679d0cb657becf45f';
+export const PLATFORM_CATALOG_FINGERPRINT = 'f5fa0ea8f6a04e5ddb3aa3d1671f05eeb50043a6b6c2f63e069fa2c03e59b228';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
-  "capabilities": 826,
+  "capabilities": 827,
   "capabilities_approval_gated": 8,
   "capabilities_field_scoped": 93,
   "capabilities_idempotent": 46,
@@ -29,7 +29,7 @@ export const PLATFORM_CATALOG_COUNTS = {
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
   "ownership_conflicts": 0,
-  "route_rows": 1111,
+  "route_rows": 1112,
   "ui_waivers": 52,
   "unique_method_path": 998
 } as const;
@@ -45,7 +45,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "wiringDisposition": "consumed"
   },
   {
-    "capabilityCount": 4,
+    "capabilityCount": 5,
     "domain": "simulation-experimental",
     "id": "agriai-engine",
     "tested": true,

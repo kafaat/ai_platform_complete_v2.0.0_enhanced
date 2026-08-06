@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 525,
+      "evidence_count": 526,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -85,6 +85,7 @@
         "services/agriai-engine/main.py",
         "services/agriai-engine/profit_planner.py",
         "services/agriai-engine/replay.py",
+        "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
         "services/agriai-engine/tests/test_agronomic_context_contract.py",
         "services/ai_agronomist/advisory_contract.py",
         "services/ai_agronomist/ai_evidence_runtime.py",
@@ -2254,7 +2255,7 @@
         "services/sahool-platform/core/decision_playbook.py",
         "services/sahool-platform/core/evidence_graph.py"
       ],
-      "source_evidence_count": 525,
+      "source_evidence_count": 526,
       "target_evidence_count": 464,
       "static_supported": true,
       "runtime_verified": false
@@ -2607,5 +2608,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "9d3287662af3d0eafc254c7ff84190374b74cdd20f7476f1940201ac1d65a550"
+  "content_sha256": "d9bd93d72dcba4adc143fb3596d26e01c2856c495ffaf10954722af75241154b"
 }

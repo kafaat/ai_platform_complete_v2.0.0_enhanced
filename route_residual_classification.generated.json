@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
-  "total_residual_main_routes": 153,
+  "total_residual_main_routes": 154,
   "classification_counts": {
-    "business_endpoint": 105,
+    "business_endpoint": 106,
     "capabilities": 2,
     "contract": 3,
     "health": 19,
@@ -12,7 +12,7 @@
     "metrics": 4,
     "readiness": 13
   },
-  "business_endpoint_count": 105,
+  "business_endpoint_count": 106,
   "rows": [
     {
       "service": "agriai-engine",
@@ -53,7 +53,16 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 238,
+      "line": 97,
+      "method": "GET",
+      "path": "/runtime-identity",
+      "function": "runtime_evidence_identity",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 247,
       "method": "POST",
       "path": "/v1/recommend",
       "function": "recommend",
@@ -62,7 +71,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 298,
+      "line": 307,
       "method": "POST",
       "path": "/v1/simulate",
       "function": "simulate",
@@ -71,7 +80,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 311,
+      "line": 320,
       "method": "POST",
       "path": "/v1/plan",
       "function": "plan",
@@ -80,7 +89,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 327,
+      "line": 336,
       "method": "POST",
       "path": "/v1/replay/verify",
       "function": "replay_verify",

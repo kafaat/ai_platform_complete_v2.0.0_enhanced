@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a497b6fb7ef799e2ed8308490c132b5706b9243690741749bcc3ee1dbfa42126"
+          "content": "fc2dde1796a704723d7f7bd3961399f3e2fe791ec18828fe4de68edfcd4592ea"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4385,7 +4385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f3ffdc049d328d4ae7606496994e40ea9cce9707f4542b5958fc41d237d6636"
+          "content": "f6cdf496e5f281bb3a7610b2a4338d6a778fda7408f14d61d8188d6738110d58"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -9785,7 +9785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f6ca1a7176e1011755e2f47343fd5fc396011a222dd071dfefca7bca6f2d5875"
+          "content": "bef57d8e80e005efb330c74c5ab589ead63f9dc29de0877cc16adcc5176e8344"
         }
       ],
       "name": "services/agriai-engine/Dockerfile",
@@ -9845,7 +9845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab9dc4fe9506304134c23aefce4cfa9a6b36e93fa897d8ae5ca026b39cf3a9ad"
+          "content": "38131153b13bf104523452070e3b0515cf53aef38115b0fb6f09487c4e956d45"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -9925,7 +9925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d6fa16fc03954763708272c812d725aea0717092ae4f6cddc57abfc2199bdba"
+          "content": "c665a9888e549b6068344527671ee2827105399f3a0fd5ba6b9c64f852fc97ce"
         }
       ],
       "name": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",

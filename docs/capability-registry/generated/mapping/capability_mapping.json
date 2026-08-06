@@ -15,13 +15,13 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4919,
+    "files_scanned": 4920,
     "files_by_kind": {
       "backend": 1194,
       "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1299,
+      "other": 1300,
       "tests": 1593,
       "web": 451
     },
@@ -18099,6 +18099,10 @@
           "score": 12
         },
         {
+          "value": "/runtime-identity @ services/agriai-engine/main.py:96",
+          "score": 12
+        },
+        {
           "value": "/v1/all-fields @ vegetation_real/indicators_real.py:485",
           "score": 12
         },
@@ -18151,19 +18155,19 @@
           "score": 12
         },
         {
-          "value": "/v1/plan @ services/agriai-engine/main.py:310",
+          "value": "/v1/plan @ services/agriai-engine/main.py:319",
           "score": 12
         },
         {
-          "value": "/v1/recommend @ services/agriai-engine/main.py:237",
+          "value": "/v1/recommend @ services/agriai-engine/main.py:246",
           "score": 12
         },
         {
-          "value": "/v1/replay/verify @ services/agriai-engine/main.py:326",
+          "value": "/v1/replay/verify @ services/agriai-engine/main.py:335",
           "score": 12
         },
         {
-          "value": "/v1/simulate @ services/agriai-engine/main.py:297",
+          "value": "/v1/simulate @ services/agriai-engine/main.py:306",
           "score": 12
         },
         {
@@ -20856,7 +20860,7 @@
       "production_certified": false,
       "evidence_counts": {
         "backend": 100,
-        "routes": 82,
+        "routes": 83,
         "database": 42,
         "events": 100,
         "web": 49,

@@ -4,8 +4,8 @@
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
     "python_files_parsed": 1838,
-    "route_handlers": 1048,
-    "call_edges": 72454,
+    "route_handlers": 1049,
+    "call_edges": 72467,
     "dead_code_candidates": 614,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -87,7 +87,15 @@
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 238,
+      "line": 97,
+      "handler": "runtime_evidence_identity",
+      "method": "GET",
+      "path": "/runtime-identity"
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 247,
       "handler": "recommend",
       "method": "POST",
       "path": "/v1/recommend"
@@ -95,7 +103,7 @@
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 298,
+      "line": 307,
       "handler": "simulate",
       "method": "POST",
       "path": "/v1/simulate"
@@ -103,7 +111,7 @@
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 311,
+      "line": 320,
       "handler": "plan",
       "method": "POST",
       "path": "/v1/plan"
@@ -111,7 +119,7 @@
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 327,
+      "line": 336,
       "handler": "replay_verify",
       "method": "POST",
       "path": "/v1/replay/verify"
@@ -13329,387 +13337,401 @@
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
+      "source": "runtime_evidence_identity",
+      "target": "get",
+      "line": 96
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "runtime_evidence_identity",
+      "target": "load_build_identity",
+      "line": 100
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
       "source": "_require_service_token",
       "target": "Header",
-      "line": 158
+      "line": 167
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "_require_service_token",
       "target": "HTTPException",
-      "line": 160
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "_require_service_token",
-      "target": "HTTPException",
-      "line": 162
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "_validated_context",
-      "target": "validate_context",
       "line": 169
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "source": "_validated_context",
+      "source": "_require_service_token",
       "target": "HTTPException",
       "line": 171
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "source": "_context_inputs",
-      "target": "normalized_engine_inputs",
+      "source": "_validated_context",
+      "target": "validate_context",
+      "line": 178
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "_validated_context",
+      "target": "HTTPException",
       "line": 180
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "source": "_build_bundle",
-      "target": "append",
-      "line": 190
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "_build_bundle",
-      "target": "make_evidence_item",
-      "line": 191
+      "source": "_context_inputs",
+      "target": "normalized_engine_inputs",
+      "line": 189
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "_build_bundle",
       "target": "append",
-      "line": 201
+      "line": 199
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "_build_bundle",
       "target": "make_evidence_item",
-      "line": 202
+      "line": 200
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "_build_bundle",
       "target": "append",
-      "line": 207
+      "line": 210
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "_build_bundle",
       "target": "make_evidence_item",
-      "line": 208
+      "line": 211
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "_build_bundle",
+      "target": "append",
+      "line": 216
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "_build_bundle",
+      "target": "make_evidence_item",
+      "line": 217
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "_build_bundle",
       "target": "assemble_bundle",
-      "line": 212
+      "line": 221
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "_candidates_to_plan",
       "target": "simulate",
-      "line": 224
+      "line": 233
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "_candidates_to_plan",
       "target": "append",
-      "line": 225
+      "line": 234
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "recommend",
       "target": "post",
-      "line": 237
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "Header",
-      "line": 238
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "_require_service_token",
-      "line": 240
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "_validated_context",
-      "line": 242
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "_context_inputs",
-      "line": 243
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "get",
       "line": 246
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "recommend",
-      "target": "get",
+      "target": "Header",
       "line": 247
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "recommend",
-      "target": "get",
-      "line": 247
+      "target": "_require_service_token",
+      "line": 249
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "recommend",
-      "target": "get",
-      "line": 248
+      "target": "_validated_context",
+      "line": 251
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "recommend",
-      "target": "get",
-      "line": 250
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "isinstance",
-      "line": 250
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "_build_bundle",
+      "target": "_context_inputs",
       "line": 252
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "recommend",
-      "target": "bundle_hash",
-      "line": 253
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "compose_confidence",
-      "line": 254
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "CandidateIn",
-      "line": 257
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "_candidates_to_plan",
-      "line": 258
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "plan_profit",
-      "line": 259
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "build_envelope",
-      "line": 272
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "bool",
-      "line": 274
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "recommend",
-      "target": "append",
-      "line": 277
+      "target": "get",
+      "line": 255
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "recommend",
       "target": "get",
-      "line": 287
+      "line": 256
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "get",
+      "line": 256
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "get",
+      "line": 257
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "get",
+      "line": 259
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "isinstance",
+      "line": 259
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "_build_bundle",
+      "line": 261
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "bundle_hash",
+      "line": 262
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "compose_confidence",
+      "line": 263
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "CandidateIn",
+      "line": 266
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "_candidates_to_plan",
+      "line": 267
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "plan_profit",
+      "line": 268
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "build_envelope",
+      "line": 281
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "bool",
+      "line": 283
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "append",
+      "line": 286
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "recommend",
+      "target": "get",
+      "line": 296
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "simulate",
       "target": "post",
-      "line": 297
+      "line": 306
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "simulate",
       "target": "Header",
-      "line": 298
+      "line": 307
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "simulate",
       "target": "_require_service_token",
-      "line": 300
+      "line": 309
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "simulate",
       "target": "_validated_context",
-      "line": 301
+      "line": 310
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "simulate",
       "target": "_context_inputs",
-      "line": 302
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "plan",
-      "target": "post",
-      "line": 310
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "plan",
-      "target": "Header",
       "line": 311
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "plan",
-      "target": "_require_service_token",
-      "line": 313
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "plan",
-      "target": "_validated_context",
-      "line": 314
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "plan",
-      "target": "_context_inputs",
-      "line": 315
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "plan",
-      "target": "_build_bundle",
-      "line": 318
-    },
-    {
-      "owner": "agriai-engine",
-      "file": "services/agriai-engine/main.py",
-      "source": "plan",
-      "target": "bundle_hash",
+      "target": "post",
       "line": 319
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "plan",
-      "target": "_candidates_to_plan",
+      "target": "Header",
       "line": 320
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "plan",
+      "target": "_require_service_token",
+      "line": 322
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "plan",
+      "target": "_validated_context",
+      "line": 323
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "plan",
+      "target": "_context_inputs",
+      "line": 324
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "plan",
+      "target": "_build_bundle",
+      "line": 327
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "plan",
+      "target": "bundle_hash",
+      "line": 328
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "plan",
+      "target": "_candidates_to_plan",
+      "line": 329
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "source": "plan",
       "target": "plan_profit",
-      "line": 321
+      "line": 330
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "replay_verify",
       "target": "post",
-      "line": 326
+      "line": 335
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "replay_verify",
       "target": "Header",
-      "line": 327
+      "line": 336
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "replay_verify",
       "target": "_require_service_token",
-      "line": 329
+      "line": 338
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "replay_verify",
       "target": "verify_replay",
-      "line": 331
+      "line": 340
     },
     {
       "owner": "agriai-engine",
       "file": "services/agriai-engine/main.py",
       "source": "replay_verify",
       "target": "compute_replay_hash",
-      "line": 334
+      "line": 343
     },
     {
       "owner": "agriai-engine",
@@ -14487,6 +14509,83 @@
       "source": "test_service_has_runtime_entry_or_dockerfile",
       "target": "exists",
       "line": 35
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "parse",
+      "line": 43
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "read_text",
+      "line": 43
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "read_text",
+      "line": 44
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "walk",
+      "line": 45
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "isinstance",
+      "line": 46
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "isinstance",
+      "line": 50
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "isinstance",
+      "line": 51
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "isinstance",
+      "line": 54
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "get_source_segment",
+      "line": 57
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_runtime_identity_endpoint_is_exposed",
+      "target": "AssertionError",
+      "line": 60
+    },
+    {
+      "owner": "agriai-engine",
+      "file": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "source": "test_build_identity_is_baked_into_the_image",
+      "target": "read_text",
+      "line": 65
     },
     {
       "owner": "agriai-engine",

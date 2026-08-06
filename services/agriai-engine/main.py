@@ -91,6 +91,15 @@ async def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+# Runtime identity is read from a build-time generated, read-only image file.
+# Mutable runtime environment values are deliberately not trusted.
+@app.get("/runtime-identity", include_in_schema=True)
+def runtime_evidence_identity():
+    from shared.runtime_identity import load_build_identity
+
+    return load_build_identity("agriai-engine")
+
+
 # ── نماذج التحقّق ──
 
 
