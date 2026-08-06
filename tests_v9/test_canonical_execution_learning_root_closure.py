@@ -9,7 +9,7 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT / "services/sahool-platform/api/persisted_canonical_repositories.py"
-WORKER = ROOT / "scripts/workers/canonical_execution_learning_worker.py"
+WORKER = ROOT / "services/sahool-platform/workers/canonical_execution_learning_worker.py"
 COMPOSE = ROOT / "docker-compose.v9.yml"
 RUNNER = ROOT / "scripts_v9/run_migrations.sql"
 
@@ -24,7 +24,7 @@ def test_projection_events_do_not_mint_fake_command_ids() -> None:
 def test_worker_is_registered_in_compose() -> None:
     compose = COMPOSE.read_text(encoding="utf-8")
     assert "sahool-canonical-execution-learning-worker:" in compose
-    assert "/app/scripts/workers/canonical_execution_learning_worker.py" in compose
+    assert "/app/workers/canonical_execution_learning_worker.py" in compose
     assert "CANONICAL_LEARNING_DURABLE" in compose
 
 

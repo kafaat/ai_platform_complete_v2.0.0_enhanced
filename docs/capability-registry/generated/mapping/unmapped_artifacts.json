@@ -6840,6 +6840,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_container_command_path_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_container_fleet_contract_guard.py",
     "kind": "tests"
   },

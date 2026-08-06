@@ -1838,6 +1838,7 @@
         "APPLY_NDVI_THRESHOLDS",
         "APP_ENV",
         "AQUACROP_ENABLED",
+        "CANONICAL_LEARNING_DURABLE",
         "CDSE_CLIENT_ID",
         "COMPOSE_SERVER_AUTHORITATIVE_SPECTRAL_ENABLED",
         "CORS_ORIGINS",
@@ -2053,7 +2054,8 @@
           "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
           "services/sahool-platform/tests/test_phase11_runtime_api.py",
           "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
-          "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py"
+          "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
+          "services/sahool-platform/workers/canonical_execution_learning_worker.py"
         ],
         "metrics": [
           "services/sahool-platform/api/routers/weather.py",
@@ -2532,7 +2534,8 @@
           "services/sahool-platform/tests/test_weather_engine_v21_rate_limit_actions.py",
           "services/sahool-platform/tests/test_wind_geometry.py",
           "services/sahool-platform/tests/test_workflow_engine.py",
-          "services/sahool-platform/tests/test_yemeni_calendars.py"
+          "services/sahool-platform/tests/test_yemeni_calendars.py",
+          "services/sahool-platform/workers/canonical_execution_learning_worker.py"
         ],
         "tracing": []
       },

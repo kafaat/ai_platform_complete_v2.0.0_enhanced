@@ -89,3 +89,32 @@ def test_only_executable_roots_count_toward_the_baseline():
         guard.EVENT_SUBSCRIBER,
         guard.OPERATOR_CLI,
     }
+
+
+def test_a_path_launched_worker_inside_the_platform_is_a_root_itself():
+    """المُشغِّل الذي هو نفسه وحدةُ منصّة جذرٌ بذاته، لا مجرّد قناةٍ إلى ما يستورده.
+
+    ``sahool-canonical-execution-learning-worker`` يُشغَّل بمسار لا بـ``-m``، وبعد نقله
+    إلى ``services/sahool-platform/workers/`` صار وحدةَ منصّة. عدُّ وارداته وحدها كان
+    يُبقي **نقطة الدخول نفسها** مصنَّفةً طرفيّةً — أي «كوداً ميتاً» بحكم الحارس، بينما
+    compose يُنفّذها في كلّ إقلاع.
+    """
+    guard = _load()
+    files = guard.platform_modules()
+    roots = guard.registered_worker_roots(files)
+    assert "workers/canonical_execution_learning_worker.py" in roots
+
+
+def test_the_container_path_maps_to_the_service_root_not_the_repository_root():
+    """‏``/app`` هو حيث يُنسَخ **محتوى** جذر الخدمة — لا جذر المستودع.
+
+    الصيغة الأولى قرأت ``/app/scripts/x.py`` بوصفه ``scripts/x.py`` في جذر المستودع،
+    وهو الافتراض الذي أنتج ``CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01`` نفسه: ذلك المسار
+    غير موجود في الصورة إطلاقاً.
+    """
+    guard = _load()
+    resolved = guard._resolve_worker_script("/app/workers/canonical_execution_learning_worker.py")
+    assert resolved is not None
+    path, platform_rel = resolved
+    assert platform_rel == "workers/canonical_execution_learning_worker.py"
+    assert path == ROOT / "services/sahool-platform/workers/canonical_execution_learning_worker.py"

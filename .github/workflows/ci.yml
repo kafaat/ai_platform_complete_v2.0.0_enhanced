@@ -447,6 +447,14 @@ jobs:
             fi
           fi
           echo "✓ No orphaned depends_on entries"
+      # «مُسجَّل في compose» ليس «موجود في الصورة». مقيس: عامل التعلّم القانونيّ كان
+      # يُنفَّذ من /app/scripts/workers/… بينما Dockerfile ينسخ shared/ وجذر الخدمة فقط
+      # ⇒ الحاوية تموت عند الإقلاع وrestart يُعيدها إلى الأبد. الفحوص أعلاه تتحقّق من
+      # صحّة compose نفسه، ولا واحد منها يسأل: هل المسار الذي يُشغَّل موجود في الصورة؟
+      - name: Every executed container path is placed by its image
+        run: |
+          pip install --quiet pyyaml
+          python3 scripts/ci/container_command_path_guard.py --check
 
   lint:
     name: Lint & Format

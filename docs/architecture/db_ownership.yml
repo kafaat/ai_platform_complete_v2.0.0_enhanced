@@ -1981,4 +1981,4 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: [sahool-platform]
-    source: "migrations/v227_decision_learning_runtime.sql, scripts/workers/canonical_execution_learning_worker.py"
+    source: "migrations/v227_decision_learning_runtime.sql, services/sahool-platform/workers/canonical_execution_learning_worker.py"

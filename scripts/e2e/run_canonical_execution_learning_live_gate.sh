@@ -55,7 +55,7 @@ psql -X -v ON_ERROR_STOP=1 "$DATABASE_URL" \
   -f scripts/e2e/canonical_execution_learning_rls_live_gate.sql \
   >"$workdir/rls.log" 2>&1
 DATABASE_URL="$DATABASE_URL" NATS_URL="$NATS_URL" \
-  python scripts/workers/canonical_execution_learning_worker.py --preflight-json \
+  python services/sahool-platform/workers/canonical_execution_learning_worker.py --preflight-json \
   >"$workdir/preflight.json"
 DATABASE_URL="$DATABASE_URL" NATS_URL="$NATS_URL" \
   python scripts/e2e/canonical_projection_jetstream_roundtrip.py \

@@ -37,7 +37,7 @@ if str(CI_DIR) not in sys.path:
 # One fixed fixture, deliberately spanning dimensions a single-registry walk cannot see:
 # platform API, a migration, a worker, e2e scripts, compose, and the frontend.
 FIXTURE = (
-    "scripts/workers/canonical_execution_learning_worker.py",
+    "services/sahool-platform/workers/canonical_execution_learning_worker.py",
     "services/sahool-platform/api/persisted_canonical_repositories.py",
     "services/sahool-platform/api/learning_feedback.py",
     "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
