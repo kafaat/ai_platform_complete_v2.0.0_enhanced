@@ -198,6 +198,28 @@ def safe_raster_source(url: str | None, upload_dir: str, blocked_hosts: set[str]
     raise HTTPException(400, "مخطّط URL غير مدعوم لمصدر الراستر")
 
 
+def assert_readable_size(src, *, what: str, ceiling: int) -> int:
+    """يرفض راستراً أكبر من السقف **قبل** تخصيص أيّ مصفوفة. يُرجِع عدد بكسلات-النطاق.
+
+    ``UNBOUNDED-RASTER-READ-ON-ARBITRARY-URL-01``. ``rasterio.open`` يعطي الأبعاد بلا
+    قراءة بكسل واحد، فالفحص هنا مجّانيّ — بينما ``src.read()`` يخصّص
+    ``width × height × count`` بايتاً دفعةً واحدة. و``safe_raster_source`` أعلاه يقبل
+    **أيّ** رابط ``http(s)`` غير محجوب، فحجم المصدر ليس تحت سيطرة الخدمة.
+
+    **الرفض المُعلَن أصدق من OOM صامت:** حاويةٌ تُقتَل بـSIGKILL لا تترك سبباً في أيّ
+    سجلّ ولا في أيّ صفّ، بينما هذا يُسمّي الأبعاد والسقف ويقول ماذا يفعل المُستدعي.
+    """
+    band_pixels = int(src.width) * int(src.height) * int(src.count)
+    if band_pixels > int(ceiling):
+        raise HTTPException(
+            413,
+            f"راستر أكبر من سقف القراءة ({what}): "
+            f"{src.width}×{src.height}×{src.count} = {band_pixels:,} بكسل-نطاق "
+            f"> {int(ceiling):,}. قُصّ المصدر، أو ارفع RASTER_MAX_READ_BAND_PIXELS بوعي.",
+        )
+    return band_pixels
+
+
 def require_service_token(x_agent_token: str | None, agent_token: str) -> None:
     """Service-to-service authentication for write/storage endpoints."""
     if not agent_token:

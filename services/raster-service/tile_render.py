@@ -783,11 +783,18 @@ def apply_polygon_mask_rgba(cog_path: str, geom_4326: dict) -> None:
     القيم بـNaN نُصفِّر قناة **ألفا** (النطاق الرابع) خارج الحقل — قصّ محلّيّ مستقلّ عن
     قصّ المزوّد، مطابق لحافّة الحقل (fail-closed). يرفع عند الفشل فيعالجه المُستدعي.
     """
+    import raster_security_context
+    import raster_settings
     import rasterio
     from rasterio.features import geometry_mask
     from rasterio.warp import transform_geom
 
     with rasterio.open(cog_path) as src:
+        raster_security_context.assert_readable_size(
+            src,
+            what="uint8 polygon mask",
+            ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
+        )
         data = src.read()  # (bands, H, W) uint8
         profile = src.profile.copy()
         geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)

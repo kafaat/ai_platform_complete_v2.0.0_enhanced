@@ -12,6 +12,8 @@ import os
 import uuid
 
 import raster_cloud_mask_strategies
+import raster_security_context
+import raster_settings
 import raster_topographic_qa
 import raster_validated_product
 import raw_data_processing
@@ -247,6 +249,13 @@ def process_precomputed_truecolor(ctx, req):
             bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
         else:
             bounds = list(src.bounds)
+        # الحجم يُفحَص **قبل** التخصيص: `safe_raster_source` يقبل أيّ رابط http(s) غير
+        # محجوب، فأبعاد المصدر ليست تحت سيطرة الخدمة. `rasterio.open` أعطاها بلا قراءة.
+        raster_security_context.assert_readable_size(
+            src,
+            what="truecolor precomputed",
+            ceiling=raster_settings.RASTER_MAX_READ_BAND_PIXELS,
+        )
         arr = src.read()  # (bands, H, W) uint8
         transform = src.transform
 
