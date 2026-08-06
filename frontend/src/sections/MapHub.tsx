@@ -2570,6 +2570,7 @@ function MapHubCore() {
                                   }
                                   date={d.date}
                                   borderColor={active ? '#22c55e66' : '#334155'}
+                                  processing={historicalBackfillBusy}
                                 />
                               )}
                               <div className="flex items-center justify-between gap-2">

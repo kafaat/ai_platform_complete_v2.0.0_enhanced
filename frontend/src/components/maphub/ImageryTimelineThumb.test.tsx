@@ -13,9 +13,16 @@ import ImageryTimelineThumb from './ImageryTimelineThumb';
 const BORDER = '#334155';
 
 describe('ImageryTimelineThumb — حالات مرئيّة بدل إخفاء صامت', () => {
-  it('بلا رابط (has_cog=false) ⇒ «قيد المعالجة» لا مساحة فارغة', () => {
-    render(<ImageryTimelineThumb src={null} date="2026-06-18" borderColor={BORDER} />);
+  it('بلا رابط + processing=true ⇒ «قيد المعالجة» لا مساحة فارغة', () => {
+    render(<ImageryTimelineThumb src={null} date="2026-06-18" borderColor={BORDER} processing={true} />);
     expect(screen.getByText('قيد المعالجة')).toBeInTheDocument();
+    expect(screen.queryByTestId('imagery-thumb-img')).not.toBeInTheDocument();
+  });
+
+  it('بلا رابط + processing=false (الافتراض) ⇒ «لا صورة متاحة» لا مساحة فارغة', () => {
+    render(<ImageryTimelineThumb src={null} date="2026-06-18" borderColor={BORDER} />);
+    expect(screen.getByText('لا صورة متاحة')).toBeInTheDocument();
+    expect(screen.queryByText('قيد المعالجة')).not.toBeInTheDocument();
     expect(screen.queryByTestId('imagery-thumb-img')).not.toBeInTheDocument();
   });
 
@@ -64,11 +71,19 @@ describe('ImageryTimelineThumb — حالات مرئيّة بدل إخفاء ص�
     expect(screen.queryByText('تعذّر العرض')).not.toBeInTheDocument();
   });
 
-  it('الانتقال إلى تاريخ بلا أصل ⇒ يعود إلى «قيد المعالجة»', () => {
+  it('الانتقال إلى تاريخ بلا أصل (processing=false) ⇒ «لا صورة متاحة»', () => {
     const { rerender } = render(
       <ImageryTimelineThumb src="/a.png" date="2026-06-18" borderColor={BORDER} />,
     );
     rerender(<ImageryTimelineThumb src={null} date="2026-06-21" borderColor={BORDER} />);
+    expect(screen.getByText('لا صورة متاحة')).toBeInTheDocument();
+  });
+
+  it('الانتقال إلى تاريخ بلا أصل (processing=true) ⇒ «قيد المعالجة»', () => {
+    const { rerender } = render(
+      <ImageryTimelineThumb src="/a.png" date="2026-06-18" borderColor={BORDER} processing={true} />,
+    );
+    rerender(<ImageryTimelineThumb src={null} date="2026-06-21" borderColor={BORDER} processing={true} />);
     expect(screen.getByText('قيد المعالجة')).toBeInTheDocument();
   });
 });

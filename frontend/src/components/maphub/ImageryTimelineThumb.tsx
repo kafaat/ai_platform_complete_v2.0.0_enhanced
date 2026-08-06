@@ -10,6 +10,8 @@ import { useEffect, useState } from 'react';
  *
  * لذلك تُعلَن الحالة ولا تُستنتج من الفراغ:
  *   - `pending` — مرّ القمر ولم يُعالَج بعد (`has_cog=false`).
+ *     · `processing=true`  → «قيد المعالجة» (يوجد backfill نشط يُنتج هذا الـCOG الآن).
+ *     · `processing=false` → «لا صورة متاحة» (لا backfill مجدوَل لهذا التاريخ).
  *   - `ready`   — الأصل المُدَام حُمِّل وعُرِض.
  *   - `failed`  — الأصل مُعلَن وتعذّر تقديمه (المسار المُدَام يعيد 404 ⇒ `onError`).
  */
@@ -21,11 +23,16 @@ export interface ImageryTimelineThumbProps {
   date: string;
   /** لون الحدّ حسب حالة الاختيار في البطاقة. */
   borderColor: string;
+  /**
+   * `true` حين يكون backfill نشطاً يُعالج هذا التاريخ الآن → «قيد المعالجة».
+   * `false` (الافتراض) → «لا صورة متاحة»: الـCOG غير مجدوَل لهذا التاريخ.
+   */
+  processing?: boolean;
 }
 
 const BOX = 'relative mb-2 h-16 w-full overflow-hidden rounded-lg border';
 
-export function ImageryTimelineThumb({ src, date, borderColor }: ImageryTimelineThumbProps) {
+export function ImageryTimelineThumb({ src, date, borderColor, processing = false }: ImageryTimelineThumbProps) {
   const [state, setState] = useState<ThumbState>(src ? 'loading' : 'pending');
 
   // تبدّل الرابط (تغيّر المؤشّر/المستأجِر) يعيد الحالة — وإلّا بقي `failed` لصورة أخرى.
@@ -34,7 +41,9 @@ export function ImageryTimelineThumb({ src, date, borderColor }: ImageryTimeline
   }, [src]);
 
   const label =
-    state === 'pending' ? 'قيد المعالجة' : state === 'failed' ? 'تعذّر العرض' : null;
+    state === 'pending'
+      ? (processing ? 'قيد المعالجة' : 'لا صورة متاحة')
+      : state === 'failed' ? 'تعذّر العرض' : null;
 
   return (
     <div className={BOX} style={{ borderColor, background: '#020617' }} data-testid="imagery-thumb">
