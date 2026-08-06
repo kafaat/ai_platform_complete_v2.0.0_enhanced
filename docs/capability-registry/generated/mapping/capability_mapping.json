@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4920,
+    "files_scanned": 4923,
     "files_by_kind": {
-      "backend": 1194,
+      "backend": 1195,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1300,
-      "tests": 1593,
+      "tests": 1595,
       "web": 451
     },
-    "unmapped_artifacts": 2006,
+    "unmapped_artifacts": 2008,
     "ambiguous_artifacts": 399
   },
   "capabilities": [
@@ -10787,6 +10787,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+          "score": 12,
+          "signals": [
+            "content:jetstream",
+            "content:nats"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
           "score": 9,
           "signals": [
@@ -11013,7 +11021,7 @@
           "score": 14
         },
         {
-          "value": "irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:215",
+          "value": "irrigation.execution.completed @ services/sahool-platform/workers/canonical_execution_learning_worker.py:226",
           "score": 12
         },
         {
@@ -11053,7 +11061,7 @@
           "score": 12
         },
         {
-          "value": "sahool.events.agronomy.projection.requested @ scripts/workers/canonical_execution_learning_worker.py:55",
+          "value": "sahool.events.agronomy.projection.requested @ services/sahool-platform/workers/canonical_execution_learning_worker.py:66",
           "score": 12
         },
         {
@@ -11061,11 +11069,11 @@
           "score": 12
         },
         {
-          "value": "sahool.events.irrigation.execution.completed @ scripts/workers/canonical_execution_learning_worker.py:53",
+          "value": "sahool.events.irrigation.execution.completed @ services/sahool-platform/workers/canonical_execution_learning_worker.py:64",
           "score": 12
         },
         {
-          "value": "sahool.events.season.closed @ scripts/workers/canonical_execution_learning_worker.py:54",
+          "value": "sahool.events.season.closed @ services/sahool-platform/workers/canonical_execution_learning_worker.py:65",
           "score": 12
         },
         {
@@ -11296,14 +11304,6 @@
           ]
         },
         {
-          "path": "scripts/workers/canonical_execution_learning_worker.py",
-          "score": 12,
-          "signals": [
-            "content:jetstream",
-            "content:nats"
-          ]
-        },
-        {
           "path": "docs/history/AUTOMATION_AND_N8N_REVIEW.md",
           "score": 11,
           "signals": [
@@ -11391,7 +11391,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 5,
+        "backend": 6,
         "routes": 15,
         "database": 2,
         "events": 66,
@@ -11399,7 +11399,7 @@
         "mobile": 0,
         "tests": 8,
         "governance": 0,
-        "other_evidence": 19
+        "other_evidence": 18
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -22500,15 +22500,15 @@
           "score": 11
         },
         {
-          "value": "fields.py @ tests_v9/test_persistence_truth_audit_v30_7.py:105",
+          "value": "fields.py @ tests_v9/test_persistence_truth_audit_v30_7.py:154",
           "score": 10
         },
         {
-          "value": "fields.py @ tests_v9/test_persistence_truth_audit_v30_7.py:109",
+          "value": "fields.py @ tests_v9/test_persistence_truth_audit_v30_7.py:158",
           "score": 10
         },
         {
-          "value": "fields.py @ tests_v9/test_persistence_truth_audit_v30_7.py:124",
+          "value": "fields.py @ tests_v9/test_persistence_truth_audit_v30_7.py:173",
           "score": 10
         },
         {
@@ -40897,6 +40897,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_backfill_failure_reason_persisted.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_backfill_incremental_retry_guard_v31_1.py",
       "kind": "tests"
     },
@@ -41026,6 +41030,10 @@
     },
     {
       "path": "tests_v9/test_compose_services_are_declared_as_services.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_container_command_path_guard.py",
       "kind": "tests"
     },
     {

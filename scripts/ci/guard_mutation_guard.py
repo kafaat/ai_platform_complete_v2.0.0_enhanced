@@ -185,10 +185,24 @@ def failing_tests(out: str) -> list[str]:
 
 
 def _run_tests(test_file: str, root: Path) -> tuple[int, str]:
-    """Run one mutation test in a deterministic, isolated process environment."""
+    """Run one mutation test in a deterministic, isolated process environment.
+
+    ``PYTHONDONTWRITEBYTECODE`` ليس تشدّداً — هو **علاج الرقيعة المُسجَّلة** التي أخفقت
+    ثلاث مرّات على ``claim_base_guard.py[4]`` (``MUTATION-VERDICT-CONTRADICTS-ITS-OWN-
+    DIAGNOSIS-01``). المقيس: بايثون يُبطِل ``.pyc`` بـ**(mtime, size)** لا بالمحتوى.
+    والطفرتان ``[3]`` و``[4]`` على ذلك الحارس هما **الزوج الوحيد المتساوي الطول** بين
+    ثمانٍ (٧١٨٨ حرفاً لكلٍّ، ``+9`` عن الأصل — قِيس، لا افتُرِض). فحين تقع كتابتاهما في
+    نفس دقّة الطابع الزمنيّ، تُحمَّل بايتكود ``[3]`` أثناء تشغيل ``[4]`` ⇒ يسقط
+    **اختبار ``[3]``** وحده والمُشغَّلة ``[4]`` — وهو حرفيّاً ما سجّله الـCI:
+    ``1 failed, 27 passed`` مع «الساقط فعلاً: test_a_measured_stamp_does_not_satisfy_a_decision».
+
+    وهذا يفسّر لماذا لم تُصِب الرقيعةُ طفرةً أخرى قطّ، ولماذا تخضرّ الإعادات: بينها زمنٌ
+    يكفي لاختلاف ``mtime``. بلا ``.pyc`` لا ذاكرة تبيت أصلاً.
+    """
     env = os.environ.copy()
     env.update(
         {
+            "PYTHONDONTWRITEBYTECODE": "1",
             "PYTHONHASHSEED": "0",
             "PYTHONUTF8": "1",
             "PYTHONIOENCODING": "utf-8",
@@ -277,6 +291,15 @@ def run_mutations(
             finally:
                 src.write_text(original, encoding="utf-8")
                 _ACTIVE_RESTORES.pop(src, None)
+            # الحارس الذي يزرع ويستعيد يحتاج أن **يُثبت** استعادته. بلا هذا، أيّ تسرّب
+            # بين طفرتين متتاليتين يظهر «رقيعةً» لا عطلاً — وهو ما كلّف ثلاث ملاحظات
+            # قبل أن يُعزَل السبب. المقارنة بالمحتوى لا بالحجم: طفرتان متساويتا الطول
+            # هما بالضبط الحالة التي أخفت العطل.
+            if src.read_text(encoding="utf-8") != original:
+                failures.append(
+                    f"✗ {label}: **الاستعادة لم تُعِد المصدر إلى أصله** — كلّ طفرة تالية"
+                    "\n    تعمل على شجرة ملوَّثة، وأحكامها لا تخصّ ما زُرِع فيها."
+                )
             if not ran_at_all(out):
                 failures.append(
                     f"✗ {label}: **المُشغِّل لم يُشغّل اختباراً** — لا انهيار الحارس"

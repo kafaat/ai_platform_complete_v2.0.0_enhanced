@@ -158,6 +158,18 @@
           "find": "                observed = failing_tests(out)",
           "replace": "                observed = []",
           "why": "نزع تسمية الاختبارات الساقطة فعلاً ⇒ فرع «حمرّ بغير المتوقَّع» يعود غير قابل للتشخيص من سجلّه"
+        },
+        {
+          "expect": "test_the_runner_blocks_bytecode_caching",
+          "find": "            \"PYTHONDONTWRITEBYTECODE\": \"1\",\n",
+          "replace": "",
+          "why": "عودةُ ذاكرة الـbytecode ⇒ طفرتان متساويتا الطول تتبادلان الأثر (السبب الجذريّ المُثبَت للرقيعة)"
+        },
+        {
+          "expect": "test_a_restore_that_did_not_restore_is_reported",
+          "find": "            if src.read_text(encoding=\"utf-8\") != original:",
+          "replace": "            if False:",
+          "why": "إسقاط برهان الاستعادة ⇒ تسرّبٌ بين طفرتين يظهر «عشوائيّةً» لا عطلاً"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"

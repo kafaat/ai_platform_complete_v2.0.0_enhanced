@@ -3,10 +3,10 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1838,
+    "python_files_parsed": 1839,
     "route_handlers": 1049,
-    "call_edges": 72467,
-    "dead_code_candidates": 614,
+    "call_edges": 72610,
+    "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -101602,55 +101602,48 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_run",
       "target": "acquire",
-      "line": 420
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_run",
-      "target": "execute",
       "line": 421
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_run",
+      "target": "execute",
+      "line": 422
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_run",
       "target": "info",
-      "line": 431
+      "line": 432
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_run",
       "target": "len",
-      "line": 437
+      "line": 438
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "str",
-      "line": 460
+      "line": 461
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "get",
-      "line": 463
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "_as_dt",
       "line": 464
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "strftime",
+      "target": "_as_dt",
       "line": 465
     },
     {
@@ -101664,49 +101657,49 @@
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "acquire",
-      "line": 468
+      "target": "strftime",
+      "line": 467
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "acquire",
       "line": 469
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
+      "target": "execute",
+      "line": 470
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
       "target": "stac_search_landsat_unique",
-      "line": 475
+      "line": 476
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "stac_search",
-      "line": 480
+      "line": 481
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "str",
-      "line": 484
+      "line": 485
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "stac_search",
-      "line": 486
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "get",
       "line": 487
     },
     {
@@ -101714,727 +101707,615 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "get",
-      "line": 487
+      "line": 488
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "get",
-      "line": 487
+      "line": 488
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
+      "target": "get",
+      "line": 488
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "acquire",
-      "line": 490
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "_set_tenant",
       "line": 491
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "fetch",
+      "target": "_set_tenant",
       "line": 492
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "acquire",
-      "line": 509
+      "target": "fetch",
+      "line": 493
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "transaction",
+      "target": "acquire",
       "line": 510
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 511
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "fetchval",
+      "target": "_set_tenant",
       "line": 512
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "acquire",
-      "line": 526
+      "target": "fetchval",
+      "line": 513
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "transaction",
+      "target": "acquire",
       "line": 527
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 528
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "_set_tenant",
       "line": 529
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
+      "target": "execute",
+      "line": 530
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
       "target": "get",
-      "line": 536
+      "line": 537
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "acquire",
-      "line": 539
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "transaction",
       "line": 540
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 541
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "_set_tenant",
       "line": 542
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "uuid4",
-      "line": 550
+      "target": "execute",
+      "line": 543
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "acquire",
+      "target": "uuid4",
       "line": 551
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "transaction",
+      "target": "acquire",
       "line": 552
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 553
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "_set_tenant",
       "line": 554
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
+      "target": "execute",
+      "line": 555
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
       "target": "to_thread",
-      "line": 559
+      "line": 560
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "acquire",
-      "line": 566
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_single_scene_run",
-      "target": "transaction",
       "line": 567
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "_set_tenant",
+      "target": "transaction",
       "line": 568
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
-      "target": "execute",
+      "target": "_set_tenant",
       "line": 569
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
+      "target": "execute",
+      "line": 570
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_single_scene_run",
       "target": "acquire",
-      "line": 581
+      "line": 583
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "execute",
-      "line": 582
+      "line": 584
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "len",
-      "line": 592
+      "line": 594
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_single_scene_run",
       "target": "info",
-      "line": 594
+      "line": 596
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
+      "source": "_outcome_from_job",
       "target": "get",
-      "line": 627
+      "line": 635
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
+      "source": "_outcome_from_job",
       "target": "get",
-      "line": 627
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "startswith",
-      "line": 627
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "RuntimeError",
-      "line": 629
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 630
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 630
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "RuntimeError",
-      "line": 632
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "ProcessRequest",
-      "line": 633
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "_safe_raster_source",
       "line": 636
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "BandMapping",
+      "source": "_outcome_from_job",
+      "target": "get",
+      "line": 637
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "SceneOutcome",
+      "line": 638
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "get",
+      "line": 638
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "get",
       "line": 639
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 643
+      "source": "_outcome_from_job",
+      "target": "SceneOutcome",
+      "line": 641
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_outcome_from_job",
+      "target": "SceneOutcome",
+      "line": 642
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 644
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "run_processing",
-      "line": 648
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 649
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 650
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "bool",
-      "line": 651
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 652
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 653
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 658
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "_process_backfill_scene_cdse",
-      "line": 660
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 661
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 662
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "bool",
-      "line": 663
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 664
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 665
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "_safe_raster_source",
-      "line": 668
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "get",
-      "line": 668
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "items",
-      "line": 668
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "build_band_vrt",
       "line": 670
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "ProcessRequest",
+      "target": "get",
+      "line": 670
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "startswith",
+      "line": 670
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "RuntimeError",
+      "line": 672
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "get",
       "line": 673
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "IndicatorKind",
-      "line": 677
+      "target": "get",
+      "line": 673
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "BandMapping",
+      "target": "RuntimeError",
+      "line": 675
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "ProcessRequest",
+      "line": 676
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_safe_raster_source",
       "line": 679
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "items",
-      "line": 680
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "_process_scene_index",
-      "target": "bool",
-      "line": 683
+      "target": "BandMapping",
+      "line": 682
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 684
+      "line": 686
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 685
+      "line": 687
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "run_processing",
-      "line": 689
+      "line": 691
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_outcome_from_job",
+      "line": 692
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 690
+      "line": 696
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_process_backfill_scene_cdse",
+      "line": 698
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_outcome_from_job",
+      "line": 699
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_safe_raster_source",
+      "line": 701
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 694
+      "line": 701
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "items",
+      "line": 701
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "build_band_vrt",
+      "line": 703
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "ProcessRequest",
+      "line": 706
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "IndicatorKind",
+      "line": 710
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "BandMapping",
+      "line": 712
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "items",
+      "line": 713
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "bool",
-      "line": 695
+      "line": 716
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 696
+      "line": 717
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "get",
-      "line": 696
+      "line": 718
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "get",
-      "line": 699
+      "target": "run_processing",
+      "line": 722
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "_outcome_from_job",
+      "line": 723
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "uuid4",
+      "line": 727
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
       "target": "warning",
-      "line": 699
+      "line": 728
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_process_scene_index",
-      "target": "str",
-      "line": 700
+      "target": "get",
+      "line": 730
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "SceneOutcome",
+      "line": 735
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "_process_scene_index",
+      "target": "type",
+      "line": 735
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "isinstance",
-      "line": 705
+      "line": 740
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "replace",
-      "line": 706
+      "line": 741
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "isinstance",
-      "line": 707
+      "line": 742
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "date",
-      "line": 708
+      "line": 743
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "fromisoformat",
-      "line": 708
+      "line": 743
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_as_dt",
       "target": "datetime",
-      "line": 709
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "HeartbeatState",
-      "line": 719
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
-      "line": 720
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "_enabled",
-      "line": 722
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "info",
-      "line": 724
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_poll",
-      "line": 727
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
-      "line": 728
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "sleep",
-      "line": 729
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "_connect",
-      "line": 734
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "run_once",
-      "line": 735
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_poll",
-      "line": 736
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
-      "line": 737
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_error",
-      "line": 743
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "str",
-      "line": 743
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "write",
       "line": 744
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
-      "target": "error",
-      "line": 745
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "close",
-      "line": 753
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "mark_error",
-      "line": 758
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/backfill_scan_worker.py",
-      "source": "loop_worker",
-      "target": "str",
-      "line": 758
+      "target": "HeartbeatState",
+      "line": 754
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "write",
+      "line": 755
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "_enabled",
+      "line": 757
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "info",
       "line": 759
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
-      "target": "warning",
-      "line": 760
+      "target": "mark_poll",
+      "line": 762
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
-      "target": "close",
+      "target": "write",
       "line": 763
     },
     {
@@ -102442,126 +102323,231 @@
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "loop_worker",
       "target": "sleep",
-      "line": 767
+      "line": 764
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "_connect",
+      "line": 769
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "run_once",
+      "line": 770
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_poll",
+      "line": 771
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 772
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_error",
+      "line": 778
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "str",
+      "line": 778
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 779
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "error",
+      "line": 780
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "close",
+      "line": 788
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "mark_error",
+      "line": 793
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "str",
+      "line": 793
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "write",
+      "line": 794
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "warning",
+      "line": 795
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "close",
+      "line": 798
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/backfill_scan_worker.py",
+      "source": "loop_worker",
+      "target": "sleep",
+      "line": 802
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "basicConfig",
-      "line": 771
+      "line": 806
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "getenv",
-      "line": 772
+      "line": 807
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "ArgumentParser",
-      "line": 775
+      "line": 810
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "add_argument",
-      "line": 776
+      "line": 811
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "parse_args",
-      "line": 777
+      "line": 812
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_one",
       "target": "_connect",
-      "line": 781
+      "line": 816
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "_connect",
-      "line": 781
+      "line": 816
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_one",
       "target": "run_once",
-      "line": 783
+      "line": 818
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "run_once",
-      "line": 783
+      "line": 818
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_one",
       "target": "info",
-      "line": 784
+      "line": 819
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "info",
-      "line": 784
+      "line": 819
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "_one",
       "target": "close",
-      "line": 786
+      "line": 821
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "close",
-      "line": 786
+      "line": 821
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "_one",
-      "line": 788
+      "line": 823
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "run",
-      "line": 788
+      "line": 823
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "loop_worker",
-      "line": 790
+      "line": 825
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/backfill_scan_worker.py",
       "source": "main_cli",
       "target": "run",
-      "line": 790
+      "line": 825
     },
     {
       "owner": "raster-service",
@@ -434987,6 +434973,1021 @@
       "line": 120
     },
     {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "durable_for_subject",
+      "target": "removeprefix",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "durable_for_subject",
+      "target": "strip",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "durable_for_subject",
+      "target": "sub",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "durable_for_subject",
+      "target": "ValueError",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "subscribe_subjects",
+      "target": "durable_for_subject",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "subscribe_subjects",
+      "target": "subscribe",
+      "line": 106
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "subscribe_subjects",
+      "target": "info",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_tenant_transaction",
+      "target": "acquire",
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_tenant_transaction",
+      "target": "transaction",
+      "line": 114
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_tenant_transaction",
+      "target": "start",
+      "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_tenant_transaction",
+      "target": "execute",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_tenant_transaction",
+      "target": "rollback",
+      "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_tenant_transaction",
+      "target": "release",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_dt",
+      "target": "fromisoformat",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_dt",
+      "target": "replace",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_dt",
+      "target": "str",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_date",
+      "target": "fromisoformat",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_date",
+      "target": "str",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "fetchrow",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "ValueError",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "str",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "decode_jsonb",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "dict",
+      "line": 157
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "decode_jsonb",
+      "line": 158
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "list",
+      "line": 158
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "str",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "update",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "_dt",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "_date",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 164
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 164
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "CanonicalPhenologyState",
+      "line": 168
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "PhenologyObservation",
+      "line": 170
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "_dt",
+      "line": 170
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "persist_phenology_projection",
+      "line": 172
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "update",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "_dt",
+      "line": 175
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 176
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 177
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 177
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "CanonicalSalinityState",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "_dt",
+      "line": 181
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "persist_salinity_projection",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "update",
+      "line": 184
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "_dt",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "NutrientBalance",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "get",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "tuple",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "CanonicalNutrientLedger",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "_dt",
+      "line": 193
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "persist_nutrient_projection",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "ValueError",
+      "line": 196
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "_process_projection_request",
+      "target": "execute",
+      "line": 197
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 206
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "str",
+      "line": 206
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "str",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "str",
+      "line": 208
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "isinstance",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "ValueError",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "_tenant_transaction",
+      "line": 213
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "_process_projection_request",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "str",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "process_season_closed_event",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "str",
+      "line": 222
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "str",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 224
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "int",
+      "line": 224
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "keys",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "sorted",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "ValueError",
+      "line": 230
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "join",
+      "line": 230
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "finalize_irrigation_closed_loop",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "str",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "fromisoformat",
+      "line": 234
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "isoformat",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "now",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "replace",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "str",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "float",
+      "line": 239
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "dict",
+      "line": 240
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "int",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 242
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 243
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "get",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "ValueError",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "commit",
+      "line": 249
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "rollback",
+      "line": 252
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "handle_envelope",
+      "target": "release",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "getenv",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "connect",
+      "line": 266
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "fetch",
+      "line": 268
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "RuntimeError",
+      "line": 278
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "join",
+      "line": 279
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "str",
+      "line": 279
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "close",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "connect",
+      "line": 292
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "jetstream",
+      "line": 294
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "account_info",
+      "line": 295
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "find_stream_name_by_subject",
+      "line": 300
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "append",
+      "line": 302
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "RuntimeError",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "join",
+      "line": 305
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "preflight",
+      "target": "drain",
+      "line": 308
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "getenv",
+      "line": 322
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "getenv",
+      "line": 323
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "create_pool",
+      "line": 324
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "connect",
+      "line": 325
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "jetstream",
+      "line": 326
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "callback",
+      "target": "decode",
+      "line": 330
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "callback",
+      "target": "loads",
+      "line": 330
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "decode",
+      "line": 330
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "loads",
+      "line": 330
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "callback",
+      "target": "handle_envelope",
+      "line": 331
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "handle_envelope",
+      "line": 331
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "callback",
+      "target": "ack",
+      "line": 332
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "ack",
+      "line": 332
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "callback",
+      "target": "exception",
+      "line": 334
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "exception",
+      "line": 334
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "callback",
+      "target": "term",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "term",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "callback",
+      "target": "exception",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "exception",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "callback",
+      "target": "nak",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "nak",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "subscribe_subjects",
+      "line": 340
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "sleep",
+      "line": 343
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "drain",
+      "line": 345
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
+      "source": "run",
+      "target": "close",
+      "line": 346
+    },
+    {
       "owner": "sam2-inference",
       "file": "services/sam2-inference/main.py",
       "source": "_startup",
@@ -517295,17 +518296,6 @@
       "action": "review_before_delete"
     },
     {
-      "symbol": "finalize_irrigation_closed_loop",
-      "kind": "function",
-      "file": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
-      "line": 263,
-      "owner": "sahool-platform",
-      "decorated_route": false,
-      "reference_count": 0,
-      "confidence": "medium",
-      "action": "review_before_delete"
-    },
-    {
       "symbol": "build_commissioning_evidence",
       "kind": "function",
       "file": "services/sahool-platform/api/irrigation_commissioning_certification.py",
@@ -517376,17 +518366,6 @@
       "kind": "function",
       "file": "services/sahool-platform/api/irrigation_reservation_adapter.py",
       "line": 334,
-      "owner": "sahool-platform",
-      "decorated_route": false,
-      "reference_count": 0,
-      "confidence": "medium",
-      "action": "review_before_delete"
-    },
-    {
-      "symbol": "process_season_closed_event",
-      "kind": "function",
-      "file": "services/sahool-platform/api/learning_feedback.py",
-      "line": 119,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

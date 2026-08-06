@@ -12945,7 +12945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a57e463c5d87c545d45275c115614a693b5e525e75048b8f094f50003de68e0"
+          "content": "fee4a305e6408eecc4a6b9d599dfbd16eae1a8fb697dfd769f9edfbd22bb82a2"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -23205,7 +23205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c5079e397b39c60ed6340008f8d91adf0992b8f17d24ad6d2465c52accbf490f"
+          "content": "a23a69d924e4c6300168aaced9c9fe84998d09bdf106c970c169509c351cfff4"
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
@@ -27229,6 +27229,16 @@
         }
       ],
       "name": "services/sahool-platform/validate_observations.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5492d3579526e22cde00ef2ee4cad6a44be9237f8bdf32a13ff7bcd4381f46df"
+        }
+      ],
+      "name": "services/sahool-platform/workers/canonical_execution_learning_worker.py",
       "type": "file"
     },
     {
