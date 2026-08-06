@@ -203,6 +203,18 @@
           "find": "    verdict: dict[str, str] = {rel: TERMINAL for rel in files}\n",
           "replace": "    verdict: dict[str, str] = {rel: MOUNTED_ROUTE for rel in files}\n",
           "why": "جعل كلّ وحدة قابلة للوصول ابتداءً ⇒ التصنيف يفقد قدرته على قول (ميت)، وهو الغرض الوحيد للحارس"
+        },
+        {
+          "expect": "test_a_path_launched_worker_inside_the_platform_is_a_root_itself",
+          "find": "            if platform_rel and platform_rel in files:\n                roots.add(platform_rel)",
+          "replace": "            if False:\n                roots.add(platform_rel)",
+          "why": "المُشغِّل المُنفَّذ بمسار يُعَدّ قناةً لا جذراً ⇒ نقطة الدخول نفسها تُصنَّف «ميتة» بينما compose يشغّلها"
+        },
+        {
+          "expect": "test_the_container_path_maps_to_the_service_root_not_the_repository_root",
+          "find": "    inside = PLATFORM / tail\n    if inside.is_file():",
+          "replace": "    inside = PLATFORM / tail\n    if False:",
+          "why": "‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01"
         }
       ],
       "test": "tests_v9/test_platform_module_reachability_guard.py"
@@ -258,6 +270,35 @@
         }
       ],
       "test": "tests_v9/test_brain_append_only_guard.py"
+    },
+    "container_command_path_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_old_location_is_still_unreachable_from_that_image",
+          "find": "        return rel if candidate.is_file() and not _ignored(rel, patterns) else None",
+          "replace": "        return rel",
+          "why": "ادّعاء الوجود بلا فحص وجود ⇒ كلّ مسار «تضعه الصورة» والعطل الأصليّ يمرّ"
+        },
+        {
+          "expect": "test_a_missing_path_is_reported_with_the_service_that_executes_it",
+          "find": "                if sources_for(path, container_path, context=context) is None:",
+          "replace": "                if False:",
+          "why": "تعطيل الفحص كلّيّاً ⇒ الحارس يخضرّ على شجرة معطوبة"
+        },
+        {
+          "expect": "test_it_actually_examines_something",
+          "find": "            for container_path in sorted(executed_paths(service)):",
+          "replace": "            for container_path in []:",
+          "why": "صفر أزواج مفحوصة ⇒ «أخضر لأنّه لم ينظر» — الصفر الصامت نفسه"
+        },
+        {
+          "expect": "test_copy_semantics_are_applied_not_approximated",
+          "find": "            if not directory_dest and source_path.is_file():",
+          "replace": "            if False and source_path.is_file():",
+          "why": "إسقاط نسخ ملفّ→ملفّ ⇒ ثلاث خدمات سليمة تُتَّهم (الإيجابيّة الكاذبة المقيسة)"
+        }
+      ],
+      "test": "tests_v9/test_container_command_path_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

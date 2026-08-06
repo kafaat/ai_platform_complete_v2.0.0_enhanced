@@ -46,13 +46,34 @@ COUNTABLE = (MOUNTED_ROUTE, REGISTERED_WORKER, EVENT_SUBSCRIBER, OPERATOR_CLI)
 
 _WORKER_CMD = re.compile(r"python\s+-m\s+(api\.[A-Za-z0-9_.]+)")
 # A compose service may start a worker by PATH rather than by module — measured on
-# ``sahool-canonical-execution-learning-worker``, whose command is
-# ``python /app/scripts/workers/canonical_execution_learning_worker.py``. Matching only
-# ``python -m api.X`` reported that genuinely-registered worker as no root at all, and
-# every platform module reachable only through it as terminal. The guard was passing
-# while classifying live code as dead — the same failure it exists to catch, one level
-# up. ``/app`` is the image workdir; the repo path is the tail.
-_WORKER_SCRIPT_CMD = re.compile(r"python\s+(?:/app/)?(scripts/[A-Za-z0-9_./-]+\.py)")
+# ``sahool-canonical-execution-learning-worker``. Matching only ``python -m api.X``
+# reported that genuinely-registered worker as no root at all, and every platform module
+# reachable only through it as terminal: the guard passed while classifying live code as
+# dead — the same failure it exists to catch, one level up.
+#
+# **And the mapping from container path to repo path encoded a broken assumption.** The
+# first version read ``/app/scripts/x.py`` as repo ``scripts/x.py`` — but ``/app`` is
+# where the Dockerfile copies the **contents of the service root**, so ``/app/X`` is
+# ``services/sahool-platform/X``, and repo-root ``scripts/`` is not in the image at all
+# (``CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01``). Resolving the service-root mapping first
+# and only then falling back to the repo root keeps both readings honest instead of
+# hardcoding the one that happened to be written.
+_WORKER_SCRIPT_CMD = re.compile(r"python\s+((?:/app/|[A-Za-z0-9_.-]+/)[A-Za-z0-9_./-]+\.py)")
+
+
+def _resolve_worker_script(raw: str) -> tuple[Path, str | None] | None:
+    """(ملفّ على القرص، مسارُه النسبيّ داخل المنصّة إن كان وحدةَ منصّة).
+
+    ``/app/X`` ⇒ ``services/sahool-platform/X`` أوّلاً — لأنّ ذلك ما ينسخه الـDockerfile
+    فعلاً — ثمّ الجذر احتياطاً لمُشغِّلٍ يسكن خارج الخدمة.
+    """
+    tail = raw[len("/app/") :] if raw.startswith("/app/") else raw
+    inside = PLATFORM / tail
+    if inside.is_file():
+        return inside, tail
+    outside = ROOT / tail
+    return (outside, None) if outside.is_file() else None
+
 
 # Canonical modules that were already in the baseline and already unreachable when this
 # guard was written. Recorded so the guard blocks NEW unreachable modules without
@@ -210,9 +231,16 @@ def registered_worker_roots(files: dict[str, Path]) -> set[str]:
             if rel in files:
                 roots.add(rel)
         for script_rel in _WORKER_SCRIPT_CMD.findall(text):
-            script = ROOT / script_rel
-            if not script.exists():
+            resolved = _resolve_worker_script(script_rel)
+            if resolved is None:
                 continue
+            script, platform_rel = resolved
+            # A launcher that is ITSELF a platform module is a root in its own right —
+            # not merely a conduit to the modules it imports. Counting only its imports
+            # left the entry point classified as terminal: dead code, by the guard's own
+            # verdict, while compose executes it on every boot.
+            if platform_rel and platform_rel in files:
+                roots.add(platform_rel)
             try:
                 tree = ast.parse(script.read_text(encoding="utf-8", errors="ignore"))
             except SyntaxError:

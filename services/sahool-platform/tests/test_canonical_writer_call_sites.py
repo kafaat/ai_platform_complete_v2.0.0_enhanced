@@ -31,7 +31,7 @@ REPOSITORIES = PLATFORM / "api" / "persisted_canonical_repositories.py"
 
 # Writers with no call site OUTSIDE their own module. The ratchet has fired once
 # already: the three ``persist_*_projection`` functions left this set when
-# ``scripts/workers/canonical_execution_learning_worker.py`` — a service registered in
+# ``services/sahool-platform/workers/canonical_execution_learning_worker.py`` — a service registered in
 # docker-compose.v9.yml — began calling them off ``agronomy.projection.requested``.
 #
 # The three that remain are a WEAKER claim than "dead", and the difference is recorded

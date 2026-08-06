@@ -32,9 +32,9 @@ def test_unified_live_gate_runs_causality_rls_and_worker_preflight():
 
 
 def test_worker_preflight_checks_required_tables_and_jetstream():
-    text = (ROOT / "scripts/workers/canonical_execution_learning_worker.py").read_text(
-        encoding="utf-8"
-    )
+    text = (
+        ROOT / "services/sahool-platform/workers/canonical_execution_learning_worker.py"
+    ).read_text(encoding="utf-8")
     assert "async def preflight()" in text
     assert "decision_learning_runs" in text
     assert "irrigation_closed_loop_records" in text
@@ -81,7 +81,7 @@ def test_live_gate_binds_evidence_to_checkout_sha_and_hashes_outputs():
 
 def test_worker_preflight_json_reports_subject_to_stream_mapping():
     """Preflight must report the facts it checked, not merely exit zero."""
-    path = ROOT / "scripts/workers/canonical_execution_learning_worker.py"
+    path = ROOT / "services/sahool-platform/workers/canonical_execution_learning_worker.py"
     text = path.read_text(encoding="utf-8")
     assert "subject_streams" in text
     assert "find_stream_name_by_subject" in text

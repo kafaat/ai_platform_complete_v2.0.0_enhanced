@@ -29,7 +29,7 @@ import pytest
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKER_PATH = ROOT / "scripts/workers/canonical_execution_learning_worker.py"
+WORKER_PATH = ROOT / "services/sahool-platform/workers/canonical_execution_learning_worker.py"
 
 
 def _worker():

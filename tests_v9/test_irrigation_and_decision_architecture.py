@@ -99,9 +99,9 @@ def test_v227_is_rls_governed_and_auto_promotion_is_forbidden():
 
 
 def test_registered_worker_is_an_executable_root_for_both_event_chains():
-    text = (ROOT / "scripts/workers/canonical_execution_learning_worker.py").read_text(
-        encoding="utf-8"
-    )
+    text = (
+        ROOT / "services/sahool-platform/workers/canonical_execution_learning_worker.py"
+    ).read_text(encoding="utf-8")
     assert "sahool.events.irrigation.execution.completed" in text
     assert "sahool.events.season.closed" in text
     assert "finalize_irrigation_closed_loop" in text

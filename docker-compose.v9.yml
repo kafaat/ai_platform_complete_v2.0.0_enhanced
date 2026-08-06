@@ -2578,7 +2578,7 @@ services:
       CANONICAL_LEARNING_DURABLE: ${CANONICAL_LEARNING_DURABLE:-canonical-execution-learning-v1}
     command:
     - python
-    - /app/scripts/workers/canonical_execution_learning_worker.py
+    - /app/workers/canonical_execution_learning_worker.py
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -2598,7 +2598,7 @@ services:
     networks:
     - sahool-internal
     healthcheck:
-      test: ["CMD-SHELL", "python /app/scripts/workers/canonical_execution_learning_worker.py --preflight"]
+      test: ["CMD-SHELL", "python /app/workers/canonical_execution_learning_worker.py --preflight"]
       interval: 30s
       timeout: 10s
       retries: 5

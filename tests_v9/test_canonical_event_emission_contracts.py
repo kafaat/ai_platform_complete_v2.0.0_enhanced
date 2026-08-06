@@ -84,7 +84,7 @@ class _JsonbRow(dict):
 
 
 def _worker():
-    path = ROOT / "scripts/workers/canonical_execution_learning_worker.py"
+    path = ROOT / "services/sahool-platform/workers/canonical_execution_learning_worker.py"
     spec = importlib.util.spec_from_file_location("_canonical_learning_worker_jsonb", path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)

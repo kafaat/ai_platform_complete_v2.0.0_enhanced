@@ -1121,6 +1121,7 @@ IRR-007,test,tests_v9/test_actuator_mode.py,3,applied
 IRR-007,test,tests_v9/test_command_dispatch_race_v65.py,3,applied
 IRR-007,test,tests_v9/test_command_event_causality_live_gate_contract.py,3,applied
 IRR-007,test,tests_v9/test_command_store_behavior_v66.py,3,applied
+IRR-007,test,tests_v9/test_container_command_path_guard.py,3,applied
 IRR-007,test,tests_v9/test_firmware_valve_safety.py,3,applied
 IRR-007,test,tests_v9/test_helm_migration_command_valid_20260705.py,3,applied
 IRR-007,test,tests_v9/test_portfolio_command_shape.py,3,applied
