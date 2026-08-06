@@ -2454,6 +2454,9 @@ function MapHubCore() {
                     </div>
                   )}
 
+                  {/* w-full min-w-0: يجبر الـflex item على شغل سطر كامل بعرض البطاقة بالكامل
+                      حتى يملك overflow-x-auto حداً أقصى يتمرّر إليه بدل أن يوسّع الصفحة. */}
+                  <div className="w-full min-w-0">
                   <FieldTimelineShell
                     fieldId={fieldId}
                     activeSeasonId={activeSeasonId}
@@ -2510,7 +2513,8 @@ function MapHubCore() {
                           لكنّ المنطقة بلا اسم كانت تُقرأ مجهولة الغرض. `snap-x` يُثبّت
                           البطاقة عند حافّتها بدل توقّف عشوائيّ في منتصفها. */}
                       <div
-                        className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory"
+                        className="flex gap-2 overflow-x-auto pb-3 snap-x snap-mandatory"
+                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#475569 #1e293b' }}
                         data-testid="imagery-timeline-items"
                         ref={imageryTimelineScrollRef}
                         tabIndex={0}
@@ -2649,6 +2653,7 @@ function MapHubCore() {
                       {selectedScene && <SceneProvenanceCard scene={selectedScene} />}
                     </div>
                   </FieldTimelineShell>
+                  </div>
 
                   {/* شريط الشفّافيّة — يظهر حين توجد طبقة مؤشّر نشطة */}
                   {!compare && activeIndicator && (

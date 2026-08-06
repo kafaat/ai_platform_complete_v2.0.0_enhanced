@@ -343,6 +343,7 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
 
     import numpy as np
     import rasterio
+    from rasterio.mask import mask as _rio_mask
     from rasterio.warp import transform_bounds
 
     _src_cm = (
@@ -360,13 +361,46 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         )
         b = req.bands
 
+        # ── Fix 1: قصّ على حدود الحقل قبل قراءة البكسلات (windowed read) ──
+        # بدون قصّ، src.read(idx) يقرأ حزمة Sentinel-2 الكاملة (10980×10980،
+        # ~1.4 GB/نطاق) ويُعطّل العامل بنفاد الذاكرة. نُعيد إسقاط الحقل إلى
+        # CRS المصدر ونستخدم rasterio.mask.mask(crop=True) لقراءة منطقة الحقل
+        # فقط (<5 MB للحقول الزراعيّة الاعتياديّة).
+        clip_geom_src = None
+        _clip_out: dict = {}  # يخزّن transform وشكل المصفوفة بعد القصّ
+        if req.clip_polygon_geojson:
+            from rasterio.warp import transform_geom
+
+            geojson = req.clip_polygon_geojson
+            geom_in = geojson
+            if geojson.get("type") == "Feature":
+                geom_in = geojson["geometry"]
+            elif geojson.get("type") == "FeatureCollection":
+                geom_in = geojson["features"][0]["geometry"]
+            target_crs = src_crs if src_crs is not None else "EPSG:4326"
+            clip_geom_src = transform_geom("EPSG:4326", target_crs, geom_in)
+
         def _read_uint8(idx):
             if not idx:
-                return np.zeros(src.shape, dtype=np.uint8)
+                shape = _clip_out.get("shape") or src.shape
+                return np.zeros(shape, dtype=np.uint8)
             cache_key = ("truecolor_uint8", int(idx))
             if shared_cache is not None and cache_key in shared_cache:
                 return shared_cache[cache_key]
-            raw = src.read(idx).astype("float32")
+            if clip_geom_src is not None:
+                # filled=False → masked array؛ يُجنِّب OverflowError حين nodata خارج uint16
+                arr_b, t = _rio_mask(
+                    src,
+                    [clip_geom_src],
+                    crop=True,
+                    filled=False,
+                    indexes=[idx],
+                )
+                _clip_out["transform"] = t
+                _clip_out["shape"] = arr_b.shape[1:]  # (H, W) of clipped window
+                raw = np.ma.filled(arr_b[0].astype("float32"), fill_value=np.nan)
+            else:
+                raw = src.read(idx).astype("float32")
             if src.nodata is not None:
                 raw = np.where(raw == src.nodata, np.nan, raw)
             _sc = req.reflectance_scale
@@ -393,7 +427,7 @@ def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, share
         r = _read_uint8(b.red)
         g = _read_uint8(b.green)
         bl = _read_uint8(b.blue)
-        transform = src.transform
+        transform = _clip_out.get("transform") or src.transform
 
     alpha = np.where((r > 0) | (g > 0) | (bl > 0), np.uint8(255), np.uint8(0))
     rgba = np.stack([r, g, bl, alpha], axis=0)  # (4, H, W) uint8

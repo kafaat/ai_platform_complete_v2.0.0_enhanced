@@ -389,7 +389,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                         item_id,
                         jid,
                     )
-            ok = await asyncio.to_thread(
+            ok, err = await asyncio.to_thread(
                 _process_scene_index,
                 scene,
                 index,
@@ -409,9 +409,10 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                 async with conn.transaction():
                     await _set_tenant(conn, tenant)
                     await conn.execute(
-                        "UPDATE backfill_run_items SET status=$2, processed_at=now() WHERE id=$1",
+                        "UPDATE backfill_run_items SET status=$2, processed_at=now(), error=$3 WHERE id=$1",
                         item_id,
                         "persisted" if ok else "failed",
+                        err,
                     )
 
     # v8-F8/v9-F5: الحالة النهائيّة تعكس النتيجة الفعليّة لا مجرّد «انتهت الحلقة».
@@ -555,7 +556,7 @@ async def _process_single_scene_run(
                     item_id,
                     jid,
                 )
-        ok = await asyncio.to_thread(
+        ok, err = await asyncio.to_thread(
             _process_scene_index, scene, index, field, tenant, geom_rev, clip, apply_cloud_mask, jid
         )
         if ok:
@@ -566,9 +567,10 @@ async def _process_single_scene_run(
             async with conn.transaction():
                 await _set_tenant(conn, tenant)
                 await conn.execute(
-                    "UPDATE backfill_run_items SET status=$2, processed_at=now() WHERE id=$1",
+                    "UPDATE backfill_run_items SET status=$2, processed_at=now(), error=$3 WHERE id=$1",
                     item_id,
                     "persisted" if ok else "failed",
+                    err,
                 )
 
     final_status = "completed_with_errors" if items_failed > 0 else "completed"
@@ -609,15 +611,16 @@ def _process_scene_index(
     clip: dict | None,
     apply_cloud_mask: bool,
     jid: str,
-) -> bool:
-    """يبني VRT ويعالج مؤشّراً لمشهد (متزامن — يُستدعى عبر asyncio.to_thread). يُرجِع True عند النجاح.
+) -> tuple[bool, str | None]:
+    """يبني VRT ويعالج مؤشّراً لمشهد (متزامن — يُستدعى عبر asyncio.to_thread).
+    يُرجِع (True, None) عند النجاح أو (False, رسالة_الخطأ) عند الفشل.
 
     v9-F4: jid يُمرَّر من المُستدعي (لا يُولَّد داخليّاً) كي يُسجَّل على backfill_run_items
     قبل المعالجة — فيبقى أثر run_item → job → raster_asset حتّى عند التعطّل أثناء المعالجة.
 
-    التحويل إلى CDSE: المشاهد المُكتشَفة من كتالوج CDSE تأتي بلا ``bands_urls`` (لا نطاقات
-    COG) — تُعالَج عبر ``_process_backfill_scene_cdse`` (Process API مثبَّت على تاريخ
-    المشهد). المشاهد ذات ``bands_urls`` (ارتداد Element84) تبقى على مسار الـVRT."""
+    التحويل إلى CDSE: مشاهد truecolor دائماً عبر CDSE (Fix 2: تجنّب قراءة النطاق الكامل OOM).
+    المشاهد بلا ``bands_urls`` (كتالوج Copernicus) عبر Process API مثبَّت على تاريخ المشهد.
+    المشاهد ذات ``bands_urls`` (ارتداد Element84) تبقى على مسار الـVRT."""
     import stac_vrt
 
     try:
@@ -648,17 +651,19 @@ def _process_scene_index(
             return bool(
                 job.get("status") == api_models.JobStatus.completed
                 and result.get("persisted") is True
-            )
+            ), None
 
-        if not (scene.get("bands_urls") or {}):
-            # مشهد CDSE (كتالوج Copernicus): معالجة خادميّة عبر Process API.
+        # Fix 2: truecolor عبر CDSE دائماً — مسار Element84/VRT يقرأ النطاق كاملاً
+        # (10980×10980 px ≈ 1.4 GB) ويُعطَل بـOOM. CDSE يقصّ خادميّاً قبل الإرسال.
+        if index == "truecolor" or not (scene.get("bands_urls") or {}):
+            # مشهد CDSE أو truecolor: معالجة خادميّة عبر Process API.
             _process_backfill_scene_cdse(scene, index, field, tenant, clip, geom_rev, jid)
             job = raster_runtime_state.JOBS.get(jid) or {}
             result = job.get("result") or {}
             return bool(
                 job.get("status") == api_models.JobStatus.completed
                 and result.get("persisted") is True
-            )
+            ), None
         safe_hrefs = {
             k: _safe_raster_source(v) for k, v in (scene.get("bands_urls") or {}).items() if v
         }
@@ -689,10 +694,10 @@ def _process_scene_index(
         result = job.get("result") or {}
         return bool(
             job.get("status") == api_models.JobStatus.completed and result.get("persisted") is True
-        )
+        ), None
     except Exception as e:  # noqa: BLE001
         logger.warning("backfill scene %s/%s failed: %s", scene.get("item_id"), index, e)
-        return False
+        return False, str(e)[:500]
 
 
 def _as_dt(d) -> datetime:

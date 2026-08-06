@@ -544,9 +544,33 @@ def render_truecolor_thumbnail_png(cog_path: str, max_px: int = 160) -> bytes | 
         with rasterio.open(cog_path) as src:
             if src.count < 3:
                 return None
-            minx, miny, maxx, maxy = transform_bounds(
-                "EPSG:4326" if not src.crs else src.crs, "EPSG:3857", *src.bounds
-            )
+            src_crs = src.crs or "EPSG:4326"
+
+            # Compute output extent from valid (non-zero alpha) pixel bounds rather than
+            # full COG bounds. A COG may cover an entire Sentinel-2 granule (~55×115 km)
+            # while the masked field occupies only hundreds of pixels. Using full bounds
+            # causes all field pixels to collapse to zero pixels in a 160-px thumbnail,
+            # yielding an all-transparent result and an HTTP 404 for every card.
+            if src.count >= 4:
+                alpha_full = src.read(4)
+                valid_rows = np.where((alpha_full > 0).any(axis=1))[0]
+                valid_cols = np.where((alpha_full > 0).any(axis=0))[0]
+                if len(valid_rows) == 0 or len(valid_cols) == 0:
+                    return None  # genuinely empty — no field pixels in this COG
+                row_min = int(valid_rows[0])
+                row_max = int(valid_rows[-1]) + 1  # exclusive
+                col_min = int(valid_cols[0])
+                col_max = int(valid_cols[-1]) + 1  # exclusive
+                # transform * (col, row) → (x, y) in src CRS
+                px_left, px_top = src.transform * (col_min, row_min)
+                px_right, px_bottom = src.transform * (col_max, row_max)
+                # px_left/px_top = NW corner, px_right/px_bottom = SE corner (north-up)
+                minx, miny, maxx, maxy = transform_bounds(
+                    src_crs, "EPSG:3857", px_left, px_bottom, px_right, px_top
+                )
+            else:
+                minx, miny, maxx, maxy = transform_bounds(src_crs, "EPSG:3857", *src.bounds)
+
             span_x = max(1e-6, maxx - minx)
             span_y = max(1e-6, maxy - miny)
             if span_x >= span_y:
