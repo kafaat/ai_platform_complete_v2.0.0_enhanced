@@ -1,7 +1,5 @@
 {
-  "legacy_unversioned_business_routes": [
-    "GET /api/probe-newservice/readyz"
-  ],
+  "legacy_unversioned_business_routes": [],
   "permanent_compatibility_routes": {
     "permanent_compatibility_gateway": [
       "GET /api/raster/{path:path}",
