@@ -357,3 +357,25 @@ def test_sigterm_restoration_ledger_is_installed() -> None:
     assert "_ACTIVE_RESTORES" in source
     assert "signal.SIGTERM" in source
     assert "atexit.register(_restore_active_sources)" in source
+
+
+def test_repeats_that_all_say_expected_red_are_not_called_stable_wrong_test():
+    """Measured on #795: three re-diagnoses said expected_red and the label said the
+    opposite.
+
+    stable measures whether the repeats agree **with each other**, not whether they
+    agree with the first observation. When every repeat reproduces the expected red, the
+    mutation works and the anomaly was the first observation alone — calling that
+    STABLE_WRONG_TEST inverts what happened, and a wrong diagnosis costs more than none.
+
+    It still blocks: a check that greens on re-run trains its reader to re-run instead of
+    read. Only the name changes, so the incident is readable from its log.
+    """
+    source = Path("scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
+    assert "FLAKY_FIRST_OBSERVATION" in source
+    marker = source.index("repeat_kinds")
+    window = source[marker : marker + 400]
+    assert 'repeat_kinds == {"expected_red"}' in window
+    assert "FLAKY_FIRST_OBSERVATION" in window
+    # and the branch must come BEFORE the stable branch, or it can never be reached
+    assert window.index("FLAKY_FIRST_OBSERVATION") < window.index("STABLE_WRONG_TEST")

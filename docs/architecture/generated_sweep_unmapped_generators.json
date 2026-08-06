@@ -7,7 +7,6 @@
   "why_these_are_not_simply_mapped": "لأنّ الوصل بلا قياس يُبدِل عيباً بعيب أخطر: وجود علم كتابة في `--help` ليس دليلاً أنّه يُعيد توليد **المصنوعة التي يقارنها `--check` نفسه**. وصلها جميعاً على الثقة يجعل `--fix` يكتب ملفّات لم يُطلب منه كتابتها. فالمُقاس هنا **وجود العلم** (من argparse لا من الظنّ)، والمتبقّي لكلّ مدخل إثبات أنّه يُنتج ما تُقارنه بوّابته.",
   "to_close_each": "شغّل `<script> <flag>` على شجرة نظيفة، ثمّ `<script> --check`: إن خرج بصفر وكانت الملفّات المتغيّرة هي **نفسها** التي سمّاها الانحراف، يُضاف المدخل إلى `_GENERATE_FLAG` ويُحذف من هنا. إن كتب غيرها، يبقى هنا بسبب مقيس مكتوب.",
   "unmapped": {
-    "scripts/ci/capability_management_engine.py": "--generate",
     "scripts/ci/capability_registry_guard.py": "--generate",
     "scripts/ci/runtime_environment_preflight.py": "--generate"
   },
@@ -23,7 +22,9 @@
     "regression_lock": "tests_v9/test_generated_artifact_contract.py (‏`unit`، ١٦ فحصاً). لا يُفسِد ملفّات مُلتزَمة — إفسادها في كلّ تشغيل وحدات يترك الشجرة موسَّخة إن قُتِل التشغيل قبل الاستعادة. بدلاً منه ثلاثة شروط قراءة صرفة مجموعها يُساوي ما قاسه الإفساد: `drift` ترصد بايتاً واحداً (على tmp_path) · كلّ حارس يُمرّر إلى `drift`/`enforce` نتيجة `artifacts(...)` الخاصّة به (مُتحقَّق بشجرة AST لا بـgrep) · وعدد مصنوعات كلّ حارس مُعلَن كبيانات فلا يمرّ تضييق المجموعة سرّاً.",
     "a_failed_falsification_that_added_a_test": "جعلتُ `enforce` تكتب بلا شرط (فيصير الفحص إصلاحاً) وبقيت الملفّة خضراء — فالخاصّيّة كانت مُدّعاة في التوثيق وغير محروسة. أُضيف `test_checking_never_repairs_what_it_is_checking`، وأربع تكذيبات تسقط الآن جميعاً."
   },
-  "why_the_remaining_three_are_not_closable_yet": {
-    "non_idempotent_3": "‏capability_management_engine · capability_registry_guard · runtime_environment_preflight: تشغيل العلم على شجرة **نظيفة** يُغيّر ملفّاً في كلّ مرّة. وصلها بـ`--fix` يجعل كلّ مكنسة تُوسِّخ الشجرة بفرق لا يقابله تغيير مصدر. و`runtime_environment_preflight` هو الحالة المعروفة سلفاً (RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01): أثره يصف الآلة لا القدرة."
+  "closure_round_3": "أُغلِق مدخل واحد (٣ ⇒ ٢): `capability_management_engine`. ورصدَه **شريحة عملٍ عاديّة لا مسحٌ عن الحرّاس** — تغييرٌ في محرّك WOFOST أكسب `IRR-004` بُعد `events` (تغطية ٥ ⇒ ٦) فانحرفت مصنوعته، ودارت `--fix` ثلاث دورات (~١٥د) بلا أن تستدعيه فطبعت «لم تثبت المصنوعات» بلا سببٍ ظاهر. مرّ الشرط المُعلَن حرفيّاً: أُفسِدت `capability_management_matrix.json` ⇒ `--check` رصد **وسمّى الملفّ** (خرج بـ1) ⇒ `--generate` ⇒ `--check` بصفر **والملفّ مُستعاد بايتاً بايت** (`cmp`). ووُضِع في `_ORDER_TIER=1` لا في الطبقة صفر: يقرأ خمس مصنوعات، والأبجديّة تضعه **قبل ثلاث منها** (`man` < `map` و`pa` و`re`)، فكان سيقرأ مدخلات بائتة ويستقرّ بمصادفة الدورة الثانية لا بترتيب صحيح — نفس فخّ `attestation` المُسجَّل أعلاه.",
+  "correction_of_the_non_idempotence_reason": "الحقل `why_the_remaining_three_are_not_closable_yet.non_idempotent_3` كان صحيحاً عند قياسه وصار **بائتاً لواحد من ثلاثة**. أُعيد القياس فرداً فرداً لا تعميماً من عيّنة (تشغيل العلم مرّتين متتاليتين على شجرة نظيفة ثمّ عدّ الملفّات المتغيّرة): `capability_management_engine` ⇒ **صفر** ملفّات · `capability_registry_guard` ⇒ ملفّ واحد (`capabilities/generated/capability_registry.csv`) · `runtime_environment_preflight` ⇒ ملفّ واحد (مصنوعته، وهي الحالة المعروفة `RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01`). فالاثنان يبقيان مستثنيَين بسببهما الأصليّ **مُعاد قياسه**، لا بوراثته. وسببٌ مُسجَّل لا يُعاد قياسه يصير حاجزاً دائماً أمام إغلاقٍ صار ممكناً.",
+  "why_the_remaining_two_are_not_closable_yet": {
+    "non_idempotent_2": "‏capability_registry_guard · runtime_environment_preflight: تشغيل العلم على شجرة **نظيفة** يُغيّر ملفّاً في كلّ مرّة (مُعاد قياسه، انظر `correction_of_the_non_idempotence_reason`). وصلها بـ`--fix` يجعل كلّ مكنسة تُوسِّخ الشجرة بفرق لا يقابله تغيير مصدر. و`runtime_environment_preflight` هو الحالة المعروفة سلفاً (RUNTIME-ENV-PREFLIGHT-STAMPS-THE-MACHINE-01): أثره يصف الآلة لا القدرة."
   }
 }

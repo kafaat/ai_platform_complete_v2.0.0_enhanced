@@ -1312,7 +1312,7 @@
         "backend": true,
         "database": true,
         "documentation": true,
-        "events": false,
+        "events": true,
         "integration_tests": true,
         "mobile": false,
         "production": false,
@@ -1321,9 +1321,10 @@
         "unit_tests": true,
         "web": true
       },
-      "evidence_score": 7,
+      "evidence_score": 8,
       "integration_test_paths": [
-        "tests_v9/test_e2e_offline_flow.py"
+        "tests_v9/test_e2e_offline_flow.py",
+        "tests_v9/test_wofost_what_if_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",

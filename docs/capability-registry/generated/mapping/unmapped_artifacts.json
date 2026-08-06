@@ -6716,6 +6716,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_brain_append_only_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_brain_duplicate_gap_identity_guard.py",
     "kind": "tests"
   },
@@ -7160,6 +7164,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_guard_catalogue.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_guard_mutation_guard.py",
     "kind": "tests"
   },
@@ -7325,6 +7333,10 @@
   },
   {
     "path": "tests_v9/test_manifest_completeness.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_manifest_registry_guard.py",
     "kind": "tests"
   },
   {

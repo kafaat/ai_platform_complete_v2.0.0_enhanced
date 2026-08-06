@@ -865,7 +865,7 @@ sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,418,GET
 sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,451,GET,/api/v1/farm-book/monthly,monthly_report,versioned
 sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,487,GET,/api/v1/farm-book/balances,book_balances,versioned
 sahool-platform,services/sahool-platform/api/routers/simple_farm_book.py,508,GET,/api/v1/farm-book/export,export_book,versioned
-sahool-platform,services/sahool-platform/api/routers/simulate.py,28,POST,/api/v1/simulate/what-if,simulate_what_if,versioned
+sahool-platform,services/sahool-platform/api/routers/simulate.py,76,POST,/api/v1/simulate/what-if,simulate_what_if,versioned
 sahool-platform,services/sahool-platform/api/routers/soil_sampling.py,47,GET,/api/v1/soil-sampling/subsamples,soil_subsamples_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/soil_sampling.py,53,GET,/api/v1/soil-sampling/depth,soil_depth_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/soil_sampling.py,59,GET,/api/v1/soil-sampling/protocol,soil_protocol_endpoint,versioned

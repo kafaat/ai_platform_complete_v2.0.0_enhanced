@@ -265,6 +265,7 @@ async def simulate_wofost(
     area_ha: float = 1.0,
     irrigation: bool = True,
     cfet: float = 1.15,
+    irrigation_fraction: float | None = None,
 ) -> dict:
     """
     محاكاة WOFOST-RUE كاملة بطقس حقيقي من Open-Meteo.
@@ -279,8 +280,24 @@ async def simulate_wofost(
       - سلسلة زمنية يومية
       - مؤشرات إجهاد الحرارة والجفاف
     """
-    cp = CROP_PARAMS.get(crop, CROP_PARAMS["قمح صلب"])
-    sp = SOIL_PARAMS.get(soil_type, SOIL_PARAMS["loam"])
+    # WOFOST-SCENARIO-IS-DECORATIVE-01: `irrigation` منطقيّة، فـ«تقليل الريّ» لا
+    # يمكن التعبير عنه — وكان الموجِّه يُعيد اسم السيناريو صدىً بينما يُشغّل الحالتين
+    # نفسيهما. النسبة تجعل الفرق **قابلاً للتنفيذ والقياس**: 1.0 ملء كامل عند
+    # الإجهاد (السلوك القائم)، 0.0 بلا ريّ، وما بينهما تقليل حقيقيّ.
+    fraction = (
+        irrigation_fraction if irrigation_fraction is not None else (1.0 if irrigation else 0.0)
+    )
+    fraction = min(1.0, max(0.0, float(fraction)))
+
+    # WOFOST-SILENT-PARAM-FALLBACK-01: محصول أو تربة مجهولان كانا يُحسبان كقمح صلب
+    # وloam بينما تعيد الاستجابة اسم المستخدم — فتدّعي أنّها تخصّ ما لا تخصّه.
+    # الاحتياط باقٍ (لا يكسر مستهلكاً)، لكنّه صار **مُفصَحاً عنه** في المخرَج.
+    crop_known = crop in CROP_PARAMS
+    soil_known = soil_type in SOIL_PARAMS
+    resolved_crop = crop if crop_known else "قمح صلب"
+    resolved_soil = soil_type if soil_known else "loam"
+    cp = CROP_PARAMS[resolved_crop]
+    sp = SOIL_PARAMS[resolved_soil]
 
     tsum_needed = cp["tsum1"] + cp["tsum2"]
     total_season_days = int(tsum_needed / 8) + 30  # تقدير أولي
@@ -300,6 +317,7 @@ async def simulate_wofost(
 
     # ── Simulation Loop ──────────────────────────────────────
     gdd_acc = 0.0
+    applied_mm = 0.0
     lai = 0.0
     biomass = 0.0  # g DM / m²
     w_soil = sp["fc"] * cp["rdmax"] * 1000  # mm (initial = field capacity)
@@ -349,8 +367,10 @@ async def simulate_wofost(
         # لا يُنمذَج وwater_factor يبقى 1.0 ولا يُحسب احتياج ريّ حقيقي.
         w_soil = min(w_fc, w_soil + rain)
         w_soil = w_soil - etc
-        if irrigation and w_soil < w_wp * 1.5:
-            w_soil = w_fc  # الريّ يُعيد الملء للسعة الحقليّة عند الإجهاد
+        if fraction > 0 and w_soil < w_wp * 1.5:
+            target = w_soil + fraction * (w_fc - w_soil)
+            applied_mm += max(0.0, target - w_soil)  # ما طُبِّق فعلاً، لا ما لزم
+            w_soil = target
         w_soil = max(w_wp * 0.5, w_soil)
 
         # إجهاد مائي
@@ -412,6 +432,13 @@ async def simulate_wofost(
         "field_id": field_id,
         "crop": crop,
         "soil_type": soil_type,
+        "resolved_crop": resolved_crop,
+        "resolved_soil_type": resolved_soil,
+        "parameter_resolution": {
+            "crop_known": crop_known,
+            "soil_type_known": soil_known,
+            "degraded": not (crop_known and soil_known),
+        },
         "planting_date": planting_date.isoformat(),
         "harvest_date": harvest_date.isoformat(),
         "season_days": total_season,
@@ -430,6 +457,11 @@ async def simulate_wofost(
             "cfet_applied": cfet,
             "total_rain_mm": round(total_rain, 1),
             "irrigation_needed_mm": round(total_irrigation, 1),
+            # الماء **المُطبَّق فعلاً** — مُراكَم في الحلقة بلا أيّ معامل. وهو المقدار
+            # الوحيد القابل للطرح بين سيناريوهين؛ `irrigation_needed_mm` يخلط ماءً
+            # مطبَّقاً بعجزٍ لم يُسدَّ بحسب فرع `irrigation`، فطرحه بلا معنى.
+            "irrigation_applied_mm": round(applied_mm, 1),
+            "irrigation_fraction": fraction,
             "water_productivity_kg_m3": round(water_productivity, 2),
         },
         "stress": {

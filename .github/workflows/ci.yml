@@ -169,6 +169,11 @@ jobs:
         run: pip install 'jsonschema>=4.20.0'
       - name: unified JSON Schema validation (all *.schema.json)
         run: python scripts/ci/schema_validation_guard.py --check
+      # كتالوج الحرّاس: مولَّد من الـworkflows + سجلّ الطفرات + توثيق كلّ حارس. أوّل
+      # جرد أخرج رقماً لم يكن يعرفه أحد — **٢١٨ حارساً تحجب في CI و٨ فقط مُثبَتة
+      # بالتكذيب**. قائمةٌ يدويّة كانت ستبيت عند أوّل حارس جديد؛ هذه تُشتقّ.
+      - name: Guard catalogue must match its sources
+        run: python scripts/ci/guard_catalogue.py --check
       - name: irrigation MPC — Ky no-economic-coupling guard
         run: python scripts/ci/ky_no_economic_coupling_guard.py
       - name: irrigation MPC — bridge lineage-propagation guard

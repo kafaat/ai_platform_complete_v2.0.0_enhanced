@@ -303,7 +303,21 @@ def run_mutations(
                 # فالحادثة التالية تُقرأ من سجلّها بدل انتظار إعادة إنتاج قد لا تحدث.
                 observed = failing_tests(out)
                 detail = " · ".join(observed) if observed else "لا اسم اختبار في المخرَج"
-                classification = "STABLE_WRONG_TEST" if stable else "NON_DETERMINISTIC"
+                # `stable` تقيس اتّفاق الإعادات **مع بعضها**، لا مع الملاحظة الأولى.
+                # فحين تُعطي الإعادات الثلاث `expected_red` — أي الطفرة تعمل والاختبار
+                # المُسمّى يسقط — كان يُطبَع «STABLE_WRONG_TEST»، وهو **وصفٌ خاطئ لِما
+                # حدث**: لا شيء «مستقرّ» ولا «الاختبار خاطئ». الشذوذ في الملاحظة الأولى
+                # وحدها. مقيس على `claim_base_guard.py[4]` مرّتين (#792 حيث كانت الإعادات
+                # `wrong_test` فعلاً، و#795 حيث كانت `expected_red` ثلاثاً).
+                # **يبقى حاجباً** — فحصٌ يخضرّ بإعادة التشغيل يُدرّب قارئه على إعادة
+                # التشغيل بدل القراءة — لكنّ الاسم يصف الواقعة بدل أن يقلبها.
+                repeat_kinds = {kind for kind, _ in repeats}
+                if repeat_kinds == {"expected_red"}:
+                    classification = "FLAKY_FIRST_OBSERVATION"
+                elif stable:
+                    classification = "STABLE_WRONG_TEST"
+                else:
+                    classification = "NON_DETERMINISTIC"
                 failures.append(
                     f"✗ {label}: حمرّ بغير الاختبار المُتوقَّع {m['expect']!r} —"
                     "\n    وهذا يمرّ على طفرة كسرت الاستيراد لا القاعدة."

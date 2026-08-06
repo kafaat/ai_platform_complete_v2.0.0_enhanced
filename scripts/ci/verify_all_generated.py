@@ -91,9 +91,13 @@ _GENERATE_FLAG = {
     "generate_indicator_artifacts.py": "",
     "generate_indicators_frontend_manifest.py": "",
     "pr_capability_impact_gate.py": "--generate-index",
+    # كتالوج الحرّاس: مصنوعة مولَّدة من الـworkflows + سجلّ الطفرات + توثيق كلّ حارس.
+    # علمُ التوليد هو التشغيل العاري؛ `--check` يفشل عند الانحراف.
+    "guard_catalogue.py": "",
     "build_platform_catalog.py": "",  # بلا علم — التشغيل العاري يكتب
     "build_service_dependency_bundle.py": "",
     "static_governance_closure.py": "--generate",
+    "manifest_registry_guard.py": "",  # بلا علم — التشغيل العاري يولّد,
 }
 
 # الثلاثة أدناه انحرفت فعليّاً في شريحة واحدة وكانت غائبة عن الخريطة، فلم تُستدعَ
@@ -163,6 +167,22 @@ _GENERATE_FLAG.update(
         "runtime_container_deep_contract_guard.py": "--write",
     }
 )
+
+# والسابع رصدته **شريحة عملٍ عاديّة لا مسحٌ عن الحرّاس**، وهذا وجه الفائدة منه: تغييرٌ في
+# محرّك WOFOST أكسب `IRR-004` بُعد `events` (تغطية ٥ ⇒ ٦)، فانحرفت
+# `capability_management_matrix.json` — و`--fix` دار ثلاث دورات كاملة (~١٥د) بلا أن
+# يستدعيه، فطبع «لم تثبت المصنوعات» بلا سببٍ ظاهر لمن لا يقرأ ذيل التلميحات.
+#
+# كان مستثنىً في `generated_sweep_unmapped_generators.json` بسببٍ **مقيس آنذاك**: «تشغيل
+# العلم على شجرة نظيفة يُغيّر ملفّاً في كلّ مرّة». أُعيد قياس الثلاثة المستثناة فرداً فرداً
+# (لا تعميماً من عيّنة): هذا يُخرِج **صفر** ملفّات بعد تشغيلين متتاليين على شجرة نظيفة،
+# بينما `capability_registry_guard` و`runtime_environment_preflight` ما زالا يُوسِّخان
+# ملفّاً لكلٍّ ⇒ يبقيان مستثنيَين. السبب المُسجَّل صار صحيحاً لاثنين وبائتاً لواحد.
+#
+# وأُغلِق بالشرط المُعلَن حرفيّاً لا بالقياس أعلاه وحده: أُفسِد
+# `capability_management_matrix.json` ⇒ `--check` رصد **وسمّى الملفّ** (خرج بـ1) ⇒
+# `--generate` ⇒ `--check` بصفر **والملفّ مُستعاد بايتاً بايت** (`cmp`).
+_GENERATE_FLAG.update({"capability_management_engine.py": "--generate"})
 
 # علم كتابة يُعلنه سكربت في مصدره — يُميّز «كاتب لم يُستدعَ» عن «فحص بلا مولّد».
 _WRITE_FLAG_DECL = re.compile(r"""["'](--(?:write|apply|generate)[a-z-]*)["']""")
@@ -280,7 +300,14 @@ _LATE = ("static_governance_closure.py",)
 # جرد الميزانيّة، فتشغيله قبل أيّهما يُبقيه بائتاً **بلا خطأ خاصّ به**: الأبجديّة وحدها
 # كانت ترتّبه `budget → attestation → ownership`، أي قبل أحد مصدرَيه. الاعتماد على أنّ
 # `--fix` سيُصحّح ذلك في دورة ثانية اعتمادٌ على مصادفة، وهو نفس الصمت الذي تعالجه المكنسة.
+#
+# و`capability_management_engine` يقع في الفخّ نفسه بحدّة أكبر: يقرأ خمس مصنوعات
+# (`capability_mapping` · `capability_evidence_matrix` · `capability_parity_matrix` ·
+# `capability_investment_matrix` · `capability_registry`)، والأبجديّة تضعه **قبل ثلاث
+# منها** لأنّ `man` < `map` و`pa` و`re`. فتشغيله في طبقة صفر كان سيقرأ مدخلات بائتة
+# ويحتاج دورةً ثانية دائماً — أي «يستقرّ» بمصادفة الدورات لا بترتيب صحيح.
 _ORDER_TIER = {
+    "capability_management_engine.py": 1,
     "platform_route_governance_attestation.py": 1,
     "platform_route_release_binding.py": 2,
 }
