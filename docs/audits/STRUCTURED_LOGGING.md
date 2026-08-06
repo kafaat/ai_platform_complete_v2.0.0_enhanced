@@ -31,6 +31,7 @@
 ## الاستخدام
 ```python
 from shared.logging_config import setup_logging
+
 logger = setup_logging("auth")
 logger.info("بدء الخدمة", extra={"port": 8089, "tenant_id": "T1"})
 ```

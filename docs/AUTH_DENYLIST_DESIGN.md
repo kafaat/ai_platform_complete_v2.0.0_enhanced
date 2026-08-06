@@ -15,11 +15,13 @@
    فالنداء الحاجز آمن):
    ```python
    import redis  # redis-py
+
    _denylist = RedisDenylist(redis.from_url(os.environ["REDIS_URL"], socket_timeout=0.2))
    ```
 2. **في `get_current_user`** بعد فكّ التوكن (إضافيّ، غير كاسر):
    ```python
    from core.jwt_denylist import is_token_revoked
+
    if is_token_revoked(_denylist, payload.get("jti")):
        raise HTTPException(401, "Token revoked")
    ```

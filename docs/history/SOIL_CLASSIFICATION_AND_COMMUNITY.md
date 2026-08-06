@@ -176,22 +176,22 @@ async def auto_classify_and_recommend(field_id):
         update_field(field_id, suggested_soil_texture=soil_type)
 
     # ٥. إنشاء توصية
-    if soil_type == 'saline_soil':
+    if soil_type == "saline_soil":
         create_recommendation(
             field_id,
-            priority='HIGH',
-            type='SALINITY_DETECTED',
-            text=f'كشفت صور القمر الصناعي ملوحة عالية '
-                 f'(NDSI={indices["ndsi"]:.2f}). '
-                 f'يُنصح بأخذ عيّنة EC من ٣-٥ نقاط في الحقل.'
+            priority="HIGH",
+            type="SALINITY_DETECTED",
+            text=f"كشفت صور القمر الصناعي ملوحة عالية "
+            f"(NDSI={indices['ndsi']:.2f}). "
+            f"يُنصح بأخذ عيّنة EC من ٣-٥ نقاط في الحقل.",
         )
 
     return {
-        'detected_type': soil_type,
-        'confidence': confidence,
-        'note': note,
-        'indices': indices,
-        'recommendation_for_validation': confidence < 0.85,
+        "detected_type": soil_type,
+        "confidence": confidence,
+        "note": note,
+        "indices": indices,
+        "recommendation_for_validation": confidence < 0.85,
     }
 ```
 

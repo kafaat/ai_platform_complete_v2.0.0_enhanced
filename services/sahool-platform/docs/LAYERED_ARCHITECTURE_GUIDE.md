@@ -137,8 +137,7 @@
 @app.post("/recommendation")
 async def recommendation(payload: dict, user: User = Depends(jwt_auth)):
     req = ApiRequest(user=user_schema_from_jwt(user), payload=payload)
-    resp = handle_recommendation_request(req,
-                                          recommendation_history=load_log())
+    resp = handle_recommendation_request(req, recommendation_history=load_log())
     return JSONResponse(content=resp.body, status_code=resp.status_code)
 ```
 

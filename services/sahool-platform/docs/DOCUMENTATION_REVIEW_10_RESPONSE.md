@@ -83,6 +83,7 @@ api_adapter:             266 سطر، يُستخدَم في 2 ملفّ
 ```python
 # في STRICT mode:
 from core.recommendation_engine import generate_recommendation
+
 result = generate_recommendation(validation={...})
 # → نجح. ECP لم يمنع.
 ```

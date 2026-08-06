@@ -279,12 +279,9 @@ CREATE TABLE irrigation_events (
 ```python
 # في indicators-service:
 seasonal_irrigation_mm = sum(
-    event.amount_mm for event in irrigation_events
-    if event.season_id == active_season.season_id
+    event.amount_mm for event in irrigation_events if event.season_id == active_season.season_id
 )
-wofost_inputs.water = (
-    seasonal_irrigation_mm + seasonal_rainfall_mm
-)
+wofost_inputs.water = seasonal_irrigation_mm + seasonal_rainfall_mm
 ```
 
 #### ربط ٢: `wells.water_ec_dsm` → `crop_water_tolerance` (FAO-56)
@@ -293,10 +290,9 @@ wofost_inputs.water = (
 # في recommendation engine:
 if well.water_ec_dsm > crop_tolerance[season.crop_id]:
     add_recommendation(
-        type='WATER_QUALITY',
-        priority='HIGH',
-        text=f'ملوحة ماء البئر {well.water_ec_dsm} dS/m '
-             f'تتجاوز تحمّل {crop_name} ({tolerance} dS/m)'
+        type="WATER_QUALITY",
+        priority="HIGH",
+        text=f"ملوحة ماء البئر {well.water_ec_dsm} dS/m تتجاوز تحمّل {crop_name} ({tolerance} dS/m)",
     )
 ```
 
@@ -307,7 +303,7 @@ if well.water_ec_dsm > crop_tolerance[season.crop_id]:
 # لو الـstatic level ينخفض > X ملم/شهر → تنبيه نضوب
 recent_drawdowns = [r.drawdown_m for r in last_30_days_runs]
 if mean(recent_drawdowns) > threshold:
-    add_alert('بئر %s: علامات نضوب — راجع جدول الضخّ' % well.name_ar)
+    add_alert("بئر %s: علامات نضوب — راجع جدول الضخّ" % well.name_ar)
 ```
 
 ---

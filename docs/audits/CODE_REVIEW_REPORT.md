@@ -68,7 +68,7 @@ app = FastAPI(lifespan=lifespan, title="SAHOOL Edge Inference", ...)
 `services/supervisor-agent/mcp_client.py:46,81` ⇐ `shared/helpers.py:294`
 
 ```python
-resp = await retry_request(client.get("/mcp/v1/tools"))   # كائن coroutine لا callable
+resp = await retry_request(client.get("/mcp/v1/tools"))  # كائن coroutine لا callable
 ```
 `retry_request(coro_fn, *args)` يتوقّع **دالة** ويفعل `await coro_fn(*args)` داخل
 حلقة إعادة المحاولة. هنا يُمرَّر **كائن coroutine** ⇒ `TypeError: 'coroutine'
@@ -83,8 +83,9 @@ coroutine (ممنوع). **كل أدوات المشرف معطّلة.**
 ```python
 def test_x():
     r = []
-    if cond: r.append(("✓", "..."))   # يُلحق عند النجاح فقط
-    return r                           # pytest يتجاهل القيمة ⇒ نجاح دائم
+    if cond:
+        r.append(("✓", "..."))  # يُلحق عند النجاح فقط
+    return r  # pytest يتجاهل القيمة ⇒ نجاح دائم
 ```
 عند الفشل لا يُلحَق شيء وتنجح الدالة. بوّابة `--cov-fail-under=50` تُرضى بتغطية
 الاستيراد فقط ⇒ **ثقة زائفة**: انحدارات في إحصاء التجارب، توازن المياه، التسميد،
@@ -152,9 +153,9 @@ NDVI/NDWI وغيرها تضيف `eps=1e-10` لكن مقام EVI
 ### H7 — توازن مياه الريّ في WOFOST غير متّسق فيزيائيًا (ETc لا يُطرح أبدًا)
 `wofost_real/wofost_engine.py:261-266,315`
 ```python
-w_demand = etc * (1000 / 1)        # محسوب ولا يُستخدم؛ "1000/1" عبثي
+w_demand = etc * (1000 / 1)  # محسوب ولا يُستخدم؛ "1000/1" عبثي
 if irrigation:
-    w_soil = max(w_wp, w_soil)     # يملأ الفجوة لكن لا يطرح ETc أبدًا
+    w_soil = max(w_wp, w_soil)  # يملأ الفجوة لكن لا يطرح ETc أبدًا
 ```
 تحت `irrigation=True` تُملأ التربة بالمطر فقط وتُحدّ عند الذبول؛ **ETc لا يُطرح**
 ⇒ فرع إجهاد الماء لا يُفعَّل و`water_factor` يبقى 1.0 — سيناريوهات الريّ لا تُنمذِج

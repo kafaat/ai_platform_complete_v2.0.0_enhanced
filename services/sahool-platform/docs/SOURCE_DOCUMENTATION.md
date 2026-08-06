@@ -111,10 +111,10 @@ def generate_recommendation(
 
 ```python
 class FieldQualityState(str, Enum):
-    BLOCKED      = "blocked"      # لا قرار بعد
-    LIMITED      = "limited"      # تخطّى الفحوصات → عام
-    PENDING_LAB  = "pending_lab"  # ينتظر المعمل
-    READY        = "ready"        # تحاليل كاملة → دقيق
+    BLOCKED = "blocked"  # لا قرار بعد
+    LIMITED = "limited"  # تخطّى الفحوصات → عام
+    PENDING_LAB = "pending_lab"  # ينتظر المعمل
+    READY = "ready"  # تحاليل كاملة → دقيق
 ```
 
 الدوال الأساسية: `resolve_state()` (يحدّد الحالة + التوصيات المتاحة)، `can_recommend()` (يطبّق قاعدة السلامة)، `state_explanation_ar()` (شرح للمزارع).

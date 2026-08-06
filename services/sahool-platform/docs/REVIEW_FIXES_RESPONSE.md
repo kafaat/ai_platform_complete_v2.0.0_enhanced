@@ -42,7 +42,7 @@
 @dataclass
 class SearchContext:
     ...
-    district_id: str | None = None   # ← مُضاف صراحة
+    district_id: str | None = None  # ← مُضاف صراحة
 ```
 
 **التأثير:** `same_district` صريح الآن — وزن كامل (0.10) فقط عند تطابق فعلي. التوافق الخلفي محفوظ (default=None).
@@ -52,8 +52,10 @@ class SearchContext:
 **كان:**
 ```python
 for rec in recommendation_log:
-    if rec.tenant_id != context.tenant_id: continue
-    if rec.issued_date < cutoff: continue
+    if rec.tenant_id != context.tenant_id:
+        continue
+    if rec.issued_date < cutoff:
+        continue
     # ... حسابات تشابه
 ```
 
@@ -82,7 +84,7 @@ if hasattr(rec, "district_id") and rec.district_id and context.tenant_id:
 ```python
 if context.district_id and getattr(rec, "district_id", None):
     if rec.district_id == context.district_id:
-        score += _WEIGHTS["same_district"]   # وزن كامل عند تطابق فعلي
+        score += _WEIGHTS["same_district"]  # وزن كامل عند تطابق فعلي
         reasons.append(f"نفس المديرية ({context.district_id})")
 ```
 
@@ -131,7 +133,7 @@ def safe_delivery(...) -> EnrichedRecommendation:
 
 **المراجعة اقترحت:**
 ```python
-engine.run(context)   # حيث context.cross_refs مفروض
+engine.run(context)  # حيث context.cross_refs مفروض
 ```
 
 **لماذا لم أفعل ذلك:**
@@ -158,7 +160,7 @@ weight[crop_similarity] += learning_rate * success_delta
 @dataclass
 class SimilarityMatch:
     ...
-    outcome_quality: float | None = None   # جسر مستقبلي
+    outcome_quality: float | None = None  # جسر مستقبلي
 ```
 
 `outcome_quality` يُحسب الآن من `error_pct` لكنّه لا يُغذّي شيئاً. عند توفّر بيانات outcomes، يصبح input للـ`weight_adjustment_hook`. **هذا تطبيق "التأجيل ≠ الإغلاق المعماري"**: لا أبني learning loop، لكن أُعدّ البنية لاستقباله بدون إعادة كتابة.

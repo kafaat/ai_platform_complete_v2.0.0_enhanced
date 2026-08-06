@@ -68,8 +68,11 @@ GovernanceMode.STRICT       # bypass → PermissionError
 
 ```python
 recommendation_engine.__all__ = [
-    "Recommendation", "BackendDetail", "FarmerView",
-    "RecommendationStatus", "FarmerSignal",
+    "Recommendation",
+    "BackendDetail",
+    "FarmerView",
+    "RecommendationStatus",
+    "FarmerSignal",
     # generate_recommendation مُستبعَدة عمداً
 ]
 ```

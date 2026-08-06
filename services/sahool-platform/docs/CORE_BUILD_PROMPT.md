@@ -540,18 +540,21 @@ modifying: { organic_matter_pct: {...}, nitrogen/phosphorus/potassium_kg_ha }
 def test_indication_ceiling_caps_not_rejects():
     """enforce_indication_ceiling يخفض الثقة (لا يرفض القرار)."""
     r = enforce_indication_ceiling("R5", "satellite", "high")
-    assert r["allowed_confidence"] in ("low","medium")  # لا high
+    assert r["allowed_confidence"] in ("low", "medium")  # لا high
     assert r["was_capped"] is True
+
 
 # test_evidence_class.py — الحاكم لا يُرفَع بالتضافر
 def test_governing_blocked_never_lifted():
     """تضافر القرائن لا يرفع BLOCKED للحاكم الصارم."""
     # قرائن طيفية متضافرة لا تستبدل تحليل EC المخبري الغائب
 
+
 # test_crop_cards.py — حماية path-traversal
 def test_safe_id_rejects_traversal():
     assert _safe_id("../../etc/passwd") is None
     assert _safe_id("wheat_local") == "wheat_local"
+
 
 # test_crop_cards.py — المثال المضادّ
 def test_cranberry_extreme_sensitivity():
@@ -560,11 +563,13 @@ def test_cranberry_extreme_sensitivity():
     assert card["salinity"]["threshold_ece_ds_m"] <= 1.5
     assert card["thermal"]["chilling_hours_required"] >= 800
 
+
 # test_day_zero.py — لا كذب في سياق المديرية
 def test_district_context_never_field_value():
     adv = build_day_zero_advisory("F1", district_salinity_context=4.2)
     ctx = [i for i in adv.items if "الملوحة" in i.topic_ar][0]
     assert "ليس قيمة حقلك" in ctx.advice_ar
+
 
 # test_day_zero.py — المبيدات محجوبة دائماً
 def test_pesticides_always_blocked():

@@ -163,9 +163,9 @@ $ grep -rn "validate.*crs\|reproject\|to_crs" services/ --include="*.py"
 ```python
 # tool_contracts.py — موجود فعلاً
 ToolContract(
-    required_capabilities=["weather.read"],   # ← capability check
-    timeout_ms=5000,                          # ← timeout enforcement
-    side_effects=SideEffectClass.READ_DB,     # ← side effect classification
+    required_capabilities=["weather.read"],  # ← capability check
+    timeout_ms=5000,  # ← timeout enforcement
+    side_effects=SideEffectClass.READ_DB,  # ← side effect classification
 )
 # Invariant: ACTUATOR + non-idempotent → MUST max_retries=0
 ```

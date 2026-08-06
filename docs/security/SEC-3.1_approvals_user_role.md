@@ -122,6 +122,7 @@ Pure decision helper (stdlib, unit-testable in the no-fastapi tier) in
 ```python
 ERROR_MISSING_USER = "missing_user"
 
+
 def resolve_authenticated_user(x_user_id: str | None) -> str:
     """Return the gateway-authenticated user id, fail-closed."""
     user = _clean(x_user_id)
@@ -152,8 +153,7 @@ async def approve_tool_request(
     req: ApprovalDecisionRequest,
     _tenant: str = Depends(require_trusted_tenant),
     _user: str = Depends(require_authenticated_user),  # SEC-3.1
-) -> dict[str, Any]:
-    ...
+) -> dict[str, Any]: ...
 ```
 
 (For role-gated approvals, add a `require_role`-style dependency reading

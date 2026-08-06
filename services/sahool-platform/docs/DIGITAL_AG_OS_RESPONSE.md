@@ -59,10 +59,14 @@
 
 ```python
 snapshot = build_farm_memory(
-    tenant_id="tnt_001", farm_id="frm_01", field_ids=["fld_03"],
-    activities=activities, observations=observations,
+    tenant_id="tnt_001",
+    farm_id="frm_01",
+    field_ids=["fld_03"],
+    activities=activities,
+    observations=observations,
     recommendations=recommendations,
-    period_from="2025-01-01", period_to="2025-12-31",
+    period_from="2025-01-01",
+    period_to="2025-12-31",
 )
 # → FarmMemorySnapshot:
 #     timeline (مرتّب زمنياً)
