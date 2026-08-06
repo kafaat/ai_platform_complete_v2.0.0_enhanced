@@ -350,13 +350,25 @@ class TimelineRequest(BaseModel):
 
 
 class WhatIfRequest(BaseModel):
+    """طلب محاكاة what-if.
+
+    ``scenario`` كان ``str`` حرّاً يُعاد صدىً في الاستجابة ولا يُقرأ عند بناء
+    المحاكاة (WOFOST-SCENARIO-IS-DECORATIVE-01): ``reduce_irrigation`` و
+    ``no_irrigation`` كانا يُنتِجان **الأرقام نفسها بالضبط**. صار مجموعةً مغلقة
+    لكلٍّ منها نسبة ريّ مُعلَنة تُمرَّر إلى المحرّك فعلاً — والقيم الثلاث هي كلّ
+    ما كان يُرسَل قبلاً (المُوائم يُرسل ``recommended_action``)، فلا مستهلك
+    شرعيّ يُرفَض بهذا الإغلاق.
+    """
+
     field_id: str
     crop: str = "قمح صلب"
     lat: float | None = None
     lon: float | None = None
     soil_type: str = "loam"
     planting_date: str | None = None  # ISO؛ افتراض بداية الموسم
-    scenario: str = "reduce_irrigation"  # reduce_irrigation | no_irrigation
+    scenario: Literal["reduce_irrigation", "no_irrigation", "recommended_action"] = (
+        "reduce_irrigation"
+    )
 
 
 class PinCreateRequest(BaseModel):

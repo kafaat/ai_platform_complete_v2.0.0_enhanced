@@ -35,8 +35,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 5366,
-  "generated_at": "2026-08-05T19:49:14Z",
+  "file_count": 5367,
+  "generated_at": "2026-08-05T22:05:06Z",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -134,5 +134,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 57386178
+  "total_size_bytes": 57427719
 }

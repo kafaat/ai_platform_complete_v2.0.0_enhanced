@@ -28,7 +28,7 @@ INT-004,External machinery integrations,precision,3,2,declared_above_evidence,6,
 IRR-001,Water source registry,irrigation,3,1,declared_above_evidence,3,True,False,False,True,False,False,False,True,False,False,False,False
 IRR-002,Water quality samples,irrigation,3,1,declared_above_evidence,5,True,True,True,True,True,False,False,False,False,False,False,False
 IRR-003,Field water-source binding,irrigation,0,1,evidence_above_declared,4,True,True,False,True,False,False,False,True,False,False,False,False
-IRR-004,Water balance,irrigation,3,3,aligned,7,True,True,True,True,False,True,False,True,True,False,False,False
+IRR-004,Water balance,irrigation,3,3,aligned,8,True,True,True,True,True,True,False,True,True,False,False,False
 IRR-005,Irrigation recommendation,irrigation,3,2,declared_above_evidence,7,True,True,True,False,True,True,False,True,False,True,False,False
 IRR-006,Irrigation scheduling,irrigation,3,2,declared_above_evidence,4,True,False,True,False,True,False,False,True,False,False,False,False
 IRR-007,Pump and valve control,irrigation,3,1,declared_above_evidence,3,True,False,True,False,False,False,False,False,False,True,False,False

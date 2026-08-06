@@ -5,9 +5,9 @@
     "mapped_routes": 635,
     "surface_routes": 635
   },
-  "inventory_sha256": "38ad99ef53620498811729956f29c2e3b2661a95d675cbbb8c7539c8ccee691e",
+  "inventory_sha256": "dae575b3bd3ac3510d9c2894969335d06178c57d67634ea1d9634e8bcac06eeb",
   "map_file": "docs/architecture/platform_extraction_map.json",
-  "map_sha256": "e166f70ab5aac4bec98308b6451276d6401dd82e034a616d767e0b52cddee5f2",
+  "map_sha256": "1d83df9b12631e9716d015277dfe3560716bc1534668bd68c076fc7083998440",
   "routes": [
     {
       "classification": null,
@@ -7561,7 +7561,7 @@
       "domain_budget_counted": null,
       "file": "api/routers/simulate.py",
       "function": "simulate_what_if",
-      "line": 27,
+      "line": 75,
       "method": "POST",
       "owner": "agriai-engine",
       "owner_type": "decision-compute",
