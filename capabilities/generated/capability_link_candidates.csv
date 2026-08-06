@@ -1433,6 +1433,7 @@ SAT-006,test,services/sahool-platform/tests/test_historical_season_context.py,3,
 SAT-006,test,services/sahool-platform/tests/test_weather_field_timeline_link.py,3,applied
 SAT-006,test,tests/security/test_phase22_rls_with_check_backfill.py,3,applied
 SAT-006,test,tests_v9/test_async_backfill_scaffold_v30_6.py,3,applied
+SAT-006,test,tests_v9/test_backfill_failure_reason_persisted.py,3,applied
 SAT-006,test,tests_v9/test_backfill_incremental_retry_guard_v31_1.py,3,applied
 SAT-006,test,tests_v9/test_backfill_scene_job_threadpool_v30_3.py,3,applied
 SAT-006,test,tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py,3,applied

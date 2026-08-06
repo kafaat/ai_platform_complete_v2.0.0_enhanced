@@ -1614,6 +1614,7 @@
         "services/sahool-platform/tests/test_weather_field_timeline_link.py",
         "tests/security/test_phase22_rls_with_check_backfill.py",
         "tests_v9/test_async_backfill_scaffold_v30_6.py",
+        "tests_v9/test_backfill_failure_reason_persisted.py",
         "tests_v9/test_backfill_incremental_retry_guard_v31_1.py",
         "tests_v9/test_backfill_scene_job_threadpool_v30_3.py",
         "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
@@ -1652,7 +1653,7 @@
           "path": "migrations/v209_historical_weather_sor.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=16, tests=22, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=16, tests=23, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

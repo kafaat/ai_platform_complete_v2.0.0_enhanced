@@ -6708,6 +6708,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_backfill_failure_reason_persisted.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_backfill_incremental_retry_guard_v31_1.py",
     "kind": "tests"
   },
