@@ -173,7 +173,7 @@ def worker():
 
 
 def test_the_outcome_carries_a_reason_not_just_a_boolean(worker):
-    """‏``bool`` لا يتّسع لثلاث حالات؛ والنوع نفسه هو ما يمنع عودتها إلى واحدة."""
+    """``bool`` لا يتّسع لثلاث حالات؛ والنوع نفسه هو ما يمنع عودتها إلى واحدة."""
     assert worker.SceneOutcome(True).reason is None
     assert worker.SceneOutcome(False, "processed_not_persisted").ok is False
     assert set(worker.SceneOutcome._fields) == {"ok", "reason"}
