@@ -21,7 +21,6 @@
     "scripts/ci/claim_base_guard.py",
     "scripts/ci/guard_mutation_guard.py",
     "scripts/ci/no_merge_conflict_markers_guard.py",
-    "scripts/ci/conflict_marker_guard.sh",
     "scripts/ci/compose_env_contract_gate.py",
     "scripts/ci/env_compose_drift_guard.py",
     "scripts/ci/compose_runtime_target_resolver.py",
