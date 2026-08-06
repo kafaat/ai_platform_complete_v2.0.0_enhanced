@@ -6,9 +6,12 @@
 والسبب يُسجَّل في سجلّ العامل ثمّ **يُرمى**. ثمّ يكتب المُستدعي ``status='failed'`` ويترك
 ``backfill_run_items.error`` (عمودٌ قائم منذ ``v144``) ``NULL``.
 
-والأسوأ أنّ جانب القراءة مبنيٌّ على وجوده: ``db_persist.get_backfill_run_status`` يختار
-``error`` صراحةً. فالواجهة تعرض حقلاً لا يصل إليه شيء، والمُشغِّل يرى «٣ فاشلة» ويُحال
-إلى سجلّات حاوية قد تكون دُوِّرت.
+**وتصحيح لصيغة أولى من هذا النصّ:** قالت إنّ ``get_backfill_run_status`` «يختار ``error``
+صراحةً» فالواجهة تنتظر سبباً. ذلك صحيحٌ عن ``backfill_runs.error`` — خطأ **التشغيلة** —
+لا عن عمود العنصر. وبالقياس على الشجرة وقتها: **لا استعلام واحد** يختار
+``backfill_run_items.error``. فالشريحة كانت ستكتب تشخيصاً لا يقرؤه أحد — الدين الصامت
+نفسه، طبقةً أعلى. أُضيف القارئ هنا (``failed_items``)، والمُشغِّل يرى «٣ فاشلة» بأسبابها
+بدل أن يُحال إلى سجلّات حاوية قد تكون دُوِّرت.
 
 **والدليل أنّ الكاتب عرف أهمّيّة الحقل:** مسار «المشهد غير موجود في الكتالوج» يكتب سبباً
 صريحاً (``scene_not_found_in_catalog_for_date``). المسار العامّ وحده هو الذي لا يكتب —
@@ -75,13 +78,59 @@ def test_every_failed_item_update_also_writes_a_reason():
         )
 
 
-def test_the_read_side_selects_the_column_this_write_side_fills():
-    """لولا القراءة لكان العمود ديناً صامتاً؛ وجودُها يجعل الفراغ **ادّعاءً كاذباً**."""
-    assert re.search(
-        r"SELECT[\s\S]{0,400}?\berror\b[\s\S]{0,200}?FROM\s+backfill_runs",
-        PERSIST.read_text(encoding="utf-8"),
-        re.I,
+def _select_statements(path: Path) -> list[str]:
+    """كلّ ``SELECT`` في الملفّ، مُسطَّحاً — مشتقّاً من السلاسل المُحلَّلة لا من الأسطر."""
+    out = []
+    for text in _sql_literals(path):
+        flat = " ".join(text.split())
+        if re.match(r"^\s*SELECT\b", flat, re.I):
+            out.append(flat)
+    return out
+
+
+def test_the_read_side_selects_the_item_column_this_write_side_fills():
+    """**الصيغة الأولى طابقت الجدول الخطأ — وهي عطل هذه الشريحة بعينه، ارتكبتُه أنا.**
+
+    كان الفحص ``…\\berror\\b…FROM\\s+backfill_runs`` ويمرّ. لكنّ ``backfill_runs.error``
+    خطأ **التشغيلة**، مقروءٌ منذ ``v144``؛ والعمود الذي تملؤه هذه الشريحة هو
+    ``backfill_run_items.error`` — **جدولٌ آخر يحمل الاسم نفسه**. فبرهانُ «جانب القراءة
+    مبنيٌّ على وجوده» كان يخصّ عموداً غير الذي يُكتَب.
+
+    وقياسٌ على الشجرة وقتها: **لا استعلام واحد** في ``services/`` يختار
+    ``backfill_run_items.error``؛ التجميع الوحيد على الجدول كان
+    ``SELECT status, count(*) … GROUP BY status`` — يعدّ الحالات ولا يقرأ سبباً. أي أنّ
+    الشريحة كانت ستكتب تشخيصاً **لا يصل إلى أحد**: الدين الصامت الذي تدّعي إغلاقه.
+
+    فالفحص الآن يُلزِم ``SELECT`` **من ``backfill_run_items`` نفسه** يحمل ``error``.
+    """
+    statements = _select_statements(PERSIST)
+    assert statements, "لا عبارة SELECT مُكتشَفة — الحارس بلا عين"
+    item_reads = [
+        s
+        for s in statements
+        if re.search(r"\bFROM\s+backfill_run_items\b", s, re.I)
+        and re.search(r"(^|,|\s)error(\s|,|$)", s, re.I)
+    ]
+    assert item_reads, (
+        "لا استعلام يقرأ backfill_run_items.error — العمود يُكتَب ولا يُقرأ:\n  "
+        + "\n  ".join(statements[:8])
     )
+
+
+def test_the_run_level_error_is_a_different_column_and_still_read():
+    """الجدولان يحملان عموداً بالاسم نفسه؛ وخلطُهما هو ما أوقع الفحص السابق.
+
+    فيُثبَّت الاثنان منفصلين: خطأ التشغيلة من ``backfill_runs``، وسبب العنصر من
+    ``backfill_run_items``. سقوطُ أحدهما لا يُخفيه الآخر.
+    """
+    statements = _select_statements(PERSIST)
+    run_reads = [
+        s
+        for s in statements
+        if re.search(r"\bFROM\s+backfill_runs\b", s, re.I)
+        and re.search(r"(^|,|\s)error(\s|,|$)", s, re.I)
+    ]
+    assert run_reads, "خطأ التشغيلة لم يعد يُقرأ — انحدار في جانب القراءة"
 
 
 def _load_worker():

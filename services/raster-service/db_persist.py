@@ -516,8 +516,27 @@ async def get_backfill_run_status(run_id: int, tenant_id: str | None = None) -> 
             int(run_id),
         )
         item_counts = {str(r["status"]): int(r["n"]) for r in items}
+        # **أسباب العناصر الفاشلة — العمود الذي كان يُكتَب ولا يُقرأ.**
+        #
+        # ‏`backfill_runs.error` أعلاه هو خطأ **التشغيلة**، وقد كان يُقرأ منذ `v144`.
+        # أمّا `backfill_run_items.error` فعمودٌ آخر في جدولٍ آخر يحمل الاسم نفسه، ولم
+        # يكن يختاره أيّ استعلام في الشجرة: التجميع أعلاه يعدّ الحالات ولا يقرأ السبب.
+        # فكتابةُ السبب بلا هذا الاستعلام تُنتج ديناً صامتاً — عملٌ يُبذَل وأثرٌ لا يصل
+        # إلى المُشغِّل، وهو العطل نفسه الذي يُصلحه هذا التغيير طبقةً أعلى.
+        #
+        # مسقوف بـ50: تشغيلةٌ بآلاف الإخفاقات تحمل أنماطاً معدودة، والسقف يمنع استجابةً
+        # لا تُقرأ. و`failed_items_truncated` يقول ذلك صراحةً بدل قصٍّ صامت.
+        failed = await conn.fetch(
+            "SELECT id, scene_id, index_name, acquisition_date::text AS acquisition_date, "
+            "error, processed_at::text AS processed_at "
+            "FROM backfill_run_items WHERE run_id = $1 AND status = 'failed' "
+            "ORDER BY id LIMIT 51",
+            int(run_id),
+        )
         out = dict(run)
         out["item_counts"] = item_counts
+        out["failed_items"] = [dict(r) for r in failed[:50]]
+        out["failed_items_truncated"] = len(failed) > 50
         return out
     except Exception as e:  # noqa: BLE001 — غياب الجدول لا يُفشل القراءة
         logger.warning("backfill_runs status fetch skipped (%s): %s", run_id, e)
