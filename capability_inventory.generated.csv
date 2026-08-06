@@ -5,6 +5,7 @@ actuator-service.idempotency.metrics,query,actuator-service,GET /v1/idempotency/
 agriai-engine.plan,command,agriai-engine,POST /v1/plan,,route,False
 agriai-engine.recommend,command,agriai-engine,POST /v1/recommend,,route,False
 agriai-engine.replay.verify,command,agriai-engine,POST /v1/replay/verify,,route,False
+agriai-engine.runtime-identity,query,agriai-engine,GET /runtime-identity,,route,False
 agriai-engine.simulate,command,agriai-engine,POST /v1/simulate,,route,False
 ai_agronomist.approvals.approve,command,ai_agronomist,POST /v1/approvals/approve,frontend,route,False
 ai_agronomist.approvals.deny,command,ai_agronomist,POST /v1/approvals/deny,frontend,route,False

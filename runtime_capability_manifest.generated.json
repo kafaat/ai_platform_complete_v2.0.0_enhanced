@@ -15,7 +15,7 @@
       "wiring_disposition": "consumed"
     },
     {
-      "capability_count": 4,
+      "capability_count": 5,
       "component_id": "agriai-engine",
       "domain": "simulation-experimental",
       "status": {
@@ -477,7 +477,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "db927ed1803949fac721d1280ab307e4b066236a5b1f5b7679d0cb657becf45f",
+  "fingerprint": "f5fa0ea8f6a04e5ddb3aa3d1671f05eeb50043a6b6c2f63e069fa2c03e59b228",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

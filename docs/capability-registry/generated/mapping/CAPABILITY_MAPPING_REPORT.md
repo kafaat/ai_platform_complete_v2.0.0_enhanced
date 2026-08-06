@@ -12,7 +12,7 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4919**
+- Files scanned: **4920**
 - Ambiguous artifacts queued: **399**
 - Unmapped artifacts queued: **2006**
 
@@ -71,7 +71,7 @@
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | SAT-001 | satellite | 36 | 65 | 3 | 32 | 5 | 0 | 41 | 6 |
 | SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 3 | 4 |
-| SAT-003 | satellite | 100 | 82 | 42 | 100 | 49 | 6 | 100 | 7 |
+| SAT-003 | satellite | 100 | 83 | 42 | 100 | 49 | 6 | 100 | 7 |
 | SAT-004 | satellite | 19 | 10 | 5 | 14 | 7 | 0 | 20 | 6 |
 | SAT-005 | satellite | 8 | 24 | 0 | 1 | 0 | 0 | 9 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |

@@ -98,6 +98,21 @@
     },
     {
       "approval_required": false,
+      "capability_id": "agriai-engine.runtime-identity",
+      "consumers": [],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /runtime-identity"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "agriai-engine",
+      "producer": "agriai-engine",
+      "required_context": []
+    },
+    {
+      "approval_required": false,
       "capability_id": "agriai-engine.simulate",
       "consumers": [],
       "curated": false,
@@ -17065,7 +17080,7 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 826,
+    "capabilities": 827,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 93,
     "capabilities_idempotent": 46,
@@ -17076,7 +17091,7 @@
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1111,
+    "route_rows": 1112,
     "ui_waivers": 52,
     "unique_method_path": 998
   },
@@ -17260,6 +17275,7 @@
       "classification": "standard_observability",
       "classified": true,
       "components": [
+        "agriai-engine",
         "auth",
         "decision-service",
         "guardrails-engine",
@@ -17333,7 +17349,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "db927ed1803949fac721d1280ab307e4b066236a5b1f5b7679d0cb657becf45f",
+  "fingerprint": "f5fa0ea8f6a04e5ddb3aa3d1671f05eeb50043a6b6c2f63e069fa2c03e59b228",
   "gateway": {
     "proxied_components": [
       "agriai-engine",

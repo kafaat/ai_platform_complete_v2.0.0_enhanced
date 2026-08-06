@@ -92,7 +92,16 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 238,
+    "line": 97,
+    "method": "GET",
+    "path": "/runtime-identity",
+    "handler": "runtime_evidence_identity",
+    "classification": "infra"
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/main.py",
+    "line": 247,
     "method": "POST",
     "path": "/v1/recommend",
     "handler": "recommend",
@@ -101,7 +110,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 298,
+    "line": 307,
     "method": "POST",
     "path": "/v1/simulate",
     "handler": "simulate",
@@ -110,7 +119,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 311,
+    "line": 320,
     "method": "POST",
     "path": "/v1/plan",
     "handler": "plan",
@@ -119,7 +128,7 @@
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/main.py",
-    "line": 327,
+    "line": 336,
     "method": "POST",
     "path": "/v1/replay/verify",
     "handler": "replay_verify",

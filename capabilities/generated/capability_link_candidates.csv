@@ -6,6 +6,7 @@ DEC-001,api,GET /api/v1/evidence/map @ services/sahool-platform/api/routers/evid
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/latest @ services/sahool-platform/api/routers/field_intelligence.py:539,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/nodes @ services/sahool-platform/api/routers/field_intelligence.py:638,2,applied
 DEC-001,api,GET /api/v1/fields/{field_id}/evidence-graph/timeline @ services/sahool-platform/api/routers/field_intelligence.py:571,2,applied
+DEC-001,api,GET /runtime-identity @ services/agriai-engine/main.py:97,2,applied
 DEC-001,api,GET /runtime-identity @ services/raster-service/main.py:64,2,applied
 DEC-001,api,GET /runtime-identity @ services/sahool-platform/api/routers/platform_health.py:24,2,applied
 DEC-001,api,GET /runtime-identity @ services/soil-service/main.py:198,2,applied
