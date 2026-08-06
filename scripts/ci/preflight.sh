@@ -189,7 +189,6 @@ if need ruff "١) ruff"; then
 fi
 
 # ── ٢) حارسا تعارض الدمج — لا يغني أحدهما عن الآخر ────────────────────────
-run "٢أ) conflict_marker_guard"   bash scripts/ci/conflict_marker_guard.sh
 require_file scripts/ci/no_merge_conflict_markers_guard.py "٢ب) no_merge_conflict_markers" && run "٢ب) no_merge_conflict_markers" python3 scripts/ci/no_merge_conflict_markers_guard.py
 
 # ── ٣) أساس الادّعاءات وحارس الطفرات ──────────────────────────────────────

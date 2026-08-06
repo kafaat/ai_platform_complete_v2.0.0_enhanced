@@ -381,11 +381,13 @@ AssertionError: platform extraction map source drift:
 
 ```python
 import json, pathlib, sys
+
 sys.path.insert(0, ".")
 from scripts.ci.platform_route_ownership_guard import collect_surface, PLATFORM_ROOT, MAP_PATH
 
 surface = {i.identity: i for i in collect_surface(PLATFORM_ROOT)}
-p = pathlib.Path(MAP_PATH); original = p.read_text(encoding="utf-8")
+p = pathlib.Path(MAP_PATH)
+original = p.read_text(encoding="utf-8")
 doc = json.loads(original)
 for row in doc["routes"]:
     cur = surface.get((str(row["method"]), str(row["path"]), str(row["function"])))

@@ -302,7 +302,7 @@ CREATE POLICY tenant_isolation ON recommendations
 
 ```python
 # في recommendation_bridge.py أو db.py:
-DB_BACKEND = os.getenv("SAHOOL_DB", "sqlite")   # "sqlite" أو "postgres"
+DB_BACKEND = os.getenv("SAHOOL_DB", "sqlite")  # "sqlite" أو "postgres"
 
 # Rollback = toggle environment variable + restart
 # SQLite يبقى متزامناً عبر مرحلة Dual-write
@@ -325,8 +325,9 @@ DB_BACKEND = os.getenv("SAHOOL_DB", "sqlite")   # "sqlite" أو "postgres"
 
 ```python
 # في النواة الحالية (in-memory):
-field = FieldSchema(field_id="fld_03", tenant_id="t1", farm_id="frm_01",
-                   name_ar="حقل", id_uuid=None)  # default، يعمل
+field = FieldSchema(
+    field_id="fld_03", tenant_id="t1", farm_id="frm_01", name_ar="حقل", id_uuid=None
+)  # default، يعمل
 
 # عند الهجرة:
 # 1. توليد UUID لكل صفّ قائم

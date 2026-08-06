@@ -107,12 +107,16 @@ PgBouncer منشور، رغم أنّ الكود **جاهز له** (`statement_ca
   مثال إعداد الـstream (يحدّد retention وحدوداً صريحة):
   ```python
   from nats.js.api import StreamConfig, RetentionPolicy
-  await js.add_stream(StreamConfig(
-      name="sahool", subjects=["sahool.>"],
-      retention=RetentionPolicy.LIMITS,
-      max_age=7*24*3600,           # احتفاظ ٧ أيّام
-      max_bytes=1_000_000_000,     # سقف ١GB (يكمّل حدود الخادم في §٤)
-  ))
+
+  await js.add_stream(
+      StreamConfig(
+          name="sahool",
+          subjects=["sahool.>"],
+          retention=RetentionPolicy.LIMITS,
+          max_age=7 * 24 * 3600,  # احتفاظ ٧ أيّام
+          max_bytes=1_000_000_000,  # سقف ١GB (يكمّل حدود الخادم في §٤)
+      )
+  )
   ```
 - رفع مستوى ملاحظة فشل النشر في `publish_event`: أبقِ الابتلاع لكن **زِد عدّاد
   Prometheus** (`sahool_nats_publish_failed_total`) كي يُرصَد الفقد بدل أن يُخفى.

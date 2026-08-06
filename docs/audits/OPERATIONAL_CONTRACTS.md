@@ -25,7 +25,7 @@
 
 **التحقّق:**
 ```python
-yaml.safe_load(open('docker-compose.v9.yml'))  # ✓ يمرّ
+yaml.safe_load(open("docker-compose.v9.yml"))  # ✓ يمرّ
 # services: 29 · networks: ['sahool-public', 'sahool-internal']
 ```
 
@@ -204,13 +204,13 @@ class TestRLSEdgeCases:
 @dataclass(frozen=True)
 class ToolContract:
     tool_id: str
-    version: str                          # SemVer
+    version: str  # SemVer
     input_schema: Dict[str, Any]
     output_schema: Dict[str, Any]
-    side_effects: SideEffectClass         # pure/read_db/write_db/external_api/notification/actuator
+    side_effects: SideEffectClass  # pure/read_db/write_db/external_api/notification/actuator
     timeout_ms: int = 5000
     deterministic: bool = True
-    required_capabilities: List[str]      # least privilege
+    required_capabilities: List[str]  # least privilege
     cost_estimate_tokens: int = 0
     retry_policy: str = "exponential_backoff"
     max_retries: int = 3

@@ -139,4 +139,3 @@ async def raster_api_passthrough(
         media_type=media_type,
         headers=forwarded_headers,
     )
-

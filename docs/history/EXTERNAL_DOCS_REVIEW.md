@@ -128,11 +128,13 @@ if features["irrigation_frequency"] > 3:
 **خطر زراعي حقيقي.** الكود المُقترَح:
 ```python
 if features["stress_events"] > 3:
-    decisions.append({
-        "decision_type": "irrigation.schedule",
-        "confidence": 0.82,
-        "payload": {"water_liters": 1200},
-    })
+    decisions.append(
+        {
+            "decision_type": "irrigation.schedule",
+            "confidence": 0.82,
+            "payload": {"water_liters": 1200},
+        }
+    )
 ```
 
 اعتماد على `stress_events > 3` لتقرير ريّ ١٢٠٠ لتر هو **خطر فعلي**:

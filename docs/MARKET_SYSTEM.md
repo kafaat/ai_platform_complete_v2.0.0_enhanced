@@ -175,11 +175,14 @@ curl http://localhost:8094/v1/analytics/00000000-0000-0000-0000-000000000000
 mcp_call("market_search_products", {"query": "يوريا", "category": "fertilizer", "limit": 5})
 # → يختار أفضل سعر
 
-mcp_call("market_create_procurement", {
-    "tenant_id": tenant,
-    "field_id": "field_A3",
-    "items": [{"product_name": "Urea 46%", "quantity": 2000, "unit": "kg"}]
-})
+mcp_call(
+    "market_create_procurement",
+    {
+        "tenant_id": tenant,
+        "field_id": "field_A3",
+        "items": [{"product_name": "Urea 46%", "quantity": 2000, "unit": "kg"}],
+    },
+)
 # → order_id + status (draft أو approved)
 ```
 

@@ -9,7 +9,12 @@ The Farm Memory package (`shared/memory`) provides a tenant-isolated, versioned,
 ### Quick Start
 
 ```python
-from shared.memory import FarmMemory, ConversationTurn, export_to_encrypted_tarball, import_from_encrypted_tarball
+from shared.memory import (
+    FarmMemory,
+    ConversationTurn,
+    export_to_encrypted_tarball,
+    import_from_encrypted_tarball,
+)
 
 # Create a memory store for farm "farm-001"
 mem = FarmMemory("farm-001")

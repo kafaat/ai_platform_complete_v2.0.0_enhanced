@@ -62,8 +62,8 @@
 **سهول الحلّ:** `feedback_closure.learning_loop_readiness()` يفرض شروطاً صريحة:
 ```python
 required = {
-    "completed_outcomes_count": 50,    # الحدّ الأدنى
-    "acceptance_rate": 0.70,            # selection bias منخفض
+    "completed_outcomes_count": 50,  # الحدّ الأدنى
+    "acceptance_rate": 0.70,  # selection bias منخفض
     "lag_window_compliance": 0.80,
     "bias_assessment": "low",
 }
@@ -120,9 +120,7 @@ result = aggregate_window(points, days_back=30, min_samples=3)
 ma = moving_average(points, window_days=7)
 
 # Trend detection شفّاف
-trend = detect_trend(points, days_back=30,
-                    stable_threshold_pct=5.0,
-                    volatility_threshold=0.25)
+trend = detect_trend(points, days_back=30, stable_threshold_pct=5.0, volatility_threshold=0.25)
 # → INSUFFICIENT / STABLE / INCREASING / DECREASING / VOLATILE
 
 # Anomaly detection بـz-score (شفّاف، لا "ML")

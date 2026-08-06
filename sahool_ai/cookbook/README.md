@@ -68,10 +68,15 @@ print(f"{gb:.2f} GB")  # 4.79 GB
 ```python
 from sahool_ai.cookbook import fit_score
 
-profile = {"backend": "cpu_x86", "total_ram_gb": 16.0,
-           "available_ram_gb": 12.0, "cpu_cores": 8, "cpu_name": "..."}
-model  = {"params_b": 7.0, "min_ram_gb": 6, "name": "qwen2.5-7b-gguf"}
-score  = fit_score(profile, model, quant="Q4_K_M")
+profile = {
+    "backend": "cpu_x86",
+    "total_ram_gb": 16.0,
+    "available_ram_gb": 12.0,
+    "cpu_cores": 8,
+    "cpu_name": "...",
+}
+model = {"params_b": 7.0, "min_ram_gb": 6, "name": "qwen2.5-7b-gguf"}
+score = fit_score(profile, model, quant="Q4_K_M")
 print(f"درجة التوافق: {score}/100")
 ```
 
@@ -82,8 +87,8 @@ print(f"درجة التوافق: {score}/100")
 ```python
 from sahool_ai.cookbook import detect_platform, recommend_model
 
-profile = detect_platform()          # auto-detect GPU/CPU/RAM
-rec     = recommend_model(profile, task_type="llm")
+profile = detect_platform()  # auto-detect GPU/CPU/RAM
+rec = recommend_model(profile, task_type="llm")
 print(rec["model"], rec["quantization"])
 ```
 

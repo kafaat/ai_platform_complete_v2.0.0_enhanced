@@ -65,8 +65,7 @@ $ grep -rln "sqlite3\|psycopg\|asyncpg" core/
 `core/offline_first.py` — البنية الصريحة للعمليات المعلّقة:
 
 ```python
-from core.offline_first import (
-    OfflineQueue, OperationKind, record_operation_offline, sync_cycle)
+from core.offline_first import OfflineQueue, OperationKind, record_operation_offline, sync_cycle
 
 queue = OfflineQueue()
 
@@ -76,8 +75,12 @@ op = record_operation_offline(
     tenant_id="tnt_001",
     user_id="u_agronomist",
     kind=OperationKind.OBSERVATION_CREATE,
-    payload={"field_id": "fld_03", "observable_id": "ndvi",
-            "value": 0.55, "measured_at": "2026-05-29T08:00:00"},
+    payload={
+        "field_id": "fld_03",
+        "observable_id": "ndvi",
+        "value": 0.55,
+        "measured_at": "2026-05-29T08:00:00",
+    },
 )
 # → PendingOperation مع op_id فريد، status=QUEUED
 ```
@@ -99,6 +102,7 @@ def my_sync_handler(op):
     if response.status_code == 409:
         raise ValueError("CONFLICT: server has newer version")
     return response.ok
+
 
 result = sync_cycle(queue, "tnt_001", sync_handler=my_sync_handler)
 # → SyncResult:

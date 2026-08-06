@@ -326,7 +326,7 @@ NDSI = (Red - NIR) / (Red + NIR)
 # في indicators-service:
 async def auto_classify_field_soil(field_id: str):
     # ١. اجلب آخر Sentinel-2 image
-    image = await fetch_sentinel2(field.polygon, date='latest')
+    image = await fetch_sentinel2(field.polygon, date="latest")
 
     # ٢. احسب المؤشّرات
     bsi = compute_bsi(image.b2, image.b4, image.b8, image.b12)
@@ -335,11 +335,11 @@ async def auto_classify_field_soil(field_id: str):
 
     # ٣. صنّف بناءً على القيم
     if bi.mean() > 0.25 and bsi.mean() > 0.2:
-        return 'sandy'
+        return "sandy"
     elif bi.mean() < 0.15 and satvi.mean() > 0.3:
-        return 'volcanic'  # شائع في صعدة/ذمار
+        return "volcanic"  # شائع في صعدة/ذمار
     elif ndsi.mean() > 0.1:
-        return 'saline_soil_alert'
+        return "saline_soil_alert"
     # ... إلخ
 ```
 
@@ -362,9 +362,9 @@ else:
 # في recommendation engine:
 if ndsi.mean() > 0.1:
     add_recommendation(
-        priority='HIGH',
-        type='SALINITY_ALERT',
-        text='كشف ملوحة عالية من القمر الصناعي. ينصح بأخذ عيّنة EC.'
+        priority="HIGH",
+        type="SALINITY_ALERT",
+        text="كشف ملوحة عالية من القمر الصناعي. ينصح بأخذ عيّنة EC.",
     )
 ```
 

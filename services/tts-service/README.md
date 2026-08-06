@@ -46,12 +46,13 @@ Responses cached in Redis for 24h by SHA-256 hash of (voice + rate + pitch + vol
 # In bots/telegram/main.py
 import httpx
 
+
 async def send_voice_alert(chat_id: int, text: str):
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             "http://sahool-tts:8000/v1/tts/synthesize",
             json={"text": text, "voice": "yemeni_male"},
-            headers={"Authorization": f"Bearer {SAHOOL_AGENT_TOKEN}"}
+            headers={"Authorization": f"Bearer {SAHOOL_AGENT_TOKEN}"},
         )
     await bot.send_voice(chat_id, BufferedInputFile(resp.content, "alert.mp3"))
 ```

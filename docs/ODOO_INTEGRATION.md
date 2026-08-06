@@ -245,8 +245,8 @@ payload = {
         "name": record.name,
         "partner_id": record.partner_id.id,
         "state": record.state,
-        "amount_total": record.amount_total
-    }
+        "amount_total": record.amount_total,
+    },
 }
 requests.post(url, json=payload, timeout=5)
 ```
