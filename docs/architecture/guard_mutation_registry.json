@@ -196,6 +196,17 @@
       ],
       "test": "tests_v9/test_probe_leak_guard.py"
     },
+    "fake_connection_debt_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_incident_file_is_named_by_the_survey_not_by_hand",
+          "find": "        if not _FAKE.search(text):\n            continue\n",
+          "replace": "        if _FAKE.search(text):\n            continue\n",
+          "why": "قلبُ شرط الماسح ⇒ يمسح ما لا يستعمل وهميّاً، فيغيب ملفّ الحادثة (jsonb) عن المسح. والمرساة على **ملفّ الحادثة** لا على عدّاد الحجم: أوّل صياغة عندي سمّت `test_the_scanner_actually_sees_something` فلم يسقط — القلب يُبقي العدّ كبيراً بملفّات أخرى، فالعدّاد لا يُميّز"
+        }
+      ],
+      "test": "tests_v9/test_fake_connection_debt_guard.py"
+    },
     "platform_module_reachability_guard.py": {
       "mutations": [
         {
