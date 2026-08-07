@@ -403239,7 +403239,7 @@
       "file": "services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py",
       "source": "test_weather_service_real_contract_gate_is_wired_in_ci",
       "target": "read_text",
-      "line": 33
+      "line": 37
     },
     {
       "owner": "sahool-platform",
@@ -477670,231 +477670,203 @@
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_et0_view_preserves_degraded_and_does_not_elevate_partial",
       "target": "dict",
-      "line": 409
+      "line": 413
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_et0_view_preserves_degraded_and_does_not_elevate_partial",
       "target": "build_canonical_weather_state",
-      "line": 410
+      "line": 414
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_et0_view_preserves_degraded_and_does_not_elevate_partial",
       "target": "et0_view",
-      "line": 411
+      "line": 415
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_et0_view_preserves_degraded_and_does_not_elevate_partial",
       "target": "et0_agro_product",
-      "line": 412
+      "line": 416
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_preserves_full_contract_verbatim",
       "target": "compute_vpd",
-      "line": 430
+      "line": 434
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_preserves_full_contract_verbatim",
       "target": "build_canonical_weather_state",
-      "line": 431
+      "line": 435
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_preserves_full_contract_verbatim",
       "target": "vpd_view",
-      "line": 431
+      "line": 435
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_preserves_consistency_crosscheck_flags_when_dual_source",
       "target": "dict",
-      "line": 452
+      "line": 456
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_preserves_consistency_crosscheck_flags_when_dual_source",
       "target": "compute_vpd",
-      "line": 453
+      "line": 457
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_preserves_consistency_crosscheck_flags_when_dual_source",
       "target": "build_canonical_weather_state",
-      "line": 454
+      "line": 458
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_preserves_consistency_crosscheck_flags_when_dual_source",
       "target": "vpd_view",
-      "line": 454
+      "line": 458
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_adds_canonical_lineage",
       "target": "build_canonical_weather_state",
-      "line": 461
+      "line": 465
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_adds_canonical_lineage",
       "target": "vpd_view",
-      "line": 462
+      "line": 466
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_quality_propagates_validated_degraded_insufficient",
       "target": "build_canonical_weather_state",
-      "line": 472
+      "line": 476
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_quality_propagates_validated_degraded_insufficient",
       "target": "vpd_view",
-      "line": 472
+      "line": 476
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_quality_propagates_validated_degraded_insufficient",
       "target": "build_canonical_weather_state",
-      "line": 474
+      "line": 478
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_quality_propagates_validated_degraded_insufficient",
       "target": "vpd_view",
-      "line": 474
+      "line": 478
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_quality_propagates_validated_degraded_insufficient",
       "target": "build_canonical_weather_state",
-      "line": 477
+      "line": 481
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_quality_propagates_validated_degraded_insufficient",
       "target": "vpd_view",
-      "line": 477
+      "line": 481
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
       "target": "items",
-      "line": 483
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
-      "target": "compute_vpd",
-      "line": 484
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
-      "target": "get",
-      "line": 485
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
-      "target": "get",
-      "line": 486
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
-      "target": "get",
       "line": 487
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
-      "target": "get",
+      "target": "compute_vpd",
       "line": 488
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
-      "target": "build_canonical_weather_state",
+      "target": "get",
+      "line": 489
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
+      "target": "get",
       "line": 490
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
+      "target": "get",
+      "line": 491
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
+      "target": "get",
+      "line": 492
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
+      "target": "build_canonical_weather_state",
+      "line": 494
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_vpd_view_matches_direct_kernel_for_each_quality_tier",
       "target": "vpd_view",
-      "line": 490
+      "line": 494
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_snapshot_override_is_coherent",
       "target": "build_canonical_weather_state",
-      "line": 497
+      "line": 501
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_snapshot_override_is_coherent",
       "target": "vpd_view",
-      "line": 500
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_vpd_view_deterministic_and_distinct_state_id_per_snapshot",
-      "target": "build_canonical_weather_state",
-      "line": 507
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_vpd_view_deterministic_and_distinct_state_id_per_snapshot",
-      "target": "build_canonical_weather_state",
-      "line": 508
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_vpd_view_deterministic_and_distinct_state_id_per_snapshot",
-      "target": "vpd_view",
-      "line": 510
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_vpd_view_deterministic_and_distinct_state_id_per_snapshot",
-      "target": "vpd_view",
-      "line": 510
+      "line": 504
     },
     {
       "owner": "weather-service",
@@ -477906,282 +477878,310 @@
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_vpd_view_deterministic_and_distinct_state_id_per_snapshot",
+      "target": "build_canonical_weather_state",
+      "line": 512
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_vpd_view_deterministic_and_distinct_state_id_per_snapshot",
+      "target": "vpd_view",
+      "line": 514
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_vpd_view_deterministic_and_distinct_state_id_per_snapshot",
+      "target": "vpd_view",
+      "line": 514
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_vpd_view_deterministic_and_distinct_state_id_per_snapshot",
+      "target": "build_canonical_weather_state",
+      "line": 515
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_vpd_view_does_not_recompute_reads_state_only",
       "target": "getsource",
-      "line": 520
+      "line": 524
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_agro_vpd_body_has_no_direct_computation_path_outside_composer",
       "target": "Path",
-      "line": 527
+      "line": 533
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_agro_vpd_body_has_no_direct_computation_path_outside_composer",
       "target": "read_text",
-      "line": 527
+      "line": 533
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_agro_vpd_body_has_no_direct_computation_path_outside_composer",
       "target": "resolve",
-      "line": 527
+      "line": 533
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_agro_vpd_body_has_no_direct_computation_path_outside_composer",
       "target": "_top_level_func_body",
-      "line": 530
+      "line": 536
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "_day",
       "target": "update",
-      "line": 552
+      "line": 558
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "_series",
       "target": "update",
-      "line": 565
+      "line": 571
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_absent_series_is_unavailable_not_fabricated",
       "target": "parametrize",
-      "line": 569
+      "line": 575
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_absent_series_is_unavailable_not_fabricated",
       "target": "build_canonical_weather_state",
-      "line": 571
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_daily_slot_composes_a_full_series",
-      "target": "parametrize",
       "line": 577
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_composes_a_full_series",
-      "target": "_day",
-      "line": 581
+      "target": "parametrize",
+      "line": 583
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_composes_a_full_series",
       "target": "_day",
-      "line": 581
+      "line": 587
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_daily_slot_composes_a_full_series",
+      "target": "_day",
+      "line": 587
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_composes_a_full_series",
       "target": "_series",
-      "line": 581
+      "line": 587
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_composes_a_full_series",
       "target": "build_canonical_weather_state",
-      "line": 581
+      "line": 587
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_composes_a_full_series",
       "target": "len",
-      "line": 588
+      "line": 594
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_empty_days_is_insufficient_not_validated",
       "target": "_day",
-      "line": 595
+      "line": 601
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_empty_days_is_insufficient_not_validated",
       "target": "_series",
-      "line": 595
+      "line": 601
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_empty_days_is_insufficient_not_validated",
       "target": "build_canonical_weather_state",
-      "line": 595
+      "line": 601
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_missing_expected_field_in_any_day_degrades",
       "target": "build_canonical_weather_state",
-      "line": 602
+      "line": 608
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_missing_expected_field_in_any_day_degrades",
       "target": "_day",
-      "line": 603
+      "line": 609
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_missing_expected_field_in_any_day_degrades",
       "target": "_day",
-      "line": 603
+      "line": 609
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slot_missing_expected_field_in_any_day_degrades",
       "target": "_series",
-      "line": 603
+      "line": 609
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_historical_absence_of_forecast_only_fields_does_not_degrade",
       "target": "_day",
-      "line": 614
+      "line": 620
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_historical_absence_of_forecast_only_fields_does_not_degrade",
       "target": "items",
-      "line": 614
+      "line": 620
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_historical_absence_of_forecast_only_fields_does_not_degrade",
       "target": "build_canonical_weather_state",
-      "line": 618
+      "line": 624
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_historical_absence_of_forecast_only_fields_does_not_degrade",
       "target": "_series",
-      "line": 619
+      "line": 625
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slots_declare_the_upstream_zero_coercion_honestly",
       "target": "build_canonical_weather_state",
-      "line": 628
+      "line": 634
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slots_declare_the_upstream_zero_coercion_honestly",
       "target": "_day",
-      "line": 629
+      "line": 635
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slots_declare_the_upstream_zero_coercion_honestly",
       "target": "_day",
-      "line": 629
+      "line": 635
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slots_declare_the_upstream_zero_coercion_honestly",
       "target": "_series",
-      "line": 629
+      "line": 635
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slots_declare_the_upstream_zero_coercion_honestly",
       "target": "_series",
-      "line": 629
+      "line": 635
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_slots_declare_the_upstream_zero_coercion_honestly",
       "target": "any",
-      "line": 632
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_canonical_weather_state.py",
-      "source": "test_daily_views_carry_state_lineage_and_stay_supersets",
-      "target": "parametrize",
       "line": 638
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_views_carry_state_lineage_and_stay_supersets",
+      "target": "parametrize",
+      "line": 644
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_canonical_weather_state.py",
+      "source": "test_daily_views_carry_state_lineage_and_stay_supersets",
       "target": "_day",
-      "line": 646
+      "line": 652
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_views_carry_state_lineage_and_stay_supersets",
       "target": "_series",
-      "line": 646
+      "line": 652
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_views_carry_state_lineage_and_stay_supersets",
       "target": "build_canonical_weather_state",
-      "line": 647
+      "line": 653
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_daily_views_carry_state_lineage_and_stay_supersets",
       "target": "view",
-      "line": 648
+      "line": 654
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_forecast_and_historical_are_independent_slots",
       "target": "_day",
-      "line": 660
+      "line": 666
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_forecast_and_historical_are_independent_slots",
       "target": "_series",
-      "line": 660
+      "line": 666
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_canonical_weather_state.py",
       "source": "test_forecast_and_historical_are_independent_slots",
       "target": "build_canonical_weather_state",
-      "line": 660
+      "line": 666
     },
     {
       "owner": "weather-service",
@@ -479588,63 +479588,63 @@
       "file": "services/weather-service/tests/test_gdd_view.py",
       "source": "test_gdd_view_does_not_recompute_reads_kernel_only",
       "target": "getsource",
-      "line": 281
+      "line": 283
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_gdd_view.py",
       "source": "test_legacy_length_mismatch_limitation_preserved_via_kernel_arrays",
       "target": "_records",
-      "line": 292
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_gdd_view.py",
-      "source": "test_legacy_length_mismatch_limitation_preserved_via_kernel_arrays",
-      "target": "gdd_view",
-      "line": 293
-    },
-    {
-      "owner": "weather-service",
-      "file": "services/weather-service/tests/test_gdd_view.py",
-      "source": "test_legacy_length_mismatch_limitation_preserved_via_kernel_arrays",
-      "target": "build_canonical_daily_series",
       "line": 294
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_gdd_view.py",
       "source": "test_legacy_length_mismatch_limitation_preserved_via_kernel_arrays",
+      "target": "gdd_view",
+      "line": 295
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_gdd_view.py",
+      "source": "test_legacy_length_mismatch_limitation_preserved_via_kernel_arrays",
+      "target": "build_canonical_daily_series",
+      "line": 296
+    },
+    {
+      "owner": "weather-service",
+      "file": "services/weather-service/tests/test_gdd_view.py",
+      "source": "test_legacy_length_mismatch_limitation_preserved_via_kernel_arrays",
       "target": "gdd_agro_product",
-      "line": 301
+      "line": 303
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_gdd_view.py",
       "source": "test_legacy_length_mismatch_limitation_preserved_via_kernel_arrays",
       "target": "any",
-      "line": 309
+      "line": 311
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_gdd_view.py",
       "source": "test_diagnostics_surface_input_counts_and_drops",
       "target": "gdd_view",
-      "line": 315
+      "line": 317
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_gdd_view.py",
       "source": "test_diagnostics_surface_input_counts_and_drops",
       "target": "_records",
-      "line": 316
+      "line": 318
     },
     {
       "owner": "weather-service",
       "file": "services/weather-service/tests/test_gdd_view.py",
       "source": "test_diagnostics_surface_input_counts_and_drops",
       "target": "build_canonical_daily_series",
-      "line": 316
+      "line": 318
     },
     {
       "owner": "weather-service",

@@ -271,7 +271,9 @@ def test_agro_gdd_body_derives_from_series_not_kernel():
     body = _top_level_func_body(src, "agro_gdd")
     # فحص صيغة **النداء** (اسم + قوس) لا مجرّد ذكر في docstring.
     assert "gdd_agro_product(" not in body, "agro_gdd يجب ألّا يستدعي النواة مباشرةً"
-    assert "gdd_daily(" not in body
+    assert "gdd_daily(" not in body, (
+        "الجسم يشتقّ من السلسلة لا من النواة — نداء الصيغة هنا يتجاوز الاشتقاق"
+    )
     assert "build_canonical_daily_series(" in body and "gdd_view(" in body
 
 
@@ -280,7 +282,7 @@ def test_gdd_view_does_not_recompute_reads_kernel_only():
 
     src = inspect.getsource(gdd_view)
     # gdd_view يفوّض للنواة (gdd_agro_product) ولا يُعيد تنفيذ صيغة GDD (لا gdd_daily).
-    assert "gdd_daily(" not in src
+    assert "gdd_daily(" not in src, "gdd_view يفوّض للنواة؛ إعادة تنفيذ صيغة GDD تنحرف عنها بصمت"
 
 
 # ── (ي) حفظ byte-compat لعدم تطابق الطول + تشخيصات (فجوة مراجعة المستخدم) ─────

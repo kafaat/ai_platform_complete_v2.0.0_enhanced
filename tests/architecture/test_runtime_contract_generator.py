@@ -49,4 +49,6 @@ def test_secret_values_are_never_serialized():
         for secret in service["secrets"]:
             assert secret.isupper()
             assert "=" not in secret
-    assert "BEGIN PRIVATE KEY" not in raw
+    assert "BEGIN PRIVATE KEY" not in raw, (
+        "السجلّ يحمل **أسماء** المتغيّرات لا قيمها — مفتاحٌ هنا سرٌّ مُلتزَم"
+    )

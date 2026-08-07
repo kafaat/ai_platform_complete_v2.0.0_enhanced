@@ -190,6 +190,9 @@ _GENERATE_FLAG.update({"capability_management_engine.py": "--generate"})
 # `_GENERATE_FLAG` ⇒ لا يُعاد توليده أبداً»).
 _GENERATE_FLAG.update({"fake_connection_debt_guard.py": "--generate"})
 
+# الجرد مشتقّ من شجرة الاختبارات، فبلا إعادة توليد يحرس لقطةً ميّتة.
+_GENERATE_FLAG.update({"prohibition_reason_guard.py": "--generate"})
+
 # علم كتابة يُعلنه سكربت في مصدره — يُميّز «كاتب لم يُستدعَ» عن «فحص بلا مولّد».
 _WRITE_FLAG_DECL = re.compile(r"""["'](--(?:write|apply|generate)[a-z-]*)["']""")
 

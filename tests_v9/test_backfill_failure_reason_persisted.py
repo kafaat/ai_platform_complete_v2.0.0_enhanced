@@ -198,5 +198,7 @@ def test_the_reason_does_not_carry_the_exception_text(worker):
     """
     source = WORKER.read_text(encoding="utf-8")
     assert 'f"exception:{type(e).__name__}:{correlation_id}"' in source
-    assert 'f"exception:{e}"' not in source
+    assert 'f"exception:{e}"' not in source, (
+        "نصّ الاستثناء الخام قد يحمل سلسلة اتّصال، والعمود يُقرأ ضمن مستأجِر — تسريب"
+    )
     assert "correlation_id" in source

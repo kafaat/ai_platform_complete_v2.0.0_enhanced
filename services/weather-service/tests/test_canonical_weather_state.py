@@ -397,9 +397,13 @@ def test_et0_view_does_not_recompute_reads_state_only():
 
     src = inspect.getsource(et0_view)
     # لا إعادة حساب: الـView لا يستدعي النواة/المنتَج/المُجمِّع — يقرأ الحالة فقط.
-    assert "et0_agro_product" not in src
-    assert "compute_et0" not in src
-    assert "build_canonical_weather_state" not in src
+    assert "et0_agro_product" not in src, (
+        "الـView يقرأ الحالة ولا يُعيد الحساب — نداء المنتَج يُنشئ مصدرَ حقيقةٍ ثانياً"
+    )
+    assert "compute_et0" not in src, "إعادة تنفيذ صيغة ET0 هنا تنحرف عن النواة بصمت"
+    assert "build_canonical_weather_state" not in src, (
+        "بناء الحالة من الـView يجعل القراءة كتابةً ويُخفي مَن ولّدها"
+    )
     assert 'state.get("products"' in src
 
 
@@ -518,8 +522,10 @@ def test_vpd_view_does_not_recompute_reads_state_only():
     import inspect
 
     src = inspect.getsource(vpd_view)
-    assert "compute_vpd" not in src
-    assert "build_canonical_weather_state" not in src
+    assert "compute_vpd" not in src, "إعادة تنفيذ صيغة VPD هنا تنحرف عن النواة بصمت"
+    assert "build_canonical_weather_state" not in src, (
+        "بناء الحالة من الـView يجعل القراءة كتابةً ويُخفي مَن ولّدها"
+    )
     assert 'state.get("products"' in src
 
 

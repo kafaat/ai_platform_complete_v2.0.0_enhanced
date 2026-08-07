@@ -489,6 +489,12 @@ jobs:
       # قاعدة حيّة لا بحذف الكلمة من نصّ الاختبار.
       - name: fake-connection debt ratchet
         run: python scripts/ci/fake_connection_debt_guard.py --check
+      # مَنعٌ (`assert "…" not in src`) بلا سببٍ مُعلَن: حين يُطلِق يقول «كسرتَ
+      # شيئاً» وهو يعني «نمنع هذا عمداً»، وحين لا يُطلِق لا يُميّزه شيء عن مَنعٍ بطل
+      # سببه. الحادثة: حارسٌ ثبّت `timedelta(days=months` فحمى حساباً يُدخِل ١٤ يوماً
+      # بصمت، وأسقط الإصلاحَ الصحيح مرّتين على #780.
+      - name: prohibition reason ratchet
+        run: python scripts/ci/prohibition_reason_guard.py --check
       # حارس أساس الادّعاءات: مصنوعة `docs/architecture/` إمّا **قياس** يَبيت بحركة
       # الشجرة تحته (فيلزمه `measured_on`) أو **قرار** لا يَبيت بها (فيلزمه
       # `adjudicated_on`). المفردتان كانتا مستعملتين في ثماني مصنوعات من ٢٢ بلا

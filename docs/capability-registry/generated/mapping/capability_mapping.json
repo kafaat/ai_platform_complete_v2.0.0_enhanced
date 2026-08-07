@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4927,
+    "files_scanned": 4930,
     "files_by_kind": {
       "backend": 1195,
       "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1302,
-      "tests": 1597,
+      "other": 1304,
+      "tests": 1598,
       "web": 451
     },
-    "unmapped_artifacts": 2009,
-    "ambiguous_artifacts": 399
+    "unmapped_artifacts": 2010,
+    "ambiguous_artifacts": 400
   },
   "capabilities": [
     {
@@ -534,6 +534,14 @@
             "content:Execution request",
             "content:execution request"
           ]
+        },
+        {
+          "value": "decision_execution_outcomes @ docs/architecture/source_text_assertion_inventory.json:16",
+          "score": 8
+        },
+        {
+          "value": "irrigation_water_allocations @ docs/architecture/source_text_assertion_inventory.json:86",
+          "score": 8
         }
       ],
       "events": [
@@ -876,6 +884,14 @@
           ]
         },
         {
+          "path": "docs/architecture/source_text_assertion_inventory.json",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        },
+        {
           "path": "docs/audits/ACTUATOR_DEVICE_SAFETY_CERTIFICATION_CONTINUATION_20260712.md",
           "score": 8,
           "signals": [
@@ -899,13 +915,13 @@
       "evidence_counts": {
         "backend": 9,
         "routes": 20,
-        "database": 24,
+        "database": 26,
         "events": 30,
         "web": 0,
         "mobile": 0,
         "tests": 15,
         "governance": 1,
-        "other_evidence": 11
+        "other_evidence": 12
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -8239,6 +8255,14 @@
         {
           "value": "workflow_transitions @ migrations/v9_odoo_bridge.sql:17",
           "score": 16
+        },
+        {
+          "value": "decision_execution_outcomes @ docs/architecture/source_text_assertion_inventory.json:16",
+          "score": 8
+        },
+        {
+          "value": "irrigation_water_allocations @ docs/architecture/source_text_assertion_inventory.json:86",
+          "score": 8
         }
       ],
       "events": [
@@ -8429,6 +8453,13 @@
           ]
         },
         {
+          "path": "docs/architecture/source_text_assertion_inventory.json",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
           "path": "docs/openapi/ROUTE_INVENTORY.json",
           "score": 8,
           "signals": [
@@ -8443,13 +8474,13 @@
       "evidence_counts": {
         "backend": 8,
         "routes": 24,
-        "database": 8,
+        "database": 10,
         "events": 1,
         "web": 1,
         "mobile": 1,
         "tests": 5,
         "governance": 3,
-        "other_evidence": 12
+        "other_evidence": 13
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -18443,6 +18474,10 @@
           "score": 10
         },
         {
+          "value": "decision_execution_outcomes @ docs/architecture/source_text_assertion_inventory.json:16",
+          "score": 10
+        },
+        {
           "value": "farmer_knowledge @ services/sahool-platform/storage/lite_store.py:88",
           "score": 10
         },
@@ -18452,6 +18487,10 @@
         },
         {
           "value": "irrigation_configs @ services/sahool-platform/storage/lite_store.py:136",
+          "score": 10
+        },
+        {
+          "value": "irrigation_water_allocations @ docs/architecture/source_text_assertion_inventory.json:86",
           "score": 10
         },
         {
@@ -20646,6 +20685,14 @@
           ]
         },
         {
+          "path": "docs/architecture/source_text_assertion_inventory.json",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "docs/audits/CORE_DECISION_MD_REVIEW.md",
           "score": 10,
           "signals": [
@@ -20877,13 +20924,13 @@
       "evidence_counts": {
         "backend": 100,
         "routes": 83,
-        "database": 42,
+        "database": 44,
         "events": 100,
         "web": 49,
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 84
+        "other_evidence": 85
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -29107,7 +29154,7 @@
           "score": 13
         },
         {
-          "value": "field-workspace-production-closure.yml @ services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py:34",
+          "value": "field-workspace-production-closure.yml @ services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py:38",
           "score": 13
         },
         {
@@ -29123,7 +29170,7 @@
           "score": 13
         },
         {
-          "value": "weather_service_real_contract_gate.py @ services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py:36",
+          "value": "weather_service_real_contract_gate.py @ services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py:40",
           "score": 13
         },
         {
@@ -30766,7 +30813,7 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:527",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
           "score": 12
         },
         {
@@ -31910,7 +31957,7 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:527",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
           "score": 12
         },
         {
@@ -32995,6 +33042,14 @@
         {
           "value": "seasons @ migrations/v39_season_simulation.sql:19",
           "score": 12
+        },
+        {
+          "value": "decision_execution_outcomes @ docs/architecture/source_text_assertion_inventory.json:16",
+          "score": 10
+        },
+        {
+          "value": "irrigation_water_allocations @ docs/architecture/source_text_assertion_inventory.json:86",
+          "score": 10
         }
       ],
       "events": [
@@ -33079,7 +33134,7 @@
           "score": 12
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:527",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
           "score": 12
         },
         {
@@ -33715,6 +33770,14 @@
           ]
         },
         {
+          "path": "docs/architecture/source_text_assertion_inventory.json",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "runtime-verification/functional_probes/weather-service.json",
           "score": 10,
           "signals": [
@@ -33770,13 +33833,13 @@
       "evidence_counts": {
         "backend": 84,
         "routes": 26,
-        "database": 33,
+        "database": 35,
         "events": 26,
         "web": 15,
         "mobile": 0,
         "tests": 44,
         "governance": 0,
-        "other_evidence": 20
+        "other_evidence": 21
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -34166,7 +34229,7 @@
           "score": 14
         },
         {
-          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:527",
+          "value": "weather_runtime.py @ services/weather-service/tests/test_canonical_weather_state.py:533",
           "score": 14
         }
       ],
@@ -41773,6 +41836,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_prohibition_reason_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_projection_determinism_v63.py",
       "kind": "tests"
     },
@@ -43323,6 +43390,43 @@
           "signals": [
             "content:cog",
             "content:tilejson"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/source_text_assertion_inventory.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "FM-007",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
+          "capability_id": "DEC-004",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
           ]
         }
       ]

@@ -15,7 +15,7 @@ def test_weather_service_has_real_runtime_endpoints_not_501_stub():
         'app.get("/v1/weather/wind-grid/{z}/{x}/{y}")',
     ]:
         assert marker in text
-    assert "status_code=501" not in text
+    assert "status_code=501" not in text, "خدمةٌ منشورة تُرجِع 501 تُقرأ جاهزةً وهي كعبٌ فارغ"
     assert "not implemented" not in text.lower()
 
 
@@ -25,8 +25,12 @@ def test_field_intelligence_weather_adapter_uses_weather_service_not_openmeteo_d
     ).read_text(encoding="utf-8", errors="ignore")
     assert "/v1/weather/current" in text
     assert "/v1/weather/forecast" in text
-    assert "api.open-meteo.com" not in text
-    assert "OPENMETEO_FORECAST_URL" not in text
+    assert "api.open-meteo.com" not in text, (
+        "نداء المزوّد مباشرةً يتجاوز weather-service فيضيع التخزين والحصص والاشتقاق القانونيّ"
+    )
+    assert "OPENMETEO_FORECAST_URL" not in text, (
+        "وجود متغيّر المزوّد هنا يُعيد فتح المسار المباشر ولو لم يُستعمل بعد"
+    )
 
 
 def test_weather_service_real_contract_gate_is_wired_in_ci():

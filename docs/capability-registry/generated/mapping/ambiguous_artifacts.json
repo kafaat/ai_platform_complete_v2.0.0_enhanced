@@ -1085,6 +1085,43 @@
     ]
   },
   {
+    "path": "docs/architecture/source_text_assertion_inventory.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 10,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 10,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 8,
+        "signals": [
+          "path:inventory"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 8,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md",
     "kind": "other",
     "candidates": [
