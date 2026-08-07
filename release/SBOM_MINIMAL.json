@@ -10775,6 +10775,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c66008e460c73f81cb325e72b6b471a12102bf2b05743421faa98f1316d1b608"
+        }
+      ],
+      "name": "services/decision-service/eligibility_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "77c0b7b20a89faaca713fa5a07fde5dab61704f2e37346a141aa9aebcf870344"
         }
       ],
@@ -11095,6 +11105,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8b9548088c2da1cae5386953fc47c296eb9a0defe2bdb29e221dcbe55a70e459"
+        }
+      ],
+      "name": "services/decision-service/migrations/031_eligibility_assessment.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "392f968f875f2591a4f8f561751dde311265b4ea7df71dd16898c160a7df881e"
         }
       ],
@@ -11319,6 +11339,26 @@
         }
       ],
       "name": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f28a5a52f47ab4df6d9093171d74dd8d5e72c39f583879af356b49ede313b007"
+        }
+      ],
+      "name": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c494831f2fdea4a5fb36cd7b94f312fe66eb7faa4c3c359265a18b90d8dac8e9"
+        }
+      ],
+      "name": "services/decision-service/tests/test_eligibility_assessment_policy.py",
       "type": "file"
     },
     {

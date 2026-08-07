@@ -4319,6 +4319,28 @@
     ]
   },
   {
+    "path": "services/decision-service/eligibility_policy.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 8,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/main.py",
     "kind": "backend",
     "candidates": [
@@ -4481,6 +4503,28 @@
         "signals": [
           "content:rls",
           "content:row level security"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 8,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
         ]
       }
     ]

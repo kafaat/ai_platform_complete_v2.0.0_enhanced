@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4930,
+    "files_scanned": 4936,
     "files_by_kind": {
-      "backend": 1195,
-      "database": 272,
+      "backend": 1196,
+      "database": 273,
       "governance": 59,
       "mobile": 51,
-      "other": 1304,
-      "tests": 1598,
+      "other": 1305,
+      "tests": 1601,
       "web": 451
     },
-    "unmapped_artifacts": 2010,
-    "ambiguous_artifacts": 400
+    "unmapped_artifacts": 2011,
+    "ambiguous_artifacts": 402
   },
   "capabilities": [
     {
@@ -21077,6 +21077,14 @@
           ]
         },
         {
+          "path": "services/decision-service/eligibility_policy.py",
+          "score": 8,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
           "path": "services/mcp_servers/generic_context_server.py",
           "score": 8,
           "signals": [
@@ -21438,6 +21446,14 @@
             "content:NDMI",
             "content:ndmi"
           ]
+        },
+        {
+          "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+          "score": 8,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
         }
       ],
       "governance": [],
@@ -21472,13 +21488,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 19,
+        "backend": 20,
         "routes": 10,
         "database": 5,
         "events": 14,
         "web": 7,
         "mobile": 0,
-        "tests": 20,
+        "tests": 21,
         "governance": 0,
         "other_evidence": 3
       },
@@ -24322,6 +24338,14 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+          "score": 9,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
           "score": 9,
           "signals": [
@@ -25007,7 +25031,7 @@
         "events": 46,
         "web": 0,
         "mobile": 0,
-        "tests": 55,
+        "tests": 56,
         "governance": 0,
         "other_evidence": 68
       },
@@ -42080,6 +42104,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_snapshot_eligibility_separation_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_soil_lab_evidence_hardening_v57_5.py",
       "kind": "tests"
     },
@@ -46629,6 +46657,28 @@
       ]
     },
     {
+      "path": "services/decision-service/eligibility_policy.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SAT-004",
+          "score": 8,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/decision-service/main.py",
       "kind": "backend",
       "candidates": [
@@ -46791,6 +46841,28 @@
           "signals": [
             "content:rls",
             "content:row level security"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SAT-004",
+          "score": 8,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]

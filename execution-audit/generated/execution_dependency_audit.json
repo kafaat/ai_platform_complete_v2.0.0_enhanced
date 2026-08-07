@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1839,
+    "python_files_parsed": 1842,
     "route_handlers": 1049,
-    "call_edges": 72622,
+    "call_edges": 72902,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -39145,6 +39145,713 @@
     },
     {
       "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "digest",
+      "target": "_digest",
+      "line": 67
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "digest",
+      "target": "list",
+      "line": 72
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "as_row",
+      "target": "dict",
+      "line": 158
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "as_row",
+      "target": "items",
+      "line": 159
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "as_row",
+      "target": "list",
+      "line": 159
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_digest",
+      "target": "hexdigest",
+      "line": 167
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_digest",
+      "target": "sha256",
+      "line": 167
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_digest",
+      "target": "dumps",
+      "line": 168
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_digest",
+      "target": "encode",
+      "line": 168
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_as_dt",
+      "target": "isinstance",
+      "line": 173
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_as_dt",
+      "target": "replace",
+      "line": 174
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_as_dt",
+      "target": "isinstance",
+      "line": 175
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_as_dt",
+      "target": "fromisoformat",
+      "line": 177
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_as_dt",
+      "target": "replace",
+      "line": 177
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_as_dt",
+      "target": "replace",
+      "line": 180
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_age_hours",
+      "target": "total_seconds",
+      "line": 185
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 204
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "UnknownPolicyVersion",
+      "line": 206
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "replace",
+      "line": 209
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 211
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 211
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 212
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 213
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 217
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 217
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 218
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 218
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 219
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 219
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 220
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 220
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 221
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 221
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 222
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 223
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "sorted",
+      "line": 223
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 223
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_digest",
+      "line": 225
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "fromkeys",
+      "line": 227
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "append",
+      "line": 232
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "as_dict",
+      "line": 232
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "deny",
+      "target": "append",
+      "line": 232
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "deny",
+      "target": "as_dict",
+      "line": 232
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny",
+      "line": 236
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "deny_all",
+      "target": "deny",
+      "line": 236
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 239
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 239
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 240
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 241
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny_all",
+      "line": 241
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 241
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_finish",
+      "line": 242
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_as_dt",
+      "line": 245
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 245
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 247
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny_all",
+      "line": 247
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_finish",
+      "line": 248
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny_all",
+      "line": 250
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 251
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "isoformat",
+      "line": 251
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "isoformat",
+      "line": 251
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_finish",
+      "line": 253
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_as_dt",
+      "line": 256
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 256
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_as_dt",
+      "line": 257
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 257
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 260
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny",
+      "line": 260
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_age_hours",
+      "line": 262
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 265
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny",
+      "line": 265
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "round",
+      "line": 265
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 267
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny",
+      "line": 267
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_age_hours",
+      "line": 269
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 272
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny",
+      "line": 272
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "round",
+      "line": 272
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 275
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "lower",
+      "line": 275
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "str",
+      "line": 275
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 278
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny_all",
+      "line": 278
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "sorted",
+      "line": 278
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "get",
+      "line": 281
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "isinstance",
+      "line": 284
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 285
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny",
+      "line": 285
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "float",
+      "line": 286
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 287
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "deny",
+      "line": 287
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "float",
+      "line": 287
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "append",
+      "line": 294
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "Reason",
+      "line": 295
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "as_dict",
+      "line": 295
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "assess",
+      "target": "_finish",
+      "line": 299
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_finish",
+      "target": "astimezone",
+      "line": 310
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_finish",
+      "target": "isoformat",
+      "line": 310
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_finish",
+      "target": "digest",
+      "line": 311
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_finish",
+      "target": "_digest",
+      "line": 312
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/eligibility_policy.py",
+      "source": "_finish",
+      "target": "Assessment",
+      "line": 324
+    },
+    {
+      "owner": "decision-service",
       "file": "services/decision-service/main.py",
       "source": "_is_production",
       "target": "getenv",
@@ -59421,6 +60128,1259 @@
       "source": "test_certification_verdict_is_correct",
       "target": "run",
       "line": 111
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_load",
+      "target": "spec_from_file_location",
+      "line": 41
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_load",
+      "target": "module_from_spec",
+      "line": 44
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_load",
+      "target": "exec_module",
+      "line": 47
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_psql",
+      "target": "get",
+      "line": 56
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_psql",
+      "target": "run",
+      "line": 57
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_psql",
+      "target": "strip",
+      "line": 75
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_psql",
+      "target": "strip",
+      "line": 75
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_live",
+      "target": "_psql",
+      "line": 79
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "uuid4",
+      "line": 103
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "uuid4",
+      "line": 103
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "isoformat",
+      "line": 105
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "timedelta",
+      "line": 105
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "isoformat",
+      "line": 106
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "timedelta",
+      "line": 106
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "isoformat",
+      "line": 108
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "timedelta",
+      "line": 108
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "isoformat",
+      "line": 109
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "timedelta",
+      "line": 109
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "_psql",
+      "line": 114
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "uuid4",
+      "line": 118
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "dumps",
+      "line": 121
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "dumps",
+      "line": 122
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "assessment",
+      "target": "assess",
+      "line": 126
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_insert_sql",
+      "target": "as_row",
+      "line": 130
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_insert_sql",
+      "target": "dumps",
+      "line": 138
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "_insert_sql",
+      "target": "dumps",
+      "line": 138
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_restricted_role_really_is_restricted",
+      "target": "_psql",
+      "line": 148
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "uuid4",
+      "line": 158
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "_psql",
+      "line": 159
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "_as_tenant",
+      "line": 160
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "_insert_sql",
+      "line": 160
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "_psql",
+      "line": 165
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "_as_tenant",
+      "line": 166
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "splitlines",
+      "line": 169
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "_psql",
+      "line": 171
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "_as_tenant",
+      "line": 172
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_rls_hides_another_tenants_assessment",
+      "target": "splitlines",
+      "line": 175
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_writing_under_the_wrong_tenant_is_refused_by_the_database",
+      "target": "uuid4",
+      "line": 180
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_writing_under_the_wrong_tenant_is_refused_by_the_database",
+      "target": "_psql",
+      "line": 181
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_writing_under_the_wrong_tenant_is_refused_by_the_database",
+      "target": "_as_tenant",
+      "line": 182
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_writing_under_the_wrong_tenant_is_refused_by_the_database",
+      "target": "_insert_sql",
+      "line": 182
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_writing_under_the_wrong_tenant_is_refused_by_the_database",
+      "target": "lower",
+      "line": 186
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_writing_under_the_wrong_tenant_is_refused_by_the_database",
+      "target": "lower",
+      "line": 186
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "uuid4",
+      "line": 191
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "_psql",
+      "line": 192
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "_as_tenant",
+      "line": 193
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "_insert_sql",
+      "line": 193
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "_psql",
+      "line": 196
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "_as_tenant",
+      "line": 197
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "lower",
+      "line": 204
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "lower",
+      "line": 204
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_assessment_is_append_only",
+      "target": "lower",
+      "line": 204
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "uuid4",
+      "line": 209
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "uuid4",
+      "line": 209
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "_psql",
+      "line": 210
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "_as_tenant",
+      "line": 211
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "_insert_sql",
+      "line": 211
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "_psql",
+      "line": 215
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "_as_tenant",
+      "line": 216
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "_insert_sql",
+      "line": 216
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_replayed_assessment_does_not_duplicate",
+      "target": "lower",
+      "line": 219
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "uuid4",
+      "line": 224
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "_insert_sql",
+      "line": 225
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "replace",
+      "line": 225
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "as_row",
+      "line": 226
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "dumps",
+      "line": 226
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "dumps",
+      "line": 226
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "_as_tenant",
+      "line": 228
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "_psql",
+      "line": 228
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_database_refuses_an_assessment_that_folds_the_stages",
+      "target": "lower",
+      "line": 229
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "uuid4",
+      "line": 234
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "uuid4",
+      "line": 234
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "_as_tenant",
+      "line": 236
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "_insert_sql",
+      "line": 236
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "_insert_sql",
+      "line": 237
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "_psql",
+      "line": 239
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "_psql",
+      "line": 242
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "_as_tenant",
+      "line": 243
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_a_failed_statement_leaves_no_half_assessment",
+      "target": "splitlines",
+      "line": 248
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_snapshot_table_gained_no_eligibility_column",
+      "target": "_psql",
+      "line": 257
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_snapshot_table_gained_no_eligibility_column",
+      "target": "set",
+      "line": 263
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
+      "source": "test_the_snapshot_table_gained_no_eligibility_column",
+      "target": "split",
+      "line": 263
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "_load",
+      "target": "spec_from_file_location",
+      "line": 28
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "_load",
+      "target": "module_from_spec",
+      "line": 31
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "_load",
+      "target": "exec_module",
+      "line": 34
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "isoformat",
+      "line": 49
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "timedelta",
+      "line": 49
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "isoformat",
+      "line": 50
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "timedelta",
+      "line": 50
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "pop",
+      "line": 53
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "update",
+      "line": 53
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "isoformat",
+      "line": 57
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "timedelta",
+      "line": 57
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "isoformat",
+      "line": 58
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "timedelta",
+      "line": 58
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "snapshot",
+      "target": "update",
+      "line": 63
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "assess",
+      "target": "snapshot",
+      "line": 69
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_the_same_inputs_give_the_same_digest",
+      "target": "assess",
+      "line": 85
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_the_same_inputs_give_the_same_digest",
+      "target": "assess",
+      "line": 85
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_wall_clock_never_enters_the_digest",
+      "target": "assess",
+      "line": 96
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_wall_clock_never_enters_the_digest",
+      "target": "replace",
+      "line": 97
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_different_as_of_is_a_different_assessment",
+      "target": "assess",
+      "line": 104
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_different_as_of_is_a_different_assessment",
+      "target": "timedelta",
+      "line": 104
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_different_as_of_is_a_different_assessment",
+      "target": "assess",
+      "line": 105
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_changing_the_policy_does_not_change_the_snapshot_digest",
+      "target": "snapshot",
+      "line": 117
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_changing_the_policy_does_not_change_the_snapshot_digest",
+      "target": "dict",
+      "line": 118
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_changing_the_policy_does_not_change_the_snapshot_digest",
+      "target": "assess",
+      "line": 119
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_changing_the_policy_does_not_change_the_snapshot_digest",
+      "target": "assess",
+      "line": 119
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_neither_policy_version_nor_assessment_id_is_inside_the_snapshot",
+      "target": "snapshot",
+      "line": 128
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_neither_policy_version_nor_assessment_id_is_inside_the_snapshot",
+      "target": "assess",
+      "line": 129
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_old_snapshot_can_be_reassessed_under_a_new_policy",
+      "target": "snapshot",
+      "line": 137
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_old_snapshot_can_be_reassessed_under_a_new_policy",
+      "target": "isoformat",
+      "line": 138
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_old_snapshot_can_be_reassessed_under_a_new_policy",
+      "target": "timedelta",
+      "line": 138
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_old_snapshot_can_be_reassessed_under_a_new_policy",
+      "target": "isoformat",
+      "line": 140
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_old_snapshot_can_be_reassessed_under_a_new_policy",
+      "target": "timedelta",
+      "line": 140
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_old_snapshot_can_be_reassessed_under_a_new_policy",
+      "target": "isoformat",
+      "line": 141
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_old_snapshot_can_be_reassessed_under_a_new_policy",
+      "target": "timedelta",
+      "line": 141
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_old_snapshot_can_be_reassessed_under_a_new_policy",
+      "target": "assess",
+      "line": 145
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_is_stricter_than_v1_on_execute",
+      "target": "isoformat",
+      "line": 153
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_is_stricter_than_v1_on_execute",
+      "target": "snapshot",
+      "line": 153
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_is_stricter_than_v1_on_execute",
+      "target": "timedelta",
+      "line": 153
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_is_stricter_than_v1_on_execute",
+      "target": "assess",
+      "line": 154
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_is_stricter_than_v1_on_execute",
+      "target": "assess",
+      "line": 155
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_is_stricter_than_v1_on_execute",
+      "target": "codes",
+      "line": 157
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_policy_digest_is_derived_from_the_definition_not_the_name",
+      "target": "Policy",
+      "line": 163
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_policy_digest_is_derived_from_the_definition_not_the_name",
+      "target": "dict",
+      "line": 165
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_policy_digest_is_derived_from_the_definition_not_the_name",
+      "target": "digest",
+      "line": 170
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_policy_digest_is_derived_from_the_definition_not_the_name",
+      "target": "digest",
+      "line": 170
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_unknown_policy_version_is_refused_not_defaulted",
+      "target": "raises",
+      "line": 175
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_an_unknown_policy_version_is_refused_not_defaulted",
+      "target": "assess",
+      "line": 176
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_weather_is_denied_with_a_machine_readable_reason",
+      "target": "snapshot",
+      "line": 183
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_weather_is_denied_with_a_machine_readable_reason",
+      "target": "isoformat",
+      "line": 184
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_weather_is_denied_with_a_machine_readable_reason",
+      "target": "timedelta",
+      "line": 184
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_weather_is_denied_with_a_machine_readable_reason",
+      "target": "assess",
+      "line": 186
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_weather_is_denied_with_a_machine_readable_reason",
+      "target": "next",
+      "line": 188
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_soil_is_denied",
+      "target": "isoformat",
+      "line": 194
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_soil_is_denied",
+      "target": "snapshot",
+      "line": 194
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_soil_is_denied",
+      "target": "timedelta",
+      "line": 194
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_soil_is_denied",
+      "target": "assess",
+      "line": 195
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_soil_is_denied",
+      "target": "assess",
+      "line": 196
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_stale_soil_is_denied",
+      "target": "codes",
+      "line": 196
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_missing_spectral_denies_every_stage",
+      "target": "snapshot",
+      "line": 201
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_missing_spectral_denies_every_stage",
+      "target": "assess",
+      "line": 202
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_missing_spectral_denies_every_stage",
+      "target": "any",
+      "line": 203
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_missing_spectral_denies_every_stage",
+      "target": "values",
+      "line": 203
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_missing_spectral_denies_every_stage",
+      "target": "codes",
+      "line": 204
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_requires_a_band_that_v1_does_not",
+      "target": "snapshot",
+      "line": 208
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_requires_a_band_that_v1_does_not",
+      "target": "assess",
+      "line": 209
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_v2_requires_a_band_that_v1_does_not",
+      "target": "assess",
+      "line": 210
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_future_timestamp_denies_everything",
+      "target": "isoformat",
+      "line": 215
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_future_timestamp_denies_everything",
+      "target": "snapshot",
+      "line": 215
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_future_timestamp_denies_everything",
+      "target": "timedelta",
+      "line": 215
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_future_timestamp_denies_everything",
+      "target": "assess",
+      "line": 216
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_future_timestamp_denies_everything",
+      "target": "any",
+      "line": 217
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_future_timestamp_denies_everything",
+      "target": "values",
+      "line": 217
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_future_timestamp_denies_everything",
+      "target": "codes",
+      "line": 218
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_tenant_mismatch_fails_closed_and_leaks_nothing",
+      "target": "assess",
+      "line": 227
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_tenant_mismatch_fails_closed_and_leaks_nothing",
+      "target": "any",
+      "line": 228
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_tenant_mismatch_fails_closed_and_leaks_nothing",
+      "target": "values",
+      "line": 228
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_snapshot_without_a_tenant_is_refused_too",
+      "target": "any",
+      "line": 234
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_snapshot_without_a_tenant_is_refused_too",
+      "target": "assess",
+      "line": 234
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_snapshot_without_a_tenant_is_refused_too",
+      "target": "snapshot",
+      "line": 234
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_snapshot_without_a_tenant_is_refused_too",
+      "target": "values",
+      "line": 234
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "Policy",
+      "line": 252
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "fromkeys",
+      "line": 257
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "setitem",
+      "line": 259
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "isoformat",
+      "line": 261
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "snapshot",
+      "line": 261
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "timedelta",
+      "line": 261
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "assess",
+      "line": 262
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "codes",
+      "line": 267
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_denied_stage_blocks_the_ones_after_it",
+      "target": "codes",
+      "line": 268
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_the_shipped_policies_are_monotone_across_stages",
+      "target": "list",
+      "line": 284
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_the_shipped_policies_are_monotone_across_stages",
+      "target": "zip",
+      "line": 284
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_the_shipped_policies_are_monotone_across_stages",
+      "target": "all",
+      "line": 285
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_fully_valid_snapshot_passes_every_stage",
+      "target": "assess",
+      "line": 292
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_fully_valid_snapshot_passes_every_stage",
+      "target": "all",
+      "line": 293
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_fully_valid_snapshot_passes_every_stage",
+      "target": "values",
+      "line": 293
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+      "source": "test_a_fully_valid_snapshot_passes_every_stage",
+      "target": "all",
+      "line": 294
     },
     {
       "owner": "decision-service",
