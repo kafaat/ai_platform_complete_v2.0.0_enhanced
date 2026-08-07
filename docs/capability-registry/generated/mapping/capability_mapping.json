@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4923,
+    "files_scanned": 4924,
     "files_by_kind": {
       "backend": 1195,
       "database": 272,
       "governance": 59,
       "mobile": 51,
       "other": 1300,
-      "tests": 1595,
+      "tests": 1596,
       "web": 451
     },
     "unmapped_artifacts": 2008,
@@ -15745,6 +15745,15 @@
           ]
         },
         {
+          "path": "services/raster-service/raster_settings.py",
+          "score": 18,
+          "signals": [
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "services/raster-service/routers/fields.py",
           "score": 18,
           "signals": [
@@ -15795,15 +15804,6 @@
           "signals": [
             "content:sentinel",
             "path:stac",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "services/raster-service/raster_settings.py",
-          "score": 16,
-          "signals": [
-            "content:cdse",
-            "content:sentinel",
             "content:stac"
           ]
         },
@@ -16747,6 +16747,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_raster_read_size_ceiling.py",
+          "score": 9,
+          "signals": [
+            "content:cdse",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "tests_v9/test_raster_reflectance_scaling.py",
           "score": 9,
           "signals": [
@@ -17067,7 +17075,7 @@
         "events": 32,
         "web": 5,
         "mobile": 0,
-        "tests": 41,
+        "tests": 42,
         "governance": 0,
         "other_evidence": 32
       },

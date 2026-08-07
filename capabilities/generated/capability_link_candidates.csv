@@ -1672,6 +1672,7 @@ SAT-009,test,tests_v9/test_raster_pixel_processing_edge_cases.py,3,applied
 SAT-009,test,tests_v9/test_raster_pixel_qa_indicator_guard.py,3,applied
 SAT-009,test,tests_v9/test_raster_quality_columns_populated_v62_3b.py,3,applied
 SAT-009,test,tests_v9/test_raster_quality_metrics_v62_3b.py,3,applied
+SAT-009,test,tests_v9/test_raster_read_size_ceiling.py,3,applied
 SAT-009,test,tests_v9/test_raster_reflectance_scaling.py,3,applied
 SAT-009,test,tests_v9/test_raster_scene_model_v63.py,3,applied
 SAT-009,test,tests_v9/test_raster_source_guard_internal_pipelines.py,3,applied

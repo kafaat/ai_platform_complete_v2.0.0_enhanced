@@ -13375,7 +13375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7b326b53351df1a05c84f6d7c632b25afc9c67b3cb1b599cb1d58a0d9ba777c"
+          "content": "ce3d58b915be575366523af35706acf52306aa4c066643d33b8dd4c27dde81cf"
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
@@ -13435,7 +13435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "755efb608a7e04a6e040f70de38e1a92c3cec8781344290457c67f817be1e3e5"
+          "content": "2f0430a3963bedaaf50986bb4e44bc894b08844ca2283340bfc619c46507d54b"
         }
       ],
       "name": "services/raster-service/raster_security_context.py",
@@ -13445,7 +13445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9221c45f36dbb7ce9ba0f88caec27e5c817875e3f3f567ff61a0136cff48c86e"
+          "content": "7ab3eb95a27b2453a1b84ca29d94c2914a205d75a51b44a7c1c976af25585adf"
         }
       ],
       "name": "services/raster-service/raster_settings.py",
@@ -14525,7 +14525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb9cd746a708c6b43c087e2921ddf10a9eec7f3930ccbe23026a1cec476efe1f"
+          "content": "42728edbe9b2910a82331df96b9b7cd19ee734c742564d2f8205bbada317be4d"
         }
       ],
       "name": "services/raster-service/tile_render.py",

@@ -84,3 +84,22 @@ TRANSPARENT_PNG = bytes.fromhex(
 
 # Finite nodata used in generated COGs. NaN nodata can produce unstable GDAL masks/overviews.
 RASTER_NODATA = -9999.0
+
+
+# ── سقف قراءة الراستر (UNBOUNDED-RASTER-READ-ON-ARBITRARY-URL-01) ──────────────
+#
+# مقيس 2026-08-06: ``process_precomputed_truecolor`` و``apply_polygon_mask_uint8``
+# يستدعيان ``src.read()`` بلا أيّ حدّ، و``safe_raster_source`` يقبل **أيّ** رابط
+# ``http(s)`` غير محجوب. فنداءٌ إلى ``/process`` بـ``indicator=truecolor`` ورابطٍ كبير
+# يُخصّص المصفوفة كاملةً قبل أن يعرف أحدٌ حجمها.
+#
+# **وتصنيف تقرير الشهادة كان صحيحاً في نوعه وخاطئاً في سببه:** نُسِب العطل إلى «قراءة
+# مشهد Sentinel-2 كامل» عبر مسار CDSE — والقياس يُكذّب ذلك: ``process_backfill_scene_cdse``
+# يستدعي ``process_index(bbox=…, geometry=clip)``، فالراستر **مقصوصٌ على حدود الحقل قبل
+# أن يصل الخدمة**. المسار الإنتاجيّ محدود؛ غير المحدود هو الرابط الحرّ.
+#
+# السقف الافتراضيّ ٦٤ م.بكسل‑نطاق: مشهد S2 كامل RGBA = ١٢١ م.بكسل × ٤ نطاقات = ٤٨٢
+# م.بكسل‑نطاق (٤٨٢ م.بايت uint8) مقابل ``mem_limit`` قدره 1536m للخدمة — والذروة تتجاوز
+# ذلك لأنّ القناع والكتابة يخصّصان أيضاً. وحقلٌ حقليّ نموذجيّ أصغر من ذلك بمراتب.
+# يُرفَع بمتغيّر بيئة عند الحاجة؛ **الرفض المُعلَن أصدق من OOM صامت**.
+RASTER_MAX_READ_BAND_PIXELS = int(os.getenv("RASTER_MAX_READ_BAND_PIXELS", str(64_000_000)))

@@ -2190,6 +2190,7 @@
         "tests_v9/test_landsat_thermal_unique_v31_0.py",
         "tests_v9/test_raster_assets_lifecycle_lineage_v29_9.py",
         "tests_v9/test_raster_endpoint_auth_coverage.py",
+        "tests_v9/test_raster_read_size_ceiling.py",
         "tests_v9/test_raster_reflectance_scaling.py",
         "tests_v9/test_raster_scene_model_v63.py",
         "tests_v9/test_raster_source_guard_internal_pipelines.py",
