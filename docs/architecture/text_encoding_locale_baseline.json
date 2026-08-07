@@ -328,10 +328,6 @@
       "reads": 0,
       "subprocess": 2
     },
-    "scripts/ci/test_marker_coverage_guard.py": {
-      "reads": 0,
-      "subprocess": 1
-    },
     "scripts/ci/tests_tree_coverage_guard.py": {
       "reads": 0,
       "subprocess": 1
