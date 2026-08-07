@@ -11,17 +11,17 @@
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
 - حرّاس تحجب في CI: **221**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **10**
-- إجماليّ الطفرات المُسجَّلة: **44**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **11**
+- إجماليّ الطفرات المُسجَّلة: **46**
 
-أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **210** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (10)
+## الحرّاس المُثبَتة بالتكذيب (11)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -179,9 +179,22 @@
 - قبولُ $ref خارجيّ ⇒ يصير الخضوع رهن الشبكة وترتيب الملفّات لا صحّة العقد — يُسقِط `test_an_external_ref_is_caught`
 - تخطّي التحقّق من صحّة المخطَّط نفسه ⇒ الحارس يُبلِغ خضرةً عن سؤال لم يطرحه — يُسقِط `test_a_schema_invalid_for_its_declared_draft_is_caught`
 
+### `test_marker_coverage_guard.py`
+
+**يفرض:** يمنع وُلود اختبار خامد: ملفّ في ``tests_v9`` بلا علامة لا يعمل في أيّ وظيفة CI.
+
+**يحجب في:** `ci.yml` → `unit-tests`
+
+**الاختبار الشاهد:** `tests/architecture/test_marker_coverage_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- إعادة النمط المسطّح — وهو العطل الذي أسقط ملفّين حقيقيّين: `tests_v9/runtime_activation/` بثمانية اختبارات كان ميّتاً في كلّ وظيفة، و**غير قابل للظهور في الأساس أصلاً** لأنّ الحارس لا يعدّه. والمرساة على حالة مزروعة في مستودع اصطناعيّ لا على عدّاد الملفّات: العدّ ٦٥٨ ⇒ ٦٥٦ فرقٌ لا يُميّزه تأكيد على الحجم — يُسقِط `test_a_file_in_a_subdirectory_is_seen`
+- نزعُ التحقّق من أنّ الاسم **مُسجَّل في pytest.ini**: عندها يُقرأ `pytestmark = pytest.mark.asyncio` موسوماً بينما pytest يستبعده من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وهو ما كان يفعله التعبير النمطيّ القديم بمطابقة `pytestmark` مجرّداً — يُسقِط `test_a_marker_that_pytest_ini_does_not_declare_is_not_a_marker`
+
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (211)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (210)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -378,7 +391,6 @@
 | `soil_runtime_certification_guard.py` | Static ratchet ensuring real-Postgres soil certification remains wired. | `structural-lint` |
 | `soil_supersession_current_pointer_guard.py` | — | `structural-lint` |
 | `static_governance_closure.py` | Artifact-based closure gate for Path 1 static governance. | `capability-registry` · `apply-as-pull-request` |
-| `test_marker_coverage_guard.py` | يمنع وُلود اختبار خامد: ملفّ في ``tests_v9`` بلا علامة لا يعمل في أيّ وظيفة CI. | `unit-tests` |
 | `tests_tree_coverage_guard.py` | شجرة ``tests/`` تُشغَّل كاملةً ناقص أساس مُبرَّر — لا بقائمة سماح مكتوبة يدويّاً. | `repository-tests` |
 | `unified_production_readiness_gate.py` | Run canonical static production gates and emit one machine-readable verdict. | `unified-readiness-evidence` |
 | `v9_feature_transfer_gate.py` | Guard that v9 keeps the runtime features promoted from unified/light. | `structural-lint` |

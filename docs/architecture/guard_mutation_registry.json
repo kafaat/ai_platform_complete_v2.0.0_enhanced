@@ -196,6 +196,23 @@
       ],
       "test": "tests_v9/test_probe_leak_guard.py"
     },
+    "test_marker_coverage_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_file_in_a_subdirectory_is_seen",
+          "find": "[\"git\", \"ls-files\", \"-z\", \"--\", TESTS_DIR],",
+          "replace": "[\"git\", \"ls-files\", \"-z\", \"--\", TESTS_DIR + \"/test_*.py\"],",
+          "why": "إعادة النمط المسطّح — وهو العطل الذي أسقط ملفّين حقيقيّين: `tests_v9/runtime_activation/` بثمانية اختبارات كان ميّتاً في كلّ وظيفة، و**غير قابل للظهور في الأساس أصلاً** لأنّ الحارس لا يعدّه. والمرساة على حالة مزروعة في مستودع اصطناعيّ لا على عدّاد الملفّات: العدّ ٦٥٨ ⇒ ٦٥٦ فرقٌ لا يُميّزه تأكيد على الحجم"
+        },
+        {
+          "expect": "test_a_marker_that_pytest_ini_does_not_declare_is_not_a_marker",
+          "find": "if not (marker_names_in(ROOT / path) & known)]",
+          "replace": "if not marker_names_in(ROOT / path)]",
+          "why": "نزعُ التحقّق من أنّ الاسم **مُسجَّل في pytest.ini**: عندها يُقرأ `pytestmark = pytest.mark.asyncio` موسوماً بينما pytest يستبعده من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وهو ما كان يفعله التعبير النمطيّ القديم بمطابقة `pytestmark` مجرّداً"
+        }
+      ],
+      "test": "tests/architecture/test_marker_coverage_guard.py"
+    },
     "fake_connection_debt_guard.py": {
       "mutations": [
         {
@@ -435,7 +452,6 @@
     "soil_projection_reconciliation_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "soil_runtime_certification_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "soil_supersession_current_pointer_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
-    "test_marker_coverage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "tests_tree_coverage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "vegetation_container_contract_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "vegetation_real_only_posture_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
@@ -444,7 +460,7 @@
     "weather_engine_formula_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "weather_hourly_etc_wx_i1_guard.py": "سابق للآليّة — لم تُقَس تغطيته"
   },
-  "unmutated_debt_ceiling": 116,
+  "unmutated_debt_ceiling": 115,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
   "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
 }

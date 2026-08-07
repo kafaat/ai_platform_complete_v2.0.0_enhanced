@@ -1,12 +1,27 @@
 from pathlib import Path
 
+import pytest
 import yaml
+
+pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def read(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
+
+
+def service_modules(rel_dir: str) -> str:
+    """وحدات الخدمة مضمومة — مرساة تنجو من التفكيك التالي.
+
+    التفكيك ينقل الدالّة من `main.py` إلى وحدة أخرى في الخدمة ذاتها، فيسقط تأكيدٌ
+    مربوط بالملفّ بينما القدرة سليمة. **حدّ مُعلَن:** هذا يبقى تأكيداً نصّيّاً —
+    تحرّر من الموضع لا من النصّ.
+    """
+    return "\n".join(
+        path.read_text(encoding="utf-8") for path in sorted((ROOT / rel_dir).glob("*.py"))
+    )
 
 
 def test_chatbot_uses_ai_agronomist_runtime_not_legacy_agent_or_mock_chat():
@@ -32,12 +47,21 @@ def test_ai_agronomist_exposes_phase2_e2e_routes_and_fetches_canonical_field_sta
         '@app.post("/v1/recommend")',
     ]:
         assert route in src
-    assert "/internal/fields/{field_id}/state" in src
     assert "X-Agent-Token" in src
-    assert "RAG_BASE_URL" in src and "KNOWLEDGE_GRAPH_URL" in src and "PLATFORM_URL" in src
+    assert "RAG_BASE_URL" in src and "KNOWLEDGE_GRAPH_URL" in src
     assert "evidence_only" in src
-    assert "field_intelligence_coordinator" in src
-    assert "assert_no_decision_keys" in src
+    # والتفويض مُؤكَّد صراحةً: المسارات تبقى في `main.py` والمنطق انتقل، فلولا هذا
+    # السطر لَنجا التأكيد أدناه من حذف الربط بينهما.
+    assert "from .ai_evidence_runtime import" in src
+
+    # أربعةٌ انتقلت من `main.py` إلى `ai_evidence_runtime.py` بتفكيك لاحق — القدرة
+    # سليمة والمرساة كانت بائتة. مُقاس: جلب حالة الحقل القانونيّة يعيش الآن في
+    # `services/ai_agronomist/ai_evidence_runtime.py:61`.
+    modules = service_modules("services/ai_agronomist")
+    assert "/internal/fields/{field_id}/state" in modules
+    assert "PLATFORM_URL" in modules
+    assert "field_intelligence_coordinator" in modules
+    assert "assert_no_decision_keys" in modules
 
 
 def test_gateway_routes_include_ai_runtime_rag_and_kg_with_auth_request():
