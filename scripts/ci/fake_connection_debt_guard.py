@@ -36,6 +36,16 @@ BASELINE = ROOT / "docs" / "architecture" / "fake_connection_debt.json"
 # القائم في هذا المستودع (`_FakeConn` · `_FakeTenantConn` · `fake_pool`).
 _FAKE = re.compile(r"\b(class\s+_?Fake\w*(Conn|Pool)\w*|fake_conn\w*|fake_pool\w*)\b")
 
+# الحارس واختباره يحويان الرموز **بوصفها موضوعهما** — زرعاتٌ في مستودعات مؤقّتة
+# وشرحٌ للحادثة. حارسٌ يُطلِق على توثيق ما يمنعه يُعطَّل في أوّل يوم، وهو عطل تكرّر
+# في هذا المستودع (`probe_leak_guard` وقع فيه بعد `#802`) — **ووقعتُ فيه هنا عند أوّل
+# تشغيل للمكنسة**: أدرج الأساسُ اختبارَ الحارس ديناً بـCHECK/UNIQUE/jsonb.
+# الاستثناء بالمسار لا بالتخمين، ومقصورٌ على الاثنين.
+_SELF = {
+    "scripts/ci/fake_connection_debt_guard.py",
+    "tests_v9/test_fake_connection_debt_guard.py",
+}
+
 # دلالات تفرضها القاعدة ولا يفرضها أيّ وهميّ.
 _DB_ENFORCED = {
     "CHECK": re.compile(r"\bCHECK\s*\(|\bcheck constraint\b|\bchk_\w+", re.I),
@@ -63,6 +73,8 @@ def survey(root: Path | None = None) -> dict:
     fake: list[str] = []
     claiming: dict[str, list[str]] = {}
     for rel in _tracked_tests() if base == ROOT else _tracked_in(base):
+        if rel in _SELF:
+            continue
         path = base / rel
         try:
             text = path.read_text(encoding="utf-8", errors="ignore")

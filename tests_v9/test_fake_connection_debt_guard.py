@@ -100,6 +100,35 @@ def test_the_baseline_is_derived_not_hand_maintained(guard):
     assert declared["claiming_db_enforced"] == found["claiming"]
 
 
+def test_the_guard_does_not_denounce_its_own_subject_matter(guard):
+    """**الحدّ الذي وقعتُ فيه عند أوّل تشغيل.**
+
+    هذا الملفّ يحوي ``class _FakeConn`` و``ON CONFLICT`` و``jsonb`` **بوصفها موضوعه**
+    — زرعاتٌ في مستودعات مؤقّتة وشرحٌ للحادثة. فأدرجه الأساسُ ديناً عند أوّل مكنسة.
+    وحارسٌ يُطلِق على توثيق ما يمنعه يُعطَّل في أوّل يوم؛ وقع فيه ``probe_leak_guard``
+    بعد ``#802``، ووقعتُ فيه هنا بعد ساعة من إصلاحه.
+    """
+    found = guard.survey()
+    mine = "tests_v9/test_fake_connection_debt_guard.py"
+    assert mine not in found["fake"], "الحارس يُدين اختباره"
+    assert mine not in found["claiming"], "الحارس يُدين اختباره"
+
+
+def test_the_self_exemption_does_not_blind_the_guard(guard, tmp_path):
+    """تكذيب الاستثناء نفسه: ملفٌّ آخر بالرموز ذاتها **يُدان** في الشجرة ذاتها."""
+    repo = tmp_path / "r"
+    (repo / "tests_v9").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", "."], cwd=repo, check=True, capture_output=True)
+    for name in ("test_fake_connection_debt_guard.py", "test_other.py"):
+        (repo / "tests_v9" / name).write_text(
+            "class _FakeConn:\n    pass\n# ON CONFLICT\n", encoding="utf-8"
+        )
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
+
+    found = guard.survey(root=repo)
+    assert found["claiming"] == {"tests_v9/test_other.py": ["UNIQUE"]}, found
+
+
 def test_the_baseline_says_what_it_does_not_claim(guard):
     """أساسٌ يُقرأ «هذه سليمة» أسوأ من غيابه — النصّ جزءٌ من العقد."""
     declared = json.loads(BASELINE.read_text(encoding="utf-8"))
