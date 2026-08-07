@@ -2408,6 +2408,7 @@
       "runtime_verified": false,
       "title": "NDMI",
       "unit_test_paths": [
+        "services/decision-service/tests/test_eligibility_assessment_policy.py",
         "services/raster-service/test_historical_backfill.py",
         "services/raster-service/test_indicator_batch_claim.py",
         "services/raster-service/test_indicator_observation_bundle.py",
@@ -2707,6 +2708,7 @@
       "unit_test_paths": [
         "TEST_REPAIR_REPORT_20260626.md",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+        "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
         "services/sahool-platform/tests/test_prescriptions_router.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
         "tests/irrigation/test_irrigation_v195_capacity_reservation_core.py",

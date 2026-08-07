@@ -1858,7 +1858,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 266,
+      "evidence_count": 267,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -1923,6 +1923,7 @@
         "services/decision-service/tests/test_agronomic_learning_lineage.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_agronomic_model_lifecycle_lineage.py",
+        "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
         "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
         "services/decision-service/tests/test_runtime_worker_tenants.py",
         "services/decision-service/tests/test_worker_identity_binding.py",
@@ -2600,7 +2601,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 42,
-      "target_evidence_count": 266,
+      "target_evidence_count": 267,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2610,5 +2611,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "32a17c7ac11427d52fdd4a17b4548fac4ac5a51e276d53a6dc3094371ed09b01"
+  "content_sha256": "1fd1af58b2e9a726bcf057640d9500249ea29aa1ff457279c319d856ed14efdb"
 }

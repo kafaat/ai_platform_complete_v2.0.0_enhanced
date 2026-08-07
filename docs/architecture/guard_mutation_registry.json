@@ -213,6 +213,23 @@
       ],
       "test": "tests/architecture/test_marker_coverage_guard.py"
     },
+    "snapshot_eligibility_separation_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_an_alter_table_add_column_is_caught_too",
+          "find": "        for column in _ALTER_ADD.findall(sql):",
+          "replace": "        for column in []:",
+          "why": "قراءة `CREATE TABLE` وحدها ⇒ يمرّ `ALTER TABLE ... ADD COLUMN` — وهو المسار **الأرجح عمليّاً**، لأنّ أحداً لا يُعيد كتابة تعريف جدول قائم؛ فيُضاف عمود الأهليّة في هجرة لاحقة والحارس ساكت"
+        },
+        {
+          "expect": "test_losing_its_subject_is_a_failure_not_a_pass",
+          "find": "    if not seen_table:",
+          "replace": "    if False:",
+          "why": "نزع إنفاذ وجود الموضوع ⇒ إعادة تسمية الجدول تجعل الحارس أخضر لأنّه **لا يرى** لا لأنّه لا يجد. الصنف نفسه المُسجَّل في `runtime_contract_generator`"
+        }
+      ],
+      "test": "tests_v9/test_snapshot_eligibility_separation_guard.py"
+    },
     "prohibition_reason_guard.py": {
       "mutations": [
         {

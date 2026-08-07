@@ -7812,6 +7812,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_snapshot_eligibility_separation_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_soil_lab_evidence_hardening_v57_5.py",
     "kind": "tests"
   },
