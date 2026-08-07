@@ -84,17 +84,44 @@ def test_dockerfiles_embed_immutable_metadata_and_oci_labels():
         assert "chmod 0444" in text
 
 
+def _identity_baking_dockerfiles() -> set[str]:
+    """مسارات كلّ Dockerfile يخبز `.sahool-build-metadata.json` — فيفرض وسائط الهويّة fail-closed.
+
+    يُشتقّ من محتوى الـDockerfiles لا من قائمة مُصلَّبة — القائمة المثبَّتة هي تحديداً
+    كيف أفلت عاملا raster (`cache-invalidation` و`backfill-scan`): يبنيان **نفس**
+    Dockerfile الذي صار يفرض الهويّة، وكتلتاهما في compose بلا وسائط، فانكسر البناء
+    على الجهاز الحيّ بـ`SAHOOL_GIT_SHA must be full 40-char SHA` رغم خضرة كلّ الحرّاس.
+    يُعاد **مجموعة مسارات** فقط: العضويّة هي المطلوبة، وإخراج محتوى Dockerfiles كاملةً
+    في رسالة فشل يجعلها غير مقروءة.
+    """
+    found: set[str] = set()
+    for dockerfile in (ROOT / "services").rglob("Dockerfile"):
+        if ".sahool-build-metadata.json" in dockerfile.read_text(encoding="utf-8", errors="ignore"):
+            found.add(dockerfile.relative_to(ROOT).as_posix())
+    return found
+
+
 def test_compose_requires_build_identity_args():
     compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
-    for name in [
-        "sahool-weather-service",
-        "sahool-soil-service",
-        "sahool-raster-service",
-        "sahool-platform",
-    ]:
-        args = compose["services"][name]["build"]["args"]
-        assert "TESTED_SHA required" in args["SAHOOL_GIT_SHA"]
-        assert "SAHOOL_BUILD_ID required" in args["SAHOOL_BUILD_ID"]
+    dockerfiles = _identity_baking_dockerfiles()
+    assert dockerfiles, "لا Dockerfile يخبز الهويّة؟ الاشتقاق عمي"
+    # كلّ خدمة تبني Dockerfile يخبز الهويّة — خدمةً كانت أو عاملاً يشاركها الصورة —
+    # يجب أن تمرّر الوسائط، وإلّا انكسر بناؤها fail-closed كما انكسر backfill-scan.
+    offenders: list[str] = []
+    checked = 0
+    for name, service in compose["services"].items():
+        build = service.get("build") or {}
+        dockerfile = build.get("dockerfile")
+        if dockerfile not in dockerfiles:
+            continue
+        checked += 1
+        args = build.get("args") or {}
+        if "TESTED_SHA required" not in str(args.get("SAHOOL_GIT_SHA", "")) or (
+            "SAHOOL_BUILD_ID required" not in str(args.get("SAHOOL_BUILD_ID", ""))
+        ):
+            offenders.append(name)
+    assert checked >= len(dockerfiles), f"بعض الـDockerfiles بلا خدمة تبنيها: {sorted(dockerfiles)}"
+    assert not offenders, f"خدمات تبني Dockerfile يفرض الهويّة بلا وسائطها: {offenders}"
 
 
 def test_build_provenance_args_use_one_convention():
