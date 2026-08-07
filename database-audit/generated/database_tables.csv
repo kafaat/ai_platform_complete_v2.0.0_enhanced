@@ -37,7 +37,7 @@ canonical_irrigation_capability_graphs,v175_unified_irrigation_capability_graph.
 canonical_irrigation_machine_capabilities,v172_irrigation_machine_capability.sql,177,True,False,False,0,False,True,0,0
 canonical_nutrient_ledgers,v226_canonical_nutrient_ledger.sql,223,True,True,True,1,True,False,1,1
 canonical_phenology_states,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,1,2
-canonical_projection_requests,v227_decision_learning_runtime.sql,224,True,True,True,1,True,False,0,0
+canonical_projection_requests,v227_decision_learning_runtime.sql,224,True,True,True,1,True,False,1,1
 canonical_root_zone_profiles,v169_canonical_root_zone_hydraulic_profile.sql,174,True,True,True,1,True,False,0,1
 canonical_salinity_states,v225_canonical_salinity_state.sql,222,True,True,True,1,True,False,1,1
 canonical_sprinkler_runoff_capabilities,v173_sprinkler_runoff_capability.sql,178,True,False,False,0,False,True,0,0

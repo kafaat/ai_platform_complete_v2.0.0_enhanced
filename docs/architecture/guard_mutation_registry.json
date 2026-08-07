@@ -158,6 +158,18 @@
           "find": "                observed = failing_tests(out)",
           "replace": "                observed = []",
           "why": "نزع تسمية الاختبارات الساقطة فعلاً ⇒ فرع «حمرّ بغير المتوقَّع» يعود غير قابل للتشخيص من سجلّه"
+        },
+        {
+          "expect": "test_the_runner_blocks_bytecode_caching",
+          "find": "            \"PYTHONDONTWRITEBYTECODE\": \"1\",\n",
+          "replace": "",
+          "why": "عودةُ ذاكرة الـbytecode ⇒ طفرتان متساويتا الطول تتبادلان الأثر (السبب الجذريّ المُثبَت للرقيعة)"
+        },
+        {
+          "expect": "test_a_restore_that_did_not_restore_is_reported",
+          "find": "            if src.read_text(encoding=\"utf-8\") != original:",
+          "replace": "            if False:",
+          "why": "إسقاط برهان الاستعادة ⇒ تسرّبٌ بين طفرتين يظهر «عشوائيّةً» لا عطلاً"
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
@@ -203,6 +215,18 @@
           "find": "    verdict: dict[str, str] = {rel: TERMINAL for rel in files}\n",
           "replace": "    verdict: dict[str, str] = {rel: MOUNTED_ROUTE for rel in files}\n",
           "why": "جعل كلّ وحدة قابلة للوصول ابتداءً ⇒ التصنيف يفقد قدرته على قول (ميت)، وهو الغرض الوحيد للحارس"
+        },
+        {
+          "expect": "test_a_path_launched_worker_inside_the_platform_is_a_root_itself",
+          "find": "            if platform_rel and platform_rel in files:\n                roots.add(platform_rel)",
+          "replace": "            if False:\n                roots.add(platform_rel)",
+          "why": "المُشغِّل المُنفَّذ بمسار يُعَدّ قناةً لا جذراً ⇒ نقطة الدخول نفسها تُصنَّف «ميتة» بينما compose يشغّلها"
+        },
+        {
+          "expect": "test_the_container_path_maps_to_the_service_root_not_the_repository_root",
+          "find": "    inside = PLATFORM / tail\n    if inside.is_file():",
+          "replace": "    inside = PLATFORM / tail\n    if False:",
+          "why": "‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01"
         }
       ],
       "test": "tests_v9/test_platform_module_reachability_guard.py"
@@ -258,6 +282,35 @@
         }
       ],
       "test": "tests_v9/test_brain_append_only_guard.py"
+    },
+    "container_command_path_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_old_location_is_still_unreachable_from_that_image",
+          "find": "        return rel if candidate.is_file() and not _ignored(rel, patterns) else None",
+          "replace": "        return rel",
+          "why": "ادّعاء الوجود بلا فحص وجود ⇒ كلّ مسار «تضعه الصورة» والعطل الأصليّ يمرّ"
+        },
+        {
+          "expect": "test_a_missing_path_is_reported_with_the_service_that_executes_it",
+          "find": "                if sources_for(path, container_path, context=context) is None:",
+          "replace": "                if False:",
+          "why": "تعطيل الفحص كلّيّاً ⇒ الحارس يخضرّ على شجرة معطوبة"
+        },
+        {
+          "expect": "test_it_actually_examines_something",
+          "find": "            for container_path in sorted(executed_paths(service)):",
+          "replace": "            for container_path in []:",
+          "why": "صفر أزواج مفحوصة ⇒ «أخضر لأنّه لم ينظر» — الصفر الصامت نفسه"
+        },
+        {
+          "expect": "test_copy_semantics_are_applied_not_approximated",
+          "find": "            if not directory_dest and source_path.is_file():",
+          "replace": "            if False and source_path.is_file():",
+          "why": "إسقاط نسخ ملفّ→ملفّ ⇒ ثلاث خدمات سليمة تُتَّهم (الإيجابيّة الكاذبة المقيسة)"
+        }
+      ],
+      "test": "tests_v9/test_container_command_path_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
@@ -380,7 +433,7 @@
     "weather_engine_formula_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "weather_hourly_etc_wx_i1_guard.py": "سابق للآليّة — لم تُقَس تغطيته"
   },
-  "unmutated_debt_ceiling": 117,
+  "unmutated_debt_ceiling": 116,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
   "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
 }

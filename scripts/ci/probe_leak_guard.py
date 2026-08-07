@@ -59,10 +59,18 @@ PROBE_MODULE = (
 # الملفّ غير المتعقَّب يُفحَص منفصلاً (`PROBE_MODULE`) لأنّ `ls-files` لا يراه.
 
 # مواضع الذكر الشرعيّ — تُستثنى بالمسار لا بالتخمين.
+#
+# `docs/runbooks/` أُضيف بعد وقوع العطل الذي يحذّر منه docstring هذا الملفّ حرفيّاً:
+# #802 أضاف درس «عودة مسار probe-newservice المحظور» إلى كتالوج الدروس، فأطلق
+# الحارس على **توثيق ما يمنعه** وصار `main` أحمر على بوّابته الحاجبة نفسها
+# (`ci.yml:489`) وعلى `test_the_tree_is_clean_right_now`. والاستثناء لا يُفقِد
+# كشفاً: ما يبقى بعد المقاطعة هو ملفّ المِسبار غير المتعقَّب والجرود المولَّدة في
+# الجذر — ولا يكتب أيّ اختبار في `docs/runbooks/`، وسردٌ في Markdown لا يُعلن مساراً.
 ALLOWED = (
     "tests_v9/",
     "tests/",
     "docs/capability-registry/",
+    "docs/runbooks/",
     "sahool-brain/",
     "scripts/ci/probe_leak_guard.py",
 )

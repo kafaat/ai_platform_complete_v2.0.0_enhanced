@@ -6708,6 +6708,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_backfill_failure_reason_persisted.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_backfill_incremental_retry_guard_v31_1.py",
     "kind": "tests"
   },
@@ -6837,6 +6841,10 @@
   },
   {
     "path": "tests_v9/test_compose_services_are_declared_as_services.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_container_command_path_guard.py",
     "kind": "tests"
   },
   {

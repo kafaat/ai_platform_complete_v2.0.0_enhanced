@@ -25,7 +25,7 @@ import json
 import logging
 import os
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, NamedTuple
 
 import asyncpg
 import raster_api_models as api_models
@@ -389,7 +389,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                         item_id,
                         jid,
                     )
-            ok, err = await asyncio.to_thread(
+            outcome = await asyncio.to_thread(
                 _process_scene_index,
                 scene,
                 index,
@@ -401,7 +401,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                 jid,
             )
             jobs_scheduled += 1
-            if ok:
+            if outcome.ok:
                 items_persisted += 1
             else:
                 items_failed += 1
@@ -409,10 +409,11 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                 async with conn.transaction():
                     await _set_tenant(conn, tenant)
                     await conn.execute(
-                        "UPDATE backfill_run_items SET status=$2, processed_at=now(), error=$3 WHERE id=$1",
+                        "UPDATE backfill_run_items SET status=$2, processed_at=now(), "
+                        "error=$3 WHERE id=$1",
                         item_id,
-                        "persisted" if ok else "failed",
-                        err,
+                        "persisted" if outcome.ok else "failed",
+                        outcome.reason,
                     )
 
     # v8-F8/v9-F5: الحالة النهائيّة تعكس النتيجة الفعليّة لا مجرّد «انتهت الحلقة».
@@ -556,10 +557,10 @@ async def _process_single_scene_run(
                     item_id,
                     jid,
                 )
-        ok, err = await asyncio.to_thread(
+        outcome = await asyncio.to_thread(
             _process_scene_index, scene, index, field, tenant, geom_rev, clip, apply_cloud_mask, jid
         )
-        if ok:
+        if outcome.ok:
             items_persisted += 1
         else:
             items_failed += 1
@@ -567,10 +568,11 @@ async def _process_single_scene_run(
             async with conn.transaction():
                 await _set_tenant(conn, tenant)
                 await conn.execute(
-                    "UPDATE backfill_run_items SET status=$2, processed_at=now(), error=$3 WHERE id=$1",
+                    "UPDATE backfill_run_items SET status=$2, processed_at=now(), "
+                    "error=$3 WHERE id=$1",
                     item_id,
-                    "persisted" if ok else "failed",
-                    err,
+                    "persisted" if outcome.ok else "failed",
+                    outcome.reason,
                 )
 
     final_status = "completed_with_errors" if items_failed > 0 else "completed"
@@ -602,6 +604,50 @@ async def _process_single_scene_run(
     )
 
 
+class SceneOutcome(NamedTuple):
+    """نتيجة معالجة مشهد: النجاح **وسببُ الفشل** — لا bool يُسقِط السبب.
+
+    ``BACKFILL-FAILURE-REASON-DISCARDED-01``. كان المُرجَع ``bool``، فتنهار ثلاث حالات
+    فشل متمايزة إلى ``False`` واحد: استثناء · وظيفة لم تكتمل · **عولجت ولم تُحفَظ**.
+    والسبب يُسجَّل في سجلّ العامل ثمّ يُرمى، بينما ``backfill_run_items.error`` عمودٌ
+    قائم منذ ``v144`` يبقى ``NULL``. المُشغِّل يرى «٣ فاشلة» بلا سبب واحد.
+
+    **وتصحيحٌ لصيغةٍ سابقة من هذا النصّ:** قالت إنّ ``get_backfill_run_status`` «يقرأ
+    ``error`` ويعرضه» فالواجهة تنتظر سبباً. ذلك صحيحٌ عن ``backfill_runs.error`` —
+    خطأ **التشغيلة** — وهو عمودٌ آخر في جدولٍ آخر بالاسم نفسه. أمّا عمود **العنصر**
+    فلم يكن يختاره استعلامٌ واحد في الشجرة. فالكتابة وحدها كانت ستُنتج الدين الصامت
+    الذي تدّعي إغلاقه؛ ولذلك أُضيف القارئ في ``get_backfill_run_status``
+    (``failed_items``) ضمن الشريحة نفسها.
+    """
+
+    ok: bool
+    reason: str | None = None
+
+
+def _outcome_from_job(jid: str) -> SceneOutcome:
+    """يقرأ حالة الوظيفة ويُترجمها إلى نتيجة **بسببها** — نقطةٌ واحدة للمسارات الثلاثة.
+
+    لِـ``_process_scene_index`` ثلاثة مسارات معالجة (Landsat · CDSE · VRT)، وكلّها كانت
+    تنتهي بالتعبير ``bool(status == completed and persisted is True)`` **مكرّراً حرفيّاً**.
+    تحويلُ واحدٍ منها وحده تركَ الآخرَين يُرجِعان ``bool`` بينما يقرأ المُستدعي
+    ``outcome.ok`` ⇒ ``AttributeError`` على المسار الأشيع (CDSE). **التكرار هو ما جعل
+    الإصلاح الجزئيّ ممكناً**، ولم يكشفه إلّا تكذيبُ حارس «الحقيقة التشغيليّة»؛ فصار
+    المنطق في موضع واحد لا ثلاثة.
+
+    و«persisted» يعني الحفظ في DB فعلاً لا اكتمال المعالجة: ``run_processing`` يضع
+    ``result.persisted=False`` حين يفشل إدراج ``raster_assets`` (الصورة في الذاكرة/القرص
+    فقط)، فاعتماد ``status==completed`` وحده يمنح دليلاً كاذباً بالحفظ.
+    """
+    job = raster_runtime_state.JOBS.get(jid) or {}
+    result = job.get("result") or {}
+    if job.get("status") != api_models.JobStatus.completed:
+        return SceneOutcome(False, f"job_not_completed:{job.get('status')}")
+    if result.get("persisted") is not True:
+        # أخطر الحالات: العمل تمّ والأثر ضاع، وكانت تُقرأ «فشلاً» لا يُميَّز عن انقطاع شبكة.
+        return SceneOutcome(False, "processed_not_persisted")
+    return SceneOutcome(True)
+
+
 def _process_scene_index(
     scene: dict,
     index: str,
@@ -611,9 +657,12 @@ def _process_scene_index(
     clip: dict | None,
     apply_cloud_mask: bool,
     jid: str,
-) -> tuple[bool, str | None]:
+) -> SceneOutcome:
     """يبني VRT ويعالج مؤشّراً لمشهد (متزامن — يُستدعى عبر asyncio.to_thread).
-    يُرجِع (True, None) عند النجاح أو (False, رسالة_الخطأ) عند الفشل.
+
+    يُرجِع ``SceneOutcome(ok, reason)``؛ و``reason`` **رمزٌ ثابت + نوع الاستثناء +
+    مُعرّف ربط**، لا نصّ الاستثناء: العمود يُقرأ عبر ``get_backfill_run_status`` ضمن
+    مستأجِر، ونصّ استثناء قد يحمل سلسلة اتّصال. التفاصيل الكاملة في السجلّ بالمُعرّف نفسه.
 
     v9-F4: jid يُمرَّر من المُستدعي (لا يُولَّد داخليّاً) كي يُسجَّل على backfill_run_items
     قبل المعالجة — فيبقى أثر run_item → job → raster_asset حتّى عند التعطّل أثناء المعالجة.
@@ -646,24 +695,14 @@ def _process_scene_index(
                 geometry_revision=geom_rev,
             )
             raster_processing_runtime.run_processing(jid, preq)
-            job = raster_runtime_state.JOBS.get(jid) or {}
-            result = job.get("result") or {}
-            return bool(
-                job.get("status") == api_models.JobStatus.completed
-                and result.get("persisted") is True
-            ), None
+            return _outcome_from_job(jid)
 
         # Fix 2: truecolor عبر CDSE دائماً — مسار Element84/VRT يقرأ النطاق كاملاً
         # (10980×10980 px ≈ 1.4 GB) ويُعطَل بـOOM. CDSE يقصّ خادميّاً قبل الإرسال.
         if index == "truecolor" or not (scene.get("bands_urls") or {}):
             # مشهد CDSE أو truecolor: معالجة خادميّة عبر Process API.
             _process_backfill_scene_cdse(scene, index, field, tenant, clip, geom_rev, jid)
-            job = raster_runtime_state.JOBS.get(jid) or {}
-            result = job.get("result") or {}
-            return bool(
-                job.get("status") == api_models.JobStatus.completed
-                and result.get("persisted") is True
-            ), None
+            return _outcome_from_job(jid)
         safe_hrefs = {
             k: _safe_raster_source(v) for k, v in (scene.get("bands_urls") or {}).items() if v
         }
@@ -687,17 +726,19 @@ def _process_scene_index(
             geometry_revision=geom_rev,
         )
         raster_processing_runtime.run_processing(jid, preq)
-        job = raster_runtime_state.JOBS.get(jid) or {}
-        # v7-#2: «persisted» يجب أن يعني الحفظ في DB فعلاً، لا مجرّد اكتمال المعالجة.
-        # _run_processing يضع result.persisted=False حين يفشل إدراج raster_assets (الصورة
-        # في الذاكرة/القرص فقط). اعتماد status==completed وحده يمنح دليلاً كاذباً بالحفظ.
-        result = job.get("result") or {}
-        return bool(
-            job.get("status") == api_models.JobStatus.completed and result.get("persisted") is True
-        ), None
+        return _outcome_from_job(jid)
     except Exception as e:  # noqa: BLE001
-        logger.warning("backfill scene %s/%s failed: %s", scene.get("item_id"), index, e)
-        return False, str(e)[:500]
+        import uuid as _uuid_local
+
+        correlation_id = _uuid_local.uuid4().hex[:12]
+        logger.warning(
+            "backfill scene %s/%s failed [%s]: %s",
+            scene.get("item_id"),
+            index,
+            correlation_id,
+            e,
+        )
+        return SceneOutcome(False, f"exception:{type(e).__name__}:{correlation_id}")
 
 
 def _as_dt(d) -> datetime:

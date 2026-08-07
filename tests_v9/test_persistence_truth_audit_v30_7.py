@@ -24,10 +24,59 @@ def _read(rel: pathlib.Path) -> str:
 
 # ── V8-01/V10-03: عامل الفحص يعتمد job.result.persisted لا مجرّد completed ──
 def test_backfill_worker_requires_persisted_truth():
+    """العقد: لا نجاح إلّا باكتمال الوظيفة **و** ثبوت الحفظ — خاصّيّةٌ لا إملاء.
+
+    كانت الصيغة تطابق النصّ ``"api_models.JobStatus.completed and result.get"``، أي
+    **تعبيراً بعينه**. وحين فُصِل الشرط إلى فحصَين متمايزَين — كي يُميَّز «لم تكتمل» عن
+    «عولِجت ولم تُحفَظ» (``BACKFILL-FAILURE-REASON-DISCARDED-01``) — سقط الحارس على
+    تحسينٍ يُقوّي ما يحرسه. مطابقةُ نصٍّ حيث تلزم بنية: نفس الصنف الذي أوقع حارس compose
+    وحارس تكرار الجناح في هذا المستودع.
+
+    فصار يُستجوَب بشجرة AST: النجاح لا يُعاد إلّا بعد فحصٍ على ``JobStatus.completed``
+    وآخر على ``result.get("persisted")``، وكلاهما **قبله**.
+    """
+    import ast
+
     src = _read(_RASTER / "backfill_scan_worker.py")
-    assert 'result.get("persisted") is True' in src, "worker يجب أن يشترط persisted الفعليّ"
-    # phase21: العامل يستعمل api_models.JobStatus (لا main.)؛ يبقى العقد «completed AND persisted».
-    assert "api_models.JobStatus.completed and result.get" in src
+    fn = next(
+        (
+            node
+            for node in ast.walk(ast.parse(src))
+            if isinstance(node, ast.FunctionDef) and node.name == "_outcome_from_job"
+        ),
+        None,
+    )
+    assert fn is not None, "نقطة ترجمة حالة الوظيفة غائبة — العقد بلا موضع يُفحَص فيه"
+    # تُستجوَب **شروط `if` نفسها**، لا نصّ الدالّة. الصيغة السابقة قسمت النصّ عند مسار
+    # النجاح وبحثت عن الكلمة "persisted" فيما قبله — فطابقت سلسلة السبب
+    # `'processed_not_persisted'` وبقيت خضراء وشرطُ الحفظ مُعطَّل. مطابقةُ نصٍّ داخل فحصٍ
+    # يدّعي أنّه بنيويّ: العيب نفسه، طبقةً أعمق.
+    conditions = [ast.unparse(node.test) for node in ast.walk(fn) if isinstance(node, ast.If)]
+    assert any("JobStatus.completed" in c for c in conditions), (
+        f"لا شرط يفحص اكتمال الوظيفة؛ الشروط: {conditions}"
+    )
+    assert any("persisted" in c and ".get(" in c for c in conditions), (
+        f"لا شرط يفحص ثبوت الحفظ؛ الشروط: {conditions}"
+    )
+
+    # ولا مسار معالجة يتجاوز هذه النقطة: تحويلٌ جزئيّ لأحد المسارات الثلاثة (Landsat ·
+    # CDSE · VRT) كان يُبقي الآخرَين على `bool` بينما يقرأ المُستدعي `outcome.ok` ⇒
+    # AttributeError على المسار الأشيع. مقيس، لا مفترَض.
+    processor = next(
+        node
+        for node in ast.walk(ast.parse(src))
+        if isinstance(node, ast.FunctionDef) and node.name == "_process_scene_index"
+    )
+    returns = [
+        ast.unparse(node.value)
+        for node in ast.walk(processor)
+        if isinstance(node, ast.Return) and node.value is not None
+    ]
+    assert returns, "لا مسار عودة — الحارس بلا عين"
+    for expr in returns:
+        assert expr.startswith(("_outcome_from_job(", "SceneOutcome(")), (
+            f"مسار عودة يتجاوز نقطة الترجمة ويُرجِع نوعاً آخر: {expr}"
+        )
 
 
 # ── V9-01: مسار CDSE الأب يفصل الحفظ الفعليّ عن اكتمال المعالجة ──

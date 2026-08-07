@@ -2204,8 +2204,12 @@
       "write_policy_with_check": true
     },
     {
-      "code_readers": [],
-      "code_writers": [],
+      "code_readers": [
+        "services/sahool-platform/workers/canonical_execution_learning_worker.py"
+      ],
+      "code_writers": [
+        "services/sahool-platform/workers/canonical_execution_learning_worker.py"
+      ],
       "created_in": "v227_decision_learning_runtime.sql",
       "has_tenant_id": true,
       "manifest_position": 224,

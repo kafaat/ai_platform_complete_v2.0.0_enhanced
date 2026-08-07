@@ -94,9 +94,14 @@ def test_a_probe_marker_in_a_generated_inventory_is_caught(tmp_path):
 def test_the_guard_does_not_fire_on_the_places_that_legitimately_name_the_probe():
     """**الحدّ الذي يُبقي الحارس حيّاً.**
 
-    رموز المِسبار تظهر شرعيّاً في ثلاثة مواضع: الاختبار الذي يُعرّفها، وخريطة
-    القدرات التي تفهرسه، والدماغ الذي يشرح الحادثة. حارسٌ يُطلِق على توثيق ما يمنعه
-    يُعطَّل في أوّل يوم — وهو عطل تكرّر في هذا المستودع أكثر من مرّة.
+    رموز المِسبار تظهر شرعيّاً في أربعة مواضع: الاختبار الذي يُعرّفها، وخريطة
+    القدرات التي تفهرسه، والدماغ الذي يشرح الحادثة، **وكتالوج الدروس**. حارسٌ يُطلِق
+    على توثيق ما يمنعه يُعطَّل في أوّل يوم — وهو عطل تكرّر في هذا المستودع أكثر من مرّة.
+
+    والموضع الرابع لم يكن استباقاً: `#802` أضاف درس «عودة مسار probe-newservice
+    المحظور» إلى `docs/runbooks/`، فأطلق الحارس على السرد وصار `main` **أحمر على
+    بوّابته الحاجبة نفسها** وعلى `test_the_tree_is_clean_right_now`. أي أنّ التحذير
+    المكتوب في docstring الحارس وقع عليه هو.
     """
     assert "probe-newservice" in _VERSIONING_TEST.read_text(encoding="utf-8")
     mapping = _ROOT / "docs" / "capability-registry" / "generated" / "mapping"
@@ -104,7 +109,37 @@ def test_the_guard_does_not_fire_on_the_places_that_legitimately_name_the_probe(
         "probe-newservice" in p.read_text(encoding="utf-8", errors="ignore")
         for p in mapping.glob("*.json")
     ), "الخريطة تذكر المِسبار — والحارس لا يُطلِق"
+    runbook = _ROOT / "docs" / "runbooks" / "CI_GATES_AND_PRE_PUSH_PROTOCOL.md"
+    assert "probe-newservice" in runbook.read_text(encoding="utf-8"), (
+        "درس الحادثة اختفى من كتالوج الدروس — الاستثناء صار بلا مُبرّر فيجب نزعه"
+    )
     assert not leaks(), "المواضع الشرعيّة يجب ألّا تُدين"
+
+
+def test_the_documentation_exemption_does_not_blind_the_guard_to_a_real_leak(tmp_path):
+    """**تكذيب الاستثناء نفسه.** استثناءٌ يُسكِت الحارس عن تسريبٍ حقيقيّ لا يجوز.
+
+    يُقاس على مستودع مؤقّت: الرمز نفسه في سردٍ تحت `docs/runbooks/` **يمرّ**، وفي
+    مصدرٍ تحت `services/` **يُدان** — في الشجرة ذاتها وبالرمز ذاته. فالاستثناء مقصور
+    على السرد ولا يتمدّد.
+    """
+    repo = tmp_path / "r"
+    (repo / "docs" / "runbooks").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", "."], cwd=repo, check=True, capture_output=True)
+    (repo / "docs" / "runbooks" / "LESSON.md").write_text(
+        "درس: عودة مسار /api/probe-newservice/readyz المحظور\n", encoding="utf-8"
+    )
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
+    assert leaks(root=repo) == [], "سردُ الدرس يجب أن يمرّ"
+
+    (repo / "services").mkdir()
+    (repo / "services" / "gateway.py").write_text(
+        '@router.get("/api/probe-newservice/readyz")\n', encoding="utf-8"
+    )
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
+    found = leaks(root=repo)
+    assert any("gateway.py" in line for line in found), found
+    assert not any("LESSON.md" in line for line in found), found
 
 
 def test_every_marker_the_tests_inject_is_declared():

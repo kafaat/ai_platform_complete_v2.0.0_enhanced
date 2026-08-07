@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 526,
+      "evidence_count": 527,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -446,6 +446,7 @@
         "services/sahool-platform/tests/test_weather_engine_v18_observability.py",
         "services/sahool-platform/tests/test_wind_geometry.py",
         "services/sahool-platform/validate_observations.py",
+        "services/sahool-platform/workers/canonical_execution_learning_worker.py",
         "services/scout-ingest-service/main.py",
         "services/scout-ingest-service/projection_worker.py",
         "services/scout-ingest-service/tests/test_projection_live.py",
@@ -566,7 +567,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 464,
+      "evidence_count": 465,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1003,6 +1004,7 @@
         "services/sahool-platform/tests/test_work_order.py",
         "services/sahool-platform/tests/test_work_order_from_recommendation.py",
         "services/sahool-platform/validate_observations.py",
+        "services/sahool-platform/workers/canonical_execution_learning_worker.py",
         "services/soil-service/p1_products.py",
         "services/soil-service/p2_products.py",
         "services/soil-service/p3_products.py",
@@ -2255,8 +2257,8 @@
         "services/sahool-platform/core/decision_playbook.py",
         "services/sahool-platform/core/evidence_graph.py"
       ],
-      "source_evidence_count": 526,
-      "target_evidence_count": 464,
+      "source_evidence_count": 527,
+      "target_evidence_count": 465,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2356,7 +2358,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 464,
+      "source_evidence_count": 465,
       "target_evidence_count": 159,
       "static_supported": true,
       "runtime_verified": false
@@ -2608,5 +2610,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "d9bd93d72dcba4adc143fb3596d26e01c2856c495ffaf10954722af75241154b"
+  "content_sha256": "32a17c7ac11427d52fdd4a17b4548fac4ac5a51e276d53a6dc3094371ed09b01"
 }

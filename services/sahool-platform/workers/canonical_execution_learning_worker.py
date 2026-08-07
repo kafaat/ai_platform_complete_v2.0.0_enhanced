@@ -19,8 +19,19 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[2]
-API_ROOT = ROOT / "services" / "sahool-platform"
+# ``CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01``: هذا الملفّ كان في ``scripts/workers/`` بجذر
+# المستودع، و``services/sahool-platform/Dockerfile`` ينسخ ``shared/`` و
+# ``services/sahool-platform/`` فقط — فلم يكن في الصورة أصلاً، والحاوية تموت عند الإقلاع
+# و``restart: unless-stopped`` يُعيدها إلى الأبد.
+#
+# ونسخُه كما كان **لم يكن ليكفي**: الصورة تنسخ **محتويات** جذر الخدمة إلى ``/app``، فـ
+# ``api/`` تسكن ``/app/api``؛ بينما ``parents[2]`` كان يُنتِج ``/app`` ثمّ يبحث عن
+# ``/app/services/sahool-platform`` — مسارٌ لا وجود له في الصورة. إصلاحٌ يبدو ناجحاً ويظلّ مكسوراً.
+#
+# فسكن العامل **تحت جذر الخدمة**: عندها ``parents[1]`` هو جذر الخدمة في الموضعين معاً —
+# ``services/sahool-platform`` في المستودع، و``/app`` في الصورة. الشكلان يتطابقان، فالتعبير
+# الواحد يصحّ فيهما بلا فرعٍ لبيئة.
+API_ROOT = Path(__file__).resolve().parents[1]
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 

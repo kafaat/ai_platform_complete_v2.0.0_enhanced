@@ -10,9 +10,9 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **219**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **8**
-- إجماليّ الطفرات المُسجَّلة: **35**
+- حرّاس تحجب في CI: **220**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **9**
+- إجماليّ الطفرات المُسجَّلة: **43**
 
 أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
@@ -21,7 +21,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (8)
+## الحرّاس المُثبَتة بالتكذيب (9)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -87,6 +87,21 @@
 - نزع حجب مدخل الدَّين البائت — يُسقِط `test_stale_debt_entry_is_blocked`
 - SHA مجهول يُبلَّغ «صفر التزام» بدل «غير قابل للحلّ» — يُسقِط `test_an_unknown_sha_reports_unresolvable_not_zero`
 
+### `container_command_path_guard.py`
+
+**يفرض:** مسارٌ يُنفّذه compose يجب أن تضعه صورةُ الخدمة فعلاً — «مُسجَّل» ليس «يعمل».
+
+**يحجب في:** `ci.yml` → `compose-validate`
+
+**الاختبار الشاهد:** `tests_v9/test_container_command_path_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- ادّعاء الوجود بلا فحص وجود ⇒ كلّ مسار «تضعه الصورة» والعطل الأصليّ يمرّ — يُسقِط `test_the_old_location_is_still_unreachable_from_that_image`
+- تعطيل الفحص كلّيّاً ⇒ الحارس يخضرّ على شجرة معطوبة — يُسقِط `test_a_missing_path_is_reported_with_the_service_that_executes_it`
+- صفر أزواج مفحوصة ⇒ «أخضر لأنّه لم ينظر» — الصفر الصامت نفسه — يُسقِط `test_it_actually_examines_something`
+- إسقاط نسخ ملفّ→ملفّ ⇒ ثلاث خدمات سليمة تُتَّهم (الإيجابيّة الكاذبة المقيسة) — يُسقِط `test_copy_semantics_are_applied_not_approximated`
+
 ### `guard_mutation_guard.py`
 
 **يفرض:** لا حارس بلا عطلٍ مزروع يُثبِت أنّه يُطلِق — GUARDS-WITHOUT-A-PLANTED-DEFECT-01.
@@ -107,6 +122,8 @@
 - قبول `expect` بادئةً عامّة لا اسم اختبار موجود ⇒ الشرط يعود إلى «سقط شيء ما» — يُسقِط `test_a_bare_prefix_is_not_an_expected_test`
 - اعتبار انهيار المُشغِّل دليلاً ⇒ بيئة بلا pytest تُبلَّغ «حمرّ بغير الاختبار المُتوقَّع» — يُسقِط `test_a_runner_that_never_ran_is_not_evidence`
 - نزع تسمية الاختبارات الساقطة فعلاً ⇒ فرع «حمرّ بغير المتوقَّع» يعود غير قابل للتشخيص من سجلّه — يُسقِط `test_the_wrong_test_branch_names_what_actually_failed`
+- عودةُ ذاكرة الـbytecode ⇒ طفرتان متساويتا الطول تتبادلان الأثر (السبب الجذريّ المُثبَت للرقيعة) — يُسقِط `test_the_runner_blocks_bytecode_caching`
+- إسقاط برهان الاستعادة ⇒ تسرّبٌ بين طفرتين يظهر «عشوائيّةً» لا عطلاً — يُسقِط `test_a_restore_that_did_not_restore_is_reported`
 
 ### `platform_module_reachability_guard.py`
 
@@ -121,6 +138,8 @@
 - نزع فهرسة الحزمة باسمها ⇒ كلّ سلسلة تمرّ بـ__init__ تبدو مقطوعة، فتُصنَّف وحدات موصولة فعلاً كسلاسل طرفيّة ميتة — الحارس يخترع العطل بدل أن يجده — يُسقِط `test_a_module_behind_a_package_is_reachable_not_terminal`
 - ترك الاستيراد النسبيّ بلا حلّ ⇒ from .canonical_water import … لا يُنتِج حافّة، فتبدو canonical_water/canonical_boundary ميتتين وهما مستهلَكتان — يُسقِط `test_relative_imports_resolve_against_the_importing_package`
 - جعل كلّ وحدة قابلة للوصول ابتداءً ⇒ التصنيف يفقد قدرته على قول (ميت)، وهو الغرض الوحيد للحارس — يُسقِط `test_a_module_nothing_executes_is_terminal`
+- المُشغِّل المُنفَّذ بمسار يُعَدّ قناةً لا جذراً ⇒ نقطة الدخول نفسها تُصنَّف «ميتة» بينما compose يشغّلها — يُسقِط `test_a_path_launched_worker_inside_the_platform_is_a_root_itself`
+- ‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01 — يُسقِط `test_the_container_path_maps_to_the_service_root_not_the_repository_root`
 
 ### `probe_leak_guard.py`
 

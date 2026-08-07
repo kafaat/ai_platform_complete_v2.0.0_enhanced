@@ -379,3 +379,30 @@ def test_repeats_that_all_say_expected_red_are_not_called_stable_wrong_test():
     assert "FLAKY_FIRST_OBSERVATION" in window
     # and the branch must come BEFORE the stable branch, or it can never be reached
     assert window.index("FLAKY_FIRST_OBSERVATION") < window.index("STABLE_WRONG_TEST")
+
+
+def test_the_runner_blocks_bytecode_caching():
+    """‏``.pyc`` يُبطَل بـ(mtime, size) لا بالمحتوى — وطفرتان متساويتا الطول تخدعانه.
+
+    ``MUTATION-VERDICT-CONTRADICTS-ITS-OWN-DIAGNOSIS-01``، السبب الجذريّ **مُثبَت
+    بإعادة إنتاج محكومة** (2026-08-05): ``claim_base_guard.py[3]`` و``[4]`` هما الزوج
+    الوحيد المتساوي الطول بين ثمانٍ (٧١٨٨ لكلٍّ). بتثبيت ``mtime`` بين الكتابتَين تسقط
+    الطفرة ``[4]`` على **اختبار ``[3]``** — توقيع الـCI حرفيّاً؛ ومع منع الـbytecode
+    تسقط على اختبارها. ثلاث ملاحظات كانت تُسمّى «رقيعة» وهي سببٌ واحد قابل للقياس.
+    """
+    source = (ROOT / "scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
+    assert '"PYTHONDONTWRITEBYTECODE": "1"' in source, (
+        "بلا هذا تبيت بايتكود طفرةٍ سابقة وتُحاكَم طفرةٌ لاحقة بأثرها"
+    )
+
+
+def test_a_restore_that_did_not_restore_is_reported():
+    """الحارس الذي يزرع ويستعيد يحتاج أن **يُثبت** استعادته، لا أن يفترضها.
+
+    بلا هذا الفحص، أيّ تسرّبٍ بين طفرتين متتاليتين يظهر «عشوائيّةً» لا عطلاً — وهو ما
+    كلّف ثلاث ملاحظات قبل عزل السبب. والمقارنة بالمحتوى لا بالحجم، لأنّ تساوي الطول هو
+    بالضبط ما أخفى العطل.
+    """
+    source = (ROOT / "scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
+    assert 'src.read_text(encoding="utf-8") != original' in source
+    assert "الاستعادة لم تُعِد المصدر إلى أصله" in source
