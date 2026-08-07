@@ -52,7 +52,7 @@ EP = _load()
 
 
 def _psql(sql: str, *, role: str, database: str = "sahool", port: str | None = None):
-    """يُشغّل SQL ويُعيد ‏(rc, stdout, stderr) — بلا ابتلاع، فالفشل جزء من القياس."""
+    """يُشغّل SQL ويُعيد (rc, stdout, stderr) — بلا ابتلاع، فالفشل جزء من القياس."""
     port = port or os.environ.get("SAHOOL_TEST_PGPORT", "5432")
     proc = subprocess.run(  # noqa: S603
         [

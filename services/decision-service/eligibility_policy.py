@@ -1,7 +1,7 @@
 """الأهليّة **مصنوعٌ مشتقّ** لا حقلٌ في اللقطة — `CANONICAL-SNAPSHOT-ELIGIBILITY-POLICY-01`.
 
 **القيد الذي يجعل هذا قراراً معماريّاً لا تفصيلاً تنفيذيّاً:** اللقطة **معنونة
-بمحتواها**. ‏`main.py` يقولها صراحةً («content-addressed by snapshot_hash — the hash IS
+بمحتواها**. `main.py` يقولها صراحةً («content-addressed by snapshot_hash — the hash IS
 the idempotency key»)، و`persistence.py` يُلغي التكرار على `(tenant_id, snapshot_hash)`،
 والهجرة ٠١٩ تحمل `UNIQUE(tenant_id, snapshot_hash)` ومُشغِّلاً يمنع `UPDATE`/`DELETE`.
 
@@ -20,7 +20,7 @@ the idempotency key»)، و`persistence.py` يُلغي التكرار على `(t
 
 **السؤالان اللذان كانا في قيمة منطقيّة واحدة، مفصولان الآن:**
 
-* `decision_eligible` (‏`generate_indicator_artifacts.py`) يبقى كما هو: **حقيقة عن
+* `decision_eligible` (`generate_indicator_artifacts.py`) يبقى كما هو: **حقيقة عن
   المؤشّر** — «مُنفَّذ ومصدره حقيقيّ؟». نقطة توافق للخلف، لا تُوسَّع ولا تُمَسّ.
 * وهذا الملفّ يجيب الثاني: **«هل يجوز لهذه اللقطة أن تقود هذه المرحلة الآن؟»** — وهو
   سياسةٌ تتغيّر بتغيّر المحصول والمرحلة وجودة المشهد، ولها **نسخة**.

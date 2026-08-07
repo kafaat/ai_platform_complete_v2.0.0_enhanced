@@ -1,6 +1,6 @@
 {
   "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. الخروج من `claiming_db_enforced` يكون بإثبات الملفّ على قاعدة حيّة، لا بحذف الكلمة من نصّه.",
-  "measured_on": "e5b475a2964f3e07fb86ec4534bc040c3677fa20",
+  "measured_on": "14041e13ed5533bac87e8a090838c2645fdaf4c6",
   "fake_connection_tests": [
     "services/sahool-platform/tests/test_break_glass.py",
     "services/sahool-platform/tests/test_crop_stress_ingestion.py",
