@@ -173,7 +173,9 @@ def test_the_marker_names_actually_follow_pytest_ini(tmp_path, monkeypatch):
     declared = _repo(tmp_path / "a", body, markers=("unit", "smoke"))
     absent = _repo(tmp_path / "b", body, markers=("unit",))
     assert _unmarked_in(monkeypatch, declared) == set(), "علامة مُعلَنة لم تُتَّبع"
-    assert _unmarked_in(monkeypatch, absent) == {"tests_v9/test_x.py"}, "اسم مُصلَّب لا يتبع pytest.ini"
+    assert _unmarked_in(monkeypatch, absent) == {"tests_v9/test_x.py"}, (
+        "اسم مُصلَّب لا يتبع pytest.ini"
+    )
 
 
 def test_the_guard_agrees_with_pytests_own_selection():
@@ -191,9 +193,23 @@ def test_the_guard_agrees_with_pytests_own_selection():
 
     def collected(*extra: str) -> set[str]:
         out = subprocess.run(  # noqa: S603
-            [sys.executable, "-m", "pytest", "tests_v9", "--collect-only", "-q",
-             "-p", "no:cacheprovider", "-o", "addopts=", *extra],
-            cwd=ROOT, capture_output=True, encoding="utf-8", check=False,
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests_v9",
+                "--collect-only",
+                "-q",
+                "-p",
+                "no:cacheprovider",
+                "-o",
+                "addopts=",
+                *extra,
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
         ).stdout
         return {
             line.split("::")[0]
