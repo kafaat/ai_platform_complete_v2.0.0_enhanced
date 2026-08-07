@@ -14,28 +14,55 @@
 الأساس في ``docs/testing/unmarked_tests_baseline.json`` **يتقلّص ولا ينمو**: ملفّ جديد
 بلا علامة ⇒ فشل؛ ومدخل بائت (وُسِم أو حُذِف) ⇒ فشل يطالب بحذفه.
 
+**ثقبان أُغلِقا بعد أن أسقطا ملفّين حقيقيّين.** كلاهما من صنف واحد: الحارس يثبّت
+*تنفيذاً* حيث كانت *الخاصّيّة* مطلوبة.
+
+  ① **النطاق كان مسطّحاً.** ‏``git ls-files 'tests_v9/test_*.py'`` لا يرى
+     ``tests_v9/<دليل>/test_*.py``. فملفّا ``tests_v9/runtime_activation/`` — ثمانية
+     اختبارات تؤكّد التركيبة القانونيّة ومسارات البوّابة — كانا ميّتين في **كلّ** وظيفة،
+     و**غير قابلين للظهور في الأساس أصلاً**: الحارس المبنيّ لالتقاط هذا الصنف بالذات
+     لا يستطيع تسميتهما. الآن التعداد بالخاصّيّة: كلّ متعقَّب تحت ``tests_v9`` اسمه
+     ``test_*.py``، مهما عَمُق.
+
+  ② **والقياس كان نصّيّاً.** ‏``_MARKED`` القديم كان يطابق ``pytestmark`` **مجرّداً**،
+     فـ``pytestmark = pytest.mark.asyncio`` يُقرأ «موسوم» بينما ``asyncio`` ليس علامة
+     انتقاء فيُستبعَد الملفّ من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وكان يطابق داخل
+     تعليق أو نصّ. والأدهى: ``registered_markers()`` موصوفةٌ بأنّها «مصدر الحقيقة
+     الوحيد لأسماء العلامات» وهي **زينة** — تُستعمل في سطر النجاح فقط بينما الأسماء
+     مُصلَّبة في التعبير النمطيّ. الآن القراءة بـAST والأسماء تُشتقّ من ``pytest.ini``،
+     فإضافة علامة هناك تتبعها البوّابة بلا تعديل هنا.
+
+**مقيسٌ لا مُقدَّر:** التمييز بين النصّ والبنية أعطى ١١ بدل ٩ على الشجرة ذاتها —
+الفارق هو الملفّان المحجوبان بالثقب ①. والقياس مُصدَّق بـ``pytest`` نفسه: اختبار
+``test_the_guard_agrees_with_pytests_own_selection`` يقارن جواب الحارس بجمع pytest
+الحقيقيّ تحت ``-m``، فلا يبقى القياس الرخيص صادقاً بالادّعاء.
+
+يعمل بلا pytest (‏``ast`` من المكتبة القياسيّة) — نفس نمط ``platform_route_placement_guard``.
+
     python scripts/ci/test_marker_coverage_guard.py --check
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
 import json
-import re
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 BASELINE = ROOT / "docs" / "testing" / "unmarked_tests_baseline.json"
 PYTEST_INI = ROOT / "pytest.ini"
-
-# علامة مُعلَنة على مستوى الوحدة أو على دالّة. القبول واسع عمداً: الغرض «هل يُنتقى
-# هذا الملفّ بـ-m؟» لا فرض أسلوب واحد.
-_MARKED = re.compile(r"pytestmark|pytest\.mark\.(unit|integration|security|slow|mcp)")
+TESTS_DIR = "tests_v9"
 
 
 def registered_markers() -> set[str]:
-    """العلامات المُعلَنة في ``pytest.ini`` — مصدر الحقيقة الوحيد لأسماء العلامات."""
+    """العلامات المُعلَنة في ``pytest.ini`` — مصدر الحقيقة الوحيد لأسماء العلامات.
+
+    وهي **حاملة** الآن لا زينة: ``marker_names_in`` تُقارَن بها، فحذف علامة من
+    ``pytest.ini`` يجعل الملفّات الموسومة بها بلا علامة انتقاء — وهو الصدق نفسه،
+    لأنّ pytest سيستبعدها فعلاً.
+    """
     text = PYTEST_INI.read_text(encoding="utf-8")
     block = text.split("markers =", 1)[1] if "markers =" in text else ""
     names = set()
@@ -49,23 +76,75 @@ def registered_markers() -> set[str]:
 
 
 def tracked_test_files() -> list[str]:
-    """`git ls-files` لا مسح القرص — نفس قرار #660: مُتعقَّب فقط، كما يرى CI."""
+    """`git ls-files` لا مسح القرص — نفس قرار #660: مُتعقَّب فقط، كما يرى CI.
+
+    والتصفية **بالخاصّيّة** (اسم الملفّ) لا بنمط مسار: نمط ``tests_v9/test_*.py``
+    مسطّح، ودليلٌ فرعيّ واحد يكفي ليختفي ملفّ عن حارسٍ بُني لرؤيته.
+    """
     out = subprocess.run(  # noqa: S603
-        ["git", "ls-files", "tests_v9/test_*.py"],
+        ["git", "ls-files", "-z", "--", TESTS_DIR],
         cwd=ROOT,
         capture_output=True,
-        text=True,
         check=True,
+        encoding="utf-8",
+    ).stdout
+    return sorted(
+        rel
+        for rel in out.split("\0")
+        if rel and rel.endswith(".py") and Path(rel).name.startswith("test_")
     )
-    return sorted(out.stdout.split())
+
+
+def marker_names_in(path: Path) -> set[str]:
+    """أسماء العلامات المُطبَّقة فعلاً في الملفّ — بالبنية لا بالنصّ.
+
+    المواضع الثلاثة التي يقرأها pytest: ``pytestmark`` على مستوى الوحدة، ومُزخرِفات
+    الدوالّ، ومُزخرِفات الأصناف. **الثالث ليس تفصيلاً:** ثمانية ملفّات في هذه الشجرة
+    تَسِم على مستوى الصنف وحده، وأوّل صياغة عندي أغفلَته فأعلنتها بلا علامة — أمسكه
+    التصديق بـpytest، لا قراءتي.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except (SyntaxError, ValueError):
+        return set()
+
+    def names(node: ast.AST) -> set[str]:
+        found = set()
+        for sub in ast.walk(node):
+            if isinstance(sub, ast.Attribute):
+                owner = sub.value
+                if (
+                    isinstance(owner, ast.Attribute)
+                    and owner.attr == "mark"
+                    and isinstance(owner.value, ast.Name)
+                    and owner.value.id == "pytest"
+                ):
+                    found.add(sub.attr)
+        return found
+
+    applied: set[str] = set()
+    for node in tree.body:
+        targets: list[ast.expr] = []
+        if isinstance(node, ast.Assign):
+            targets = list(node.targets)
+        elif isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+        if any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in targets):
+            value = node.value  # type: ignore[union-attr]
+            if value is not None:
+                applied |= names(value)
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            for decorator in node.decorator_list:
+                applied |= names(decorator)
+    return applied
 
 
 def unmarked() -> list[str]:
-    return [
-        path
-        for path in tracked_test_files()
-        if not _MARKED.search((ROOT / path).read_text(encoding="utf-8"))
-    ]
+    """ملفّات لا تحمل **علامة انتقاء مُسجَّلة** — أي لا تُنتقى بأيّ ``-m`` في CI."""
+    known = registered_markers()
+    return [path for path in tracked_test_files() if not (marker_names_in(ROOT / path) & known)]
 
 
 def check() -> int:
@@ -77,7 +156,8 @@ def check() -> int:
     for path in sorted(in_tree - in_baseline):
         problems.append(
             f"اختبار بلا علامة وخارج الأساس: {path} — أضف "
-            f"`pytestmark = pytest.mark.<علامة>`؛ بلا علامة لا يعمل في أيّ وظيفة CI."
+            f"`pytestmark = pytest.mark.<علامة>`؛ بلا علامة **مُسجَّلة في pytest.ini** "
+            f"لا يعمل في أيّ وظيفة CI (‏`pytest.mark.asyncio` وحدها لا تكفي)."
         )
     for path in sorted(in_baseline - in_tree):
         problems.append(f"مدخل بائت في الأساس: {path} — وُسِم أو حُذِف. احذف المدخل (الأساس يتقلّص).")
