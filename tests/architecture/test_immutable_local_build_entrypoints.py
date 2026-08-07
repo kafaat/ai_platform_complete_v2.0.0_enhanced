@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def test_env_example_does_not_supply_a_fake_tested_sha():
     text = (ROOT / ".env.example").read_text()
-    assert "TESTED_SHA=local" not in text
+    assert "TESTED_SHA=local" not in text, "قيمةٌ زائفة جاهزة تجعل البناء يدّعي أنّه مُختبَر على لا شيء"
     assert "# TESTED_SHA=<full-40-character-git-sha>" in text
 
 

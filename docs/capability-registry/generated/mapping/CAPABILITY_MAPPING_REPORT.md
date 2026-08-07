@@ -12,9 +12,9 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4927**
-- Ambiguous artifacts queued: **399**
-- Unmapped artifacts queued: **2009**
+- Files scanned: **4930**
+- Ambiguous artifacts queued: **400**
+- Unmapped artifacts queued: **2010**
 
 ## Capability coverage
 
@@ -23,7 +23,7 @@
 | DEC-001 | decision | 0 | 0 | 0 | 3 | 0 | 0 | 2 | 2 |
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| DEC-004 | decision | 9 | 20 | 24 | 30 | 0 | 0 | 15 | 5 |
+| DEC-004 | decision | 9 | 20 | 26 | 30 | 0 | 0 | 15 | 5 |
 | DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 6 | 5 | 3 | 1 | 0 | 2 | 6 |
@@ -36,7 +36,7 @@
 | FM-004 | farm_management | 30 | 82 | 86 | 54 | 12 | 1 | 34 | 7 |
 | FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 5 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
-| FM-007 | farm_management | 8 | 24 | 8 | 1 | 1 | 1 | 5 | 7 |
+| FM-007 | farm_management | 8 | 24 | 10 | 1 | 1 | 1 | 5 | 7 |
 | FM-008 | farm_management | 10 | 24 | 5 | 1 | 0 | 0 | 7 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 3 | 0 | 0 | 2 | 0 | 2 | 4 |
@@ -71,7 +71,7 @@
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | SAT-001 | satellite | 36 | 65 | 3 | 32 | 5 | 0 | 42 | 6 |
 | SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 3 | 4 |
-| SAT-003 | satellite | 100 | 83 | 42 | 100 | 49 | 6 | 100 | 7 |
+| SAT-003 | satellite | 100 | 83 | 44 | 100 | 49 | 6 | 100 | 7 |
 | SAT-004 | satellite | 19 | 10 | 5 | 14 | 7 | 0 | 20 | 6 |
 | SAT-005 | satellite | 8 | 24 | 0 | 1 | 0 | 0 | 9 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |
@@ -96,7 +96,7 @@
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
 | WX-004 | weather | 59 | 53 | 0 | 78 | 19 | 0 | 57 | 5 |
 | WX-005 | weather | 8 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
-| WX-006 | weather | 84 | 26 | 33 | 26 | 15 | 0 | 44 | 6 |
+| WX-006 | weather | 84 | 26 | 35 | 26 | 15 | 0 | 44 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 2 | 6 | 0 | 1 | 0 | 0 | 2 | 4 |
 | WX-009 | weather | 2 | 29 | 0 | 0 | 2 | 0 | 1 | 4 |

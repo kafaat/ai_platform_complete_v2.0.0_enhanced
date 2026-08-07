@@ -73,6 +73,12 @@ ALLOWED = (
     "docs/runbooks/",
     "sahool-brain/",
     "scripts/ci/probe_leak_guard.py",
+    # جردٌ **مشتقّ** من ملفّات الاختبار: يسجّل نصوص التأكيدات حرفيّاً، فرمزُ المِسبار
+    # يصله من `tests_v9/test_certification_regression_fixes.py` وهو موضع ذِكرٍ شرعيّ
+    # أصلاً. بالمسار التامّ لا بالدليل — `docs/architecture/` كاملاً يُعمي الحارس عن
+    # مصنوعات لا علاقة لها بالاختبارات. وهذه ثالث مرّة في يومٍ واحد يُطلِق فيها حارسٌ
+    # على توثيق ما يمنعه؛ والمرّة الثالثة كانت مصنوعتي أنا.
+    "docs/architecture/source_text_assertion_inventory.json",
 )
 
 

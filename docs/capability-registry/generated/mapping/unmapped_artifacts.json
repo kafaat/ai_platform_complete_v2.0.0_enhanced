@@ -7568,6 +7568,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_prohibition_reason_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_projection_determinism_v63.py",
     "kind": "tests"
   },

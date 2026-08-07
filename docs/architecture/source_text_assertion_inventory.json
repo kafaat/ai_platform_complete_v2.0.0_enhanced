@@ -1,0 +1,230 @@
+{
+  "$comment": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01 — المسح الأوّل لسطح التأكيدات الساكنة على نصّ المصدر. `prohibitions_without_a_stated_reason` **مَعدودة لا محكومٌ عليها**: لم يُثبَت أنّ أيّاً منها خاطئ، بل أنّ سببه غير مكتوب. الأساس يمنع النموّ، وسدادُه بكتابة السبب الحقيقيّ لا بنسخ عبارة. و`positive_pinning_a_call` **يُنشَر ولا يُحرَس**: معيار الفجوة (هل يبقى التأكيد صحيحاً بعد إعادة صياغة صحيحة؟) غير قابل للحسم آليّاً، ومُصنِّفٌ استدلاليّ يُنتِج قائمةً تُقرأ ديناً وهي ما طابق نمطاً.",
+  "gap": "GUARD-PINS-IMPLEMENTATION-NOT-PROPERTY-01",
+  "measured_on": "8de1eb911f6340a0bf67661f83898cbdbce80ee0",
+  "scope": "‏assert على نصّ مصدر فقط — متغيّر أُسنِد من read_text/read/getsource في الاختبار نفسه، مُشتقٌّ بالبنية لا بالاسم. ما يُؤكَّد على جسم استجابة أو حمولة JSON خارج النطاق: هناك التأكيد هو العقد.",
+  "totals": {
+    "source_text_assertions": 2051,
+    "positive_pinning_a_call": 293,
+    "prohibitions": 153
+  },
+  "prohibitions_without_a_stated_reason": {
+    "services/agriai-engine/tests/test_production_readiness_truth.py": {
+      "لا ننهار أبداً": 1
+    },
+    "services/decision-service/tests/test_wx10_12_execution_outcome.py": {
+      "CREATE TABLE IF NOT EXISTS decision_execution_outcomes": 1
+    },
+    "services/field-management-service/tests/test_field_management_service_contract.py": {
+      "PLATFORM_API_URL": 1,
+      "create_pool": 1
+    },
+    "services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py": {
+      "gdd_pending_weather_engine_delegation": 1,
+      "legacy_local_gdd_pending_weather_delegation": 1
+    },
+    "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py": {
+      "WHERE water_source_id=$1": 1,
+      "water_ec: float": 1
+    },
+    "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py": {
+      "PlaceholderPanel": 1
+    },
+    "services/sahool-platform/tests/test_ui24_ui26_workspace_imagery_weather_irrigation_guard.py": {
+      "function PlaceholderPanel": 1,
+      "يعرض NDVI/NDMI/TrueColor حسب COG/available-dates الفعلية فقط": 1
+    },
+    "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py": {
+      "@router.get(\"/api/v1/fields/{field_id}/unified-timeline\")": 1
+    },
+    "services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py": {
+      "@router.get(\"/api/v1/fields/{field_id}/unified-timeline\")": 1,
+      "PlaceholderPanel": 1
+    },
+    "services/sahool-platform/tests/test_ui3_api_module_split_guard.py": {
+      "axios.create": 1,
+      "function makeClient": 1
+    },
+    "services/sahool-platform/tests/test_ui3b_api_domain_modules_guard.py": {
+      "export const getFeatureRegistry": 1,
+      "export const login": 1,
+      "export interface AuthResponse": 1
+    },
+    "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py": {
+      "\"field_readiness\"": 1,
+      "axios.create": 1,
+      "localhost": 1
+    },
+    "services/sahool-platform/tests/test_ui7_maphub_controls_extraction_guard.py": {
+      "data-testid=\"maphub-operational-overlay-controls\"": 1,
+      "function ToolToggle": 1
+    },
+    "tests/architecture/test_immutable_build_wrapper_behaviour.py": {
+      "TESTED_SHA=<unset>": 1
+    },
+    "tests/architecture/test_raster_service_route_migration_plan.py": {
+      "\"/indices\"": 1,
+      "\"/process/batch\"": 1,
+      "@router.get(\"/layers/{layer_id}/tilejson\")": 1,
+      "@router.get(\"/tiles/{layer_id}/{z}/{x}/{y}.png\")": 1,
+      "f\"/jobs/{job_id}/result\"": 1
+    },
+    "tests/ci/test_phase16_ci_cd_gates.py": {
+      "e2e_field_imagery_ai.sh || true": 1,
+      "outbox_reliability_check.sh || true": 1
+    },
+    "tests/irrigation/test_gate_b_dispatch_relay_and_contract.py": {
+      "decision_execution_requests": 1
+    },
+    "tests/irrigation/test_gate_b_dispatch_relay_worker.py": {
+      "create_execution_request": 1
+    },
+    "tests/irrigation/test_irr_f01_activation_gate_prod_guard.py": {
+      "tenant_id": 1
+    },
+    "tests/irrigation/test_irrigation_v195_capacity_reservation_core.py": {
+      "alter table irrigation_water_allocations": 1
+    },
+    "tests/irrigation/test_irrigation_v196_target_binding.py": {
+      "graph_version_id": 1
+    },
+    "tests/irrigation/test_irrigation_v205_runtime_hardening.py": {
+      "return await decision_post_json": 1
+    },
+    "tests/mobile/test_phase11_mobile_offline_sync_runtime.py": {
+      "data: form,\n      data: form": 1
+    },
+    "tests/runtime/test_phase20_worker_static_contracts.py": {
+      "completed' if": 1
+    },
+    "tests/security/test_fii_chemical_chain_rls_gate.py": {
+      "IS NULL": 1
+    },
+    "tests/security/test_fii_rls_write_policy_gate.py": {
+      "IS NULL\n                OR": 1
+    },
+    "tests/test_fields_create_contract_static.py": {
+      "ON_ERROR_STOP=0": 1
+    },
+    "tests/test_intelligence_governance_contract.py": {
+      "\"compute_ndvi\"": 1
+    },
+    "tests/test_riv_p0_consumer_truth_guard.py": {
+      "33 مؤشر + WOFOST": 1,
+      "EVALSCRIPT_ALL_INDICES": 1,
+      "evaluatePixel": 1,
+      "services.sentinel-hub.com": 1,
+      "جارٍ تحميل البيانات من indicators-service": 1
+    },
+    "tests/test_riv_p0_indicator_ownership_guard.py": {
+      "def compute_ndvi_from_bands": 1
+    },
+    "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py": {
+      "kongApi.post('/api/agent/query'": 1
+    },
+    "tests_v9/test_api_versioning_policy_guard.py": {
+      "\"/indices\"": 1,
+      "\"/process/batch\"": 1,
+      "Check /readyz/capabilities for capability status.": 1,
+      "f\"/jobs/{job_id}/result\"": 1,
+      "f\"/tiles/{layer_id}/{{z}}/{{x}}/{{y}}.png\"": 1,
+      "f\"{SOIL_URL}/soil/soilgrids\"": 1
+    },
+    "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py": {
+      "DELETE FROM backfill_runs": 1,
+      "UPDATE backfill_runs": 1
+    },
+    "tests_v9/test_brain_duplicate_gap_identity_guard.py": {
+      "<<<<<<<": 1
+    },
+    "tests_v9/test_canonical_execution_learning_root_closure.py": {
+      "_projection_command_id": 1,
+      "uuid5(": 1
+    },
+    "tests_v9/test_certification_regression_fixes.py": {
+      "/api/probe-newservice/readyz": 1,
+      "probe_unadjudicated_alias_": 1
+    },
+    "tests_v9/test_command_event_causality_live_gate_contract.py": {
+      "uuid_generate_v5_stub": 1
+    },
+    "tests_v9/test_erp_bridge_alias_contract.py": {
+      "odoo_bridge_backend": 1
+    },
+    "tests_v9/test_evidence_lab_contract.py": {
+      "0.0.0.0:": 1,
+      "docker-compose.v9.yml": 1
+    },
+    "tests_v9/test_field_change_summary.py": {
+      "satellite:write": 1
+    },
+    "tests_v9/test_field_forms_api_static_p0.py": {
+      "if actor_id and claims[\"actor_id\"]": 1,
+      "if assignment_revision is not None and claims[\"revision\"]": 1,
+      "if device_id and claims[\"device_id\"]": 1
+    },
+    "tests_v9/test_field_state_recompute_provenance_v57_5.py": {
+      "DROP COLUMN": 1
+    },
+    "tests_v9/test_fii_prescription_season_context_guard.py": {
+      "UPDATE prescriptions": 1
+    },
+    "tests_v9/test_historical_imagery_timeline_contract.py": {
+      ".style.display": 1,
+      "months * 31": 1,
+      "style={{ display:": 1
+    },
+    "tests_v9/test_historical_season_bridge_static.py": {
+      "1.24 *": 1
+    },
+    "tests_v9/test_imagery_quality_metadata_v57_5.py": {
+      "DROP COLUMN": 1
+    },
+    "tests_v9/test_infra_hardening_72h_static.py": {
+      "PGUSER=\"${PGUSER:-postgres}\"": 1
+    },
+    "tests_v9/test_internal_field_read_channel.py": {
+      "PLATFORM_API_URL": 1,
+      "def internal_get_field(": 1,
+      "def internal_list_fields(": 1
+    },
+    "tests_v9/test_mapbox_basemap_contract_20260703.py": {
+      "layersOfKind('basemap').map": 1,
+      "tileType === 'street' ? 'satellite' : 'street'": 1
+    },
+    "tests_v9/test_mqtt_anonymous_off_guard.py": {
+      "allow_anonymous true": 1
+    },
+    "tests_v9/test_platform_catalog_gate.py": {
+      "\n  IF:\n": 1
+    },
+    "tests_v9/test_resolve_merge_conflicts.py": {
+      "<<<<<<<": 1
+    },
+    "tests_v9/test_scout_ingest_service_ownership.py": {
+      "INSERT INTO observations": 1,
+      "getenv(\"SAHOOL_AGENT_TOKEN": 1
+    },
+    "tests_v9/test_secret_enforcement_guard_v21.py": {
+      ":-sahool-zlm-dev-secret}": 1
+    },
+    "tests_v9/test_service_consumer_closure_20260723.py": {
+      "MCP_AGRIAI_URL": 2
+    },
+    "tests_v9/test_soil_lab_evidence_hardening_v57_5.py": {
+      "DROP COLUMN": 1
+    },
+    "tests_v9/test_supervisor_client_single_owner_guard.py": {
+      "kongApi.post('/api/agent/optimize'": 1,
+      "kongApi.post('/api/agent/query'": 1,
+      "useAgentQuery": 1,
+      "useFarmOptimize": 1
+    },
+    "tests_v9/test_vegetation_real_only_posture_guard.py": {
+      "VEGETATION_REAL_ONLY: \"0\"": 1
+    },
+    "tests_v9/test_wx10_10_dispatch_authorization_contract.py": {
+      "INSERT INTO dispatch_decisions": 1
+    }
+  }
+}

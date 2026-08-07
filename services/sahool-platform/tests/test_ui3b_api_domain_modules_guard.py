@@ -48,6 +48,8 @@ def test_auth_module_imports_only_shared_clients_and_no_direct_urls():
     assert "from './client'" in auth
     assert "authApi" in auth
     assert "kongApi" in auth
-    assert "axios.create" not in auth
-    assert "localhost" not in auth
-    assert "127.0.0.1" not in auth
+    assert "axios.create" not in auth, (
+        "عميلٌ خاصّ يتجاوز الاعتراضات المشتركة (توكن · تجديد · X-Tenant-Id)"
+    )
+    assert "localhost" not in auth, "عنوانٌ مُصلَّب يعمل على جهاز المطوّر ويكسر كلّ نشر"
+    assert "127.0.0.1" not in auth, "عنوانٌ مُصلَّب يعمل على جهاز المطوّر ويكسر كلّ نشر"

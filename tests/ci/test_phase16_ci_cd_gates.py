@@ -35,8 +35,10 @@ def test_local_quality_gate_invokes_blocking_gates() -> None:
 
 def test_production_workflow_has_no_soft_failures() -> None:
     workflow = (ROOT / ".github/workflows/sahool-production-gates.yml").read_text(encoding="utf-8")
-    assert "continue-on-error: true" not in workflow
-    assert "pull_request_target" not in workflow
+    assert "continue-on-error: true" not in workflow, "بوّابةٌ لا تحجب تُقرأ حراسةً وهي تقرير"
+    assert "pull_request_target" not in workflow, (
+        "يشتغل بأسرار المستودع على شيفرة الفرع الوارد — تصعيد صلاحيّة"
+    )
     assert "permissions:" in workflow
     assert "contents: read" in workflow
 

@@ -25525,7 +25525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "36ad04f933a886d4a85ee0b13b10d7342a2c4eaa574750852141cac382219382"
+          "content": "d341bf8524ed6f147c44989ec61792f3c40f51b21bcc11e77722106afa0c1f9a"
         }
       ],
       "name": "services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py",
@@ -26715,7 +26715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04fd9d13f88b89161555a18e4dce7a0afcb1a8909b256b10b6ff1644b150c719"
+          "content": "6c854a9cfe91bd08281cdf74d0e0414fb269e0d9eaa4bb9edb7a9cc7601d0727"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui3b_api_domain_modules_guard.py",
@@ -29045,7 +29045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83b7158087d1f7b65677a5928c83c224a25b14d89ec0b197c12290814e2e9c3c"
+          "content": "531fe18160fea1670aeae7f26f30e6c5307d21aa6b1736e577088f6c20700af7"
         }
       ],
       "name": "services/weather-service/tests/test_canonical_weather_state.py",
@@ -29115,7 +29115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc08d7d2a3e40b9ee830150a3c46b53ad06cf79eb51e4aa739fb1103e2e2a0e8"
+          "content": "dd05d109cd2751d29545b4b81b71398278741d80f555b9f1c99e1a3a0297b906"
         }
       ],
       "name": "services/weather-service/tests/test_gdd_view.py",

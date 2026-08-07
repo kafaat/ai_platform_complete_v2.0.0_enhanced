@@ -213,6 +213,23 @@
       ],
       "test": "tests/architecture/test_marker_coverage_guard.py"
     },
+    "prohibition_reason_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_other_spelling_of_a_prohibition_is_caught_too",
+          "find": "    if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):\n        test, negated = test.operand, True",
+          "replace": "    if False:\n        pass",
+          "why": "إسقاط صيغة `not (\"x\" in y)` — حارسٌ يرى صيغةً واحدة يُلتَفّ عليه بإعادة صياغة لا تُغيّر شيئاً، ولا يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا"
+        },
+        {
+          "expect": "test_the_container_is_derived_from_the_assignment_not_from_its_name",
+          "find": "if container not in srcvars:\n                    continue",
+          "replace": "if False:\n                    continue",
+          "why": "نزع اشتراط أن تكون الحاوية **نصّ مصدر** ⇒ يمتدّ الحارس إلى كلّ تأكيد سالب في المستودع فيُنزَع في أوّل يوم. والمرساة على ملفّ يحمل قارئاً حقيقيّاً: أوّل صياغة عندي لم تحمله فتخطّى المسحُ الملفَّ كلّه، فمرّ الاختبار **بسببٍ آخر** وبقيت الخاصّيّة بلا حارس — كشفَته هذه الطفرة بالذات وهي خضراء"
+        }
+      ],
+      "test": "tests_v9/test_prohibition_reason_guard.py"
+    },
     "fake_connection_debt_guard.py": {
       "mutations": [
         {
