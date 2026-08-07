@@ -62,6 +62,7 @@ def _tracked_tests() -> list[str]:
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
     )
     return [ln for ln in out.stdout.splitlines() if ln.endswith(".py") and "test" in ln]
@@ -91,7 +92,12 @@ def survey(root: Path | None = None) -> dict:
 
 def _tracked_in(base: Path) -> list[str]:
     out = subprocess.run(
-        ["git", "ls-files"], cwd=base, capture_output=True, text=True, check=True
+        ["git", "ls-files"],
+        cwd=base,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
     )
     return [ln for ln in out.stdout.splitlines() if ln.endswith(".py") and "test" in ln]
 
@@ -127,8 +133,7 @@ def check() -> list[str]:
         if rel in new_claim:
             continue
         problems.append(
-            f"✗ {rel} — اتّصال وهميّ جديد خارج الأساس. الدَّين راتشِت لا ينمو؛ "
-            "أعلِنه إن كان مقصوداً."
+            f"✗ {rel} — اتّصال وهميّ جديد خارج الأساس. الدَّين راتشِت لا ينمو؛ أعلِنه إن كان مقصوداً."
         )
     if gone_fake or gone_claim:
         problems.append(
@@ -137,6 +142,19 @@ def check() -> list[str]:
             "الأساس الذي يُبالغ يُدرَّب قارئه على تجاهله."
         )
     return problems
+
+
+def _measured_on() -> str:
+    """‏SHA الشجرة التي قِيس عليها الأساس — لأنّه **قياس** يَبيت بحركتها لا قرار."""
+    out = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    return out.stdout.strip() or "unknown"
 
 
 def _generate() -> None:
@@ -149,6 +167,9 @@ def _generate() -> None:
                     "يدّعي أنّ ما فيه سليم. الخروج من `claiming_db_enforced` يكون "
                     "بإثبات الملفّ على قاعدة حيّة، لا بحذف الكلمة من نصّه."
                 ),
+                # مُشتقّ بماسحٍ من الشجرة ⇒ `measured` لا `decided`، فيلزمه أساسٌ
+                # يَبيت بحركتها. البيات يُبلَّغ ولا يحجب (سياسة `claim_base_guard`).
+                "measured_on": _measured_on(),
                 "fake_connection_tests": found["fake"],
                 "claiming_db_enforced": found["claiming"],
             },
