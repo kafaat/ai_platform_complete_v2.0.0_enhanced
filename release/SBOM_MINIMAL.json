@@ -17015,7 +17015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b352c66c39d72410273c795301aab4b27413185923ca0a1ffb45299886f216e"
+          "content": "b243294d22289cab81bb2a6cae34d6f18c6a037ae41a914598af12dbd327742a"
         }
       ],
       "name": "services/sahool-platform/api/routers/compat_gateway.py",
@@ -22275,7 +22275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d1f140e5fdccffeca646a8fe2ad5f8dd68e1660289cb0d07ed7188e242f525e"
+          "content": "c515dee0b8cfd25bd89751014c5143264e79219c4bc34a11225ccfc2b6abb165"
         }
       ],
       "name": "services/sahool-platform/docs/AI_AG_TEMPLATE_RESPONSE.md",
@@ -22305,7 +22305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "382adcc2698e1c8ace2ebfb68c58c7e75744494dda1be0f2913985f9b8243fce"
+          "content": "6537551199735fb8f947243e30ea3bf1b06b276bd5c3f8c462a21555dc5b91b9"
         }
       ],
       "name": "services/sahool-platform/docs/CORE_BUILD_PROMPT.md",
@@ -22345,7 +22345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f4ae62a98a05266c8e02b72404eb11a04148afa024e7ffccc6ca87efc5b24b3"
+          "content": "95f58171bf9d62a30db4717d6aaaa85b93c20af090ef50deaa848c3b25dbd143"
         }
       ],
       "name": "services/sahool-platform/docs/DIGITAL_AG_OS_RESPONSE.md",
@@ -22355,7 +22355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f8cb960f6062c11f323c828b517fff1734cd389944481e51c8a94e90b90c7e7"
+          "content": "4a2a2cd4c93a2d042c03c3e2e9353f51bbd375b10fe470670c99baccc8d46db4"
         }
       ],
       "name": "services/sahool-platform/docs/DOCUMENTATION_REVIEW_10_RESPONSE.md",
@@ -22425,7 +22425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1719bbc93c3532999f486ab4709ab16639c3caf1ed0a4842a29381ff9bbe4d17"
+          "content": "502470a7d3604d47079ca63eaf5c83c60953d70e24c1b6df2d6de9e0820ed86e"
         }
       ],
       "name": "services/sahool-platform/docs/LAYERED_ARCHITECTURE_GUIDE.md",
@@ -22445,7 +22445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "acb1efda96b26fb2fecb4853feb1011e587f0a392ea26ee0f959dec58361e018"
+          "content": "8f2dc1a7682491065bb1415893a54ed2b137f619f41776aef8848b9e80e70403"
         }
       ],
       "name": "services/sahool-platform/docs/OFFLINE_FIRST_ARCHITECTURE.md",
@@ -22465,7 +22465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2fe4b53da1c3cd65d27eac54dd5bb16e83b69b8e1b9d4236354b67c2a88d7b2e"
+          "content": "a05bad8eb6885949159f1fa326f394991051345748401c9948fde8220ef1cb45"
         }
       ],
       "name": "services/sahool-platform/docs/POSTGRESQL_MIGRATION_PLAN.md",
@@ -22525,7 +22525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "57b628f65c8506680debe5b40f25ccff903ab28dcc47b38c0c267d63968b7d79"
+          "content": "c43e5a0e367bdb79b6481d094216b8248471518b6b9938d9553ddf5b8037dde7"
         }
       ],
       "name": "services/sahool-platform/docs/REVIEW_FIXES_RESPONSE.md",
@@ -22545,7 +22545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15a24b4aed0300e71f496fa9e3a848136956726631a7ff42ef74f4e8c225ce75"
+          "content": "b506d503afef47733bbd6ffb8a013f08f7a64440dc7b8ec2fa897f39d4f4e097"
         }
       ],
       "name": "services/sahool-platform/docs/SOURCE_DOCUMENTATION.md",
@@ -22555,7 +22555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "429266970c81e7743a1e9763eb16d870c65fcb0aa997216984e4c23fe2c5932e"
+          "content": "bdd09a9ec7bdfa6658c902dac2268741d0a59333fdd5c8cc34db1ce10b993fde"
         }
       ],
       "name": "services/sahool-platform/docs/STRUCTURAL_ENFORCEMENT_RESPONSE.md",
@@ -28165,7 +28165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0680bd437628846d7bbd4cbdbf2513e255e4c5acf586df0a04cfced85a4a85eb"
+          "content": "5f36ffdc05e6d593d27e5d04d45a714030041e36e03b7842c19dd0ffa5b6bdce"
         }
       ],
       "name": "services/tts-service/README.md",
@@ -30295,7 +30295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d5858f893a4f7f4d1bd1eeb95c8ad20214b04f8d2123b5c52fa5e462a0e5bc9"
+          "content": "4c6967c0d6045705edcd218f29e0653c07ce265fc956c039b2940f1f1d640363"
         }
       ],
       "name": "shared/memory/README.md",

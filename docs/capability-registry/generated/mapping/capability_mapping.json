@@ -562,6 +562,10 @@
           "score": 12
         },
         {
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:420",
+          "score": 12
+        },
+        {
           "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1096",
           "score": 12
         },
@@ -784,7 +788,16 @@
           ]
         }
       ],
-      "governance": [],
+      "governance": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "score": 12,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        }
+      ],
       "other_evidence": [
         {
           "path": "scripts/ci/execution_request_boundary_gate.py",
@@ -887,11 +900,11 @@
         "backend": 9,
         "routes": 20,
         "database": 24,
-        "events": 29,
+        "events": 30,
         "web": 0,
         "mobile": 0,
         "tests": 15,
-        "governance": 0,
+        "governance": 1,
         "other_evidence": 11
       },
       "coverage_dimensions": 5,
@@ -2999,10 +3012,6 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:420",
-          "score": 12
-        },
-        {
           "value": "irrigation.reservation.dispatch_failed @ services/decision-service/persistence.py:1096",
           "score": 12
         },
@@ -3071,16 +3080,7 @@
           ]
         }
       ],
-      "governance": [
-        {
-          "path": ".github/workflows/ci.yml",
-          "score": 12,
-          "signals": [
-            "content:model activation",
-            "content:model promotion"
-          ]
-        }
-      ],
+      "governance": [],
       "other_evidence": [
         {
           "path": "scripts/ci/capability_evidence_maturity_engine.py",
@@ -3147,11 +3147,11 @@
         "backend": 4,
         "routes": 89,
         "database": 42,
-        "events": 8,
+        "events": 7,
         "web": 0,
         "mobile": 0,
         "tests": 5,
-        "governance": 1,
+        "governance": 0,
         "other_evidence": 7
       },
       "coverage_dimensions": 5,
@@ -11021,7 +11021,7 @@
           "score": 12
         },
         {
-          "value": "sahool.> @ docs/ARCHITECTURE_OPERATIONAL_PLAN_2026-06.md:111",
+          "value": "sahool.> @ docs/ARCHITECTURE_OPERATIONAL_PLAN_2026-06.md:114",
           "score": 12
         },
         {
@@ -23864,7 +23864,7 @@
           "score": 8
         },
         {
-          "value": "irrigation.schedule @ docs/history/EXTERNAL_DOCS_REVIEW.md:132",
+          "value": "irrigation.schedule @ docs/history/EXTERNAL_DOCS_REVIEW.md:133",
           "score": 8
         }
       ],
@@ -42235,19 +42235,19 @@
           ]
         },
         {
-          "capability_id": "DEC-010",
-          "score": 12,
-          "signals": [
-            "content:model activation",
-            "content:model promotion"
-          ]
-        },
-        {
           "capability_id": "DEC-008",
           "score": 12,
           "signals": [
             "content:Learning attribution",
             "content:learning attribution"
+          ]
+        },
+        {
+          "capability_id": "DEC-004",
+          "score": 12,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
           ]
         }
       ]

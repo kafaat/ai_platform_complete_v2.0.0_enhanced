@@ -887,7 +887,7 @@ jobs:
       - name: WX-10.9..10.12 execution chain tests (real Postgres, SoR on)
         working-directory: services/decision-service
         env:
-          DATABASE_URL: ******localhost:5434/decision_test
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: >-
           pytest -q -p no:cacheprovider
@@ -928,7 +928,7 @@ jobs:
       - name: satellite_cdse activation suite (real Postgres)
         working-directory: services/decision-service
         env:
-          DATABASE_URL: ******localhost:5434/decision_test
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: >-
           pytest -q -p no:cacheprovider
           tests/test_satellite_cdse_activation_gate.py
@@ -998,7 +998,7 @@ jobs:
       - name: WX-11.1..11.6 model registry tests (real Postgres, SoR on)
         working-directory: services/decision-service
         env:
-          DATABASE_URL: ******localhost:5434/decision_test
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: >-
           pytest -q -p no:cacheprovider

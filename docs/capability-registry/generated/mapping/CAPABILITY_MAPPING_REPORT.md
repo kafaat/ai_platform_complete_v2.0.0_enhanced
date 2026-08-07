@@ -23,13 +23,13 @@
 | DEC-001 | decision | 0 | 0 | 0 | 3 | 0 | 0 | 2 | 2 |
 | DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| DEC-004 | decision | 9 | 20 | 24 | 29 | 0 | 0 | 15 | 5 |
+| DEC-004 | decision | 9 | 20 | 24 | 30 | 0 | 0 | 15 | 5 |
 | DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 6 | 5 | 3 | 1 | 0 | 2 | 6 |
 | DEC-008 | decision | 5 | 94 | 14 | 4 | 0 | 0 | 1 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
-| DEC-010 | decision | 4 | 89 | 42 | 8 | 0 | 0 | 5 | 5 |
+| DEC-010 | decision | 4 | 89 | 42 | 7 | 0 | 0 | 5 | 5 |
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 23 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 13 | 2 | 25 | 7 |
 | FM-003 | farm_management | 13 | 56 | 6 | 53 | 2 | 2 | 11 | 7 |

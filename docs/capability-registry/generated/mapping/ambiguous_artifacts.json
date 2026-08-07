@@ -20,19 +20,19 @@
         ]
       },
       {
-        "capability_id": "DEC-010",
-        "score": 12,
-        "signals": [
-          "content:model activation",
-          "content:model promotion"
-        ]
-      },
-      {
         "capability_id": "DEC-008",
         "score": 12,
         "signals": [
           "content:Learning attribution",
           "content:learning attribution"
+        ]
+      },
+      {
+        "capability_id": "DEC-004",
+        "score": 12,
+        "signals": [
+          "content:Execution request",
+          "content:execution request"
         ]
       }
     ]
