@@ -7068,6 +7068,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_fake_connection_debt_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_fake_green_test_guard.py",
     "kind": "tests"
   },

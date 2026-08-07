@@ -1,0 +1,74 @@
+{
+  "$comment": "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا يدّعي أنّ ما فيه سليم. الخروج من `claiming_db_enforced` يكون بإثبات الملفّ على قاعدة حيّة، لا بحذف الكلمة من نصّه.",
+  "measured_on": "0f90dccb0eb1eb9bfc65970efffa08e968ed2085",
+  "fake_connection_tests": [
+    "services/sahool-platform/tests/test_break_glass.py",
+    "services/sahool-platform/tests/test_crop_stress_ingestion.py",
+    "services/sahool-platform/tests/test_crop_stress_memory_service.py",
+    "services/sahool-platform/tests/test_crop_stress_store.py",
+    "services/sahool-platform/tests/test_decision_interim_bridge.py",
+    "services/sahool-platform/tests/test_field_aggregate_ports.py",
+    "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+    "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
+    "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
+    "services/sahool-platform/tests/test_operations_summary_endpoint.py",
+    "services/sahool-platform/tests/test_persisted_canonical_writers.py",
+    "services/sahool-platform/tests/test_prescriptions_router.py",
+    "services/sahool-platform/tests/test_scheduler_cluster_singleton.py",
+    "services/sahool-platform/tests/test_yield_analysis.py",
+    "services/sahool-platform/tests/test_yield_map_ingestion.py",
+    "services/soil-service/test_soil_projection_jobs.py",
+    "tests/irrigation/test_irrigation_reservation_adapter.py",
+    "tests_v9/test_auth_admin_stepup_mfa.py",
+    "tests_v9/test_c4m1_mobile_push.py",
+    "tests_v9/test_cache_invalidation_worker_v30_0.py",
+    "tests_v9/test_canonical_event_emission_contracts.py",
+    "tests_v9/test_canonical_water_state_mpc.py",
+    "tests_v9/test_critical_event_fail_closed.py",
+    "tests_v9/test_db_role_guard_shared.py",
+    "tests_v9/test_field_forms_sync_binding_p02.py",
+    "tests_v9/test_field_state_projection.py",
+    "tests_v9/test_fields_merge_split_atomic.py",
+    "tests_v9/test_imagery_dates_no_truncation_v29_6.py",
+    "tests_v9/test_odoo_bridge_tenant_honesty.py",
+    "tests_v9/test_offline_dispatch_field_update.py",
+    "tests_v9/test_offline_pending_queue.py",
+    "tests_v9/test_outbox_idempotent_consumption.py",
+    "tests_v9/test_raster_asset_date_binding.py",
+    "tests_v9/test_raster_db_persist_uuid_hardening_20260626.py",
+    "tests_v9/test_scouting_pins_persistence.py",
+    "tests_v9/test_water_ledger.py",
+    "tests_v9/test_work_order_persist_emit.py",
+    "tests_v9/test_workflow_store_hardening.py"
+  ],
+  "claiming_db_enforced": {
+    "services/sahool-platform/tests/test_persisted_canonical_writers.py": [
+      "FK",
+      "UNIQUE"
+    ],
+    "services/sahool-platform/tests/test_prescriptions_router.py": [
+      "UNIQUE",
+      "jsonb"
+    ],
+    "services/soil-service/test_soil_projection_jobs.py": [
+      "UNIQUE"
+    ],
+    "tests_v9/test_canonical_event_emission_contracts.py": [
+      "CHECK",
+      "TRIGGER",
+      "jsonb"
+    ],
+    "tests_v9/test_offline_pending_queue.py": [
+      "UNIQUE"
+    ],
+    "tests_v9/test_scouting_pins_persistence.py": [
+      "UNIQUE"
+    ],
+    "tests_v9/test_water_ledger.py": [
+      "UNIQUE"
+    ],
+    "tests_v9/test_workflow_store_hardening.py": [
+      "TRIGGER"
+    ]
+  }
+}

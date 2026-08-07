@@ -15,6 +15,7 @@
     "api_versioning_legacy_baseline.json",
     "assertion_presence_baseline.json",
     "brain_deferral_baseline.json",
+    "fake_connection_debt.json",
     "generated_chain_known_drift.json",
     "generated_sweep_unmapped_generators.json",
     "platform_extraction_map.json",

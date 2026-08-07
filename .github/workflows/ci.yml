@@ -482,6 +482,13 @@ jobs:
       # واحد ويمنع العلاج الخاطئ (تصنيف المسار أو إضافته إلى allowlist).
       - name: test probes must not leak into tracked sources or inventories
         run: python scripts/ci/probe_leak_guard.py
+      # FAKE-CONNECTION-ENFORCES-NOTHING-01: بعد ٢٢٦ هجرة على PG16 نظيفة، تعطّلت
+      # الرحلة القانونيّة أربع مرّات متتالية بأربعة أسباب مختلفة — وكلّها كانت خضراء
+      # سنةً على اتّصال وهميّ لا يفرض CHECK ولا TRIGGER ولا يُعيد أنواع asyncpg.
+      # راتشِت يمنع نموّ الدَّين ولا يدّعي أنّ ما فيه سليم؛ الخروج منه بإثبات على
+      # قاعدة حيّة لا بحذف الكلمة من نصّ الاختبار.
+      - name: fake-connection debt ratchet
+        run: python scripts/ci/fake_connection_debt_guard.py --check
       # حارس أساس الادّعاءات: مصنوعة `docs/architecture/` إمّا **قياس** يَبيت بحركة
       # الشجرة تحته (فيلزمه `measured_on`) أو **قرار** لا يَبيت بها (فيلزمه
       # `adjudicated_on`). المفردتان كانتا مستعملتين في ثماني مصنوعات من ٢٢ بلا

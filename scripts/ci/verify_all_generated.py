@@ -184,6 +184,12 @@ _GENERATE_FLAG.update(
 # `--generate` ⇒ `--check` بصفر **والملفّ مُستعاد بايتاً بايت** (`cmp`).
 _GENERATE_FLAG.update({"capability_management_engine.py": "--generate"})
 
+# `FAKE-CONNECTION-ENFORCES-NOTHING-01`: أساسٌ **مشتقّ من شجرة الاختبارات** لا مصون
+# بيد، فيلزمه أن يُعاد توليده كلّما تحرّكت الشجرة تحته — وإلّا صار الراتشِت يقيس
+# ماضياً. المكنسة نفسها أمسكت غيابه عند أوّل تشغيل («يملك علم كتابة ولا يذكره
+# `_GENERATE_FLAG` ⇒ لا يُعاد توليده أبداً»).
+_GENERATE_FLAG.update({"fake_connection_debt_guard.py": "--generate"})
+
 # علم كتابة يُعلنه سكربت في مصدره — يُميّز «كاتب لم يُستدعَ» عن «فحص بلا مولّد».
 _WRITE_FLAG_DECL = re.compile(r"""["'](--(?:write|apply|generate)[a-z-]*)["']""")
 

@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4924,
+    "files_scanned": 4927,
     "files_by_kind": {
       "backend": 1195,
       "database": 272,
       "governance": 59,
       "mobile": 51,
-      "other": 1300,
-      "tests": 1596,
+      "other": 1302,
+      "tests": 1597,
       "web": 451
     },
-    "unmapped_artifacts": 2008,
+    "unmapped_artifacts": 2009,
     "ambiguous_artifacts": 399
   },
   "capabilities": [
@@ -13913,6 +13913,14 @@
           ]
         },
         {
+          "path": "docs/architecture/fake_connection_debt.json",
+          "score": 8,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "docs/history/UPLOADED_ZIPS_REVIEW.md",
           "score": 8,
           "signals": [
@@ -13934,7 +13942,7 @@
         "mobile": 1,
         "tests": 18,
         "governance": 0,
-        "other_evidence": 11
+        "other_evidence": 12
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -41262,6 +41270,10 @@
     },
     {
       "path": "tests_v9/test_external_submission_contract_v1.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_fake_connection_debt_guard.py",
       "kind": "tests"
     },
     {
