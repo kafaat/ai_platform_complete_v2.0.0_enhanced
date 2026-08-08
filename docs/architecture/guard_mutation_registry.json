@@ -272,6 +272,36 @@
           "find": "        if not _FAKE.search(text):\n            continue\n",
           "replace": "        if _FAKE.search(text):\n            continue\n",
           "why": "قلبُ شرط الماسح ⇒ يمسح ما لا يستعمل وهميّاً، فيغيب ملفّ الحادثة (jsonb) عن المسح. والمرساة على **ملفّ الحادثة** لا على عدّاد الحجم: أوّل صياغة عندي سمّت `test_the_scanner_actually_sees_something` فلم يسقط — القلب يُبقي العدّ كبيراً بملفّات أخرى، فالعدّاد لا يُميّز"
+        },
+        {
+          "expect": "test_a_settlement_must_name_a_proof_file_that_exists",
+          "find": "    elif not resolved.is_file():",
+          "replace": "    elif False:",
+          "why": "قبولُ سدادٍ يُسمّي ملفّ إثبات غير موجود ⇒ الدَّين يُغلَق بسطرٍ مكتوب، وهو بالضبط «حذف الكلمة من نصّه» الذي يمنعه عقد `$comment`"
+        },
+        {
+          "expect": "test_a_settlement_whose_proof_never_mentions_the_source_is_refused",
+          "find": "    elif rel not in resolved.read_text(encoding=\"utf-8\", errors=\"ignore\"):",
+          "replace": "    elif False:",
+          "why": "نزعُ اشتراط أن **يذكر** ملفُّ الإثبات مصدرَه ⇒ أخطر صنف يمرّ: مدخلٌ يشير إلى ملفّ قائم لا علاقة له بالمصدر، فيمرّ فحصا الوجود والدليل ويبقى الدَّين غير مسدَّد"
+        },
+        {
+          "expect": "test_a_partial_settlement_does_not_close_the_debt",
+          "find": "    if declared_claims != sorted(claims):",
+          "replace": "    if False and declared_claims != sorted(claims):",
+          "why": "قبولُ سدادٍ جزئيّ ⇒ «كلّ ادّعاءاته» يصير شعاراً، وادّعاءٌ جديد يظهر في ملفّ مُسدَّد لا يُعيد فتح الدَّين"
+        },
+        {
+          "expect": "test_regenerating_the_baseline_does_not_erase_the_settlements",
+          "find": "    carried = _load_baseline().get(\"proven_live\", {}) if BASELINE.exists() else {}",
+          "replace": "    carried = {}",
+          "why": "«المصنوع يدهس المكتوب» — `--generate` يمحو `proven_live` فيرجع الدَّين المُسدَّد صامتاً عند أوّل إعادة توليد، والقسم لا يُشتقّ فلا سبيل لاستعادته"
+        },
+        {
+          "expect": "test_a_proof_path_that_escapes_the_repository_root_is_refused",
+          "find": "    inside = resolved is not None and resolved.is_relative_to(ROOT.resolve())",
+          "replace": "    inside = resolved is not None",
+          "why": "نزعُ حصر مسار الإثبات داخل الجذر ⇒ `../…` يُقبَل ما دام الملفّ موجوداً، فيقرأ الحارسُ ملفّاً خارج المستودع ويُسدّد ديناً بشيء لا يخصّ الشجرة. حدُّ العقد («ملفّ إثبات في الشجرة») يُفرَض بدل أن يُفترَض"
         }
       ],
       "test": "tests_v9/test_fake_connection_debt_guard.py"
@@ -391,6 +421,47 @@
         }
       ],
       "test": "tests_v9/test_container_command_path_guard.py"
+    },
+    "live_pg_evidence_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_one_skipped_live_test_is_enough_to_fail",
+          "find": "    if counts[\"skipped\"] > 0:",
+          "replace": "    if False:",
+          "why": "قبولُ تخطٍّ في الوظيفة المخصّصة ⇒ التخطّي يصير خضرةً تعني «لم يُقَس»، و`SAHOOL_REQUIRE_LIVE_PG` لا يراه لأنّه يحرس غياب القاعدة وحده. والمرساة على **تخطٍّ واحد** لا على التشغيل المُتخطّى بالكامل: الأخير يلتقطه فحصُ «صفر مُنفَّذ» أيضاً، فلا يُميّز الخاصّيّتين — وهو ما كشفته الطفرة حين حمرّ اختبارٌ غير الذي سمّيتُه"
+        },
+        {
+          "expect": "test_zero_executed_is_a_failure",
+          "find": "    if counts[\"executed\"] < a.min_executed:",
+          "replace": "    if False:",
+          "why": "قبولُ صفر اختبار مُنفَّذ ⇒ «أخضرُ لأنّه لم ينظر». والمرساة على الشرط الموحَّد لا على فرع الصفر: أوّل صياغة عندي فصلتهما بـ`if/elif` فكان تعطيل فرع الصفر لا يُسقِط شيئاً — يلتقطه `elif` لأنّ ٠ أصغر من الحدّ، فالفرع زينة لا حارس"
+        },
+        {
+          "expect": "test_an_unrestricted_role_is_a_failure",
+          "find": "    if role[\"superuser\"] != \"false\" or role[\"bypassrls\"] != \"false\":",
+          "replace": "    if False:",
+          "why": "قبولُ دورٍ يتخطّى RLS ⇒ كلّ ادّعاء عزلٍ تحته يمرّ مجّاناً، والأدلّة تبقى خضراء وهي لا تقيس عزلاً"
+        },
+        {
+          "expect": "test_a_missing_contract_object_is_drift",
+          "find": "                if item not in live:",
+          "replace": "                if False:",
+          "why": "نزعُ كشف انحراف المخطّط ⇒ هجرةٌ تُسقِط قيداً تحته دليل تمرّ، فيُقرأ فشل الادّعاء لاحقاً «الاختبار خاطئ» بدل «المخطّط انحرف»"
+        },
+        {
+          "expect": "test_a_wrong_major_version_is_drift_but_a_different_patch_is_not",
+          "find": "    if major != str(doc[\"postgres_major\"]):",
+          "replace": "    if False:",
+          "why": "نزعُ فحص الإصدار الرئيسيّ ⇒ تعمل الأدلّة على PG15 أو 17 بلا إنذار، وهي مبنيّة على قواعد نحو DDL ورموز SQLSTATE لإصدارٍ بعينه — فيصير الأخضر شهادةً على خادمٍ آخر"
+        },
+        {
+          "expect": "test_psql_is_fail_closed_and_ignores_psqlrc",
+          "find": "_PSQL_SAFE_FLAGS = [\"-X\", \"-v\", \"ON_ERROR_STOP=1\"]",
+          "replace": "_PSQL_SAFE_FLAGS = []",
+          "why": "نزعُ `-X` و`ON_ERROR_STOP=1` ⇒ يُقرأ `~/.psqlrc` فسطرٌ من `\\pset` أو `\\timing` يُقرأ قيمةَ كتالوج ويُقارَن بالعقد؛ وخطأ SQL قد يعود بصفر فيُقرأ خرجٌ ناقص «نجاحاً» — وهو الصنف الذي يوجد هذا الحارس ضدّه. والمرساة على ثابتٍ مستقلّ لا على قائمة الوسائط: `ruff format` يفكّك القائمة الطويلة سطراً سطراً فتَبيت سلسلةُ الطفرة عند أوّل إعادة تنسيق"
+        }
+      ],
+      "test": "tests_v9/test_live_pg_evidence_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

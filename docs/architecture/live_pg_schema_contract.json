@@ -1,0 +1,53 @@
+{
+  "schema": "sahool.live_pg_schema_contract",
+  "version": 1,
+  "adjudicated_on": "2026-08-08",
+  "$comment": "عقدُ الأشياء التي تستند إليها أدلّة PG الحيّة — `DEDICATED_PG_JOB: schema mismatch → failure`. **حتميّ بالتصميم:** لا `measured_on` ولا إصدار خادمٍ تفصيليّ فيه. الأوّل يجعل المصنوعة تحمل SHA الالتزام الذي يغيّرها فلا تطابق إعادة توليدها (`RELEASE-MANIFEST-SELF-REGENERATION-01` بعينه)، والثاني يجعل ترقيةَ صورةٍ في CI انحرافاً كاذباً. الإصدار الفعليّ ووقت التشغيل وSHA تذهب إلى سجلّ التشغيل لا إلى العقد. وهو **قرار** لا قياس: يُحرَّر بيدٍ عند تغيير مقصود، ويُقارَن بالكتالوج الحيّ قبل الاختبارات بـ`live_pg_evidence_guard.py --schema-only`.",
+  "postgres_major": 16,
+  "objects": {
+    "water_ledger": {
+      "primary_key": "PRIMARY KEY (field_id, ledger_date)",
+      "rls_enabled_forced": "true/true"
+    },
+    "soil_profile_projection_jobs": {
+      "check": [
+        "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'running'::character varying, 'retry'::character varying, 'completed'::character varying, 'dead_letter'::character varying])::text[])))"
+      ],
+      "index": "CREATE UNIQUE INDEX uq_soil_projection_active_field ON public.soil_profile_projection_jobs USING btree (tenant_id, field_id) WHERE ((status)::text = ANY ((ARRAY['pending'::character varying, 'running'::character varying, 'retry'::character varying])::text[]))"
+    },
+    "offline_pending_ops": {
+      "primary_key": "PRIMARY KEY (op_id)",
+      "check": [
+        "CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'processed'::text, 'failed'::text])))"
+      ]
+    },
+    "scouting_pins": {
+      "primary_key": "PRIMARY KEY (pin_id)"
+    },
+    "workflow_state": {
+      "trigger": "CREATE TRIGGER trg_workflow_updated BEFORE UPDATE ON public.workflow_state FOR EACH ROW EXECUTE FUNCTION touch_workflow_updated_at()"
+    },
+    "events": {
+      "check": [
+        "CHECK ((source = ANY (ARRAY['mobile'::text, 'web'::text, 'edge'::text, 'scheduler'::text, 'system'::text, 'ai'::text, 'sensor'::text])))"
+      ],
+      "foreign_key": "FOREIGN KEY (command_id) REFERENCES commands(command_id)",
+      "trigger": "CREATE TRIGGER trg_append_only_events BEFORE DELETE OR UPDATE ON public.events FOR EACH ROW EXECUTE FUNCTION sahool_block_mutation()"
+    },
+    "canonical_nutrient_ledgers": {
+      "unique": [
+        "UNIQUE (tenant_id, field_id, season_id, ledger_digest)"
+      ],
+      "check": [
+        "CHECK ((ledger_digest ~ '^[0-9a-f]{64}$'::text))"
+      ]
+    },
+    "canonical_phenology_states": {
+      "primary_key": "PRIMARY KEY (tenant_id, state_digest)"
+    },
+    "prescriptions": {
+      "primary_key": "PRIMARY KEY (prescription_id)",
+      "column": "zones jsonb"
+    }
+  }
+}

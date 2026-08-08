@@ -106,6 +106,43 @@ def _load_baseline() -> dict:
     return json.loads(BASELINE.read_text(encoding="utf-8"))
 
 
+def _proof_covers(rel: str, entry: dict, claims: list[str]) -> list[str]:
+    """هل يُخرِج هذا السداد الملفَّ من الدَّين فعلاً؟ المطلوب ثلاثة، وكلّها مقيسة.
+
+    **لِمَ تُفحَص أصلاً:** المخرج الوحيد المُعلَن من الدَّين هو الإثبات الحيّ، ومدخلٌ
+    يُكتَب باليد يستطيع أن يدّعيه بلا أن يفعله. فالمدخل الذي لا يُسمّي ملفَّ إثباتٍ
+    قائماً **يذكر مصدره** ليس سداداً بل حذفٌ للكلمة من نصّه — وهو بالضبط ما يمنعه
+    سطر العقد في `$comment`.
+    """
+    bad: list[str] = []
+    proof = entry.get("proof", "")
+    # المسار يُحَلّ ويُحصَر داخل `ROOT` قبل أيّ قراءة. العقد يقول «ملفّ إثبات **في
+    # الشجرة**»، و`ROOT / proof` وحدها تقبل `../…` فتخرج منها — فيقرأ الحارسُ ملفّاً
+    # خارج المستودع أثناء تشغيله. الاحتمال ضئيل (الأساس مُلتزَم ومُراجَع) لكنّ الحصر
+    # مجّانيّ، وحدُّ العقد يُفرَض بدل أن يُفترَض. (لاحظه Copilot.)
+    resolved = (ROOT / proof).resolve() if proof else None
+    inside = resolved is not None and resolved.is_relative_to(ROOT.resolve())
+    if not inside:
+        bad.append(f"✗ {rel} — `proof` يخرج عن جذر المستودع أو فارغ: {proof or '—'}")
+    elif not resolved.is_file():
+        bad.append(f"✗ {rel} — `proof` لا يُسمّي ملفّاً قائماً: {proof}")
+    elif rel not in resolved.read_text(encoding="utf-8", errors="ignore"):
+        bad.append(
+            f"✗ {rel} — ملفّ الإثبات `{proof}` لا يذكره. الربط يُقاس ولا يُدَّعى: "
+            "مدخلٌ يشير إلى إثباتٍ لا يعرف مصدره يُسدّد ديناً لم يُقَس."
+        )
+    declared_claims = sorted(entry.get("claims", []))
+    if declared_claims != sorted(claims):
+        bad.append(
+            f"✗ {rel} — السداد يغطّي {declared_claims or '—'} والمقيس الآن "
+            f"{sorted(claims)}. ادّعاءٌ جديد في ملفّ مُسدَّد يُعيد فتح الدَّين؛ "
+            "غطِّه حيّاً ثمّ حدّث `claims`."
+        )
+    if len((entry.get("evidence") or "").strip()) < 30:
+        bad.append(f"✗ {rel} — سدادٌ بلا دليل مكتوب أقصر من تفسير")
+    return bad
+
+
 def check() -> list[str]:
     """يُرجِع المخالفات. النموّ يُدان؛ والانكماش يُطالَب بتحديث الأساس."""
     found = survey()
@@ -123,7 +160,23 @@ def check() -> list[str]:
     gone_fake = sorted(set(declared["fake_connection_tests"]) - set(found["fake"]))
     gone_claim = sorted(set(declared["claiming_db_enforced"]) - set(found["claiming"]))
 
+    # السداد الحيّ: ملفّ أُثبِتت **كلّ** ادّعاءاته التي تفرضها القاعدة يخرج من الدَّين
+    # وهو ما يزال في `fake_connection_tests` — الوهميّ باقٍ لمنطق التطبيق، والمُسدَّد
+    # هو الادّعاء عن القاعدة لا استعمال الوهميّ. وهذا القسم **لا يُشتقّ** بالماسح:
+    # النصّ لا يتغيّر بالإثبات، فلا سبيل لاستنتاجه من الشجرة.
+    proven = declared.get("proven_live", {})
+    for rel, entry in sorted(proven.items()):
+        if rel not in found["claiming"]:
+            problems.append(
+                f"✗ {rel} — سدادٌ لادّعاءٍ لم يعد الماسح يراه. مدخلٌ بائت يُوهِم بتغطية "
+                "قائمة؛ احذفه أو أعِد الادّعاء."
+            )
+            continue
+        problems.extend(_proof_covers(rel, entry, found["claiming"][rel]))
+
     for rel in new_claim:
+        if rel in proven:
+            continue
         problems.append(
             f"✗ {rel} — اختبارٌ على وهميّ يدّعي سلوكاً تفرضه القاعدة "
             f"({' · '.join(found['claiming'][rel])}). خضرتُه لا تقول شيئاً عن القاعدة. "
@@ -157,21 +210,43 @@ def _measured_on() -> str:
     return out.stdout.strip() or "unknown"
 
 
+def outstanding(found: dict | None = None, declared: dict | None = None) -> dict[str, list[str]]:
+    """الدَّين **القائم**: ما مسحه الماسح ناقص ما سُدِّد حيّاً.
+
+    الرقم الذي يُراقَب هو هذا لا `claiming_db_enforced` الخام: الأخير مُشتقّ من النصّ،
+    والنصّ لا يتغيّر بالإثبات — فلو رُبِط به الراتشِت لَما نزل أبداً مهما أُثبِت.
+    """
+    found = found or survey()
+    declared = declared or _load_baseline()
+    proven = declared.get("proven_live", {})
+    return {
+        rel: claims
+        for rel, claims in found["claiming"].items()
+        if sorted(proven.get(rel, {}).get("claims", [])) != sorted(claims)
+    }
+
+
 def _generate() -> None:
     found = survey()
+    # `proven_live` قرارٌ مقيس لا مُشتقّ — يُحمَل عبر إعادة التوليد وإلّا محته أوّل
+    # `--generate` ورجع الدَّين المُسدَّد صامتاً. (صنف «المصنوع يدهس المكتوب».)
+    carried = _load_baseline().get("proven_live", {}) if BASELINE.exists() else {}
     BASELINE.write_text(
         json.dumps(
             {
                 "$comment": (
                     "FAKE-CONNECTION-ENFORCES-NOTHING-01 — أساس مُعلَن يمنع النموّ ولا "
-                    "يدّعي أنّ ما فيه سليم. الخروج من `claiming_db_enforced` يكون "
-                    "بإثبات الملفّ على قاعدة حيّة، لا بحذف الكلمة من نصّه."
+                    "يدّعي أنّ ما فيه سليم. `claiming_db_enforced` مسحٌ خام مُشتقّ من "
+                    "النصّ، والخروج منه يكون بإثبات الملفّ على قاعدة حيّة لا بحذف الكلمة "
+                    "من نصّه — ويُعلَن السداد في `proven_live` (لا يُشتقّ: الإثبات الحيّ "
+                    "لا يغيّر النصّ). الدَّين القائم = الأوّل ناقص الثاني، وهو المُراقَب."
                 ),
                 # مُشتقّ بماسحٍ من الشجرة ⇒ `measured` لا `decided`، فيلزمه أساسٌ
                 # يَبيت بحركتها. البيات يُبلَّغ ولا يحجب (سياسة `claim_base_guard`).
                 "measured_on": _measured_on(),
                 "fake_connection_tests": found["fake"],
                 "claiming_db_enforced": found["claiming"],
+                "proven_live": carried,
             },
             ensure_ascii=False,
             indent=2,
@@ -200,10 +275,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {p}")
         return 1
     declared = _load_baseline()
+    # الرقم المطبوع جزءٌ من الحارس: طباعة الخام وحده تقول «٨ ديون» بعد سدادها كلّها،
+    # فتُدرِّب القارئ على تجاهُل العدّاد. الثلاثة تُطبَع كي يُقرأ السداد لا يُستنتَج.
+    raw = len(declared["claiming_db_enforced"])
+    paid = len(declared.get("proven_live", {}))
     print(
         "fake_connection_debt_guard_ok "
         f"(وهميّ: {len(declared['fake_connection_tests'])} · "
-        f"يدّعي سلوك قاعدة: {len(declared['claiming_db_enforced'])})"
+        f"يدّعي سلوك قاعدة: {raw} خاماً − {paid} مُسدَّداً حيّاً "
+        f"⇒ {len(outstanding(declared=declared))} ديناً قائماً)"
     )
     return 0
 

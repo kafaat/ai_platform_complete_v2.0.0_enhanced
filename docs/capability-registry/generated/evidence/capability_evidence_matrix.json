@@ -1706,6 +1706,7 @@
         "tests_v9/test_ai_tool_loop_v56.py",
         "tests_v9/test_external_submission_validation.py",
         "tests_v9/test_ingest_kobo_adapter.py",
+        "tests_v9/test_live_pg_fake_connection_debt.py",
         "tests_v9/test_roadmap_phase1.py",
         "tests_v9/test_scout_ingest_service_ownership.py",
         "tests_v9/test_scouting_pins_persistence.py",
@@ -2737,6 +2738,7 @@
         "tests_v9/test_irrigation_closed_loop_learning.py",
         "tests_v9/test_irrx1_pcert_real_postgres.py",
         "tests_v9/test_jobs_role_isolation.py",
+        "tests_v9/test_live_pg_fake_connection_debt.py",
         "tests_v9/test_notification_delivery_migration.py",
         "tests_v9/test_notification_tenant_isolation.py",
         "tests_v9/test_rls_fk_isolated_tables.py",
@@ -3112,7 +3114,8 @@
         "services/soil-service/test_soil_snapshot_identity.py",
         "tests_v9/test_api_versioning_policy_guard.py",
         "tests_v9/test_canonical_root_zone_profile.py",
-        "tests_v9/test_hourly_energy_aware_irrigation_mpc.py"
+        "tests_v9/test_hourly_energy_aware_irrigation_mpc.py",
+        "tests_v9/test_live_pg_fake_connection_debt.py"
       ]
     },
     {

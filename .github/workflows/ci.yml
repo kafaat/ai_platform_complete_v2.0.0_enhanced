@@ -1129,6 +1129,123 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest ../model-registry-adapter/tests -q -p no:cacheprovider
 
+  live-pg-fake-connection-proofs:
+    # FAKE-CONNECTION-ENFORCES-NOTHING-01 — الشطر الذي لا يُسدَّد إلّا بقاعدة حقيقيّة.
+    #
+    # **لماذا وظيفة مستقلّة ولا تُضَمّ إلى Integration Tests:** اللاتماثل المطلوب هنا
+    # معاكس. تلك الوظيفة تتخطّى بأمان حين تغيب القاعدة — وهو الصواب لها. أمّا هذه
+    # فتخطّيها **خضرةٌ تعني «لم يُقَس»**، وهو الصنف الذي أوجب الفجوة أصلاً. فتُشغَّل
+    # بـ`SAHOOL_REQUIRE_LIVE_PG=1` الذي يجعل غياب القاعدة **خطأ جمع** لا تخطّياً.
+    name: Live PG Proofs (fake-connection debt)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with: {python-version: "3.12"}
+      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
+        run: |
+          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+      - name: Start PostgreSQL 16 + PostGIS (resilient pull)
+        # حلقة السحب انتقلت إلى `scripts/ci/resilient_docker_pull.sh` كي **تُختبَر**:
+        # منطقٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً، فيبقى
+        # «مقيسٌ بمحاكاة» ادّعاءً في رسالة التزام. الاختبار في
+        # `tests_v9/test_resilient_docker_pull.py` يزيّف `docker` ويُثبِت أنّ
+        # `docker run` **لم يُنفَّذ** بعد استنفاد المحاولات.
+        run: |
+          set -euo pipefail
+          scripts/ci/resilient_docker_pull.sh postgis/postgis:16-3.4
+          docker run -d --name sahool-pg16 \
+            -e POSTGRES_DB=sahool -e POSTGRES_USER=sahool_user \
+            -e POSTGRES_PASSWORD=test_password -p 5435:5432 --pull=never \
+            postgis/postgis:16-3.4
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          for i in $(seq 1 30); do
+            pg_isready -h localhost -p 5435 -U sahool_user && break
+            echo "بانتظار Postgres ($i)"; sleep 2
+          done
+          pg_isready -h localhost -p 5435 -U sahool_user
+      - name: Apply the canonical MANIFEST
+        # `DEDICATED_PG_JOB: migrations mismatch → failure` — الشطر الأوّل منه.
+        # الحلقة تُطبِّق وتَعُدّ، ثمّ تُقارِن المُطبَّق بالمُعلَن. بلا العدّاد يستطيع
+        # `case` أو `grep` أن يُسقِط ملفّاً صامتاً فتعمل الأدلّة على مخطّط ناقص —
+        # وهو انحرافٌ يظهر لاحقاً كفشل ادّعاءٍ يُقرأ «الاختبار خاطئ».
+        env: {PGPASSWORD: test_password}
+        run: |
+          set -euo pipefail
+          expected=$(grep -vcE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
+          applied=0
+          while read -r f; do
+            case "$f" in ''|\#*) continue;; esac
+            psql -h localhost -p 5435 -U sahool_user -d sahool -v ON_ERROR_STOP=1 \
+              -q -f "migrations/$f"
+            applied=$((applied + 1))
+          done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
+          echo "‏هجرات مُطبَّقة: $applied من $expected مُعلَنة"
+          test "$applied" -eq "$expected" || {
+            echo "::error::طُبِّق $applied من $expected — أُسقِط ملفّ صامتاً"; exit 1; }
+      - name: Provision the restricted application role
+        # `sahool_app` متطلَّب تشغيليّ مُعلَن في `migrations/v56_rls_dynamic_all.sql:27`
+        # ولا تُنشئه هجرة — فتُنشئه الوظيفة صراحةً. و`NOBYPASSRLS` ليس تجميلاً: بدونه
+        # يمرّ كلّ ادّعاء عزلٍ تحته مجّاناً، ولذلك يقيسه الاختبار الأوّل قبل أيّ عزل.
+        env: {PGPASSWORD: test_password}
+        run: |
+          set -e
+          psql -h localhost -p 5435 -U sahool_user -d sahool -v ON_ERROR_STOP=1 -c "
+            create role sahool_app login password 'test_password'
+              nosuperuser nobypassrls nocreatedb nocreaterole;
+            grant usage on schema public to sahool_app;
+            grant select, insert, update, delete on all tables in schema public to sahool_app;
+            grant usage, select on all sequences in schema public to sahool_app;
+          "
+      - run: pip install -r tests_v9/requirements-test.txt
+      - name: Schema contract must match the live catalogue (before any test)
+        # `DEDICATED_PG_JOB: schema mismatch → failure` — ويُفحَص **قبل** الاختبارات
+        # كي يُقرأ العطل باسمه: انحرافُ مخطّطٍ يظهر بعدها يُقرأ «الاختبار خاطئ».
+        env:
+          PGHOST: localhost
+          PGPORT: "5435"
+          PGPASSWORD: test_password
+          SAHOOL_TEST_PGDATABASE: sahool
+          SAHOOL_TEST_PGOWNER: sahool_user
+        run: |
+          set -euo pipefail
+          python scripts/ci/live_pg_evidence_guard.py --schema-only
+      - name: Live proofs — absence of the database is a failure, never a skip
+        env:
+          SAHOOL_REQUIRE_LIVE_PG: "1"
+          SAHOOL_TEST_PGHOST: localhost
+          SAHOOL_TEST_PGPORT: "5435"
+          SAHOOL_TEST_PGDATABASE: sahool
+          SAHOOL_TEST_PGOWNER: sahool_user
+          SAHOOL_TEST_PGROLE: sahool_app
+          PGPASSWORD: test_password
+        run: |
+          set -euo pipefail
+          pytest tests_v9/test_live_pg_fake_connection_debt.py -v --tb=short \
+            -p no:cacheprovider -o addopts= --junitxml=live_pg_evidence.xml
+      - name: Enforce the dedicated-job contract and emit the measured summary
+        # يستبدل عدّ `--collect-only | grep -c '::'`، وكان يقيس **الجمع** لا التنفيذ:
+        # ملفٌّ يُجمَع ٣٠ اختباراً ثمّ يتخطّاها كلّها كان يمرّ. والعقد الآن يُفرَض من
+        # تقرير تنفيذٍ مُهيكَل (`--junitxml`) لا من نصّ سطرٍ يتبدّل بإصدار pytest:
+        #
+        #   PG غائبة ⇒ فشل · دور غير مُثبَت ⇒ فشل · مُنفَّذ = صفر ⇒ فشل
+        #   مُتخطّى > صفر ⇒ فشل · انحراف مخطّط ⇒ فشل
+        #
+        # ويطبع collected/executed/passed/failed/skipped وإصدارَي الخادم وPostGIS
+        # وخصائصَ الدور — بلا أيّ من متغيّرات الاتّصال.
+        env:
+          PGHOST: localhost
+          PGPORT: "5435"
+          PGPASSWORD: test_password
+          SAHOOL_TEST_PGDATABASE: sahool
+          SAHOOL_TEST_PGOWNER: sahool_user
+          SAHOOL_TEST_PGROLE: sahool_app
+        run: |
+          set -euo pipefail
+          python scripts/ci/live_pg_evidence_guard.py --junit live_pg_evidence.xml \
+            --min-executed 30
+
   security-scan:
     name: Security Scan
     runs-on: ubuntu-24.04

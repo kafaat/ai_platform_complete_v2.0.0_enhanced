@@ -7340,6 +7340,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_live_pg_evidence_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_local_preflight_contract.py",
     "kind": "tests"
   },
@@ -7681,6 +7685,10 @@
   },
   {
     "path": "tests_v9/test_requirements_pinning_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_resilient_docker_pull.py",
     "kind": "tests"
   },
   {

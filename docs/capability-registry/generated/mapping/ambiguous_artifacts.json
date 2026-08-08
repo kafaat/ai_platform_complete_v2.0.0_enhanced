@@ -9618,6 +9618,36 @@
     ]
   },
   {
+    "path": "tests_v9/test_live_pg_fake_connection_debt.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SOIL-001",
+        "score": 12,
+        "signals": [
+          "content:Soil profile",
+          "content:soil profile"
+        ]
+      },
+      {
+        "capability_id": "OPS-003",
+        "score": 12,
+        "signals": [
+          "content:Scouting",
+          "content:scouting"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 10,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_management_zone_count_v60_2.py",
     "kind": "tests",
     "candidates": [

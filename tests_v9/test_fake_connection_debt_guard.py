@@ -24,6 +24,7 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "scripts" / "ci" / "fake_connection_debt_guard.py"
 BASELINE = ROOT / "docs" / "architecture" / "fake_connection_debt.json"
+_PROOF = "tests_v9/test_live_pg_fake_connection_debt.py"
 
 
 @pytest.fixture(scope="module")
@@ -135,3 +136,89 @@ def test_the_baseline_says_what_it_does_not_claim(guard):
     note = declared.get("$comment", "")
     assert "يمنع النموّ" in note and "لا يدّعي" in note, note
     assert "قاعدة حيّة" in note, "طريق الخروج من الدَّين يجب أن يكون مكتوباً"
+
+
+# ────────────────────────── السداد الحيّ (`proven_live`) ──────────────────────────
+#
+# طريق الخروج كان **مكتوباً وغير موجود**: `claiming_db_enforced` مُشتقّ من نصّ الملفّ،
+# والإثبات على قاعدة حيّة لا يغيّر النصّ — فلا سبيل للخروج منه مهما أُثبِت. توثيقٌ
+# صادقٌ يوم كُتِب صار ادّعاءً يوم جاء من يسلكه. القسم أدناه يجعله ممكناً **ومقيساً**.
+
+
+def test_a_settlement_must_name_a_proof_file_that_exists(guard):
+    entry = {"claims": ["UNIQUE"], "proof": "tests_v9/no_such_proof.py", "evidence": "x" * 40}
+    bad = guard._proof_covers("tests_v9/test_x.py", entry, ["UNIQUE"])
+    assert any("لا يُسمّي ملفّاً قائماً" in p for p in bad), bad
+
+
+def test_a_settlement_whose_proof_never_mentions_the_source_is_refused(guard):
+    """أخطر صنف: مدخلٌ يشير إلى ملفّ إثبات **قائم** لا علاقة له بمصدره.
+
+    الملفّ موجود والاختبارات خضراء، فيمرّ الفحصان السهلان — ويبقى الدَّين غير مسدَّد.
+
+    وملفّ «الإثبات» هنا هو الحارس نفسه، اختير لأنّه **لا يذكر** المصدر. وأوّل صياغة
+    عندي اختارت هذا الملفَّ الذي تقرأه، فمرّ الفحص لأنّ السطر أعلاه يذكر المصدر —
+    الاختبارُ يُبطِل نفسه بذكره ما يبحث عنه.
+    """
+    entry = {
+        "claims": ["UNIQUE"],
+        "proof": "scripts/ci/fake_connection_debt_guard.py",
+        "evidence": "x" * 40,
+    }
+    bad = guard._proof_covers("tests_v9/test_water_ledger.py", entry, ["UNIQUE"])
+    assert any("لا يذكره" in p for p in bad), bad
+
+
+def test_a_partial_settlement_does_not_close_the_debt(guard):
+    """ادّعاءٌ واحد مُثبَت من ثلاثة لا يُخرِج الملفّ — «كلّ ادّعاءاته» شرطٌ لا شعار."""
+    entry = {"claims": ["CHECK"], "proof": _PROOF, "evidence": "x" * 40}
+    bad = guard._proof_covers("tests_v9/test_x.py", entry, ["CHECK", "TRIGGER", "jsonb"])
+    assert any("يُعيد فتح الدَّين" in p for p in bad), bad
+
+
+def test_the_outstanding_debt_is_the_survey_minus_the_settlements(guard):
+    """الرقم المُراقَب مشتقّ لا مكتوب — ولا يُخلَط بالخام الذي لا ينزل أبداً."""
+    found = guard.survey()
+    declared = json.loads(BASELINE.read_text(encoding="utf-8"))
+    left = guard.outstanding(found=found, declared=declared)
+    assert set(left) == set(found["claiming"]) - set(declared["proven_live"]), left
+
+
+def test_regenerating_the_baseline_does_not_erase_the_settlements(guard, tmp_path, monkeypatch):
+    """«المصنوع يدهس المكتوب» — صنفٌ أسقط بناءً في هذه الشجرة أكثر من مرّة.
+
+    `proven_live` قرارٌ مقيس لا مُشتقّ، فأوّل `--generate` كان سيمحوه ويُعيد الدَّين
+    المُسدَّد صامتاً. والقياس هنا تفاضليّ: يُعاد التوليد فعلاً ثمّ يُقرأ الملفّ.
+    """
+    target = tmp_path / "debt.json"
+    original = json.loads(BASELINE.read_text(encoding="utf-8"))
+    target.write_text(json.dumps(original, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(guard, "BASELINE", target)
+
+    guard._generate()
+
+    after = json.loads(target.read_text(encoding="utf-8"))
+    assert after["proven_live"] == original["proven_live"], "أُبيد السداد بإعادة التوليد"
+    assert after["claiming_db_enforced"] == guard.survey()["claiming"]
+
+
+def test_a_proof_path_that_escapes_the_repository_root_is_refused(guard):
+    """العقد يقول «ملفّ إثبات **في الشجرة**» — و`ROOT / proof` وحدها تقبل الخروج منها.
+
+    الاحتمال ضئيل (الأساس مُلتزَم ومُراجَع) لكنّ حدّ العقد يُفرَض بدل أن يُفترَض:
+    حارسٌ يقرأ ملفّاً خارج المستودع أثناء تشغيله يُسدّد ديناً بشيء لا يخصّ الشجرة.
+    """
+    for outside in ("../../etc/hostname", "/etc/hostname"):
+        entry = {"claims": ["UNIQUE"], "proof": outside, "evidence": "x" * 40}
+        bad = guard._proof_covers("tests_v9/test_x.py", entry, ["UNIQUE"])
+        assert any("يخرج عن جذر المستودع" in p for p in bad), (outside, bad)
+
+
+def test_a_proof_path_inside_the_root_is_still_accepted(guard):
+    """المرساة المقابلة: الحصر لا يُدين المسارات المشروعة."""
+    entry = {
+        "claims": ["UNIQUE"],
+        "proof": _PROOF,
+        "evidence": "x" * 40,
+    }
+    assert guard._proof_covers("tests_v9/test_water_ledger.py", entry, ["UNIQUE"]) == []
