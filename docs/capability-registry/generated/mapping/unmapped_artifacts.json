@@ -7356,6 +7356,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_manifest_grep_portability.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_manifest_registry_guard.py",
     "kind": "tests"
   },
