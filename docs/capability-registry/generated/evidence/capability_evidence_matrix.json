@@ -57,7 +57,7 @@
       "evidence": {
         "api": true,
         "backend": true,
-        "database": false,
+        "database": true,
         "documentation": true,
         "events": true,
         "integration_tests": true,
@@ -68,7 +68,7 @@
         "unit_tests": true,
         "web": false
       },
-      "evidence_score": 6,
+      "evidence_score": 7,
       "integration_test_paths": [
         "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py"
       ],

@@ -14,7 +14,7 @@
     "capabilities_total": 81,
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
-    "capabilities_multidimensional": 48,
+    "capabilities_multidimensional": 49,
     "files_scanned": 4936,
     "files_by_kind": {
       "backend": 1196,
@@ -105,7 +105,12 @@
         }
       ],
       "routes": [],
-      "database": [],
+      "database": [
+        {
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "score": 8
+        }
+      ],
       "events": [
         {
           "value": "crop_intelligence_state.v2 @ services/sahool-platform/tests/test_crop_decision_bridge.py:19",
@@ -190,7 +195,7 @@
       "evidence_counts": {
         "backend": 1,
         "routes": 0,
-        "database": 0,
+        "database": 1,
         "events": 2,
         "web": 0,
         "mobile": 0,
@@ -198,7 +203,7 @@
         "governance": 0,
         "other_evidence": 3
       },
-      "coverage_dimensions": 3,
+      "coverage_dimensions": 4,
       "mapped": true
     },
     {
@@ -2227,6 +2232,10 @@
           ]
         },
         {
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "score": 9
+        },
+        {
           "path": "migrations/v164_soil_p4_closed_loop.sql",
           "score": 8,
           "signals": [
@@ -2356,7 +2365,7 @@
       "evidence_counts": {
         "backend": 5,
         "routes": 94,
-        "database": 14,
+        "database": 15,
         "events": 4,
         "web": 0,
         "mobile": 0,
@@ -26176,6 +26185,10 @@
             "path:decision sor",
             "content:system of record"
           ]
+        },
+        {
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "score": 9
         }
       ],
       "events": [
@@ -26518,7 +26531,7 @@
       "evidence_counts": {
         "backend": 2,
         "routes": 0,
-        "database": 9,
+        "database": 10,
         "events": 47,
         "web": 0,
         "mobile": 0,
@@ -27154,6 +27167,10 @@
         {
           "value": "soil_reconciliation_checkpoints @ migrations/v157_soil_projection_jobs_reconciliation.sql:41",
           "score": 12
+        },
+        {
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "score": 8
         }
       ],
       "events": [
@@ -27555,7 +27572,7 @@
       "evidence_counts": {
         "backend": 13,
         "routes": 91,
-        "database": 14,
+        "database": 15,
         "events": 35,
         "web": 1,
         "mobile": 0,

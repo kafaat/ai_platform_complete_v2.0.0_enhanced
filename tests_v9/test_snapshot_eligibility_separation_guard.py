@@ -163,13 +163,31 @@ def test_add_column_if_not_exists_does_not_slip_through(tmp_path, monkeypatch):
     assert len(found) == 1 and "policy_version" in found[0]
 
 
-def test_only_and_schema_qualified_forms_are_caught(tmp_path, monkeypatch):
-    """`ALTER TABLE ONLY public.<t>` هو الجدول نفسه — واسمٌ مؤهَّل ليس جدولاً آخر."""
+def test_the_full_postgresql_grammar_is_caught(tmp_path, monkeypatch):
+    """كلّ الاختياريّات مجتمعةً **بترتيب القواعد**: `[IF EXISTS] [ONLY]` ثمّ `[IF NOT EXISTS]`.
+
+    صياغتي الثانية عكسَت `ONLY` و`IF EXISTS`، فأفلتت هذه الصيغة القانونيّة **تماماً**
+    — صفر التقاط، لا اسمٌ خاطئ. **ثقبان متتاليان في نحوٍ واحد**، وكلاهما صيغةٌ
+    مشروعة: حارس DDL يُكتَب من القواعد المنشورة لا من الصيغة التي صادفتُها.
+    """
     root = _repo(
         tmp_path,
         model_body=_CLEAN_MODEL,
-        migration=_CLEAN_TABLE + "\nALTER TABLE ONLY public.decision_vegetation_snapshots"
-        " ADD COLUMN decision_eligible boolean;\n",
+        migration=_CLEAN_TABLE + "\nALTER TABLE IF EXISTS ONLY public.decision_vegetation_snapshots"
+        " ADD COLUMN IF NOT EXISTS decision_eligible boolean;\n",
     )
     found = _violations_in(monkeypatch, root)
     assert len(found) == 1 and "decision_eligible" in found[0]
+
+
+def test_each_optional_clause_alone_is_caught_too(tmp_path, monkeypatch):
+    """المجتمعة لا تُغني عن المفردة: نمطٌ ناقص قد يمرّ التركيبة الكاملة صدفةً."""
+    for index, clause in enumerate(("ONLY ", "IF EXISTS ", "")):
+        root = _repo(
+            tmp_path / f"case{index}",
+            model_body=_CLEAN_MODEL,
+            migration=_CLEAN_TABLE + f"\nALTER TABLE {clause}decision_vegetation_snapshots"
+            " ADD COLUMN policy_version text;\n",
+        )
+        found = _violations_in(monkeypatch, root)
+        assert len(found) == 1 and "policy_version" in found[0], clause

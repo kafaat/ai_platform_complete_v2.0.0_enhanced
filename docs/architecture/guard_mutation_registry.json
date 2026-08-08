@@ -238,6 +238,12 @@
           "find": "    r\"\\s+add\\s+(?:column\\s+)?(?:if\\s+not\\s+exists\\s+)?(\\w+)\",",
           "replace": "    r\"\\s+add\\s+(?:column\\s+)?(\\w+)\",",
           "why": "إعادة الصيغة التي أفلتت `ADD COLUMN IF NOT EXISTS`: يُلتقَط `IF` بوصفه اسم العمود فيمرّ الاسم المحظور. والنمط يظهر ٢١ مرّة في هجرات هذه الخدمة — فأرجح طريقٍ إلى العطل كانت الوحيدة التي لا يراها الحارس"
+        },
+        {
+          "expect": "test_the_full_postgresql_grammar_is_caught",
+          "find": "rf\"alter\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?{_QUALIFIED}\"",
+          "replace": "rf\"alter\\s+table\\s+(?:only\\s+)?(?:if\\s+exists\\s+)?{_QUALIFIED}\"",
+          "why": "عكسُ ترتيب `IF EXISTS` و`ONLY` — وقواعد PostgreSQL هي `ALTER TABLE [ IF EXISTS ] [ ONLY ] name`. بالترتيب المعكوس تفلت الصيغة القانونيّة `ALTER TABLE IF EXISTS ONLY …` **تماماً**: صفر التقاط لا اسمٌ خاطئ. ثاني ثقب في النحو نفسه — حارس DDL يُكتَب من القواعد المنشورة لا من الصيغة المُصادَفة"
         }
       ],
       "test": "tests_v9/test_snapshot_eligibility_separation_guard.py"

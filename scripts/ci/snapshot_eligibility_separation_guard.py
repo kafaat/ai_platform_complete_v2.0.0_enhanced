@@ -48,13 +48,17 @@ FORBIDDEN = (
 #: بادئة مخطَّط اختياريّة: `public.decision_vegetation_snapshots` هو الجدول نفسه.
 _QUALIFIED = rf"(?:[\w\"]+\.)?{SNAPSHOT_TABLE}"
 
-#: `ALTER TABLE [ONLY] <snapshot> ADD [COLUMN] [IF NOT EXISTS] <name>`.
+#: `ALTER TABLE [IF EXISTS] [ONLY] <snapshot> ADD [COLUMN] [IF NOT EXISTS] <name>`.
 #:
-#: **أوّل صياغة أفلتت `IF NOT EXISTS`**: التقطت `IF` بوصفها اسم العمود فمرّ الاسم
-#: المحظور. وهي ليست صيغةً نادرة — تظهر **٢١ مرّة** في هجرات هذه الخدمة نفسها،
-#: فكانت أرجح طريقٍ إلى العطل هي الطريق الوحيد الذي لا يراه الحارس.
+#: **الترتيب من قواعد PostgreSQL لا من الحدس** — `ALTER TABLE [ IF EXISTS ] [ ONLY ]
+#: name`. وصياغتي الثانية عكسَت الاثنين (`only` قبل `if exists`)، فأفلتت الصيغة
+#: القانونيّة `ALTER TABLE IF EXISTS ONLY …` **تماماً**: صفر التقاط، لا اسمٌ خاطئ.
+#:
+#: وقبلها أفلتت `IF NOT EXISTS` بالتقاط `IF` بوصفها اسم العمود — وهي تظهر **٢١ مرّة**
+#: في هجرات هذه الخدمة نفسها. **ثقبان متتاليان في نحوٍ واحد**: حارس DDL يُكتَب من
+#: القواعد المنشورة، لا من الصيغة التي صادفتُها.
 _ALTER_ADD = re.compile(
-    rf"alter\s+table\s+(?:only\s+)?(?:if\s+exists\s+)?{_QUALIFIED}"
+    rf"alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?{_QUALIFIED}"
     r"\s+add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?(\w+)",
     re.IGNORECASE,
 )

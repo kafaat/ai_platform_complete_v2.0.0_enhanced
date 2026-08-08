@@ -11,7 +11,7 @@
 - Capabilities: **81**
 - Mapped: **74**
 - Unmapped: **7**
-- Multi-dimensional mappings: **48**
+- Multi-dimensional mappings: **49**
 - Files scanned: **4936**
 - Ambiguous artifacts queued: **402**
 - Unmapped artifacts queued: **2011**
@@ -21,13 +21,13 @@
 | ID | Domain | Backend | Routes | DB | Events | Web | Mobile | Tests | Dimensions |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
 | DEC-001 | decision | 0 | 0 | 0 | 3 | 0 | 0 | 2 | 2 |
-| DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
+| DEC-002 | decision | 1 | 0 | 1 | 2 | 0 | 0 | 4 | 4 |
 | DEC-003 | decision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | DEC-004 | decision | 9 | 20 | 26 | 30 | 0 | 0 | 15 | 5 |
 | DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 6 | 5 | 3 | 1 | 0 | 2 | 6 |
-| DEC-008 | decision | 5 | 94 | 14 | 4 | 0 | 0 | 1 | 5 |
+| DEC-008 | decision | 5 | 94 | 15 | 4 | 0 | 0 | 1 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 89 | 42 | 7 | 0 | 0 | 5 | 5 |
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 23 | 6 |
@@ -84,9 +84,9 @@
 | SEC-004 | security | 7 | 21 | 23 | 4 | 5 | 4 | 16 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 1 | 0 | 0 | 8 | 4 |
-| SEC-007 | security | 2 | 0 | 9 | 47 | 0 | 0 | 9 | 4 |
+| SEC-007 | security | 2 | 0 | 10 | 47 | 0 | 0 | 9 | 4 |
 | SEC-008 | security | 0 | 0 | 0 | 1 | 0 | 0 | 6 | 2 |
-| SOIL-001 | soil | 13 | 91 | 14 | 35 | 1 | 0 | 13 | 6 |
+| SOIL-001 | soil | 13 | 91 | 15 | 35 | 1 | 0 | 13 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 6 | 5 | 0 | 11 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
