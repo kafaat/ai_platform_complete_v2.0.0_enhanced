@@ -200,3 +200,25 @@ def test_regenerating_the_baseline_does_not_erase_the_settlements(guard, tmp_pat
     after = json.loads(target.read_text(encoding="utf-8"))
     assert after["proven_live"] == original["proven_live"], "أُبيد السداد بإعادة التوليد"
     assert after["claiming_db_enforced"] == guard.survey()["claiming"]
+
+
+def test_a_proof_path_that_escapes_the_repository_root_is_refused(guard):
+    """العقد يقول «ملفّ إثبات **في الشجرة**» — و`ROOT / proof` وحدها تقبل الخروج منها.
+
+    الاحتمال ضئيل (الأساس مُلتزَم ومُراجَع) لكنّ حدّ العقد يُفرَض بدل أن يُفترَض:
+    حارسٌ يقرأ ملفّاً خارج المستودع أثناء تشغيله يُسدّد ديناً بشيء لا يخصّ الشجرة.
+    """
+    for outside in ("../../etc/hostname", "/etc/hostname"):
+        entry = {"claims": ["UNIQUE"], "proof": outside, "evidence": "x" * 40}
+        bad = guard._proof_covers("tests_v9/test_x.py", entry, ["UNIQUE"])
+        assert any("يخرج عن جذر المستودع" in p for p in bad), (outside, bad)
+
+
+def test_a_proof_path_inside_the_root_is_still_accepted(guard):
+    """المرساة المقابلة: الحصر لا يُدين المسارات المشروعة."""
+    entry = {
+        "claims": ["UNIQUE"],
+        "proof": _PROOF,
+        "evidence": "x" * 40,
+    }
+    assert guard._proof_covers("tests_v9/test_water_ledger.py", entry, ["UNIQUE"]) == []

@@ -39,13 +39,24 @@ CONTRACT = ROOT / "docs" / "architecture" / "live_pg_schema_contract.json"
 
 
 def psql(sql: str, *, database: str, role: str) -> str:
-    """‏`-qAtc` بلا `-h/-p`: تُقرأ من البيئة، فلا تمرّ عبر سطر أمر يُطبَع عند الفشل."""
-    proc = subprocess.run(  # noqa: S603
-        ["psql", "-d", database, "-U", role, "-qAtc", sql],
-        capture_output=True,
-        encoding="utf-8",
-        check=False,
-    )
+    """‏`-qAtc` بلا `-h/-p`: تُقرأ من البيئة، فلا تمرّ عبر سطر أمر يُطبَع عند الفشل.
+
+    وغيابُ العميل يُحوَّل إلى `SystemExit` برسالة عقد: بدونه يرمي `subprocess.run`
+    ‏`FileNotFoundError` فتظهر trace غير مُوجَّهة، فيُقرأ عطلُ بيئةٍ خطأً برمجيّاً
+    ويُبحَث عنه في المكان الخطأ. (لاحظه Copilot.)
+    """
+    try:
+        proc = subprocess.run(  # noqa: S603
+            ["psql", "-d", database, "-U", role, "-qAtc", sql],
+            capture_output=True,
+            encoding="utf-8",
+            check=False,
+        )
+    except FileNotFoundError:
+        raise SystemExit(
+            "✗ لا عميل psql في PATH — وهذه وظيفة PG المخصّصة، فغيابُ الأداة فشلٌ لا تخطٍّ. "
+            "ثبِّت postgresql-client في الوظيفة قبل تشغيل الحارس."
+        ) from None
     if proc.returncode != 0:
         raise SystemExit(f"✗ تعذّر الاستعلام عن الكتالوج: {proc.stderr.strip()[:400]}")
     return proc.stdout.strip()

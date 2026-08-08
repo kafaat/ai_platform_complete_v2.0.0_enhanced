@@ -116,10 +116,17 @@ def _proof_covers(rel: str, entry: dict, claims: list[str]) -> list[str]:
     """
     bad: list[str] = []
     proof = entry.get("proof", "")
-    proof_path = (ROOT / proof).resolve() if proof else None
-    if not (proof_path and proof_path.is_relative_to(ROOT) and proof_path.is_file()):
-        bad.append(f"✗ {rel} — `proof` لا يُسمّي ملفّاً قائماً: {proof or '—'}")
-    elif rel not in proof_path.read_text(encoding="utf-8", errors="ignore"):  # type: ignore[union-attr]
+    # المسار يُحَلّ ويُحصَر داخل `ROOT` قبل أيّ قراءة. العقد يقول «ملفّ إثبات **في
+    # الشجرة**»، و`ROOT / proof` وحدها تقبل `../…` فتخرج منها — فيقرأ الحارسُ ملفّاً
+    # خارج المستودع أثناء تشغيله. الاحتمال ضئيل (الأساس مُلتزَم ومُراجَع) لكنّ الحصر
+    # مجّانيّ، وحدُّ العقد يُفرَض بدل أن يُفترَض. (لاحظه Copilot.)
+    resolved = (ROOT / proof).resolve() if proof else None
+    inside = resolved is not None and resolved.is_relative_to(ROOT.resolve())
+    if not inside:
+        bad.append(f"✗ {rel} — `proof` يخرج عن جذر المستودع أو فارغ: {proof or '—'}")
+    elif not resolved.is_file():
+        bad.append(f"✗ {rel} — `proof` لا يُسمّي ملفّاً قائماً: {proof}")
+    elif rel not in resolved.read_text(encoding="utf-8", errors="ignore"):
         bad.append(
             f"✗ {rel} — ملفّ الإثبات `{proof}` لا يذكره. الربط يُقاس ولا يُدَّعى: "
             "مدخلٌ يشير إلى إثباتٍ لا يعرف مصدره يُسدّد ديناً لم يُقَس."

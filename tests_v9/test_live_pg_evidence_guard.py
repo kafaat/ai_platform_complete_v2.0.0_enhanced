@@ -168,3 +168,19 @@ def test_the_contract_covers_every_table_the_proofs_assert_on():
         "prescriptions",
     ):
         assert table in contract["objects"], f"{table} تُقاس ولا يحرسها العقد"
+
+
+def test_a_missing_psql_client_is_a_contract_error_not_a_traceback(monkeypatch):
+    """عطلُ بيئةٍ يجب أن يُقرأ عطلَ بيئة.
+
+    بلا هذا يرمي `subprocess.run` خطأً خاماً فتظهر trace غير مُوجَّهة، ويُبحَث عن
+    السبب في الكود بينما هو في تجهيز الوظيفة.
+    """
+
+    def _absent(*a, **k):
+        raise FileNotFoundError("psql")
+
+    monkeypatch.setattr(MOD.subprocess, "run", _absent)
+    with pytest.raises(SystemExit) as err:
+        MOD.psql("select 1", database="d", role="r")
+    assert "لا عميل psql" in str(err.value)
