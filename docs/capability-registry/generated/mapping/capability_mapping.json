@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 49,
-    "files_scanned": 4936,
+    "files_scanned": 4938,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
-      "other": 1305,
-      "tests": 1601,
+      "other": 1306,
+      "tests": 1602,
       "web": 451
     },
     "unmapped_artifacts": 2011,
-    "ambiguous_artifacts": 402
+    "ambiguous_artifacts": 403
   },
   "capabilities": [
     {
@@ -107,7 +107,7 @@
       "routes": [],
       "database": [
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:213",
           "score": 8
         }
       ],
@@ -2232,7 +2232,7 @@
           ]
         },
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:213",
           "score": 9
         },
         {
@@ -13758,6 +13758,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_live_pg_fake_connection_debt.py",
+          "score": 12,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "tests_v9/test_roadmap_phase1.py",
           "score": 12,
           "signals": [
@@ -13873,6 +13881,14 @@
       "governance": [],
       "other_evidence": [
         {
+          "path": "docs/architecture/fake_connection_debt.json",
+          "score": 12,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
           "path": "docs/history/COMPETITIVE_ANALYSIS.md",
           "score": 12,
           "signals": [
@@ -13953,14 +13969,6 @@
           ]
         },
         {
-          "path": "docs/architecture/fake_connection_debt.json",
-          "score": 8,
-          "signals": [
-            "content:Scouting",
-            "content:scouting"
-          ]
-        },
-        {
           "path": "docs/history/UPLOADED_ZIPS_REVIEW.md",
           "score": 8,
           "signals": [
@@ -13980,7 +13988,7 @@
         "events": 45,
         "web": 22,
         "mobile": 1,
-        "tests": 18,
+        "tests": 19,
         "governance": 0,
         "other_evidence": 12
       },
@@ -24347,6 +24355,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_live_pg_fake_connection_debt.py",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security"
+          ]
+        },
+        {
           "path": "services/decision-service/tests/test_eligibility_assessment_live_pg.py",
           "score": 9,
           "signals": [
@@ -24673,6 +24689,14 @@
           "signals": [
             "content:Tenant RLS",
             "content:rls"
+          ]
+        },
+        {
+          "path": "docs/architecture/live_pg_findings.md",
+          "score": 11,
+          "signals": [
+            "content:rls",
+            "content:row level security"
           ]
         },
         {
@@ -25040,9 +25064,9 @@
         "events": 46,
         "web": 0,
         "mobile": 0,
-        "tests": 56,
+        "tests": 57,
         "governance": 0,
-        "other_evidence": 68
+        "other_evidence": 69
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -26187,7 +26211,7 @@
           ]
         },
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:213",
           "score": 9
         }
       ],
@@ -27169,7 +27193,7 @@
           "score": 12
         },
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:213",
           "score": 8
         }
       ],
@@ -27394,6 +27418,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_live_pg_fake_connection_debt.py",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "tests_v9/test_soil_runtime_certification_integration.py",
           "score": 12,
           "signals": [
@@ -27576,7 +27608,7 @@
         "events": 35,
         "web": 1,
         "mobile": 0,
-        "tests": 13,
+        "tests": 14,
         "governance": 1,
         "other_evidence": 14
       },
@@ -51968,6 +52000,36 @@
           "signals": [
             "content:ET0",
             "content:et0"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_live_pg_fake_connection_debt.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SOIL-001",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "capability_id": "OPS-003",
+          "score": 12,
+          "signals": [
+            "content:Scouting",
+            "content:scouting"
+          ]
+        },
+        {
+          "capability_id": "SEC-001",
+          "score": 10,
+          "signals": [
+            "content:rls",
+            "content:row level security"
           ]
         }
       ]

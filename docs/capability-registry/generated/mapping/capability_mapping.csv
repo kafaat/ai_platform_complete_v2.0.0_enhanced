@@ -37,7 +37,7 @@ IRR-009,irrigation,Water suitability multi-hazard,True,6,8,1,7,9,1,0,10,0
 IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
 OPS-001,operations,Task management,False,0,0,0,0,0,0,0,0,0
 OPS-002,operations,Work orders,True,6,3,7,7,1,1,0,4,0
-OPS-003,operations,Scouting,True,7,9,7,7,45,22,1,18,0
+OPS-003,operations,Scouting,True,7,9,7,7,45,22,1,19,0
 OPS-004,operations,Field forms,True,6,3,12,15,10,0,12,21,1
 OPS-005,operations,Offline mobile,True,6,2,2,9,6,1,0,1,0
 OPS-006,operations,Equipment registry,False,0,0,0,0,0,0,0,0,0
@@ -57,7 +57,7 @@ SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,5,0
 SAT-009,satellite,COG persistence and tiling,True,5,12,68,0,12,1,0,21,0
-SEC-001,security,Tenant RLS,True,5,14,36,100,46,0,0,56,0
+SEC-001,security,Tenant RLS,True,5,14,36,100,46,0,0,57,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
 SEC-004,security,MFA,True,7,7,21,23,4,5,4,16,0
@@ -65,7 +65,7 @@ SEC-005,security,Audit logging,True,2,0,0,4,0,0,0,1,0
 SEC-006,security,Service token guard,True,4,2,7,0,1,0,0,8,0
 SEC-007,security,Decision SoR DB ownership,True,4,2,0,10,47,0,0,9,0
 SEC-008,security,Secrets and production fail-closed,True,2,0,0,0,1,0,0,6,0
-SOIL-001,soil,Soil profile,True,6,13,91,15,35,1,0,13,1
+SOIL-001,soil,Soil profile,True,6,13,91,15,35,1,0,14,1
 SOIL-002,soil,Soil sampling,True,6,14,35,9,6,5,0,11,0
 SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
 SOIL-004,soil,pH EC SOM nutrients,True,4,1,0,7,3,0,0,1,0

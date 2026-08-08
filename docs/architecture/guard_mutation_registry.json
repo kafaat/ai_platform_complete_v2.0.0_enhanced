@@ -272,6 +272,30 @@
           "find": "        if not _FAKE.search(text):\n            continue\n",
           "replace": "        if _FAKE.search(text):\n            continue\n",
           "why": "قلبُ شرط الماسح ⇒ يمسح ما لا يستعمل وهميّاً، فيغيب ملفّ الحادثة (jsonb) عن المسح. والمرساة على **ملفّ الحادثة** لا على عدّاد الحجم: أوّل صياغة عندي سمّت `test_the_scanner_actually_sees_something` فلم يسقط — القلب يُبقي العدّ كبيراً بملفّات أخرى، فالعدّاد لا يُميّز"
+        },
+        {
+          "expect": "test_a_settlement_must_name_a_proof_file_that_exists",
+          "find": "    if not (proof and (ROOT / proof).is_file()):",
+          "replace": "    if False:",
+          "why": "قبولُ سدادٍ يُسمّي ملفّ إثبات غير موجود ⇒ الدَّين يُغلَق بسطرٍ مكتوب، وهو بالضبط «حذف الكلمة من نصّه» الذي يمنعه عقد `$comment`"
+        },
+        {
+          "expect": "test_a_settlement_whose_proof_never_mentions_the_source_is_refused",
+          "find": "    elif rel not in (ROOT / proof).read_text(encoding=\"utf-8\", errors=\"ignore\"):",
+          "replace": "    elif False:",
+          "why": "نزعُ اشتراط أن **يذكر** ملفُّ الإثبات مصدرَه ⇒ أخطر صنف يمرّ: مدخلٌ يشير إلى ملفّ قائم لا علاقة له بالمصدر، فيمرّ فحصا الوجود والدليل ويبقى الدَّين غير مسدَّد"
+        },
+        {
+          "expect": "test_a_partial_settlement_does_not_close_the_debt",
+          "find": "    if declared_claims != sorted(claims):",
+          "replace": "    if False and declared_claims != sorted(claims):",
+          "why": "قبولُ سدادٍ جزئيّ ⇒ «كلّ ادّعاءاته» يصير شعاراً، وادّعاءٌ جديد يظهر في ملفّ مُسدَّد لا يُعيد فتح الدَّين"
+        },
+        {
+          "expect": "test_regenerating_the_baseline_does_not_erase_the_settlements",
+          "find": "    carried = _load_baseline().get(\"proven_live\", {}) if BASELINE.exists() else {}",
+          "replace": "    carried = {}",
+          "why": "«المصنوع يدهس المكتوب» — `--generate` يمحو `proven_live` فيرجع الدَّين المُسدَّد صامتاً عند أوّل إعادة توليد، والقسم لا يُشتقّ فلا سبيل لاستعادته"
         }
       ],
       "test": "tests_v9/test_fake_connection_debt_guard.py"

@@ -2170,13 +2170,44 @@ nats.js.errors.Error: nats: JetStream.Error consumer is already bound to a subsc
 
 **المصدر:** [`agents/notification/agent.py:449`](../../agents/notification/agent.py) · [`docker-compose.v9.yml`](../../docker-compose.v9.yml) `sahool-canonical-execution-learning-worker.depends_on` · قياس محلّيّ 2026-08-04.
 
-## FAKE-CONNECTION-ENFORCES-NOTHING-01 — مفتوحة (P1 منهجيّة، رُصِدت 2026-08-04)
+## FAKE-CONNECTION-ENFORCES-NOTHING-01 — fixed (الادّعاءات الثمانية مُثبَتة حيّاً 2026-08-08؛ رُصِدت 2026-08-04)
 
 **الصنف الجامع لأربعة عيوب في جلسة واحدة:** كلّ اختبارات مسار التعلّم القانونيّ تعمل على **اتّصال وهميّ**. والوهميّ لا يفرض `CHECK`، ولا يُطلِق `TRIGGER`، ولا يُعيد الأنواع التي يُعيدها asyncpg. فما مرّ خضراء سنةً كاملة كان يسقط في أوّل لقاء بقاعدة حقيقيّة — والأربعة أدناه سقطت **بالتسلسل**، كلّ واحد يحجب الذي بعده، فلم يُرَ أيّ منها قبل تشغيل الرحلة كاملةً.
 
 **البرهان:** بعد تطبيق **٢٢٦ هجرة** من `MANIFEST.txt` على PG16 نظيفة (v206 آخِراً، صفر فشل) وتشغيل `run_canonical_execution_learning_live_gate.sh`، تعطّلت الرحلة أربع مرّات متتالية بأربعة أسباب مختلفة، وكلّ إصلاح كشف التالي.
 
 **ما لم يُقَس:** كم اختباراً في هذا المستودع يعتمد على وهميّ لا يفرض ما تفرضه القاعدة. الأربعة أدناه هي ما التقته رحلة **واحدة**؛ السطح غير ممسوح.
+
+**مُسِح السطح ثمّ سُدِّد (2026-08-08):** الماسح يرى **٣٨** ملفّاً على وهميّ، منها **٨** تدّعي دلالةً تفرضها القاعدة. الثمانية أُثبِتت على PG16 حيّة في [`tests_v9/test_live_pg_fake_connection_debt.py`](../../tests_v9/test_live_pg_fake_connection_debt.py) — ٣٠ اختباراً، لكلّ ادّعاء قبولٌ ورفض بـ`SQLSTATE`، و١٩ زرعاً تُثبِتها. الدَّين القائم = **صفر** (٨ خاماً − ٨ مُسدَّداً)، والملفّات تبقى في `fake_connection_tests` لأنّ الوهميّ نافع لمنطق التطبيق.
+
+**الحالة `fixed` لا `verified`:** الأدلّة قِيست على قاعدة محلّيّة وعلى وظيفة `Live PG Proofs` المُضافة إلى `ci.yml`؛ ترقيتها إلى `verified` تنتظر **خضرة تلك الوظيفة على GitHub** لا قياسي المحلّيّ.
+
+**وطريق الخروج نفسه كان معطوباً:** `$comment` يُعلن الخروج بالإثبات الحيّ بينما `claiming_db_enforced` مُشتقّ من **نصّ** الملفّ الذي لا يتغيّر بالإثبات. أُضيف `proven_live` (لا يُشتقّ، يُحمَل عبر `--generate`، ويُفحَص بأربعة شروط منها أنّ ملفّ الإثبات **يذكر** مصدره).
+
+**فرعٌ مفتوح منها:** [`LIVE-PG-01`](../../docs/architecture/live_pg_findings.md) — `FORCE ROW LEVEL SECURITY` خامدٌ ما دام مالك الجداول superuser.
+
+## LIVE-PG-01 — open (P2، رُصِدت 2026-08-08 بزرعٍ لم يُسقِط شيئاً)
+
+**العطل:** `FORCE ROW LEVEL SECURITY` مُفعَّلة في الكتالوج (`relforcerowsecurity = true`) و**خامدة أثراً**: مالك الجداول `sahool_user` هو **superuser**، وsuperuser يتخطّى RLS مهما كان `FORCE`. مقيس على PG16 بعد `MANIFEST.txt` كاملاً:
+
+```
+$ psql -d sahool -U sahool_user -qAtc "select count(*) from water_ledger;"
+6
+```
+
+بلا `app.current_tenant` وبلا أيّ سياق مستأجِر ⇒ كلّ الصفوف عبر كلّ المستأجِرين.
+
+**كيف ظهر:** لم يظهر بقراءة. زرعُ `ALTER TABLE water_ledger NO FORCE ROW LEVEL SECURITY` على نسخةٍ من القاعدة **لم يُسقِط أيّ اختبار** — والزرع الذي لا يُسقِط شيئاً يُثبِّت وهماً.
+
+**الأثر:** العزل الفعليّ يعتمد كلّيّاً على أنّ التطبيق يتّصل بدورٍ مقيَّد. وهذا شرطٌ **تشغيليّ** مُعلَن في تعليقِ هجرة (`migrations/v56_rls_dynamic_all.sql:27`) ولا تُنشئه هجرة ولا يحرسه شيء.
+
+**لم يُصلَح عمداً:** إصلاحه تغييرُ نموذج أدوار (نزع superuser عن المالك أو نقل الملكيّة) يمسّ الترحيل والنشر؛ خارج نطاق شريحة إثبات الادّعاءات.
+
+**ما فُعِل:** وظيفة `Live PG Proofs` تُنشئ `sahool_app` بـ`NOSUPERUSER NOBYPASSRLS`، و`test_the_app_role_is_provably_restricted` يقيس الاثنين **قبل** أيّ ادّعاء عزل.
+
+**شرط الإغلاق:** إمّا مالكٌ غير superuser (فيصير الأثر قابلاً للرصد ويُرقَّى التأكيد من كتالوجيّ إلى سلوكيّ)، أو حارسٌ يفرض أنّ سلسلة اتّصال التطبيق في `docker-compose.v9.yml` لا تستعمل دور المالك.
+
+**المصدر:** [`docs/architecture/live_pg_findings.md`](../../docs/architecture/live_pg_findings.md) · [`tests_v9/test_live_pg_fake_connection_debt.py`](../../tests_v9/test_live_pg_fake_connection_debt.py) · قياس على PG16.
 
 ## WORKER-JSONB-READ-ASSUMES-DECODED-01 — CLOSED (مُثبَتة بالتشغيل الحيّ، رُصِدت 2026-08-04)
 
