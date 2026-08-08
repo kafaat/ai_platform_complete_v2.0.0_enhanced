@@ -32,29 +32,53 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 MANIFEST = ROOT / "migrations" / "MANIFEST.txt"
 
-#: كلّ استدعاء `grep` يقرأ `MANIFEST.txt` — يُلتقَط نمطُه المقتبَس بنيويّاً.
+#: استدعاء `grep` يقرأ `MANIFEST.txt` **بنمطٍ مقتبَس** — يُلتقَط النمط للفحص.
 _MANIFEST_GREP = re.compile(r"grep\s+-[a-zA-Z]*E\s+'([^']+)'\s+migrations/MANIFEST\.txt")
+
+#: **كلّ** استدعاء `grep` يذكر `MANIFEST.txt` — أوسع عمداً من الذي يلتقط النمط.
+#: الفارق بين العدّتين هو **قياس اكتمال الاستخراج**: استدعاءٌ يُرى ولا يُلتقَط نمطُه
+#: يعني أنّ هذا الملفّ يفحص بعضاً ويُبلِّغ عن كلّ.
+_ANY_MANIFEST_GREP = re.compile(r"grep\b[^\n]*migrations/MANIFEST\.txt")
 
 #: مختصرات فئات المحارف في GNU ERE. غيابها من POSIX هو العطل.
 _GNU_ONLY = ("\\s", "\\S", "\\d", "\\D", "\\w", "\\W")
 
 
+def _workflow_text() -> str:
+    return WORKFLOW.read_text(encoding="utf-8")
+
+
 def _patterns() -> list[str]:
-    return _MANIFEST_GREP.findall(WORKFLOW.read_text(encoding="utf-8"))
+    return _MANIFEST_GREP.findall(_workflow_text())
 
 
-def test_every_manifest_reader_was_found():
-    """حارسٌ لا يجد موضوعه يُبلِغ خضرةً عن سؤالٍ لم يطرحه.
+def _all_grep_invocations() -> list[str]:
+    return _ANY_MANIFEST_GREP.findall(_workflow_text())
 
-    فإن تغيّرت صياغة الاستدعاء يوماً (‏`"…"` بدل `'…'`، أو مسارٌ آخر) يسقط الالتقاط
-    إلى صفر — ويصير هذا الملفّ كلّه أخضر بلا أن يفحص شيئاً. يُمسَك هنا صراحةً.
+
+def test_the_extraction_covers_every_manifest_grep():
+    """**اكتمال الاستخراج مقيس، لا `len(...) >= 3`.**
+
+    عتبةٌ مثل «ثلاثة على الأقلّ» تمرّ خضراء وفيها استدعاءٌ رابع لا يُفحَص — فتصير
+    خضرةُ هذا الملفّ ادّعاءَ تغطيةٍ لا يملكها. فيُقارَن **مجموع** استدعاءات `grep`
+    التي تذكر `MANIFEST.txt` بعدد الأنماط المُلتقَطة: كلّ استدعاءٍ يُرى يجب أن
+    يُلتقَط نمطُه.
+
+    والفارق يقع حقيقةً حين تتغيّر الصياغة: اقتباسٌ مزدوج بدل مفرد، أو نمطٌ في متغيّر
+    شِلّيّ. عندها يبقى الاستدعاء مرئيّاً ويسقط التقاطُه — وهذا الاختبار يحمرّ بدل أن
+    يصمت.
     """
-    found = _patterns()
-    assert len(found) >= 3, f"لم تُلتقَط أوامر MANIFEST — صحّح النمط لا الاختبار: {found}"
+    invocations = _all_grep_invocations()
+    patterns = _patterns()
+    assert invocations, "لم يُعثَر على أيّ `grep` يقرأ MANIFEST.txt — صحّح المرساة لا الاختبار"
+    assert len(patterns) == len(invocations), (
+        f"استُخرِج {len(patterns)} نمطاً من {len(invocations)} استدعاءً — "
+        f"الفارق لا يُفحَص وهذا الملفّ يُبلِّغ عن كلّه:\n" + "\n".join(f"  · {inv}" for inv in invocations)
+    )
 
 
-@pytest.mark.parametrize("index", range(3))
-def test_no_manifest_pattern_uses_gnu_only_shorthand(index):
+@pytest.mark.parametrize("pattern", _patterns())
+def test_no_manifest_pattern_uses_gnu_only_shorthand(pattern):
     """مَنعٌ يُسمّي سببه — عقد `prohibition_reason_guard`.
 
     ولا يمكن قياس هذا سلوكيّاً هنا: `grep` في هذه البيئة **هو** GNU، فالنمطان
@@ -62,10 +86,6 @@ def test_no_manifest_pattern_uses_gnu_only_shorthand(index):
     ولا مُفسِّر آخر في الشجرة يُقاس عليه. فالتأكيد نصّيّ **بالضرورة**، وسببه مكتوب
     في رسالته لا في مراجعة.
     """
-    patterns = _patterns()
-    if index >= len(patterns):
-        pytest.skip("عدد الأنماط أقلّ — يُمسَك في test_every_manifest_reader_was_found")
-    pattern = patterns[index]
     for shorthand in _GNU_ONLY:
         assert shorthand not in pattern, (
             f"‏`{shorthand}` ليس من POSIX ERE، وتفسيرُه خارج امتدادات التطبيق "
