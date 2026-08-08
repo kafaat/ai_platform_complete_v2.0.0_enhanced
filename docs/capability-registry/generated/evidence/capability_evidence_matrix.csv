@@ -1,6 +1,6 @@
 capability_id,title,domain,declared_maturity,assessed_maturity,alignment,evidence_score,documentation,backend,api,database,events,web,mobile,unit_tests,integration_tests,runtime_instrumentation,runtime_verified,production_certified
 DEC-001,Decision evidence,decision,3,2,declared_above_evidence,5,True,False,True,False,True,False,False,True,False,True,False,False
-DEC-002,Decision candidate,decision,3,3,aligned,7,True,True,True,True,True,False,False,True,True,False,False,False
+DEC-002,Decision candidate,decision,3,3,aligned,6,True,True,True,False,True,False,False,True,True,False,False,False
 DEC-003,Human approval,decision,3,1,declared_above_evidence,4,True,True,True,False,False,False,False,False,False,True,False,False
 DEC-004,Execution request,decision,3,3,aligned,8,True,True,True,True,True,False,False,True,True,True,False,False
 DEC-005,Dispatch authorization,decision,3,3,aligned,8,True,True,True,True,True,False,False,True,True,True,False,False

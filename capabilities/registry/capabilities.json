@@ -3076,6 +3076,7 @@
         "tests_v9/test_container_command_path_guard.py",
         "tests_v9/test_firmware_valve_safety.py",
         "tests_v9/test_helm_migration_command_valid_20260705.py",
+        "tests_v9/test_manual_command_killswitch_scope.py",
         "tests_v9/test_portfolio_command_shape.py"
       ],
       "runtime": {
@@ -3112,7 +3113,7 @@
           "path": "services/actuator-service/main.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=20, tests=16, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=2, apis=20, tests=17, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

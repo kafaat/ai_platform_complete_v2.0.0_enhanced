@@ -14,18 +14,18 @@
     "capabilities_total": 81,
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
-    "capabilities_multidimensional": 49,
-    "files_scanned": 4943,
+    "capabilities_multidimensional": 48,
+    "files_scanned": 4946,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
       "other": 1308,
-      "tests": 1605,
+      "tests": 1608,
       "web": 451
     },
-    "unmapped_artifacts": 2014,
+    "unmapped_artifacts": 2017,
     "ambiguous_artifacts": 403
   },
   "capabilities": [
@@ -105,12 +105,7 @@
         }
       ],
       "routes": [],
-      "database": [
-        {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:231",
-          "score": 8
-        }
-      ],
+      "database": [],
       "events": [
         {
           "value": "crop_intelligence_state.v2 @ services/sahool-platform/tests/test_crop_decision_bridge.py:19",
@@ -195,7 +190,7 @@
       "evidence_counts": {
         "backend": 1,
         "routes": 0,
-        "database": 1,
+        "database": 0,
         "events": 2,
         "web": 0,
         "mobile": 0,
@@ -203,7 +198,7 @@
         "governance": 0,
         "other_evidence": 3
       },
-      "coverage_dimensions": 4,
+      "coverage_dimensions": 3,
       "mapped": true
     },
     {
@@ -1619,10 +1614,6 @@
       ],
       "database": [
         {
-          "value": "IF @ migrations/v79_outcome_record.sql:16",
-          "score": 18
-        },
-        {
           "path": "migrations/v79_outcome_record.sql",
           "score": 18,
           "signals": [
@@ -1749,7 +1740,7 @@
       "evidence_counts": {
         "backend": 3,
         "routes": 6,
-        "database": 5,
+        "database": 4,
         "events": 3,
         "web": 1,
         "mobile": 0,
@@ -2232,10 +2223,6 @@
           ]
         },
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:231",
-          "score": 9
-        },
-        {
           "path": "migrations/v164_soil_p4_closed_loop.sql",
           "score": 8,
           "signals": [
@@ -2365,7 +2352,7 @@
       "evidence_counts": {
         "backend": 5,
         "routes": 94,
-        "database": 15,
+        "database": 14,
         "events": 4,
         "web": 0,
         "mobile": 0,
@@ -5508,10 +5495,6 @@
       ],
       "database": [
         {
-          "value": "IF @ migrations/v58_field_boundary_quality.sql:9",
-          "score": 14
-        },
-        {
           "value": "field_boundaries @ migrations/v58_field_boundary_quality.sql:16",
           "score": 14
         },
@@ -5988,7 +5971,7 @@
       "evidence_counts": {
         "backend": 13,
         "routes": 56,
-        "database": 6,
+        "database": 5,
         "events": 53,
         "web": 2,
         "mobile": 2,
@@ -6613,18 +6596,6 @@
           "score": 18
         },
         {
-          "value": "IF @ tests_v9/test_v201_season_records_static.py:41",
-          "score": 17
-        },
-        {
-          "value": "IF @ tests_v9/test_v201_season_records_static.py:43",
-          "score": 17
-        },
-        {
-          "value": "IF @ tests_v9/test_v201_season_records_static.py:82",
-          "score": 17
-        },
-        {
           "value": "fields @ services/scout-ingest-service/tests/test_season_live.py:68",
           "score": 17
         },
@@ -6647,10 +6618,6 @@
         {
           "value": "seasons @ docs/POST_DEPLOYMENT_ROADMAP.md:44",
           "score": 16
-        },
-        {
-          "value": "IF @ tests_v9/test_historical_season_bridge_static.py:38",
-          "score": 14
         },
         {
           "value": "activities @ migrations/v48_activity_season_fk_dlq.sql:10",
@@ -7740,7 +7707,7 @@
       "evidence_counts": {
         "backend": 30,
         "routes": 82,
-        "database": 86,
+        "database": 82,
         "events": 54,
         "web": 12,
         "mobile": 1,
@@ -13070,10 +13037,6 @@
       ],
       "database": [
         {
-          "value": "IF @ migrations/v75_work_orders.sql:12",
-          "score": 28
-        },
-        {
           "path": "migrations/v75_work_orders.sql",
           "score": 28,
           "signals": [
@@ -13177,7 +13140,7 @@
       "evidence_counts": {
         "backend": 3,
         "routes": 7,
-        "database": 7,
+        "database": 6,
         "events": 1,
         "web": 1,
         "mobile": 0,
@@ -14137,10 +14100,6 @@
           ]
         },
         {
-          "value": "IF @ tests_v9/test_v204_field_forms_static.py:29",
-          "score": 27
-        },
-        {
           "value": "field_submissions @ tests_v9/test_v204_field_forms_static.py:103",
           "score": 27
         }
@@ -14585,7 +14544,7 @@
       "evidence_counts": {
         "backend": 3,
         "routes": 12,
-        "database": 15,
+        "database": 14,
         "events": 10,
         "web": 0,
         "mobile": 12,
@@ -15444,10 +15403,6 @@
         {
           "value": "yield_map_records @ tests_v9/test_v215_yield_map_ingestion_static.py:18",
           "score": 48
-        },
-        {
-          "value": "IF @ tests_v9/test_platform_catalog_gate.py:89",
-          "score": 26
         }
       ],
       "events": [
@@ -15523,7 +15478,7 @@
       "evidence_counts": {
         "backend": 3,
         "routes": 3,
-        "database": 10,
+        "database": 9,
         "events": 2,
         "web": 0,
         "mobile": 0,
@@ -26171,14 +26126,6 @@
       "routes": [],
       "database": [
         {
-          "value": "IF @ services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py:38",
-          "score": 14
-        },
-        {
-          "value": "IF @ services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py:65",
-          "score": 12
-        },
-        {
           "value": "decision_outbox_events @ services/decision-service/migrations/001_decision_sor.sql:94",
           "score": 11
         },
@@ -26209,10 +26156,6 @@
             "path:decision sor",
             "content:system of record"
           ]
-        },
-        {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:231",
-          "score": 9
         }
       ],
       "events": [
@@ -26555,7 +26498,7 @@
       "evidence_counts": {
         "backend": 2,
         "routes": 0,
-        "database": 10,
+        "database": 7,
         "events": 47,
         "web": 0,
         "mobile": 0,
@@ -27191,10 +27134,6 @@
         {
           "value": "soil_reconciliation_checkpoints @ migrations/v157_soil_projection_jobs_reconciliation.sql:41",
           "score": 12
-        },
-        {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:231",
-          "score": 8
         }
       ],
       "events": [
@@ -27616,7 +27555,7 @@
       "evidence_counts": {
         "backend": 13,
         "routes": 91,
-        "database": 15,
+        "database": 14,
         "events": 36,
         "web": 1,
         "mobile": 0,
@@ -29112,10 +29051,6 @@
           "score": 18
         },
         {
-          "value": "IF @ migrations/v93_processed_events.sql:22",
-          "score": 9
-        },
-        {
           "path": "migrations/v93_processed_events.sql",
           "score": 9,
           "signals": [
@@ -29810,7 +29745,7 @@
       "evidence_counts": {
         "backend": 22,
         "routes": 51,
-        "database": 9,
+        "database": 8,
         "events": 56,
         "web": 9,
         "mobile": 0,
@@ -41145,6 +41080,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_capability_mapping_table_extraction.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_certification_regression_fixes.py",
       "kind": "tests"
     },
@@ -41162,6 +41101,10 @@
     },
     {
       "path": "tests_v9/test_command_store_behavior_v66.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_compensation_killswitch.py",
       "kind": "tests"
     },
     {
@@ -41710,6 +41653,10 @@
     },
     {
       "path": "tests_v9/test_manifest_registry_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_manual_command_killswitch_scope.py",
       "kind": "tests"
     },
     {

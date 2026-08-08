@@ -6792,6 +6792,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_capability_mapping_table_extraction.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_certification_regression_fixes.py",
     "kind": "tests"
   },
@@ -6809,6 +6813,10 @@
   },
   {
     "path": "tests_v9/test_command_store_behavior_v66.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_compensation_killswitch.py",
     "kind": "tests"
   },
   {
@@ -7357,6 +7365,10 @@
   },
   {
     "path": "tests_v9/test_manifest_registry_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_manual_command_killswitch_scope.py",
     "kind": "tests"
   },
   {
