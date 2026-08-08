@@ -20,6 +20,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 import uuid
@@ -76,7 +77,18 @@ def _psql(sql: str, *, role: str, database: str = "sahool", port: str | None = N
 
 
 def _live() -> bool:
-    rc, out, _ = _psql(f"select to_regclass('public.{_TABLE}')", role="sahool_user")
+    """يُستدعى **وقت الاستيراد** — فلا يجوز أن يرمي.
+
+    بلا فحص `which` يرمي `subprocess.run(["psql", ...])` خطأَ `FileNotFoundError`
+    على أيّ بيئة بلا عميل psql، فينهار **جمع** الملفّ: خطأُ تجميع لا تخطٍّ مُعلَن.
+    وانهيار الجمع يُقرأ عطلاً في الشريحة، ويُخفي بقيّة الملفّ معه.
+    """
+    if shutil.which("psql") is None:
+        return False
+    try:
+        rc, out, _ = _psql(f"select to_regclass('public.{_TABLE}')", role="sahool_user")
+    except OSError:
+        return False
     return rc == 0 and out == _TABLE
 
 
@@ -84,7 +96,7 @@ pytestmark.append(
     pytest.mark.skipif(
         not _live(),
         reason=(
-            "لا قاعدة حيّة تحمل الجدول — التخطّي مُعلَن ولا يُحسَب نجاحاً. "
+            "لا عميل psql أو لا قاعدة حيّة تحمل الجدول — التخطّي مُعلَن ولا يُحسَب نجاحاً. "
             "طبّق services/decision-service/migrations/031_eligibility_assessment.sql"
         ),
     )
@@ -263,3 +275,12 @@ def test_the_snapshot_table_gained_no_eligibility_column():
     columns = set(out.split(","))
     forbidden = {"policy_version", "eligibility", "eligibility_assessment_id", "decision_eligible"}
     assert not (columns & forbidden), f"جدول اللقطات اكتسب عمود أهليّة: {columns & forbidden}"
+
+
+def test_the_module_imports_even_without_a_psql_client(monkeypatch):
+    """غياب `psql` يجب أن يُنتِج **تخطّياً مُعلَناً** لا خطأ تجميع.
+
+    مُقاس بحجب `which` بدل الثقة في القراءة: بلا الحارس يرمي الاستيراد نفسه.
+    """
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    assert _live() is False

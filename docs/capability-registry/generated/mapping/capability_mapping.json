@@ -14,7 +14,7 @@
     "capabilities_total": 81,
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
-    "capabilities_multidimensional": 48,
+    "capabilities_multidimensional": 49,
     "files_scanned": 4936,
     "files_by_kind": {
       "backend": 1196,
@@ -105,7 +105,12 @@
         }
       ],
       "routes": [],
-      "database": [],
+      "database": [
+        {
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "score": 8
+        }
+      ],
       "events": [
         {
           "value": "crop_intelligence_state.v2 @ services/sahool-platform/tests/test_crop_decision_bridge.py:19",
@@ -190,7 +195,7 @@
       "evidence_counts": {
         "backend": 1,
         "routes": 0,
-        "database": 0,
+        "database": 1,
         "events": 2,
         "web": 0,
         "mobile": 0,
@@ -198,7 +203,7 @@
         "governance": 0,
         "other_evidence": 3
       },
-      "coverage_dimensions": 3,
+      "coverage_dimensions": 4,
       "mapped": true
     },
     {
@@ -2227,6 +2232,10 @@
           ]
         },
         {
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "score": 9
+        },
+        {
           "path": "migrations/v164_soil_p4_closed_loop.sql",
           "score": 8,
           "signals": [
@@ -2356,7 +2365,7 @@
       "evidence_counts": {
         "backend": 5,
         "routes": 94,
-        "database": 14,
+        "database": 15,
         "events": 4,
         "web": 0,
         "mobile": 0,
@@ -19568,6 +19577,14 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/gis-workflow-service/tests/test_bulletin_figure.py",
           "score": 12,
           "signals": [
@@ -20209,14 +20226,6 @@
         },
         {
           "path": "tests_v9/test_field_state_unification.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests_v9/test_fieldstate_water_canon.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -21296,6 +21305,14 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_bivariate_raster.py",
           "score": 12,
           "signals": [
@@ -21441,14 +21458,6 @@
         },
         {
           "path": "frontend/src/lib/layerComparePresets.test.ts",
-          "score": 8,
-          "signals": [
-            "content:NDMI",
-            "content:ndmi"
-          ]
-        },
-        {
-          "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
           "score": 8,
           "signals": [
             "content:NDMI",
@@ -26176,6 +26185,10 @@
             "path:decision sor",
             "content:system of record"
           ]
+        },
+        {
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "score": 9
         }
       ],
       "events": [
@@ -26518,7 +26531,7 @@
       "evidence_counts": {
         "backend": 2,
         "routes": 0,
-        "database": 9,
+        "database": 10,
         "events": 47,
         "web": 0,
         "mobile": 0,
@@ -27154,6 +27167,10 @@
         {
           "value": "soil_reconciliation_checkpoints @ migrations/v157_soil_projection_jobs_reconciliation.sql:41",
           "score": 12
+        },
+        {
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:209",
+          "score": 8
         }
       ],
       "events": [
@@ -27555,7 +27572,7 @@
       "evidence_counts": {
         "backend": 13,
         "routes": 91,
-        "database": 14,
+        "database": 15,
         "events": 35,
         "web": 1,
         "mobile": 0,
@@ -46851,7 +46868,7 @@
       "candidates": [
         {
           "capability_id": "SAT-004",
-          "score": 8,
+          "score": 12,
           "signals": [
             "content:NDMI",
             "content:ndmi"
@@ -46859,7 +46876,7 @@
         },
         {
           "capability_id": "SAT-003",
-          "score": 8,
+          "score": 12,
           "signals": [
             "content:NDVI",
             "content:ndvi"

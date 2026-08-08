@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 527,
+      "evidence_count": 529,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -106,6 +106,7 @@
         "services/decision-service/activation_gate.py",
         "services/decision-service/activation_gate_core.py",
         "services/decision-service/backfill.py",
+        "services/decision-service/eligibility_policy.py",
         "services/decision-service/main.py",
         "services/decision-service/migrations/001_decision_sor.sql",
         "services/decision-service/migrations/002_decision_review.sql",
@@ -135,6 +136,7 @@
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_agronomic_model_lifecycle_lineage.py",
         "services/decision-service/tests/test_decision_evidence_read.py",
+        "services/decision-service/tests/test_eligibility_assessment_policy.py",
         "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
         "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
         "services/decision-service/tests/test_no_leakage_certification.py",
@@ -2258,7 +2260,7 @@
         "services/sahool-platform/core/decision_playbook.py",
         "services/sahool-platform/core/evidence_graph.py"
       ],
-      "source_evidence_count": 527,
+      "source_evidence_count": 529,
       "target_evidence_count": 465,
       "static_supported": true,
       "runtime_verified": false
@@ -2611,5 +2613,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "1fd1af58b2e9a726bcf057640d9500249ea29aa1ff457279c319d856ed14efdb"
+  "content_sha256": "fffb3c9097a95981e427e4e23801e88123a46b9f59c649e1699e3cc02b3346f0"
 }
