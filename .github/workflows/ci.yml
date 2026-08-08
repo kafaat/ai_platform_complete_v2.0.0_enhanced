@@ -751,7 +751,7 @@ jobs:
           while read -r f; do
             case "$f" in ''|\#*) continue;; esac
             psql -h localhost -p 5433 -U sahool_test -d sahool_test -v ON_ERROR_STOP=1 -f "migrations/$f"
-          done < <(grep -vE '^\s*#|^\s*$' migrations/MANIFEST.txt)
+          done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
       - env:
           TEST_DATABASE_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_REDIS_URL: redis://localhost:6380/0
