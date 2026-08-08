@@ -194,15 +194,35 @@ def test_the_output_is_independent_of_timezone_and_locale(tmp_path):
 
 
 @pytest.mark.slow
-def test_the_stamp_follows_the_source_epoch_not_the_run(tmp_path):
-    """تكذيب مباشر: تغيير `SOURCE_DATE_EPOCH` وحده يجب أن يُغيّر الختم — لا شيء غيره."""
-    a = json.loads(_build({"SOURCE_DATE_EPOCH": "1700000000"}, tmp_path / "a").decode("utf-8"))
-    b = json.loads(_build({"SOURCE_DATE_EPOCH": "1600000000"}, tmp_path / "b").decode("utf-8"))
-    assert a["generated_at"] == "2023-11-14T22:13:20Z"
-    assert b["generated_at"] == "2020-09-13T12:26:40Z"
-    assert {k: v for k, v in a.items() if k != "generated_at"} == {
-        k: v for k, v in b.items() if k != "generated_at"
-    }, "لا شيء سوى الختم يتبع الزمن"
+def test_the_manifest_carries_no_timestamp_at_all(tmp_path):
+    """`RELEASE-MANIFEST-SELF-REGENERATION-01`: البيان بلا زمنٍ إطلاقاً.
+
+    **ولم يكن الختم ساعة حائط عند حذفه.** كان يُشتقّ من آخر التزام مسّ الحمولة،
+    وحتميّاً عند رأسٍ ثابت. العيب أضيق: البيان يُولَّد **قبل** الالتزام الذي يحمله،
+    فبعد التزامه يصير ذلك الالتزام «آخر تعديل للحمولة» وتكتب إعادةُ التوليد زمنه
+    الجديد ⇒ المصنوعة **لا تطابق إعادة توليدها على التزامها نفسه** إلّا بدورة ذاتيّة.
+
+    والحذف هو العلاج لا الاستثناء: الحقل بلا مستهلِك، ولا يمثّل وقت البناء الحقيقيّ
+    أصلاً. ووقتُ البناء الفعليّ يذهب إلى `attested_at` **خارج** المصنوعة المُلتزَمة.
+    """
+    manifest = json.loads(_build({"SOURCE_DATE_EPOCH": "1700000000"}, tmp_path / "a").decode())
+    assert "generated_at" not in manifest, "عاد الختم إلى مصنوعة تُلتزَم"
+    assert not [k for k in manifest if "generated" in k or "_at" in k], (
+        f"حقلٌ زمنيّ في البيان المُلتزَم: {sorted(manifest)}"
+    )
+
+
+@pytest.mark.slow
+def test_the_manifest_is_byte_identical_under_any_source_epoch(tmp_path):
+    """الخاصّيّة صارت **أقوى**: لا شيء في البيان يتبع الزمن، فلا متغيّر يُحرّكه.
+
+    قبلها كان التأكيد «الختم وحده يتبع `SOURCE_DATE_EPOCH`»؛ والآن **البايتات كلّها
+    ثابتة** مهما اختلف المتغيّر — وهي الخاصّيّة التي يفحصها شرط «الشجرة نظيفة بعد
+    إعادة البناء» مباشرةً.
+    """
+    a = _build({"SOURCE_DATE_EPOCH": "1700000000"}, tmp_path / "a")
+    b = _build({"SOURCE_DATE_EPOCH": "1600000000"}, tmp_path / "b")
+    assert hashlib.sha256(a).hexdigest() == hashlib.sha256(b).hexdigest()
 
 
 # ────────────────── الحقول التي تُصنَع الآلة لا المصدر ──────────────────
@@ -249,15 +269,26 @@ def test_no_committed_generated_artifact_carries_a_wall_clock_stamp():
     assert not offenders, "مصنوعات تحمل ختم ساعة الحائط: " + " · ".join(offenders)
 
 
-def test_both_known_stamped_generators_route_through_the_contract():
-    """الحارسان المُصلَحان يستعملان العقد — مُتحقَّق على المصدر لا على المخرَج."""
-    for script in (
-        _ROOT / "scripts" / "release" / "build_release_bundle.py",
-        _CI / "runtime_environment_preflight.py",
-    ):
-        src = _executable_source(script)
-        assert "generated_at_utc" in src, f"{script.name} لا يمرّ بالعقد"
-        assert "datetime.now(" not in src, f"{script.name} ما زال يقرأ ساعة الحائط"
+def test_a_generator_that_still_stamps_routes_through_the_contract():
+    """المولّد الذي **ما زال يختم** يمرّ بالعقد — مُتحقَّق على المصدر لا على المخرَج."""
+    src = _executable_source(_CI / "runtime_environment_preflight.py")
+    assert "generated_at_utc" in src, "runtime_environment_preflight لا يمرّ بالعقد"
+    assert "datetime.now(" not in src, "runtime_environment_preflight يقرأ ساعة الحائط"
+
+
+def test_the_release_manifest_generator_stamps_nothing_at_all():
+    """`build_release_bundle` خرج من العقد **بحذف الختم** لا بالالتفاف عليه.
+
+    كان يمرّ بالعقد صحيحاً؛ ثمّ حُذِف `generated_at` في
+    `RELEASE-MANIFEST-SELF-REGENERATION-01` لأنّ البيان يُولَّد **قبل** الالتزام الذي
+    يحمله، فلا يطابق إعادة توليده على التزامه نفسه.
+
+    فالتأكيد هنا **أقوى** من «يمرّ بالعقد»: لا ختمٌ أصلاً، ولا ساعةَ حائط — ولو عاد
+    أحدهما لَعاد العطل، وهذا الاختبار هو ما يمنع عودته صامتةً.
+    """
+    src = _executable_source(_ROOT / "scripts" / "release" / "build_release_bundle.py")
+    assert "datetime.now(" not in src, "عادت ساعة الحائط إلى مولّد البيان"
+    assert "generated_at_utc(" not in src, "عاد الختم إلى مصنوعة تُلتزَم"
 
 
 # ══════════════ الاختبار الذي كان غائباً فأفلت العطل ══════════════
