@@ -6812,6 +6812,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_compensation_killswitch.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_compose_env_bypass_guard.py",
     "kind": "tests"
   },
@@ -7353,6 +7357,10 @@
   },
   {
     "path": "tests_v9/test_manifest_registry_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_manual_command_killswitch_scope.py",
     "kind": "tests"
   },
   {
