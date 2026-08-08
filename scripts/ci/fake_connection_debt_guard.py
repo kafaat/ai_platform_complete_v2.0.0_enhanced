@@ -116,9 +116,10 @@ def _proof_covers(rel: str, entry: dict, claims: list[str]) -> list[str]:
     """
     bad: list[str] = []
     proof = entry.get("proof", "")
-    if not (proof and (ROOT / proof).is_file()):
+    proof_path = (ROOT / proof).resolve() if proof else None
+    if not (proof_path and proof_path.is_relative_to(ROOT) and proof_path.is_file()):
         bad.append(f"✗ {rel} — `proof` لا يُسمّي ملفّاً قائماً: {proof or '—'}")
-    elif rel not in (ROOT / proof).read_text(encoding="utf-8", errors="ignore"):
+    elif rel not in proof_path.read_text(encoding="utf-8", errors="ignore"):  # type: ignore[union-attr]
         bad.append(
             f"✗ {rel} — ملفّ الإثبات `{proof}` لا يذكره. الربط يُقاس ولا يُدَّعى: "
             "مدخلٌ يشير إلى إثباتٍ لا يعرف مصدره يُسدّد ديناً لم يُقَس."
