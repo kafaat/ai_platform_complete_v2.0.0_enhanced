@@ -101,11 +101,13 @@ def actuator(monkeypatch):
     mod = importlib.util.module_from_spec(spec)
     sys.modules["actuator_runtime"] = mod
     assert spec.loader is not None
-    spec.loader.exec_module(mod)
-    yield mod
-    sys.modules.pop("actuator_runtime", None)
-    for name in stubbed:
-        sys.modules.pop(name, None)
+    try:
+        spec.loader.exec_module(mod)
+        yield mod
+    finally:
+        sys.modules.pop("actuator_runtime", None)
+        for name in stubbed:
+            sys.modules.pop(name, None)
 
 
 @pytest.fixture
