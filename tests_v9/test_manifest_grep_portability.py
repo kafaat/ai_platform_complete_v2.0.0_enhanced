@@ -40,8 +40,9 @@ _MANIFEST_GREP = re.compile(r"grep\s+-[a-zA-Z]*E\s+'([^']+)'\s+migrations/MANIFE
 #: يعني أنّ هذا الملفّ يفحص بعضاً ويُبلِّغ عن كلّ.
 _ANY_MANIFEST_GREP = re.compile(r"grep\b[^\n]*migrations/MANIFEST\.txt")
 
-#: مختصرات فئات المحارف في GNU ERE. غيابها من POSIX هو العطل.
-_GNU_ONLY = ("\\s", "\\S", "\\d", "\\D", "\\w", "\\W")
+#: مختصرات فئات محارف **ليست من POSIX ERE**. الاسم يقول ما يُثبَت: خارجَ POSIX،
+#: لا «GNU وحدها» — فبعض التطبيقات تدعمها وبعضها لا، وذلك بالضبط ما لا يُعتمَد عليه.
+_NON_POSIX_SHORTHAND = ("\\s", "\\S", "\\d", "\\D", "\\w", "\\W")
 
 
 def _workflow_text() -> str:
@@ -78,7 +79,7 @@ def test_the_extraction_covers_every_manifest_grep():
 
 
 @pytest.mark.parametrize("pattern", _patterns())
-def test_no_manifest_pattern_uses_gnu_only_shorthand(pattern):
+def test_no_manifest_pattern_uses_non_posix_shorthand(pattern):
     """مَنعٌ يُسمّي سببه — عقد `prohibition_reason_guard`.
 
     ولا يمكن قياس هذا سلوكيّاً هنا: `grep` في هذه البيئة **هو** GNU، فالنمطان
@@ -86,7 +87,7 @@ def test_no_manifest_pattern_uses_gnu_only_shorthand(pattern):
     ولا مُفسِّر آخر في الشجرة يُقاس عليه. فالتأكيد نصّيّ **بالضرورة**، وسببه مكتوب
     في رسالته لا في مراجعة.
     """
-    for shorthand in _GNU_ONLY:
+    for shorthand in _NON_POSIX_SHORTHAND:
         assert shorthand not in pattern, (
             f"‏`{shorthand}` ليس من POSIX ERE، وتفسيرُه خارج امتدادات التطبيق "
             f"**غير محدَّد** — فقد يختلف بين GNU وBusyBox وBSD ولا يُعتمَد عليه. "
