@@ -19,8 +19,11 @@ _SCRIPT = ROOT / "scripts" / "ci" / "snapshot_eligibility_separation_guard.py"
 
 def _load():
     spec = importlib.util.spec_from_file_location("snapshot_eligibility_separation_guard", _SCRIPT)
+    #: **قبل `module_from_spec` لا بعده** — والاثنان معاً. `spec` نفسه يكون `None` لمسارٍ
+    #: غير قابل للتحميل، فيرمي `module_from_spec` خطأً خاماً عن `None` قبل أن يبلغ
+    #: التأكيد على `loader`. أي أنّ الترتيب السابق كان يحرس ما لا يُبلَغ.
+    assert spec is not None and spec.loader is not None, f"تعذّر تحميل {_SCRIPT} — صحّح المسار"
     module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
 

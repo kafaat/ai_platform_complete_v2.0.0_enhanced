@@ -95,13 +95,18 @@ def actuator(monkeypatch):
     monkeypatch.syspath_prepend(str(SERVICE))
     monkeypatch.syspath_prepend(str(ROOT))
     sys.modules.pop("actuator_runtime", None)
-    spec = importlib.util.spec_from_file_location(
-        "actuator_runtime", SERVICE / "actuator_runtime.py"
-    )
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules["actuator_runtime"] = mod
-    assert spec.loader is not None
+    #: **التأكيد داخل `try` لا قبله** — الأكعاب حُقِنت أعلاه، فخروجٌ من هنا بلا تنظيف
+    #: يُسرِّبها إلى بقيّة الجناح. و`spec` نفسه يكون `None` لمسارٍ غير قابل للتحميل،
+    #: فيرمي `module_from_spec` خطأً خاماً عن `None` بدل رسالةٍ تقول أين الخلل.
     try:
+        spec = importlib.util.spec_from_file_location(
+            "actuator_runtime", SERVICE / "actuator_runtime.py"
+        )
+        assert spec is not None and spec.loader is not None, (
+            f"تعذّر تحميل {SERVICE / 'actuator_runtime.py'} — صحّح المسار لا الاختبار"
+        )
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["actuator_runtime"] = mod
         spec.loader.exec_module(mod)
         yield mod
     finally:

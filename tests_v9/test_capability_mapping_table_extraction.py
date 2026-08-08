@@ -29,6 +29,10 @@ _ENGINE = Path(__file__).resolve().parents[1] / "scripts" / "ci" / "capability_m
 
 def _engine():
     spec = importlib.util.spec_from_file_location("capability_mapping_engine", _ENGINE)
+    #: **قبل `module_from_spec` لا بعده.** `spec_from_file_location` يُرجِع `None` لمسارٍ
+    #: غير قابل للتحميل — ملفٌّ نُقِل أو أُعيدت تسميته — فيرمي `module_from_spec` خطأً
+    #: خاماً عن `None`، ويُقرأ خطأً برمجيّاً في الاختبار بدل «الملفّ ليس هناك».
+    assert spec is not None and spec.loader is not None, f"تعذّر تحميل {_ENGINE} — صحّح المسار"
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -214,3 +218,95 @@ def test_the_guard_runbook_yields_no_keyword_or_qualifier_named_table():
         and item["value"].split(" @ ")[0].lower() in banned
     ]
     assert offenders == [], "كلمةٌ مفتاحيّة أو مُؤهِّل يُسمَّى جدولاً في الرَّنبوك: " + " · ".join(offenders)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# عقد المؤقّت والدائم — بُعد `database` يقيس **العلاقات الدائمة**
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "text,label",
+    [
+        ("CREATE TEMP TABLE staging (id int);", "`TEMP`"),
+        ("CREATE TEMPORARY TABLE staging (id int);", "`TEMPORARY`"),
+        ("CREATE GLOBAL TEMP TABLE staging (id int);", "`GLOBAL TEMP`"),
+        ("CREATE GLOBAL TEMPORARY TABLE staging (id int);", "`GLOBAL TEMPORARY`"),
+        ("CREATE LOCAL TEMP TABLE staging (id int);", "`LOCAL TEMP`"),
+        ("CREATE LOCAL TEMPORARY TABLE staging (id int);", "`LOCAL TEMPORARY`"),
+        ("create temp table if not exists staging (id int);", "`TEMP` مع `IF NOT EXISTS`"),
+    ],
+)
+def test_a_temporary_table_is_never_a_database_relation(text, label):
+    """**استبعاد المؤقّت عقدٌ الآن، وكان أثراً جانبيّاً.**
+
+    بُعد `database` يُقرأ على أنّه «العلاقات التي تعيش في هذه المنصّة». والجدول المؤقّت
+    يعيش داخل جلسةٍ واحدة، في مخطَّط `pg_temp_N`، ويختفي بانتهائها — فلا ملكيّة ولا
+    هجرة ولا نَسَب أدلّة. إحصاؤه يرفع بُعد تغطية قدرةٍ على علاقةٍ لا توجد بعد `COMMIT`.
+
+    **وهذا التأكيد كان يمرّ قبل الإصلاح — بالمصادفة لا بالعقد.** النمط السابق طلب
+    `TABLE` **مباشرةً** بعد `CREATE`، فسقط كلّ ما بينهما مُعدِّلٌ أيّاً كان: المؤقّت
+    والدائم معاً. أي أنّ الصمت عن `TEMP` كان الوجه الآخر للعمى عن `UNLOGGED`، لا حكماً
+    عليه. فيوم يُدعَم أيّ مُعدِّل — وقد دُعِم `UNLOGGED` في هذه الشريحة نفسها — يعود
+    المؤقّت مع الدائم **صامتاً**. هذا التأكيد هو ما يمنع ذلك: يحمرّ إن اتّسع المُعدِّل
+    ليبتلع `TEMP`.
+    """
+    assert _tables(text) == [], label
+
+
+@pytest.mark.parametrize(
+    "text,expected,label",
+    [
+        ("CREATE UNLOGGED TABLE fast_cache (id int);", "fast_cache", "الصيغة العارية"),
+        (
+            "CREATE UNLOGGED TABLE IF NOT EXISTS fast_cache (id int);",
+            "fast_cache",
+            "مع `IF NOT EXISTS`",
+        ),
+        (
+            "create unlogged table public.fast_cache (id int);",
+            "fast_cache",
+            "مع بادئة المخطَّط",
+        ),
+    ],
+)
+def test_an_unlogged_table_is_a_permanent_relation(text, expected, label):
+    """**`UNLOGGED` دائم — وكان يسقط: عمًى مقيس لا افتراضيّ.**
+
+    الجدول غير المُسجَّل يفقد **بياناته** عند انهيارٍ غير نظيف، لكنّ **تعريفه** في
+    الكتالوج: له مالك وقيود وفهارس وهجرة تُنشئه، ويبقى بعد إعادة التشغيل جدولاً فارغاً
+    لا معدوماً. فهو علاقةٌ دائمة بكلّ ما يعنيه بُعد `database`، ومع ذلك كان النمط
+    السابق يُعطي `[]` عليه — **مقيس على `68cc8cfb7` قبل هذه الشريحة**.
+
+    وهذا هو الشقّ الموجب من العقد: التأكيد الأوّل يمنع دخول المؤقّت، وهذا يمنع أن
+    يُشترى ذلك المنع بإسقاط الدائم.
+    """
+    assert _tables(text) == [expected], label
+
+
+@pytest.mark.parametrize(
+    "text,label",
+    [
+        ("CREATE FOREIGN TABLE films_remote (id int) SERVER f;", "جدول أجنبيّ"),
+        ("CREATE MATERIALIZED VIEW ndvi_daily AS SELECT 1;", "مشهد مُجسَّد"),
+        ("SELECT * INTO archived_orders FROM orders;", "‏`SELECT … INTO`"),
+        ("CREATE SEQUENCE order_seq;", "متتالية"),
+    ],
+)
+def test_the_declared_out_of_scope_forms_are_silent(text, label):
+    """**حدّ النطاق مقيس ومُثبَّت — والصمت ليس حكماً بالغياب.**
+
+    نطاق هذا الماسح **الجداول المحلّيّة الدائمة** المُعلَنة بـ`CREATE TABLE` أو
+    `ALTER TABLE`. وما دونها لا يراه: الجداول الأجنبيّة · المشاهد المُجسَّدة ·
+    `SELECT … INTO` · المتتاليات. فخلوّ بُعد `database` من علاقةٍ **لا يُثبِت أنّها غير
+    موجودة**؛ يُثبِت أنّها ليست من الصنف الذي يُسأل عنه.
+
+    **ولماذا يُثبَّت الحدّ باختبارٍ لا بفقرةٍ وحدها:** لأنّ الفقرة لا تحمرّ. وتوسيعُ
+    النطاق يوماً عملٌ مشروع — لكنّه يجب أن يكون **قراراً**: يحمرّ هذا التأكيد فتُحدَّث
+    قائمتُه وتُحدَّث معها فقرة النطاق في `capability_mapping_engine.py`، بدل أن يتّسع
+    الرقم الحوكميّ بلا من يلاحظ أنّ معناه تغيّر.
+    """
+    assert _tables(text) == [], (
+        f"{label}: إن كان التوسيع مقصوداً فحدِّث هذه القائمة **وفقرة النطاق** في "
+        "scripts/ci/capability_mapping_engine.py — لا هذه وحدها"
+    )

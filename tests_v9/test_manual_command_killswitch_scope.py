@@ -49,8 +49,12 @@ SERVICE = ROOT / "services" / "actuator-service"
 _KS_SPEC = importlib.util.spec_from_file_location(
     "actuation_killswitch_scope", ROOT / "shared" / "actuation_killswitch.py"
 )
+#: **قبل `module_from_spec` لا بعده** — والاثنان معاً: `spec` نفسه يكون `None` لمسارٍ غير
+#: قابل للتحميل، فيرمي `module_from_spec` خطأً خاماً عن `None` قبل بلوغ تأكيد `loader`.
+assert _KS_SPEC is not None and _KS_SPEC.loader is not None, (
+    "تعذّر تحميل shared/actuation_killswitch.py — صحّح المسار لا الاختبار"
+)
 ks = importlib.util.module_from_spec(_KS_SPEC)
-assert _KS_SPEC.loader is not None
 _KS_SPEC.loader.exec_module(ks)
 
 _FIELD_SWITCH = [
@@ -129,13 +133,18 @@ def actuator(monkeypatch):
     monkeypatch.syspath_prepend(str(SERVICE))
     monkeypatch.syspath_prepend(str(ROOT))
     sys.modules.pop("actuator_runtime", None)
-    spec = importlib.util.spec_from_file_location(
-        "actuator_runtime", SERVICE / "actuator_runtime.py"
-    )
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules["actuator_runtime"] = mod
-    assert spec.loader is not None
+    #: **التأكيد داخل `try` لا قبله.** الأكعاب حُقِنت في `sys.modules` أعلاه بالفعل؛
+    #: فتأكيدٌ يفشل خارج `try` يترك تسرّبها — وهو **العطل نفسه** الذي يُكذِّبه
+    #: `test_a_failed_load_does_not_leave_stubs_behind`. وكلّ خروجٍ من هنا ينظّف.
     try:
+        spec = importlib.util.spec_from_file_location(
+            "actuator_runtime", SERVICE / "actuator_runtime.py"
+        )
+        assert spec is not None and spec.loader is not None, (
+            f"تعذّر تحميل {SERVICE / 'actuator_runtime.py'} — صحّح المسار لا الاختبار"
+        )
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["actuator_runtime"] = mod
         spec.loader.exec_module(mod)
         yield mod
     finally:
