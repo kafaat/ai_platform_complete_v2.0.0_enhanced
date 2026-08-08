@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4942,
+    "files_scanned": 4945,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
       "other": 1308,
-      "tests": 1604,
+      "tests": 1607,
       "web": 451
     },
-    "unmapped_artifacts": 2012,
+    "unmapped_artifacts": 2015,
     "ambiguous_artifacts": 403
   },
   "capabilities": [
@@ -1606,10 +1606,6 @@
       ],
       "database": [
         {
-          "value": "IF @ migrations/v79_outcome_record.sql:16",
-          "score": 18
-        },
-        {
           "path": "migrations/v79_outcome_record.sql",
           "score": 18,
           "signals": [
@@ -1736,7 +1732,7 @@
       "evidence_counts": {
         "backend": 3,
         "routes": 6,
-        "database": 5,
+        "database": 4,
         "events": 3,
         "web": 1,
         "mobile": 0,
@@ -2219,10 +2215,6 @@
           ]
         },
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:240",
-          "score": 9
-        },
-        {
           "path": "migrations/v164_soil_p4_closed_loop.sql",
           "score": 8,
           "signals": [
@@ -2352,7 +2344,7 @@
       "evidence_counts": {
         "backend": 5,
         "routes": 94,
-        "database": 15,
+        "database": 14,
         "events": 4,
         "web": 0,
         "mobile": 0,
@@ -5495,10 +5487,6 @@
       ],
       "database": [
         {
-          "value": "IF @ migrations/v58_field_boundary_quality.sql:9",
-          "score": 14
-        },
-        {
           "value": "field_boundaries @ migrations/v58_field_boundary_quality.sql:16",
           "score": 14
         },
@@ -5975,7 +5963,7 @@
       "evidence_counts": {
         "backend": 13,
         "routes": 56,
-        "database": 6,
+        "database": 5,
         "events": 53,
         "web": 2,
         "mobile": 2,
@@ -6600,18 +6588,6 @@
           "score": 18
         },
         {
-          "value": "IF @ tests_v9/test_v201_season_records_static.py:41",
-          "score": 17
-        },
-        {
-          "value": "IF @ tests_v9/test_v201_season_records_static.py:43",
-          "score": 17
-        },
-        {
-          "value": "IF @ tests_v9/test_v201_season_records_static.py:82",
-          "score": 17
-        },
-        {
           "value": "fields @ services/scout-ingest-service/tests/test_season_live.py:68",
           "score": 17
         },
@@ -6634,10 +6610,6 @@
         {
           "value": "seasons @ docs/POST_DEPLOYMENT_ROADMAP.md:44",
           "score": 16
-        },
-        {
-          "value": "IF @ tests_v9/test_historical_season_bridge_static.py:38",
-          "score": 14
         },
         {
           "value": "activities @ migrations/v48_activity_season_fk_dlq.sql:10",
@@ -7727,7 +7699,7 @@
       "evidence_counts": {
         "backend": 30,
         "routes": 82,
-        "database": 86,
+        "database": 82,
         "events": 54,
         "web": 12,
         "mobile": 1,
@@ -13057,10 +13029,6 @@
       ],
       "database": [
         {
-          "value": "IF @ migrations/v75_work_orders.sql:12",
-          "score": 28
-        },
-        {
           "path": "migrations/v75_work_orders.sql",
           "score": 28,
           "signals": [
@@ -13164,7 +13132,7 @@
       "evidence_counts": {
         "backend": 3,
         "routes": 7,
-        "database": 7,
+        "database": 6,
         "events": 1,
         "web": 1,
         "mobile": 0,
@@ -14124,10 +14092,6 @@
           ]
         },
         {
-          "value": "IF @ tests_v9/test_v204_field_forms_static.py:29",
-          "score": 27
-        },
-        {
           "value": "field_submissions @ tests_v9/test_v204_field_forms_static.py:103",
           "score": 27
         }
@@ -14572,7 +14536,7 @@
       "evidence_counts": {
         "backend": 3,
         "routes": 12,
-        "database": 15,
+        "database": 14,
         "events": 10,
         "web": 0,
         "mobile": 12,
@@ -15431,10 +15395,6 @@
         {
           "value": "yield_map_records @ tests_v9/test_v215_yield_map_ingestion_static.py:18",
           "score": 48
-        },
-        {
-          "value": "IF @ tests_v9/test_platform_catalog_gate.py:89",
-          "score": 26
         }
       ],
       "events": [
@@ -15510,7 +15470,7 @@
       "evidence_counts": {
         "backend": 3,
         "routes": 3,
-        "database": 10,
+        "database": 9,
         "events": 2,
         "web": 0,
         "mobile": 0,
@@ -23919,7 +23879,7 @@
           "score": 10
         },
         {
-          "value": "decision_lineage_v183_guard.py @ docs/architecture/guard_mutation_registry.json:537",
+          "value": "decision_lineage_v183_guard.py @ docs/architecture/guard_mutation_registry.json:561",
           "score": 9
         },
         {
@@ -23927,11 +23887,11 @@
           "score": 9
         },
         {
-          "value": "irrigation_as_applied_m2_11_guard.py @ docs/architecture/guard_mutation_registry.json:551",
+          "value": "irrigation_as_applied_m2_11_guard.py @ docs/architecture/guard_mutation_registry.json:575",
           "score": 9
         },
         {
-          "value": "irrigation_capability_graph_m2_8_guard.py @ docs/architecture/guard_mutation_registry.json:552",
+          "value": "irrigation_capability_graph_m2_8_guard.py @ docs/architecture/guard_mutation_registry.json:576",
           "score": 9
         },
         {
@@ -23939,23 +23899,23 @@
           "score": 9
         },
         {
-          "value": "irrigation_closed_loop_m5_guard.py @ docs/architecture/guard_mutation_registry.json:553",
+          "value": "irrigation_closed_loop_m5_guard.py @ docs/architecture/guard_mutation_registry.json:577",
           "score": 9
         },
         {
-          "value": "irrigation_closed_loop_runtime_guard.py @ docs/architecture/guard_mutation_registry.json:554",
+          "value": "irrigation_closed_loop_runtime_guard.py @ docs/architecture/guard_mutation_registry.json:578",
           "score": 9
         },
         {
-          "value": "irrigation_commissioning_m2_10_guard.py @ docs/architecture/guard_mutation_registry.json:555",
+          "value": "irrigation_commissioning_m2_10_guard.py @ docs/architecture/guard_mutation_registry.json:579",
           "score": 9
         },
         {
-          "value": "irrigation_controller_edge_m2_9_guard.py @ docs/architecture/guard_mutation_registry.json:556",
+          "value": "irrigation_controller_edge_m2_9_guard.py @ docs/architecture/guard_mutation_registry.json:580",
           "score": 9
         },
         {
-          "value": "irrigation_convergence_guard.py @ docs/architecture/guard_mutation_registry.json:557",
+          "value": "irrigation_convergence_guard.py @ docs/architecture/guard_mutation_registry.json:581",
           "score": 9
         },
         {
@@ -23963,63 +23923,63 @@
           "score": 9
         },
         {
-          "value": "irrigation_energy_m2_7_guard.py @ docs/architecture/guard_mutation_registry.json:558",
+          "value": "irrigation_energy_m2_7_guard.py @ docs/architecture/guard_mutation_registry.json:582",
           "score": 9
         },
         {
-          "value": "irrigation_engineering_m2_1_guard.py @ docs/architecture/guard_mutation_registry.json:559",
+          "value": "irrigation_engineering_m2_1_guard.py @ docs/architecture/guard_mutation_registry.json:583",
           "score": 9
         },
         {
-          "value": "irrigation_hourly_mpc_m3_guard.py @ docs/architecture/guard_mutation_registry.json:560",
+          "value": "irrigation_hourly_mpc_m3_guard.py @ docs/architecture/guard_mutation_registry.json:584",
           "score": 9
         },
         {
-          "value": "irrigation_hydraulic_m2_4_guard.py @ docs/architecture/guard_mutation_registry.json:561",
+          "value": "irrigation_hydraulic_m2_4_guard.py @ docs/architecture/guard_mutation_registry.json:585",
           "score": 9
         },
         {
-          "value": "irrigation_machine_m2_5_guard.py @ docs/architecture/guard_mutation_registry.json:562",
+          "value": "irrigation_machine_m2_5_guard.py @ docs/architecture/guard_mutation_registry.json:586",
           "score": 9
         },
         {
-          "value": "irrigation_rls_canonical_guard.py @ docs/architecture/guard_mutation_registry.json:563",
+          "value": "irrigation_rls_canonical_guard.py @ docs/architecture/guard_mutation_registry.json:587",
           "score": 9
         },
         {
-          "value": "irrigation_root_zone_m2_2_guard.py @ docs/architecture/guard_mutation_registry.json:564",
+          "value": "irrigation_root_zone_m2_2_guard.py @ docs/architecture/guard_mutation_registry.json:588",
           "score": 9
         },
         {
-          "value": "irrigation_runtime_orchestrator_guard.py @ docs/architecture/guard_mutation_registry.json:565",
+          "value": "irrigation_runtime_orchestrator_guard.py @ docs/architecture/guard_mutation_registry.json:589",
           "score": 9
         },
         {
-          "value": "irrigation_sprinkler_m2_6_guard.py @ docs/architecture/guard_mutation_registry.json:566",
+          "value": "irrigation_sprinkler_m2_6_guard.py @ docs/architecture/guard_mutation_registry.json:590",
           "score": 9
         },
         {
-          "value": "irrigation_vri_m4_guard.py @ docs/architecture/guard_mutation_registry.json:567",
+          "value": "irrigation_vri_m4_guard.py @ docs/architecture/guard_mutation_registry.json:591",
           "score": 9
         },
         {
-          "value": "irrigation_well_digital_twin_m2_3_guard.py @ docs/architecture/guard_mutation_registry.json:568",
+          "value": "irrigation_well_digital_twin_m2_3_guard.py @ docs/architecture/guard_mutation_registry.json:592",
           "score": 9
         },
         {
-          "value": "irrx1_manual_execution_guard.py @ docs/architecture/guard_mutation_registry.json:576",
+          "value": "irrx1_manual_execution_guard.py @ docs/architecture/guard_mutation_registry.json:600",
           "score": 9
         },
         {
-          "value": "nginx_weather_edge_path_guard.py @ docs/architecture/guard_mutation_registry.json:584",
+          "value": "nginx_weather_edge_path_guard.py @ docs/architecture/guard_mutation_registry.json:608",
           "score": 9
         },
         {
-          "value": "raw_weather_processing_contract_guard.py @ docs/architecture/guard_mutation_registry.json:604",
+          "value": "raw_weather_processing_contract_guard.py @ docs/architecture/guard_mutation_registry.json:628",
           "score": 9
         },
         {
-          "value": "sahool.guard-mutation-registry.v1 @ docs/architecture/guard_mutation_registry.json:521",
+          "value": "sahool.guard-mutation-registry.v1 @ docs/architecture/guard_mutation_registry.json:545",
           "score": 9
         },
         {
@@ -24027,63 +23987,63 @@
           "score": 9
         },
         {
-          "value": "soil_canonical_store_guard.py @ docs/architecture/guard_mutation_registry.json:617",
+          "value": "soil_canonical_store_guard.py @ docs/architecture/guard_mutation_registry.json:641",
           "score": 9
         },
         {
-          "value": "soil_full_chain_guard.py @ docs/architecture/guard_mutation_registry.json:618",
+          "value": "soil_full_chain_guard.py @ docs/architecture/guard_mutation_registry.json:642",
           "score": 9
         },
         {
-          "value": "soil_lab_projection_guard.py @ docs/architecture/guard_mutation_registry.json:619",
+          "value": "soil_lab_projection_guard.py @ docs/architecture/guard_mutation_registry.json:643",
           "score": 9
         },
         {
-          "value": "soil_lab_supersession_lineage_guard.py @ docs/architecture/guard_mutation_registry.json:620",
+          "value": "soil_lab_supersession_lineage_guard.py @ docs/architecture/guard_mutation_registry.json:644",
           "score": 9
         },
         {
-          "value": "soil_p1_products_guard.py @ docs/architecture/guard_mutation_registry.json:621",
+          "value": "soil_p1_products_guard.py @ docs/architecture/guard_mutation_registry.json:645",
           "score": 9
         },
         {
-          "value": "soil_p2_products_guard.py @ docs/architecture/guard_mutation_registry.json:622",
+          "value": "soil_p2_products_guard.py @ docs/architecture/guard_mutation_registry.json:646",
           "score": 9
         },
         {
-          "value": "soil_p3_products_guard.py @ docs/architecture/guard_mutation_registry.json:623",
+          "value": "soil_p3_products_guard.py @ docs/architecture/guard_mutation_registry.json:647",
           "score": 9
         },
         {
-          "value": "soil_p4_closed_loop_guard.py @ docs/architecture/guard_mutation_registry.json:624",
+          "value": "soil_p4_closed_loop_guard.py @ docs/architecture/guard_mutation_registry.json:648",
           "score": 9
         },
         {
-          "value": "soil_p5_certification_guard.py @ docs/architecture/guard_mutation_registry.json:625",
+          "value": "soil_p5_certification_guard.py @ docs/architecture/guard_mutation_registry.json:649",
           "score": 9
         },
         {
-          "value": "soil_p6_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:626",
+          "value": "soil_p6_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:650",
           "score": 9
         },
         {
-          "value": "soil_profile_contract_guard.py @ docs/architecture/guard_mutation_registry.json:627",
+          "value": "soil_profile_contract_guard.py @ docs/architecture/guard_mutation_registry.json:651",
           "score": 9
         },
         {
-          "value": "soil_projection_observability_guard.py @ docs/architecture/guard_mutation_registry.json:628",
+          "value": "soil_projection_observability_guard.py @ docs/architecture/guard_mutation_registry.json:652",
           "score": 9
         },
         {
-          "value": "soil_projection_reconciliation_guard.py @ docs/architecture/guard_mutation_registry.json:629",
+          "value": "soil_projection_reconciliation_guard.py @ docs/architecture/guard_mutation_registry.json:653",
           "score": 9
         },
         {
-          "value": "soil_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:630",
+          "value": "soil_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:654",
           "score": 9
         },
         {
-          "value": "soil_supersession_current_pointer_guard.py @ docs/architecture/guard_mutation_registry.json:631",
+          "value": "soil_supersession_current_pointer_guard.py @ docs/architecture/guard_mutation_registry.json:655",
           "score": 9
         },
         {
@@ -24095,11 +24055,11 @@
           "score": 9
         },
         {
-          "value": "weather_engine_formula_guard.py @ docs/architecture/guard_mutation_registry.json:637",
+          "value": "weather_engine_formula_guard.py @ docs/architecture/guard_mutation_registry.json:661",
           "score": 9
         },
         {
-          "value": "weather_hourly_etc_wx_i1_guard.py @ docs/architecture/guard_mutation_registry.json:638",
+          "value": "weather_hourly_etc_wx_i1_guard.py @ docs/architecture/guard_mutation_registry.json:662",
           "score": 9
         },
         {
@@ -26342,14 +26302,6 @@
       "routes": [],
       "database": [
         {
-          "value": "IF @ services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py:38",
-          "score": 14
-        },
-        {
-          "value": "IF @ services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py:65",
-          "score": 12
-        },
-        {
           "value": "decision_outbox_events @ services/decision-service/migrations/001_decision_sor.sql:94",
           "score": 11
         },
@@ -26380,10 +26332,6 @@
             "path:decision sor",
             "content:system of record"
           ]
-        },
-        {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:240",
-          "score": 9
         }
       ],
       "events": [
@@ -26726,7 +26674,7 @@
       "evidence_counts": {
         "backend": 2,
         "routes": 0,
-        "database": 10,
+        "database": 7,
         "events": 47,
         "web": 0,
         "mobile": 0,
@@ -27362,10 +27310,6 @@
         {
           "value": "soil_reconciliation_checkpoints @ migrations/v157_soil_projection_jobs_reconciliation.sql:41",
           "score": 12
-        },
-        {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:240",
-          "score": 8
         }
       ],
       "events": [
@@ -27787,7 +27731,7 @@
       "evidence_counts": {
         "backend": 13,
         "routes": 91,
-        "database": 15,
+        "database": 14,
         "events": 36,
         "web": 1,
         "mobile": 0,
@@ -29283,10 +29227,6 @@
           "score": 18
         },
         {
-          "value": "IF @ migrations/v93_processed_events.sql:22",
-          "score": 9
-        },
-        {
           "path": "migrations/v93_processed_events.sql",
           "score": 9,
           "signals": [
@@ -29981,7 +29921,7 @@
       "evidence_counts": {
         "backend": 22,
         "routes": 51,
-        "database": 9,
+        "database": 8,
         "events": 56,
         "web": 9,
         "mobile": 0,
@@ -41316,6 +41256,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_capability_mapping_table_extraction.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_certification_regression_fixes.py",
       "kind": "tests"
     },
@@ -41333,6 +41277,10 @@
     },
     {
       "path": "tests_v9/test_command_store_behavior_v66.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_compensation_killswitch.py",
       "kind": "tests"
     },
     {
@@ -41873,6 +41821,10 @@
     },
     {
       "path": "tests_v9/test_manifest_registry_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_manual_command_killswitch_scope.py",
       "kind": "tests"
     },
     {
