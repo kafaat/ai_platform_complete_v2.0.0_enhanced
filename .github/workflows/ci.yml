@@ -1147,12 +1147,21 @@ jobs:
           echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
           sudo systemctl restart docker
       - name: Start PostgreSQL 16 + PostGIS (resilient pull)
+        # **الحلقة كانت تفشل مفتوحةً** (لاحظه Copilot، وهو محقّ): `docker pull X && break`
+        # ليس آخِر أمرٍ في قائمة `&&`، فلا يُسقِطه `set -e`؛ فتُستنفَد المحاولات الستّ
+        # ويُكمِل التنفيذ إلى `docker run` برسالةٍ أغمض. وفشلٌ مفتوح في **هذه** الوظيفة
+        # بالذات نقضٌ لسبب وجودها. النمط موحَّد الآن مع وظيفة Integration Tests:
+        # دالّة `pull()` تُعيد ١ صراحةً بعد استنفاد المحاولات.
         run: |
-          set -e
-          for i in 1 2 3 4 5 6; do
-            docker pull postgis/postgis:16-3.4 && break
-            echo "pull فشل (محاولة $i) — backoff"; sleep $((i * 10))
-          done
+          set -euo pipefail
+          pull() {
+            for i in 1 2 3 4 5 6; do
+              docker pull "$1" && return 0
+              echo "pull $1 فشل (محاولة $i) — backoff"; sleep $((i * 10))
+            done
+            echo "::error::تعذّر سحب $1 بعد ٦ محاولات"; return 1
+          }
+          pull postgis/postgis:16-3.4
           docker run -d --name sahool-pg16 \
             -e POSTGRES_DB=sahool -e POSTGRES_USER=sahool_user \
             -e POSTGRES_PASSWORD=test_password -p 5435:5432 postgis/postgis:16-3.4
