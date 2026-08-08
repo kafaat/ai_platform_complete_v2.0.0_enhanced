@@ -45,9 +45,17 @@ FORBIDDEN = (
     "eligibility_policy",
 )
 
-#: `ALTER TABLE <snapshot> ADD [COLUMN] <name>` — الطريق الثاني إلى العطل نفسه.
+#: بادئة مخطَّط اختياريّة: `public.decision_vegetation_snapshots` هو الجدول نفسه.
+_QUALIFIED = rf"(?:[\w\"]+\.)?{SNAPSHOT_TABLE}"
+
+#: `ALTER TABLE [ONLY] <snapshot> ADD [COLUMN] [IF NOT EXISTS] <name>`.
+#:
+#: **أوّل صياغة أفلتت `IF NOT EXISTS`**: التقطت `IF` بوصفها اسم العمود فمرّ الاسم
+#: المحظور. وهي ليست صيغةً نادرة — تظهر **٢١ مرّة** في هجرات هذه الخدمة نفسها،
+#: فكانت أرجح طريقٍ إلى العطل هي الطريق الوحيد الذي لا يراه الحارس.
 _ALTER_ADD = re.compile(
-    rf"alter\s+table\s+(?:if\s+exists\s+)?{SNAPSHOT_TABLE}\s+add\s+(?:column\s+)?(\w+)",
+    rf"alter\s+table\s+(?:only\s+)?(?:if\s+exists\s+)?{_QUALIFIED}"
+    r"\s+add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?(\w+)",
     re.IGNORECASE,
 )
 
@@ -55,7 +63,7 @@ _ALTER_ADD = re.compile(
 def _create_table_body(sql: str) -> str | None:
     """جسم `CREATE TABLE` للقطة — بالأقواس المتوازنة لا بتعبير نمطيّ كسول."""
     match = re.search(
-        rf"create\s+table\s+(?:if\s+not\s+exists\s+)?{SNAPSHOT_TABLE}\s*\(", sql, re.IGNORECASE
+        rf"create\s+table\s+(?:if\s+not\s+exists\s+)?{_QUALIFIED}\s*\(", sql, re.IGNORECASE
     )
     if match is None:
         return None

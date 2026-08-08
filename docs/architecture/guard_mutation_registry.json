@@ -226,6 +226,18 @@
           "find": "    if not seen_table:",
           "replace": "    if False:",
           "why": "نزع إنفاذ وجود الموضوع ⇒ إعادة تسمية الجدول تجعل الحارس أخضر لأنّه **لا يرى** لا لأنّه لا يجد. الصنف نفسه المُسجَّل في `runtime_contract_generator`"
+        },
+        {
+          "expect": "test_an_eligibility_field_on_the_model_is_caught",
+          "find": "            if re.search(rf\"^\\s+{field}\\s*[:=]\", body, re.MULTILINE):",
+          "replace": "            if False:",
+          "why": "نزع فحص النموذج ⇒ حقلٌ يُضاف إلى `VegetationSnapshotIn` لأنّ واجهةً احتاجته يمرّ. **ادّعيتُ في متن #810 ثلاث طفرات وسجّلتُ اثنتين** — والمراجعة أمسكت الفارق، فهذه هي الثالثة مُسجَّلةً لا مذكورة"
+        },
+        {
+          "expect": "test_add_column_if_not_exists_does_not_slip_through",
+          "find": "    r\"\\s+add\\s+(?:column\\s+)?(?:if\\s+not\\s+exists\\s+)?(\\w+)\",",
+          "replace": "    r\"\\s+add\\s+(?:column\\s+)?(\\w+)\",",
+          "why": "إعادة الصيغة التي أفلتت `ADD COLUMN IF NOT EXISTS`: يُلتقَط `IF` بوصفه اسم العمود فيمرّ الاسم المحظور. والنمط يظهر ٢١ مرّة في هجرات هذه الخدمة — فأرجح طريقٍ إلى العطل كانت الوحيدة التي لا يراها الحارس"
         }
       ],
       "test": "tests_v9/test_snapshot_eligibility_separation_guard.py"

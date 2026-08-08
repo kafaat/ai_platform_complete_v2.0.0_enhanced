@@ -19568,6 +19568,14 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/gis-workflow-service/tests/test_bulletin_figure.py",
           "score": 12,
           "signals": [
@@ -20209,14 +20217,6 @@
         },
         {
           "path": "tests_v9/test_field_state_unification.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests_v9/test_fieldstate_water_canon.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -21296,6 +21296,14 @@
           ]
         },
         {
+          "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_bivariate_raster.py",
           "score": 12,
           "signals": [
@@ -21441,14 +21449,6 @@
         },
         {
           "path": "frontend/src/lib/layerComparePresets.test.ts",
-          "score": 8,
-          "signals": [
-            "content:NDMI",
-            "content:ndmi"
-          ]
-        },
-        {
-          "path": "services/decision-service/tests/test_eligibility_assessment_policy.py",
           "score": 8,
           "signals": [
             "content:NDMI",
@@ -46851,7 +46851,7 @@
       "candidates": [
         {
           "capability_id": "SAT-004",
-          "score": 8,
+          "score": 12,
           "signals": [
             "content:NDMI",
             "content:ndmi"
@@ -46859,7 +46859,7 @@
         },
         {
           "capability_id": "SAT-003",
-          "score": 8,
+          "score": 12,
           "signals": [
             "content:NDVI",
             "content:ndvi"

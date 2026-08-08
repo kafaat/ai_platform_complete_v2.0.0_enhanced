@@ -4513,7 +4513,7 @@
     "candidates": [
       {
         "capability_id": "SAT-004",
-        "score": 8,
+        "score": 12,
         "signals": [
           "content:NDMI",
           "content:ndmi"
@@ -4521,7 +4521,7 @@
       },
       {
         "capability_id": "SAT-003",
-        "score": 8,
+        "score": 12,
         "signals": [
           "content:NDVI",
           "content:ndvi"

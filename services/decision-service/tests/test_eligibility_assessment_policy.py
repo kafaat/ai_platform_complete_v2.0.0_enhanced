@@ -57,7 +57,12 @@ def snapshot(**overrides):
         "acquisition_at": (AS_OF - timedelta(hours=2)).isoformat(),
         "data_available_at": (AS_OF - timedelta(hours=1)).isoformat(),
         "quality_gate": quality,
-        "feature_manifest": {"spectral_bands": ["ndvi", "ndmi"]},
+        "feature_manifest": {
+            "spectral_bands": ["ndvi", "ndmi"],
+            # العقد القانونيّ القائم — أصل `decision_eligible`.
+            "source": "real",
+            "status": "implemented",
+        },
         "payload": {},
     }
     base.update(overrides)
@@ -198,14 +203,18 @@ def test_stale_soil_is_denied():
 
 def test_missing_spectral_denies_every_stage():
     """الطيف مُدخَل أساس لا تحسين — فلا مرحلة تنجو منه."""
-    snap = snapshot(feature_manifest={"spectral_bands": ["ndmi"]})
+    snap = snapshot(
+        feature_manifest={"spectral_bands": ["ndmi"], "source": "real", "status": "implemented"}
+    )
     result = assess(snap)
     assert not any(result.stages.values())
     assert "MISSING_SPECTRAL" in codes(result, "discover")
 
 
 def test_v2_requires_a_band_that_v1_does_not():
-    snap = snapshot(feature_manifest={"spectral_bands": ["ndvi"]})
+    snap = snapshot(
+        feature_manifest={"spectral_bands": ["ndvi"], "source": "real", "status": "implemented"}
+    )
     assert assess(snap, policy="v1").stages["discover"] is True
     assert assess(snap, policy="v2").stages["discover"] is False
 
@@ -292,3 +301,118 @@ def test_a_fully_valid_snapshot_passes_every_stage():
     result = assess()
     assert all(result.stages.values())
     assert all(result.reasons[stage] == [] for stage in EP.STAGES)
+
+
+# ── ما أضافته مراجعة #810 (كلّها كانت تمرّ قبلها) ───────────────────────────
+
+
+def test_a_snapshot_not_yet_available_at_as_of_is_denied():
+    """`data_available_at` كان يدخل البصمة **ولا يُفحَص**.
+
+    فتقييمٌ عند لحظةٍ سابقة لإتاحة البيانات يبني قراراً على معلومة لم تكن متاحة
+    حينها — تسريبٌ من المستقبل يُفسِد كلّ إعادة تشغيل تاريخيّة، ولا يظهر في أيّ
+    اختبار حتميّة لأنّ البصمة تبقى متّسقة مع نفسها.
+    """
+    snap = snapshot(data_available_at=(AS_OF + timedelta(hours=3)).isoformat())
+    result = assess(snap)
+    assert not any(result.stages.values())
+    assert "NOT_YET_AVAILABLE" in codes(result, "discover")
+
+
+def test_a_future_observation_is_denied_not_credited_as_fresh():
+    """رصدٌ مستقبليّ يُنتِج **عمراً سالباً**، والعمر السالب أصغر من أيّ عتبة.
+
+    فكان طقسٌ بتاريخ الغد يُقرأ «طازجاً جدّاً» ويمرّ إلى `execute` — أخطر من
+    البائد، لأنّ البائد يُرفَض والمستقبليّ يُكافَأ.
+    """
+    for field in ("weather_observed_at", "soil_observed_at"):
+        snap = snapshot(quality_gate={field: (AS_OF + timedelta(hours=5)).isoformat()})
+        result = assess(snap)
+        assert not any(result.stages.values()), field
+        assert "FUTURE_OBSERVATION" in codes(result, "discover"), field
+
+
+def test_a_missing_or_malformed_snapshot_digest_is_refused():
+    """المقيّم لا يمنح أهليّةً لِما لا هويّة له — ولا يُحيل الرفض إلى القاعدة."""
+    for bad in ("", "abc", "z" * 64, "A" * 63):
+        result = assess(snapshot(snapshot_hash=bad))
+        assert not any(result.stages.values()), bad
+        assert "MALFORMED_SNAPSHOT_DIGEST" in codes(result, "discover"), bad
+
+
+def test_a_tenant_mismatch_digest_does_not_depend_on_the_body():
+    """**هاش أوراكل:** البصمة كانت تتغيّر بتغيّر جسد لقطةِ مستأجِرٍ آخر.
+
+    وهي تُسرّب — لمن لا يملك القراءة — أنّ الجسد تغيّر. والرفض واحد فالبصمة واحدة.
+    """
+    first = assess(snapshot(), tenant=OTHER_TENANT)
+    second = assess(
+        snapshot(
+            quality_gate={"valid_pixel_pct": 12.0},
+            feature_manifest={"spectral_bands": ["other"], "source": "synthetic"},
+            snapshot_hash="b" * 64,
+        ),
+        tenant=OTHER_TENANT,
+    )
+    assert first.assessment_digest == second.assessment_digest
+    assert first.inputs_digest == second.inputs_digest
+
+
+def test_a_non_finite_or_out_of_range_pixel_pct_is_refused():
+    """`nan` يجعل كلّ مقارنة `False` فيمرّ صامتاً، و`inf` يتفوّق على أيّ عتبة."""
+    for bad in (float("nan"), float("inf"), -5.0, 120.0):
+        result = assess(snapshot(quality_gate={"valid_pixel_pct": bad}))
+        assert not any(result.stages.values()), bad
+        assert "OUT_OF_RANGE_VALID_PIXEL_PCT" in codes(result, "discover"), bad
+
+
+def test_a_boolean_is_not_a_percentage():
+    """`True` عددٌ في بايثون (‏`1`)، فيمرّ عتبة `discover` بلا هذا الفحص."""
+    result = assess(snapshot(quality_gate={"valid_pixel_pct": True}))
+    assert not any(result.stages.values())
+    assert "MISSING_VALID_PIXEL_PCT" in codes(result, "discover")
+
+
+def test_the_canonical_indicator_contract_is_enforced_not_paralleled():
+    """`source == real` و`status == implemented` هما **العقد المُحكَّم القائم**.
+
+    وهما أصل `decision_eligible` في `generate_indicator_artifacts.py`. فمؤشّرٌ
+    اصطناعيّ أو غير مُنفَّذ لا يقود مرحلةً مهما كانت أعماره سليمة — وبدون هذا كانت
+    السياسة الجديدة **توازي** العقد بدل أن تمتدّ منه.
+    """
+    synthetic = assess(
+        snapshot(
+            feature_manifest={
+                "spectral_bands": ["ndvi", "ndmi"],
+                "source": "synthetic",
+                "status": "implemented",
+            }
+        )
+    )
+    assert not any(synthetic.stages.values())
+    assert "SOURCE_NOT_REAL" in codes(synthetic, "discover")
+
+    planned = assess(
+        snapshot(
+            feature_manifest={
+                "spectral_bands": ["ndvi", "ndmi"],
+                "source": "real",
+                "status": "planned",
+            }
+        )
+    )
+    assert not any(planned.stages.values())
+    assert "STATUS_NOT_IMPLEMENTED" in codes(planned, "discover")
+
+
+def test_the_policies_declare_which_thresholds_are_adjudicated():
+    """**حدّ صدق مفروض بالكود:** القيم غير المُحكَّمة لا تُقدَّم سياسةً مُقَرّة.
+
+    المُحكَّم في الشجرة اليوم: `source == real` · `status == implemented` ·
+    و`min_valid_pixel_pct = 60`. أمّا أعمار الطقس والتربة وعتبتا ٣٠/٨٠ فمن وضعي
+    **بلا مصدر قرار**، فتُعلَن `provisional` صراحةً حتّى يُحكّمها المالك.
+    """
+    for policy in (EP.POLICY_V1, EP.POLICY_V2):
+        assert policy.provenance, f"{policy.version}: بلا provenance"
+        assert policy.adjudicated is False, "سياسة تُقدَّم مُحكَّمة بلا تحكيم"
+        assert "generate_indicator_artifacts" in policy.provenance

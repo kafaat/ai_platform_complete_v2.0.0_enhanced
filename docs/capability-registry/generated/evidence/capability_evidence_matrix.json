@@ -2284,6 +2284,7 @@
       "title": "NDVI",
       "unit_test_paths": [
         "services/decision-service/tests/test_ac1_agronomic_context.py",
+        "services/decision-service/tests/test_eligibility_assessment_policy.py",
         "services/raster-service/test_clip_grid.py",
         "services/raster-service/test_db_rehydrate.py",
         "services/raster-service/test_historical_backfill.py",
@@ -2362,7 +2363,6 @@
         "tests_v9/test_field_state_gateway.py",
         "tests_v9/test_field_state_ndvi_enrichment.py",
         "tests_v9/test_field_state_unification.py",
-        "tests_v9/test_fieldstate_water_canon.py",
         "tests_v9/test_kc_from_ndvi.py",
         "tests_v9/test_kc_ndvi.py",
         "tests_v9/test_ndvi_evidence_policy.py",

@@ -144,3 +144,32 @@ def test_the_message_names_the_file_and_the_remedy():
     body = _SCRIPT.read_text(encoding="utf-8")
     assert "decision_eligibility_assessments" in body
     assert "eligibility_policy.py" in body
+
+
+def test_add_column_if_not_exists_does_not_slip_through(tmp_path, monkeypatch):
+    """**السلبيّة الكاذبة التي كشفَتها مراجعة #810.**
+
+    أوّل صياغة التقطت `IF` بوصفها اسم العمود، فمرّ الاسم المحظور. وهي ليست صيغةً
+    نادرة: تظهر **٢١ مرّة** في هجرات هذه الخدمة نفسها — أي أنّ أرجح طريقٍ إلى
+    العطل كانت الطريق الوحيد الذي لا يراه الحارس.
+    """
+    root = _repo(
+        tmp_path,
+        model_body=_CLEAN_MODEL,
+        migration=_CLEAN_TABLE + "\nALTER TABLE decision_vegetation_snapshots"
+        " ADD COLUMN IF NOT EXISTS policy_version text;\n",
+    )
+    found = _violations_in(monkeypatch, root)
+    assert len(found) == 1 and "policy_version" in found[0]
+
+
+def test_only_and_schema_qualified_forms_are_caught(tmp_path, monkeypatch):
+    """`ALTER TABLE ONLY public.<t>` هو الجدول نفسه — واسمٌ مؤهَّل ليس جدولاً آخر."""
+    root = _repo(
+        tmp_path,
+        model_body=_CLEAN_MODEL,
+        migration=_CLEAN_TABLE + "\nALTER TABLE ONLY public.decision_vegetation_snapshots"
+        " ADD COLUMN decision_eligible boolean;\n",
+    )
+    found = _violations_in(monkeypatch, root)
+    assert len(found) == 1 and "decision_eligible" in found[0]
