@@ -126,6 +126,37 @@ def test_the_shipped_tree_carries_no_keyword_named_table():
         ('CREATE TABLE "public" . "orders" (', "orders", "المخطَّط والجدول مقتبسان"),
     ],
 )
+def test_a_schema_qualifier_is_never_reported_as_the_table_composite(text, expected, label):
+    """الصيغ الكاملة — انظر الشقيقة أدناه للشُّذرة الناقصة."""
+    assert _tables(text) == [expected], label
+
+
+@pytest.mark.parametrize(
+    "text,label",
+    [
+        ('ALTER TABLE "public" .', "الشُّذرة الناقصة — نقطةٌ خلف اقتباس بلا اسمٍ بعدها"),
+        ('CREATE TABLE "public" .', "الشُّذرة الناقصة في `CREATE`"),
+        ('ALTER TABLE "public"  .  ', "نفسها بمسافات"),
+    ],
+)
+def test_a_truncated_qualifier_yields_nothing(text, label):
+    """**المُصنِّف يقرأ نثراً وشُذرات غير مكتملة، لا ملفّات SQL وحدها.**
+
+    ولذلك تُضمَّن علامة الاقتباس **داخل** النظرة اللاحقة: `(?!["]?\\s*\\.)`. فالنظرة
+    العارية `(?!\\s*\\.)` ترى `"` لا `.` عند `ALTER TABLE "public" .` — فتمرّ ويُلتقَط
+    `public` مُؤهِّلاً بوصفه مُؤهَّلاً. **نفس العطل، في الشُّذرة الناقصة بدل الكاملة**:
+    سطرٌ مقطوع في نثرٍ يكفي لإنتاج ادّعاء «جدول» لا وجود له.
+    """
+    assert _tables(text) == [], label
+
+
+@pytest.mark.parametrize(
+    "text,expected,label",
+    [
+        ("CREATE TABLE public . orders (", "orders", "لا تُسكِت الصادق"),
+        ('ALTER TABLE "public".orders ADD', "orders", "بلا مسافات"),
+    ],
+)
 def test_a_schema_qualifier_is_never_reported_as_the_table(text, expected, label):
     """ما قبل النقطة مخطَّطٌ لا جدول — والتراجع لا يُنتِج `public`.
 
@@ -153,12 +184,14 @@ def test_public_unqualified_is_still_a_legitimate_table_name(text, label):
     assert _tables(text) == ["public"], label
 
 
-def test_the_shipped_tree_takes_no_database_evidence_from_the_guard_runbook():
-    """`GUARD_CATALOGUE.md` نثرٌ مولَّد عن الحرّاس — وشُذرات DDL فيه أمثلةٌ لا مخطَّط.
+def test_the_guard_runbook_yields_no_keyword_or_qualifier_named_table():
+    """الحادثتان المقيستان بعينهما — `if` و`public` من `GUARD_CATALOGUE.md`.
 
-    وهذا التأكيد **كان سيمسك الحادثتين معاً**: `IF` أوّلاً ثمّ `public` — بخلاف تأكيد
-    الكلمات المفتاحيّة الذي أمسك الأولى وحدها لأنّ `public` ليست كلمة مفتاحيّة. مصدرُ
-    دليلٍ عن قاعدة بيانات لا يكون ملفّاً يصف الحرّاس.
+    **والتأكيد ضيّقٌ عمداً:** لا يقول «لا دليل قاعدة بيانات من هذا الملفّ مطلقاً»، لأنّ
+    استبعاد ملفٍّ كاملاً حكمٌ يحتاج تحكيماً لم يجرِ — وقد يذكر الرَّنبوك يوماً اسم جدولٍ
+    حقيقيّ بحقّ. المحروس هو **الصنف المُثبَت**: كلمةٌ مفتاحيّة أو مُؤهِّل مخطَّط يُسمَّى
+    جدولاً. أمّا صحّة تحليل التأهيل نفسه فتُثبِتها اختبارات الوحدة المركّبة أعلاه، لا
+    تأكيدٌ على مصنوعة.
     """
     import json
 
@@ -172,10 +205,12 @@ def test_the_shipped_tree_takes_no_database_evidence_from_the_guard_runbook():
             / "capability_mapping.json"
         ).read_text(encoding="utf-8")
     )
+    banned = {"if", "not", "exists", "only", "table", "public"}
     offenders = [
         f"{capability['capability_id']} — {item['value']}"
         for capability in mapping["capabilities"]
         for item in capability.get("database", [])
         if "docs/runbooks/GUARD_CATALOGUE.md" in item.get("value", "")
+        and item["value"].split(" @ ")[0].lower() in banned
     ]
-    assert offenders == [], "أدلّة «قاعدة بيانات» مصدرها رَنبوك الحرّاس: " + " · ".join(offenders)
+    assert offenders == [], "كلمةٌ مفتاحيّة أو مُؤهِّل يُسمَّى جدولاً في الرَّنبوك: " + " · ".join(offenders)

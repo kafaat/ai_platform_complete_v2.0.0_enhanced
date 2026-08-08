@@ -2339,7 +2339,7 @@
       "coverage_dimensions": {
         "backend": true,
         "routes": true,
-        "database": true,
+        "database": false,
         "events": true,
         "web": true,
         "mobile": false,
@@ -2347,7 +2347,7 @@
         "governance": false,
         "other_evidence": true
       },
-      "coverage_dimension_count": 6,
+      "coverage_dimension_count": 5,
       "dependency_count": 2,
       "dependent_count": 0,
       "runtime_verified": false,
@@ -2463,7 +2463,7 @@
       "coverage_dimensions": {
         "backend": true,
         "routes": true,
-        "database": true,
+        "database": false,
         "events": false,
         "web": true,
         "mobile": false,
@@ -2471,7 +2471,7 @@
         "governance": false,
         "other_evidence": true
       },
-      "coverage_dimension_count": 5,
+      "coverage_dimension_count": 4,
       "dependency_count": 1,
       "dependent_count": 0,
       "runtime_verified": false,
