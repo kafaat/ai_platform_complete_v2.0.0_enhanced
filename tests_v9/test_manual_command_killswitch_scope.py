@@ -224,3 +224,51 @@ def test_the_router_passes_the_field_to_the_killswitch() -> None:
     src = (SERVICE / "routers" / "commands.py").read_text(encoding="utf-8")
     assert "device_field_id = await main._authorize_device_control(" in src
     assert "field_id=device_field_id" in src
+
+
+def test_a_failed_load_does_not_leave_stubs_behind(monkeypatch):
+    """التجهيزة تحقن كعوباً في `sys.modules` **قبل** التحميل — فماذا لو انهار التحميل؟
+
+    رفعت المراجعة الآليّة هذا، وهو صحيح: قبل `try/finally` كان التنظيف بعد `yield`
+    وحده، فاستثناءٌ في `exec_module` يترك `jwt`/`aiomqtt` و**وحدةً نصف مُهيّأة** باسم
+    `actuator_runtime` مقيمةً في `sys.modules` — فتتغيّر نتائج اختباراتٍ أخرى بحسب
+    ترتيب التشغيل.
+
+    **وليس هذا احتمالاً نظريّاً:** كعب `aiomqtt` تسرّب فعلاً في هذه الشجرة فأوقف تخطّي
+    `test_mqtt_anonymous_off_guard` ثمّ أسقطه، والصنف مُسجَّل في
+    `sahool-brain/gaps/registry.md:682` بشرط إغلاق يقول حرفيّاً: «لا يبقى في `tests_v9`
+    حقنٌ دائم في `sys.modules` لوحدة أمنيّة».
+
+    وهذا الاختبار هو **المُكذِّب**: يُجبِر `exec_module` على الرفع، ويؤكّد نظافة
+    `sys.modules` بعد انهيار التجهيزة. بنزع `try/finally` يحمرّ.
+    """
+    import importlib.util as _il
+
+    before = set(sys.modules)
+
+    class _Boom(Exception):
+        pass
+
+    real_from_file = _il.spec_from_file_location
+
+    def _exploding(name, path):
+        spec = real_from_file(name, path)
+
+        class _Loader:
+            def exec_module(self, _mod):
+                raise _Boom("انهيار مُصطنَع أثناء التحميل")
+
+            def create_module(self, _spec):
+                return None
+
+        spec.loader = _Loader()
+        return spec
+
+    monkeypatch.setattr(_il, "spec_from_file_location", _exploding)
+
+    fixture = actuator.__wrapped__(monkeypatch)
+    with pytest.raises(_Boom):
+        next(fixture)
+
+    leaked = (set(sys.modules) - before) & {"actuator_runtime", "jwt", "aiomqtt"}
+    assert leaked == set(), f"تسرّبت إلى sys.modules بعد فشل التحميل: {sorted(leaked)}"
