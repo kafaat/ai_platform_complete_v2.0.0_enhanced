@@ -437,12 +437,6 @@
           "why": "قبولُ صفر اختبار مُنفَّذ ⇒ «أخضرُ لأنّه لم ينظر». والمرساة على الشرط الموحَّد لا على فرع الصفر: أوّل صياغة عندي فصلتهما بـ`if/elif` فكان تعطيل فرع الصفر لا يُسقِط شيئاً — يلتقطه `elif` لأنّ ٠ أصغر من الحدّ، فالفرع زينة لا حارس"
         },
         {
-          "expect": "test_an_unrestricted_role_is_a_failure",
-          "find": "    if role[\"superuser\"] != \"false\" or role[\"bypassrls\"] != \"false\":",
-          "replace": "    if False:",
-          "why": "قبولُ دورٍ يتخطّى RLS ⇒ كلّ ادّعاء عزلٍ تحته يمرّ مجّاناً، والأدلّة تبقى خضراء وهي لا تقيس عزلاً"
-        },
-        {
           "expect": "test_a_missing_contract_object_is_drift",
           "find": "                if item not in live:",
           "replace": "                if False:",
@@ -459,6 +453,66 @@
           "find": "_PSQL_SAFE_FLAGS = [\"-X\", \"-v\", \"ON_ERROR_STOP=1\"]",
           "replace": "_PSQL_SAFE_FLAGS = []",
           "why": "نزعُ `-X` و`ON_ERROR_STOP=1` ⇒ يُقرأ `~/.psqlrc` فسطرٌ من `\\pset` أو `\\timing` يُقرأ قيمةَ كتالوج ويُقارَن بالعقد؛ وخطأ SQL قد يعود بصفر فيُقرأ خرجٌ ناقص «نجاحاً» — وهو الصنف الذي يوجد هذا الحارس ضدّه. والمرساة على ثابتٍ مستقلّ لا على قائمة الوسائط: `ruff format` يفكّك القائمة الطويلة سطراً سطراً فتَبيت سلسلةُ الطفرة عند أوّل إعادة تنسيق"
+        },
+        {
+          "expect": "test_a_superuser_role_is_rejected",
+          "find": "_REJECT_IF_TRUE = (\"superuser\", \"bypassrls\", \"createdb\", \"createrole\")",
+          "replace": "_REJECT_IF_TRUE = (\"bypassrls\", \"createdb\", \"createrole\")",
+          "why": "قبولُ دورٍ خارق ⇒ يتخطّى RLS وكلّ صلاحيّة، فلا يقيس أيّ ادّعاء عزلٍ تحته شيئاً"
+        },
+        {
+          "expect": "test_a_bypassrls_role_is_rejected",
+          "find": "_REJECT_IF_TRUE = (\"superuser\", \"bypassrls\", \"createdb\", \"createrole\")",
+          "replace": "_REJECT_IF_TRUE = (\"superuser\", \"createdb\", \"createrole\")",
+          "why": "قبولُ `BYPASSRLS` ⇒ الخاصّيّة التي يقوم عليها قياس العزل أصلاً. مقيسٌ في هذا المستودع: مالك الجداول كان يتخطّى RLS فمرّ زرعُ `NO FORCE ROW LEVEL SECURITY` بلا قتيل"
+        },
+        {
+          "expect": "test_a_createdb_role_is_rejected",
+          "find": "_REJECT_IF_TRUE = (\"superuser\", \"bypassrls\", \"createdb\", \"createrole\")",
+          "replace": "_REJECT_IF_TRUE = (\"superuser\", \"bypassrls\", \"createrole\")",
+          "why": "إعادةُ العطل الأصليّ بعينه: `rolcreatedb` كان يُستعلَم عنه **ويُطبَع في الملخّص** ولا يدخل قرار الرفض — رقمٌ معروض لا حارس، وظهورُه في المخرَج يُقرأ شهادةً على أنّه مفحوص"
+        },
+        {
+          "expect": "test_a_createrole_role_is_rejected",
+          "find": "_REJECT_IF_TRUE = (\"superuser\", \"bypassrls\", \"createdb\", \"createrole\")",
+          "replace": "_REJECT_IF_TRUE = (\"superuser\", \"bypassrls\", \"createdb\")",
+          "why": "قبولُ `CREATEROLE` ⇒ مالكها يُنشئ دوراً يمنحه ما يشاء ثمّ يعمل تحته، فيبلغ بخطوتين ما مُنِع منه بخطوة. ولم تكن تُسأل أصلاً — لا في الاستعلام ولا في القرار"
+        },
+        {
+          "expect": "test_the_catalogue_query_asks_for_every_gating_attribute",
+          "find": "_ROLE_CATALOGUE_COLUMNS = (\"rolsuper\", \"rolbypassrls\", \"rolcreatedb\", \"rolcreaterole\")",
+          "replace": "_ROLE_CATALOGUE_COLUMNS = (\"rolsuper\", \"rolbypassrls\", \"rolcreatedb\")",
+          "why": "رفضٌ يعتمد خاصّيّةً لا يقرؤها الاستعلام: ينهار أو — أسوأ — يقرأ قيمةً في خانةٍ ليست لها. والقائمتان منفصلتان عمداً كي تبقى هذه الطفرة مستقلّة عن طفرات قرار الرفض"
+        },
+        {
+          "expect": "test_a_malformed_role_row_is_fail_closed",
+          "find": "    if unreadable:",
+          "replace": "    if False:",
+          "why": "قبولُ قيمةٍ ليست `true` ولا `false` ⇒ تمرّ على مقارنة «ليست false» فتُقرأ تقييداً وهي مجهولة — حكمٌ بثقةٍ كاملة على سؤالٍ لم يُجَب"
+        },
+        {
+          "expect": "test_a_malformed_role_row_is_fail_closed",
+          "find": "    if len(values) != len(ROLE_ATTRIBUTES):",
+          "replace": "    if False:",
+          "why": "قبولُ صفٍّ بعدد حقولٍ مختلف ⇒ تنزلق القيم خانةً فيُقرأ `rolcreatedb` مكان `rolbypassrls`. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **قيمة** الحقل وهذه تحرس **محاذاته**"
+        },
+        {
+          "expect": "test_the_evidence_binds_the_tested_commit_and_tree",
+          "find": "            \"checkout_sha\": _git(\"rev-parse\", \"HEAD\"),",
+          "replace": "            \"checkout_sha\": \"unavailable\",",
+          "why": "دليلٌ لا يقول عن أيّ التزامٍ يتكلّم ادّعاءٌ بلا مرجع — و`GITHUB_SHA` وحده لا يكفي لأنّه في أحداث `pull_request` يشير إلى دمجٍ وهميّ لا إلى الشجرة المقيسة"
+        },
+        {
+          "expect": "test_the_evidence_binds_the_tested_commit_and_tree",
+          "find": "            \"checkout_tree\": _git(\"rev-parse\", \"HEAD^{tree}\"),",
+          "replace": "            \"checkout_tree\": \"unavailable\",",
+          "why": "الشجرة تُكتَب مع الالتزام لأنّ الالتزام قد يُعاد كتابته بمحتوى الشجرة نفسه — والمحتوى هو ما قِيس. طفرةٌ مستقلّة: نزعُ أحدهما لا ينزع الآخر"
+        },
+        {
+          "expect": "test_the_evidence_is_written_on_failure_not_only_on_success",
+          "find": "        _emit(\"FAIL\", counts, identity, role, drift, problems)",
+          "replace": "        pass",
+          "why": "وثيقةٌ لا توجد إلّا حين ينجح كلّ شيء ليست دليلاً — الدليل يُطلَب يوم الفشل. والكتابة **قبل** إعادة رمز الخروج جزءٌ من العقد لا ترتيبٌ عارض"
         }
       ],
       "test": "tests_v9/test_live_pg_evidence_guard.py"

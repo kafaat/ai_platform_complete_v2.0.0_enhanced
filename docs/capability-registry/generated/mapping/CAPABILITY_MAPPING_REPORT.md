@@ -11,17 +11,17 @@
 - Capabilities: **81**
 - Mapped: **74**
 - Unmapped: **7**
-- Multi-dimensional mappings: **49**
+- Multi-dimensional mappings: **48**
 - Files scanned: **4942**
 - Ambiguous artifacts queued: **403**
-- Unmapped artifacts queued: **2013**
+- Unmapped artifacts queued: **2012**
 
 ## Capability coverage
 
 | ID | Domain | Backend | Routes | DB | Events | Web | Mobile | Tests | Dimensions |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
 | DEC-001 | decision | 0 | 0 | 0 | 3 | 0 | 0 | 2 | 2 |
-| DEC-002 | decision | 1 | 0 | 1 | 2 | 0 | 0 | 4 | 4 |
+| DEC-002 | decision | 1 | 0 | 0 | 2 | 0 | 0 | 4 | 3 |
 | DEC-003 | decision | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | DEC-004 | decision | 9 | 20 | 26 | 30 | 0 | 0 | 15 | 5 |
 | DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 5 | 5 |
 | SAT-009 | satellite | 12 | 68 | 0 | 12 | 1 | 0 | 21 | 5 |
-| SEC-001 | security | 14 | 36 | 100 | 46 | 0 | 0 | 57 | 5 |
+| SEC-001 | security | 14 | 36 | 100 | 86 | 0 | 0 | 58 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 7 | 21 | 23 | 4 | 5 | 4 | 16 | 7 |
