@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 49,
-    "files_scanned": 4941,
+    "files_scanned": 4942,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
       "other": 1308,
-      "tests": 1603,
+      "tests": 1604,
       "web": 451
     },
-    "unmapped_artifacts": 2012,
+    "unmapped_artifacts": 2013,
     "ambiguous_artifacts": 403
   },
   "capabilities": [
@@ -107,7 +107,7 @@
       "routes": [],
       "database": [
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:229",
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:230",
           "score": 8
         }
       ],
@@ -2232,7 +2232,7 @@
           ]
         },
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:229",
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:230",
           "score": 9
         },
         {
@@ -26211,7 +26211,7 @@
           ]
         },
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:229",
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:230",
           "score": 9
         }
       ],
@@ -27193,7 +27193,7 @@
           "score": 12
         },
         {
-          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:229",
+          "value": "IF @ docs/runbooks/GUARD_CATALOGUE.md:230",
           "score": 8
         }
       ],
@@ -27320,6 +27320,10 @@
         },
         {
           "value": "hourly_energy_aware_irrigation_mpc.v1 @ services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py:18",
+          "score": 8
+        },
+        {
+          "value": "sahool.live_pg_schema_contract @ docs/architecture/live_pg_schema_contract.json:2",
           "score": 8
         },
         {
@@ -27613,7 +27617,7 @@
         "backend": 13,
         "routes": 91,
         "database": 15,
-        "events": 35,
+        "events": 36,
         "web": 1,
         "mobile": 0,
         "tests": 14,
@@ -42034,6 +42038,10 @@
     },
     {
       "path": "tests_v9/test_requirements_pinning_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_resilient_docker_pull.py",
       "kind": "tests"
     },
     {

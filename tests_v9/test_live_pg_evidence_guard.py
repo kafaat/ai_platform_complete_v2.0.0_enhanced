@@ -63,6 +63,18 @@ def _run(junit: Path) -> int:
     return MOD.main(["--junit", str(junit)])
 
 
+def _catalogue(monkeypatch, answer: str, *, version: str = "160013"):
+    """مُبدِّل `psql` يعي **أيّ** استعلامٍ يُسأل.
+
+    الصياغة الأولى أجابت بالقيمة نفسها لكلّ استعلام، فلمّا أُضيف فحصُ الإصدار صار
+    يقرأ `PRIMARY KEY (…)` إصداراً ويُنتِج انحرافاً ثالثاً — مُبدِّلٌ أعمى يُفسِد
+    الاختبار عند أوّل سؤالٍ جديد.
+    """
+    monkeypatch.setattr(
+        MOD, "psql", lambda sql, **k: version if "server_version_num" in sql else answer
+    )
+
+
 def test_a_clean_run_passes(tmp_path, monkeypatch):
     """المرساة المقابلة: بلا هذا قد تمرّ كلّ التكذيبات لأنّ الحارس يرفض دائماً."""
     _stub(monkeypatch)
@@ -80,9 +92,18 @@ def test_a_fully_skipped_run_is_a_failure_not_a_pass(tmp_path, monkeypatch):
 
 
 def test_one_skipped_live_test_is_enough_to_fail(tmp_path, monkeypatch):
-    """الحدّ عند صفر لا عند «أغلبها نُفِّذ» — تخطٍّ واحد ادّعاءٌ لم يُقَس."""
+    """الحدّ عند صفر لا عند «أغلبها نُفِّذ» — تخطٍّ واحد ادّعاءٌ لم يُقَس.
+
+    **والأرقام مختارة لتعزل الخاصّيّة، لا لتبدو معقولة:** `٣١` مجموعاً و`١` متخطًّى
+    يعني `٣٠` مُنفَّذاً — أي أنّ شرط «مُنفَّذ ≥ ٣٠» **يمرّ**، فلا يبقى ما يُسقِط هذا
+    الاختبار سوى شرط التخطّي وحده.
+
+    صياغتي الأولى كتبت `٣٠/١` فصار المُنفَّذ ٢٩، فالتقطه شرطُ الحدّ الأدنى أيضاً
+    وبقي الاختبار أحمر حتّى بعد تعطيل شرط التخطّي — أي أنّه توقّف عن قياس ما سُمّي
+    باسمه. كشفَته الطفرة المُسجَّلة حين رفع الحدُّ من ٢٥ إلى ٣٠.
+    """
     _stub(monkeypatch)
-    assert _run(_junit(tmp_path, tests=30, skipped=1)) == 1
+    assert _run(_junit(tmp_path, tests=31, skipped=1)) == 1
 
 
 def test_zero_executed_is_a_failure(tmp_path, monkeypatch):
@@ -107,17 +128,39 @@ def test_a_missing_contract_object_is_drift(tmp_path, monkeypatch):
     """
     contract = tmp_path / "contract.json"
     contract.write_text(
-        json.dumps({"objects": {"water_ledger": {"primary_key": "PRIMARY KEY (field_id)"}}}),
+        json.dumps(
+            {
+                "postgres_major": 16,
+                "objects": {"water_ledger": {"primary_key": "PRIMARY KEY (field_id)"}},
+            }
+        ),
         encoding="utf-8",
     )
     monkeypatch.setattr(MOD, "CONTRACT", contract)
 
-    monkeypatch.setattr(MOD, "psql", lambda *a, **k: "PRIMARY KEY (field_id)")
+    _catalogue(monkeypatch, "PRIMARY KEY (field_id)")
     assert MOD.schema_drift("d", "o") == [], "المطابق يُدان — إيجابيّة كاذبة"
 
-    monkeypatch.setattr(MOD, "psql", lambda *a, **k: "PRIMARY KEY (something_else)")
+    _catalogue(monkeypatch, "PRIMARY KEY (something_else)")
     drift = MOD.schema_drift("d", "o")
     assert drift and "water_ledger.primary_key" in drift[0], drift
+
+
+def test_a_wrong_major_version_is_drift_but_a_different_patch_is_not(tmp_path, monkeypatch):
+    """الرئيسيّ عقدٌ والتفصيليّ ليس — والفرق مقيس لا موصوف.
+
+    CI تعمل على `16.4` ومحلّيّاً `16.13`، وكلاهما يفي. تثبيتُ التفصيليّ يجعل ترقيةَ
+    صورةٍ انحرافاً كاذباً فيُنزَع الحارس في أوّل يوم؛ وإهمالُ الرئيسيّ يجعل الأدلّة
+    تعمل على نحوِ DDL لإصدارٍ آخر بلا إنذار.
+    """
+    contract = tmp_path / "contract.json"
+    contract.write_text(json.dumps({"postgres_major": 16, "objects": {}}), encoding="utf-8")
+    monkeypatch.setattr(MOD, "CONTRACT", contract)
+
+    for num, expect_drift in (("160004", False), ("160013", False), ("150009", True)):
+        monkeypatch.setattr(MOD, "psql", lambda *a, num=num, **k: num)
+        drift = MOD.schema_drift("d", "o")
+        assert bool(drift) is expect_drift, (num, drift)
 
 
 def test_an_object_the_contract_does_not_name_is_not_drift(tmp_path, monkeypatch):
@@ -128,13 +171,13 @@ def test_an_object_the_contract_does_not_name_is_not_drift(tmp_path, monkeypatch
     """
     contract = tmp_path / "contract.json"
     contract.write_text(
-        json.dumps({"objects": {"water_ledger": {"check": ["CHECK (etc_mm >= 0)"]}}}),
+        json.dumps(
+            {"postgres_major": 16, "objects": {"water_ledger": {"check": ["CHECK (etc_mm >= 0)"]}}}
+        ),
         encoding="utf-8",
     )
     monkeypatch.setattr(MOD, "CONTRACT", contract)
-    monkeypatch.setattr(
-        MOD, "psql", lambda *a, **k: "CHECK (etc_mm >= 0)\nCHECK (a_new_constraint > 1)"
-    )
+    _catalogue(monkeypatch, "CHECK (etc_mm >= 0)\nCHECK (a_new_constraint > 1)")
     assert MOD.schema_drift("d", "o") == []
 
 

@@ -1,7 +1,9 @@
 {
-  "$comment": "عقد المخطّط الذي تستند إليه أدلّة PG الحيّة — `DEDICATED_PG_JOB: migrations/schema mismatch → failure`. ليس جرداً عامّاً للمخطّط بل **ما تؤكّد عليه الأدلّة بالضبط**: جردٌ عامّ يَبيت مع كلّ هجرة فيُدرَّب قارئه على تجاهله. ويُقرأ من الكتالوج لا من الهجرة — الهجرة نيّة والكتالوج واقع. يفشل مبكّراً برسالة «انحراف مخطّط» بدل أن يظهر لاحقاً كفشل ادّعاءٍ يُقرأ «الاختبار خاطئ».",
-  "measured_on": "cd3529fdc5f6c57a183b247c7e191b9732071758",
-  "server": "16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)",
+  "schema": "sahool.live_pg_schema_contract",
+  "version": 1,
+  "adjudicated_on": "2026-08-08",
+  "$comment": "عقدُ الأشياء التي تستند إليها أدلّة PG الحيّة — `DEDICATED_PG_JOB: schema mismatch → failure`. **حتميّ بالتصميم:** لا `measured_on` ولا إصدار خادمٍ تفصيليّ فيه. الأوّل يجعل المصنوعة تحمل SHA الالتزام الذي يغيّرها فلا تطابق إعادة توليدها (`RELEASE-MANIFEST-SELF-REGENERATION-01` بعينه)، والثاني يجعل ترقيةَ صورةٍ في CI انحرافاً كاذباً. الإصدار الفعليّ ووقت التشغيل وSHA تذهب إلى سجلّ التشغيل لا إلى العقد. وهو **قرار** لا قياس: يُحرَّر بيدٍ عند تغيير مقصود، ويُقارَن بالكتالوج الحيّ قبل الاختبارات بـ`live_pg_evidence_guard.py --schema-only`.",
+  "postgres_major": 16,
   "objects": {
     "water_ledger": {
       "primary_key": "PRIMARY KEY (field_id, ledger_date)",

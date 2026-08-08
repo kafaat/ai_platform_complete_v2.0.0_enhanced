@@ -7688,6 +7688,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_resilient_docker_pull.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_resolve_merge_conflicts.py",
     "kind": "tests"
   },

@@ -120,14 +120,19 @@ def server_identity(database: str, owner: str) -> dict[str, str]:
 # ──────────────────────── ③ انحراف الهجرات / المخطّط ────────────────────────
 
 _QUERY = {
-    "primary_key": "select pg_get_constraintdef(oid) from pg_constraint where conrelid='{t}'::regclass and contype='p'",
-    "unique": "select pg_get_constraintdef(oid) from pg_constraint where conrelid='{t}'::regclass and contype='u' order by 1",
-    "rls_enabled_forced": "select relrowsecurity::text||'/'||relforcerowsecurity::text from pg_class where oid='{t}'::regclass",
-    "check": "select pg_get_constraintdef(oid) from pg_constraint where conrelid='{t}'::regclass and contype='c' order by 1",
-    "foreign_key": "select pg_get_constraintdef(oid) from pg_constraint where conrelid='{t}'::regclass and contype='f'",
-    "trigger": "select pg_get_triggerdef(oid) from pg_trigger where tgrelid='{t}'::regclass and not tgisinternal",
-    "index": "select indexdef from pg_indexes where tablename='{t}'",
-    "column": "select column_name||' '||data_type from information_schema.columns where table_name='{t}'",
+    "primary_key": "select pg_get_constraintdef(oid) from pg_constraint where conrelid={r} and contype='p'",
+    "unique": "select pg_get_constraintdef(oid) from pg_constraint where conrelid={r} and contype='u' order by 1",
+    "rls_enabled_forced": "select relrowsecurity::text||'/'||relforcerowsecurity::text from pg_class where oid={r}",
+    "check": "select pg_get_constraintdef(oid) from pg_constraint where conrelid={r} and contype='c' order by 1",
+    "foreign_key": "select pg_get_constraintdef(oid) from pg_constraint where conrelid={r} and contype='f' order by 1",
+    "trigger": "select pg_get_triggerdef(oid) from pg_trigger where tgrelid={r} and not tgisinternal order by 1",
+    "index": (
+        "select indexdef from pg_indexes where schemaname='public' and tablename='{t}' order by 1"
+    ),
+    "column": (
+        "select column_name||' '||data_type from information_schema.columns "
+        "where table_schema='public' and table_name='{t}' order by 1"
+    ),
 }
 
 
@@ -140,9 +145,23 @@ def schema_drift(database: str, owner: str) -> list[str]:
     """
     doc = json.loads(CONTRACT.read_text(encoding="utf-8"))
     problems: list[str] = []
+
+    # الإصدار الرئيسيّ عقدٌ، والتفصيليّ ليس: `16.4` في CI و`16.13` محليّاً وكلاهما
+    # يفي. تثبيتُ التفصيليّ يجعل ترقيةَ صورةٍ انحرافاً كاذباً فيُنزَع الحارس.
+    major = psql("show server_version_num", database=database, role=owner)[:2]
+    if major != str(doc["postgres_major"]):
+        problems.append(
+            f"✗ الإصدار الرئيسيّ {major} والعقد يشترط {doc['postgres_major']} — "
+            "الأدلّة مبنيّة على قواعد نحو DDL لهذا الإصدار"
+        )
+
     for table, expected in doc["objects"].items():
+        # التأهيل بالمخطّط ليس تجميلاً: `search_path` قد يقدّم جدولاً مُتماثِل الاسم
+        # في مخطّط آخر، فيُقاس العقدُ على جدولٍ ليس الذي تكتب فيه الأدلّة.
+        ref = f"'public.{table}'::regclass"
         for kind, want in expected.items():
-            live = psql(_QUERY[kind].format(t=table), database=database, role=owner).splitlines()
+            query = _QUERY[kind].format(t=table, r=ref)
+            live = psql(query, database=database, role=owner).splitlines()
             live = [ln for ln in live if ln.strip()]
             wanted = want if isinstance(want, list) else [want]
             for item in wanted:
@@ -158,13 +177,33 @@ def schema_drift(database: str, owner: str) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--junit", type=Path, required=True)
+    ap.add_argument("--junit", type=Path)
     ap.add_argument("--database", default=os.environ.get("SAHOOL_TEST_PGDATABASE", "sahool"))
     ap.add_argument("--owner", default=os.environ.get("SAHOOL_TEST_PGOWNER", "sahool_user"))
     ap.add_argument("--app-role", default=os.environ.get("SAHOOL_TEST_PGROLE", "sahool_app"))
-    ap.add_argument("--min-executed", type=int, default=25)
+    ap.add_argument("--min-executed", type=int, default=30)
+    ap.add_argument(
+        "--schema-only",
+        action="store_true",
+        help="يقارن الكتالوج بالعقد **قبل** الاختبارات ويفشل بانحراف مخطّط — "
+        "فيُقرأ العطل باسمه بدل أن يظهر لاحقاً كفشل ادّعاءٍ يُقرأ «الاختبار خاطئ»",
+    )
     a = ap.parse_args(argv)
 
+    if a.schema_only:
+        drift = schema_drift(a.database, a.owner)
+        if drift:
+            print("live_pg_schema_drift FAILED:")
+            for d in drift:
+                print(f"  {d}")
+            return 1
+        print(
+            f"live_pg_schema_contract_ok ({len(json.loads(CONTRACT.read_text(encoding='utf-8'))['objects'])} جدولاً)"
+        )
+        return 0
+
+    if a.junit is None:
+        raise SystemExit("✗ `--junit` مطلوب إلّا مع `--schema-only`")
     counts = tally(a.junit)
     identity = server_identity(a.database, a.owner)
     role = role_properties(a.database, a.owner, a.app_role)

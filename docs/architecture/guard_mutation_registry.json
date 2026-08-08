@@ -447,6 +447,12 @@
           "find": "                if item not in live:",
           "replace": "                if False:",
           "why": "نزعُ كشف انحراف المخطّط ⇒ هجرةٌ تُسقِط قيداً تحته دليل تمرّ، فيُقرأ فشل الادّعاء لاحقاً «الاختبار خاطئ» بدل «المخطّط انحرف»"
+        },
+        {
+          "expect": "test_a_wrong_major_version_is_drift_but_a_different_patch_is_not",
+          "find": "    if major != str(doc[\"postgres_major\"]):",
+          "replace": "    if False:",
+          "why": "نزعُ فحص الإصدار الرئيسيّ ⇒ تعمل الأدلّة على PG15 أو 17 بلا إنذار، وهي مبنيّة على قواعد نحو DDL ورموز SQLSTATE لإصدارٍ بعينه — فيصير الأخضر شهادةً على خادمٍ آخر"
         }
       ],
       "test": "tests_v9/test_live_pg_evidence_guard.py"

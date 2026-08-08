@@ -22,6 +22,10 @@
       "kind": "legacy_schema_version"
     },
     {
+      "path": "docs/architecture/live_pg_schema_contract.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/manifest_registry.json",
       "kind": "governed"
     },
