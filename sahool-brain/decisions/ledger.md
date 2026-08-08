@@ -1390,3 +1390,15 @@ SHAs من `git log --oneline origin/main`.
 - **قرارٌ ثالث — الاتّصال الوهميّ يُعلَن بالاشتقاق لا باليد:** `fake_connection_debt_guard --generate` (38 ⇒ 39، و`claiming` ثابت عند 8). والتسمية لم تُغيَّر للتهرّب من الكاشف؛ غُيِّر **الشرح** الذي عدّد مصطلحات القاعدة لينفيها فصُنِّف ادّعاءً — تصحيح تصنيف لا تحايل عليه.
 - **حدّ القرار:** لا يُغلق أيّ عيب. العيبان قائمان في الشجرة، وحاجبان لأيّ real/cutover، ويُصلَحان بعد تثبيت `frozen_commit_sha` وتوثيق callsites والملكيّة والأعلام على الـSHA نفسه.
 - **المرجع:** `COMPENSATION-BYPASSES-KILLSWITCH-01` · `MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01` · `GUC-SCOPE-GUARD-SEES-ONE-FILE-01` · `GUC-NAME-MISMATCH-CLAIM-REFUTED-01` · `FORCE-WITH-LEASE-DEFEATED-BY-ITS-OWN-FETCH-01` · SAHOOL_MASTER_EXECUTION_PROGRAM-06 §0.10/§2.5.
+
+## 2026-08-08 — #811: ترتيب `IF EXISTS`/`ONLY` في كاشفين
+
+| القرار | السبب (rationale) | المصدر |
+|---|---|---|
+| قبول `IF EXISTS` و`ONLY` **بأيّ ترتيب** في حارس اللقطة، لا بالترتيب القانونيّ وحده | كاشفٌ لا مُحلِّل نحويّ: الإفراط في الالتقاط مجّانيّ (SQL غير قانونيّة تفشل في الترحيل)، والتقصير هو العطل بعينه | `snapshot_eligibility_separation_guard.py` · طفرتان (٥ و٦) تُسقِطان اختبارين مُسمّيين |
+| قبول النجمة الوراثيّة `<t> *` في النمط نفسه | جزءٌ من القواعد `ALTER TABLE … name [ * ]`، وغيابه ثغرةٌ بنفس الشكل | ثقبٌ ثالث بقي بعد تصحيح الترتيب في الجلسة الموازية (مدموجة في `fc79fbbef`)؛ وطفرة سادسة تنزعه |
+| إصلاح `capability_mapping_engine.TABLE_RE` **داخل #811** رغم ضيق نطاق التعليمات | الالتزام كان سيشحن أربعة ادّعاءات تغطية كاذبة أحدثَها هو، ويرفع `capabilities_multidimensional` ٤٨ ⇒ ٤٩ على كذبة. توسيعٌ مُعلَن، والرجوع عنه قرار المالك | `capability_mapping_engine.py:168` · ١٦ ⇒ ٠ مدخلاً كاذباً |
+| **نظرة أمام سالبة** في المُصنِّف بدل ترتيب البدائل | التراجع (backtracking) يُعيد إنتاج العطل مهما رُتِّبت البدائل؛ المطلوب منعُ **النتيجة** لا ترتيبُ المسار | `(?!(?:if\|not\|exists\|only)\b)` |
+| اختبارٌ يقيس **المخرَج المُلتزَم** لا الدالّة وحدها | دالّةٌ تُصلَح ومصنوعةٌ لا يُعاد توليدها تبقى تُقرأ صادقة — والفارق بينهما هو ما أفلت | `test_the_shipped_tree_carries_no_keyword_named_table` |
+| عدم تسجيل `capability_mapping_engine` في `guard_mutation_registry.json` | نطاق `GUARD_GLOBS` هو `*_guard.{py,sh}`؛ إقحامُه يجعل السجلّ يدّعي إنفاذاً لا يملكه. التكذيب يدويّ **وموثَّق بحدّ صدقه** | `guard_mutation_guard.py:55` |
+| تأجيل إصلاح `generated_at` شريحةً مستقلّة | قرار المالك صراحةً؛ ولأنّ أولويّته **غير مُقاسة** لهذه المولِّدات الثلاثة بعد | `GENERATED-AT-STILL-WALL-CLOCK-IN-THREE-GENERATORS-01` |

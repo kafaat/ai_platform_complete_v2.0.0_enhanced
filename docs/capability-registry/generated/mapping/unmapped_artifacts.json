@@ -6792,6 +6792,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_capability_mapping_table_extraction.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_certification_regression_fixes.py",
     "kind": "tests"
   },

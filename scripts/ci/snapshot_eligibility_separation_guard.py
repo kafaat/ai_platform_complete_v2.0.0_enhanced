@@ -48,17 +48,23 @@ FORBIDDEN = (
 #: بادئة مخطَّط اختياريّة: `public.decision_vegetation_snapshots` هو الجدول نفسه.
 _QUALIFIED = rf"(?:[\w\"]+\.)?{SNAPSHOT_TABLE}"
 
-#: `ALTER TABLE [IF EXISTS] [ONLY] <snapshot> ADD [COLUMN] [IF NOT EXISTS] <name>`.
+#: `ALTER TABLE [IF EXISTS] [ONLY] <snapshot> [*] ADD [COLUMN] [IF NOT EXISTS] <name>`.
 #:
 #: **الترتيب من قواعد PostgreSQL لا من الحدس** — `ALTER TABLE [ IF EXISTS ] [ ONLY ]
-#: name`. وصياغتي الثانية عكسَت الاثنين (`only` قبل `if exists`)، فأفلتت الصيغة
+#: name [ * ]`. وصياغتي الثانية عكسَت الاثنين (`only` قبل `if exists`)، فأفلتت الصيغة
 #: القانونيّة `ALTER TABLE IF EXISTS ONLY …` **تماماً**: صفر التقاط، لا اسمٌ خاطئ.
 #:
 #: وقبلها أفلتت `IF NOT EXISTS` بالتقاط `IF` بوصفها اسم العمود — وهي تظهر **٢١ مرّة**
 #: في هجرات هذه الخدمة نفسها. **ثقبان متتاليان في نحوٍ واحد**: حارس DDL يُكتَب من
 #: القواعد المنشورة، لا من الصيغة التي صادفتُها.
+#:
+#: **وثالثٌ بقي بعد تصحيح الترتيب:** النجمة الوراثيّة `name [ * ]` جزءٌ من القواعد
+#: نفسها، وكانت خارج النمط. وتُقبَل الكلمتان **بأيّ ترتيب** لا بالقانونيّ وحده، لأنّ
+#: هذا **كاشف** لا مُحلِّل نحويّ: الإفراط في الالتقاط لا يكلّف شيئاً — SQL غير
+#: القانونيّة تفشل في الترحيل على أيّ حال — أمّا التقصير فهو العطل بعينه، صمتٌ
+#: يُقرأ «لا عمود محظور هنا» وهو يعني «لم أنظر».
 _ALTER_ADD = re.compile(
-    rf"alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?{_QUALIFIED}"
+    rf"alter\s+table\s+(?:(?:if\s+exists|only)\s+){{0,2}}{_QUALIFIED}(?:\s*\*)?"
     r"\s+add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?(\w+)",
     re.IGNORECASE,
 )

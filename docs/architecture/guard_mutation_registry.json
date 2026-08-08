@@ -241,9 +241,15 @@
         },
         {
           "expect": "test_the_full_postgresql_grammar_is_caught",
-          "find": "rf\"alter\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?{_QUALIFIED}\"",
-          "replace": "rf\"alter\\s+table\\s+(?:only\\s+)?(?:if\\s+exists\\s+)?{_QUALIFIED}\"",
+          "find": "    rf\"alter\\s+table\\s+(?:(?:if\\s+exists|only)\\s+){{0,2}}{_QUALIFIED}(?:\\s*\\*)?\"",
+          "replace": "    rf\"alter\\s+table\\s+(?:only\\s+)?(?:if\\s+exists\\s+)?{_QUALIFIED}(?:\\s*\\*)?\"",
           "why": "عكسُ ترتيب `IF EXISTS` و`ONLY` — وقواعد PostgreSQL هي `ALTER TABLE [ IF EXISTS ] [ ONLY ] name`. بالترتيب المعكوس تفلت الصيغة القانونيّة `ALTER TABLE IF EXISTS ONLY …` **تماماً**: صفر التقاط لا اسمٌ خاطئ. ثاني ثقب في النحو نفسه — حارس DDL يُكتَب من القواعد المنشورة لا من الصيغة المُصادَفة"
+        },
+        {
+          "expect": "test_every_legal_alter_prefix_is_caught",
+          "find": "{_QUALIFIED}(?:\\s*\\*)?\"",
+          "replace": "{_QUALIFIED}\"",
+          "why": "نزع النجمة الوراثيّة `name [ * ]` من النمط — وهي جزءٌ من القواعد نفسها: `ALTER TABLE <t> * ADD COLUMN decision_eligible` صيغةٌ مشروعة تمرّ بلا التقاط. الثقب الثالث في النحو نفسه، وقد بقي بعد تصحيح ترتيب `IF EXISTS`/`ONLY`"
         }
       ],
       "test": "tests_v9/test_snapshot_eligibility_separation_guard.py"

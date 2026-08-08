@@ -191,3 +191,43 @@ def test_each_optional_clause_alone_is_caught_too(tmp_path, monkeypatch):
         )
         found = _violations_in(monkeypatch, root)
         assert len(found) == 1 and "policy_version" in found[0], clause
+
+
+@pytest.mark.parametrize(
+    "prefix,suffix,label",
+    [
+        ("", " *", "النجمة الوراثيّة `<t> *` — بقيت خارج النمط بعد تصحيح الترتيب"),
+        ("IF EXISTS ", " *", "`IF EXISTS` مع النجمة"),
+        ("IF EXISTS ONLY ", " *", "القواعد كاملةً: `[IF EXISTS] [ONLY] name [ * ]`"),
+        ("ONLY IF EXISTS ", "", "المعكوسة — تُقبَل عمداً (كاشف لا مُحلِّل نحويّ)"),
+    ],
+)
+def test_every_legal_alter_prefix_is_caught(tmp_path, monkeypatch, prefix, suffix, label):
+    """القواعد كاملةً — `ALTER TABLE [ IF EXISTS ] [ ONLY ] name [ * ]`.
+
+    تصحيحُ ترتيب الكلمتين أغلق ثقباً وترك ثالثاً: **النجمة الوراثيّة** جزءٌ من
+    القواعد نفسها، و`ALTER TABLE <t> * ADD COLUMN decision_eligible` صيغةٌ مشروعة
+    كانت تمرّ. ثلاثة ثقوب في نحوٍ واحد، وكلّ مرّة يُقاس ما نُظِر إليه لا ما صُودِف.
+
+    **والمعكوسة تُقبَل عمداً:** الإفراط في الالتقاط لا يكلّف شيئاً لأنّ SQL غير
+    القانونيّة تفشل في الترحيل أصلاً — أمّا التقصير فهو العطل بعينه.
+    """
+    root = _repo(
+        tmp_path,
+        model_body=_CLEAN_MODEL,
+        migration=_CLEAN_TABLE + f"\nALTER TABLE {prefix}decision_vegetation_snapshots{suffix}"
+        " ADD COLUMN decision_eligible boolean;\n",
+    )
+    found = _violations_in(monkeypatch, root)
+    assert len(found) == 1 and "decision_eligible" in found[0], label
+
+
+def test_an_unrelated_column_under_a_composite_prefix_is_still_clean(tmp_path, monkeypatch):
+    """توسيع الالتقاط يجب ألّا يُنتج إنذاراً كاذباً — عمودٌ بريء يبقى بريئاً."""
+    root = _repo(
+        tmp_path,
+        model_body=_CLEAN_MODEL,
+        migration=_CLEAN_TABLE + "\nALTER TABLE IF EXISTS ONLY decision_vegetation_snapshots *"
+        " ADD COLUMN cloud_pct real;\n",
+    )
+    assert _violations_in(monkeypatch, root) == []
