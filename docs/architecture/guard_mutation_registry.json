@@ -415,6 +415,35 @@
         }
       ],
       "test": "tests_v9/test_container_command_path_guard.py"
+    },
+    "live_pg_evidence_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_one_skipped_live_test_is_enough_to_fail",
+          "find": "    if counts[\"skipped\"] > 0:",
+          "replace": "    if False:",
+          "why": "قبولُ تخطٍّ في الوظيفة المخصّصة ⇒ التخطّي يصير خضرةً تعني «لم يُقَس»، و`SAHOOL_REQUIRE_LIVE_PG` لا يراه لأنّه يحرس غياب القاعدة وحده. والمرساة على **تخطٍّ واحد** لا على التشغيل المُتخطّى بالكامل: الأخير يلتقطه فحصُ «صفر مُنفَّذ» أيضاً، فلا يُميّز الخاصّيّتين — وهو ما كشفته الطفرة حين حمرّ اختبارٌ غير الذي سمّيتُه"
+        },
+        {
+          "expect": "test_zero_executed_is_a_failure",
+          "find": "    if counts[\"executed\"] < a.min_executed:",
+          "replace": "    if False:",
+          "why": "قبولُ صفر اختبار مُنفَّذ ⇒ «أخضرُ لأنّه لم ينظر». والمرساة على الشرط الموحَّد لا على فرع الصفر: أوّل صياغة عندي فصلتهما بـ`if/elif` فكان تعطيل فرع الصفر لا يُسقِط شيئاً — يلتقطه `elif` لأنّ ٠ أصغر من الحدّ، فالفرع زينة لا حارس"
+        },
+        {
+          "expect": "test_an_unrestricted_role_is_a_failure",
+          "find": "    if role[\"superuser\"] != \"false\" or role[\"bypassrls\"] != \"false\":",
+          "replace": "    if False:",
+          "why": "قبولُ دورٍ يتخطّى RLS ⇒ كلّ ادّعاء عزلٍ تحته يمرّ مجّاناً، والأدلّة تبقى خضراء وهي لا تقيس عزلاً"
+        },
+        {
+          "expect": "test_a_missing_contract_object_is_drift",
+          "find": "                if item not in live:",
+          "replace": "                if False:",
+          "why": "نزعُ كشف انحراف المخطّط ⇒ هجرةٌ تُسقِط قيداً تحته دليل تمرّ، فيُقرأ فشل الادّعاء لاحقاً «الاختبار خاطئ» بدل «المخطّط انحرف»"
+        }
+      ],
+      "test": "tests_v9/test_live_pg_evidence_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

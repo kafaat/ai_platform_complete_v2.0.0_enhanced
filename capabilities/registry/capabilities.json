@@ -4187,8 +4187,8 @@
         "tests_v9/test_evidence_persistence.py",
         "tests_v9/test_evidence_registry.py",
         "tests_v9/test_evidence_snapshots_migration_v148.py",
-        "tests_v9/test_ndvi_evidence_policy.py",
-        "tests_v9/test_production_evidence_pack_guard.py"
+        "tests_v9/test_live_pg_evidence_guard.py",
+        "tests_v9/test_ndvi_evidence_policy.py"
       ],
       "runtime": {
         "metrics": [],
