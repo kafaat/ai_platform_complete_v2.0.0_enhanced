@@ -372,7 +372,7 @@ def assess(
         if required not in bands:
             deny_all(Reason("MISSING_SPECTRAL", "spectral_bands", sorted(bands), required))
 
-    # ⑧ نسبة البكسل الصالح — **بمجالها**. `inf`/`nan`/‏-5/‏١٢٠ ليست نِسباً:
+    # ⑧ نسبة البكسل الصالح — **بمجالها**. `inf`/`nan`/-5/١٢٠ ليست نِسباً:
     # `nan` يجعل كلّ مقارنة `False` فتمرّ صامتةً، و`inf` يتفوّق على أيّ عتبة.
     valid_pct = quality.get("valid_pixel_pct")
     valid: float | None = None

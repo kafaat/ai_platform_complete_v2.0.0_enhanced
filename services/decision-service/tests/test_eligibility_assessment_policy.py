@@ -367,7 +367,7 @@ def test_a_non_finite_or_out_of_range_pixel_pct_is_refused():
 
 
 def test_a_boolean_is_not_a_percentage():
-    """`True` عددٌ في بايثون (‏`1`)، فيمرّ عتبة `discover` بلا هذا الفحص."""
+    """`True` عددٌ في بايثون (`1`)، فيمرّ عتبة `discover` بلا هذا الفحص."""
     result = assess(snapshot(quality_gate={"valid_pixel_pct": True}))
     assert not any(result.stages.values())
     assert "MISSING_VALID_PIXEL_PCT" in codes(result, "discover")
