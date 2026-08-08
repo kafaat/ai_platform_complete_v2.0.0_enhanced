@@ -106,3 +106,76 @@ def test_the_shipped_tree_carries_no_keyword_named_table():
         if item.get("value", "").split(" @ ")[0].lower() in keywords
     ]
     assert offenders == [], "أدلّة «قاعدة بيانات» اسمها كلمة مفتاحيّة: " + " · ".join(offenders)
+
+
+@pytest.mark.parametrize(
+    "text,expected,label",
+    [
+        (
+            'CREATE TABLE public . "decision_vegetation_snapshots" (\n  "decision_eligible" boolean\n);',
+            "decision_vegetation_snapshots",
+            "المركّبة: مخطَّط بمسافات + جدول مقتبس",
+        ),
+        (
+            'ALTER TABLE IF EXISTS ONLY public . "decision_vegetation_snapshots" *\n'
+            '  ADD COLUMN IF NOT EXISTS "policy_version" text;',
+            "decision_vegetation_snapshots",
+            "المركّبة الكاملة مع النجمة",
+        ),
+        ("ALTER TABLE public . orders ADD COLUMN x int", "orders", "مسافات حول النقطة بلا اقتباس"),
+        ('CREATE TABLE "public" . "orders" (', "orders", "المخطَّط والجدول مقتبسان"),
+    ],
+)
+def test_a_schema_qualifier_is_never_reported_as_the_table(text, expected, label):
+    """ما قبل النقطة مخطَّطٌ لا جدول — والتراجع لا يُنتِج `public`.
+
+    بادئة المخطَّط كانت اختياريّةً **قابلة للتراجع**: عند `public . "<t>"` يفشل الالتقاط
+    بعد الاقتباس فيتراجع المُطابِق ويأخذ **`public`**. أربعة مداخل كاذبة، ورقمٌ حوكميّ
+    (`capabilities_multidimensional`) تحرّك من ٤٨ إلى ٤٩ عليها.
+    """
+    assert _tables(text) == [expected], label
+
+
+@pytest.mark.parametrize(
+    "text,label",
+    [
+        ("CREATE TABLE public (id int);", "`public` جدولاً غير مؤهَّل"),
+        ("ALTER TABLE public ADD COLUMN x int;", "`public` جدولاً في ALTER"),
+    ],
+)
+def test_public_unqualified_is_still_a_legitimate_table_name(text, label):
+    """**العلاج بنيويّ لا حظرَ كلمة.**
+
+    `public` اسمُ جدولٍ قانونيّ تماماً حين تَرِد غير مؤهَّلة. حظرُها بالاسم كان سيُنتِج
+    العمى المقابل: كاشفٌ يرفض حقيقةً ليتجنّب كذبة. المرفوض هو **الموضع** — اسمٌ تتبعه
+    نقطة — لا الاسم نفسه.
+    """
+    assert _tables(text) == ["public"], label
+
+
+def test_the_shipped_tree_takes_no_database_evidence_from_the_guard_runbook():
+    """`GUARD_CATALOGUE.md` نثرٌ مولَّد عن الحرّاس — وشُذرات DDL فيه أمثلةٌ لا مخطَّط.
+
+    وهذا التأكيد **كان سيمسك الحادثتين معاً**: `IF` أوّلاً ثمّ `public` — بخلاف تأكيد
+    الكلمات المفتاحيّة الذي أمسك الأولى وحدها لأنّ `public` ليست كلمة مفتاحيّة. مصدرُ
+    دليلٍ عن قاعدة بيانات لا يكون ملفّاً يصف الحرّاس.
+    """
+    import json
+
+    mapping = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "docs"
+            / "capability-registry"
+            / "generated"
+            / "mapping"
+            / "capability_mapping.json"
+        ).read_text(encoding="utf-8")
+    )
+    offenders = [
+        f"{capability['capability_id']} — {item['value']}"
+        for capability in mapping["capabilities"]
+        for item in capability.get("database", [])
+        if "docs/runbooks/GUARD_CATALOGUE.md" in item.get("value", "")
+    ]
+    assert offenders == [], "أدلّة «قاعدة بيانات» مصدرها رَنبوك الحرّاس: " + " · ".join(offenders)

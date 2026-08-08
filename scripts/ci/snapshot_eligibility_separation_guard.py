@@ -45,8 +45,40 @@ FORBIDDEN = (
     "eligibility_policy",
 )
 
-#: بادئة مخطَّط اختياريّة: `public.decision_vegetation_snapshots` هو الجدول نفسه.
-_QUALIFIED = rf"(?:[\w\"]+\.)?{SNAPSHOT_TABLE}"
+#: اقتباس اختياريّ. **لا يُطابَق زوجيّاً عمداً** (`"<t>` و`<t>"` مقبولتان): كاشفٌ لا
+#: مُحلِّل نحويّ، والإفراط مجّانيّ.
+_QUOTE = r'"?'
+
+#: بادئة مخطَّط اختياريّة — عارية أو مقتبسة، **وبمسافات حول النقطة** (`public . t`
+#: قانونيّة: مُحلِّل PostgreSQL يفصل الرموز بالمسافات كغيرها).
+_SCHEMA = rf"(?:{_QUOTE}\w+{_QUOTE}\s*\.\s*)?"
+
+#: الجدول المستهدف: `public.t` · `"t"` · `public."t"` — كلّها الجدول نفسه.
+#:
+#: **الثقب الرابع في النحو نفسه:** كانت الصياغة تقرأ الاسم **عارياً فقط**، فـ
+#: `ALTER TABLE public."decision_vegetation_snapshots" ADD COLUMN decision_eligible`
+#: — هجرةٌ مشروعة تماماً — تمرّ بصفر التقاط. الاقتباس في PostgreSQL يحفظ حالة الأحرف
+#: ولا يُنشئ كياناً آخر.
+_QUALIFIED = rf"{_SCHEMA}{_QUOTE}{SNAPSHOT_TABLE}{_QUOTE}"
+
+#: اسم العمود عارياً أو مقتبساً، **مسبوقاً بنظرة أمام سالبة**.
+#:
+#: والنظرة ليست زينة: بلا دعم الاقتباس كان `(\w+)` يفشل عند `"` **فيتراجع المُطابِق عن
+#: `(?:column\s+)?` ويلتقط `COLUMN` بوصفه اسم العمود** — اسمٌ ليس في `FORBIDDEN` فيمرّ
+#: الحارس خضراء وقد نظر ورأى الشيء الخطأ. وهو الصنف نفسه الذي أفلتت به `IF NOT EXISTS`
+#: أوّل مرّة. فدعمُ الاقتباس وحده لا يكفي: النظرة تمنع أن يُنتِج **أيّ** مسار تراجع
+#: اسماً هو كلمة مفتاحيّة.
+#:
+#: **وحدّ صدق على التطبيع:** المقارنة تجري بـ`lower()`، فـ`"Decision_Eligible"` تُطابِق
+#: `decision_eligible` — وهما في PostgreSQL **مُعرِّفان مختلفان**. إفراطٌ مقصود في
+#: الالتقاط، لا ادّعاء دقّة.
+#:
+#: **وحدّ صدق ثانٍ، على النظرة نفسها:** لا طفرةَ مُسجَّلة تنزعها وحدها — لأنّ نزعها
+#: وحده **لا يُسقِط أيّ اختبار**: مع دعم الاقتباس قائماً لا يوجد مدخلٌ يتراجع إلى كلمة
+#: مفتاحيّة (مقيس على خمس صيغ). فهي **دفاعٌ في العمق ضدّ الانحدار المركَّب** — تبيت إن
+#: زال دعم الاقتباس يوماً — **لا حارسٌ مُثبَت بالتكذيب**. ومواصفةُ طفرةٍ تمرّ خضراء
+#: ليست دليلاً، فلم تُسجَّل.
+_COLUMN = rf"(?!(?:column|if|not|exists)\b){_QUOTE}(\w+){_QUOTE}"
 
 #: `ALTER TABLE [IF EXISTS] [ONLY] <snapshot> [*] ADD [COLUMN] [IF NOT EXISTS] <name>`.
 #:
@@ -65,7 +97,7 @@ _QUALIFIED = rf"(?:[\w\"]+\.)?{SNAPSHOT_TABLE}"
 #: يُقرأ «لا عمود محظور هنا» وهو يعني «لم أنظر».
 _ALTER_ADD = re.compile(
     rf"alter\s+table\s+(?:(?:if\s+exists|only)\s+){{0,2}}{_QUALIFIED}(?:\s*\*)?"
-    r"\s+add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?(\w+)",
+    rf"\s+add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?{_COLUMN}",
     re.IGNORECASE,
 )
 
@@ -125,7 +157,10 @@ def violations() -> list[str]:
         if table_body is not None:
             seen_table = True
             for field in FORBIDDEN:
-                if re.search(rf"(^|,|\()\s*{field}\s", table_body, re.IGNORECASE):
+                # الاقتباس حول اسم العمود داخل التعريف كان تجاوزاً صامتاً: الجسم
+                # يُوجَد والحقل يفلت — بخلاف الجدول المقتبس الذي كان يُسقِط الموضوع
+                # فيفشل الحارس بصوتٍ عالٍ. الصامت أخطر، لأنّ لا شيء يدلّ عليه.
+                if re.search(rf"(^|,|\()\s*{_QUOTE}{field}{_QUOTE}\s", table_body, re.IGNORECASE):
                     found.append(f"{rel} — عمود `{field}` في تعريف `{SNAPSHOT_TABLE}`.")
 
         for column in _ALTER_ADD.findall(sql):

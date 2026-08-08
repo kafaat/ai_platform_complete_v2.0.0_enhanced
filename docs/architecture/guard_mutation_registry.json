@@ -235,9 +235,9 @@
         },
         {
           "expect": "test_add_column_if_not_exists_does_not_slip_through",
-          "find": "    r\"\\s+add\\s+(?:column\\s+)?(?:if\\s+not\\s+exists\\s+)?(\\w+)\",",
-          "replace": "    r\"\\s+add\\s+(?:column\\s+)?(\\w+)\",",
-          "why": "إعادة الصيغة التي أفلتت `ADD COLUMN IF NOT EXISTS`: يُلتقَط `IF` بوصفه اسم العمود فيمرّ الاسم المحظور. والنمط يظهر ٢١ مرّة في هجرات هذه الخدمة — فأرجح طريقٍ إلى العطل كانت الوحيدة التي لا يراها الحارس"
+          "find": "    rf\"\\s+add\\s+(?:column\\s+)?(?:if\\s+not\\s+exists\\s+)?{_COLUMN}\",",
+          "replace": "    rf\"\\s+add\\s+(?:column\\s+)?{_COLUMN}\",",
+          "why": "إعادة الصيغة التي أفلتت `ADD COLUMN IF NOT EXISTS`: يُلتقَط `IF` بوصفه اسم العمود فيمرّ الاسم المحظور. والنمط يظهر ٢١ مرّة في هجرات هذه الخدمة — فأرجح طريقٍ إلى العطل كانت الوحيدة التي لا يراها الحارس. وبعد النظرة الأمام صار الأثر أنظف: لا التقاط أصلاً بدل التقاط `IF` — والاختبار يحمرّ في الحالين"
         },
         {
           "expect": "test_the_full_postgresql_grammar_is_caught",
@@ -250,6 +250,24 @@
           "find": "{_QUALIFIED}(?:\\s*\\*)?\"",
           "replace": "{_QUALIFIED}\"",
           "why": "نزع النجمة الوراثيّة `name [ * ]` من النمط — وهي جزءٌ من القواعد نفسها: `ALTER TABLE <t> * ADD COLUMN decision_eligible` صيغةٌ مشروعة تمرّ بلا التقاط. الثقب الثالث في النحو نفسه، وقد بقي بعد تصحيح ترتيب `IF EXISTS`/`ONLY`"
+        },
+        {
+          "expect": "test_a_quoted_identifier_is_the_same_identifier",
+          "find": "_QUALIFIED = rf\"{_SCHEMA}{_QUOTE}{SNAPSHOT_TABLE}{_QUOTE}\"",
+          "replace": "_QUALIFIED = rf\"{_SCHEMA}{SNAPSHOT_TABLE}\"",
+          "why": "نزع دعم اقتباس **الجدول** ⇒ `ALTER TABLE public.\"<t>\" ADD COLUMN decision_eligible` — هجرة مشروعة تماماً — تمرّ بصفر التقاط. الاقتباس في PostgreSQL يحفظ حالة الأحرف ولا يُنشئ كياناً آخر؛ الثقب الرابع في النحو نفسه"
+        },
+        {
+          "expect": "test_the_word_column_is_never_captured_as_a_column_name",
+          "find": "_COLUMN = rf\"(?!(?:column|if|not|exists)\\b){_QUOTE}(\\w+){_QUOTE}\"",
+          "replace": "_COLUMN = rf\"(?!(?:column|if|not|exists)\\b)(\\w+)\"",
+          "why": "نزع دعم اقتباس **العمود** ⇒ `ADD COLUMN \"policy_version\"` لا يُلتقَط. وقبل النظرة الأمام كان الأسوأ: `(\\w+)` يفشل عند `\"` فيتراجع المُطابِق عن `(?:column\\s+)?` **ويلتقط `COLUMN` اسمَ عمود** — خضرةٌ بعد أن نظر ورأى الشيء الخطأ"
+        },
+        {
+          "expect": "test_a_quoted_column_inside_create_table_is_caught",
+          "find": "rf\"(^|,|\\()\\s*{_QUOTE}{field}{_QUOTE}\\s\"",
+          "replace": "rf\"(^|,|\\()\\s*{field}\\s\"",
+          "why": "نزع دعم اقتباس العمود داخل جسم `CREATE TABLE` ⇒ تجاوزٌ **صامت** مؤكَّد: الجسم يُوجَد والحقل يفلت — بخلاف الجدول المقتبس الذي كان يُسقِط الموضوع فيفشل الحارس بصوتٍ عالٍ. والصامت أخطر لأنّ لا شيء يدلّ عليه"
         }
       ],
       "test": "tests_v9/test_snapshot_eligibility_separation_guard.py"
