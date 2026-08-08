@@ -8,7 +8,7 @@
 
 ===============================  ==========================================
 غياب القاعدة                     ``SAHOOL_REQUIRE_LIVE_PG=1`` ⇒ خطأ جمع
-الدور المقيَّد غير مُثبَت          ``--require-restricted-role``
+الدور المقيَّد غير مُثبَت          ``role_properties`` مقروءةً من ``pg_roles``
 اختبارات مُنتقاة = صفر            ``executed == 0`` ⇒ فشل
 اختبارات حيّة مُتخطّاة > صفر       ``skipped > 0`` ⇒ فشل
 انحراف الهجرات/المخطّط            مقارنة الكتالوج بـ``live_pg_schema_contract.json``
@@ -34,6 +34,12 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+# `-X` يتجاهل `~/.psqlrc`: إعدادٌ محلّيّ (`\pset`, `\timing`) يلوّث الخرج فيُقرأ
+# سطرٌ زائد قيمةَ كتالوج. و`ON_ERROR_STOP=1` يجعل خطأ SQL يُنهي بغير صفر — بدونه
+# قد يعود psql بصفرٍ بعد خطأ فيُقرأ خرجٌ ناقص «نجاحاً»، وهو الصنف الذي يوجد هذا
+# الحارس ضدّه. (تصويب المالك.)
+_PSQL_SAFE_FLAGS = ["-X", "-v", "ON_ERROR_STOP=1"]
+
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT = ROOT / "docs" / "architecture" / "live_pg_schema_contract.json"
 
@@ -41,13 +47,15 @@ CONTRACT = ROOT / "docs" / "architecture" / "live_pg_schema_contract.json"
 def psql(sql: str, *, database: str, role: str) -> str:
     """‏`-qAtc` بلا `-h/-p`: تُقرأ من البيئة، فلا تمرّ عبر سطر أمر يُطبَع عند الفشل.
 
+    و`_PSQL_SAFE_FLAGS` جزءٌ من العقد لا تجميل — انظر تعليقها أعلاه.
+
     وغيابُ العميل يُحوَّل إلى `SystemExit` برسالة عقد: بدونه يرمي `subprocess.run`
     ‏`FileNotFoundError` فتظهر trace غير مُوجَّهة، فيُقرأ عطلُ بيئةٍ خطأً برمجيّاً
     ويُبحَث عنه في المكان الخطأ. (لاحظه Copilot.)
     """
     try:
         proc = subprocess.run(  # noqa: S603
-            ["psql", "-d", database, "-U", role, "-qAtc", sql],
+            ["psql", *_PSQL_SAFE_FLAGS, "-d", database, "-U", role, "-qAtc", sql],
             capture_output=True,
             encoding="utf-8",
             check=False,

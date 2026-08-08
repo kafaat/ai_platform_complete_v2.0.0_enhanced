@@ -15,6 +15,7 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -227,3 +228,39 @@ def test_a_missing_psql_client_is_a_contract_error_not_a_traceback(monkeypatch):
     with pytest.raises(SystemExit) as err:
         MOD.psql("select 1", database="d", role="r")
     assert "لا عميل psql" in str(err.value)
+
+
+# ───────────────────── عقد استدعاء `psql` نفسه (تصويب المالك) ─────────────────────
+
+
+def test_psql_is_fail_closed_and_ignores_psqlrc(monkeypatch):
+    r"""رايتان تُقرآن تجميلاً وهما عقد.
+
+    `~/.psqlrc` يُقرأ افتراضيّاً: `\pset` أو `\timing` في بيئة المُشغِّل يُضيف سطراً
+    إلى الخرج، فيُقرأ ذلك السطر **قيمةَ كتالوج** ويُقارَن بالعقد. و`ON_ERROR_STOP=1`
+    يجعل خطأ SQL يُنهي بغير صفر — بدونه قد يعود psql بصفرٍ بعد خطأ فيُقرأ خرجٌ ناقص
+    «نجاحاً»، وهو بالضبط الصنف الذي يوجد هذا الحارس ضدّه.
+    """
+    seen = {}
+
+    def fake_run(argv, **kwargs):
+        seen["argv"] = argv
+        return SimpleNamespace(returncode=0, stdout="1\n", stderr="")
+
+    monkeypatch.setattr(MOD.subprocess, "run", fake_run)
+    assert MOD.psql("select 1", database="sahool", role="sahool_app") == "1"
+
+    argv = seen["argv"]
+    assert "-X" in argv, "‏`.psqlrc` يُقرأ — إعدادُ بيئةٍ يستطيع تلويث القياس"
+    assert argv[argv.index("-v") + 1] == "ON_ERROR_STOP=1"
+
+
+def test_psql_sql_failure_is_fatal(monkeypatch):
+    """المرساة المقابلة: رمزُ خروجٍ غير صفريّ يُنهي بعقد لا يُبتلَع."""
+
+    def fake_run(*args, **kwargs):
+        return SimpleNamespace(returncode=1, stdout="", stderr="ERROR: broken query")
+
+    monkeypatch.setattr(MOD.subprocess, "run", fake_run)
+    with pytest.raises(SystemExit, match="تعذّر الاستعلام"):
+        MOD.psql("select broken", database="sahool", role="sahool_app")

@@ -453,6 +453,12 @@
           "find": "    if major != str(doc[\"postgres_major\"]):",
           "replace": "    if False:",
           "why": "نزعُ فحص الإصدار الرئيسيّ ⇒ تعمل الأدلّة على PG15 أو 17 بلا إنذار، وهي مبنيّة على قواعد نحو DDL ورموز SQLSTATE لإصدارٍ بعينه — فيصير الأخضر شهادةً على خادمٍ آخر"
+        },
+        {
+          "expect": "test_psql_is_fail_closed_and_ignores_psqlrc",
+          "find": "_PSQL_SAFE_FLAGS = [\"-X\", \"-v\", \"ON_ERROR_STOP=1\"]",
+          "replace": "_PSQL_SAFE_FLAGS = []",
+          "why": "نزعُ `-X` و`ON_ERROR_STOP=1` ⇒ يُقرأ `~/.psqlrc` فسطرٌ من `\\pset` أو `\\timing` يُقرأ قيمةَ كتالوج ويُقارَن بالعقد؛ وخطأ SQL قد يعود بصفر فيُقرأ خرجٌ ناقص «نجاحاً» — وهو الصنف الذي يوجد هذا الحارس ضدّه. والمرساة على ثابتٍ مستقلّ لا على قائمة الوسائط: `ruff format` يفكّك القائمة الطويلة سطراً سطراً فتَبيت سلسلةُ الطفرة عند أوّل إعادة تنسيق"
         }
       ],
       "test": "tests_v9/test_live_pg_evidence_guard.py"
