@@ -570,6 +570,41 @@
         }
       ],
       "test": "tests_v9/test_live_pg_evidence_guard.py"
+    },
+    "branch_protection_contract_guard.py": {
+      "test": "tests_v9/test_branch_protection_contract_guard.py",
+      "mutations": [
+        {
+          "expect": "test_conversation_resolution_disabled_is_a_failure",
+          "find": "    if enabled is not True:",
+          "replace": "    if False:",
+          "why": "قبولُ القفل المُطفَأ ⇒ يعود المستودع إلى الحالة التي وقع فيها العطل مرّتين (#810 و#816). والحارس كلّه موجودٌ لهذا الشرط وحده — تعطيلُه يجعله يُبلِغ خضرةً عن سؤالٍ لم يطرحه"
+        },
+        {
+          "expect": "test_a_non_boolean_enabled_is_rejected",
+          "find": "    if enabled is not True:",
+          "replace": "    if not enabled:",
+          "why": "مقارنةٌ بالصدق بدل المنطقيّ: `\"false\"` نصّاً **صادقةٌ** في بايثون، فتُقرأ قفلاً مُفعَّلاً وهو مُطفَأ. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **الحكم** وهذه تحرس **نوع القيمة** — وحقلٌ يتغيّر تمثيله في API يُصيب الثانية وحدها"
+        },
+        {
+          "expect": "test_a_missing_key_is_not_read_as_enabled",
+          "find": "    block = document.get(CONTRACT_KEY)",
+          "replace": "    block = document.get(CONTRACT_KEY, {\"enabled\": True})",
+          "why": "قراءةُ المفتاح الغائب قبولاً ⇒ «لم يُقرأ» تصير «مُفعَّل». وهو صنف «نتيجةٌ عن سؤالٍ لم يُطرَح» الذي عولج ستّ مرّات في الشريحة التي أنشأت هذه الفجوة أصلاً"
+        },
+        {
+          "expect": "test_an_unreadable_protection_file_fails_closed",
+          "find": "    except FileNotFoundError:\n        raise SystemExit(",
+          "replace": "    except FileNotFoundError:\n        return {CONTRACT_KEY: {\"enabled\": True}}\n    except RuntimeError:\n        raise SystemExit(",
+          "why": "ملفٌّ غائب يُقرأ «مضبوطاً» ⇒ الحارس أخضرُ **بالضبط حين لا يُقاس شيء**. والحالة مرجَّحة لا نادرة: `GITHUB_TOKEN` الافتراضيّ لا يقرأ `branches/*/protection` فسوءُ الإعداد يُنتِج غياباً لا رفضاً. **ولم تكن أوّل صياغةٍ للطفرة تزرع شيئاً** — تبديلُ صنف الاستثناء يلتقطه `except OSError` التالي فيبقى الفشل مغلقاً؛ صُحِّحت لتزرع العطل فعلاً"
+        },
+        {
+          "expect": "test_a_non_object_response_is_rejected",
+          "find": "    if not isinstance(document, dict):",
+          "replace": "    if False:",
+          "why": "استجابةُ خطأٍ من GitHub قد تكون قائمة أو نصّاً؛ قبولُها كائناً يُنتِج `AttributeError` غامضاً أو — أسوأ — قراءةً جزئيّة. استجابةٌ لا تُفهَم فشلٌ لا قبول"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
