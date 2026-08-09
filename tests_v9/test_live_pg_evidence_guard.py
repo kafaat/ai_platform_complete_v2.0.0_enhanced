@@ -474,7 +474,12 @@ def test_a_fail_closed_environment_error_still_leaves_evidence(tmp_path, monkeyp
 
     غيابُ `psql` أو دورٌ غير موجود يُنهيان بـ`SystemExit` — وهو الصواب: عطلُ بيئةٍ
     ليس حكماً. لكنّ الخروج الصامت يترك الوظيفة بلا وثيقة، فيُقرأ لاحقاً «لم يُشغَّل
-    شيء» وهو يعني «شُغِّل وانهار». فيُكتَب `FAIL` بسببه ثمّ تُعاد الرسالة كما هي.
+    شيء» وهو يعني «شُغِّل وانهار». فيُكتَب `FAIL` بسببه ثمّ تُعاد الرسالة الخام كما هي.
+
+    **وتصويبُ عقدٍ في هذا التأكيد نفسه:** كان يقرأ «غير موجود» **من نصّ الرسالة**
+    داخل الوثيقة — أي أنّه كان يُثبِّت أنّ النصّ الخام يدخل المصنوعة، وهو بعينه التسريب
+    الذي عالجته رقعة المتابعة. صار يقرأ **السبب المُصنَّف** `RESTRICTED_ROLE_NOT_FOUND`:
+    الخاصّيّة المقيسة هي «الدليل يوجد ويقول لماذا»، لا «الدليل ينسخ التشخيص».
     """
     monkeypatch.setattr(
         MOD, "server_identity", lambda *a, **k: {"postgresql": "16.13", "postgis": "3.4.2"}
@@ -489,7 +494,7 @@ def test_a_fail_closed_environment_error_still_leaves_evidence(tmp_path, monkeyp
     assert out.is_file(), "خروجٌ مغلق بلا دليل — الصمت يُقرأ «لم يُشغَّل»"
     doc = json.loads(out.read_text(encoding="utf-8"))
     assert doc["verdict"] == "FAIL"
-    assert doc["problems"] and "غير موجود" in doc["problems"][0]
+    assert doc["problems"] == [MOD.RESTRICTED_ROLE_NOT_FOUND]
 
 
 def test_without_the_flag_no_file_is_written(tmp_path, monkeypatch):
@@ -497,3 +502,169 @@ def test_without_the_flag_no_file_is_written(tmp_path, monkeypatch):
     _stub(monkeypatch)
     assert MOD.main(["--junit", str(_junit(tmp_path, tests=30))]) == 0
     assert not (tmp_path / "live_pg_evidence.json").exists()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# رقعة متابعة #816 — قيمةٌ تدخل SQL، وتشخيصٌ يدخل مصنوعةً تنفي حملَه
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "app_role,expected",
+    [
+        ("sahool_app", "rolname='sahool_app'"),
+        ("ops'role", "rolname='ops''role'"),
+        ("x' OR true --", "rolname='x'' OR true --'"),
+        ("''", "rolname=''''''"),
+    ],
+)
+def test_a_role_name_reaches_psql_escaped(monkeypatch, app_role, expected):
+    """**القيمة تُهرَّب قبل أن تدخل SQL — ويُقاس ما يصل إلى `psql` لا ما كُتِب.**
+
+    `app_role` تأتي من `--app-role` أو `SAHOOL_TEST_PGROLE`، وكانت تُوضَع في
+    `rolname='{app_role}'` **بلا تهريب**. المقيس على `bff877fe7`:
+
+        "ops'role"      ⇒ rolname='ops'role'      ← استعلامٌ مكسور
+        "x' OR true --" ⇒ rolname='x' OR true --' ← يُغيّر الصفّ المقروء
+
+    **ومدى الاستغلال اليوم ضيّق** — CI يمرّر `sahool_app` ثابتاً — فالادّعاء هنا
+    **عطلُ سلامةٍ في الواجهة**، لا اختراقٌ قائم. وهذا هو الفارق الذي يُكتَب لا يُطوى.
+
+    **والتضعيف لا الحذف:** `ops'role` اسمٌ مشروع في PostgreSQL؛ فتنقيةٌ تحذف العلامة
+    كانت ستُنتِج العمى المقابل — بحثاً عن دورٍ آخر **بصمت**، وهو أسوأ من الكسر لأنّه
+    يُجيب عن سؤالٍ غير الذي طُرِح.
+    """
+    asked: list[str] = []
+    monkeypatch.setattr(
+        MOD, "psql", lambda sql, **k: asked.append(sql) or "false|false|false|false"
+    )
+    MOD.role_properties("d", "o", app_role)
+
+    assert len(asked) == 1
+    assert expected in asked[0], f"لم تُهرَّب القيمة: {asked[0]}"
+
+
+def test_an_injected_role_name_cannot_escape_its_literal(monkeypatch):
+    """**الخاصّيّة البنيويّة لا شكل النصّ:** ما بعد `rolname=` حرفٌ **مُغلَق**.
+
+    التأكيد السابق يقارن بسلسلةٍ متوقَّعة، وهذا يقيس ما تعنيه: عدد علامات الاقتباس
+    المفردة بعد `rolname=` **زوجيّ** — فلا `OR` ولا تعليق يخرج إلى نحو الاستعلام.
+
+    **وحدّ صدقٍ على هذا التأكيد نفسه — مقيس لا مُقدَّر:** ليس له مُكذِّب مستقلّ. جرّبتُ
+    طفرةً تُبقي التضعيف وتحذف `--` بعده، فأسقطت `test_a_role_name_reaches_psql_escaped`
+    قبل أن تبلغ هذا — ورفضها `guard_mutation_guard` بالنصّ «حمرّ بغير الاختبار
+    المُتوقَّع». وكلّ طفرةٍ تكسر الإغلاق تكسر السلسلة المتوقَّعة أيضاً. فهو **تقويةُ
+    صياغةٍ للادّعاء، لا حارسٌ مُثبَت بالتكذيب** — ولم تُسجَّل له طفرة، كما لم تُسجَّل
+    لنظرة `_COLUMN` الأمامية في `snapshot_eligibility_separation_guard`.
+
+    **ولا يُؤكَّد أنّ الحرف آخر الاستعلام:** ذلك واقعٌ عارض في الصياغة الحاليّة لا
+    خاصّيّةٌ أمنيّة، وتثبيتُه كان سيُحمِّر أوّل إضافةٍ مشروعة لشرطٍ بعده.
+    """
+    asked: list[str] = []
+    monkeypatch.setattr(
+        MOD, "psql", lambda sql, **k: asked.append(sql) or "false|false|false|false"
+    )
+    MOD.role_properties("d", "o", "x' OR true --")
+
+    tail = asked[0].split("rolname=", 1)[1]
+    assert tail.startswith("'"), f"القيمة لا تبدأ حرفاً: {tail}"
+    assert tail.count("'") % 2 == 0, f"حرفٌ غير مُغلَق: {tail}"
+
+
+_LEAKY_STDERR = (
+    'psql: error: connection to server at "db.internal" (10.0.0.7), port 5435 failed: '
+    'FATAL:  password authentication failed for user "sahool_user" (password=SUPER_SECRET_PW)'
+)
+
+
+def test_a_psql_diagnostic_never_reaches_the_uploaded_evidence(tmp_path, monkeypatch):
+    """**وثيقةٌ تُقرِّر خاصّيّةً لا تحملها — الصنف نفسه، في المصنوعة هذه المرّة.**
+
+    `$comment` يقول «لا تحوي مضيفاً ولا منفذاً ولا مستخدماً ولا كلمة مرور»، بينما
+    مسار الفشل المغلق كان يكتب `str(exit_.code)` في `problems` — والخام يضمّ أوّل
+    ٤٠٠ محرف من `stderr`. المقيس على `bff877fe7`: تسرّب **المضيف وعنوانه والمنفذ
+    واسم المستخدم وكلمة المرور** إلى ملفٍّ يُرفَع مصنوعةً ويُقرأ لاحقاً.
+
+    **ولماذا لم يمسكه الاختبار القائم:** `test_the_evidence_carries_no_connection_variable`
+    يزرع متغيّرات الاتّصال في البيئة، لكنّه يُبدِّل `role_properties` و`server_identity`
+    و`schema_drift` — فلا يُستدعى `psql` أصلاً ولا يدخل `stderr` الوثيقة. أي أنّه
+    يحرس قناةً غير القناة المكسورة.
+
+    **والقناتان مفصولتان بالبناء لا بتنقية نصّيّة:** تشخيصات libpq متعدّدة الصيغ، فقد
+    تُسرِّب اسم قاعدةٍ أو مستخدمٍ بعد حذف المضيف والمنفذ — ومُنقٍّ بتعبير نمطيّ يُقرأ
+    ضماناً وهو تخمينٌ عن صيغٍ لم تُحصَ. فيُثبَّت الطرفان معاً: **صفر تسريب في الوثيقة**،
+    و**التشخيص الخام باقٍ في الاستثناء المُعاد رفعه** حيث موضعه سجلّ الوظيفة.
+    """
+    monkeypatch.setattr(
+        MOD.subprocess,
+        "run",
+        lambda *a, **k: SimpleNamespace(returncode=1, stdout="", stderr=_LEAKY_STDERR),
+    )
+    out = tmp_path / "live_pg_evidence.json"
+    with pytest.raises(SystemExit) as raised:
+        MOD.main(["--junit", str(_junit(tmp_path, tests=30)), "--evidence", str(out)])
+
+    raw = out.read_text(encoding="utf-8")
+    for secret in ("db.internal", "10.0.0.7", "5435", "sahool_user", "SUPER_SECRET_PW", "psql:"):
+        assert secret not in raw, f"تسرّب «{secret}» إلى المصنوعة المرفوعة"
+
+    doc = json.loads(raw)
+    assert doc["verdict"] == "FAIL"
+    assert doc["problems"] == [MOD.PSQL_CATALOGUE_QUERY_FAILED]
+
+    assert "db.internal" in str(raised.value.code), (
+        "التشخيص الخام اختفى من الاستثناء أيضاً — التنقية أعمَت السجلّ بدل أن تحرس المصنوعة"
+    )
+
+
+def test_an_unclassified_fail_closed_exit_still_leaks_nothing(tmp_path, monkeypatch):
+    """**الافتراضيّ الآمن هو الصمت عن التفصيل، لا نشرُه.**
+
+    مسارٌ جديد يُنهي بـ`SystemExit` عاديّة — يُنسى تصنيفه — يجب أن يُنتِج مُعرَّفاً
+    مجهولاً لا نصّاً خاماً. فالحارس لا يعود إلى `str(exit_.code)` عند غياب التصنيف،
+    وإلّا كان الإصلاح **مشروطاً بأن يتذكّر كاتبُ المسار القادم**.
+    """
+    monkeypatch.setattr(
+        MOD, "server_identity", lambda *a, **k: (_ for _ in ()).throw(SystemExit(_LEAKY_STDERR))
+    )
+    out = tmp_path / "live_pg_evidence.json"
+    with pytest.raises(SystemExit):
+        MOD.main(["--junit", str(_junit(tmp_path, tests=30)), "--evidence", str(out)])
+
+    raw = out.read_text(encoding="utf-8")
+    assert "db.internal" not in raw and "SUPER_SECRET_PW" not in raw
+    assert json.loads(raw)["problems"] == [MOD.EVIDENCE_REASON_UNCLASSIFIED]
+
+
+def test_every_fail_closed_exit_in_the_guard_carries_an_evidence_reason():
+    """**اكتمال التصنيف مقيس — لا «صنّفتُ ما تذكّرت».**
+
+    يُقرأ مصدر الحارس بـ`ast`: كلّ `raise` لـ`SystemExit` أو `GuardExit` داخل الوحدة
+    يجب أن يكون `GuardExit` بوسيطين — الخام والسبب. وما عدا استثناءً واحداً معلوماً:
+    خطأ استعمال سطر الأمر (`--junit` مفقودة) يقع **قبل** فتح أيّ اتّصال أو كتابة أيّ
+    دليل، فلا مصنوعة تتلوّث به.
+
+    وبلا هذا التأكيد يكون الإصلاح صحيحاً **اليوم** وحده: مسارٌ سادس يُضاف غداً
+    بـ`SystemExit` عارية يعيد الثقب، ولا شيء يقول ذلك.
+    """
+    import ast
+
+    tree = ast.parse(_SCRIPT.read_text(encoding="utf-8"))
+    unclassified = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Raise) or not isinstance(node.exc, ast.Call):
+            continue
+        name = getattr(node.exc.func, "id", "")
+        if name not in ("SystemExit", "GuardExit"):
+            continue
+        if name == "GuardExit" and len(node.exc.args) == 2:
+            continue
+        unclassified.append((node.lineno, ast.unparse(node.exc)[:70]))
+
+    assert len(unclassified) == 1, (
+        "خروجٌ مغلق بلا سببٍ مُصنَّف للمصنوعة — كلّ مسار يجب أن يحمل قناتيه:\n"
+        + "\n".join(f"  live_pg_evidence_guard.py:{ln} — {src}" for ln, src in unclassified)
+    )
+    assert "--junit" in unclassified[0][1], (
+        f"الاستثناء المسموح هو خطأ استعمال سطر الأمر وحده، والموجود: {unclassified[0]}"
+    )
