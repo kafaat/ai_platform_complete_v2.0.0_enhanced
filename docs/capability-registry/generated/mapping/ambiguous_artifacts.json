@@ -1750,6 +1750,14 @@
         ]
       },
       {
+        "capability_id": "SEC-001",
+        "score": 9,
+        "signals": [
+          "content:rls",
+          "content:row level security"
+        ]
+      },
+      {
         "capability_id": "DEC-008",
         "score": 9,
         "signals": [
@@ -1764,14 +1772,6 @@
         "signals": [
           "content:Soil profile",
           "content:soil profile"
-        ]
-      },
-      {
-        "capability_id": "DEC-002",
-        "score": 8,
-        "signals": [
-          "content:Decision candidate",
-          "content:decision candidate"
         ]
       }
     ]

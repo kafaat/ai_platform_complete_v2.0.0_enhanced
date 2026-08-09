@@ -1234,6 +1234,12 @@ jobs:
         #
         # ويطبع collected/executed/passed/failed/skipped وإصدارَي الخادم وPostGIS
         # وخصائصَ الدور — بلا أيّ من متغيّرات الاتّصال.
+        #
+        # **و`if: always()` ليس تساهلاً بل شرطُ وجود الدليل.** الخطوة تكتب
+        # `live_pg_evidence.json` بحكمه `PASS`/`FAIL` **قبل** إعادة أيّ رمز خروج غير
+        # صفريّ (‏`--evidence`)، فلو عُلِّقت على نجاح ما قبلها لما وُجِدت الوثيقة إلّا
+        # يوم لا نحتاجها. والفشل يبقى فشلاً: رمز الخروج غير الصفريّ يُسقِط الوظيفة.
+        if: always()
         env:
           PGHOST: localhost
           PGPORT: "5435"
@@ -1244,7 +1250,30 @@ jobs:
         run: |
           set -euo pipefail
           python scripts/ci/live_pg_evidence_guard.py --junit live_pg_evidence.xml \
-            --min-executed 30
+            --min-executed 30 --evidence live_pg_evidence.json
+      - name: Hash the evidence so the artifact names its own bytes
+        # بصمةٌ للاثنين معاً: مصنوعةٌ تُنزَّل بعد شهور بلا بصمة لا يُقال عنها إنّها
+        # هي التي كُتِبت. و`sha256sum` يُشغَّل على الملفّين فقط — لا على الشجرة.
+        if: always()
+        run: |
+          set -euo pipefail
+          ls -l live_pg_evidence.json live_pg_evidence.xml || true
+          sha256sum live_pg_evidence.json live_pg_evidence.xml > live_pg_evidence.sha256
+          cat live_pg_evidence.sha256
+      - name: Upload the live-PG evidence
+        # **الثلاثة معاً وبفشلٍ مغلق على الغياب.** رفعٌ صامت حين لا ملفّ يُنتِج
+        # وظيفةً خضراء بلا دليل — وهو الصنف الذي تعالجه هذه الشريحة نفسها.
+        # والاسم يحمل SHA كي تُميَّز مصنوعةُ تشغيلٍ من آخر بلا فتحها.
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: live-pg-evidence-${{ github.sha }}
+          path: |
+            live_pg_evidence.json
+            live_pg_evidence.xml
+            live_pg_evidence.sha256
+          if-no-files-found: error
+          retention-days: 30
 
   security-scan:
     name: Security Scan

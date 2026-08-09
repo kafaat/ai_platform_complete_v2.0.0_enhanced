@@ -22,6 +22,19 @@
 فيُطبَع ``collected/executed/passed/failed/skipped`` مع إصدار الخادم وPostGIS
 وخصائص الدور — **وبلا أيّ من متغيّرات الاتّصال**: لا مضيف ولا منفذ ولا مستخدم ولا
 كلمة مرور. ما يُطبَع خصائصُ مقيسة لا بيانات اعتماد.
+
+**والدور يُقاس بأربع خصائص لا باثنتين — وهو ما كانت الوظيفة تُهيّئه ولا تفحصه.**
+الوظيفة تُنشئ ``sahool_app`` بـ``nosuperuser nobypassrls nocreatedb nocreaterole``،
+بينما القرار كان يقرأ ``superuser`` و``bypassrls`` وحدهما: ``rolcreatedb``
+**يُستعلَم عنه ويُطبَع ولا يحكم**، و``rolcreaterole`` **لا يُسأل عنه أصلاً**. فالفجوة
+بين ما يُهيَّأ وما يُقاس هي بعينها «نتيجةٌ عن سؤالٍ لم يُطرَح». والأربع تحجب الآن،
+و``CREATEROLE`` منها لأنّ مالكها يصنع دوراً يمنحه ما يشاء — فيبلغ بخطوتين ما مُنِع
+منه بخطوة.
+
+**والدليل يُكتَب بحكمه قبل رمز الخروج** (``--evidence``) لا بعد نجاح كلّ شيء: وثيقةٌ
+لا توجد إلّا يوم النجاح هي المعنى المقلوب لكلمة «دليل». ويربط نفسه بـ``checkout_sha``
+و``checkout_tree`` و``github_sha`` **منفصلة**، ويحمل حدَّ صدقه داخله — الخصائص
+**مباشرة** من ``pg_roles``، بلا إغلاقٍ انتقاليّ لعضويّات الأدوار ولا أثر ``SET ROLE``.
 """
 
 from __future__ import annotations
@@ -102,17 +115,72 @@ def tally(junit: Path) -> dict[str, int]:
 # ─────────────────────── ② الدور المقيَّد وهويّة الخادم ───────────────────────
 
 
+#: أعمدة `pg_roles` المقروءة — والترتيب عقدٌ مع `ROLE_ATTRIBUTES` أدناه.
+_ROLE_CATALOGUE_COLUMNS = ("rolsuper", "rolbypassrls", "rolcreatedb", "rolcreaterole")
+
+#: أسماء الخصائص كما تظهر في الملخّص وفي `live_pg_evidence.json`.
+ROLE_ATTRIBUTES = ("superuser", "bypassrls", "createdb", "createrole")
+
+#: الخصائص التي **تحجب** إن كانت `true` — قائمةٌ منفصلة عن الاستعلام **عمداً**.
+#:
+#: والفصل ليس زخرفاً: العطل المُعالَج هنا كان بالضبط خاصّيّةً **تُقرأ وتُطبَع ولا تحكم**.
+#: `rolcreatedb` كان يُستعلَم عنه ويُعرَض في الملخّص، بينما القرار يقرأ `superuser` و
+#: `bypassrls` وحدهما ⇒ رقمٌ معروض لا حارس. و`rolcreaterole` لم يكن يُسأل عنه أصلاً.
+#:
+#: **وخطرُ `CREATEROLE` أوسع من اسمه:** دورٌ يملكها يستطيع إنشاء دورٍ آخر ومنحه ما يشاء،
+#: فيبلغ بخطوتين ما مُنِع منه بخطوة. فادّعاء «الدور مقيَّد» تحته أضيق ممّا يُقرأ منه.
+#:
+#: وبقاءُ القائمتين منفصلتين يجعل الطفرتين مستقلّتين: نزعُ عمودٍ من الاستعلام يُسقِط
+#: اختبار «الاستعلام يطلب الأربعة»، ونزعُ اسمٍ من هذه يُسقِط اختبار تلك الخاصّيّة وحدها.
+#: ولو اشتُقّت إحداهما من الأخرى لأسقطت الطفرةُ الواحدة اختبارين، فيُقرأ الادّعاءان
+#: مغطّيَين وأحدُهما بلا حارس.
+_REJECT_IF_TRUE = ("superuser", "bypassrls", "createdb", "createrole")
+
+#: القيم المنطقيّة الوحيدة المقبولة من `::text` على `boolean` في PostgreSQL.
+_BOOLEAN_TEXT = ("true", "false")
+
+
 def role_properties(database: str, owner: str, app_role: str) -> dict[str, str]:
+    """خصائص الدور **المباشرة** من `pg_roles` — بفشلٍ مغلق على كلّ صفٍّ لا يُقرأ.
+
+    **حدّ الصدق مكتوبٌ هنا وفي الدليل معاً:** هذه خصائص الدور المُسمّى **نفسه**. ولا
+    تُثبِت الإغلاق الانتقاليّ لعضويّات الأدوار (`pg_auth_members`) ولا أثر `SET ROLE`
+    ولا صلاحيّات مورَّثة من دورٍ عضوٍ فيه. ولذلك يُسمّى الحقل في الـJSON
+    `direct_role_attributes` لا `role_isolation`: الاسم يقول مداه.
+
+    **والفشل المغلق ليس احترازاً نظريّاً:** `split("|")` بلا تحقّق يُنتِج قيماً جزئيّة
+    صامتة — عمودٌ يُضاف أو يُحذَف فيُقرأ `rolcreatedb` في خانة `rolbypassrls`، أو صفٌّ
+    بقيمةٍ ليست منطقيّة فيُقارَن بـ`"false"` ويُقرأ «مقيَّد». وهو نفس صنف «نتيجةٌ عن
+    سؤالٍ لم يُطرَح» الذي يُلاحَق في هذا الملفّ كلّه.
+    """
     row = psql(
-        "select rolsuper::text||'|'||rolbypassrls::text||'|'||rolcreatedb::text "
-        f"from pg_roles where rolname='{app_role}'",
+        "select "
+        + "||'|'||".join(f"{column}::text" for column in _ROLE_CATALOGUE_COLUMNS)
+        + f" from pg_roles where rolname='{app_role}'",
         database=database,
         role=owner,
     )
     if not row:
         raise SystemExit(f"✗ الدور المقيَّد '{app_role}' غير موجود — العزل غير قابل للقياس")
-    super_, bypass, createdb = row.split("|")
-    return {"superuser": super_, "bypassrls": bypass, "createdb": createdb}
+    values = row.split("|")
+    if len(values) != len(ROLE_ATTRIBUTES):
+        raise SystemExit(
+            f"✗ صفُّ الدور '{app_role}' فيه {len(values)} حقلاً والعقد يقرأ "
+            f"{len(ROLE_ATTRIBUTES)} — لا تُقسَم القيم على أسماء لا تقابلها. "
+            "‏صفٌّ لا يُفهَم فشلٌ، لا قيمٌ جزئيّة تُقرأ حكماً."
+        )
+    unreadable = [
+        f"{name}={value!r}"
+        for name, value in zip(ROLE_ATTRIBUTES, values, strict=True)
+        if value not in _BOOLEAN_TEXT
+    ]
+    if unreadable:
+        raise SystemExit(
+            f"✗ خصائص الدور '{app_role}' ليست منطقيّة: {' · '.join(unreadable)} — "
+            "‏قيمةٌ لا تساوي `true` ولا `false` تمرّ على مقارنة «ليست true» فتُقرأ تقييداً "
+            "وهي مجهولة. فشلٌ مغلق."
+        )
+    return dict(zip(ROLE_ATTRIBUTES, values, strict=True))
 
 
 def server_identity(database: str, owner: str) -> dict[str, str]:
@@ -183,9 +251,86 @@ def schema_drift(database: str, owner: str) -> list[str]:
 # ───────────────────────────────── التقرير ─────────────────────────────────
 
 
+# ───────────────────────── ④ الدليل المكتوب — لا الملخّص وحده ─────────────────────────
+
+
+def _git(*args: str) -> str:
+    """‏`git` من داخل الشجرة المفحوصة — وغيابُه يُترَك `unavailable` لا يُخترَع."""
+    try:
+        proc = subprocess.run(  # noqa: S603
+            ["git", "-C", str(ROOT), *args], capture_output=True, encoding="utf-8", check=False
+        )
+    except FileNotFoundError:
+        return "unavailable"
+    return proc.stdout.strip() if proc.returncode == 0 else "unavailable"
+
+
+def evidence_document(
+    *,
+    verdict: str,
+    counts: dict[str, int] | None,
+    identity: dict[str, str] | None,
+    role: dict[str, str] | None,
+    drift: list[str],
+    problems: list[str],
+    app_role: str,
+) -> dict:
+    """الدليل يربط نفسه **بما اختُبِر**، ويقول مدى ما يُثبِته داخله.
+
+    **‏`checkout_sha` و`checkout_tree` لا `github_sha` وحده:** في أحداث `pull_request`
+    تعمل الوظيفة على **دمجٍ وهميّ** لا على رأس الفرع، فـ`GITHUB_SHA` يشير إلى شيءٍ آخر
+    غير الشجرة التي جرى عليها القياس. فيُكتَب الثلاثة **منفصلة**: اختلافُ
+    `github_sha` عن `checkout_sha` ليس عطلاً — هو **معلومة** تقول إنّ المقيس ليس ما
+    أطلق التشغيل. والشجرة (`HEAD^{tree}`) تُكتَب معهما لأنّ الالتزام قد يُعاد كتابته
+    بمحتوى الشجرة نفسه، والمحتوى هو ما قِيس.
+
+    وحدُّ الصدق مكتوبٌ **داخل** الوثيقة لا في مراجعةٍ خارجها: من يقرأ الـJSON وحده
+    يجب أن يعرف ما لا يُثبِته.
+    """
+    return {
+        "$comment": (
+            "دليل وظيفة PG المخصّصة — يُكتَب بحكمه قبل أيّ رمز خروج. "
+            "لا يحوي مضيفاً ولا منفذاً ولا مستخدماً ولا كلمة مرور: خصائص مقيسة لا بيانات اعتماد."
+        ),
+        "schema_version": "1.0.0",
+        "verdict": verdict,
+        "gap": "FAKE-CONNECTION-ENFORCES-NOTHING-01",
+        "binding": {
+            "$comment": (
+                "‏checkout_sha/checkout_tree هما ما قِيس فعلاً؛ github_sha ما أطلق التشغيل. "
+                "اختلافهما في أحداث pull_request طبيعيّ (دمج وهميّ) وهو معلومة لا عطل."
+            ),
+            "checkout_sha": _git("rev-parse", "HEAD"),
+            "checkout_tree": _git("rev-parse", "HEAD^{tree}"),
+            "github_sha": os.environ.get("GITHUB_SHA", "unset"),
+            "github_run_id": os.environ.get("GITHUB_RUN_ID", "unset"),
+        },
+        "execution": counts,
+        "server": identity,
+        "direct_role_attributes": {
+            "$comment": (
+                "خصائص الدور المُسمّى نفسه من pg_roles. **لا يُثبَت** الإغلاق الانتقاليّ "
+                "لعضويّات الأدوار (pg_auth_members) ولا أثر SET ROLE ولا صلاحيّات مورَّثة "
+                "من دورٍ هو عضوٌ فيه. الاسم يقول مداه."
+            ),
+            "role": app_role,
+            "attributes": role,
+            "gating": list(_REJECT_IF_TRUE),
+        },
+        "schema_drift": drift,
+        "problems": problems,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--junit", type=Path)
+    ap.add_argument(
+        "--evidence",
+        type=Path,
+        help="يكتب `live_pg_evidence.json` **بحكمه** قبل إعادة أيّ رمز خروج — "
+        "فالدليل يوجد يوم يفشل الفحص، وهو أحوجُ ما نكون إليه",
+    )
     ap.add_argument("--database", default=os.environ.get("SAHOOL_TEST_PGDATABASE", "sahool"))
     ap.add_argument("--owner", default=os.environ.get("SAHOOL_TEST_PGOWNER", "sahool_user"))
     ap.add_argument("--app-role", default=os.environ.get("SAHOOL_TEST_PGROLE", "sahool_app"))
@@ -212,10 +357,44 @@ def main(argv: list[str] | None = None) -> int:
 
     if a.junit is None:
         raise SystemExit("✗ `--junit` مطلوب إلّا مع `--schema-only`")
-    counts = tally(a.junit)
-    identity = server_identity(a.database, a.owner)
-    role = role_properties(a.database, a.owner, a.app_role)
-    drift = schema_drift(a.database, a.owner)
+
+    def _emit(verdict, counts, identity, role, drift, problems):
+        """يكتب الدليل إن طُلِب — **قبل** أيّ `return` أو رفع.
+
+        بلا هذا لا يوجد الدليل إلّا حين ينجح كلّ شيء، وهو المعنى المقلوب تماماً:
+        الوثيقة تُطلَب يوم الفشل. ولذلك يُستدعى هذا من مسار الفشل المغلق أيضاً.
+        """
+        if a.evidence is None:
+            return
+        a.evidence.write_text(
+            json.dumps(
+                evidence_document(
+                    verdict=verdict,
+                    counts=counts,
+                    identity=identity,
+                    role=role,
+                    drift=drift,
+                    problems=problems,
+                    app_role=a.app_role,
+                ),
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+    # الفشل المغلق (‏`psql` غائب · دورٌ غير موجود · صفٌّ مشوَّه) يُنهي بـ`SystemExit`.
+    # فيُلتقَط هنا **كي يُكتَب الدليل بحكمه** ثمّ تُعاد الرسالة كما هي: عطلُ بيئةٍ
+    # يبقى عطلَ بيئة، لكنّه يترك أثراً مقروءاً بدل صمتٍ يُقرأ «لم يُشغَّل شيء».
+    try:
+        counts = tally(a.junit)
+        identity = server_identity(a.database, a.owner)
+        role = role_properties(a.database, a.owner, a.app_role)
+        drift = schema_drift(a.database, a.owner)
+    except SystemExit as exit_:
+        _emit("FAIL", None, None, None, [], [str(exit_.code)])
+        raise
 
     print("─── أدلّة PG الحيّة — ملخّص مُشتقّ ───")
     print(
@@ -225,8 +404,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"  الخادم: PostgreSQL {identity['postgresql']} · PostGIS {identity['postgis']}")
     print(
-        f"  الدور «{a.app_role}»: superuser={role['superuser']} "
-        f"bypassrls={role['bypassrls']} createdb={role['createdb']}"
+        f"  الدور «{a.app_role}»: " + " ".join(f"{name}={role[name]}" for name in ROLE_ATTRIBUTES)
     )
     print(f"  عقد المخطّط: {'مطابق' if not drift else f'{len(drift)} انحرافاً'}")
 
@@ -247,17 +425,24 @@ def main(argv: list[str] | None = None) -> int:
         )
     if counts["failed"] > 0:
         problems.append(f"✗ {counts['failed']} فشلاً — يُقرأ في سجلّ pytest أعلاه")
-    if role["superuser"] != "false" or role["bypassrls"] != "false":
+    # **كلّ** خاصّيّة في `_REJECT_IF_TRUE` تحجب وحدها. والحلقة لا تُغني عن استقلال
+    # الطفرات: نزعُ اسمٍ من تلك القائمة يُسقِط اختبار تلك الخاصّيّة **باسمها** لا غير.
+    granted = [name for name in _REJECT_IF_TRUE if role[name] != "false"]
+    if granted:
         problems.append(
-            f"✗ الدور «{a.app_role}» غير مقيَّد (superuser={role['superuser']} "
-            f"bypassrls={role['bypassrls']}) — كلّ ادّعاء عزلٍ تحته يمرّ مجّاناً"
+            f"✗ الدور «{a.app_role}» غير مقيَّد ("
+            + " ".join(f"{name}={role[name]}" for name in granted)
+            + ") — كلّ ادّعاء عزلٍ تحته يمرّ مجّاناً، و`CREATEROLE` تبلغ بخطوتين "
+            "ما مُنِعت منه بخطوة"
         )
 
     if problems:
+        _emit("FAIL", counts, identity, role, drift, problems)
         print("\nlive_pg_evidence FAILED:")
         for p in problems:
             print(f"  {p}")
         return 1
+    _emit("PASS", counts, identity, role, drift, [])
     print("live_pg_evidence_ok")
     return 0
 
