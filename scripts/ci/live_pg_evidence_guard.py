@@ -57,6 +57,63 @@ ROOT = Path(__file__).resolve().parents[2]
 CONTRACT = ROOT / "docs" / "architecture" / "live_pg_schema_contract.json"
 
 
+def _sql_literal(value: str) -> str:
+    """قيمةٌ تدخل SQL **مُهرَّبة** — تضعيف علامة الاقتباس المفردة، وهو تهريب PostgreSQL.
+
+    الصياغة السابقة وضعت `app_role` في `rolname='{app_role}'` **بلا تهريب**، وهي قيمةٌ
+    تأتي من `--app-role` أو `SAHOOL_TEST_PGROLE`. والمقيس على `bff877fe7`:
+
+        app_role="ops'role"      ⇒ rolname='ops'role'      ← استعلامٌ مكسور
+        app_role="x' OR true --" ⇒ rolname='x' OR true --' ← يُغيّر الصفّ المقروء
+
+    **ومدى الاستغلال اليوم ضيّق** — CI يمرّر `sahool_app` ثابتاً — لكنّ الواجهة تقبل
+    القيمة من راية وبيئة، والعطل عطلُ سلامةٍ في الواجهة لا في استعمالها الحاليّ. ولذلك
+    يُعالَج بالبناء لا بالاعتماد على أنّ المُدخَل «عادةً» ثابت.
+
+    **والتضعيف لا الحذف:** `ops'role` اسمٌ **مشروع** في PostgreSQL؛ فتنقيةٌ تحذف
+    العلامة كانت ستُنتِج العمى المقابل — بحثاً عن دورٍ آخر بصمت. المطلوب أن يصل الاسم
+    كما هو، مُهرَّباً.
+    """
+    return "'" + value.replace("'", "''") + "'"
+
+
+#: أسبابٌ **ثابتة** تُكتَب في المصنوعة — لا أيّ جزء من تشخيص `psql`.
+#:
+#: **ولماذا فصلٌ بنيويّ لا تنقية نصّيّة:** تشخيصات libpq متعدّدة الصيغ، فقد تُسرِّب اسم
+#: قاعدةٍ أو مستخدمٍ بعد حذف المضيف والمنفذ — ومُنقٍّ بتعبير نمطيّ يُقرأ ضماناً وهو
+#: **تخمينٌ عن صيغٍ لم تُحصَ**. فالمسار المعروض للمصنوعة لا يرى النصّ الخام أصلاً.
+PSQL_CLIENT_MISSING = "PSQL_CLIENT_MISSING"
+PSQL_CATALOGUE_QUERY_FAILED = "PSQL_CATALOGUE_QUERY_FAILED"
+JUNIT_REPORT_MISSING = "JUNIT_REPORT_MISSING"
+JUNIT_REPORT_HAS_NO_TESTSUITE = "JUNIT_REPORT_HAS_NO_TESTSUITE"
+RESTRICTED_ROLE_NOT_FOUND = "RESTRICTED_ROLE_NOT_FOUND"
+ROLE_ROW_FIELD_COUNT_MISMATCH = "ROLE_ROW_FIELD_COUNT_MISMATCH"
+ROLE_ROW_NON_BOOLEAN_VALUE = "ROLE_ROW_NON_BOOLEAN_VALUE"
+
+#: خروجٌ مغلق بلا سببٍ مُصنَّف — **لا يُستبدَل بالنصّ الخام**. مسارٌ جديد يُنسى تصنيفه
+#: يُنتِج هذا لا تسريباً: الافتراضيّ الآمن هو الصمت عن التفصيل لا نشرُه.
+EVIDENCE_REASON_UNCLASSIFIED = "UNCLASSIFIED_FAIL_CLOSED_EXIT"
+
+
+class GuardExit(SystemExit):
+    """‏`SystemExit` يحمل **سببين**: خاماً لسجلّ الوظيفة، ومُعرَّفاً ثابتاً للمصنوعة.
+
+    العطل المقيس على `bff877fe7`: مسار الفشل المغلق كان ينسخ `str(exit_.code)` إلى
+    `problems` في `live_pg_evidence.json`، والنصّ الخام يضمّ أوّل ٤٠٠ محرف من
+    `stderr`. فبتشخيص اتّصالٍ واقعيّ تسرّب إلى المصنوعة المرفوعة: **المضيف وعنوانه
+    والمنفذ واسم المستخدم وكلمة المرور** — بينما `$comment` في الوثيقة نفسها يُصرّح
+    بأنّها «لا تحوي مضيفاً ولا منفذاً ولا مستخدماً ولا كلمة مرور».
+
+    وهو صنف هذا الملفّ بعينه: **وثيقةٌ تُقرَّر خاصّيّةً لا تحملها**. والعلاج فصلُ
+    القناتين بالبناء — يبقى الخام مرفوعاً كما هو (فالسجلّ هو موضع التشخيص)، ويأخذ
+    الدليلُ المُعرَّف الثابت وحده.
+    """
+
+    def __init__(self, raw: str, evidence_reason: str) -> None:
+        super().__init__(raw)
+        self.evidence_reason = evidence_reason
+
+
 def psql(sql: str, *, database: str, role: str) -> str:
     """‏`-qAtc` بلا `-h/-p`: تُقرأ من البيئة، فلا تمرّ عبر سطر أمر يُطبَع عند الفشل.
 
@@ -74,12 +131,16 @@ def psql(sql: str, *, database: str, role: str) -> str:
             check=False,
         )
     except FileNotFoundError:
-        raise SystemExit(
+        raise GuardExit(
             "✗ لا عميل psql في PATH — وهذه وظيفة PG المخصّصة، فغيابُ الأداة فشلٌ لا تخطٍّ. "
-            "ثبِّت postgresql-client في الوظيفة قبل تشغيل الحارس."
+            "ثبِّت postgresql-client في الوظيفة قبل تشغيل الحارس.",
+            PSQL_CLIENT_MISSING,
         ) from None
     if proc.returncode != 0:
-        raise SystemExit(f"✗ تعذّر الاستعلام عن الكتالوج: {proc.stderr.strip()[:400]}")
+        raise GuardExit(
+            f"✗ تعذّر الاستعلام عن الكتالوج: {proc.stderr.strip()[:400]}",
+            PSQL_CATALOGUE_QUERY_FAILED,
+        )
     return proc.stdout.strip()
 
 
@@ -93,11 +154,13 @@ def tally(junit: Path) -> dict[str, int]:
     وتحليلُ نصٍّ حيث تتوفّر بنية هو `MATCHING-TEXT-WHERE-STRUCTURE-WAS-REQUIRED`.
     """
     if not junit.is_file():
-        raise SystemExit(f"✗ لا تقرير تنفيذ في {junit} — لم يُشغَّل pytest أصلاً")
+        raise GuardExit(f"✗ لا تقرير تنفيذ في {junit} — لم يُشغَّل pytest أصلاً", JUNIT_REPORT_MISSING)
     root = ET.parse(junit).getroot()
     suites = [root] if root.tag == "testsuite" else list(root.iter("testsuite"))
     if not suites:
-        raise SystemExit("✗ تقرير تنفيذ بلا أيّ testsuite — لم يُجمَع شيء")
+        raise GuardExit(
+            "✗ تقرير تنفيذ بلا أيّ testsuite — لم يُجمَع شيء", JUNIT_REPORT_HAS_NO_TESTSUITE
+        )
 
     total = sum(int(s.get("tests", 0)) for s in suites)
     failures = sum(int(s.get("failures", 0)) for s in suites)
@@ -156,18 +219,22 @@ def role_properties(database: str, owner: str, app_role: str) -> dict[str, str]:
     row = psql(
         "select "
         + "||'|'||".join(f"{column}::text" for column in _ROLE_CATALOGUE_COLUMNS)
-        + f" from pg_roles where rolname='{app_role}'",
+        + f" from pg_roles where rolname={_sql_literal(app_role)}",
         database=database,
         role=owner,
     )
     if not row:
-        raise SystemExit(f"✗ الدور المقيَّد '{app_role}' غير موجود — العزل غير قابل للقياس")
+        raise GuardExit(
+            f"✗ الدور المقيَّد '{app_role}' غير موجود — العزل غير قابل للقياس",
+            RESTRICTED_ROLE_NOT_FOUND,
+        )
     values = row.split("|")
     if len(values) != len(ROLE_ATTRIBUTES):
-        raise SystemExit(
+        raise GuardExit(
             f"✗ صفُّ الدور '{app_role}' فيه {len(values)} حقلاً والعقد يقرأ "
             f"{len(ROLE_ATTRIBUTES)} — لا تُقسَم القيم على أسماء لا تقابلها. "
-            "‏صفٌّ لا يُفهَم فشلٌ، لا قيمٌ جزئيّة تُقرأ حكماً."
+            "‏صفٌّ لا يُفهَم فشلٌ، لا قيمٌ جزئيّة تُقرأ حكماً.",
+            ROLE_ROW_FIELD_COUNT_MISMATCH,
         )
     unreadable = [
         f"{name}={value!r}"
@@ -175,10 +242,11 @@ def role_properties(database: str, owner: str, app_role: str) -> dict[str, str]:
         if value not in _BOOLEAN_TEXT
     ]
     if unreadable:
-        raise SystemExit(
+        raise GuardExit(
             f"✗ خصائص الدور '{app_role}' ليست منطقيّة: {' · '.join(unreadable)} — "
             "‏قيمةٌ لا تساوي `true` ولا `false` تمرّ على مقارنة «ليست true» فتُقرأ تقييداً "
-            "وهي مجهولة. فشلٌ مغلق."
+            "وهي مجهولة. فشلٌ مغلق.",
+            ROLE_ROW_NON_BOOLEAN_VALUE,
         )
     return dict(zip(ROLE_ATTRIBUTES, values, strict=True))
 
@@ -384,16 +452,26 @@ def main(argv: list[str] | None = None) -> int:
             encoding="utf-8",
         )
 
-    # الفشل المغلق (‏`psql` غائب · دورٌ غير موجود · صفٌّ مشوَّه) يُنهي بـ`SystemExit`.
-    # فيُلتقَط هنا **كي يُكتَب الدليل بحكمه** ثمّ تُعاد الرسالة كما هي: عطلُ بيئةٍ
-    # يبقى عطلَ بيئة، لكنّه يترك أثراً مقروءاً بدل صمتٍ يُقرأ «لم يُشغَّل شيء».
+    # الفشل المغلق (‏`psql` غائب · دورٌ غير موجود · صفٌّ مشوَّه) يُنهي بـ`GuardExit`.
+    # فيُلتقَط هنا **كي يُكتَب الدليل بحكمه** ثمّ تُعاد الرسالة الخام كما هي: عطلُ
+    # بيئةٍ يبقى عطلَ بيئة، لكنّه يترك أثراً مقروءاً بدل صمتٍ يُقرأ «لم يُشغَّل شيء».
+    #
+    # **والقناتان مفصولتان بالبناء:** الخام يُعاد رفعه فيظهر في **سجلّ الوظيفة** حيث
+    # التشخيص مطلوب؛ والمصنوعة تأخذ `evidence_reason` — مُعرَّفاً ثابتاً لا يشتقّ من
+    # نصّ `stderr`. الصياغة السابقة كتبت `str(exit_.code)` في `problems`، والخام يضمّ
+    # أوّل ٤٠٠ محرف من `stderr`، فتسرّب إلى الملفّ المرفوع **المضيف وعنوانه والمنفذ
+    # واسم المستخدم وكلمة المرور** — بينما `$comment` في الوثيقة نفسها ينفي ذلك.
+    #
+    # ولا تنقية نصّيّة هنا: تشخيصات libpq متعدّدة الصيغ، فمُنقٍّ بتعبير نمطيّ يُقرأ
+    # ضماناً وهو تخمينٌ عن صيغٍ لم تُحصَ. المسار لا يرى النصّ أصلاً.
     try:
         counts = tally(a.junit)
         identity = server_identity(a.database, a.owner)
         role = role_properties(a.database, a.owner, a.app_role)
         drift = schema_drift(a.database, a.owner)
     except SystemExit as exit_:
-        _emit("FAIL", None, None, None, [], [str(exit_.code)])
+        reason = getattr(exit_, "evidence_reason", EVIDENCE_REASON_UNCLASSIFIED)
+        _emit("FAIL", None, None, None, [], [reason])
         raise
 
     print("─── أدلّة PG الحيّة — ملخّص مُشتقّ ───")

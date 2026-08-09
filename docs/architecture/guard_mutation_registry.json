@@ -537,6 +537,36 @@
           "find": "        _emit(\"FAIL\", counts, identity, role, drift, problems)",
           "replace": "        pass",
           "why": "وثيقةٌ لا توجد إلّا حين ينجح كلّ شيء ليست دليلاً — الدليل يُطلَب يوم الفشل. والكتابة **قبل** إعادة رمز الخروج جزءٌ من العقد لا ترتيبٌ عارض"
+        },
+        {
+          "expect": "test_a_role_name_reaches_psql_escaped",
+          "find": "return \"'\" + value.replace(\"'\", \"''\") + \"'\"",
+          "replace": "return \"'\" + value + \"'\"",
+          "why": "نزعُ تهريب الاقتباس ⇒ `ops'role` يكسر الاستعلام و`x' OR true --` يُغيّر الصفّ المقروء. ومدى الاستغلال اليوم ضيّق (CI يمرّر ثابتاً)، لكنّ الواجهة تقبل القيمة من راية وبيئة — فالعطل عطلُ سلامةٍ في الواجهة لا في استعمالها"
+        },
+        {
+          "expect": "test_a_role_name_reaches_psql_escaped",
+          "find": "+ f\" from pg_roles where rolname={_sql_literal(app_role)}\",",
+          "replace": "+ f\" from pg_roles where rolname='{app_role}'\",",
+          "why": "دالّةُ تهريبٍ موجودة **ولا تُستدعى** — طفرةٌ مستقلّة عن نزع جسمها: الأولى تحرس التهريب نفسه، وهذه تحرس **وصولَه إلى موضع الاستعمال**"
+        },
+        {
+          "expect": "test_a_psql_diagnostic_never_reaches_the_uploaded_evidence",
+          "find": "        reason = getattr(exit_, \"evidence_reason\", EVIDENCE_REASON_UNCLASSIFIED)",
+          "replace": "        reason = str(exit_.code)",
+          "why": "إعادةُ العطل المُبلَّغ على #816 بعينه: النصّ الخام يضمّ أوّل ٤٠٠ محرف من `stderr`، فيتسرّب المضيف وعنوانه والمنفذ واسم المستخدم وكلمة المرور إلى ملفٍّ يُرفَع مصنوعةً — بينما `$comment` فيه ينفي ذلك"
+        },
+        {
+          "expect": "test_an_unclassified_fail_closed_exit_still_leaks_nothing",
+          "find": "        reason = getattr(exit_, \"evidence_reason\", EVIDENCE_REASON_UNCLASSIFIED)",
+          "replace": "        reason = getattr(exit_, \"evidence_reason\", str(exit_.code))",
+          "why": "ارتدادٌ إلى الخام عند غياب التصنيف ⇒ الإصلاح يصير مشروطاً بأن يتذكّر كاتبُ المسار القادم. الافتراضيّ الآمن هو الصمت عن التفصيل لا نشرُه — وهذه طفرة مستقلّة عن سابقتها: تلك تحرس المسار المُصنَّف وهذه تحرس غير المُصنَّف"
+        },
+        {
+          "expect": "test_every_fail_closed_exit_in_the_guard_carries_an_evidence_reason",
+          "find": "            f\"✗ تعذّر الاستعلام عن الكتالوج: {proc.stderr.strip()[:400]}\",\n            PSQL_CATALOGUE_QUERY_FAILED,\n        )",
+          "replace": "            f\"✗ تعذّر الاستعلام عن الكتالوج: {proc.stderr.strip()[:400]}\"\n        )",
+          "why": "خروجٌ مغلق يفقد سببه المُصنَّف ⇒ يسقط إلى المجهول. والتأكيد يقرأ المصدر بـ`ast` لا بالنصّ، فيُقاس **اكتمال التصنيف** لا «صنّفتُ ما تذكّرت»: مسارٌ سادس يُضاف غداً بـ`SystemExit` عارية كان سيمرّ صامتاً"
         }
       ],
       "test": "tests_v9/test_live_pg_evidence_guard.py"
