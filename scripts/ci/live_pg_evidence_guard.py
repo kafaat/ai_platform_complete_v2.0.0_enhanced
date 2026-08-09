@@ -102,17 +102,42 @@ def tally(junit: Path) -> dict[str, int]:
 # ─────────────────────── ② الدور المقيَّد وهويّة الخادم ───────────────────────
 
 
+# الخصائص التي تُبطِل قياس العزل إن كانت صادقة — **كلٌّ بسببه**، لا قائمةٌ صمّاء.
+# سببُ كلٍّ منها جزءٌ من العقد: خاصّيّةٌ تُمنَع بلا سبب مكتوب تُحذَف عند أوّل تعارض
+# (`PROHIBITION-WITHOUT-A-REASON`)، وهذا الحارس نفسه بُني ضدّ ذلك الصنف.
+#
+# **وثقبان مقيسان أوجبا هذا الشكل:** كانت الدالّة تقرأ ثلاثاً ويفحص الشرطُ اثنتين
+# — فـ`createdb` تُطبَع ولا تُدان، وهي «خضرةٌ لا تقول شيئاً» بعينها. و`createrole`
+# لم تكن تُقرأ أصلاً وهي **أخطرها**: دورٌ يحملها يمنح نفسه عضويّةَ أدوارٍ أخرى
+# فيصل إلى بيانات مستأجِرين آخرين بلا superuser وبلا BYPASSRLS — أي أنّ أقصر طريق
+# تصعيدٍ كان الوحيد الذي لا يراه.
+# المفاتيح **أسماء أعمدة `pg_roles` حرفيّاً** لا أسماءً ودّيّة. اشتققتُ أوّلاً
+# العمودَ من اسمٍ ودّيّ (`rol` + `superuser`) فأنتج `rolsuperuser` وهو غير موجود —
+# أي أنّي وقعتُ في «قائمتان تصفان الشيء نفسه» داخل التعليق الذي يحذّر منه. الاسم
+# الحرفيّ يجعل الاشتقاق مستحيلَ الانحراف، والعرض يتبع الكتالوج فيُراجَع مباشرةً.
+_FORBIDDEN_ROLE_ATTRS = {
+    "rolsuper": "يتخطّى RLS كلّيّاً، فكلّ ادّعاء عزلٍ تحته يمرّ مجّاناً",
+    "rolbypassrls": "يتخطّى RLS دون أن يكون superuser — والأولى وحدها لا تكفي",
+    "rolcreatedb": "يُنشئ قاعدةً يملكها، فيتخطّى سياسات هذه القاعدة بالخروج منها",
+    "rolcreaterole": "يمنح نفسه عضويّة أدوارٍ أخرى ⇒ تصعيدٌ إلى مستأجِرين آخرين",
+}
+
+
 def role_properties(database: str, owner: str, app_role: str) -> dict[str, str]:
+    """يُقرأ ما يُدان بالضبط — لا أكثر فيصير زينةً، ولا أقلّ فيبقى ثقب.
+
+    القراءة مُشتقّة من `_FORBIDDEN_ROLE_ATTRS` لا مكتوبةً بيدٍ موازية: قائمتان تصفان
+    الشيء نفسه تنحرفان، وانحرافُهما هنا هو العطل الأصليّ حرفيّاً.
+    """
+    columns = "||'|'||".join(f"{col}::text" for col in _FORBIDDEN_ROLE_ATTRS)
     row = psql(
-        "select rolsuper::text||'|'||rolbypassrls::text||'|'||rolcreatedb::text "
-        f"from pg_roles where rolname='{app_role}'",
+        f"select {columns} from pg_roles where rolname='{app_role}'",
         database=database,
         role=owner,
     )
     if not row:
         raise SystemExit(f"✗ الدور المقيَّد '{app_role}' غير موجود — العزل غير قابل للقياس")
-    super_, bypass, createdb = row.split("|")
-    return {"superuser": super_, "bypassrls": bypass, "createdb": createdb}
+    return dict(zip(_FORBIDDEN_ROLE_ATTRS, row.split("|"), strict=True))
 
 
 def server_identity(database: str, owner: str) -> dict[str, str]:
@@ -191,6 +216,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--app-role", default=os.environ.get("SAHOOL_TEST_PGROLE", "sahool_app"))
     ap.add_argument("--min-executed", type=int, default=30)
     ap.add_argument(
+        "--attest",
+        type=Path,
+        help="يكتب الأدلّة مصنوعةً **مربوطة بالـSHA**. سجلّ التشغيل يفنى مع الرَّنَر، "
+        "فادّعاء «قِيس على هذا الالتزام» بلا مصنوعة محفوظة لا يُراجَع لاحقاً. "
+        "ولا تُلتزَم: مصنوعة تحمل SHA التزامها لا تطابق إعادة توليدها.",
+    )
+    ap.add_argument(
         "--schema-only",
         action="store_true",
         help="يقارن الكتالوج بالعقد **قبل** الاختبارات ويفشل بانحراف مخطّط — "
@@ -224,10 +256,7 @@ def main(argv: list[str] | None = None) -> int:
         f"passed={counts['passed']} failed={counts['failed']} skipped={counts['skipped']}"
     )
     print(f"  الخادم: PostgreSQL {identity['postgresql']} · PostGIS {identity['postgis']}")
-    print(
-        f"  الدور «{a.app_role}»: superuser={role['superuser']} "
-        f"bypassrls={role['bypassrls']} createdb={role['createdb']}"
-    )
+    print(f"  الدور «{a.app_role}»: " + " ".join(f"{k}={v}" for k, v in role.items()))
     print(f"  عقد المخطّط: {'مطابق' if not drift else f'{len(drift)} انحرافاً'}")
 
     problems: list[str] = list(drift)
@@ -247,11 +276,41 @@ def main(argv: list[str] | None = None) -> int:
         )
     if counts["failed"] > 0:
         problems.append(f"✗ {counts['failed']} فشلاً — يُقرأ في سجلّ pytest أعلاه")
-    if role["superuser"] != "false" or role["bypassrls"] != "false":
-        problems.append(
-            f"✗ الدور «{a.app_role}» غير مقيَّد (superuser={role['superuser']} "
-            f"bypassrls={role['bypassrls']}) — كلّ ادّعاء عزلٍ تحته يمرّ مجّاناً"
+    for attr, why in _FORBIDDEN_ROLE_ATTRS.items():
+        if role.get(attr) != "false":
+            problems.append(f"✗ الدور «{a.app_role}» يحمل {attr}={role.get(attr)} — {why}")
+
+    if a.attest is not None:
+        # يُكتَب **قبل** الحكم لا بعده: أدلّةٌ لا تُحفَظ إلّا عند النجاح تجعل الفشل
+        # بلا أثرٍ يُراجَع — وهو عكس الغرض. الحكم نفسه حقلٌ داخلها.
+        a.attest.write_text(
+            json.dumps(
+                {
+                    "schema": "sahool.live_pg_evidence_attestation",
+                    "version": 1,
+                    "commit_sha": os.environ.get("GITHUB_SHA")
+                    or subprocess.run(  # noqa: S603
+                        ["git", "rev-parse", "HEAD"],
+                        capture_output=True,
+                        encoding="utf-8",
+                        check=False,
+                    ).stdout.strip()
+                    or "unknown",
+                    "run_url": os.environ.get("GITHUB_RUN_ID", ""),
+                    "counts": counts,
+                    "server": identity,
+                    "role": {"name": a.app_role, **role},
+                    "schema_contract_matched": not drift,
+                    "verdict": "pass" if not problems else "fail",
+                    "problems": problems,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
         )
+        print(f"  الأدلّة محفوظة ومربوطة بالـSHA: {a.attest}")
 
     if problems:
         print("\nlive_pg_evidence FAILED:")

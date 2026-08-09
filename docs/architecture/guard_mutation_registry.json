@@ -437,10 +437,10 @@
           "why": "قبولُ صفر اختبار مُنفَّذ ⇒ «أخضرُ لأنّه لم ينظر». والمرساة على الشرط الموحَّد لا على فرع الصفر: أوّل صياغة عندي فصلتهما بـ`if/elif` فكان تعطيل فرع الصفر لا يُسقِط شيئاً — يلتقطه `elif` لأنّ ٠ أصغر من الحدّ، فالفرع زينة لا حارس"
         },
         {
-          "expect": "test_an_unrestricted_role_is_a_failure",
-          "find": "    if role[\"superuser\"] != \"false\" or role[\"bypassrls\"] != \"false\":",
-          "replace": "    if False:",
-          "why": "قبولُ دورٍ يتخطّى RLS ⇒ كلّ ادّعاء عزلٍ تحته يمرّ مجّاناً، والأدلّة تبقى خضراء وهي لا تقيس عزلاً"
+          "expect": "test_every_forbidden_role_attribute_is_rejected_on_its_own",
+          "find": "        if role.get(attr) != \"false\":",
+          "replace": "        if False:",
+          "why": "نزعُ إدانة خصائص الدور ⇒ كلّ ادّعاء عزلٍ تحته يمرّ مجّاناً، والأدلّة تبقى خضراء وهي لا تقيس عزلاً"
         },
         {
           "expect": "test_a_missing_contract_object_is_drift",
@@ -459,6 +459,18 @@
           "find": "_PSQL_SAFE_FLAGS = [\"-X\", \"-v\", \"ON_ERROR_STOP=1\"]",
           "replace": "_PSQL_SAFE_FLAGS = []",
           "why": "نزعُ `-X` و`ON_ERROR_STOP=1` ⇒ يُقرأ `~/.psqlrc` فسطرٌ من `\\pset` أو `\\timing` يُقرأ قيمةَ كتالوج ويُقارَن بالعقد؛ وخطأ SQL قد يعود بصفر فيُقرأ خرجٌ ناقص «نجاحاً» — وهو الصنف الذي يوجد هذا الحارس ضدّه. والمرساة على ثابتٍ مستقلّ لا على قائمة الوسائط: `ruff format` يفكّك القائمة الطويلة سطراً سطراً فتَبيت سلسلةُ الطفرة عند أوّل إعادة تنسيق"
+        },
+        {
+          "expect": "test_the_forbidden_set_covers_the_four_escalation_paths",
+          "find": "    \"rolcreaterole\": \"يمنح نفسه عضويّة أدوارٍ أخرى ⇒ تصعيدٌ إلى مستأجِرين آخرين\",",
+          "replace": "",
+          "why": "إسقاط `rolcreaterole` من العقد ⇒ أخطر مسار تصعيد يصير غير مقروء أصلاً: دورٌ يحملها يمنح نفسه عضويّة أدوارٍ أخرى فيبلغ مستأجِرين آخرين **بلا** superuser وبلا BYPASSRLS — أي أنّ أقصر طريق كان الوحيد الذي لا يراه"
+        },
+        {
+          "expect": "test_the_attestation_is_written_even_when_the_verdict_is_failure",
+          "find": "    if a.attest is not None:",
+          "replace": "    if False:",
+          "why": "نزعُ كتابة المصنوعة ⇒ الأدلّة تعيش في سجلّ الرَّنَر وحده فتفنى معه، فيصير «قِيس على هذا الالتزام» ادّعاءً غير قابل للمراجعة"
         }
       ],
       "test": "tests_v9/test_live_pg_evidence_guard.py"

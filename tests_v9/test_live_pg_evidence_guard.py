@@ -47,16 +47,13 @@ def _junit(tmp_path: Path, *, tests: int, failures: int = 0, skipped: int = 0) -
     return path
 
 
-def _stub(monkeypatch, *, role=("false", "false", "false"), drift=()):
+def _stub(monkeypatch, *, role=None, drift=()):
     """يُبدّل كلّ ما يلمس القاعدة — العقد يُقاس، لا الاتّصال."""
     monkeypatch.setattr(
         MOD, "server_identity", lambda *a, **k: {"postgresql": "16.13", "postgis": "3.4.2"}
     )
-    monkeypatch.setattr(
-        MOD,
-        "role_properties",
-        lambda *a, **k: dict(zip(("superuser", "bypassrls", "createdb"), role, strict=True)),
-    )
+    clean = dict.fromkeys(MOD._FORBIDDEN_ROLE_ATTRS, "false")
+    monkeypatch.setattr(MOD, "role_properties", lambda *a, **k: {**clean, **(role or {})})
     monkeypatch.setattr(MOD, "schema_drift", lambda *a, **k: list(drift))
 
 
@@ -112,11 +109,32 @@ def test_zero_executed_is_a_failure(tmp_path, monkeypatch):
     assert _run(_junit(tmp_path, tests=0)) == 1
 
 
-def test_an_unrestricted_role_is_a_failure(tmp_path, monkeypatch):
-    """`NOBYPASSRLS` وحده لا يكفي ولا `NOSUPERUSER` وحده — الاثنان معاً."""
-    for role in (("true", "false", "false"), ("false", "true", "false")):
-        _stub(monkeypatch, role=role)
-        assert _run(_junit(tmp_path, tests=30)) == 1, role
+def test_every_forbidden_role_attribute_is_rejected_on_its_own(tmp_path, monkeypatch):
+    """**اختبارٌ سالب لكلّ خاصّيّة على حدة** — لا شرطٌ مركَّب يُخفي ثقباً.
+
+    الصياغة السابقة فحصت `superuser` و`bypassrls` وحدهما، بينما تقرأ الدالّة
+    `createdb` أيضاً: خاصّيّةٌ **تُطبَع ولا تُدان**، وهي «خضرةٌ لا تقول شيئاً» بعينها.
+    و`createrole` لم تكن تُقرأ أصلاً — وهي أخطرها: تمنح حاملها عضويّة أدوارٍ أخرى
+    فيصل إلى مستأجِرين آخرين بلا superuser وبلا BYPASSRLS.
+
+    والحلقة تشتقّ حالاتها من العقد نفسه، فخاصّيّةٌ تُضاف إليه بلا إدانة تُسقِط هذا
+    الاختبار فوراً — بدل أن تنضمّ صامتةً إلى المطبوع غير المفحوص.
+    """
+    for attr in MOD._FORBIDDEN_ROLE_ATTRS:
+        _stub(monkeypatch, role={attr: "true"})
+        assert _run(_junit(tmp_path, tests=30)) == 1, f"{attr} لم يُدَن وحده"
+
+
+def test_the_forbidden_set_covers_the_four_escalation_paths():
+    """العقد يُسمّي الأربعة — ونقصانُه ثقبٌ لا تفصيل."""
+    assert set(MOD._FORBIDDEN_ROLE_ATTRS) == {
+        "rolsuper",
+        "rolbypassrls",
+        "rolcreatedb",
+        "rolcreaterole",
+    }, sorted(MOD._FORBIDDEN_ROLE_ATTRS)
+    for attr, why in MOD._FORBIDDEN_ROLE_ATTRS.items():
+        assert len(why.strip()) >= 30, f"{attr}: مَنعٌ بلا سببٍ مكتوب"
 
 
 def test_a_missing_contract_object_is_drift(tmp_path, monkeypatch):
@@ -264,3 +282,20 @@ def test_psql_sql_failure_is_fatal(monkeypatch):
     monkeypatch.setattr(MOD.subprocess, "run", fake_run)
     with pytest.raises(SystemExit, match="تعذّر الاستعلام"):
         MOD.psql("select broken", database="sahool", role="sahool_app")
+
+
+def test_the_attestation_is_written_even_when_the_verdict_is_failure(tmp_path, monkeypatch):
+    """أدلّةٌ لا تُحفَظ إلّا عند النجاح تجعل الفشل بلا أثرٍ يُراجَع — وهو عكس الغرض.
+
+    وسجلّ التشغيل يفنى مع الرَّنَر، فادّعاء «قِيس على هذا الالتزام» بلا مصنوعة
+    محفوظة لا يُراجَع لاحقاً — وهو شرط المالك لإغلاق النقطة.
+    """
+    _stub(monkeypatch, role={"rolcreaterole": "true"})
+    out = tmp_path / "attest.json"
+    assert MOD.main(["--junit", str(_junit(tmp_path, tests=30)), "--attest", str(out)]) == 1
+
+    doc = json.loads(out.read_text(encoding="utf-8"))
+    assert doc["verdict"] == "fail"
+    assert doc["role"]["rolcreaterole"] == "true"
+    assert doc["commit_sha"] and doc["commit_sha"] != "unknown", "الأدلّة غير مربوطة بالـSHA"
+    assert any("rolcreaterole" in p for p in doc["problems"])

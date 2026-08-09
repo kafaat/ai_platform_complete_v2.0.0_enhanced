@@ -1244,7 +1244,20 @@ jobs:
         run: |
           set -euo pipefail
           python scripts/ci/live_pg_evidence_guard.py --junit live_pg_evidence.xml \
-            --min-executed 30
+            --min-executed 30 --attest live_pg_attestation.json
+      - name: Persist the evidence bound to this SHA
+        # سجلّ التشغيل يفنى مع الرَّنَر. بلا مصنوعة محفوظة يصير «قِيس على هذا
+        # الالتزام» ادّعاءً غير قابل للمراجعة بعد أسبوع. و`if: always()` مقصود:
+        # الأدلّة عند **الفشل** أنفع منها عند النجاح.
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: live-pg-evidence-${{ github.sha }}
+          path: |
+            live_pg_attestation.json
+            live_pg_evidence.xml
+          if-no-files-found: error
+          retention-days: 90
 
   security-scan:
     name: Security Scan
