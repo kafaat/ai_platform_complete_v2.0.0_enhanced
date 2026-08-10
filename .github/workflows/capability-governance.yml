@@ -32,6 +32,11 @@ jobs:
       # (pytest يُهمِل القيمة الراجعة). المجموعة مُجمَّدة وتتقلّص ولا تنمو.
       - name: Reject new tests that cannot fail (no assertion, returns a value)
         run: python scripts/ci/assertion_presence_guard.py --check
+      # وصنفٌ ثانٍ من الخضرة الزائفة: `test.fixme` يجعل الاختبار **يُعَدّ ولا يُنفَّذ**،
+      # فيقول تقرير Playwright «0 failed» صادقاً حرفيّاً وكاذباً دلاليّاً. الراتشِت يحجب
+      # الزيادة **والنقصان بلا خفض الأساس** — سقفٌ مُرتخٍ يبتلع عودة الدَّين صامتاً.
+      - name: Visual test debt must not accumulate (test.fixme ratchet)
+        run: python scripts/ci/visual_fixme_baseline_guard.py
       - name: Validate platform route release source binding
         run: python scripts/release/platform_route_release_binding.py --check-source
       - name: Validate runtime contract drift
@@ -198,3 +203,107 @@ jobs:
       # حارساً كتب أثناء الفحص (CHECK-STEPS-MUTATE-THE-TREE-01).
       - name: Sweep every generated artifact, and catch guards that write while checking
         run: python scripts/ci/verify_all_generated.py
+
+  # MERGED-WHILE-A-REVIEW-WAS-IN-FLIGHT-01 — القفل خارج المستودع، فيُدقَّق وجودُه.
+  #
+  # العطل وقع **مرّتين**: #810 دُمِج قبل وصول REQUEST_CHANGES، و#816 بعد إنشاء تعليقَي
+  # المراجعة بـ٤١ ثانية. والدرس كان مكتوباً في hot.md منذ 2026-08-07 — فتكرارُه بعد
+  # تسجيله هو الدليل على أنّ التسجيل لا يفرض.
+  #
+  # ووظيفةٌ تقرأ الخيوط لا تُغلِق السباق: خيطٌ يُفتَح **بين** الفحص والدمج غير مرئيّ
+  # لفحصٍ اخضرّ سلفاً. الذي يُعطّل الزرّ إعدادُ الحماية نفسه — وهذه الوظيفة تمنع
+  # إطفاءه **صامتاً**، لا أكثر. حدّ المدى مكتوب في الحارس.
+  #
+  # وهي وظيفة مستقلّة لا خطوة في `capability-registry`: تحتاج سرّاً لا تحتاجه تلك،
+  # وفشلُها يقول شيئاً آخر تماماً — «الحماية غير مضبوطة» لا «الحوكمة انحرفت».
+  branch-protection-contract:
+    name: Conversation resolution must be required before merging
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      # الشبكة هنا والحكم في الحارس — قسمةٌ تُرضي درسين متعارضين:
+      #   · منطقٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً
+      #     (درس `resilient_docker_pull.sh` المكتوب في ci.yml)؛
+      #   · وحالةُ GitHub لا تدخل أداةً محلّيّة (عقد test_local_preflight_contract).
+      # فتُجسَّد الاستجابة في ملفّ ويُحكَم عليها — كما يفعل `--pr-body-file` تماماً.
+      #
+      # تُقرأ **القواعد النافذة** (`rules/branches/main`) لا الحماية الكلاسيكيّة:
+      # القفل مُفعَّل عبر Ruleset، و`branches/main/protection` أجابت 404 Branch not
+      # protected (تشغيل 31407522822) — فكان الحارس يسأل عن آليّةٍ غير المستعمَلة.
+      # ويبقى السرّ لأنّه مضبوط ومُثبَت؛ تقليل الصلاحية قياسٌ مستقلّ لا يُخلَط بهذا.
+      #
+      # الفشل يجب أن يُشخّص نفسه. «صفر قاعدة» احتمل سببين: إمّا أنّ الـRuleset لا
+      # ينطبق على `main`، وإمّا أنّ سرّ التدقيق أعمى عن الـrulesets فتعود له `[]`.
+      # قِيسا بعينَين في تشغيل 31417746270 (سرّ التدقيق + GITHUB_TOKEN الافتراضيّ):
+      # **كلاهما رأى صفراً** — فسقط عمى الرمز، وبقي أنّ الـRuleset غير نافذ على main.
+      #
+      # فالسؤال التالي: أين هو إذن؟ نطبع جردَ الـrulesets نفسها (اسم · هدف · حالة
+      # الإنفاذ · أنماط الفروع المشمولة) فيُسمّي الفشلُ الحقلَ الواجب تصحيحه بدل أن
+      # يترك المالك يخمّن بين «Active غير محفوظة» و«هدفٍ لا يطابق main».
+      # (`repos/{repo}/rulesets` يحتاج صلاحية إدارة؛ نتسامح مع تعذّرها ولا نحجب بها.)
+      #
+      # ولا تحكم الصدفة على رمز HTTP: `curl` يُسجّل الحالة كما هي (‏`-w '%{http_code}'`)
+      # ويكتب الجسم دائماً، فتصل `401/403/404/429/5xx` إلى الحارس **بنداً في العقد** لا
+      # إجهاضاً بـ`set -e`. حكمٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً.
+      - name: Fetch the protection contract for main
+        env:
+          GH_TOKEN: ${{ secrets.BRANCH_PROTECTION_AUDITOR_TOKEN }}
+          REPO: ${{ github.repository }}
+          TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}" || {
+            echo '::error::missing BRANCH_PROTECTION_AUDITOR_TOKEN — «لم يُقرأ» ليس «مضبوط»'
+            exit 1
+          }
+          ENDPOINT="https://api.github.com/repos/${REPO}/rules/branches/main"
+          HTTP_STATUS=$(curl -sS -o rules_body.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "${ENDPOINT}" || echo '000')
+          echo "HTTP ${HTTP_STATUS} ← ${ENDPOINT}"
+          # جسمٌ غير قابل للتحليل (خنقٌ يُعيد HTML مثلاً) يُجسَّد null فيسقط في فحص
+          # `rules` بدل أن يُسقِط الخطوة — الحكم في الحارس، والتسجيل هنا.
+          jq -n \
+            --arg schema 'sahool.branch-protection-evidence.v1' \
+            --arg repo "${REPO}" \
+            --arg branch 'main' \
+            --arg endpoint "${ENDPOINT}" \
+            --arg sha "${TESTED_SHA}" \
+            --argjson status "${HTTP_STATUS}" \
+            --argjson rules "$(jq -c '.' rules_body.json 2>/dev/null || echo null)" \
+            '{schema_version: $schema, repository: $repo, branch: $branch,
+              endpoint: $endpoint, http_status: $status, commit_sha: $sha, rules: $rules}' \
+            > protection.json
+          echo '— القواعد النافذة على main —'
+          jq -r 'if (.rules | type) != "array" then "(لا مصفوفة قواعد — استجابةٌ ليست قراءة)"
+                 elif (.rules | length) == 0 then "(صفر قاعدة)"
+                 else .rules[].type end' protection.json
+          echo '— جردُ الـrulesets المُعرَّفة (اسم · هدف · إنفاذ · فروع مشمولة) —'
+          if gh api "repos/${REPO}/rulesets" > rulesets.json 2>/dev/null; then
+            jq -r 'if length == 0 then "(لا ruleset معرَّف إطلاقاً)" else .[] | "\(.id)\t\(.name)\ttarget=\(.target)\tenforcement=\(.enforcement)" end' rulesets.json
+            for id in $(jq -r '.[].id' rulesets.json); do
+              gh api "repos/${REPO}/rulesets/${id}" \
+                | jq -r '"  ↳ \(.name): include=\(.conditions.ref_name.include // "—") exclude=\(.conditions.ref_name.exclude // "—") rules=\([.rules[].type] | join(","))",
+                         "     pull_request.parameters=\([.rules[] | select(.type == "pull_request") | .parameters] | if length == 0 then "(لا قاعدة pull_request)" else .[0] | tojson end)",
+                         "     required_status_checks.parameters=\([.rules[] | select(.type == "required_status_checks") | .parameters] | if length == 0 then "(لا قاعدة required_status_checks)" else .[0] | tojson end)"' \
+                || echo "  ↳ ${id}: (تعذّرت قراءة التفاصيل)"
+            done
+          else
+            echo '(تعذّر جردُ الـrulesets — السرّ بلا صلاحية إدارة؛ ليس حكماً على الإعداد)'
+          fi
+      - name: Conversation resolution must be required before merging
+        env:
+          REPO: ${{ github.repository }}
+          TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python scripts/ci/branch_protection_contract_guard.py \
+            --protection-file protection.json \
+            --expect-repository "${REPO}" \
+            --expect-sha "${TESTED_SHA}"

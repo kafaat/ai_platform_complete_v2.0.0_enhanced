@@ -6740,6 +6740,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_branch_protection_contract_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_c4m1_mobile_push.py",
     "kind": "tests"
   },
@@ -7997,6 +8001,10 @@
   },
   {
     "path": "tests_v9/test_video_processor_features_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_visual_fixme_baseline_guard.py",
     "kind": "tests"
   },
   {

@@ -10,6 +10,8 @@
 
 | ID | العنوان | المجال/الخدمة | المصدر | الحالة |
 |---|---|---|---|---|
+| VISUAL-FIXME-DEBT-UNGUARDED-01 | `test.fixme` يجعل الاختبار **يُعَدّ ولا يُنفَّذ**، فيقول تقرير Playwright «0 failed» صادقاً حرفيّاً وكاذباً دلاليّاً — ولا شيء كان يمنع أن يصير الاثنان ثلاثةً ثمّ عشرة | frontend/e2e · governance | [`scripts/ci/visual_fixme_baseline_guard.py`](../../scripts/ci/visual_fixme_baseline_guard.py) · [`tests_v9/test_visual_fixme_baseline_guard.py`](../../tests_v9/test_visual_fixme_baseline_guard.py) · `.github/workflows/capability-governance.yml` (خطوة *Visual test debt must not accumulate*) | **fixed (TOOL_PROVEN)** — راتشِت يحجب الزيادة **والنقصان بلا خفض الأساس** (سقفٌ مُرتخٍ يبتلع عودة الدَّين صامتاً)، ويشترط لكلّ `fixme` سبباً ومرساة فجوة. ٥/٥ طفرات مُثبَتة بالتكذيب، ١٢ اختبار وحدة. **حدّ الصدق:** يحرس **تراكم** الدَّين لا يُغلِقه — الاختباران يبقيان `MAPHUB-WEBGL-VISUAL-DEBT-01`. |
+| MAPHUB-WEBGL-VISUAL-DEBT-01 | اختبارا رسم المضلّع (`measure-area`) والخطّ (`measure-length`) عبر مؤشّر حقيقيّ مُعطَّلان: تهيئة Terra Draw لا تكتمل تحت SwiftShader headless (`data-draw-ready` لا يُرفَع) | frontend/e2e | [`frontend/e2e/maphub-webgl.spec.ts`](../../frontend/e2e/maphub-webgl.spec.ts) (سطرا `test.fixme`) · [`frontend/src/lib/measureDrawWiring.test.ts`](../../frontend/src/lib/measureDrawWiring.test.ts) · `scripts/ci/visual_fixme_baseline_guard.py` (خطّ الأساس ٢) | **open (دَينٌ مُعلَن ومحروس)** — مسار القيمة نفسه (هندسة ⇒ turf ⇒ مُنسِّق ⇒ قيمة معروضة) محروسٌ **حتميّاً** في `measureDrawWiring.test.ts`؛ الناقص هو الطبقة E2E الحقيقيّة (مؤشّر متصفّح ⇒ MapLibre ⇒ Terra Draw). لا يُنزَع `fixme` لإخضار CI — ذلك تزييفُ إغلاق يُنتِج اختباراً هشّاً. الإغلاق يحتاج تهيئةً مستقرّة headless (أو runner بـGPU): قياسٌ بيئيّ لا نصّيّ. |
 | DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION | تصديق فصل أدوار القاعدة (قراءة فقط) قبل أيّ REVOKE — مصفوفة حيّة: `current_user`/`session_user` عبر اتّصالَي المنصّة/الخدمة · مالك الجدول · grants (جداول+sequences+functions) · role memberships · `rolsuper`/`rolbypassrls` · توفّر `SET ROLE` | decision-service/deploy | [`decision_sor_role_certify.py`](../../services/decision-service/decision_sor_role_certify.py) · اختبار PG حقيقيّ `test_decision_sor_role_certify_pg.py` · [`DECISION_SOR_CUTOVER.md`](../../docs/runbooks/DECISION_SOR_CUTOVER.md) | **TOOL_PROVEN / LIVE_RUN_PENDING** — الأداة مُبرهَنة على PG في CI (دوران متمايزان ⇒ `role_separation_confirmed=true`؛ دور مشترك ⇒ `false` = «لا REVOKE»). المتبقّي **تشغيليّ**: تشغيلها على staging/prod بالاتّصالَين الفعليَّين. **precursor إلزاميّ** لـ`DECISION-SOR-CUTOVER-WIRING-01` و`DEPLOYED-DECISION-SOR-PROMOTION`. |
 | PG-APP-ROLE-TRANSITIVE-PRIVILEGE-CLOSURE-01 | حارس أدلّة PG الحيّ كان يُثبِت **خصائص الصفّ المباشرة** على `sahool_app` وحدها؛ و`pg_auth_members` يمنح صلاحياتٍ موروثة أو `SET ROLE` عبر سلاسل عضويّة لا تظهر في تلك الخصائص — فحدُّ الصلاحية المقيس كان أضيق ممّا يُنفَّذ فعلاً | ci/live-pg · security | [`scripts/ci/live_pg_role_closure_guard.py`](../../scripts/ci/live_pg_role_closure_guard.py) · [`tests_v9/test_live_pg_role_closure_guard.py`](../../tests_v9/test_live_pg_role_closure_guard.py) · `.github/workflows/ci.yml` (وظيفة `live-pg-fake-connection-proofs`، خطوة *Prove the evidence role has no direct or transitive role memberships*) | **fixed (TOOL_PROVEN + LIVE_RUN_PROVEN)** — استعلامٌ تكراريّ على `pg_auth_members` يشترط أن يكون الإغلاق العبوريّ **فارغاً** لدور الأدلّة المخصَّص، ويحفظ `ADMIN`/`INHERIT`/`SET` لكلّ منحة. أشدّ عمداً من نموذج تفويضٍ إنتاجيّ: عضويّةٌ خاملة اليوم تصير نافذةً بتغيير خيارٍ لاحقاً بلا مسّ خصائص الدور. فشلٌ مغلق على غياب الدور/`psql`/جسمٍ مشوَّه، والمصنوعة المرفوعة تحمل **أسباباً ثابتة** لا تشخيصات libpq (مضيف/منفذ/كلمة مرور). ٤/٤ طفرات مُثبَتة بالتكذيب · ٩ اختبارات وحدة. **والحدّ سقط بقياسٍ لا بمرور الوقت:** أوّل تشغيل (وظيفة `Live PG Proofs` في `31424807525`، PR #821) خضراء على PostgreSQL 16 حيّة ⇒ `sahool_app` يحمل **صفر عضويّة عبوريّة** فعلاً. والمصنوعتان مفصولتان: `live-pg-evidence-…` (٤ ملفّات) و`live-pg-evidence-attestation-…` موقَّعة في Rekor (`logIndex=2412021383`). **وما يبقى غير مقيس:** هذا إعدادُ CI لا إعدادٌ إنتاجيّ — الدور المُشهَّد هو دور الأدلّة المخصَّص وحده. |
 | MANIFEST-REGISTRY-01 | بيانات `docs/architecture/*.json` التحكيمية كانت تدخل بلا سجلّ مشتقّ ولا تصنيف governed/legacy | governance/docs-architecture | [`scripts/ci/manifest_registry_guard.py`](../../scripts/ci/manifest_registry_guard.py) · [`docs/architecture/manifest_registry.json`](../../docs/architecture/manifest_registry.json) · [`tests_v9/test_manifest_registry_guard.py`](../../tests_v9/test_manifest_registry_guard.py) | **fixed** — الجرد يُشتقّ من `git ls-files` لا من قائمة يدوية؛ الراتش يفرض `schema + version + adjudicated_on` على كلّ بيان جديد؛ والعقد يزرع بياناً غير مسجَّل فيثبت أنّ الفحص يقبضه ثم يعود أخضر بعد إزالته؛ صلاحيات الدفع بلا workflow scope فالفحص يسري في CI عبر الاختبار وباك-ستوب المكنسة لا بخطوة workflow. |
@@ -3273,3 +3275,38 @@ PostgreSQL، وتنقيةٌ تحذف العلامة كانت ستُنتِج ال
 **ولا يُعالَج بإعادة كتابة التاريخ** (بنصّ المالك): #816 مدموج، والعلاج التزامٌ جديد
 وPR مستقلّ — وهو هذا. **والبند يبقى مفتوحاً** لأنّ ما يمنع التكرار ليس هذه الرقعة:
 قراءةُ خيوط المراجعة قبل الدمج **غير مفروضة بأيّ حارس**، وتسجيلُها هنا لا يفرضها.
+
+---
+
+### تحديث `MERGED-WHILE-A-REVIEW-WAS-IN-FLIGHT-01` (2026-08-09) — البند يبقى `open`، ومعه الآن مدقّق
+
+**ما تغيّر:** أُضيف `scripts/ci/branch_protection_contract_guard.py` ووظيفة
+`branch-protection-contract` في `capability-governance.yml`. تجلب الوظيفة
+`repos/<owner>/<repo>/rules/branches/main` — **القواعد النافذة** (كان `branches/main/protection`؛ أجاب `404 Branch not protected` والقفل مُفعَّل عبر Ruleset، تشغيل 31407522822) — ويحكم الحارس على الملفّ: البند المفروض
+واحد — `required_conversation_resolution.enabled == true`.
+
+**وما لم يتغيّر — ولهذا يبقى البند مفتوحاً:**
+
+| السؤال | الجواب المقيس |
+|---|---|
+| هل يمنع الحارس دمجاً؟ | **لا.** يمنعه إعدادُ GitHub وحده |
+| هل يرى خيط مراجعة؟ | **لا.** يرى إعداداً، لا حالةَ خيط |
+| هل يُغلِق السباق (خيطٌ يُفتَح بين الفحص والدمج)؟ | **لا.** لا شيء في CI يُغلِقه |
+| فماذا يفعل؟ | يمنع أن **يُطفَأ القفل صامتاً** بعد تفعيله |
+
+**والاعتماد على المالك صريحٌ وحاجب:** الوظيفة حمراء حتّى (١) يُفعَّل
+`Require conversation resolution before merging` على حماية `main`، و(٢) يُوفَّر سرّ
+`BRANCH_PROTECTION_AUDITOR_TOKEN` — إذ `GITHUB_TOKEN` الافتراضيّ **لا يقرأ**
+`branches/*/protection`. وهذا مقصود: الـPR لا يخضرّ إلّا بعد تفعيل القفل، فيصير
+**إثبات التفعيل شرطَ الدمج** بدل سطرٍ آخر يقول «اقرأ الخيوط».
+
+**والقسمة بنيويّة لا ذوقيّة:** الشبكة في الوظيفة والحكم في الحارس. فـ`scripts/ci/**` لا
+يستدعي GitHub في هذا المستودع (مقيس)، وعقد `test_local_preflight_contract:83` يمنع ذلك
+على الأداة المحلّيّة؛ ودرسُ `resilient_docker_pull.sh` يمنع دفن المنطق في `run: |`.
+والسابقة العاملة: `runtime-verification-promotion.yml` يُدقّق `required_reviewers` لبيئة
+النشر بالنمط نفسه.
+
+**خمس طفرات مُسجَّلة، كلّها زُرِعت وأسقطت اختبارها المُسمّى.** وواحدة **لم تزرع شيئاً في
+أوّل صياغة**: تبديلُ `except FileNotFoundError` بصنفٍ آخر يلتقطه `except OSError` التالي
+فيبقى الفشل مغلقاً — صُحِّحت لتُرجِع «مضبوط» عند غياب الملفّ. الآليّة عملت **عليّ** لا لي،
+للمرّة الرابعة.
