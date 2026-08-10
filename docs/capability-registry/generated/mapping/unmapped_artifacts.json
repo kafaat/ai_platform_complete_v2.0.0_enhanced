@@ -1688,6 +1688,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/services/api/calibration.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/services/api/client.ts",
     "kind": "web"
   },

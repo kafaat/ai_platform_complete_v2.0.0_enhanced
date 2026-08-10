@@ -15,7 +15,7 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4946,
+    "files_scanned": 4949,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
@@ -23,10 +23,10 @@
       "mobile": 51,
       "other": 1308,
       "tests": 1608,
-      "web": 451
+      "web": 454
     },
-    "unmapped_artifacts": 2016,
-    "ambiguous_artifacts": 403
+    "unmapped_artifacts": 2017,
+    "ambiguous_artifacts": 404
   },
   "capabilities": [
     {
@@ -4767,6 +4767,14 @@
           ]
         },
         {
+          "path": "frontend/src/services/api/reports.ts",
+          "score": 12,
+          "signals": [
+            "content:farm",
+            "content:farms"
+          ]
+        },
+        {
           "path": "frontend/src/lib/learningEvidence.ts",
           "score": 11,
           "signals": [
@@ -5137,7 +5145,7 @@
         "routes": 44,
         "database": 98,
         "events": 22,
-        "web": 13,
+        "web": 14,
         "mobile": 2,
         "tests": 25,
         "governance": 0,
@@ -9963,6 +9971,14 @@
           ]
         },
         {
+          "path": "frontend/src/services/api/fieldDetail.ts",
+          "score": 10,
+          "signals": [
+            "content:dem",
+            "content:slope"
+          ]
+        },
+        {
           "path": "frontend/src/sections/SetupCabin.tsx",
           "score": 9,
           "signals": [
@@ -10624,7 +10640,7 @@
         "routes": 100,
         "database": 10,
         "events": 51,
-        "web": 11,
+        "web": 12,
         "mobile": 0,
         "tests": 35,
         "governance": 0,
@@ -33452,6 +33468,14 @@
           ]
         },
         {
+          "path": "frontend/src/services/api/reports.ts",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
           "path": "frontend/src/sections/HybridIndexPage.tsx",
           "score": 10,
           "signals": [
@@ -34031,7 +34055,7 @@
         "routes": 26,
         "database": 35,
         "events": 26,
-        "web": 15,
+        "web": 16,
         "mobile": 0,
         "tests": 44,
         "governance": 0,
@@ -36150,6 +36174,10 @@
     {
       "path": "frontend/src/sections/reportsCsv.test.ts",
       "kind": "tests"
+    },
+    {
+      "path": "frontend/src/services/api/calibration.ts",
+      "kind": "web"
     },
     {
       "path": "frontend/src/services/api/client.ts",
@@ -45596,6 +45624,28 @@
           "signals": [
             "content:NDVI",
             "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "frontend/src/services/api/reports.ts",
+      "kind": "web",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 12,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "FM-002",
+          "score": 12,
+          "signals": [
+            "content:farm",
+            "content:farms"
           ]
         }
       ]
