@@ -56,7 +56,7 @@ def test_the_enabled_lock_passes(tmp_path):
 def test_conversation_resolution_disabled_is_a_failure(tmp_path):
     """**الحالة التي وقعت مرّتين:** القفل مُطفَأ، فزرُّ الدمج يعمل والخيوط مفتوحة.
 
-    ‏#810 دُمِج قبل وصول `REQUEST_CHANGES`، و#816 بعد إنشاء التعليقين بـ٤١ ثانية.
+    #810 دُمِج قبل وصول `REQUEST_CHANGES`، و#816 بعد إنشاء التعليقين بـ٤١ ثانية.
     والفرق بين الحالتين لا يعني شيئاً للقفل: كلتاهما كانت ستُمنَع.
     """
     document = {"required_conversation_resolution": {"enabled": False}}
