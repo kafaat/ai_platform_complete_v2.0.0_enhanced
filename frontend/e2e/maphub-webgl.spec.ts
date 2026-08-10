@@ -109,6 +109,9 @@ test('الخطوة 2-3: لوحة الرسم وأزرار الوضع تظهر ع�
 // بـ«م²») صار محروساً حتميّاً في src/lib/measureDrawWiring.test.ts (يُعيد إنتاج نفس
 // الهندسة المحقونة عبر areaSqMeters+formatArea الإنتاجيّتَين). يُنزَع fixme فور استقرار
 // تهيئة الرسم headless (يبقى هذا توقيعاً بصريّاً إضافيّاً على تفاعل Canvas الحقيقيّ).
+// دَينٌ مُعلَن ومحروس: MAPHUB-WEBGL-VISUAL-DEBT-01 — خطّ الأساس (٢) مفروضٌ في
+// scripts/ci/visual_fixme_baseline_guard.py؛ ثالثٌ لا يُضاف بلا مُحاكَمة، وإغلاقُ
+// أحدهما يوجب خفض الأساس فلا يبقى سقفٌ مُرتخٍ يبتلع عودته.
 test.fixme('الخطوة 2-3: رسم مضلّع (هندسة حقيقيّة محقونة) ⇒ measure-area بـ«م²» @visual', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
   await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });
@@ -139,6 +142,8 @@ test.fixme('الخطوة 2-3: رسم مضلّع (هندسة حقيقيّة مح�
 // نفس قيد المضلّع: جاهز حتميّاً عبر __hubmap، لكن Terra Draw لا يُهيَّأ headless
 // (data-draw-ready) — @visual حتى يُستقَرّ. مسار القيمة (الرسم⇒القياس⇒العرض بـ«كم»)
 // محروس حتميّاً في src/lib/measureDrawWiring.test.ts عبر lengthMeters+formatLength.
+// دَينٌ مُعلَن ومحروس: MAPHUB-WEBGL-VISUAL-DEBT-01 (خطّ الأساس ٢ — انظر
+// scripts/ci/visual_fixme_baseline_guard.py).
 test.fixme('الخطوة 2-3: رسم خطّ (هندسة حقيقيّة محقونة) ⇒ measure-length بـ«كم» @visual', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
   await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });

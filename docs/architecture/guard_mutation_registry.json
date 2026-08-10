@@ -605,10 +605,111 @@
           "why": "ملفٌّ غائب يُقرأ «مضبوطاً» ⇒ الحارس أخضرُ **بالضبط حين لا يُقاس شيء**. والحالة مرجَّحة لا نادرة: خطوةُ جلبٍ تفشل أو رمزٌ بلا صلاحية قراءة القواعد يُنتِجان غياباً لا رفضاً. **وتبديلُ صنف الاستثناء وحده لا يزرع شيئاً** — يلتقطه `except OSError` التالي فيبقى الفشل مغلقاً؛ فالزرع بإرجاع وثيقةٍ مُرضية"
         },
         {
-          "expect": "test_a_non_object_response_is_rejected",
-          "find": "    if not isinstance(document, list):",
+          "expect": "test_a_scalar_json_document_is_rejected",
+          "find": "    if not isinstance(document, dict):",
           "replace": "    if False:",
-          "why": "استجابةُ خطأٍ من GitHub كائنٌ (`{\"message\": \"Not Found\"}`) لا مصفوفة؛ قبولُها يجعل التكرار يمرّ على **مفاتيحها** نصوصاً فتُقرأ «لا قواعد» بدل «لم يُقرأ». استجابةٌ لا تُفهَم فشلٌ لا قبول"
+          "why": "استجابةُ خطأٍ من GitHub أو جسمٌ غريب في موضع الظرف لا يُقرأ دليلاً؛ قبولُه يجعل كلّ فحوص المصدر تقرأ حقولاً غائبة `None` — استجابةٌ لا تُفهَم فشلٌ لا قبول"
+        },
+        {
+          "expect": "test_a_bare_rule_array_is_rejected_as_evidence_without_a_source",
+          "find": "    if isinstance(document, list):\n        raise SystemExit(",
+          "replace": "    if isinstance(document, list):\n        return {\"schema_version\": EVIDENCE_SCHEMA, \"rules\": document}\n    if False:\n        raise SystemExit(",
+          "why": "قبولُ مصفوفة القواعد العارية «للتوافق الخلفيّ» يُعيد فتح الباب الذي وُجِد الظرف لأجله: دليلٌ بلا مصدر يمرّ من فرعٍ آخر أو من تشغيلٍ سابق بلا أثر"
+        },
+        {
+          "expect": "test_an_unknown_envelope_schema_is_rejected",
+          "find": "    if document.get(\"schema_version\") != EVIDENCE_SCHEMA:",
+          "replace": "    if False:",
+          "why": "ظرفٌ لا يُعرَف شكلُه يُقرأ دليلاً ⇒ حقولٌ غائبة تُقرأ `None` وتمرّ فحوصُها بصمت. ونسخةٌ أحدث قد تنقل معنى حقلٍ قائم — فالتوافق يُقرَّر بترقية الحارس"
+        },
+        {
+          "expect": "test_a_non_200_response_fails_closed",
+          "find": "    if status != CONTRACT_HTTP_STATUS:",
+          "replace": "    if False:",
+          "why": "‏`401/403/404/429/5xx` تُنتِج جسماً صالح البنية لا قواعد؛ إهمالُ الرمز يحوّل «لم يُقرأ» إلى «صفر قاعدة» ثمّ إلى رسالةٍ صحيحة عن سببٍ خاطئ. وهو الحقل الذي يفصل عطلَ الشبكة عن عطل الإعداد"
+        },
+        {
+          "expect": "test_a_success_status_as_text_is_not_read_as_success",
+          "find": "    if status != CONTRACT_HTTP_STATUS:",
+          "replace": "    if str(status) != str(CONTRACT_HTTP_STATUS):",
+          "why": "مقارنةٌ نصّيّة تقبل `\"200\"` القادمة من `jq` بلا `--argjson`. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **وجود** الفحص وهذه تحرس **نوع** القيمة"
+        },
+        {
+          "expect": "test_evidence_from_another_repository_is_rejected",
+          "find": "    if repository != expect_repository:",
+          "replace": "    if False:",
+          "why": "دليلٌ عن مستودعٍ آخر — ولو كان قفلُه مُفعَّلاً — يُخضِر الحارس عن سؤالٍ ليس هو السؤال"
+        },
+        {
+          "expect": "test_evidence_for_another_branch_is_rejected",
+          "find": "    if branch != CONTRACT_BRANCH:",
+          "replace": "    if False:",
+          "why": "فروع العمل في هذا المستودع تحمل حمايةً؛ فقراءةُ قواعد أحدها بدل `main` تُنتِج خضرةً كاملةً بينما الفرع الافتراضيّ مكشوف — وهي الحالة التي وقعت فعلاً في تشغيل 31411680450"
+        },
+        {
+          "expect": "test_a_declared_branch_cannot_launder_a_different_endpoint",
+          "find": "    if not isinstance(endpoint, str) or not endpoint.endswith(expected_endpoint):",
+          "replace": "    if False:",
+          "why": "‏`repository`/`branch` إعلانٌ يكتبه المُشغِّل، والنقطة المُستدعاة هي ما قِيس. إهمالُها يجعل خطأ تحريرٍ في مسار الوظيفة (تغيير الفرع وحده) يمرّ كاملاً بإعلانٍ صحيح"
+        },
+        {
+          "expect": "test_evidence_from_an_older_commit_is_rejected",
+          "find": "    elif sha != expect_sha:",
+          "replace": "    elif False:",
+          "why": "مصنوعٌ مُعاد استعماله بين تشغيلين يُنتِج خضرةً عن حالةٍ انقضت — الصنف نفسه الذي أضاع ثلاث جولات حين قُرِئ سجلٌّ بختمٍ زمنيّ قديم بوصفه نتيجةً جديدة"
+        },
+        {
+          "expect": "test_a_matching_but_malformed_commit_sha_is_still_rejected",
+          "find": "    if not isinstance(sha, str) or not _SHA_RE.match(sha):",
+          "replace": "    if False:",
+          "why": "حقلٌ فارغ أو بحالة أحرفٍ كبيرة لا يربط الدليل بشيء؛ وقبولُه يجعل مطابقة الـSHA التالية تقارن نصّين لا بصمتين"
+        },
+        {
+          "expect": "test_a_non_array_rules_field_fails_closed",
+          "find": "    if not isinstance(envelope.get(\"rules\"), list):",
+          "replace": "    if False:",
+          "why": "خطوة الجلب تُجسّد `null` حين يتعذّر تحليل الجسم (خنقٌ يُعيد HTML)، فقبولُه يُنتِج انهياراً في التكرار أو «صفر قاعدة» — رسالةٌ صحيحة عن سببٍ خاطئ"
+        },
+        {
+          "expect": "test_the_pass_line_states_what_was_examined",
+          "find": "        f\"فُحِصت {len(rules)} قاعدة نافذة، منها {len(pr_rules)} من نوع {CONTRACT_RULE_TYPE})\"",
+          "replace": "        \"القفل نافذ)\"",
+          "why": "خضرةٌ بلا عدّ لا يفرّق قارئُها بين «فُحِصت قاعدة فمرّت» و«لم يُفحَص شيء» — وهو بند «صفر checks منفَّذة» بصيغته القابلة للقياس"
+        }
+      ]
+    },
+    "visual_fixme_baseline_guard.py": {
+      "test": "tests_v9/test_visual_fixme_baseline_guard.py",
+      "mutations": [
+        {
+          "expect": "test_one_more_fixme_is_blocked",
+          "find": "        if len(positions) > limit:",
+          "replace": "        if False:",
+          "why": "نزعُ الراتشِت الصاعد ⇒ ثالثٌ يُضاف بمبرّرٍ وجيه في لحظته، وعاشرٌ بعده؛ والمجموع مقبرةُ ديون خضراء يقول تقريرُها «0 failed» صادقاً حرفيّاً"
+        },
+        {
+          "expect": "test_removing_a_fixme_without_lowering_the_baseline_is_blocked",
+          "find": "        elif len(positions) < limit:",
+          "replace": "        elif False:",
+          "why": "سقفٌ يبقى بعد إغلاق دَينٍ يبتلع **عودته** صامتاً: يُغلَق واحد ثمّ يُضاف آخر فيبقى العدّاد ثابتاً والحارس أخضر. راتشِتٌ لا يُخفَّض ليس راتشِتاً بل سقفٌ مُرتخٍ"
+        },
+        {
+          "expect": "test_a_fixme_without_a_gap_anchor_is_blocked",
+          "find": "            if not _has_anchor(lines, line_number):",
+          "replace": "            if False:",
+          "why": "عددٌ بلا سببٍ يُنقَل بين الأجيال بلا معنى: «اثنان» لا يقول لماذا ولا متى يُغلَقان، فيرثه من لا يعرف قصّته"
+        },
+        {
+          "expect": "test_a_missing_watched_file_fails_closed",
+          "find": "        if text is None:",
+          "replace": "        if False:\n            pass\n        if text is None:\n            continue\n        if False:",
+          "why": "ملفٌّ نُقِل أو حُذِف ⇒ لا `fixme` ⇒ لا مخالفة: الحالة التي تجعل حارساً «أخضرَ إلى الأبد» وهو يحرس لا شيء"
+        },
+        {
+          "expect": "test_a_mention_in_prose_is_not_counted_as_a_disabled_test",
+          "find": "        if _FIXME_RE.search(line) and not _COMMENT_RE.match(line)",
+          "replace": "        if _FIXME_RE.search(line)",
+          "why": "عدُّ ذِكرِ الاسم في شرحٍ اختباراً مُعطَّلاً — عطلٌ وقع فعلاً في أوّل صياغة (أربعة بدل اثنين). وعدٌّ يُعاقِب التوثيق يُدرِّب كاتبه على حذفه: رقمٌ خاطئ وتوثيقٌ أقلّ"
         }
       ]
     }

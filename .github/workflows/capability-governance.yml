@@ -32,6 +32,11 @@ jobs:
       # (pytest يُهمِل القيمة الراجعة). المجموعة مُجمَّدة وتتقلّص ولا تنمو.
       - name: Reject new tests that cannot fail (no assertion, returns a value)
         run: python scripts/ci/assertion_presence_guard.py --check
+      # وصنفٌ ثانٍ من الخضرة الزائفة: `test.fixme` يجعل الاختبار **يُعَدّ ولا يُنفَّذ**،
+      # فيقول تقرير Playwright «0 failed» صادقاً حرفيّاً وكاذباً دلاليّاً. الراتشِت يحجب
+      # الزيادة **والنقصان بلا خفض الأساس** — سقفٌ مُرتخٍ يبتلع عودة الدَّين صامتاً.
+      - name: Visual test debt must not accumulate (test.fixme ratchet)
+        run: python scripts/ci/visual_fixme_baseline_guard.py
       - name: Validate platform route release source binding
         run: python scripts/release/platform_route_release_binding.py --check-source
       - name: Validate runtime contract drift
@@ -241,19 +246,45 @@ jobs:
       # الإنفاذ · أنماط الفروع المشمولة) فيُسمّي الفشلُ الحقلَ الواجب تصحيحه بدل أن
       # يترك المالك يخمّن بين «Active غير محفوظة» و«هدفٍ لا يطابق main».
       # (`repos/{repo}/rulesets` يحتاج صلاحية إدارة؛ نتسامح مع تعذّرها ولا نحجب بها.)
+      #
+      # ولا تحكم الصدفة على رمز HTTP: `curl` يُسجّل الحالة كما هي (‏`-w '%{http_code}'`)
+      # ويكتب الجسم دائماً، فتصل `401/403/404/429/5xx` إلى الحارس **بنداً في العقد** لا
+      # إجهاضاً بـ`set -e`. حكمٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً.
       - name: Fetch the protection contract for main
         env:
           GH_TOKEN: ${{ secrets.BRANCH_PROTECTION_AUDITOR_TOKEN }}
           REPO: ${{ github.repository }}
+          TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           test -n "${GH_TOKEN:-}" || {
             echo '::error::missing BRANCH_PROTECTION_AUDITOR_TOKEN — «لم يُقرأ» ليس «مضبوط»'
             exit 1
           }
-          gh api "repos/${REPO}/rules/branches/main" > protection.json
+          ENDPOINT="https://api.github.com/repos/${REPO}/rules/branches/main"
+          HTTP_STATUS=$(curl -sS -o rules_body.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "${ENDPOINT}" || echo '000')
+          echo "HTTP ${HTTP_STATUS} ← ${ENDPOINT}"
+          # جسمٌ غير قابل للتحليل (خنقٌ يُعيد HTML مثلاً) يُجسَّد null فيسقط في فحص
+          # `rules` بدل أن يُسقِط الخطوة — الحكم في الحارس، والتسجيل هنا.
+          jq -n \
+            --arg schema 'sahool.branch-protection-evidence.v1' \
+            --arg repo "${REPO}" \
+            --arg branch 'main' \
+            --arg endpoint "${ENDPOINT}" \
+            --arg sha "${TESTED_SHA}" \
+            --argjson status "${HTTP_STATUS}" \
+            --argjson rules "$(jq -c '.' rules_body.json 2>/dev/null || echo null)" \
+            '{schema_version: $schema, repository: $repo, branch: $branch,
+              endpoint: $endpoint, http_status: $status, commit_sha: $sha, rules: $rules}' \
+            > protection.json
           echo '— القواعد النافذة على main —'
-          jq -r 'if length == 0 then "(صفر قاعدة)" else .[].type end' protection.json
+          jq -r 'if (.rules | type) != "array" then "(لا مصفوفة قواعد — استجابةٌ ليست قراءة)"
+                 elif (.rules | length) == 0 then "(صفر قاعدة)"
+                 else .rules[].type end' protection.json
           echo '— جردُ الـrulesets المُعرَّفة (اسم · هدف · إنفاذ · فروع مشمولة) —'
           if gh api "repos/${REPO}/rulesets" > rulesets.json 2>/dev/null; then
             jq -r 'if length == 0 then "(لا ruleset معرَّف إطلاقاً)" else .[] | "\(.id)\t\(.name)\ttarget=\(.target)\tenforcement=\(.enforcement)" end' rulesets.json
@@ -267,4 +298,11 @@ jobs:
             echo '(تعذّر جردُ الـrulesets — السرّ بلا صلاحية إدارة؛ ليس حكماً على الإعداد)'
           fi
       - name: Conversation resolution must be required before merging
-        run: python scripts/ci/branch_protection_contract_guard.py --protection-file protection.json
+        env:
+          REPO: ${{ github.repository }}
+          TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python scripts/ci/branch_protection_contract_guard.py \
+            --protection-file protection.json \
+            --expect-repository "${REPO}" \
+            --expect-sha "${TESTED_SHA}"

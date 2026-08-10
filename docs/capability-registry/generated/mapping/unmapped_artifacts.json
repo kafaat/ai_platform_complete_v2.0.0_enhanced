@@ -7992,6 +7992,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_visual_fixme_baseline_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_waiver_expiry_guard.py",
     "kind": "tests"
   },
