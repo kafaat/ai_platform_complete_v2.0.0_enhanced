@@ -12,9 +12,9 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4946**
-- Ambiguous artifacts queued: **403**
-- Unmapped artifacts queued: **2016**
+- Files scanned: **4954**
+- Ambiguous artifacts queued: **404**
+- Unmapped artifacts queued: **2019**
 
 ## Capability coverage
 
@@ -31,7 +31,7 @@
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 89 | 42 | 7 | 0 | 0 | 5 | 5 |
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 23 | 6 |
-| FM-002 | farm_management | 34 | 44 | 98 | 22 | 13 | 2 | 25 | 7 |
+| FM-002 | farm_management | 34 | 44 | 98 | 22 | 14 | 2 | 25 | 7 |
 | FM-003 | farm_management | 13 | 56 | 5 | 53 | 2 | 2 | 11 | 7 |
 | FM-004 | farm_management | 30 | 82 | 82 | 54 | 12 | 1 | 34 | 7 |
 | FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 5 | 5 |
@@ -40,7 +40,7 @@
 | FM-008 | farm_management | 10 | 24 | 5 | 1 | 0 | 0 | 7 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 3 | 0 | 0 | 2 | 0 | 2 | 4 |
-| GIS-003 | gis | 22 | 100 | 10 | 51 | 11 | 0 | 35 | 6 |
+| GIS-003 | gis | 22 | 100 | 10 | 51 | 12 | 0 | 35 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 6 | 15 | 2 | 66 | 0 | 0 | 8 | 5 |
@@ -96,7 +96,7 @@
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
 | WX-004 | weather | 59 | 53 | 0 | 78 | 19 | 0 | 57 | 5 |
 | WX-005 | weather | 8 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
-| WX-006 | weather | 84 | 26 | 35 | 26 | 15 | 0 | 44 | 6 |
+| WX-006 | weather | 84 | 26 | 35 | 26 | 16 | 0 | 44 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | WX-008 | weather | 2 | 6 | 0 | 1 | 0 | 0 | 2 | 4 |
 | WX-009 | weather | 2 | 29 | 0 | 0 | 2 | 0 | 1 | 4 |

@@ -1688,6 +1688,10 @@
     "kind": "tests"
   },
   {
+    "path": "frontend/src/services/api/calibration.ts",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/services/api/client.ts",
     "kind": "web"
   },
@@ -6568,6 +6572,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_actuation_killswitch_coverage_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_actuation_killswitch_v29_5_op.py",
     "kind": "tests"
   },
@@ -7345,6 +7353,10 @@
   },
   {
     "path": "tests_v9/test_learning_summary.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_live_pg_role_closure_guard.py",
     "kind": "tests"
   },
   {

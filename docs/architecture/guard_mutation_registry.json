@@ -4,6 +4,17 @@
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
   "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
+    "actuation_killswitch_coverage_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_unregistered_uncovered_callsite_is_flagged",
+          "find": "                uncovered_unregistered.append(key)",
+          "replace": "                pass  # mutated: أُسقِط رصدُ موضع الإطلاق غير المُغطّى",
+          "why": "تعطيل تسجيل الموضع غير المُغطّى ⇒ استدعاء send_mqtt_command بلا is_actuation_halted يمرّ صامتاً — نفس عمى الحارس السابق الذي وُجِد هذا ليسدّه"
+        }
+      ],
+      "test": "tests_v9/test_actuation_killswitch_coverage_guard.py"
+    },
     "brain_duplicate_gap_identity_guard.py": {
       "mutations": [
         {
@@ -570,6 +581,35 @@
         }
       ],
       "test": "tests_v9/test_live_pg_evidence_guard.py"
+    },
+    "live_pg_role_closure_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_direct_inherit_membership_is_rejected",
+          "find": "    if memberships:",
+          "replace": "    if False:",
+          "why": "قبول أي عضوية للدور المخصص للأدلة يعيد الاعتماد على pg_auth_members ويجعل حدود الصلاحية قابلة للتغير عبر INHERIT/SET/ADMIN دون تغير خصائص الدور المباشرة"
+        },
+        {
+          "expect": "test_a_missing_role_fails_closed_and_leaves_evidence",
+          "find": "        if not role_exists(a.database, a.owner, a.app_role):",
+          "replace": "        if False:",
+          "why": "غياب الدور لا يجوز أن يتحول إلى PASS على closure فارغة؛ «لا صف» ليس «دوراً مستقلاً ومقاساً»"
+        },
+        {
+          "expect": "test_role_name_reaches_both_catalogue_queries_escaped",
+          "find": "    return \"'\" + value.replace(\"'\", \"''\") + \"'\"",
+          "replace": "    return \"'\" + value + \"'\"",
+          "why": "اسم الدور يأتي من الراية/البيئة؛ نزع تهريب الاقتباس يكسر الاستعلام أو يغير الصف المقروء بدلاً من قياس الدور المطلوب"
+        },
+        {
+          "expect": "test_raw_psql_diagnostic_never_enters_uploaded_evidence",
+          "find": "        reason = getattr(exc, \"evidence_reason\", EVIDENCE_REASON_UNCLASSIFIED)",
+          "replace": "        reason = str(exc.code)",
+          "why": "إعادة التشخيص الخام إلى JSON المرفوع قد تسرب المضيف والمنفذ والمستخدم وكلمة المرور؛ المصنوعة تحمل أسباباً ثابتة فقط"
+        }
+      ],
+      "test": "tests_v9/test_live_pg_role_closure_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

@@ -23,7 +23,15 @@ DECISION_SERVICE_ALLOW_SCHEMA_CHANGE=true \
 scripts/deploy/decision_service_migrate.sh
 ```
 
-This applies `001 + 002`, re-runs `--check` clean, and runs the read-only review parity/quarantine
+> **Before this step — certify DB role separation (read-only, zero risk):**
+> `services/decision-service/decision_sor_role_certify.py` with both connection URLs. A shared role
+> yields `role_separation_confirmed=false`, which blocks the later REVOKE outright. Details in
+> [`DECISION_SOR_CUTOVER.md`](DECISION_SOR_CUTOVER.md).
+
+This applies **every** migration under `services/decision-service/migrations/` (`001…`, 31 files at
+the time of writing — the set grows, so measure with
+`ls services/decision-service/migrations/*.sql | wc -l` and never hand-pick a subset), re-runs
+`--check` clean, and runs the read-only review parity/quarantine
 verifier. Do not proceed while the quarantine is non-empty — an operator must resolve each ambiguous
 candidate (a NULL `candidate_lineage_id` is fail-closed un-reviewable, never mis-approved), rather
 than the migration guessing:

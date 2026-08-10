@@ -206,6 +206,7 @@ DEC-009,test,tests_v9/test_calibration_audit_events.py,3,applied
 DEC-009,test,tests_v9/test_calibration_audit_migration.py,3,applied
 DEC-009,test,tests_v9/test_calibration_ingest.py,3,applied
 DEC-009,test,tests_v9/test_calibration_override.py,3,applied
+DEC-009,ui,frontend/src/services/api/calibration.ts,2,applied
 DEC-010,api,POST /api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/sahool-platform/api/routers/decision_review.py:900,2,applied
 DEC-010,api,POST /api/v1/learning/activation-requests @ services/sahool-platform/api/routers/decision_review.py:729,4,applied
 DEC-010,api,POST /api/v1/learning/activation-requests/{activation_request_id}/review @ services/sahool-platform/api/routers/decision_review.py:777,4,applied

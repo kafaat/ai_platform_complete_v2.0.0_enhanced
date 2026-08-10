@@ -42,7 +42,7 @@ Commands:
 pytest -m unit
 ```
 ```bash
-pytest platform/tests
+pytest services/sahool-platform/tests
 ```
 ```bash
 tsc --noEmit

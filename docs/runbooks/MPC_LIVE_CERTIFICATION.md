@@ -1,5 +1,10 @@
 # SAHOOL — تقرير شهادة البيئة الحيّة (Live Certification Report)
 
+> ⚠️ **هذه وثيقة قالب (template) لا شهادةً مُنجَزة.** الحقول الفارغة أدناه (`__________`) وصناديق
+> `☐ PASS ☐ FAIL` تعني أنّ **لا تشغيل جرى بعد** — لا أنّه جرى ونجح. لا يُستشهَد بهذا الملفّ دليلاً
+> على أيّ حالة تشغيليّة قبل ملء `commit` و`البيئة` و`المُنفِّذ` و`التاريخ` وحسم كلّ حكم. نسخةٌ
+> مملوءة تُحفَظ كمصنوعة مؤرَّخة مربوطة بالـSHA المُشهَّد؛ وهذا الملفّ يبقى فارغاً للاستعمال التالي.
+
 > **الغرض:** إغلاق الفجوات المُعلَنة صراحةً التي **لا يمكن للـCI التحقّق منها** (تحتاج
 > Postgres+PostGIS+Redis حيّة، أو GPU/متصفّح حقيقيّ). كلّ مرحلة: هدف · أوامر · معيار نجاح ·
 > صندوق نتيجة تملؤه · حكم PASS/FAIL. لا يُفعَّل `LEXICOGRAPHIC_MPC_BRIDGE_ENABLED=true`
@@ -14,6 +19,34 @@
 | المُنفِّذ | `__________` |
 | التاريخ | `__________` |
 | compose | `docker-compose.v9.yml` (أو `.v9.gpu.yml` للمرحلة 5) |
+
+---
+
+## المرحلة −1 — حاجبا مفتاح الإيقاف (بوّابة تسبق كلّ شيء)
+
+> **لا تُستشهَد هذه الشهادة لتبرير أيّ `cutover` أو تفعيل مسارٍ فيزيائيّ ما دام البندان
+> التاليان `OPEN`.** كلاهما موسوم **«حاجب لأيّ real/cutover»** في
+> [`sahool-brain/gaps/registry.md`](../../sahool-brain/gaps/registry.md).
+
+| المعرّف | الموضع | العلّة |
+|---|---|---|
+| `COMPENSATION-BYPASSES-KILLSWITCH-01` | `actuator_runtime.py` (`_compensate`) | حلقة التعويض تُرسِل الأمر العكسيّ بلا `is_actuation_halted` |
+| `MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01` | `routers/commands.py` | `/v1/command` يفحص المفتاح بلا `field_id` ⇒ مفتاح الحقل لا يحجب اليدويّ |
+
+```bash
+# فحص ساكن (لا يحتاج stack): الموضع المكشوف مُسجَّل دَيناً معلَناً لا مُغطّى صامتاً
+python scripts/ci/actuation_killswitch_coverage_guard.py --list
+
+# الاختباران الواصفان: يبقيان xfail(strict=True) حتّى تُفتَح GATE-01 وتهبط الرقعتان
+pytest tests_v9/test_compensation_killswitch.py tests_v9/test_manual_command_killswitch_scope.py -q
+```
+
+**معيار العبور:** GATE-01 مفتوحة (`phase0_evidence_status` مُثبَّتة بـ`frozen_commit_sha`) **و**
+الرقعتان هبطتا **و**`actuation_killswitch_coverage_guard` أخضر بلا دَين مُسجَّل.
+ما دامت GATE-01 مغلقة، المراحل 0–6 أدناه تُنفَّذ **للقياس والتوثيق فقط**، ولا تُقرأ إذناً
+بتفعيل أيّ مسار يُطلِق أثراً فيزيائيّاً.
+
+**النتيجة:** `_____` · **الحكم:** ☐ عبور ☐ محجوب
 
 ---
 

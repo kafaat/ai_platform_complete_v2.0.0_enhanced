@@ -4785,7 +4785,9 @@
         "POST /v1/soil/calibrations/build @ services/soil-service/routers/p5_certification.py:58",
         "POST /v1/soil/calibrations/{calibration_id}/evaluate @ services/soil-service/routers/p5_certification.py:92"
       ],
-      "ui_consumers": [],
+      "ui_consumers": [
+        "frontend/src/services/api/calibration.ts"
+      ],
       "mobile_consumers": [],
       "tests": [
         "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
@@ -4828,7 +4830,7 @@
           "path": "services/decision-service/migrations/009_model_evaluation_run.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=21, tests=11, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=21, tests=11, ui=1, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
