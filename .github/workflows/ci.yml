@@ -1302,14 +1302,14 @@ jobs:
           always() &&
           (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
         continue-on-error: true
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-checksums: live_pg_evidence.sha256
       - name: Retry the attestation once (transparency-log timeouts are transient)
         id: live_pg_attest_retry
         # حاجزةٌ عمداً: هذه المحاولة الأخيرة، وسقوطُها يعني أنّ المنشأ لم يُثبَت فعلاً.
         if: always() && steps.live_pg_attest.outcome == 'failure'
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-checksums: live_pg_evidence.sha256
       - name: Place the signed attestation bundle beside the evidence
