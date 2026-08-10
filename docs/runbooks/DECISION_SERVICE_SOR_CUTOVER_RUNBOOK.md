@@ -24,10 +24,17 @@ sahool-platform = orchestrator/BFF and compatibility facade
 
 ## Prerequisites
 
+0. **Certify DB role separation before anything that leads to a REVOKE** (read-only, zero risk):
+   `services/decision-service/decision_sor_role_certify.py`. A shared role ⇒
+   `role_separation_confirmed=false` ⇒ **no REVOKE** until `decision_service_app` exists and the
+   decision-service connection is moved to it.
 1. Deploy the decision-service image that includes:
    - `services/decision-service/migration_runner.py`
    - `services/decision-service/backfill.py`
-   - `services/decision-service/migrations/001_decision_sor.sql`
+   - **the full** `services/decision-service/migrations/` set (`001_decision_sor.sql` … — 31 files at
+     the time of writing; the set **grows**, so measure it with
+     `ls services/decision-service/migrations/*.sql | wc -l` rather than trusting this number)
+   - `scripts/deploy/decision_service_migrate.sh` — the single supported way to apply them
 2. Confirm `DATABASE_URL` points to the intended decision database.
 3. Confirm tenant RLS/session policy expectations for the target DB.
 4. Keep sahool-platform authoritative until the final cutover flag is enabled.

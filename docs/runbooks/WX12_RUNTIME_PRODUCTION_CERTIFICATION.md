@@ -2,7 +2,16 @@
 
 This runbook converts WX-10/WX-11 code closure into runtime evidence. It does not permit a production flip from static evidence alone.
 
-1. Apply/check migrations 001–014 with `DECISION_SERVICE_ALLOW_SCHEMA_CHANGE=true` using a restricted non-superuser, non-BYPASSRLS role.
+0. **Certify DB role separation first (read-only, zero risk).** Run
+   `services/decision-service/decision_sor_role_certify.py` with both connection URLs. A shared role
+   yields `role_separation_confirmed=false` ⇒ **no REVOKE**; create `decision_service_app` and move
+   the decision-service connection first. See
+   [`DECISION_SOR_CUTOVER.md`](DECISION_SOR_CUTOVER.md).
+1. Apply/check **all** decision-service migrations with `DECISION_SERVICE_ALLOW_SCHEMA_CHANGE=true`
+   using a restricted non-superuser, non-BYPASSRLS role — via the single supported wrapper
+   `scripts/deploy/decision_service_migrate.sh`, never a hand-picked subset. The set is `001…` and
+   **grows**; measure it, never assume a ceiling:
+   `ls services/decision-service/migrations/*.sql | wc -l` (31 at the time of writing).
 2. Run `scripts/wx12/postgres_certification.py` and the real-Postgres decision-service test suite, including concurrency/idempotency tests.
 3. Deploy the registry adapter with `MODEL_REGISTRY_BACKEND=http`, TLS endpoint, token from secret storage, unique `REGISTRY_ADAPTER_ID`, and dry-run disabled only after staging approval.
 4. Run an activation/rollback drill in staging and validate evidence using `staging_activation_rollback_drill.py`.
