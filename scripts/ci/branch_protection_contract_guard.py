@@ -49,7 +49,11 @@ CONTRACT_KEY = "required_conversation_resolution"
 #: نصّ العلاج — يُطبَع مع الفشل لأنّ من يقرأ الأحمر يجب أن يعرف أين يذهب.
 REMEDY = (
     "العلاج في إعدادات GitHub لا في هذا المستودع:\n"
-    "  Settings → Branches → main → Require conversation resolution before merging\n"
+    "  Rulesets → قاعدة على main → Require a pull request before merging\n"
+    "            → Require conversation resolution before merging\n"
+    "  (أو Branch protection rules الكلاسيكيّة — كلتاهما تظهران في القواعد النافذة)\n"
+    "  وEnforcement status = Active: قاعدةٌ Disabled تُعرَض مضبوطةً بالكامل ولا تنفُذ،\n"
+    "  فلا تظهر في القواعد النافذة أصلاً — وهو أوّل ما وقع فعلاً عند الضبط.\n"
     "  ولا يُغني عنه انضباطٌ يدويّ: خيطٌ يُفتَح بين القراءة والدمج لا يراه من قرأ قبله."
 )
 

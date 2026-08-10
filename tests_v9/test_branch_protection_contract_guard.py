@@ -129,7 +129,8 @@ def test_the_failure_names_the_remedy_and_its_place():
     """
     body = _SCRIPT.read_text(encoding="utf-8")
     assert "Require conversation resolution before merging" in body
-    assert "Settings → Branches" in body
+    assert "Rulesets" in body
+    assert "Active" in body
 
 
 def test_the_guard_reads_no_github_state():
