@@ -1,4 +1,4 @@
-"""‏`MERGED-WHILE-A-REVIEW-WAS-IN-FLIGHT-01` — القفل يُدقَّق، ولا يُدَّعى أنّه هنا.
+"""`MERGED-WHILE-A-REVIEW-WAS-IN-FLIGHT-01` — القفل يُدقَّق، ولا يُدَّعى أنّه هنا.
 
 هذه اختباراتُ **وحدة** بمعطياتٍ مُركَّبة: لا شبكة ولا GitHub. وهذا شرطُ صحّتها لا
 تبسيطٌ لها — حارسٌ لا يُختبَر إلّا بوجود رمزٍ وصلاحيّة يصير تكذيبُه متخطًّى في كلّ
@@ -83,7 +83,7 @@ def test_a_missing_key_is_not_read_as_enabled(tmp_path):
     ],
 )
 def test_a_non_boolean_enabled_is_rejected(tmp_path, value, label):
-    """‏`enabled` ليست منطقيّة ⇒ رفض. المقارنة `is not True` لا `if enabled`.
+    """ enabled` ليست منطقيّة ⇒ رفض. المقارنة `is not True` لا `if enabled`.
 
     ‏`"false"` نصّاً **صادقةٌ** في بايثون، فمقارنةٌ بالصدق وحدها تقرأ القفل مُفعَّلاً
     وهو مُطفَأ. والعقد قيمةٌ منطقيّة بعينها لا «شيءٌ يشبه الصدق».
