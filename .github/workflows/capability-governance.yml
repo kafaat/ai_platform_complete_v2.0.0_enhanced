@@ -231,9 +231,16 @@ jobs:
       # القفل مُفعَّل عبر Ruleset، و`branches/main/protection` أجابت 404 Branch not
       # protected (تشغيل 31407522822) — فكان الحارس يسأل عن آليّةٍ غير المستعمَلة.
       # ويبقى السرّ لأنّه مضبوط ومُثبَت؛ تقليل الصلاحية قياسٌ مستقلّ لا يُخلَط بهذا.
+      #
+      # الفشل يجب أن يُشخّص نفسه: «صفر قاعدة» يحتمل سببين لا يفرّق بينهما رمز واحد —
+      # إمّا أنّ الـRuleset لا ينطبق فعلاً على `main`، وإمّا أنّ سرّ التدقيق أعمى عن
+      # الـrulesets فتعود له `[]` بينما يراها المتصفّح. فنقيس بعينَين: سرّ التدقيق
+      # والـGITHUB_TOKEN الافتراضيّ. اختلاف الجردَين ⇒ عمى رمز؛ تطابقهما على صفر ⇒
+      # الـRuleset غير نافذ. تشغيلٌ واحد يحسم الاحتمالين بدل جولة تخمين أخرى.
       - name: Fetch the protection contract for main
         env:
           GH_TOKEN: ${{ secrets.BRANCH_PROTECTION_AUDITOR_TOKEN }}
+          DEFAULT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -242,5 +249,11 @@ jobs:
             exit 1
           }
           gh api "repos/${REPO}/rules/branches/main" > protection.json
+          echo '— القواعد النافذة كما يراها سرّ التدقيق —'
+          jq -r 'if length == 0 then "(صفر قاعدة)" else .[].type end' protection.json
+          echo '— وكما يراها GITHUB_TOKEN الافتراضيّ (تشخيص عمى الرمز) —'
+          GH_TOKEN="$DEFAULT_TOKEN" gh api "repos/${REPO}/rules/branches/main" \
+            | jq -r 'if length == 0 then "(صفر قاعدة)" else .[].type end' \
+            || echo '(تعذّرت القراءة بالرمز الافتراضيّ)'
       - name: Conversation resolution must be required before merging
         run: python scripts/ci/branch_protection_contract_guard.py --protection-file protection.json
