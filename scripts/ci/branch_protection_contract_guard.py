@@ -65,8 +65,8 @@ def _load(path: Path) -> dict:
     except FileNotFoundError:
         raise SystemExit(
             f"✗ لا ملفّ حماية في {path} — لم تُجلَب الاستجابة أصلاً.\n"
-            "  للصلاحية خياران: منح `permissions: administration: read` للوظيفة، أو "
-            "استخدام سرٍّ بصلاحية قراءة الحماية كما في `RUNTIME_VERIFICATION_ENV_AUDITOR_TOKEN`."
+            "  الرمز الافتراضيّ `GITHUB_TOKEN` **لا يقرأ** `branches/*/protection`؛ "
+            "يلزم سرٌّ بصلاحية قراءة الحماية كما في `RUNTIME_VERIFICATION_ENV_AUDITOR_TOKEN`."
         ) from None
     except (OSError, json.JSONDecodeError) as exc:
         raise SystemExit(f"✗ تعذّرت قراءة {path}: {exc} — «لم يُقرأ» ليس «مضبوط».") from None

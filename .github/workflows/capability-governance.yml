@@ -216,7 +216,6 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      administration: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -228,15 +227,18 @@ jobs:
       #   · وحالةُ GitHub لا تدخل أداةً محلّيّة (عقد test_local_preflight_contract).
       # فتُجسَّد الاستجابة في ملفّ ويُحكَم عليها — كما يفعل `--pr-body-file` تماماً.
       #
-      # و`GITHUB_TOKEN` الافتراضيّ **لا يقرأ** `branches/*/protection` بدون صلاحية
-      # `administration: read`، التي أُضيفت في هذه الوظيفة. ويمكن تجاوز ذلك بسرٍّ
-      # مخصّص (BRANCH_PROTECTION_AUDITOR_TOKEN) إن وُجد — نفس نمط RUNTIME_VERIFICATION_ENV_AUDITOR_TOKEN.
+      # و`GITHUB_TOKEN` الافتراضيّ **لا يقرأ** `branches/*/protection`، فيلزم سرٌّ
+      # بصلاحية قراءة الحماية — نفس نمط RUNTIME_VERIFICATION_ENV_AUDITOR_TOKEN.
       - name: Fetch the protection contract for main
         env:
-          GH_TOKEN: ${{ secrets.BRANCH_PROTECTION_AUDITOR_TOKEN || github.token }}
+          GH_TOKEN: ${{ secrets.BRANCH_PROTECTION_AUDITOR_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          test -n "${GH_TOKEN:-}" || {
+            echo '::error::missing BRANCH_PROTECTION_AUDITOR_TOKEN — «لم يُقرأ» ليس «مضبوط»'
+            exit 1
+          }
           gh api "repos/${REPO}/branches/main/protection" > protection.json
       - name: Conversation resolution must be required before merging
         run: python scripts/ci/branch_protection_contract_guard.py --protection-file protection.json
