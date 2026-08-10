@@ -1332,7 +1332,9 @@ jobs:
           test -n "$BUNDLE_PATH"
           # والحزمة تُقرأ قبل نسخها: ملفٌّ فارغ أو غير قابل للتحليل ليس توقيعاً،
           # ورفعُه تحت اسم `…attestation…` يُعطي غيابَ الإثبات مظهرَ الإثبات.
-          python -c "import json,sys; json.load(open(sys.argv[1]))" "$BUNDLE_PATH"
+          # والترميز مثبَّتٌ صراحةً: `open()` بلا `encoding` يتبع لغة الرَّانر، فيصير
+          # الفحص معتمداً على بيئةٍ لا على المحتوى — ونتيجةٌ تتغيّر بتغيّر اللغة ليست قياساً.
+          python -c "import json,pathlib,sys; json.loads(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))" "$BUNDLE_PATH"
           cp "$BUNDLE_PATH" live_pg_evidence.attestation.json
       # **قناتان مفصولتان لأنّ الغرضين مختلفان — والخلط بينهما يُسقِط أحدهما.**
       # حفظُ القياس ليس إثباتَ المنشأ: الأوّل يمنع «وظيفةٌ خضراء بلا دليل»، والثاني
