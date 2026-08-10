@@ -45,7 +45,10 @@ def _run(path: Path) -> int:
     return MOD.main(["--protection-file", str(path)])
 
 
-_ENABLED = {"required_conversation_resolution": {"enabled": True}, "required_signatures": {}}
+_ENABLED = [
+    {"type": "pull_request", "parameters": {"required_review_thread_resolution": True}},
+    {"type": "required_signatures"},
+]
 
 
 def test_the_enabled_lock_passes(tmp_path):
@@ -59,7 +62,9 @@ def test_conversation_resolution_disabled_is_a_failure(tmp_path):
     #810 دُمِج قبل وصول `REQUEST_CHANGES`، و#816 بعد إنشاء التعليقين بـ٤١ ثانية.
     والفرق بين الحالتين لا يعني شيئاً للقفل: كلتاهما كانت ستُمنَع.
     """
-    document = {"required_conversation_resolution": {"enabled": False}}
+    document = [
+        {"type": "pull_request", "parameters": {"required_review_thread_resolution": False}}
+    ]
     assert _run(_protection(tmp_path, document)) == 1
 
 
@@ -70,7 +75,7 @@ def test_a_missing_key_is_not_read_as_enabled(tmp_path):
     إن كان الافتراضيّ متساهلاً. وهذا بعينه «نتيجةٌ عن سؤالٍ لم يُطرَح»: الصنف الذي عولج
     ستّ مرّات في الشريحة التي أنشأت هذه الفجوة أصلاً.
     """
-    assert _run(_protection(tmp_path, {"required_signatures": {"enabled": True}})) == 1
+    assert _run(_protection(tmp_path, [{"type": "required_signatures"}])) == 1
 
 
 @pytest.mark.parametrize(
@@ -88,7 +93,9 @@ def test_a_non_boolean_enabled_is_rejected(tmp_path, value, label):
     `"false"` نصّاً **صادقةٌ** في بايثون، فمقارنةٌ بالصدق وحدها تقرأ القفل مُفعَّلاً
     وهو مُطفَأ. والعقد قيمةٌ منطقيّة بعينها لا «شيءٌ يشبه الصدق».
     """
-    document = {"required_conversation_resolution": {"enabled": value}}
+    document = [
+        {"type": "pull_request", "parameters": {"required_review_thread_resolution": value}}
+    ]
     assert _run(_protection(tmp_path, document)) == 1, label
 
 
@@ -109,9 +116,9 @@ def test_an_unreadable_protection_file_fails_closed(tmp_path):
 
 
 def test_a_non_object_response_is_rejected(tmp_path):
-    """استجابةٌ ليست كائناً (قائمة خطأ مثلاً) لا تُقرأ عقداً."""
+    """استجابةٌ ليست مصفوفة (كائن خطأ مثلاً) لا تُقرأ عقداً."""
     with pytest.raises(SystemExit):
-        _run(_protection(tmp_path, [{"message": "Not Found"}]))
+        _run(_protection(tmp_path, {"message": "Not Found"}))
 
 
 def test_the_failure_names_the_remedy_and_its_place():

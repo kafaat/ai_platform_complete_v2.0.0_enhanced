@@ -3278,7 +3278,7 @@ PostgreSQL، وتنقيةٌ تحذف العلامة كانت ستُنتِج ال
 
 **ما تغيّر:** أُضيف `scripts/ci/branch_protection_contract_guard.py` ووظيفة
 `branch-protection-contract` في `capability-governance.yml`. تجلب الوظيفة
-`repos/<owner>/<repo>/branches/main/protection` ويحكم الحارس على الملفّ: البند المفروض
+`repos/<owner>/<repo>/rules/branches/main` — **القواعد النافذة** (كان `branches/main/protection`؛ أجاب `404 Branch not protected` والقفل مُفعَّل عبر Ruleset، تشغيل 31407522822) — ويحكم الحارس على الملفّ: البند المفروض
 واحد — `required_conversation_resolution.enabled == true`.
 
 **وما لم يتغيّر — ولهذا يبقى البند مفتوحاً:**

@@ -239,6 +239,6 @@ jobs:
             echo '::error::missing BRANCH_PROTECTION_AUDITOR_TOKEN — «لم يُقرأ» ليس «مضبوط»'
             exit 1
           }
-          gh api "repos/${REPO}/branches/main/protection" > protection.json
+          gh api "repos/${REPO}/rules/branches/main" > protection.json
       - name: Conversation resolution must be required before merging
         run: python scripts/ci/branch_protection_contract_guard.py --protection-file protection.json

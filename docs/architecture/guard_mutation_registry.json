@@ -588,19 +588,19 @@
         },
         {
           "expect": "test_a_missing_key_is_not_read_as_enabled",
-          "find": "    block = document.get(CONTRACT_KEY)",
-          "replace": "    block = document.get(CONTRACT_KEY, {\"enabled\": True})",
+          "find": "    block = next(\n        (\n            rule\n            for rule in document\n            if isinstance(rule, dict) and rule.get(\"type\") == \"pull_request\"\n        ),\n        None,\n    )",
+          "replace": "    block = next((rule for rule in document if isinstance(rule, dict) and rule.get(\"type\") == \"pull_request\"), {\"parameters\": {\"required_review_thread_resolution\": True}})",
           "why": "قراءةُ المفتاح الغائب قبولاً ⇒ «لم يُقرأ» تصير «مُفعَّل». وهو صنف «نتيجةٌ عن سؤالٍ لم يُطرَح» الذي عولج ستّ مرّات في الشريحة التي أنشأت هذه الفجوة أصلاً"
         },
         {
           "expect": "test_an_unreadable_protection_file_fails_closed",
           "find": "    except FileNotFoundError:\n        raise SystemExit(",
-          "replace": "    except FileNotFoundError:\n        return {CONTRACT_KEY: {\"enabled\": True}}\n    except RuntimeError:\n        raise SystemExit(",
-          "why": "ملفٌّ غائب يُقرأ «مضبوطاً» ⇒ الحارس أخضرُ **بالضبط حين لا يُقاس شيء**. والحالة مرجَّحة لا نادرة: `GITHUB_TOKEN` الافتراضيّ لا يقرأ `branches/*/protection` فسوءُ الإعداد يُنتِج غياباً لا رفضاً. **ولم تكن أوّل صياغةٍ للطفرة تزرع شيئاً** — تبديلُ صنف الاستثناء يلتقطه `except OSError` التالي فيبقى الفشل مغلقاً؛ صُحِّحت لتزرع العطل فعلاً"
+          "replace": "    except FileNotFoundError:\n        return [{\"type\": \"pull_request\", \"parameters\": {\"required_review_thread_resolution\": True}}]\n    except RuntimeError:\n        raise SystemExit(",
+          "why": "ملفٌّ غائب يُقرأ «مضبوطاً» ⇒ الحارس أخضرُ **بالضبط حين لا يُقاس شيء**. والحالة مرجَّحة لا نادرة: `GITHUB_TOKEN` الافتراضيّ لا يقرأ `rules/branches/*` فسوءُ الإعداد يُنتِج غياباً لا رفضاً. **ولم تكن أوّل صياغةٍ للطفرة تزرع شيئاً** — تبديلُ صنف الاستثناء يلتقطه `except OSError` التالي فيبقى الفشل مغلقاً؛ صُحِّحت لتزرع العطل فعلاً"
         },
         {
           "expect": "test_a_non_object_response_is_rejected",
-          "find": "    if not isinstance(document, dict):",
+          "find": "    if not isinstance(document, list):",
           "replace": "    if False:",
           "why": "استجابةُ خطأٍ من GitHub قد تكون قائمة أو نصّاً؛ قبولُها كائناً يُنتِج `AttributeError` غامضاً أو — أسوأ — قراءةً جزئيّة. استجابةٌ لا تُفهَم فشلٌ لا قبول"
         }

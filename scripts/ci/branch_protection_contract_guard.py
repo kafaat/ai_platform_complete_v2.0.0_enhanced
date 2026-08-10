@@ -30,7 +30,7 @@ GitHub لا تدخل أداةً محلّيّة (عقد ``test_local_preflight_co
 الاستجابة في ملفّ، والحارس يحكم عليه — تماماً كما يفعل
 ``pr_capability_impact_gate.py --pr-body-file``.
 
-    gh api "repos/${REPO}/branches/main/protection" > protection.json
+    gh api "repos/${REPO}/rules/branches/main" > protection.json
     python scripts/ci/branch_protection_contract_guard.py --protection-file protection.json
 """
 
@@ -54,7 +54,7 @@ REMEDY = (
 )
 
 
-def _load(path: Path) -> dict:
+def _load(path: Path) -> list:
     """الفشل المغلق يبدأ من القراءة.
 
     ملفٌّ غائب أو غير قابل للتحليل يعني أنّ **الاستجابة لم تُقرأ** — لا أنّ الحماية
@@ -65,17 +65,17 @@ def _load(path: Path) -> dict:
     except FileNotFoundError:
         raise SystemExit(
             f"✗ لا ملفّ حماية في {path} — لم تُجلَب الاستجابة أصلاً.\n"
-            "  الرمز الافتراضيّ `GITHUB_TOKEN` **لا يقرأ** `branches/*/protection`؛ "
+            "  الرمز الافتراضيّ `GITHUB_TOKEN` **لا يقرأ** `rules/branches/*`؛ "
             "يلزم سرٌّ بصلاحية قراءة الحماية كما في `RUNTIME_VERIFICATION_ENV_AUDITOR_TOKEN`."
         ) from None
     except (OSError, json.JSONDecodeError) as exc:
         raise SystemExit(f"✗ تعذّرت قراءة {path}: {exc} — «لم يُقرأ» ليس «مضبوط».") from None
-    if not isinstance(document, dict):
-        raise SystemExit(f"✗ {path} ليس كائن JSON — استجابةٌ لا تُفهَم فشلٌ لا قبول.")
+    if not isinstance(document, list):
+        raise SystemExit(f"✗ {path} ليس مصفوفة JSON — استجابةٌ لا تُفهَم فشلٌ لا قبول.")
     return document
 
 
-def violations(document: dict) -> list[str]:
+def violations(document: list) -> list[str]:
     """المخالفات — والغياب مخالفةٌ لا سكوت.
 
     **ولا يُقرأ المفتاح الغائب قبولاً:** استجابةٌ لا تحمل `required_conversation_resolution`
@@ -84,7 +84,14 @@ def violations(document: dict) -> list[str]:
     """
     found: list[str] = []
 
-    block = document.get(CONTRACT_KEY)
+    block = next(
+        (
+            rule
+            for rule in document
+            if isinstance(rule, dict) and rule.get("type") == "pull_request"
+        ),
+        None,
+    )
     if not isinstance(block, dict):
         found.append(
             f"`{CONTRACT_KEY}` غائب عن استجابة الحماية أو ليس كائناً — "
@@ -92,7 +99,7 @@ def violations(document: dict) -> list[str]:
         )
         return found
 
-    enabled = block.get("enabled")
+    enabled = block.get("parameters", {}).get("required_review_thread_resolution")
     if enabled is not True:
         found.append(
             f"`{CONTRACT_KEY}.enabled` = {enabled!r} — القفل غير مُفعَّل. "
@@ -107,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
         "--protection-file",
         type=Path,
         required=True,
-        help="استجابة `gh api repos/<owner>/<repo>/branches/main/protection` مُجسَّدةً في ملفّ",
+        help="استجابة `gh api repos/<owner>/<repo>/rules/branches/main` مُجسَّدةً في ملفّ",
     )
     args = parser.parse_args(argv)
 
