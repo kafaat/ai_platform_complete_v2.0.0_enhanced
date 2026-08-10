@@ -83,7 +83,7 @@ def test_a_missing_key_is_not_read_as_enabled(tmp_path):
     ],
 )
 def test_a_non_boolean_enabled_is_rejected(tmp_path, value, label):
-    """ enabled` ليست منطقيّة ⇒ رفض. المقارنة `is not True` لا `if enabled`.
+    """enabled` ليست منطقيّة ⇒ رفض. المقارنة `is not True` لا `if enabled`.
 
     `"false"` نصّاً **صادقةٌ** في بايثون، فمقارنةٌ بالصدق وحدها تقرأ القفل مُفعَّلاً
     وهو مُطفَأ. والعقد قيمةٌ منطقيّة بعينها لا «شيءٌ يشبه الصدق».
