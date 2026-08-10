@@ -78,14 +78,14 @@ def test_a_missing_key_is_not_read_as_enabled(tmp_path):
     [
         ("true", "نصّ `true` لا منطقيّ — قيمةٌ صادقة في بايثون وليست العقد"),
         (1, "عددٌ صادق"),
-        (None, "‏null"),
+        (None, "null"),
         ({}, "كائنٌ فارغ — صادقٌ؟ لا: `{}` كاذبة، لكنّ الاختبار يُثبِّت الرفض صراحةً"),
     ],
 )
 def test_a_non_boolean_enabled_is_rejected(tmp_path, value, label):
     """ enabled` ليست منطقيّة ⇒ رفض. المقارنة `is not True` لا `if enabled`.
 
-    ‏`"false"` نصّاً **صادقةٌ** في بايثون، فمقارنةٌ بالصدق وحدها تقرأ القفل مُفعَّلاً
+    `"false"` نصّاً **صادقةٌ** في بايثون، فمقارنةٌ بالصدق وحدها تقرأ القفل مُفعَّلاً
     وهو مُطفَأ. والعقد قيمةٌ منطقيّة بعينها لا «شيءٌ يشبه الصدق».
     """
     document = {"required_conversation_resolution": {"enabled": value}}
