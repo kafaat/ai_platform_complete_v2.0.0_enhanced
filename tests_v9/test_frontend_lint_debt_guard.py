@@ -155,3 +155,33 @@ def test_the_honesty_limit_is_written_down():
     body = _SCRIPT.read_text(encoding="utf-8")
     assert "لا يُصلحه" in body
     assert "تصميم أنواع" in body
+
+
+def test_every_printed_failure_line_keeps_its_prefix(tmp_path, capsys):
+    """**رسالةٌ متعدّدة الأسطر تفقد بادئتها في السطر الثاني — فيبدو تتمّةً غريبة.**
+
+    الحالة تقع على المخالفة الوحيدة التي تحمل سطرَ ملفّات: طباعةُ النصّ كتلةً واحدة
+    تُخرِج `الملفّات: …` بلا `✗` ولا إزاحة، فلا يعرف قارئ سجلّ CI أهو مخالفةٌ أخرى أم
+    تتمّة — وتنكسر أيّ قراءةٍ سطريّة للسجلّ.
+
+    فيُقاس **كلّ** سطرٍ مطبوع لا السطر الأوّل: إمّا `✗` وإمّا إزاحة التتمّة.
+    """
+    counts = dict(MOD.BASELINE)
+    counts[ANY_RULE] += 1
+    path = tmp_path / "report.json"
+    path.write_text(json.dumps(_report(counts)), encoding="utf-8")
+
+    assert MOD.main(["--report-file", str(path)]) == 1
+    printed = capsys.readouterr().out.splitlines()
+
+    body = [
+        line
+        for line in printed
+        if line.strip() and not line.startswith("frontend_lint_debt_guard:") and "الدَّين" not in line
+    ]
+    assert body, "لا سطر مخالفةٍ مطبوع أصلاً"
+    for line in body:
+        assert line.startswith("  ✗ ") or line.startswith("      "), (
+            f"سطرٌ بلا بادئة ولا إزاحة: {line!r} — التتمّة تُقرأ مخالفةً مستقلّة"
+        )
+    assert any("الملفّات:" in line for line in body), "سطر الملفّات ضاع من المخرَج"

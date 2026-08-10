@@ -94,7 +94,7 @@ def violations(report: list) -> list[str]:
         if actual > limit:
             found.append(
                 f"{rule}: {actual} تحذيراً والسقف {limit} — دَينٌ جديد بلا مُحاكَمة.\n"
-                f"      الملفّات: {', '.join(files_for_rule(report, rule)[:8])}"
+                f"الملفّات: {', '.join(files_for_rule(report, rule)[:8])}"
             )
         elif actual < limit:
             found.append(
@@ -155,8 +155,14 @@ def main(argv: list[str] | None = None) -> int:
     problems = violations(report)
     if problems:
         print("frontend_lint_debt_guard: FAIL")
-        for line in problems:
-            print(f"  ✗ {line}")
+        # **كلّ سطرٍ يحمل بادئته — والمخالفة قد تكون متعدّدة الأسطر.**
+        # طباعةُ الرسالة كتلةً واحدة تُخرِج سطرها الثاني بلا `✗` ولا إزاحة، فيبدو
+        # في سجلّ CI سطراً غريباً لا تتمّةً — ويكسر أيّ قراءةٍ سطريّة للسجلّ.
+        for problem in problems:
+            head, *rest = problem.splitlines()
+            print(f"  ✗ {head}")
+            for continuation in rest:
+                print(f"      {continuation.strip()}")
         print(
             "\nالدَّين يُحرَس ولا يُخفى: `eslint` هنا يُبلِّغ **تحذيراً** لا خطأً، "
             "فالوظيفة تخرج خضراء ومعها مئة تحذير، وGitHub يعرض عشرةً منها فقط."
