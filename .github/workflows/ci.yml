@@ -1318,13 +1318,23 @@ jobs:
           always() &&
           (steps.live_pg_attest.outcome == 'success' || steps.live_pg_attest_retry.outcome == 'success')
         env:
-          # أيّ المحاولتين نجحت — والأولى أوّلاً لأنّها الطريق المعتاد.
+          # **المحاولة الثانية أوّلاً — والترتيب الأصليّ كان عطلاً كامناً.**
+          # مخرجُ الثانية لا يوجد إلّا إن عملت، وهي لا تعمل إلّا إن فشلت الأولى؛
+          # فوجودُه بذاته يقول «الأولى فشلت والثانية نجحت». أمّا تقديمُ الأولى فيفترض
+          # أنّ خطوةً فاشلة لا تترك `bundle-path` — افتراضٌ عن سلوكٍ داخليّ لأكشن لا
+          # نملكه، وإخلافُه يعني نسخَ حزمةٍ ناقصة ورفعَها **بوصفها منشأً مُثبَتاً**.
+          # وهو الصنف الأسوأ: لا يُحمِرّ شيئاً، ويُنتِج دليلاً كاذباً عند أوّل انقطاعة.
           BUNDLE_PATH: >-
-            ${{ steps.live_pg_attest.outputs.bundle-path
-                || steps.live_pg_attest_retry.outputs.bundle-path }}
+            ${{ steps.live_pg_attest_retry.outputs.bundle-path
+                || steps.live_pg_attest.outputs.bundle-path }}
         run: |
           set -euo pipefail
           test -n "$BUNDLE_PATH"
+          # والحزمة تُقرأ قبل نسخها: ملفٌّ فارغ أو غير قابل للتحليل ليس توقيعاً،
+          # ورفعُه تحت اسم `…attestation…` يُعطي غيابَ الإثبات مظهرَ الإثبات.
+          # والترميز مثبَّتٌ صراحةً: `open()` بلا `encoding` يتبع لغة الرَّانر، فيصير
+          # الفحص معتمداً على بيئةٍ لا على المحتوى — ونتيجةٌ تتغيّر بتغيّر اللغة ليست قياساً.
+          python -c "import json,pathlib,sys; json.loads(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))" "$BUNDLE_PATH"
           cp "$BUNDLE_PATH" live_pg_evidence.attestation.json
       # **قناتان مفصولتان لأنّ الغرضين مختلفان — والخلط بينهما يُسقِط أحدهما.**
       # حفظُ القياس ليس إثباتَ المنشأ: الأوّل يمنع «وظيفةٌ خضراء بلا دليل»، والثاني
