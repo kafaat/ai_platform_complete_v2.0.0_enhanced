@@ -4,6 +4,17 @@
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
   "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
+    "actuation_killswitch_coverage_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_unregistered_uncovered_callsite_is_flagged",
+          "find": "                uncovered_unregistered.append(key)",
+          "replace": "                pass  # mutated: أُسقِط رصدُ موضع الإطلاق غير المُغطّى",
+          "why": "تعطيل تسجيل الموضع غير المُغطّى ⇒ استدعاء send_mqtt_command بلا is_actuation_halted يمرّ صامتاً — نفس عمى الحارس السابق الذي وُجِد هذا ليسدّه"
+        }
+      ],
+      "test": "tests_v9/test_actuation_killswitch_coverage_guard.py"
+    },
     "brain_duplicate_gap_identity_guard.py": {
       "mutations": [
         {
