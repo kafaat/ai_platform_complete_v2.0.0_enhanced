@@ -259,7 +259,8 @@ jobs:
             jq -r 'if length == 0 then "(لا ruleset معرَّف إطلاقاً)" else .[] | "\(.id)\t\(.name)\ttarget=\(.target)\tenforcement=\(.enforcement)" end' rulesets.json
             for id in $(jq -r '.[].id' rulesets.json); do
               gh api "repos/${REPO}/rulesets/${id}" \
-                | jq -r '"  ↳ \(.name): include=\(.conditions.ref_name.include // "—") exclude=\(.conditions.ref_name.exclude // "—") rules=\([.rules[].type] | join(","))"' \
+                | jq -r '"  ↳ \(.name): include=\(.conditions.ref_name.include // "—") exclude=\(.conditions.ref_name.exclude // "—") rules=\([.rules[].type] | join(","))",
+                         "     pull_request.parameters=\([.rules[] | select(.type == "pull_request") | .parameters] | if length == 0 then "(لا قاعدة pull_request)" else .[0] | tojson end)"' \
                 || echo "  ↳ ${id}: (تعذّرت قراءة التفاصيل)"
             done
           else
