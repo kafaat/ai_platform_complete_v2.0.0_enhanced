@@ -17,6 +17,34 @@
 
 ---
 
+## المرحلة −1 — حاجبا مفتاح الإيقاف (بوّابة تسبق كلّ شيء)
+
+> **لا تُستشهَد هذه الشهادة لتبرير أيّ `cutover` أو تفعيل مسارٍ فيزيائيّ ما دام البندان
+> التاليان `OPEN`.** كلاهما موسوم **«حاجب لأيّ real/cutover»** في
+> [`sahool-brain/gaps/registry.md`](../../sahool-brain/gaps/registry.md).
+
+| المعرّف | الموضع | العلّة |
+|---|---|---|
+| `COMPENSATION-BYPASSES-KILLSWITCH-01` | `actuator_runtime.py` (`_compensate`) | حلقة التعويض تُرسِل الأمر العكسيّ بلا `is_actuation_halted` |
+| `MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01` | `routers/commands.py` | `/v1/command` يفحص المفتاح بلا `field_id` ⇒ مفتاح الحقل لا يحجب اليدويّ |
+
+```bash
+# فحص ساكن (لا يحتاج stack): الموضع المكشوف مُسجَّل دَيناً معلَناً لا مُغطّى صامتاً
+python scripts/ci/actuation_killswitch_coverage_guard.py --list
+
+# الاختباران الواصفان: يبقيان xfail(strict=True) حتّى تُفتَح GATE-01 وتهبط الرقعتان
+pytest tests_v9/test_compensation_killswitch.py tests_v9/test_manual_command_killswitch_scope.py -q
+```
+
+**معيار العبور:** GATE-01 مفتوحة (`phase0_evidence_status` مُثبَّتة بـ`frozen_commit_sha`) **و**
+الرقعتان هبطتا **و**`actuation_killswitch_coverage_guard` أخضر بلا دَين مُسجَّل.
+ما دامت GATE-01 مغلقة، المراحل 0–6 أدناه تُنفَّذ **للقياس والتوثيق فقط**، ولا تُقرأ إذناً
+بتفعيل أيّ مسار يُطلِق أثراً فيزيائيّاً.
+
+**النتيجة:** `_____` · **الحكم:** ☐ عبور ☐ محجوب
+
+---
+
 ## المرحلة 0 — التهيئة والصحّة (شرط مسبق)
 
 ```bash
