@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  Beaker, CalendarClock, ChevronDown, ChevronLeft, Clock, FlaskConical,
+  Beaker, ChevronDown, ChevronLeft, Clock, FlaskConical,
   Hexagon, History, Link2, MapPin, Scissors, ShieldAlert,
 } from 'lucide-react';
 import {

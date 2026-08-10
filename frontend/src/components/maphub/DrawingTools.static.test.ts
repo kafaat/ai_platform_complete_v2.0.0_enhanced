@@ -54,7 +54,18 @@ describe('Pivot circle — move/resize handles, not 24 vertex markers', () => {
   it('disables leaflet-draw vertex editing for pivot (only center + radius handles)', () => {
     // الدائرة المحوريّة يجب ألّا تُفعِّل تحرير الرؤوس (يزدحم ويعطّل المقبضَين).
     expect(addField).toContain('const isPivot = pivotEditRef.current !== null;');
-    expect(addField).toMatch(/if \(!isPivot\) \(poly as any\)\.editing\?\.enable\(\)/);
+    // **النمط يقيس الحراسة لا صياغة الوصول.** كان يشترط `(poly as any)` حرفيّاً،
+    // فكسره تضييقُ النوع إلى `EditablePolygon` — أي أنّه كان يحرس تفصيلاً عرَضيّاً
+    // ويعاقب تحسين الفحص النوعيّ. الخاصّيّة المقصودة: كلّ تفعيلٍ لتحرير الرؤوس
+    // محكومٌ بـ`!isPivot`.
+    expect(addField).toMatch(/if \(!isPivot\)\s*\w+\.editing\?\.enable\(\)/);
+    // ولا تفعيلَ خارج الحراسة — وهذا ما يحمي الخاصّيّة فعلاً: نمطٌ يُثبِت وجود
+    // حالةٍ محروسة يمرّ ولو أُضيف تفعيلٌ ثانٍ بلا حراسة بجانبه.
+    for (const line of addField.split('\n')) {
+      if (/\.editing\?\.enable\(\)/.test(line)) {
+        expect(line).toMatch(/!isPivot/);
+      }
+    }
   });
 
   it('provides a draggable radius handle for uniform circle resize', () => {

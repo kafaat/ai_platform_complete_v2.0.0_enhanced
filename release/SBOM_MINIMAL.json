@@ -555,7 +555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11401d9adccb61b53ebb46244bb826ce75435a4df361651721b41a9185149ec9"
+          "content": "89bd383d05c57b472faa810a7ae58f34b82c5247a388e0617891d04d66da1a87"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -565,7 +565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e8fcfa2b49539ef4cf923c14989f5b7eb48562159ecb34ea5b9f9621c291dc2"
+          "content": "3dc9f1b116399924604e510b87883258c28cac5bf1994a1262e0487819c4792e"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -595,7 +595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1793de65d7e387f71252be17a9fc184d284e749e7622d6f2504f4565be949920"
+          "content": "41d49e8d12ea3a056150116915cada263d2231d83e141b9b2b742f1345e51143"
         }
       ],
       "name": "frontend/src/components/AddSeasonWithStages.tsx",
@@ -1035,7 +1035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "de02d15e8b22a14fac4f438f0340d45c5c9dfb4983fdb8448161aabdd5dafdbc"
+          "content": "3a98b3f460853975f1857b1459c9e683d8f56e4eeef03f2ec44afa9b6cb43f00"
         }
       ],
       "name": "frontend/src/components/fieldsetup/FieldSetupWizard.tsx",
@@ -1105,7 +1105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0729456336432248b4692c247741258d917effeeb8c8858720982a81e880a0cb"
+          "content": "e2e0e9c4ec80527832a40cae78658d3439fe81bbb984ce63a0de4de409ebf9c0"
         }
       ],
       "name": "frontend/src/components/fieldview/AgroAnalyticsCard.tsx",
@@ -1325,7 +1325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c7dd7d1d2194650d87f493b958c7b9778f8e87cde47381c5e45643b45dbf39d"
+          "content": "58c6e1e61c2bdba8d0648b72060476639588199565ed223e0716fef3c06b36b1"
         }
       ],
       "name": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
@@ -1665,7 +1665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7ccce790be475998605f8051cf1c9b492e790ef19c263023da63ce0dc7386e9"
+          "content": "d2e0eb9e8b75989454d392338efbc90236a3b19774db529e5a879ee50538f082"
         }
       ],
       "name": "frontend/src/components/maphub/DrawingTools.static.test.ts",

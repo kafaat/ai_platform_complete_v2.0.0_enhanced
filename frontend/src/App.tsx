@@ -111,7 +111,6 @@ const OperationCommand    = lazy(() => import('./sections/OperationCommand'));
 // مع وضع تضاريس 3D كسول. يَخلُف FieldManagementPage كافتراضيّ لصفحة fields.
 const MapHub              = lazy(() => import('./sections/MapHub'));
 const FarmMapOverview     = lazy(() => import('./sections/FarmMapOverview'));
-const FieldWorkspaceMapCard = lazy(() => import('./sections/FieldWorkspaceMapCard'));
 const FieldWorkspaceRouteShell = lazy(() => import('./sections/FieldWorkspaceRouteShell'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
 const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));

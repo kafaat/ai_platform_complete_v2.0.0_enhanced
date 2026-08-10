@@ -14,11 +14,12 @@ import AddFieldWithMap from '../AddFieldWithMap';
 import { FIELD_SETUP_STEPS } from './steps';
 import type { WizardContext } from './types';
 import type { FieldImportInput } from '../../services/api';
+import type { FieldData } from '../AddFieldWithMap';
 
 interface Props {
   // إنشاء الحقل الحقيقيّ (POST /api/v1/fields) — يُمرَّر من الصفحة الحاوية.
   // يجب أن يُرجِع سجلّ الحقل المُنشأ (ردّ الخادم) كي يلتقط المعالج field_id.
-  onSaveField: (data: any) => Promise<Record<string, unknown>>;
+  onSaveField: (data: FieldData) => Promise<Record<string, unknown>>;
   // استيراد حدّ حقل من ملفّ (POST /api/v1/fields/import) — اختياريّ، يُرجِع السجلّ كذلك.
   onImportField?: (payload: FieldImportInput) => Promise<Record<string, unknown>>;
   // إلغاء/إغلاق المعالج كلّه.
@@ -81,7 +82,7 @@ export default function FieldSetupWizard({ onSaveField, onImportField, onCancel,
 
   // غلاف حفظ الحقل: يستدعي الحفظ الحقيقيّ ثمّ يلتقط field_id ويتقدّم. يُعيد رمي
   // الخطأ كي يعرضه AddFieldWithMap في حقله الخاصّ (لا ابتلاع).
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: FieldData) => {
     const rec = await onSaveField(data);
     buildCtxAndAdvance(rec || {}, data?.name ?? 'حقل', data?.crop ?? '—');
   };

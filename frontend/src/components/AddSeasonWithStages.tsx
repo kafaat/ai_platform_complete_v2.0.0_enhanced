@@ -10,7 +10,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import {
-  X, Check, Plus, Trash2, Loader2, Sprout, Droplets,
+  X, Check, Plus, Trash2, Loader2, Sprout,
   Calendar, Wheat, ChevronDown, AlertCircle, Info,
 } from 'lucide-react';
 import { asApiError } from '../services/api';
