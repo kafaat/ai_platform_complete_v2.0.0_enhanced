@@ -118,7 +118,11 @@ def run_eslint() -> list:
         proc = subprocess.run(
             ["npx", "eslint", "src", "e2e", "-f", "json"],
             capture_output=True,
+            # `text=True` وحده يفكّ الترميز بلغة الآلة، وأسماء الملفّات ورسائل
+            # القواعد تحمل حروفاً غير ASCII — فيتغيّر ما يُقرأ بتغيّر لغة الرَّانر،
+            # ونتيجةٌ تتبع البيئة ليست قياساً. (يفرضه `test_text_encoding_locale`.)
             text=True,
+            encoding="utf-8",
             cwd=FRONTEND,
             check=False,
         )
