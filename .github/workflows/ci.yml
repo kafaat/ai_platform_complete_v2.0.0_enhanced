@@ -1138,6 +1138,13 @@ jobs:
     # بـ`SAHOOL_REQUIRE_LIVE_PG=1` الذي يجعل غياب القاعدة **خطأ جمع** لا تخطّياً.
     name: Live PG Proofs (fake-connection debt)
     runs-on: ubuntu-24.04
+    # The evidence bytes are now independently attestable. The OIDC token is
+    # used only by actions/attest; database credentials remain job-local test values.
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -1251,19 +1258,61 @@ jobs:
           set -euo pipefail
           python scripts/ci/live_pg_evidence_guard.py --junit live_pg_evidence.xml \
             --min-executed 30 --evidence live_pg_evidence.json
+      - name: Prove the evidence role has no direct or transitive role memberships
+        # `direct_role_attributes` proves only the named row in pg_roles. This
+        # companion proof closes pg_auth_members / SET ROLE ambiguity for the
+        # dedicated evidence role by requiring its membership closure to be empty.
+        if: always()
+        env:
+          PGHOST: localhost
+          PGPORT: "5435"
+          PGPASSWORD: test_password
+          SAHOOL_TEST_PGDATABASE: sahool
+          SAHOOL_TEST_PGOWNER: sahool_user
+          SAHOOL_TEST_PGROLE: sahool_app
+        run: |
+          set -euo pipefail
+          python scripts/ci/live_pg_role_closure_guard.py \
+            --evidence live_pg_role_closure.json
       - name: Hash the evidence so the artifact names its own bytes
-        # بصمةٌ للاثنين معاً: مصنوعةٌ تُنزَّل بعد شهور بلا بصمة لا يُقال عنها إنّها
-        # هي التي كُتِبت. و`sha256sum` يُشغَّل على الملفّين فقط — لا على الشجرة.
+        # هذه البصمة **سلامة داخلية فقط، وليست إثبات منشأ**. إثبات المنشأ المستقل
+        # هو Sigstore/GitHub attestation في الخطوة التالية، ويربط البصمات نفسها
+        # بهوية workflow وOIDC خارج الملفات التي يجري قياسها.
         if: always()
         run: |
           set -euo pipefail
-          ls -l live_pg_evidence.json live_pg_evidence.xml || true
-          sha256sum live_pg_evidence.json live_pg_evidence.xml > live_pg_evidence.sha256
+          ls -l live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json || true
+          sha256sum live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json \
+            > live_pg_evidence.sha256
           cat live_pg_evidence.sha256
+      - name: Attest the evidence subjects with GitHub OIDC + Sigstore
+        id: live_pg_attest
+        # Fork pull requests do not receive the write-capable token required to
+        # persist attestations. Do not pretend an internal SHA file is provenance.
+        if: >-
+          always() &&
+          (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        with:
+          subject-checksums: live_pg_evidence.sha256
+      - name: Place the signed attestation bundle beside the evidence
+        id: live_pg_copy_attestation
+        if: always() && steps.live_pg_attest.outcome == 'success'
+        env:
+          BUNDLE_PATH: ${{ steps.live_pg_attest.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          test -n "$BUNDLE_PATH"
+          cp "$BUNDLE_PATH" live_pg_evidence.attestation.json
+      # **قناتان مفصولتان لأنّ الغرضين مختلفان — والخلط بينهما يُسقِط أحدهما.**
+      # حفظُ القياس ليس إثباتَ المنشأ: الأوّل يمنع «وظيفةٌ خضراء بلا دليل»، والثاني
+      # يمنع «حزمةٌ توحي بمنشأ لم يُثبَت». وربطُ الرفع بنجاح التوقيع يشتري الثانية
+      # بثمن الأولى: PR من fork يُتخطّى فيه التوقيع (لا رمز كاتب)، فتُتخطّى معه
+      # المصنوعة كلّها — **وظيفةٌ خضراء بصفر دليل**، وهو الصنف بعينه الذي كُتِبت هذه
+      # الشريحة لمنعه. (وفشلُ التوقيع نفسه يُحمِر الوظيفة، فالثغرة في التخطّي وحده.)
       - name: Upload the live-PG evidence
-        # **الثلاثة معاً وبفشلٍ مغلق على الغياب.** رفعٌ صامت حين لا ملفّ يُنتِج
-        # وظيفةً خضراء بلا دليل — وهو الصنف الذي تعالجه هذه الشريحة نفسها.
-        # والاسم يحمل SHA كي تُميَّز مصنوعةُ تشغيلٍ من آخر بلا فتحها.
+        # الدليل الخام يُرفَع **دائماً** وبفشلٍ مغلق على الغياب. لا يدّعي منشأً:
+        # `live_pg_evidence.sha256` سلامةٌ داخليّة فقط، والمنشأ في المصنوعة التالية.
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -1271,7 +1320,18 @@ jobs:
           path: |
             live_pg_evidence.json
             live_pg_evidence.xml
+            live_pg_role_closure.json
             live_pg_evidence.sha256
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload the signed provenance for the same evidence bytes
+        # مصنوعةٌ منفصلة اسمُها يقول ما تحمله: وجودُها إثباتُ منشأ، وغيابُها غيابُه —
+        # ولا يُقرأ غيابُها فقداناً للدليل. وهذا ما يجعل شرط التوقيع صادقاً بلا ثمن.
+        if: always() && steps.live_pg_copy_attestation.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: live-pg-evidence-attestation-${{ github.sha }}
+          path: live_pg_evidence.attestation.json
           if-no-files-found: error
           retention-days: 30
 

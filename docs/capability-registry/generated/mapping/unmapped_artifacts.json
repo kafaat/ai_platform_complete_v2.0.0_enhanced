@@ -7356,6 +7356,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_live_pg_role_closure_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_local_preflight_contract.py",
     "kind": "tests"
   },
