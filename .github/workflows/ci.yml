@@ -1285,6 +1285,15 @@ jobs:
           sha256sum live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json \
             > live_pg_evidence.sha256
           cat live_pg_evidence.sha256
+      # **محاولتان لا واحدة — والسبب مقيس لا مُفترَض.** أوّل تشغيل فعليّ لهذه الخطوة
+      # سقط بـ`InternalError: error fetching tlog entry` ⇒ `network timeout` على
+      # `rekor.sigstore.dev` (تشغيل 31429802079). والحارسان كانا أخضرين، والدليل
+      # رُفِع — أي أنّ **وظيفةً مطلوبة احمرّت لانقطاعٍ في سجلّ شفافيّة خارجيّ**.
+      #
+      # ورَبطُ اخضرار CI بجاهزيّة خدمةٍ ثالثة يُنتِج أحمرَ لا يملك قارئُه فعلاً حياله،
+      # فيُدرَّب على تجاهله — وهو الخطأ الموصوف في عقد `live_pg_schema_contract`.
+      # فتُعاد المحاولة مرّةً واحدة: العابر يُعالَج، **والعقد لا يُلَيَّن** — فشلُ
+      # المحاولتين معاً يبقى حاجباً لأنّه حينئذٍ عطلٌ لا انقطاعة.
       - name: Attest the evidence subjects with GitHub OIDC + Sigstore
         id: live_pg_attest
         # Fork pull requests do not receive the write-capable token required to
@@ -1292,14 +1301,27 @@ jobs:
         if: >-
           always() &&
           (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        continue-on-error: true
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        with:
+          subject-checksums: live_pg_evidence.sha256
+      - name: Retry the attestation once (transparency-log timeouts are transient)
+        id: live_pg_attest_retry
+        # حاجزةٌ عمداً: هذه المحاولة الأخيرة، وسقوطُها يعني أنّ المنشأ لم يُثبَت فعلاً.
+        if: always() && steps.live_pg_attest.outcome == 'failure'
         uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
           subject-checksums: live_pg_evidence.sha256
       - name: Place the signed attestation bundle beside the evidence
         id: live_pg_copy_attestation
-        if: always() && steps.live_pg_attest.outcome == 'success'
+        if: >-
+          always() &&
+          (steps.live_pg_attest.outcome == 'success' || steps.live_pg_attest_retry.outcome == 'success')
         env:
-          BUNDLE_PATH: ${{ steps.live_pg_attest.outputs.bundle-path }}
+          # أيّ المحاولتين نجحت — والأولى أوّلاً لأنّها الطريق المعتاد.
+          BUNDLE_PATH: >-
+            ${{ steps.live_pg_attest.outputs.bundle-path
+                || steps.live_pg_attest_retry.outputs.bundle-path }}
         run: |
           set -euo pipefail
           test -n "$BUNDLE_PATH"
