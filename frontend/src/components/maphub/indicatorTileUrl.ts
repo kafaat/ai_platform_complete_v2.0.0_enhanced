@@ -48,6 +48,5 @@ export function indicatorTileUrl(
   }
   const qs = params.toString();
   const segment = preferPersistedCog ? 'tiles' : 'cdse-tiles';
-  // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${field.id}/${segment}/{z}/{x}/{y}.png?${qs}`;
 }

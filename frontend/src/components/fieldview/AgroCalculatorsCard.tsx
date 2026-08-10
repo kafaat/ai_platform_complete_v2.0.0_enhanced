@@ -25,7 +25,6 @@ function useBuilt<P>(build: () => BuildResult<P>, touched: boolean): { params: P
     if (!touched) return { params: null, error: null };
     const r = build();
     return r.ok ? { params: r.payload, error: null } : { params: null, error: r.error };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [touched, build]);
 }
 

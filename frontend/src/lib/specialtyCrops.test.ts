@@ -33,7 +33,6 @@ describe('textOrDash + usdRange — honest formatting, no fabrication', () => {
     expect(usdRange([0, 500])).toBe('0–500 $');
     expect(usdRange([100])).toBe('—');
     expect(usdRange(null)).toBe('—');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(usdRange(['a', 'b'] as any)).toBe('—');
   });
 });

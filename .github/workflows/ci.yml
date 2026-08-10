@@ -548,6 +548,14 @@ jobs:
       # ESLint يخرج بـ2 على تثبيت بائت، فلا يبقى الأساس متضخّماً بصمت.
       - run: npm run lint
         working-directory: frontend
+      # **والتحذير ليس خطأً هنا — وتلك هي الثغرة.** `no-explicit-any` و
+      # `no-unused-vars` تُبلَّغ تحذيراً، فتخرج هذه الوظيفة **خضراء** ومعها ٨٢
+      # تحذيراً؛ وGitHub يعرض **عشرة** منها في التعليقات، فيقرأ المالك «عشرة»
+      # والواقع ثمانون. عدّادٌ غير مرئيّ وغير محجوب معاً.
+      # والرفعُ إلى خطأ دفعةً واحدة يوقف كلّ عمل الواجهة، وإصلاحُ `any` تصميمُ
+      # نوعٍ لا استبدالُ كلمة. فراتشِت: السقف ينزل ولا يصعد، ولكلّ قاعدة سقفُها.
+      - name: Frontend lint debt must not grow (any / unused-vars ratchet)
+        run: python3 scripts/ci/frontend_lint_debt_guard.py
 
   frontend-e2e:
     name: Frontend E2E (Playwright · MapLibre/WebGL QA)

@@ -1115,7 +1115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8bd8700c193527ff3eb93249bf837f802403125a67c279f1a3e454a40c2ef86"
+          "content": "361c2500f79b0d0c02fd6c89cb66bf77be8cc5522e19250dadc5f94ae6aed940"
         }
       ],
       "name": "frontend/src/components/fieldview/AgroCalculatorsCard.tsx",
@@ -1745,7 +1745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b33bd201de6e630826a8b9678be3ecb71a6a987a594f34766abdead1948c1c0a"
+          "content": "2794ef897779a7630bc7c5515c340560cc1569fdcdfebb5a9c3b2c9cb8e2e5d3"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -2315,7 +2315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e5e3efe6d707c5c21eb141b72aa17f7752380b64e560235b760dd4a6d17b4fe"
+          "content": "ee8b9ea77896f8be4b94bf0284e5ae84568896287f3cae36c15a4c126c8b63e9"
         }
       ],
       "name": "frontend/src/components/maphub/indicatorTileUrl.ts",
@@ -4585,7 +4585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "07cddd25e0f408cc35005c1e7e6e6a09626cea5ac5311ada569975ee8122ca15"
+          "content": "41a8106ce38bae19c26d302a2e5f0f601e6ab95e689615c69e1f32d6e3eea91f"
         }
       ],
       "name": "frontend/src/lib/specialtyCrops.test.ts",
@@ -6015,7 +6015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce35cb4c6f9398f6da795e0bf059f5860e76a98463b0176d8c989576ad70efd1"
+          "content": "6aff3338af34f02e5ba6bff1d8f2fc0b564ba890ca516f8b731d9a0b7db9b409"
         }
       ],
       "name": "frontend/src/sections/SeasonRecordEntryPage.tsx",
@@ -6515,7 +6515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06398c9da09de426269d64156258df7c56e2d431168585c15a70d198d7a05833"
+          "content": "3eab4358c86111f61469ca4a5fe03fb54f697276c2c6d2d959aa301314589a0b"
         }
       ],
       "name": "frontend/src/services/api.ts",
