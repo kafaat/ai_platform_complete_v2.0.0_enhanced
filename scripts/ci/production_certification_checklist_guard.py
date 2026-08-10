@@ -45,7 +45,7 @@ BLOCKERS = [
         ],
         "commands": [
             "pytest -m unit",
-            "pytest platform/tests",
+            "pytest services/sahool-platform/tests",
             "tsc --noEmit",
             "vitest run",
             "ruff check .",

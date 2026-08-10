@@ -13,6 +13,28 @@
 
 ---
 
+## ⛔ حاجبان يسبقان أيّ تفعيل لمسارٍ فيزيائيّ
+
+> رفع الـstack وتشغيل البراهين أدناه **مسموحان**؛ المحجوب هو أن يُقرأ خُضرتها إذناً بتفعيل
+> مسارٍ يُطلِق أثراً فيزيائيّاً (صمّام/مشغِّل) أو ببدء `cutover` حقيقيّ.
+
+| المعرّف | الموضع | العلّة |
+|---|---|---|
+| `COMPENSATION-BYPASSES-KILLSWITCH-01` | `actuator_runtime.py` (`_compensate`) | حلقة التعويض تُرسِل الأمر العكسيّ بلا `is_actuation_halted` |
+| `MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01` | `routers/commands.py` | `/v1/command` يفحص المفتاح بلا `field_id` ⇒ مفتاح الحقل لا يحجب اليدويّ |
+
+كلاهما `OPEN` في [`../gaps/registry.md`](../gaps/registry.md) وموسوم **«حاجب لأيّ real/cutover»**،
+وإصلاحهما مؤجَّل بقرار حوكميّ (تجميد v06 — **GATE-01 لم تُفتح**). فحص ساكن سريع بلا stack:
+
+```bash
+python scripts/ci/actuation_killswitch_coverage_guard.py --list   # الموضع المكشوف دَينٌ معلَن لا تغطية صامتة
+```
+
+**وقبل ①-3 / أيّ `REVOKE`:** شهادة الأدوار `DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION`
+(قراءة فقط) — انظر [`../../docs/runbooks/DECISION_SOR_CUTOVER.md`](../../docs/runbooks/DECISION_SOR_CUTOVER.md).
+
+---
+
 ## 0. أسرار الـmesh (البيئة فقط)
 
 ```bash

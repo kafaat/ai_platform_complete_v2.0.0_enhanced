@@ -10,10 +10,39 @@
 
 | # | البند | الخطر | يعتمد على | رنبوك تفصيليّ |
 |---|---|---|---|---|
+| **①-0** | **حاجبان فيزيائيّان (مفتاح الإيقاف)** | **حاجب — لا يُتجاوَز** | فتح GATE-01 (تثبيت حزمة أدلّة المرحلة 0) | `sahool-brain/gaps/registry.md` + القسم أدناه |
 | ①-1 | دفن الفروع | صفر | — | هذه الوثيقة + `scripts/ops/branch_funeral.py` |
 | ①-2 | تفعيل عامل إبطال الكاش | منخفض (عكوس بالراية) | postgres+redis+migrate | هذه الوثيقة |
 | ①-3 | **ترقية Decision-Service إلى SoR** | **عالٍ (ترتيب لا يُعكَس)** | **بروفة staging خضراء (مرحلة صفر إلزاميّة)** + migrate + backfill | `DECISION_SERVICE_SOR_*_RUNBOOK.md` ×3 |
 | ①-4 | تحقّقات نشريّة + تزويد DEM | منخفض | رفع الخدمات | `REAL_ENV_VERIFICATION_RUNBOOK.md` · `SATELLITE_IMAGERY_RUNBOOK.md` |
+
+---
+
+## ①-0 — حاجبان فيزيائيّان يسبقان كلّ ما بعدهما (مفتاح الإيقاف)
+
+> **لا يُنفَّذ أيّ `cutover` حقيقيّ ولا أيّ إجراء يُطلِق أثراً فيزيائيّاً قبل رفع هذين البندين.**
+> كلاهما `OPEN` في [`sahool-brain/gaps/registry.md`](../../sahool-brain/gaps/registry.md) وموسومٌ فيه
+> **«حاجب لأيّ real/cutover»** — فغيابهما من هذه القائمة كان ثغرةً في الجرد لا إذناً بالتجاوز.
+
+| المعرّف | الموضع | العلّة |
+|---|---|---|
+| `COMPENSATION-BYPASSES-KILLSWITCH-01` | `services/actuator-service/actuator_runtime.py` (`_compensate`) | حلقة التعويض تُرسِل الأمر **العكسيّ** بلا استشارة `is_actuation_halted` — والتعويض يُطلَق عند فشلٍ في منتصف تسلسل، أي في اللحظة التي يُرجَّح أنّ المشغِّل اشتبك فيها مفتاح الطوارئ. |
+| `MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01` | `services/actuator-service/routers/commands.py` | `/v1/command` اليدويّ يفحص المفتاح بلا `field_id`، فمفتاحٌ يوقف **حقلاً بأكمله** لا يحجب الأمر اليدويّ — والأمر ينجح بـ200 بلا رسالة تُنبِّه. |
+
+**حالتهما التنفيذيّة:** الإصلاح **مؤجَّل بقرار حوكميّ لا بجهل** — تجميد v06 يمنع تعديل المسارات
+الفيزيائيّة قبل تثبيت حزمة أدلّة المرحلة 0 (`frozen_commit_sha=null` · `phase0_evidence_status:
+NOT_FROZEN` ⇒ **GATE-01 لم تُفتح**). الاختباران الواصفان للسلوك المطلوب قائمان بعلامة
+`xfail(strict=True)` في [`tests_v9/test_compensation_killswitch.py`](../../tests_v9/test_compensation_killswitch.py)
+و[`tests_v9/test_manual_command_killswitch_scope.py`](../../tests_v9/test_manual_command_killswitch_scope.py)،
+فنجاحٌ غير متوقَّع يُحمِّر الجناح ويُطالِب بنزع العلامة — لا إصلاح صامت.
+
+**انحدارٌ جديد محروس:** [`scripts/ci/actuation_killswitch_coverage_guard.py`](../../scripts/ci/actuation_killswitch_coverage_guard.py)
+يرصد **موضع الاستدعاء** (لا النصّ) فيُسقِط CI على أيّ موضع إطلاق **جديد** بلا مفتاح؛ والموضع
+المجمَّد أعلاه مُسجَّل فيه دَيناً معلَناً بمعرّف فجوته، ويسقط الحارس مطالِباً بنزع التسجيل فور
+هبوط الرقعة.
+
+**ما يفعله المشغِّل هنا:** لا شيء تنفيذيّاً — **يتحقّق فقط** أنّ GATE-01 فُتِحت والرقعتان هبطتا
+قبل الانتقال إلى ①-3. إن لم تُفتح، توقّف: ①-1 و①-2 و①-4 آمنة، و①-3 ليست كذلك.
 
 ---
 
@@ -75,7 +104,9 @@
 > بهذا التسلسل حصراً. القلب قبل امتلاء الجدول = decision-service سلطويّ فارغ **يفقد التاريخ**.
 > الرنبوكات الثلاثة الجاهزة تفصّل كلّ مرحلة؛ هذه القائمة تثبّت **الترتيب والحاجز بينها**.
 
-**الشرط المسبق العامّ:** Postgres إنتاجيّ + **دور مقيَّد** لـdecision-service (NOT superuser/BYPASSRLS) + توكن `DECISION_SERVICE_AUTH_TOKEN` مضبوط (وإلّا SoR بلا توكن **يفشل الإقلاع** بالتصميم، `main.py:403`).
+**الشرط المسبق العامّ:** [**①-0 مرفوع**](#①-0--حاجبان-فيزيائيّان-يسبقان-كلّ-ما-بعدهما-مفتاح-الإيقاف) (حاجبا مفتاح الإيقاف) + Postgres إنتاجيّ + **دور مقيَّد** لـdecision-service (NOT superuser/BYPASSRLS) + توكن `DECISION_SERVICE_AUTH_TOKEN` مضبوط (وإلّا SoR بلا توكن **يفشل الإقلاع** بالتصميم، `main.py:403`).
+
+> **وقبل أيّ `REVOKE`:** شهادة الأدوار `DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION` (قراءة فقط، بلا خطر) عبر `services/decision-service/decision_sor_role_certify.py` — دوران مشتركان ⇒ **لا REVOKE**. يفصّلها [`DECISION_SOR_CUTOVER.md`](DECISION_SOR_CUTOVER.md).
 
 ### المرحلة صفر — بروفة staging كاملة (إلزاميّة، بوّابة معلَنة لا ضمنيّة)
 

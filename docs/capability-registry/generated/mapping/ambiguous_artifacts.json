@@ -3071,6 +3071,28 @@
     ]
   },
   {
+    "path": "frontend/src/services/api/reports.ts",
+    "kind": "web",
+    "candidates": [
+      {
+        "capability_id": "WX-006",
+        "score": 12,
+        "signals": [
+          "content:GDD",
+          "content:gdd"
+        ]
+      },
+      {
+        "capability_id": "FM-002",
+        "score": 12,
+        "signals": [
+          "content:farm",
+          "content:farms"
+        ]
+      }
+    ]
+  },
+  {
     "path": "migrations/MANIFEST.md",
     "kind": "database",
     "candidates": [

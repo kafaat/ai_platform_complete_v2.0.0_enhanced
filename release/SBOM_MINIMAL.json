@@ -6345,6 +6345,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "730b9c10ff711194c82564481779f9065d49ccf1803b40267b0e82a6bd0fb8ea"
+        }
+      ],
+      "name": "frontend/src/services/api/calibration.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6825f3209f5193e4e4bb6fbcd651c33d4587793dd5530960e4f263b83cdab26a"
         }
       ],
@@ -6359,6 +6369,16 @@
         }
       ],
       "name": "frontend/src/services/api/features.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6cad4740fd871257c1d41375090e8fef08f08a155b42c3cec384c9d0a88da05e"
+        }
+      ],
+      "name": "frontend/src/services/api/fieldDetail.ts",
       "type": "file"
     },
     {
@@ -6465,6 +6485,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5fd6ee6e182540b6af2d9de55e453ebe0704a87024beadb2e460cba147cd00cb"
+        }
+      ],
+      "name": "frontend/src/services/api/reports.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7d1a4893d4754ccb2cab76ca372fcf5acdef6c040bf9e9c4fcefcffd468d9291"
         }
       ],
@@ -6485,7 +6515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b143da704cf5f8abc7349532e04fbde9aa6255e1abb38bc8d93780dd9dcc91f"
+          "content": "06398c9da09de426269d64156258df7c56e2d431168585c15a70d198d7a05833"
         }
       ],
       "name": "frontend/src/services/api.ts",
