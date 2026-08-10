@@ -105,9 +105,15 @@ def violations(rules: list) -> list[str]:
 
     pr_rules = [r for r in rules if isinstance(r, dict) and r.get("type") == CONTRACT_RULE_TYPE]
     if not pr_rules:
+        # جردُ ما رآه الرمز فعلاً يفصل سببين يتشابه أثرهما ويختلف علاجهما:
+        # قائمةٌ فارغة ⇒ لا قاعدة نافذة أصلاً (أو الرمز لا يرى الـRulesets)، بينما
+        # قواعدُ أخرى حاضرة ⇒ القاعدة نافذة ومرئيّة و«Require a pull request» غير مؤشَّر.
+        seen = sorted({r.get("type") for r in rules if isinstance(r, dict) and r.get("type")})
+        inventory = "، ".join(seen) if seen else "لا شيء — القائمة فارغة"
         found.append(
             f"لا قاعدة `{CONTRACT_RULE_TYPE}` نافذة على الفرع — "
-            "فلا شيء يشترط حلّ المحادثات. والغياب يعني «لم يُقرأ»، لا «مُفعَّل»."
+            f"فلا شيء يشترط حلّ المحادثات. المرئيّ ({len(rules)}): {inventory}. "
+            "والغياب يعني «لم يُقرأ»، لا «مُفعَّل»."
         )
         return found
 
