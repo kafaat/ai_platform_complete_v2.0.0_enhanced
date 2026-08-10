@@ -229,7 +229,7 @@ def test_path3_produces_transports_and_verifies_oidc_provenance():
     # الخطّ بلا تغيير سطر واحد هنا. فالتأكيد يتحرّك **مع** الترقية في نفس الالتزام،
     # ولا يُرخّى إلى `actions/attest@` مجرّداً — إرخاؤه يُبقي الاختبار أخضر ويُلغي
     # الخاصّيّة التي وُجِد لها.
-    assert "actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d" in text
+    assert "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6" in text
     assert "gh attestation verify" in text
     assert "--signer-workflow" in text and "--source-digest" in text and "--source-ref" in text
     assert "verify-and-evaluate:" in text
@@ -276,3 +276,47 @@ def test_deployment_manifest_prefers_attested_registry_digest():
     assert "RepoDigests" in text
     assert "running image does not match attested pull-by-digest reference" in text
     assert '"docker_config_digest": image_id' in text
+
+
+def test_every_attest_pin_anchor_agrees():
+    """**بصمةُ المُوقِّع مثبَّتةٌ في أكثر من مرساة — فيُقاس اتّفاقُها لا وجودُها.**
+
+    العطل وقع فعلاً: ترقيةُ `actions/attest` من `v4.2.1` إلى `v4.2.2` حرّكت ثمانية
+    مواضع في خمسة workflows، وتركت مرساتين خلفها — `release_attestation_guard.py`
+    والتوكيد أعلاه. ومرّت على `preflight --fast` وعلى بوّابة سياسة الأكشنز، لأنّ
+    كلتيهما تسأل «هل التثبيت بـSHA؟» لا «هل كلّ المراسي تشير إلى **الواحد** نفسه؟».
+
+    **والضرر ليس أحمرَ متأخّراً وحده:** حارسُ الإصدار يعدّ سطور `uses:` ببصمةٍ
+    بعينها، فترقيةٌ نصفُ مُطبَّقة تجعله يقرأ «صفر مُصدِّق» على workflow يُصدِّق
+    مرّتين — نتيجةٌ صحيحة عن سؤالٍ لم يعد مطروحاً.
+
+    فالمقيس هنا **الاتّساق**: بصمةٌ واحدة عبر كلّ مرساة. ولا يُرخّى إلى `actions/attest@`
+    مجرّداً — إرخاؤه يُبقي الاختبار أخضر ويُلغي الخاصّيّة التي وُجِد لها.
+    """
+    import re
+
+    pin = re.compile(r"actions/attest@([0-9a-f]{40})")
+
+    anchors: dict[str, set[str]] = {}
+    for relative in (
+        ".github/workflows/ci.yml",
+        ".github/workflows/path3-runtime-verification.yml",
+        ".github/workflows/release-artifact-attestation.yml",
+        ".github/workflows/runtime-image-provenance.yml",
+        ".github/workflows/runtime-verification-promotion.yml",
+        "scripts/ci/release_attestation_guard.py",
+        "tests/architecture/test_runtime_build_identity_attestation.py",
+    ):
+        found = set(pin.findall((ROOT / relative).read_text(encoding="utf-8")))
+        assert found, (
+            f"{relative}: لا بصمة `actions/attest@<sha40>` — إمّا نُقِل الاستعمال "
+            "وبقيت المرساة في القائمة، وإمّا أُرخي التثبيت إلى وسمٍ متحرّك. كلاهما "
+            "يُبطِل القياس بدل أن يُظهِره."
+        )
+        anchors[relative] = found
+
+    distinct = set().union(*anchors.values())
+    assert len(distinct) == 1, (
+        "بصماتٌ متعدّدة لـ`actions/attest` عبر المراسي ⇒ ترقيةٌ نصفُ مُطبَّقة:\n"
+        + "\n".join(f"  {path}: {sorted(shas)}" for path, shas in sorted(anchors.items()))
+    )
