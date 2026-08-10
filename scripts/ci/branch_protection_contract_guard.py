@@ -13,15 +13,21 @@
 لمن قرأ قبله بثوانٍ.
 
 **والذي يُغلِقه إعدادٌ في GitHub لا كودٌ هنا:** ``Require conversation resolution before
-merging`` على حماية ``main`` يُعطّل زرّ الدمج نفسه. وهذا المستودع **لا يُدير الحماية
-كأكواد**: لا ``CODEOWNERS`` ولا ``.github/settings.yml`` ولا ruleset — مقيس.
+merging`` يُعطّل زرّ الدمج نفسه.
 
-**فما يفعله هذا الحارس بالضبط:** لا يمنع دمجاً ولا يرى خيطاً. يمنع أن **يُطفَأ القفل
+**ولماذا القواعد النافذة لا الحماية الكلاسيكيّة — قياسٌ لا تفضيل:** أوّل صياغةٍ لهذا
+الحارس قرأت ``branches/main/protection`` (الحماية الكلاسيكيّة). ولمّا فُعِّل القفل فعلاً —
+عبر **Ruleset** باسم ``main-protection`` نافذاً على ``main`` — أجابت تلك النقطة
+``Branch not protected (HTTP 404)`` (تشغيل 31407522822). أي أنّ الحارس كان يسأل عن
+**آليّةٍ غير التي تُستعمَل**، فأحمرُه وأخضرُه كلاهما عن سؤالٍ خاطئ — وهو بعينه صنف
+«نتيجةٌ صحيحة عن سؤالٍ لم يُطرَح» الذي وُجِد هذا الملفّ ليطارده.
+
+فصار المقروء ``rules/branches/main``: **القواعد النافذة فعلاً** على الفرع، مجموعةً من
+مصدرَيها معاً (الحماية الكلاسيكيّة + الـRulesets). فيقيس **ما ينفُذ** لا ما ضُبِط بآليّةٍ
+بعينها — ولا ينكسر إن هاجر الفريق بين الآليّتين.
+
+**وما يفعله هذا الحارس بالضبط:** لا يمنع دمجاً ولا يرى خيطاً. يمنع أن **يُطفَأ القفل
 صامتاً** بعد تفعيله: يُحوِّل إعداداً غير مرئيّ في واجهةٍ إلى **قياسٍ أحمر** في CI.
-
-وله سابقةٌ عاملة في هذا المستودع تُنسَخ بنيتُها لا فكرتها:
-``.github/workflows/runtime-verification-promotion.yml`` يجلب بيئة الموافقة بـ``gh api``
-ثمّ يؤكّد أنّ ``protection_rules`` تحمل ``required_reviewers`` غير فارغة.
 
 **ولماذا الحكم هنا والشبكة هناك:** ``scripts/ci/**`` لا يستدعي GitHub في هذا المستودع
 إطلاقاً (مقيس)، والوظيفة وحدها تجلب. وهذا يُرضي درسين متعارضين معاً — منطقٌ مدفون في
@@ -41,10 +47,14 @@ import json
 import sys
 from pathlib import Path
 
-#: البند الوحيد المفروض. **ولا يُوسَّع إلى جردٍ عامّ للحماية عمداً:** جردٌ يَبيت مع كلّ
+#: نوع القاعدة التي تحمل شروط الـPR في استجابة القواعد النافذة.
+CONTRACT_RULE_TYPE = "pull_request"
+
+#: البند الوحيد المفروض — اسمه في الـRulesets مقابل `required_conversation_resolution`
+#: في الحماية الكلاسيكيّة. **ولا يُوسَّع إلى جردٍ عامّ للحماية عمداً:** جردٌ يَبيت مع كلّ
 #: تغيير إعدادٍ مشروع يُدرَّب قارئه على تجاهله فيُبطِل الحارس بدل أن يُشدّده — وهو الخطأ
 #: الموصوف حرفيّاً في عقد `live_pg_schema_contract`. الفجوة المفتوحة واحدة، فالمفروض واحد.
-CONTRACT_KEY = "required_conversation_resolution"
+CONTRACT_PARAMETER = "required_review_thread_resolution"
 
 #: نصّ العلاج — يُطبَع مع الفشل لأنّ من يقرأ الأحمر يجب أن يعرف أين يذهب.
 REMEDY = (
@@ -52,8 +62,7 @@ REMEDY = (
     "  Rulesets → قاعدة على main → Require a pull request before merging\n"
     "            → Require conversation resolution before merging\n"
     "  (أو Branch protection rules الكلاسيكيّة — كلتاهما تظهران في القواعد النافذة)\n"
-    "  وEnforcement status = Active: قاعدةٌ Disabled تُعرَض مضبوطةً بالكامل ولا تنفُذ،\n"
-    "  فلا تظهر في القواعد النافذة أصلاً — وهو أوّل ما وقع فعلاً عند الضبط.\n"
+    "  وتأكّد أنّ Enforcement status = Active: قاعدةٌ Disabled تُعرَض مضبوطةً ولا تفرض شيئاً.\n"
     "  ولا يُغني عنه انضباطٌ يدويّ: خيطٌ يُفتَح بين القراءة والدمج لا يراه من قرأ قبله."
 )
 
@@ -62,51 +71,61 @@ def _load(path: Path) -> list:
     """الفشل المغلق يبدأ من القراءة.
 
     ملفٌّ غائب أو غير قابل للتحليل يعني أنّ **الاستجابة لم تُقرأ** — لا أنّ الحماية
-    مضبوطة. ورمزٌ بلا صلاحية قراءة الحماية يُعيد استجابة خطأ لا عقداً، فتقع هنا.
+    مضبوطة. ورمزٌ بلا صلاحية قراءة القواعد يُعيد استجابة خطأ لا عقداً، فتقع هنا.
     """
     try:
         document = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         raise SystemExit(
-            f"✗ لا ملفّ حماية في {path} — لم تُجلَب الاستجابة أصلاً.\n"
-            "  الرمز الافتراضيّ `GITHUB_TOKEN` **لا يقرأ** `rules/branches/*`؛ "
-            "يلزم سرٌّ بصلاحية قراءة الحماية كما في `RUNTIME_VERIFICATION_ENV_AUDITOR_TOKEN`."
+            f"✗ لا ملفّ قواعد في {path} — لم تُجلَب الاستجابة أصلاً.\n"
+            "  تحقّق من أنّ خطوة `gh api repos/<owner>/<repo>/rules/branches/main` نُفِّذت "
+            "برمزٍ له صلاحية قراءة قواعد المستودع."
         ) from None
     except (OSError, json.JSONDecodeError) as exc:
         raise SystemExit(f"✗ تعذّرت قراءة {path}: {exc} — «لم يُقرأ» ليس «مضبوط».") from None
     if not isinstance(document, list):
-        raise SystemExit(f"✗ {path} ليس مصفوفة JSON — استجابةٌ لا تُفهَم فشلٌ لا قبول.")
+        raise SystemExit(
+            f"✗ {path} ليس قائمة JSON — القواعد النافذة تُعاد مصفوفةً؛ استجابةٌ لا تُفهَم فشلٌ لا قبول."
+        )
     return document
 
 
-def violations(document: list) -> list[str]:
+def violations(rules: list) -> list[str]:
     """المخالفات — والغياب مخالفةٌ لا سكوت.
 
-    **ولا يُقرأ المفتاح الغائب قبولاً:** استجابةٌ لا تحمل `required_conversation_resolution`
-    تعني أنّ الحقل لم يُرَ، وقراءتُه «مُفعَّل» هي بعينها «نتيجةٌ عن سؤالٍ لم يُطرَح» —
-    الصنف الذي عولج ستّ مرّات في الشريحة التي أنشأت هذه الفجوة.
+    **ولا يُقرأ الغائب قبولاً:** استجابةٌ بلا قاعدة `pull_request`، أو قاعدةٌ بلا
+    `required_review_thread_resolution`، تعني أنّ الشرط **لم يُرَ** — وقراءتُه «مُفعَّل»
+    هي بعينها «نتيجةٌ عن سؤالٍ لم يُطرَح».
+
+    **والاتّحاد لا التقاطع:** قد تنفُذ أكثر من قاعدة `pull_request` على الفرع نفسه
+    (Ruleset + حماية كلاسيكيّة، أو Rulesets متعدّدة)، وGitHub يطبّق **الأشدّ**. فيكفي
+    أن تُفعّله واحدةٌ ليكون القفل قائماً فعليّاً.
     """
     found: list[str] = []
 
-    block = next(
-        (
-            rule
-            for rule in document
-            if isinstance(rule, dict) and rule.get("type") == "pull_request"
-        ),
-        None,
-    )
-    if not isinstance(block, dict):
+    pr_rules = [r for r in rules if isinstance(r, dict) and r.get("type") == CONTRACT_RULE_TYPE]
+    if not pr_rules:
         found.append(
-            f"`{CONTRACT_KEY}` غائب عن استجابة الحماية أو ليس كائناً — "
-            "والغياب يعني «لم يُقرأ»، لا «مُفعَّل»."
+            f"لا قاعدة `{CONTRACT_RULE_TYPE}` نافذة على الفرع — "
+            "فلا شيء يشترط حلّ المحادثات. والغياب يعني «لم يُقرأ»، لا «مُفعَّل»."
         )
         return found
 
-    enabled = block.get("parameters", {}).get("required_review_thread_resolution")
-    if enabled is not True:
+    observed = [
+        rule.get("parameters", {}).get(CONTRACT_PARAMETER)
+        for rule in pr_rules
+        if isinstance(rule.get("parameters"), dict)
+    ]
+    if not observed:
         found.append(
-            f"`{CONTRACT_KEY}.enabled` = {enabled!r} — القفل غير مُفعَّل. "
+            f"قاعدة `{CONTRACT_RULE_TYPE}` نافذة بلا كتلة `parameters` مفهومة — "
+            "الشرط لم يُرَ، والغياب ليس تفعيلاً."
+        )
+        return found
+
+    if not any(value is True for value in observed):
+        found.append(
+            f"`{CONTRACT_PARAMETER}` = {observed!r} — القفل غير مُفعَّل. "
             "زرُّ الدمج يعمل وخيوط المراجعة مفتوحة."
         )
     return found
@@ -130,7 +149,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n{REMEDY}")
         return 1
 
-    print(f"branch_protection_contract_guard: PASS ({CONTRACT_KEY} مُفعَّل على الفرع المحميّ)")
+    print(f"branch_protection_contract_guard: PASS ({CONTRACT_PARAMETER} نافذ على الفرع)")
     return 0
 
 

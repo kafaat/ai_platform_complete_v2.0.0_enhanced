@@ -576,33 +576,39 @@
       "mutations": [
         {
           "expect": "test_conversation_resolution_disabled_is_a_failure",
-          "find": "    if enabled is not True:",
+          "find": "    if not any(value is True for value in observed):",
           "replace": "    if False:",
           "why": "قبولُ القفل المُطفَأ ⇒ يعود المستودع إلى الحالة التي وقع فيها العطل مرّتين (#810 و#816). والحارس كلّه موجودٌ لهذا الشرط وحده — تعطيلُه يجعله يُبلِغ خضرةً عن سؤالٍ لم يطرحه"
         },
         {
           "expect": "test_a_non_boolean_enabled_is_rejected",
-          "find": "    if enabled is not True:",
-          "replace": "    if not enabled:",
-          "why": "مقارنةٌ بالصدق بدل المنطقيّ: `\"false\"` نصّاً **صادقةٌ** في بايثون، فتُقرأ قفلاً مُفعَّلاً وهو مُطفَأ. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **الحكم** وهذه تحرس **نوع القيمة** — وحقلٌ يتغيّر تمثيله في API يُصيب الثانية وحدها"
+          "find": "    if not any(value is True for value in observed):",
+          "replace": "    if not any(value for value in observed):",
+          "why": "مقارنةٌ بالصدق بدل المنطقيّ: `\"true\"` نصّاً و`1` صادقتان في بايثون فتُقرآن قفلاً مُفعَّلاً وهو ليس العقد. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **الحكم** وهذه تحرس **نوع القيمة** — وحقلٌ يتغيّر تمثيله في API يُصيب الثانية وحدها"
         },
         {
           "expect": "test_a_missing_key_is_not_read_as_enabled",
-          "find": "    block = next(\n        (\n            rule\n            for rule in document\n            if isinstance(rule, dict) and rule.get(\"type\") == \"pull_request\"\n        ),\n        None,\n    )",
-          "replace": "    block = next((rule for rule in document if isinstance(rule, dict) and rule.get(\"type\") == \"pull_request\"), {\"parameters\": {\"required_review_thread_resolution\": True}})",
-          "why": "قراءةُ المفتاح الغائب قبولاً ⇒ «لم يُقرأ» تصير «مُفعَّل». وهو صنف «نتيجةٌ عن سؤالٍ لم يُطرَح» الذي عولج ستّ مرّات في الشريحة التي أنشأت هذه الفجوة أصلاً"
+          "find": "        rule.get(\"parameters\", {}).get(CONTRACT_PARAMETER)",
+          "replace": "        rule.get(\"parameters\", {}).get(CONTRACT_PARAMETER, True)",
+          "why": "قراءةُ الشرط الغائب قبولاً ⇒ «لم يُقرأ» تصير «مُفعَّل». قاعدة `pull_request` نافذة بلا هذا المفتاح (إصدار API تغيّر، أو رمزٌ رأى حقولاً جزئيّة) تُقرأ قفلاً قائماً"
+        },
+        {
+          "expect": "test_no_pull_request_rule_is_a_failure",
+          "find": "    if not pr_rules:",
+          "replace": "    if False:",
+          "why": "نزعُ فحص غياب قاعدة `pull_request` ⇒ فرعٌ محميّ من الحذف والدفع القسريّ وحدهما يُقرأ مشمولاً بشرط المراجعة. ورمزُ الخروج يبقى `1` عبر الفرع التالي — ولذلك يقيس الاختبار **السبب** لا الرمز"
         },
         {
           "expect": "test_an_unreadable_protection_file_fails_closed",
           "find": "    except FileNotFoundError:\n        raise SystemExit(",
-          "replace": "    except FileNotFoundError:\n        return [{\"type\": \"pull_request\", \"parameters\": {\"required_review_thread_resolution\": True}}]\n    except RuntimeError:\n        raise SystemExit(",
-          "why": "ملفٌّ غائب يُقرأ «مضبوطاً» ⇒ الحارس أخضرُ **بالضبط حين لا يُقاس شيء**. والحالة مرجَّحة لا نادرة: `GITHUB_TOKEN` الافتراضيّ لا يقرأ `rules/branches/*` فسوءُ الإعداد يُنتِج غياباً لا رفضاً. **ولم تكن أوّل صياغةٍ للطفرة تزرع شيئاً** — تبديلُ صنف الاستثناء يلتقطه `except OSError` التالي فيبقى الفشل مغلقاً؛ صُحِّحت لتزرع العطل فعلاً"
+          "replace": "    except FileNotFoundError:\n        return [{\"type\": CONTRACT_RULE_TYPE, \"parameters\": {CONTRACT_PARAMETER: True}}]\n    except RuntimeError:\n        raise SystemExit(",
+          "why": "ملفٌّ غائب يُقرأ «مضبوطاً» ⇒ الحارس أخضرُ **بالضبط حين لا يُقاس شيء**. والحالة مرجَّحة لا نادرة: خطوةُ جلبٍ تفشل أو رمزٌ بلا صلاحية قراءة القواعد يُنتِجان غياباً لا رفضاً. **وتبديلُ صنف الاستثناء وحده لا يزرع شيئاً** — يلتقطه `except OSError` التالي فيبقى الفشل مغلقاً؛ فالزرع بإرجاع وثيقةٍ مُرضية"
         },
         {
           "expect": "test_a_non_object_response_is_rejected",
           "find": "    if not isinstance(document, list):",
           "replace": "    if False:",
-          "why": "استجابةُ خطأٍ من GitHub قد تكون قائمة أو نصّاً؛ قبولُها كائناً يُنتِج `AttributeError` غامضاً أو — أسوأ — قراءةً جزئيّة. استجابةٌ لا تُفهَم فشلٌ لا قبول"
+          "why": "استجابةُ خطأٍ من GitHub كائنٌ (`{\"message\": \"Not Found\"}`) لا مصفوفة؛ قبولُها يجعل التكرار يمرّ على **مفاتيحها** نصوصاً فتُقرأ «لا قواعد» بدل «لم يُقرأ». استجابةٌ لا تُفهَم فشلٌ لا قبول"
         }
       ]
     }
