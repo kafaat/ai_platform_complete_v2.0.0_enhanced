@@ -1469,3 +1469,6 @@ SHAs من `git log --oneline origin/main`.
 | تصحيح طفرة لم تزرع شيئاً | `FileNotFoundError` وريثةُ `OSError` فيلتقطها المُعالِج التالي — الطفرة كانت تُبلِغ تغطيةً لا تملكها | `guard_mutation_guard` |
 
 - **0aede811**: Updated release package checksums and manifest to fix Lint & Format CI failure (checksum mismatch on `.github/workflows/capability-governance.yml`).
+
+- **f4077e84**: مواءمة `#820` مع `main` بعد دمج `#821` — **الاتّحاد** في `guard_mutation_registry.json` (الجانبان إضافيّان؛ اختيارُ جانبٍ كان يحذف مواصفات طفرات حارسٍ قائم فيصير أخضرَ بلا قياس) وإعادة توليد للسبعة المولَّدة (حلٌّ يدويّ يُنتِج ملفّاً لا يطابق مولِّده فيحمرّ أوّل `--check`). ١٩ حارساً مُواصَفاً بعدها.
+- **قرار: لا تليين للحارس ليخضرّ بلا تفعيل** — يجعله يُبلِغ خضرةً عن سؤالٍ لم يُطرَح، وهو الصنف الذي وُجِد ليطارده. الأحمر يبقى حتى `Enforcement=Active`؛ سببه إعدادٌ لا كود، فلا تُنتِج أيّ دفعة نتيجةً مختلفة.
