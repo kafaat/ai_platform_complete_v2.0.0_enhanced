@@ -1467,3 +1467,5 @@ SHAs من `git log --oneline origin/main`.
 | وظيفة مستقلّة لا خطوة في `capability-registry` | تحتاج سرّاً لا تحتاجه تلك، وفشلُها يقول «الحماية غير مضبوطة» لا «الحوكمة انحرفت» | `capability-governance.yml` |
 | **إبقاء البند `open`** بعد الرقعة | المدقّق لا يمنع دمجاً ولا يرى خيطاً ولا يُغلِق السباق؛ إغلاقُه كان سيكون ادّعاءً أوسع من المقيس | `MERGED-WHILE-A-REVIEW-WAS-IN-FLIGHT-01` |
 | تصحيح طفرة لم تزرع شيئاً | `FileNotFoundError` وريثةُ `OSError` فيلتقطها المُعالِج التالي — الطفرة كانت تُبلِغ تغطيةً لا تملكها | `guard_mutation_guard` |
+
+- **0aede811**: Updated release package checksums and manifest to fix Lint & Format CI failure (checksum mismatch on `.github/workflows/capability-governance.yml`).
