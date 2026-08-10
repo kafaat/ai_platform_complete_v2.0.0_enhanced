@@ -23,7 +23,7 @@ def main() -> int:
         "contents: read": "read-only repository permission",
         "id-token: write": "OIDC permission",
         "attestations: write": "attestation permission",
-        "actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d": "immutable attestation action",
+        "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6": "immutable attestation action",
         "subject-path:": "artifact subject binding",
         "sbom-path: release/SBOM_DEPENDENCIES.cdx.json": "CycloneDX SBOM binding",
         "sha256sum": "artifact checksum",
@@ -33,7 +33,7 @@ def main() -> int:
     for token, purpose in required_tokens.items():
         if token not in workflow:
             errors.append(f"workflow missing {purpose}: {token}")
-    if workflow.count("uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d") < 2:
+    if workflow.count("uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6") < 2:
         errors.append("workflow must create both provenance and SBOM attestations")
     forbidden = ("permissions: write-all", "pull_request_target:", "continue-on-error: true")
     for token in forbidden:
