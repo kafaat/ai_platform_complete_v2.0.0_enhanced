@@ -255,12 +255,31 @@ def test_the_live_tree_passes_the_guard():
     assert guard.main([]) == 0
 
 
-def test_the_live_registry_declares_the_two_slice_keys():
+def test_the_live_registry_declares_the_slice_keys():
     """المسار الثاني: السجلّ الحقيقيّ نفسه — فتغيُّرُه يُحمِرّ هنا لا في مكانٍ بعيد."""
     keys = guard.load_keys(guard.REGISTRY)
     declared = {entry["key"] for entry in keys}
     assert "root_zone.root_zone_refill_cap_mm" in declared
-    assert "root_zone.maximum_safe_depth_mm_event" in declared
+    assert "sprinkler.maximum_safe_depth_mm_event" in declared
+    assert "irrigation.maximum_safe_depth_mm_event" in declared
     problems, examined = guard.violations(keys, guard.ROOT)
     assert problems == []
     assert examined >= 4, f"عدد المستهلكين المفحوصين انخفض: {examined}"
+
+
+def test_one_producer_per_registered_key():
+    """مفتاحان يتشاركان اسمَ حقلٍ فعليّ **ومُنتِجُهما مختلف** — وهذا مقصود.
+
+    الرسم البيانيّ يُنتِج `min(machine_depth, safe_event_depth)`، فقيمتُه ليست
+    قيمة الرشّ حرفيّاً. ولذلك مفتاحان لا واحد: مفتاحٌ واحد بمُنتِجَين هو «مصدر
+    الحقيقة الظلّ» بعينه. وهذا التأكيد يمنع دمجهما لاحقاً بحجّة تشابه الاسم.
+    """
+    keys = guard.load_keys(guard.REGISTRY)
+    producers = {}
+    for entry in keys:
+        assert entry["key"] not in producers, f"مفتاحٌ مكرَّر: {entry['key']}"
+        producers[entry["key"]] = entry["source_of_truth"]
+    assert (
+        producers["sprinkler.maximum_safe_depth_mm_event"]
+        != producers["irrigation.maximum_safe_depth_mm_event"]
+    )

@@ -5857,19 +5857,19 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "IRR-005",
+        "score": 12,
+        "signals": [
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation"
+        ]
+      },
+      {
         "capability_id": "WX-004",
         "score": 10,
         "signals": [
           "content:ET0",
           "content:et0"
-        ]
-      },
-      {
-        "capability_id": "IRR-005",
-        "score": 8,
-        "signals": [
-          "content:Irrigation recommendation",
-          "content:irrigation recommendation"
         ]
       }
     ]

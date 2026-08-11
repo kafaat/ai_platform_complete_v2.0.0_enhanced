@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4980,
+    "files_scanned": 4982,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
-      "other": 1326,
-      "tests": 1621,
+      "other": 1327,
+      "tests": 1622,
       "web": 454
     },
     "unmapped_artifacts": 2027,
@@ -12263,7 +12263,7 @@
         },
         {
           "path": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-          "score": 8,
+          "score": 12,
           "signals": [
             "content:Irrigation recommendation",
             "content:irrigation recommendation"
@@ -12285,6 +12285,22 @@
         {
           "value": "sahool.irrigation.et0 @ services/sahool-platform/api/routers/irrigation_recommendation.py:39",
           "score": 28
+        },
+        {
+          "value": "irrigation.maximum_safe_depth_mm_event @ tests_v9/test_knowledge_providers_and_adoption.py:52",
+          "score": 12
+        },
+        {
+          "value": "irrigation.maximum_safe_depth_mm_event @ tests_v9/test_knowledge_providers_and_adoption.py:61",
+          "score": 12
+        },
+        {
+          "value": "irrigation_runtime_orchestrator.py @ tests_v9/test_knowledge_providers_and_adoption.py:151",
+          "score": 12
+        },
+        {
+          "value": "irrigation.maximum_safe_depth_mm_event @ shared/knowledge/irrigation_context.py:34",
+          "score": 10
         },
         {
           "value": "IrrigationDecisionCard.tsx @ frontend/src/hooks/useFieldIrrigationRecommendation.static.test.ts:11",
@@ -12352,6 +12368,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_knowledge_providers_and_adoption.py",
+          "score": 12,
+          "signals": [
+            "content:Irrigation recommendation",
+            "content:irrigation recommendation"
+          ]
+        },
+        {
           "path": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
           "score": 10,
           "signals": [
@@ -12411,15 +12435,15 @@
           ]
         },
         {
-          "path": "docs/specs/WATER-SALT-01_A5_spec.md",
-          "score": 8,
+          "path": "shared/knowledge/irrigation_context.py",
+          "score": 10,
           "signals": [
             "content:Irrigation recommendation",
             "content:irrigation recommendation"
           ]
         },
         {
-          "path": "shared/knowledge/irrigation_context.py",
+          "path": "docs/specs/WATER-SALT-01_A5_spec.md",
           "score": 8,
           "signals": [
             "content:Irrigation recommendation",
@@ -12435,10 +12459,10 @@
         "backend": 3,
         "routes": 2,
         "database": 0,
-        "events": 5,
+        "events": 9,
         "web": 3,
         "mobile": 0,
-        "tests": 7,
+        "tests": 8,
         "governance": 0,
         "other_evidence": 4
       },
@@ -48519,19 +48543,19 @@
       "kind": "backend",
       "candidates": [
         {
+          "capability_id": "IRR-005",
+          "score": 12,
+          "signals": [
+            "content:Irrigation recommendation",
+            "content:irrigation recommendation"
+          ]
+        },
+        {
           "capability_id": "WX-004",
           "score": 10,
           "signals": [
             "content:ET0",
             "content:et0"
-          ]
-        },
-        {
-          "capability_id": "IRR-005",
-          "score": 8,
-          "signals": [
-            "content:Irrigation recommendation",
-            "content:irrigation recommendation"
           ]
         }
       ]

@@ -22,7 +22,7 @@
       ]
     },
     {
-      "key": "root_zone.maximum_safe_depth_mm_event",
+      "key": "sprinkler.maximum_safe_depth_mm_event",
       "source_of_truth": "canonical_sprinkler_runoff_capability",
       "producer_module": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "producer_field": "maximum_safe_depth_mm_event",
@@ -33,9 +33,25 @@
       ],
       "forbidden_reason_ar": "أقصى عمقِ حدثٍ آمن ليس كمّيّة ماءٍ متاحة: يمرّ بالميل والتسرّب والرياح وشهادة الحزمة. اشتقاقُه من `raw_mm` يُسقِط كلّ قيدٍ هيدروليكيّ ويُنتِج عمقاً «معقولاً» يفيض على الأرض — وهو عطلٌ لا يظهر في اختبارٍ منطقيّ بل في حقلٍ حقيقيّ.",
       "consumers": [
-        "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
-        "services/sahool-platform/api/canonical_vri_prescription.py",
         "services/sahool-platform/api/canonical_irrigation_capability_graph.py"
+      ]
+    },
+    {
+      "key": "irrigation.maximum_safe_depth_mm_event",
+      "source_of_truth": "canonical_irrigation_capability_graph",
+      "producer_module": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "producer_field": "maximum_safe_depth_mm_event",
+      "forbidden_raw_inputs": [
+        "raw_mm",
+        "taw_mm",
+        "raw_fraction"
+      ],
+      "forbidden_reason_ar": "ما يستهلكه المُجدوِل ليس قيمةَ الرشّ بل `min(machine_depth, safe_event_depth)` — حدٌّ **أضيق** يجمع قيد المعدّات إلى قيد الجريان. واشتقاقُه من الخام يُسقِط القيدين معاً.",
+      "distinct_from_sprinkler_key_ar": "مفتاحان لا واحد، وهذا مقيسٌ لا تنميق: الرسم البيانيّ يُنتِج `min(machine_depth, safe_event_depth)` فقيمتُه ليست قيمة الرشّ حرفيّاً. ونسبةُ ما يستهلكه المُجدوِل إلى `canonical_sprinkler_runoff_capability` **نَسَبٌ كاذب** — ومفتاحٌ واحد بمُنتِجَين هو «مصدر الحقيقة الظلّ» الذي يقوم هذا السجلّ ضدّه. اكتُشِف عند ربط المُنسِّق الحقيقيّ، لا بالقراءة.",
+      "consumers_are_direct_readers_ar": "القائمة تعني «من يقرأ الحقل مباشرةً فيستطيع الالتفاف عليه»، لا «من يعتمد على المعرفة». و`irrigation_runtime_orchestrator` يعتمد على هذا المفتاح ولا يرد هنا لأنّه يستهلكه **عبر العقد** فلا يمسّ الحقل أصلاً — ومن لا يمسّه لا يلتفّ عليه. تبعيّتُه مُسجَّلةٌ في `IRRIGATION_RECOMMENDATION_CONTEXT`. أمسك الحارسُ إدراجَه خطأً أوّلَ مرّة.",
+      "consumers": [
+        "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+        "services/sahool-platform/api/canonical_vri_prescription.py"
       ]
     }
   ]

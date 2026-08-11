@@ -16,6 +16,9 @@ from api.canonical_water_state import resolve_canonical_water_state
 from api.field_context import _field_weather_context
 from api.hourly_energy_aware_irrigation_mpc import solve_hourly_energy_aware_mpc
 from api.weather_service_client import get_hourly_etc_product
+from shared.knowledge.context_resolver import ContextResolver
+from shared.knowledge.irrigation_context import IRRIGATION_RECOMMENDATION_CONTEXT
+from shared.knowledge.providers import irrigation_capability_provider
 
 
 def _digest(payload: Any) -> str:
@@ -300,6 +303,23 @@ async def orchestrate_irrigation_recommendation(
     )
     if gate is None:
         return _blocked(field_id=field_id, reason="commissioning_executability_gate_missing")
+
+    # عقدُ المعرفة يُحَلّ **قبل** الجدولة: المعرفة التي تقوم عليها التوصية
+    # مُعلَنةٌ في مكانٍ واحد ويُفشِل غيابُها هنا بسببٍ يسمّي المفتاح، بدل أن
+    # يظهر لاحقاً بـ`COMPLETE_ENGINEERING_CAPABILITY_REQUIRED` الذي يجمع خمسة
+    # حقول في سببٍ واحد فلا يقول أيّها الغائب.
+    #
+    # ولا يُوسّع هذا الحجب: المُجدوِل يشترط أصلاً عمقاً موجباً، فما يحجبه
+    # المُحلِّل (غائبٌ أو ليس عدداً أو بلا بصمة مُنتِجه) مُحتوىً في ما يحجبه.
+    context = ContextResolver(
+        {"canonical_irrigation_capability_graph": irrigation_capability_provider(capability)}
+    ).resolve(IRRIGATION_RECOMMENDATION_CONTEXT)
+    if not context.satisfied:
+        return _blocked(
+            field_id=field_id,
+            reason="knowledge_context_unsatisfied",
+            missing=list(context.blocking_reasons),
+        )
 
     hourly, hourly_product = await _hourly_forecast(
         tenant_id=tenant_id,
