@@ -3,10 +3,10 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1842,
+    "python_files_parsed": 1847,
     "route_handlers": 1049,
-    "call_edges": 72983,
-    "dead_code_candidates": 612,
+    "call_edges": 73058,
+    "dead_code_candidates": 614,
     "duplicate_function_groups": 58,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -507830,6 +507830,531 @@
     },
     {
       "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "_age_seconds",
+      "target": "fromisoformat",
+      "line": 44
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "_age_seconds",
+      "target": "replace",
+      "line": 44
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "_age_seconds",
+      "target": "timestamp",
+      "line": 49
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "__init__",
+      "target": "dict",
+      "line": 64
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "__init__",
+      "target": "dict",
+      "line": 65
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "_sources_map",
+      "target": "registry",
+      "line": 70
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_sources_map",
+      "line": 79
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "ResolvedContext",
+      "line": 82
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "get",
+      "line": 92
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "append",
+      "line": 94
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "append",
+      "line": 98
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "get",
+      "line": 104
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_record_absence",
+      "line": 106
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "provider",
+      "line": 109
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_record_absence",
+      "line": 111
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "append",
+      "line": 115
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_age_seconds",
+      "line": 122
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_record_absence",
+      "line": 124
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_record_absence",
+      "line": 127
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "ResolvedContext",
+      "line": 132
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "set",
+      "line": 135
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "sorted",
+      "line": 135
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "tuple",
+      "line": 135
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "set",
+      "line": 136
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "sorted",
+      "line": 136
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "tuple",
+      "line": 136
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "_record_absence",
+      "target": "append",
+      "line": 155
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "_record_absence",
+      "target": "append",
+      "line": 157
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/contracts.py",
+      "source": "keys",
+      "target": "tuple",
+      "line": 66
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/contracts.py",
+      "source": "require",
+      "target": "ContextResolutionError",
+      "line": 108
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/contracts.py",
+      "source": "require",
+      "target": "join",
+      "line": 110
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/contracts.py",
+      "source": "provenance",
+      "target": "ContextResolutionError",
+      "line": 116
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str",
+      "target": "get",
+      "line": 41
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str",
+      "target": "isinstance",
+      "line": 42
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str",
+      "target": "RegistryError",
+      "line": 43
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "get",
+      "line": 48
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "isinstance",
+      "line": 49
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "RegistryError",
+      "line": 50
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "any",
+      "line": 51
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "isinstance",
+      "line": 51
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "RegistryError",
+      "line": 52
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "len",
+      "line": 53
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "len",
+      "line": 53
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "set",
+      "line": 53
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "RegistryError",
+      "line": 54
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "_require_str_list",
+      "target": "tuple",
+      "line": 55
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "is_file",
+      "line": 65
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "RegistryError",
+      "line": 66
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "loads",
+      "line": 68
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "read_text",
+      "line": 68
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "RegistryError",
+      "line": 70
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "isinstance",
+      "line": 71
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "RegistryError",
+      "line": 72
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "get",
+      "line": 73
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "RegistryError",
+      "line": 74
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "get",
+      "line": 74
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "get",
+      "line": 75
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "isinstance",
+      "line": 76
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "RegistryError",
+      "line": 77
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "enumerate",
+      "line": 80
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "isinstance",
+      "line": 82
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "RegistryError",
+      "line": 83
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "_require_str",
+      "line": 84
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "RegistryError",
+      "line": 87
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "KnowledgeSource",
+      "line": 88
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "_require_str",
+      "line": 90
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "_require_str",
+      "line": 91
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "_require_str",
+      "line": 92
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "_require_str_list",
+      "line": 93
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "_require_str",
+      "line": 94
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "load_registry",
+      "target": "_require_str_list",
+      "line": 95
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "registry",
+      "target": "lru_cache",
+      "line": 100
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "registry",
+      "target": "load_registry",
+      "line": 102
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "source_of_truth_for",
+      "target": "registry",
+      "line": 106
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/source_registry.py",
+      "source": "source_of_truth_for",
+      "target": "RegistryError",
+      "line": 108
+    },
+    {
+      "owner": "shared",
       "file": "shared/logging_config.py",
       "source": "__init__",
       "target": "super",
@@ -525861,6 +526386,28 @@
       "kind": "function",
       "file": "shared/helpers.py",
       "line": 382,
+      "owner": "shared",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "ContextResolver",
+      "kind": "class",
+      "file": "shared/knowledge/context_resolver.py",
+      "line": 52,
+      "owner": "shared",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "source_of_truth_for",
+      "kind": "function",
+      "file": "shared/knowledge/source_registry.py",
+      "line": 105,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,

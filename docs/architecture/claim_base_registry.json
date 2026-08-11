@@ -32,6 +32,7 @@
     "deferred_import_declaration_contract.json",
     "expected_control_flow_exceptions.json",
     "guard_mutation_registry.json",
+    "knowledge_source_registry.json",
     "live_pg_schema_contract.json",
     "manifest_registry.json",
     "permanent_compatibility_contract.json",

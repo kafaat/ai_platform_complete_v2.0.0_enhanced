@@ -597,6 +597,8 @@ medium,shared,function,execute_with_tenant,shared/helpers.py,200,0,review_before
 medium,shared,function,validate_role,shared/helpers.py,210,0,review_before_delete,False
 medium,shared,function,wrapped_send,shared/helpers.py,342,0,review_before_delete,False
 medium,shared,function,get_data,shared/helpers.py,382,0,review_before_delete,False
+medium,shared,class,ContextResolver,shared/knowledge/context_resolver.py,52,0,review_before_delete,False
+medium,shared,function,source_of_truth_for,shared/knowledge/source_registry.py,105,0,review_before_delete,False
 medium,shared,function,export_to_parquet,shared/memory/export_engine.py,222,0,review_before_delete,False
 medium,shared,function,export_to_qdrant_snapshot,shared/memory/export_engine.py,326,0,review_before_delete,False
 medium,shared,function,export_to_encrypted_tarball,shared/memory/export_engine.py,422,0,review_before_delete,False

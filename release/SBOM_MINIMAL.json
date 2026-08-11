@@ -30345,6 +30345,56 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "db4a19e1981dea27c0deeca63c5ece65364f95c022acee4764dfa0a3430dffb7"
+        }
+      ],
+      "name": "shared/knowledge/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "397dc2ad46ab13ae2ecedb0b70b2354b117960980c262c7fd6af6e777c21573c"
+        }
+      ],
+      "name": "shared/knowledge/context_resolver.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7cecd1fa07fd10f662e129c79f2be16e47f3e4dabbb833f4016f5b9edd7c5416"
+        }
+      ],
+      "name": "shared/knowledge/contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e04bb4a73f05385681edb0d34f2ae09e8d92a535a5808a3eb310df662511db5d"
+        }
+      ],
+      "name": "shared/knowledge/irrigation_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cfeb2bea400928c304a40fe52e8d21baf2c9511d2b3ff3da925f348c13c0d9ea"
+        }
+      ],
+      "name": "shared/knowledge/source_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a268c48e0b4e45065d18f98217bf0c58d50f2609397a121d67a6ed39bde029d2"
         }
       ],

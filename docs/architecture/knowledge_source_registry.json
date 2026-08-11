@@ -1,0 +1,42 @@
+{
+  "schema": "sahool.knowledge_source_registry",
+  "version": 1,
+  "adjudicated_on": "2026-08-11",
+  "note_ar": "سجلّ مصادر الحقيقة المعرفيّة (KNOWLEDGE-CANONICAL-CONSUMPTION-01). لكلّ مفتاحٍ تشغيليّ مُنتِجٌ قانونيّ واحد، ومستهلكوه مُعلَنون بالاسم. الغرض ليس التوثيق بل المنع: مُستهلِكٌ يُعيد اشتقاق قيمةٍ لها مُنتِجٌ قانونيّ يُنتِج رقماً معقولاً من مصدرٍ غير قانونيّ — فيبدو النجاح. يفرضه `scripts/ci/canonical_consumer_bypass_guard.py`.",
+  "adjudication_reason_ar": "قرارٌ لا قياس: أيُّ وحدةٍ هي مصدر الحقيقة لمفتاحٍ ما حكمٌ معماريّ يتّخذه الإنسان، ولا يوجد ماسحٌ يشتقّه من الشجرة. ولذلك يحمل `adjudicated_on` لا `measured_on`.",
+  "scope_note_ar": "الشريحة الأولى مقصورةٌ على المفتاحين اللذين تُغلِقهما فعلاً (منطقة الجذر ⇒ قدرة الرشّ ⇒ مستهلكو الريّ). `field.geometry` و`weather.et0` واردان في المقترح ولم يُسجَّلا هنا لأنّ تسجيلهما بلا مستهلكٍ مربوطٍ ومقيس زينةٌ لا حارس — يدخلان في الزيادة التالية.",
+  "keys": [
+    {
+      "key": "root_zone.root_zone_refill_cap_mm",
+      "source_of_truth": "canonical_root_zone_profile",
+      "producer_module": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "producer_field": "root_zone_refill_cap_mm",
+      "forbidden_raw_inputs": [
+        "raw_mm",
+        "taw_mm",
+        "raw_fraction"
+      ],
+      "forbidden_reason_ar": "`root_zone_refill_cap_mm` يساوي اليوم `raw_mm` عدديّاً عند المُنتِج، ولذلك بالذات يُغري الاشتقاقُ من `raw_mm` عند المستهلك. لكنّ التساوي العدديّ ليس تساوياً في المعنى: الأوّل سقفُ ملءٍ قانونيّ تحكمه سياسةُ الجذور ونَسَبُ التربة، والثاني كمّيّة. ومتى تغيّرت السياسة انفصل الرقمان وبقي المُشتَقّ صامتاً على القيمة القديمة.",
+      "consumers": [
+        "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py"
+      ]
+    },
+    {
+      "key": "root_zone.maximum_safe_depth_mm_event",
+      "source_of_truth": "canonical_sprinkler_runoff_capability",
+      "producer_module": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "producer_field": "maximum_safe_depth_mm_event",
+      "forbidden_raw_inputs": [
+        "raw_mm",
+        "taw_mm",
+        "raw_fraction"
+      ],
+      "forbidden_reason_ar": "أقصى عمقِ حدثٍ آمن ليس كمّيّة ماءٍ متاحة: يمرّ بالميل والتسرّب والرياح وشهادة الحزمة. اشتقاقُه من `raw_mm` يُسقِط كلّ قيدٍ هيدروليكيّ ويُنتِج عمقاً «معقولاً» يفيض على الأرض — وهو عطلٌ لا يظهر في اختبارٍ منطقيّ بل في حقلٍ حقيقيّ.",
+      "consumers": [
+        "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+        "services/sahool-platform/api/canonical_vri_prescription.py",
+        "services/sahool-platform/api/canonical_irrigation_capability_graph.py"
+      ]
+    }
+  ]
+}
