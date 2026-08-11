@@ -86,10 +86,9 @@ _NARRATED_WITHOUT_ENTRY_BASELINE = frozenset(
 )
 
 
-def _registry_ids_at(ref: str) -> set[str] | None:
-    """معرِّفات الجرد عند مرجعٍ git، أو ``None`` إن تعذّر حلّه (استنساخ ضحل)."""
-    proc = subprocess.run(
-        ["git", "-C", str(ROOT), "show", f"{ref}:sahool-brain/gaps/registry.md"],
+def _git(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(ROOT), *args],
         capture_output=True,
         text=True,
         # `encoding` صريح: `text=True` وحدها تفكّ بترميز الآلة، وخطوة ١٠ تُشغَّل تحت
@@ -97,7 +96,29 @@ def _registry_ids_at(ref: str) -> set[str] | None:
         # يمسك هذا، ورسالته تقول: أصلِح القراءة لا تُضِف المدخل إلى الأساس.
         encoding="utf-8",
     )
-    return _ids(proc.stdout) if proc.returncode == 0 else None
+
+
+def _diagnosis(proc: subprocess.CompletedProcess[str]) -> str:
+    """مخرجات git حرفيّاً — **السبب المقيس**، تُطبَع بجانب العلاج المُرجَّح.
+
+    رسالةٌ تجزم بسببٍ واحد («استنساخ ضحل») تُضلِّل حين يكون السبب غيره: مرجعٌ
+    ``origin/main`` غير موجود، أو صلاحيّات، أو عطل git. والعلاج المُرجَّح يبقى مذكوراً
+    لأنّه الأشيع؛ لكنّ **ما قِيس** يسبقه فلا يُقرأ الترجيح تشخيصاً.
+    """
+    return (
+        f"\n\n— ما قالته git (rc={proc.returncode}) —\n"
+        f"stdout: {proc.stdout.strip() or '(فارغ)'}\n"
+        f"stderr: {proc.stderr.strip() or '(فارغ)'}"
+    )
+
+
+def _registry_ids_at(ref: str) -> tuple[set[str] | None, subprocess.CompletedProcess[str]]:
+    """معرِّفات الجرد عند مرجعٍ git، و**العمليّة نفسها** كي لا يُفقَد تشخيص git.
+
+    إعادةُ ``None`` وحدها كانت تبتلع ``stderr``، فيُضطرّ المُستدعي إلى **تخمين** السبب.
+    """
+    proc = _git("show", f"{ref}:sahool-brain/gaps/registry.md")
+    return (_ids(proc.stdout) if proc.returncode == 0 else None), proc
 
 
 def test_no_registry_entry_that_main_has_disappears_from_this_branch():
@@ -109,26 +130,24 @@ def test_no_registry_entry_that_main_has_disappears_from_this_branch():
     # إلى main بعد أن تفرّع — والمقارنة برأس main كانت تُحمِّر كلّ فرعٍ صادق متأخّر،
     # وهي الإيجابيّة الكاذبة التي تُبطِل الحارس. قِيس ذلك: بلغ main `a2cefaac` أثناء
     # العمل فبدا الفرع فاقداً ثلاث مداخل لم تكن في قاعدته أصلاً.
-    merge_base = subprocess.run(
-        ["git", "-C", str(ROOT), "merge-base", "origin/main", "HEAD"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
+    merge_base = _git("merge-base", "origin/main", "HEAD")
     # **فشلٌ مغلق لا تخطٍّ.** الاستنساخ الضحل (‏`actions/checkout` بلا `fetch-depth: 0`)
     # يجعل `merge-base` غير قابل للحلّ، و`pytest.skip` هنا كان يُنتِج **أخضر بلا قياس** —
     # وهو الصنف نفسه الذي كُتِب هذا الحارس ليمنعه. الرسالة تسمّي العلاج بدل أن تصف عطلاً.
     if merge_base.returncode != 0 or not merge_base.stdout.strip():
         pytest.fail(
-            "تعذّر حلّ `merge-base origin/main HEAD` — استنساخ ضحل على الأرجح. هذا الفحص "
-            "يحتاج **تاريخ git كاملاً**: أضِف `fetch-depth: 0` إلى `actions/checkout` في "
-            "الوظيفة المُشغِّلة. تخطّي الفحص هنا كان سيُنتِج أخضر لم يقس شيئاً."
+            "تعذّر حلّ `merge-base origin/main HEAD`. الفحص يحتاج **تاريخ git كاملاً** "
+            "ومرجعَ `origin/main`؛ والعلاج الأشيع `fetch-depth: 0` في `actions/checkout` "
+            "بالوظيفة المُشغِّلة. **راجع مخرجات git أدناه قبل تطبيقه** — قد يكون السبب "
+            "مرجعاً غير موجود أو عطلاً آخر، لا عمقاً. وتخطّي الفحص هنا كان سيُنتِج أخضر "
+            "لم يقس شيئاً." + _diagnosis(merge_base)
         )
-    base = _registry_ids_at(merge_base.stdout.strip())
+    base, show = _registry_ids_at(merge_base.stdout.strip())
     if base is None:
         pytest.fail(
-            "تعذّرت قراءة `gaps/registry.md` عند قاعدة الاشتقاق رغم حلّها — كائن مفقود من "
-            "الاستنساخ. الفحص يحتاج تاريخاً كاملاً (`fetch-depth: 0`)."
+            "حُلَّت قاعدة الاشتقاق لكن تعذّرت قراءة `gaps/registry.md` عندها. الأشيع كائنٌ "
+            "غير مجلوب (‏`fetch-depth: 0`)، **لكنّ مخرجات git أدناه هي الفيصل** — قد يكون "
+            "المسار غير موجود عند تلك القاعدة، أو عطلاً في git." + _diagnosis(show)
         )
     here = _ids(_read(REGISTRY))
     vanished = sorted(base - here)
