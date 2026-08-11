@@ -194,6 +194,8 @@ jobs:
         run: python scripts/ci/irrigation_machine_m2_5_guard.py
       - name: irrigation M2.6 sprinkler/runoff guard
         run: python scripts/ci/irrigation_sprinkler_m2_6_guard.py
+      - name: canonical consumer bypass guard (KNOWLEDGE-CANONICAL-CONSUMPTION-01)
+        run: python scripts/ci/canonical_consumer_bypass_guard.py
       - name: irrigation M2.7 energy microgrid guard
         run: python scripts/ci/irrigation_energy_m2_7_guard.py
       - name: irrigation M2.8 capability graph guard

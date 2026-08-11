@@ -4,6 +4,41 @@
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
   "honesty_limit": "الفحص الثابت يحجب على **وجود** المواصفة وحداثتها؛ والتنفيذ الفعليّ (`--run`) هو الدليل، ويجري على المُواصَفين وحدهم. فالخضرة هنا تعني «ما قِيس يُطلِق»، لا «كلّ حارس يُطلِق».",
   "mutated": {
+    "action_pin_agreement_guard.py": {
+      "test": "tests_v9/test_action_pin_agreement_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_half_upgrade_is_blocked",
+          "find": "        if len(shas) > allowed:",
+          "replace": "        if False:",
+          "why": "نزعُ بند «بصمةٌ واحدة لكلّ عمل» ⇒ ترقيةٌ تُبدّل ثلاثة من ثلاثة وعشرين تمرّ خضراء، وهو بالحرف ما كانت الحزمة المقترَحة ستفعله؛ و`github_actions_policy_guard` لا يراه لأنّه يسأل «أمثبَّتٌ ببصمة؟» لا «أبصمةٌ واحدة؟»"
+        },
+        {
+          "expect": "test_unifying_without_lowering_the_baseline_is_blocked",
+          "find": "        elif action in DIVERGENCE_BASELINE and len(shas) < allowed:",
+          "replace": "        elif False:",
+          "why": "أساسٌ يبقى بعد توحيدٍ يبتلع عودة التباعد صامتاً: يُوحَّد `checkout` ثمّ يتباعد ثانيةً فيبقى تحت سقفه القديم والحارس أخضر. درسٌ مقيس مرّتين قبله في راتشِتَي `fixme` ودَين الواجهة"
+        },
+        {
+          "expect": "test_a_sha_carrying_two_different_tags_is_blocked",
+          "find": "            if len(tags) > 1:",
+          "replace": "            if False:",
+          "why": "`@<بصمة v7> # v4` أسوأ من تعليقٍ غائب: القارئ التالي يقرؤه وسماً ويبني عليه قرار ترقيةٍ أو تدقيقٍ أمنيّ. وهو الخطأ الذي تقع فيه كلّ ترقيةٍ تُبدّل البصمة وتنسى تعليقها"
+        },
+        {
+          "expect": "test_a_stale_baseline_entry_is_blocked",
+          "find": "    for action in sorted(set(DIVERGENCE_BASELINE) - set(observed)):",
+          "replace": "    for action in sorted(set()):",
+          "why": "مدخلٌ لعملٍ زال من الشجرة يُقرأ ديناً قائماً وقد انتهى — فيُدرَّب قارئه على تجاهل الأساس كلّه، وهو عطل الحارس الأكثر شيوعاً في هذا المستودع"
+        },
+        {
+          "expect": "test_a_missing_workflows_directory_fails_closed",
+          "find": "    if not args.workflows.is_dir():",
+          "replace": "    if False:",
+          "why": "مجلّدٌ غائب أو مسارٌ تغيّر ⇒ صفر بصمة ⇒ صفر مخالفة ⇒ PASS: «لم يُقَس» يُقرأ «متّسق»، وهي الحالة التي تجعل الحارس أخضرَ إلى الأبد وهو يحرس لا شيء"
+        }
+      ]
+    },
     "actuation_killswitch_coverage_guard.py": {
       "mutations": [
         {
@@ -14,6 +49,35 @@
         }
       ],
       "test": "tests_v9/test_actuation_killswitch_coverage_guard.py"
+    },
+    "brain_append_only_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_both_parents_are_examined_not_just_one",
+          "find": "        for parent in parents_of(commit, root=root):",
+          "replace": "        for parent in parents_of(commit, root=root)[:1]:",
+          "why": "فحصُ والدٍ واحد ⇒ عمى الدمج نفسه الذي أنجى `cb6598fe`: الملفّ محفوظ عند والد ومفقود عند الآخر، فالفحص مقابل أحدهما يمرّ"
+        },
+        {
+          "expect": "test_a_merge_that_takes_the_empty_side_is_caught",
+          "find": "                if len(after) < len(before):\n                    blocking.append(",
+          "replace": "                if len(after) < len(before):\n                    advisory.append(",
+          "why": "جعلُ التقلّص إرشاديّاً ⇒ يعود ١٬٣٨٣٬٣٦٨ بايت إلى صفر بلا حجب، وهي الواقعة الأصليّة. والاختبار المُسمّى **اصطناعيّ عمداً**: اختبار الواقعة الحقيقيّة (test_the_guard_fails_on_the_truncation_that_created_it) يحتاج التاريخ الكامل ويُتخطّى في استنساخ CI الضحل — وطفرةٌ تُسمّي اختباراً مُتخطّى ليست تكذيباً بل صمتاً."
+        },
+        {
+          "expect": "test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare",
+          "find": "        if blob(head, path, root=root) is None:",
+          "replace": "        if False:",
+          "why": "إسقاطُ فحص الغياب ⇒ شجرةٌ بلا سجلّات تُنتِج صفر أزواج وتطبع ok — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنف الفجوة نفسه داخل علاجها"
+        },
+        {
+          "expect": "test_the_file_list_comes_from_the_existing_classifier",
+          "find": "    return tuple(module.APPEND_ONLY)",
+          "replace": "    return (\"sahool-brain/log.md\",)",
+          "why": "تصليبُ القائمة ⇒ فهرس ثانٍ ينحرف عن `resolve_merge_conflicts`، وهو صنف «قائمتان تصفان الشيء نفسه»"
+        }
+      ],
+      "test": "tests_v9/test_brain_append_only_guard.py"
     },
     "brain_duplicate_gap_identity_guard.py": {
       "mutations": [
@@ -54,6 +118,160 @@
         }
       ],
       "test": "tests_v9/test_brain_transition_guard_vocabulary.py"
+    },
+    "branch_protection_contract_guard.py": {
+      "test": "tests_v9/test_branch_protection_contract_guard.py",
+      "mutations": [
+        {
+          "expect": "test_conversation_resolution_disabled_is_a_failure",
+          "find": "    if not any(value is True for value in observed):",
+          "replace": "    if False:",
+          "why": "قبولُ القفل المُطفَأ ⇒ يعود المستودع إلى الحالة التي وقع فيها العطل مرّتين (#810 و#816). والحارس كلّه موجودٌ لهذا الشرط وحده — تعطيلُه يجعله يُبلِغ خضرةً عن سؤالٍ لم يطرحه"
+        },
+        {
+          "expect": "test_a_non_boolean_enabled_is_rejected",
+          "find": "    if not any(value is True for value in observed):",
+          "replace": "    if not any(value for value in observed):",
+          "why": "مقارنةٌ بالصدق بدل المنطقيّ: `\"true\"` نصّاً و`1` صادقتان في بايثون فتُقرآن قفلاً مُفعَّلاً وهو ليس العقد. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **الحكم** وهذه تحرس **نوع القيمة** — وحقلٌ يتغيّر تمثيله في API يُصيب الثانية وحدها"
+        },
+        {
+          "expect": "test_a_missing_key_is_not_read_as_enabled",
+          "find": "        rule.get(\"parameters\", {}).get(CONTRACT_PARAMETER)",
+          "replace": "        rule.get(\"parameters\", {}).get(CONTRACT_PARAMETER, True)",
+          "why": "قراءةُ الشرط الغائب قبولاً ⇒ «لم يُقرأ» تصير «مُفعَّل». قاعدة `pull_request` نافذة بلا هذا المفتاح (إصدار API تغيّر، أو رمزٌ رأى حقولاً جزئيّة) تُقرأ قفلاً قائماً"
+        },
+        {
+          "expect": "test_no_pull_request_rule_is_a_failure",
+          "find": "    if not pr_rules:",
+          "replace": "    if False:",
+          "why": "نزعُ فحص غياب قاعدة `pull_request` ⇒ فرعٌ محميّ من الحذف والدفع القسريّ وحدهما يُقرأ مشمولاً بشرط المراجعة. ورمزُ الخروج يبقى `1` عبر الفرع التالي — ولذلك يقيس الاختبار **السبب** لا الرمز"
+        },
+        {
+          "expect": "test_an_unreadable_protection_file_fails_closed",
+          "find": "    except FileNotFoundError:\n        raise SystemExit(",
+          "replace": "    except FileNotFoundError:\n        return [{\"type\": CONTRACT_RULE_TYPE, \"parameters\": {CONTRACT_PARAMETER: True}}]\n    except RuntimeError:\n        raise SystemExit(",
+          "why": "ملفٌّ غائب يُقرأ «مضبوطاً» ⇒ الحارس أخضرُ **بالضبط حين لا يُقاس شيء**. والحالة مرجَّحة لا نادرة: خطوةُ جلبٍ تفشل أو رمزٌ بلا صلاحية قراءة القواعد يُنتِجان غياباً لا رفضاً. **وتبديلُ صنف الاستثناء وحده لا يزرع شيئاً** — يلتقطه `except OSError` التالي فيبقى الفشل مغلقاً؛ فالزرع بإرجاع وثيقةٍ مُرضية"
+        },
+        {
+          "expect": "test_a_scalar_json_document_is_rejected",
+          "find": "    if not isinstance(document, dict):",
+          "replace": "    if False:",
+          "why": "استجابةُ خطأٍ من GitHub أو جسمٌ غريب في موضع الظرف لا يُقرأ دليلاً؛ قبولُه يجعل كلّ فحوص المصدر تقرأ حقولاً غائبة `None` — استجابةٌ لا تُفهَم فشلٌ لا قبول"
+        },
+        {
+          "expect": "test_a_bare_rule_array_is_rejected_as_evidence_without_a_source",
+          "find": "    if isinstance(document, list):\n        raise SystemExit(",
+          "replace": "    if isinstance(document, list):\n        return {\"schema_version\": EVIDENCE_SCHEMA, \"rules\": document}\n    if False:\n        raise SystemExit(",
+          "why": "قبولُ مصفوفة القواعد العارية «للتوافق الخلفيّ» يُعيد فتح الباب الذي وُجِد الظرف لأجله: دليلٌ بلا مصدر يمرّ من فرعٍ آخر أو من تشغيلٍ سابق بلا أثر"
+        },
+        {
+          "expect": "test_an_unknown_envelope_schema_is_rejected",
+          "find": "    if document.get(\"schema_version\") != EVIDENCE_SCHEMA:",
+          "replace": "    if False:",
+          "why": "ظرفٌ لا يُعرَف شكلُه يُقرأ دليلاً ⇒ حقولٌ غائبة تُقرأ `None` وتمرّ فحوصُها بصمت. ونسخةٌ أحدث قد تنقل معنى حقلٍ قائم — فالتوافق يُقرَّر بترقية الحارس"
+        },
+        {
+          "expect": "test_a_non_200_response_fails_closed",
+          "find": "    if status != CONTRACT_HTTP_STATUS:",
+          "replace": "    if False:",
+          "why": "‏`401/403/404/429/5xx` تُنتِج جسماً صالح البنية لا قواعد؛ إهمالُ الرمز يحوّل «لم يُقرأ» إلى «صفر قاعدة» ثمّ إلى رسالةٍ صحيحة عن سببٍ خاطئ. وهو الحقل الذي يفصل عطلَ الشبكة عن عطل الإعداد"
+        },
+        {
+          "expect": "test_a_success_status_as_text_is_not_read_as_success",
+          "find": "    if status != CONTRACT_HTTP_STATUS:",
+          "replace": "    if str(status) != str(CONTRACT_HTTP_STATUS):",
+          "why": "مقارنةٌ نصّيّة تقبل `\"200\"` القادمة من `jq` بلا `--argjson`. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **وجود** الفحص وهذه تحرس **نوع** القيمة"
+        },
+        {
+          "expect": "test_evidence_from_another_repository_is_rejected",
+          "find": "    if repository != expect_repository:",
+          "replace": "    if False:",
+          "why": "دليلٌ عن مستودعٍ آخر — ولو كان قفلُه مُفعَّلاً — يُخضِر الحارس عن سؤالٍ ليس هو السؤال"
+        },
+        {
+          "expect": "test_evidence_for_another_branch_is_rejected",
+          "find": "    if branch != CONTRACT_BRANCH:",
+          "replace": "    if False:",
+          "why": "فروع العمل في هذا المستودع تحمل حمايةً؛ فقراءةُ قواعد أحدها بدل `main` تُنتِج خضرةً كاملةً بينما الفرع الافتراضيّ مكشوف — وهي الحالة التي وقعت فعلاً في تشغيل 31411680450"
+        },
+        {
+          "expect": "test_a_declared_branch_cannot_launder_a_different_endpoint",
+          "find": "    if not isinstance(endpoint, str) or not endpoint.endswith(expected_endpoint):",
+          "replace": "    if False:",
+          "why": "‏`repository`/`branch` إعلانٌ يكتبه المُشغِّل، والنقطة المُستدعاة هي ما قِيس. إهمالُها يجعل خطأ تحريرٍ في مسار الوظيفة (تغيير الفرع وحده) يمرّ كاملاً بإعلانٍ صحيح"
+        },
+        {
+          "expect": "test_evidence_from_an_older_commit_is_rejected",
+          "find": "    elif sha != expect_sha:",
+          "replace": "    elif False:",
+          "why": "مصنوعٌ مُعاد استعماله بين تشغيلين يُنتِج خضرةً عن حالةٍ انقضت — الصنف نفسه الذي أضاع ثلاث جولات حين قُرِئ سجلٌّ بختمٍ زمنيّ قديم بوصفه نتيجةً جديدة"
+        },
+        {
+          "expect": "test_a_matching_but_malformed_commit_sha_is_still_rejected",
+          "find": "    if not isinstance(sha, str) or not _SHA_RE.match(sha):",
+          "replace": "    if False:",
+          "why": "حقلٌ فارغ أو بحالة أحرفٍ كبيرة لا يربط الدليل بشيء؛ وقبولُه يجعل مطابقة الـSHA التالية تقارن نصّين لا بصمتين"
+        },
+        {
+          "expect": "test_a_non_array_rules_field_fails_closed",
+          "find": "    if not isinstance(envelope.get(\"rules\"), list):",
+          "replace": "    if False:",
+          "why": "خطوة الجلب تُجسّد `null` حين يتعذّر تحليل الجسم (خنقٌ يُعيد HTML)، فقبولُه يُنتِج انهياراً في التكرار أو «صفر قاعدة» — رسالةٌ صحيحة عن سببٍ خاطئ"
+        },
+        {
+          "expect": "test_the_pass_line_states_what_was_examined",
+          "find": "        f\"فُحِصت {len(rules)} قاعدة نافذة، منها {len(pr_rules)} من نوع {CONTRACT_RULE_TYPE})\"",
+          "replace": "        \"القفل نافذ)\"",
+          "why": "خضرةٌ بلا عدّ لا يفرّق قارئُها بين «فُحِصت قاعدة فمرّت» و«لم يُفحَص شيء» — وهو بند «صفر checks منفَّذة» بصيغته القابلة للقياس"
+        }
+      ]
+    },
+    "canonical_consumer_bypass_guard.py": {
+      "test": "tests_v9/test_canonical_consumer_bypass_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_or_fallback_to_raw_is_blocked",
+          "find": "            overlap = sorted(canonical & tainted)",
+          "replace": "            overlap = []",
+          "why": "نزعُ التقاطع ⇒ الحارس يفقد سببَ وجوده كلّه: `cap.get(F) or raw_mm` يمرّ خضراء. والتقاطعُ بعينه هو القاعدة — لا وجودُ الخام ولا وجودُ القراءة القانونيّة منفردين."
+        },
+        {
+          "expect": "test_a_dict_key_is_a_write_not_a_read",
+          "find": "        if isinstance(current, ast.Dict):",
+          "replace": "        if False:",
+          "why": "عدُّ مفاتيح القواميس قراءةً ⇒ `{\"raw_mm\": x}` يُلوِّث الاسم، فيُطلِق الحارس على كلّ مُنتِجٍ يعرض حقله. والإيجابيّة الكاذبة تُسقِط الحارس بلا أن تُعطِّله: قارئُ الأحمر يتعلّم تجاهله."
+        },
+        {
+          "expect": "test_a_consumer_that_never_reads_the_field_is_blocked",
+          "find": "            if not canonical:",
+          "replace": "            if False:",
+          "why": "نزعُ البند الإيجابيّ ⇒ مُستهلِكٌ كفّ عن قراءة الحقل يبقى مُدرَجاً، فيقول السجلّ إنّه محروسٌ وهو لا يُقرأ أصلاً — مدخلٌ يَعِد بحراسةٍ لا تقع."
+        },
+        {
+          "expect": "test_zero_examined_consumers_fails_closed",
+          "find": "    if examined == 0:",
+          "replace": "    if False:",
+          "why": "قبولُ «صفر مفحوص» ⇒ سجلٌّ بلا مستهلكين يُنتِج PASS: أخضرُ لأنّه لم ينظر، وهو الصنف الذي يطارده هذا المستودع كلّه."
+        },
+        {
+          "expect": "test_a_producer_that_lost_the_field_is_blocked",
+          "find": "        elif field not in producer_path.read_text(encoding=\"utf-8\"):",
+          "replace": "        elif False:",
+          "why": "نزعُ فحص المُنتِج ⇒ إعادةُ تسمية الحقل تترك السجلّ يصف عقداً زال، والحارس يقيس مقابل اسمٍ لا وجود له فيمرّ كلّ شيء."
+        },
+        {
+          "expect": "test_an_entry_without_forbidden_inputs_is_blocked",
+          "find": "        if not forbidden:",
+          "replace": "        if False:",
+          "why": "قبولُ مدخلٍ بلا مدخلات خام محظورة ⇒ قيدٌ يُعلَن ولا يمنع شيئاً؛ ويصير التقاطع فارغاً دائماً فيمرّ الارتداد نفسه من بابٍ آخر."
+        },
+        {
+          "expect": "test_a_wrong_schema_fails_closed",
+          "find": "    if not isinstance(raw, dict) or raw.get(\"schema\") != REGISTRY_SCHEMA:",
+          "replace": "    if False:",
+          "why": "قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه ويُبلِغ عنها خضرة؛ ووثيقةٌ بمفاتيح فارغة تُقرأ «لا قيود»."
+        }
+      ]
     },
     "claim_base_guard.py": {
       "mutations": [
@@ -107,6 +325,117 @@
         }
       ],
       "test": "tests_v9/test_claim_base_guard.py"
+    },
+    "container_command_path_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_old_location_is_still_unreachable_from_that_image",
+          "find": "        return rel if candidate.is_file() and not _ignored(rel, patterns) else None",
+          "replace": "        return rel",
+          "why": "ادّعاء الوجود بلا فحص وجود ⇒ كلّ مسار «تضعه الصورة» والعطل الأصليّ يمرّ"
+        },
+        {
+          "expect": "test_a_missing_path_is_reported_with_the_service_that_executes_it",
+          "find": "                if sources_for(path, container_path, context=context) is None:",
+          "replace": "                if False:",
+          "why": "تعطيل الفحص كلّيّاً ⇒ الحارس يخضرّ على شجرة معطوبة"
+        },
+        {
+          "expect": "test_it_actually_examines_something",
+          "find": "            for container_path in sorted(executed_paths(service)):",
+          "replace": "            for container_path in []:",
+          "why": "صفر أزواج مفحوصة ⇒ «أخضر لأنّه لم ينظر» — الصفر الصامت نفسه"
+        },
+        {
+          "expect": "test_copy_semantics_are_applied_not_approximated",
+          "find": "            if not directory_dest and source_path.is_file():",
+          "replace": "            if False and source_path.is_file():",
+          "why": "إسقاط نسخ ملفّ→ملفّ ⇒ ثلاث خدمات سليمة تُتَّهم (الإيجابيّة الكاذبة المقيسة)"
+        }
+      ],
+      "test": "tests_v9/test_container_command_path_guard.py"
+    },
+    "fake_connection_debt_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_incident_file_is_named_by_the_survey_not_by_hand",
+          "find": "        if not _FAKE.search(text):\n            continue\n",
+          "replace": "        if _FAKE.search(text):\n            continue\n",
+          "why": "قلبُ شرط الماسح ⇒ يمسح ما لا يستعمل وهميّاً، فيغيب ملفّ الحادثة (jsonb) عن المسح. والمرساة على **ملفّ الحادثة** لا على عدّاد الحجم: أوّل صياغة عندي سمّت `test_the_scanner_actually_sees_something` فلم يسقط — القلب يُبقي العدّ كبيراً بملفّات أخرى، فالعدّاد لا يُميّز"
+        },
+        {
+          "expect": "test_a_settlement_must_name_a_proof_file_that_exists",
+          "find": "    elif not resolved.is_file():",
+          "replace": "    elif False:",
+          "why": "قبولُ سدادٍ يُسمّي ملفّ إثبات غير موجود ⇒ الدَّين يُغلَق بسطرٍ مكتوب، وهو بالضبط «حذف الكلمة من نصّه» الذي يمنعه عقد `$comment`"
+        },
+        {
+          "expect": "test_a_settlement_whose_proof_never_mentions_the_source_is_refused",
+          "find": "    elif rel not in resolved.read_text(encoding=\"utf-8\", errors=\"ignore\"):",
+          "replace": "    elif False:",
+          "why": "نزعُ اشتراط أن **يذكر** ملفُّ الإثبات مصدرَه ⇒ أخطر صنف يمرّ: مدخلٌ يشير إلى ملفّ قائم لا علاقة له بالمصدر، فيمرّ فحصا الوجود والدليل ويبقى الدَّين غير مسدَّد"
+        },
+        {
+          "expect": "test_a_partial_settlement_does_not_close_the_debt",
+          "find": "    if declared_claims != sorted(claims):",
+          "replace": "    if False and declared_claims != sorted(claims):",
+          "why": "قبولُ سدادٍ جزئيّ ⇒ «كلّ ادّعاءاته» يصير شعاراً، وادّعاءٌ جديد يظهر في ملفّ مُسدَّد لا يُعيد فتح الدَّين"
+        },
+        {
+          "expect": "test_regenerating_the_baseline_does_not_erase_the_settlements",
+          "find": "    carried = _load_baseline().get(\"proven_live\", {}) if BASELINE.exists() else {}",
+          "replace": "    carried = {}",
+          "why": "«المصنوع يدهس المكتوب» — `--generate` يمحو `proven_live` فيرجع الدَّين المُسدَّد صامتاً عند أوّل إعادة توليد، والقسم لا يُشتقّ فلا سبيل لاستعادته"
+        },
+        {
+          "expect": "test_a_proof_path_that_escapes_the_repository_root_is_refused",
+          "find": "    inside = resolved is not None and resolved.is_relative_to(ROOT.resolve())",
+          "replace": "    inside = resolved is not None",
+          "why": "نزعُ حصر مسار الإثبات داخل الجذر ⇒ `../…` يُقبَل ما دام الملفّ موجوداً، فيقرأ الحارسُ ملفّاً خارج المستودع ويُسدّد ديناً بشيء لا يخصّ الشجرة. حدُّ العقد («ملفّ إثبات في الشجرة») يُفرَض بدل أن يُفترَض"
+        }
+      ],
+      "test": "tests_v9/test_fake_connection_debt_guard.py"
+    },
+    "frontend_lint_debt_guard.py": {
+      "test": "tests_v9/test_frontend_lint_debt_guard.py",
+      "mutations": [
+        {
+          "expect": "test_one_more_warning_is_blocked",
+          "find": "        if actual > limit:",
+          "replace": "        if False:",
+          "why": "نزعُ الراتشِت الصاعد ⇒ تحذيرٌ جديد يدخل بلا حجب، و`eslint` هنا يُبلِّغ تحذيراً لا خطأً فتبقى الوظيفة خضراء — نموٌّ صامت لا يراه أحد لأنّ GitHub يعرض عشرة تعليقات من ثمانين"
+        },
+        {
+          "expect": "test_paying_debt_without_lowering_the_ceiling_is_blocked",
+          "find": "        elif actual < limit:",
+          "replace": "        elif False:",
+          "why": "سقفٌ يبقى بعد سداد دَينٍ يبتلع **عودته**: تُصلَح خمس ثمّ تُضاف خمس فيثبت العدّاد والحارس أخضر. راتشِتٌ لا يُخفَّض ليس راتشِتاً بل سقفٌ مُرتخٍ"
+        },
+        {
+          "expect": "test_a_rule_outside_the_baseline_is_blocked",
+          "find": "    for rule in sorted(set(observed) - set(BASELINE)):",
+          "replace": "    for rule in sorted(set()):",
+          "why": "إهمالُ القواعد خارج الأساس يجعل السقف إجماليّاً فعليّاً: تحويلُ عشرة `any` إلى عشرة `no-unsafe-assignment` يمرّ بلا أثر — استبدالُ دَينٍ بأسوأ منه بمجموعٍ ثابت"
+        },
+        {
+          "expect": "test_the_failure_names_the_files_to_look_at",
+          "find": "                f\"الملفّات: {', '.join(files_for_rule(report, rule)[:8])}\"",
+          "replace": "                \"\"",
+          "why": "رسالةٌ تقول «زاد العدد» بلا أسماء ملفّات تترك قارئها يبحث في ثلاثين ملفّاً؛ ومن يقرأ الأحمر يجب أن يعرف **أين** ينظر وإلّا تعلّم تجاهله"
+        },
+        {
+          "expect": "test_an_unreadable_report_fails_closed",
+          "find": "        except (OSError, json.JSONDecodeError) as exc:\n            raise SystemExit(f\"✗ تعذّرت قراءة {args.report_file}: {exc}\") from None",
+          "replace": "        except (OSError, json.JSONDecodeError):\n            report = []",
+          "why": "تقريرٌ غائب أو مشوَّه يُقرأ «صفر تحذير» ⇒ الحارس أخضرُ بالضبط حين لا يُقاس شيء. و«لم يُقَس» ليس «لم ينمُ»"
+        },
+        {
+          "expect": "test_every_printed_failure_line_keeps_its_prefix",
+          "find": "        for problem in problems:\n            head, *rest = problem.splitlines()\n            print(f\"  ✗ {head}\")\n            for continuation in rest:\n                print(f\"      {continuation.strip()}\")",
+          "replace": "        for problem in problems:\n            print(f\"  ✗ {problem}\")",
+          "why": "طباعةُ مخالفةٍ متعدّدة الأسطر كتلةً واحدة تُخرِج سطر الملفّات بلا `✗` ولا إزاحة، فيُقرأ مخالفةً مستقلّة وتنكسر القراءة السطريّة لسجلّ CI — والرسالة جزءٌ من الحارس لا زينةٌ فوقه"
+        }
+      ]
     },
     "guard_mutation_guard.py": {
       "mutations": [
@@ -196,278 +525,6 @@
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
-    },
-    "manifest_registry_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_unregistered_adjudicated_manifest_is_caught",
-          "find": "    if errors:",
-          "replace": "    if False:",
-          "why": "نزع فرع الفشل ⇒ بيان محكَّم غير مسجَّل يمرّ أخضر وهو العطل الذي بُني له الحارس"
-        }
-      ],
-      "test": "tests_v9/test_manifest_registry_guard.py"
-    },
-    "probe_leak_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_the_guard_does_not_fire_on_the_places_that_legitimately_name_the_probe",
-          "find": "        if _is_allowed(rel):\n            continue\n",
-          "replace": "",
-          "why": "نزع استثناء المواضع الشرعيّة ⇒ الحارس يُطلِق على الاختبار الذي يُعرّف المِسبار وعلى الدماغ الذي يشرح الحادثة"
-        }
-      ],
-      "test": "tests_v9/test_probe_leak_guard.py"
-    },
-    "test_marker_coverage_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_a_file_in_a_subdirectory_is_seen",
-          "find": "[\"git\", \"ls-files\", \"-z\", \"--\", TESTS_DIR],",
-          "replace": "[\"git\", \"ls-files\", \"-z\", \"--\", TESTS_DIR + \"/test_*.py\"],",
-          "why": "إعادة النمط المسطّح — وهو العطل الذي أسقط ملفّين حقيقيّين: `tests_v9/runtime_activation/` بثمانية اختبارات كان ميّتاً في كلّ وظيفة، و**غير قابل للظهور في الأساس أصلاً** لأنّ الحارس لا يعدّه. والمرساة على حالة مزروعة في مستودع اصطناعيّ لا على عدّاد الملفّات: العدّ ٦٥٨ ⇒ ٦٥٦ فرقٌ لا يُميّزه تأكيد على الحجم"
-        },
-        {
-          "expect": "test_a_marker_that_pytest_ini_does_not_declare_is_not_a_marker",
-          "find": "if not (marker_names_in(ROOT / path) & known)]",
-          "replace": "if not marker_names_in(ROOT / path)]",
-          "why": "نزعُ التحقّق من أنّ الاسم **مُسجَّل في pytest.ini**: عندها يُقرأ `pytestmark = pytest.mark.asyncio` موسوماً بينما pytest يستبعده من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وهو ما كان يفعله التعبير النمطيّ القديم بمطابقة `pytestmark` مجرّداً"
-        }
-      ],
-      "test": "tests/architecture/test_marker_coverage_guard.py"
-    },
-    "snapshot_eligibility_separation_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_an_alter_table_add_column_is_caught_too",
-          "find": "        for column in _ALTER_ADD.findall(sql):",
-          "replace": "        for column in []:",
-          "why": "قراءة `CREATE TABLE` وحدها ⇒ يمرّ `ALTER TABLE ... ADD COLUMN` — وهو المسار **الأرجح عمليّاً**، لأنّ أحداً لا يُعيد كتابة تعريف جدول قائم؛ فيُضاف عمود الأهليّة في هجرة لاحقة والحارس ساكت"
-        },
-        {
-          "expect": "test_losing_its_subject_is_a_failure_not_a_pass",
-          "find": "    if not seen_table:",
-          "replace": "    if False:",
-          "why": "نزع إنفاذ وجود الموضوع ⇒ إعادة تسمية الجدول تجعل الحارس أخضر لأنّه **لا يرى** لا لأنّه لا يجد. الصنف نفسه المُسجَّل في `runtime_contract_generator`"
-        },
-        {
-          "expect": "test_an_eligibility_field_on_the_model_is_caught",
-          "find": "            if re.search(rf\"^\\s+{field}\\s*[:=]\", body, re.MULTILINE):",
-          "replace": "            if False:",
-          "why": "نزع فحص النموذج ⇒ حقلٌ يُضاف إلى `VegetationSnapshotIn` لأنّ واجهةً احتاجته يمرّ. **ادّعيتُ في متن #810 ثلاث طفرات وسجّلتُ اثنتين** — والمراجعة أمسكت الفارق، فهذه هي الثالثة مُسجَّلةً لا مذكورة"
-        },
-        {
-          "expect": "test_add_column_if_not_exists_does_not_slip_through",
-          "find": "    rf\"\\s+add\\s+(?:column\\s+)?(?:if\\s+not\\s+exists\\s+)?{_COLUMN}\",",
-          "replace": "    rf\"\\s+add\\s+(?:column\\s+)?{_COLUMN}\",",
-          "why": "إعادة الصيغة التي أفلتت `ADD COLUMN IF NOT EXISTS`: يُلتقَط `IF` بوصفه اسم العمود فيمرّ الاسم المحظور. والنمط يظهر ٢١ مرّة في هجرات هذه الخدمة — فأرجح طريقٍ إلى العطل كانت الوحيدة التي لا يراها الحارس. وبعد النظرة الأمام صار الأثر أنظف: لا التقاط أصلاً بدل التقاط `IF` — والاختبار يحمرّ في الحالين"
-        },
-        {
-          "expect": "test_the_full_postgresql_grammar_is_caught",
-          "find": "    rf\"alter\\s+table\\s+(?:(?:if\\s+exists|only)\\s+){{0,2}}{_QUALIFIED}(?:\\s*\\*)?\"",
-          "replace": "    rf\"alter\\s+table\\s+(?:only\\s+)?(?:if\\s+exists\\s+)?{_QUALIFIED}(?:\\s*\\*)?\"",
-          "why": "عكسُ ترتيب `IF EXISTS` و`ONLY` — وقواعد PostgreSQL هي `ALTER TABLE [ IF EXISTS ] [ ONLY ] name`. بالترتيب المعكوس تفلت الصيغة القانونيّة `ALTER TABLE IF EXISTS ONLY …` **تماماً**: صفر التقاط لا اسمٌ خاطئ. ثاني ثقب في النحو نفسه — حارس DDL يُكتَب من القواعد المنشورة لا من الصيغة المُصادَفة"
-        },
-        {
-          "expect": "test_every_legal_alter_prefix_is_caught",
-          "find": "{_QUALIFIED}(?:\\s*\\*)?\"",
-          "replace": "{_QUALIFIED}\"",
-          "why": "نزع النجمة الوراثيّة `name [ * ]` من النمط — وهي جزءٌ من القواعد نفسها: `ALTER TABLE <t> * ADD COLUMN decision_eligible` صيغةٌ مشروعة تمرّ بلا التقاط. الثقب الثالث في النحو نفسه، وقد بقي بعد تصحيح ترتيب `IF EXISTS`/`ONLY`"
-        },
-        {
-          "expect": "test_a_quoted_identifier_is_the_same_identifier",
-          "find": "_QUALIFIED = rf\"{_SCHEMA}{_QUOTE}{SNAPSHOT_TABLE}{_QUOTE}\"",
-          "replace": "_QUALIFIED = rf\"{_SCHEMA}{SNAPSHOT_TABLE}\"",
-          "why": "نزع دعم اقتباس **الجدول** ⇒ `ALTER TABLE public.\"<t>\" ADD COLUMN decision_eligible` — هجرة مشروعة تماماً — تمرّ بصفر التقاط. الاقتباس في PostgreSQL يحفظ حالة الأحرف ولا يُنشئ كياناً آخر؛ الثقب الرابع في النحو نفسه"
-        },
-        {
-          "expect": "test_the_word_column_is_never_captured_as_a_column_name",
-          "find": "_COLUMN = rf\"(?!(?:column|if|not|exists)\\b){_QUOTE}(\\w+){_QUOTE}\"",
-          "replace": "_COLUMN = rf\"(?!(?:column|if|not|exists)\\b)(\\w+)\"",
-          "why": "نزع دعم اقتباس **العمود** ⇒ `ADD COLUMN \"policy_version\"` لا يُلتقَط. وقبل النظرة الأمام كان الأسوأ: `(\\w+)` يفشل عند `\"` فيتراجع المُطابِق عن `(?:column\\s+)?` **ويلتقط `COLUMN` اسمَ عمود** — خضرةٌ بعد أن نظر ورأى الشيء الخطأ"
-        },
-        {
-          "expect": "test_a_quoted_column_inside_create_table_is_caught",
-          "find": "rf\"(^|,|\\()\\s*{_QUOTE}{field}{_QUOTE}\\s\"",
-          "replace": "rf\"(^|,|\\()\\s*{field}\\s\"",
-          "why": "نزع دعم اقتباس العمود داخل جسم `CREATE TABLE` ⇒ تجاوزٌ **صامت** مؤكَّد: الجسم يُوجَد والحقل يفلت — بخلاف الجدول المقتبس الذي كان يُسقِط الموضوع فيفشل الحارس بصوتٍ عالٍ. والصامت أخطر لأنّ لا شيء يدلّ عليه"
-        }
-      ],
-      "test": "tests_v9/test_snapshot_eligibility_separation_guard.py"
-    },
-    "prohibition_reason_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_the_other_spelling_of_a_prohibition_is_caught_too",
-          "find": "    if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):\n        test, negated = test.operand, True",
-          "replace": "    if False:\n        pass",
-          "why": "إسقاط صيغة `not (\"x\" in y)` — حارسٌ يرى صيغةً واحدة يُلتَفّ عليه بإعادة صياغة لا تُغيّر شيئاً، ولا يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا"
-        },
-        {
-          "expect": "test_the_container_is_derived_from_the_assignment_not_from_its_name",
-          "find": "if container not in srcvars:\n                    continue",
-          "replace": "if False:\n                    continue",
-          "why": "نزع اشتراط أن تكون الحاوية **نصّ مصدر** ⇒ يمتدّ الحارس إلى كلّ تأكيد سالب في المستودع فيُنزَع في أوّل يوم. والمرساة على ملفّ يحمل قارئاً حقيقيّاً: أوّل صياغة عندي لم تحمله فتخطّى المسحُ الملفَّ كلّه، فمرّ الاختبار **بسببٍ آخر** وبقيت الخاصّيّة بلا حارس — كشفَته هذه الطفرة بالذات وهي خضراء"
-        }
-      ],
-      "test": "tests_v9/test_prohibition_reason_guard.py"
-    },
-    "fake_connection_debt_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_the_incident_file_is_named_by_the_survey_not_by_hand",
-          "find": "        if not _FAKE.search(text):\n            continue\n",
-          "replace": "        if _FAKE.search(text):\n            continue\n",
-          "why": "قلبُ شرط الماسح ⇒ يمسح ما لا يستعمل وهميّاً، فيغيب ملفّ الحادثة (jsonb) عن المسح. والمرساة على **ملفّ الحادثة** لا على عدّاد الحجم: أوّل صياغة عندي سمّت `test_the_scanner_actually_sees_something` فلم يسقط — القلب يُبقي العدّ كبيراً بملفّات أخرى، فالعدّاد لا يُميّز"
-        },
-        {
-          "expect": "test_a_settlement_must_name_a_proof_file_that_exists",
-          "find": "    elif not resolved.is_file():",
-          "replace": "    elif False:",
-          "why": "قبولُ سدادٍ يُسمّي ملفّ إثبات غير موجود ⇒ الدَّين يُغلَق بسطرٍ مكتوب، وهو بالضبط «حذف الكلمة من نصّه» الذي يمنعه عقد `$comment`"
-        },
-        {
-          "expect": "test_a_settlement_whose_proof_never_mentions_the_source_is_refused",
-          "find": "    elif rel not in resolved.read_text(encoding=\"utf-8\", errors=\"ignore\"):",
-          "replace": "    elif False:",
-          "why": "نزعُ اشتراط أن **يذكر** ملفُّ الإثبات مصدرَه ⇒ أخطر صنف يمرّ: مدخلٌ يشير إلى ملفّ قائم لا علاقة له بالمصدر، فيمرّ فحصا الوجود والدليل ويبقى الدَّين غير مسدَّد"
-        },
-        {
-          "expect": "test_a_partial_settlement_does_not_close_the_debt",
-          "find": "    if declared_claims != sorted(claims):",
-          "replace": "    if False and declared_claims != sorted(claims):",
-          "why": "قبولُ سدادٍ جزئيّ ⇒ «كلّ ادّعاءاته» يصير شعاراً، وادّعاءٌ جديد يظهر في ملفّ مُسدَّد لا يُعيد فتح الدَّين"
-        },
-        {
-          "expect": "test_regenerating_the_baseline_does_not_erase_the_settlements",
-          "find": "    carried = _load_baseline().get(\"proven_live\", {}) if BASELINE.exists() else {}",
-          "replace": "    carried = {}",
-          "why": "«المصنوع يدهس المكتوب» — `--generate` يمحو `proven_live` فيرجع الدَّين المُسدَّد صامتاً عند أوّل إعادة توليد، والقسم لا يُشتقّ فلا سبيل لاستعادته"
-        },
-        {
-          "expect": "test_a_proof_path_that_escapes_the_repository_root_is_refused",
-          "find": "    inside = resolved is not None and resolved.is_relative_to(ROOT.resolve())",
-          "replace": "    inside = resolved is not None",
-          "why": "نزعُ حصر مسار الإثبات داخل الجذر ⇒ `../…` يُقبَل ما دام الملفّ موجوداً، فيقرأ الحارسُ ملفّاً خارج المستودع ويُسدّد ديناً بشيء لا يخصّ الشجرة. حدُّ العقد («ملفّ إثبات في الشجرة») يُفرَض بدل أن يُفترَض"
-        }
-      ],
-      "test": "tests_v9/test_fake_connection_debt_guard.py"
-    },
-    "platform_module_reachability_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_a_module_behind_a_package_is_reachable_not_terminal",
-          "find": "        if dotted.endswith(\".__init__\"):\n            index[dotted[: -len(\".__init__\")]] = rel\n",
-          "replace": "",
-          "why": "نزع فهرسة الحزمة باسمها ⇒ كلّ سلسلة تمرّ بـ__init__ تبدو مقطوعة، فتُصنَّف وحدات موصولة فعلاً كسلاسل طرفيّة ميتة — الحارس يخترع العطل بدل أن يجده"
-        },
-        {
-          "expect": "test_relative_imports_resolve_against_the_importing_package",
-          "find": "                if node.level:\n",
-          "replace": "                if False:\n",
-          "why": "ترك الاستيراد النسبيّ بلا حلّ ⇒ from .canonical_water import … لا يُنتِج حافّة، فتبدو canonical_water/canonical_boundary ميتتين وهما مستهلَكتان"
-        },
-        {
-          "expect": "test_a_module_nothing_executes_is_terminal",
-          "find": "    verdict: dict[str, str] = {rel: TERMINAL for rel in files}\n",
-          "replace": "    verdict: dict[str, str] = {rel: MOUNTED_ROUTE for rel in files}\n",
-          "why": "جعل كلّ وحدة قابلة للوصول ابتداءً ⇒ التصنيف يفقد قدرته على قول (ميت)، وهو الغرض الوحيد للحارس"
-        },
-        {
-          "expect": "test_a_path_launched_worker_inside_the_platform_is_a_root_itself",
-          "find": "            if platform_rel and platform_rel in files:\n                roots.add(platform_rel)",
-          "replace": "            if False:\n                roots.add(platform_rel)",
-          "why": "المُشغِّل المُنفَّذ بمسار يُعَدّ قناةً لا جذراً ⇒ نقطة الدخول نفسها تُصنَّف «ميتة» بينما compose يشغّلها"
-        },
-        {
-          "expect": "test_the_container_path_maps_to_the_service_root_not_the_repository_root",
-          "find": "    inside = PLATFORM / tail\n    if inside.is_file():",
-          "replace": "    inside = PLATFORM / tail\n    if False:",
-          "why": "‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01"
-        }
-      ],
-      "test": "tests_v9/test_platform_module_reachability_guard.py"
-    },
-    "schema_validation_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_a_missing_meta_schema_is_caught",
-          "find": "    meta = document.get(\"$schema\")\n    if not meta:",
-          "replace": "    meta = document.get(\"$schema\")\n    if False:",
-          "why": "قبولُ مخطَّط بلا $schema ⇒ يعود أحد عشر ملفّاً لا يُعرَف بأيّ مواصفة تُقرأ، وهو العطل الأصليّ الذي بُنِيت البوّابة له"
-        },
-        {
-          "expect": "test_an_external_ref_is_caught",
-          "find": "        if policy[\"ref_policy\"][\"local_only\"] and not ref.startswith(\"#\"):",
-          "replace": "        if False and not ref.startswith(\"#\"):",
-          "why": "قبولُ $ref خارجيّ ⇒ يصير الخضوع رهن الشبكة وترتيب الملفّات لا صحّة العقد"
-        },
-        {
-          "expect": "test_a_schema_invalid_for_its_declared_draft_is_caught",
-          "find": "                validator_cls.check_schema(document)",
-          "replace": "                pass  # noqa",
-          "why": "تخطّي التحقّق من صحّة المخطَّط نفسه ⇒ الحارس يُبلِغ خضرةً عن سؤال لم يطرحه"
-        }
-      ],
-      "test": "tests_v9/test_schema_validation_guard.py"
-    },
-    "brain_append_only_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_both_parents_are_examined_not_just_one",
-          "find": "        for parent in parents_of(commit, root=root):",
-          "replace": "        for parent in parents_of(commit, root=root)[:1]:",
-          "why": "فحصُ والدٍ واحد ⇒ عمى الدمج نفسه الذي أنجى `cb6598fe`: الملفّ محفوظ عند والد ومفقود عند الآخر، فالفحص مقابل أحدهما يمرّ"
-        },
-        {
-          "expect": "test_a_merge_that_takes_the_empty_side_is_caught",
-          "find": "                if len(after) < len(before):\n                    blocking.append(",
-          "replace": "                if len(after) < len(before):\n                    advisory.append(",
-          "why": "جعلُ التقلّص إرشاديّاً ⇒ يعود ١٬٣٨٣٬٣٦٨ بايت إلى صفر بلا حجب، وهي الواقعة الأصليّة. والاختبار المُسمّى **اصطناعيّ عمداً**: اختبار الواقعة الحقيقيّة (test_the_guard_fails_on_the_truncation_that_created_it) يحتاج التاريخ الكامل ويُتخطّى في استنساخ CI الضحل — وطفرةٌ تُسمّي اختباراً مُتخطّى ليست تكذيباً بل صمتاً."
-        },
-        {
-          "expect": "test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare",
-          "find": "        if blob(head, path, root=root) is None:",
-          "replace": "        if False:",
-          "why": "إسقاطُ فحص الغياب ⇒ شجرةٌ بلا سجلّات تُنتِج صفر أزواج وتطبع ok — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنف الفجوة نفسه داخل علاجها"
-        },
-        {
-          "expect": "test_the_file_list_comes_from_the_existing_classifier",
-          "find": "    return tuple(module.APPEND_ONLY)",
-          "replace": "    return (\"sahool-brain/log.md\",)",
-          "why": "تصليبُ القائمة ⇒ فهرس ثانٍ ينحرف عن `resolve_merge_conflicts`، وهو صنف «قائمتان تصفان الشيء نفسه»"
-        }
-      ],
-      "test": "tests_v9/test_brain_append_only_guard.py"
-    },
-    "container_command_path_guard.py": {
-      "mutations": [
-        {
-          "expect": "test_the_old_location_is_still_unreachable_from_that_image",
-          "find": "        return rel if candidate.is_file() and not _ignored(rel, patterns) else None",
-          "replace": "        return rel",
-          "why": "ادّعاء الوجود بلا فحص وجود ⇒ كلّ مسار «تضعه الصورة» والعطل الأصليّ يمرّ"
-        },
-        {
-          "expect": "test_a_missing_path_is_reported_with_the_service_that_executes_it",
-          "find": "                if sources_for(path, container_path, context=context) is None:",
-          "replace": "                if False:",
-          "why": "تعطيل الفحص كلّيّاً ⇒ الحارس يخضرّ على شجرة معطوبة"
-        },
-        {
-          "expect": "test_it_actually_examines_something",
-          "find": "            for container_path in sorted(executed_paths(service)):",
-          "replace": "            for container_path in []:",
-          "why": "صفر أزواج مفحوصة ⇒ «أخضر لأنّه لم ينظر» — الصفر الصامت نفسه"
-        },
-        {
-          "expect": "test_copy_semantics_are_applied_not_approximated",
-          "find": "            if not directory_dest and source_path.is_file():",
-          "replace": "            if False and source_path.is_file():",
-          "why": "إسقاط نسخ ملفّ→ملفّ ⇒ ثلاث خدمات سليمة تُتَّهم (الإيجابيّة الكاذبة المقيسة)"
-        }
-      ],
-      "test": "tests_v9/test_container_command_path_guard.py"
     },
     "live_pg_evidence_guard.py": {
       "mutations": [
@@ -594,148 +651,6 @@
       ],
       "test": "tests_v9/test_live_pg_evidence_guard.py"
     },
-    "branch_protection_contract_guard.py": {
-      "test": "tests_v9/test_branch_protection_contract_guard.py",
-      "mutations": [
-        {
-          "expect": "test_conversation_resolution_disabled_is_a_failure",
-          "find": "    if not any(value is True for value in observed):",
-          "replace": "    if False:",
-          "why": "قبولُ القفل المُطفَأ ⇒ يعود المستودع إلى الحالة التي وقع فيها العطل مرّتين (#810 و#816). والحارس كلّه موجودٌ لهذا الشرط وحده — تعطيلُه يجعله يُبلِغ خضرةً عن سؤالٍ لم يطرحه"
-        },
-        {
-          "expect": "test_a_non_boolean_enabled_is_rejected",
-          "find": "    if not any(value is True for value in observed):",
-          "replace": "    if not any(value for value in observed):",
-          "why": "مقارنةٌ بالصدق بدل المنطقيّ: `\"true\"` نصّاً و`1` صادقتان في بايثون فتُقرآن قفلاً مُفعَّلاً وهو ليس العقد. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **الحكم** وهذه تحرس **نوع القيمة** — وحقلٌ يتغيّر تمثيله في API يُصيب الثانية وحدها"
-        },
-        {
-          "expect": "test_a_missing_key_is_not_read_as_enabled",
-          "find": "        rule.get(\"parameters\", {}).get(CONTRACT_PARAMETER)",
-          "replace": "        rule.get(\"parameters\", {}).get(CONTRACT_PARAMETER, True)",
-          "why": "قراءةُ الشرط الغائب قبولاً ⇒ «لم يُقرأ» تصير «مُفعَّل». قاعدة `pull_request` نافذة بلا هذا المفتاح (إصدار API تغيّر، أو رمزٌ رأى حقولاً جزئيّة) تُقرأ قفلاً قائماً"
-        },
-        {
-          "expect": "test_no_pull_request_rule_is_a_failure",
-          "find": "    if not pr_rules:",
-          "replace": "    if False:",
-          "why": "نزعُ فحص غياب قاعدة `pull_request` ⇒ فرعٌ محميّ من الحذف والدفع القسريّ وحدهما يُقرأ مشمولاً بشرط المراجعة. ورمزُ الخروج يبقى `1` عبر الفرع التالي — ولذلك يقيس الاختبار **السبب** لا الرمز"
-        },
-        {
-          "expect": "test_an_unreadable_protection_file_fails_closed",
-          "find": "    except FileNotFoundError:\n        raise SystemExit(",
-          "replace": "    except FileNotFoundError:\n        return [{\"type\": CONTRACT_RULE_TYPE, \"parameters\": {CONTRACT_PARAMETER: True}}]\n    except RuntimeError:\n        raise SystemExit(",
-          "why": "ملفٌّ غائب يُقرأ «مضبوطاً» ⇒ الحارس أخضرُ **بالضبط حين لا يُقاس شيء**. والحالة مرجَّحة لا نادرة: خطوةُ جلبٍ تفشل أو رمزٌ بلا صلاحية قراءة القواعد يُنتِجان غياباً لا رفضاً. **وتبديلُ صنف الاستثناء وحده لا يزرع شيئاً** — يلتقطه `except OSError` التالي فيبقى الفشل مغلقاً؛ فالزرع بإرجاع وثيقةٍ مُرضية"
-        },
-        {
-          "expect": "test_a_scalar_json_document_is_rejected",
-          "find": "    if not isinstance(document, dict):",
-          "replace": "    if False:",
-          "why": "استجابةُ خطأٍ من GitHub أو جسمٌ غريب في موضع الظرف لا يُقرأ دليلاً؛ قبولُه يجعل كلّ فحوص المصدر تقرأ حقولاً غائبة `None` — استجابةٌ لا تُفهَم فشلٌ لا قبول"
-        },
-        {
-          "expect": "test_a_bare_rule_array_is_rejected_as_evidence_without_a_source",
-          "find": "    if isinstance(document, list):\n        raise SystemExit(",
-          "replace": "    if isinstance(document, list):\n        return {\"schema_version\": EVIDENCE_SCHEMA, \"rules\": document}\n    if False:\n        raise SystemExit(",
-          "why": "قبولُ مصفوفة القواعد العارية «للتوافق الخلفيّ» يُعيد فتح الباب الذي وُجِد الظرف لأجله: دليلٌ بلا مصدر يمرّ من فرعٍ آخر أو من تشغيلٍ سابق بلا أثر"
-        },
-        {
-          "expect": "test_an_unknown_envelope_schema_is_rejected",
-          "find": "    if document.get(\"schema_version\") != EVIDENCE_SCHEMA:",
-          "replace": "    if False:",
-          "why": "ظرفٌ لا يُعرَف شكلُه يُقرأ دليلاً ⇒ حقولٌ غائبة تُقرأ `None` وتمرّ فحوصُها بصمت. ونسخةٌ أحدث قد تنقل معنى حقلٍ قائم — فالتوافق يُقرَّر بترقية الحارس"
-        },
-        {
-          "expect": "test_a_non_200_response_fails_closed",
-          "find": "    if status != CONTRACT_HTTP_STATUS:",
-          "replace": "    if False:",
-          "why": "‏`401/403/404/429/5xx` تُنتِج جسماً صالح البنية لا قواعد؛ إهمالُ الرمز يحوّل «لم يُقرأ» إلى «صفر قاعدة» ثمّ إلى رسالةٍ صحيحة عن سببٍ خاطئ. وهو الحقل الذي يفصل عطلَ الشبكة عن عطل الإعداد"
-        },
-        {
-          "expect": "test_a_success_status_as_text_is_not_read_as_success",
-          "find": "    if status != CONTRACT_HTTP_STATUS:",
-          "replace": "    if str(status) != str(CONTRACT_HTTP_STATUS):",
-          "why": "مقارنةٌ نصّيّة تقبل `\"200\"` القادمة من `jq` بلا `--argjson`. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **وجود** الفحص وهذه تحرس **نوع** القيمة"
-        },
-        {
-          "expect": "test_evidence_from_another_repository_is_rejected",
-          "find": "    if repository != expect_repository:",
-          "replace": "    if False:",
-          "why": "دليلٌ عن مستودعٍ آخر — ولو كان قفلُه مُفعَّلاً — يُخضِر الحارس عن سؤالٍ ليس هو السؤال"
-        },
-        {
-          "expect": "test_evidence_for_another_branch_is_rejected",
-          "find": "    if branch != CONTRACT_BRANCH:",
-          "replace": "    if False:",
-          "why": "فروع العمل في هذا المستودع تحمل حمايةً؛ فقراءةُ قواعد أحدها بدل `main` تُنتِج خضرةً كاملةً بينما الفرع الافتراضيّ مكشوف — وهي الحالة التي وقعت فعلاً في تشغيل 31411680450"
-        },
-        {
-          "expect": "test_a_declared_branch_cannot_launder_a_different_endpoint",
-          "find": "    if not isinstance(endpoint, str) or not endpoint.endswith(expected_endpoint):",
-          "replace": "    if False:",
-          "why": "‏`repository`/`branch` إعلانٌ يكتبه المُشغِّل، والنقطة المُستدعاة هي ما قِيس. إهمالُها يجعل خطأ تحريرٍ في مسار الوظيفة (تغيير الفرع وحده) يمرّ كاملاً بإعلانٍ صحيح"
-        },
-        {
-          "expect": "test_evidence_from_an_older_commit_is_rejected",
-          "find": "    elif sha != expect_sha:",
-          "replace": "    elif False:",
-          "why": "مصنوعٌ مُعاد استعماله بين تشغيلين يُنتِج خضرةً عن حالةٍ انقضت — الصنف نفسه الذي أضاع ثلاث جولات حين قُرِئ سجلٌّ بختمٍ زمنيّ قديم بوصفه نتيجةً جديدة"
-        },
-        {
-          "expect": "test_a_matching_but_malformed_commit_sha_is_still_rejected",
-          "find": "    if not isinstance(sha, str) or not _SHA_RE.match(sha):",
-          "replace": "    if False:",
-          "why": "حقلٌ فارغ أو بحالة أحرفٍ كبيرة لا يربط الدليل بشيء؛ وقبولُه يجعل مطابقة الـSHA التالية تقارن نصّين لا بصمتين"
-        },
-        {
-          "expect": "test_a_non_array_rules_field_fails_closed",
-          "find": "    if not isinstance(envelope.get(\"rules\"), list):",
-          "replace": "    if False:",
-          "why": "خطوة الجلب تُجسّد `null` حين يتعذّر تحليل الجسم (خنقٌ يُعيد HTML)، فقبولُه يُنتِج انهياراً في التكرار أو «صفر قاعدة» — رسالةٌ صحيحة عن سببٍ خاطئ"
-        },
-        {
-          "expect": "test_the_pass_line_states_what_was_examined",
-          "find": "        f\"فُحِصت {len(rules)} قاعدة نافذة، منها {len(pr_rules)} من نوع {CONTRACT_RULE_TYPE})\"",
-          "replace": "        \"القفل نافذ)\"",
-          "why": "خضرةٌ بلا عدّ لا يفرّق قارئُها بين «فُحِصت قاعدة فمرّت» و«لم يُفحَص شيء» — وهو بند «صفر checks منفَّذة» بصيغته القابلة للقياس"
-        }
-      ]
-    },
-    "visual_fixme_baseline_guard.py": {
-      "test": "tests_v9/test_visual_fixme_baseline_guard.py",
-      "mutations": [
-        {
-          "expect": "test_one_more_fixme_is_blocked",
-          "find": "        if len(positions) > limit:",
-          "replace": "        if False:",
-          "why": "نزعُ الراتشِت الصاعد ⇒ ثالثٌ يُضاف بمبرّرٍ وجيه في لحظته، وعاشرٌ بعده؛ والمجموع مقبرةُ ديون خضراء يقول تقريرُها «0 failed» صادقاً حرفيّاً"
-        },
-        {
-          "expect": "test_removing_a_fixme_without_lowering_the_baseline_is_blocked",
-          "find": "        elif len(positions) < limit:",
-          "replace": "        elif False:",
-          "why": "سقفٌ يبقى بعد إغلاق دَينٍ يبتلع **عودته** صامتاً: يُغلَق واحد ثمّ يُضاف آخر فيبقى العدّاد ثابتاً والحارس أخضر. راتشِتٌ لا يُخفَّض ليس راتشِتاً بل سقفٌ مُرتخٍ"
-        },
-        {
-          "expect": "test_a_fixme_without_a_gap_anchor_is_blocked",
-          "find": "            if not _has_anchor(lines, line_number):",
-          "replace": "            if False:",
-          "why": "عددٌ بلا سببٍ يُنقَل بين الأجيال بلا معنى: «اثنان» لا يقول لماذا ولا متى يُغلَقان، فيرثه من لا يعرف قصّته"
-        },
-        {
-          "expect": "test_a_missing_watched_file_fails_closed",
-          "find": "        if text is None:",
-          "replace": "        if False:\n            pass\n        if text is None:\n            continue\n        if False:",
-          "why": "ملفٌّ نُقِل أو حُذِف ⇒ لا `fixme` ⇒ لا مخالفة: الحالة التي تجعل حارساً «أخضرَ إلى الأبد» وهو يحرس لا شيء"
-        },
-        {
-          "expect": "test_a_mention_in_prose_is_not_counted_as_a_disabled_test",
-          "find": "        if _FIXME_RE.search(line) and not _COMMENT_RE.match(line)",
-          "replace": "        if _FIXME_RE.search(line)",
-          "why": "عدُّ ذِكرِ الاسم في شرحٍ اختباراً مُعطَّلاً — عطلٌ وقع فعلاً في أوّل صياغة (أربعة بدل اثنين). وعدٌّ يُعاقِب التوثيق يُدرِّب كاتبه على حذفه: رقمٌ خاطئ وتوثيقٌ أقلّ"
-        }
-      ]
-    },
     "live_pg_role_closure_guard.py": {
       "mutations": [
         {
@@ -765,81 +680,161 @@
       ],
       "test": "tests_v9/test_live_pg_role_closure_guard.py"
     },
-    "frontend_lint_debt_guard.py": {
-      "test": "tests_v9/test_frontend_lint_debt_guard.py",
+    "manifest_registry_guard.py": {
       "mutations": [
         {
-          "expect": "test_one_more_warning_is_blocked",
-          "find": "        if actual > limit:",
-          "replace": "        if False:",
-          "why": "نزعُ الراتشِت الصاعد ⇒ تحذيرٌ جديد يدخل بلا حجب، و`eslint` هنا يُبلِّغ تحذيراً لا خطأً فتبقى الوظيفة خضراء — نموٌّ صامت لا يراه أحد لأنّ GitHub يعرض عشرة تعليقات من ثمانين"
-        },
-        {
-          "expect": "test_paying_debt_without_lowering_the_ceiling_is_blocked",
-          "find": "        elif actual < limit:",
-          "replace": "        elif False:",
-          "why": "سقفٌ يبقى بعد سداد دَينٍ يبتلع **عودته**: تُصلَح خمس ثمّ تُضاف خمس فيثبت العدّاد والحارس أخضر. راتشِتٌ لا يُخفَّض ليس راتشِتاً بل سقفٌ مُرتخٍ"
-        },
-        {
-          "expect": "test_a_rule_outside_the_baseline_is_blocked",
-          "find": "    for rule in sorted(set(observed) - set(BASELINE)):",
-          "replace": "    for rule in sorted(set()):",
-          "why": "إهمالُ القواعد خارج الأساس يجعل السقف إجماليّاً فعليّاً: تحويلُ عشرة `any` إلى عشرة `no-unsafe-assignment` يمرّ بلا أثر — استبدالُ دَينٍ بأسوأ منه بمجموعٍ ثابت"
-        },
-        {
-          "expect": "test_the_failure_names_the_files_to_look_at",
-          "find": "                f\"الملفّات: {', '.join(files_for_rule(report, rule)[:8])}\"",
-          "replace": "                \"\"",
-          "why": "رسالةٌ تقول «زاد العدد» بلا أسماء ملفّات تترك قارئها يبحث في ثلاثين ملفّاً؛ ومن يقرأ الأحمر يجب أن يعرف **أين** ينظر وإلّا تعلّم تجاهله"
-        },
-        {
-          "expect": "test_an_unreadable_report_fails_closed",
-          "find": "        except (OSError, json.JSONDecodeError) as exc:\n            raise SystemExit(f\"✗ تعذّرت قراءة {args.report_file}: {exc}\") from None",
-          "replace": "        except (OSError, json.JSONDecodeError):\n            report = []",
-          "why": "تقريرٌ غائب أو مشوَّه يُقرأ «صفر تحذير» ⇒ الحارس أخضرُ بالضبط حين لا يُقاس شيء. و«لم يُقَس» ليس «لم ينمُ»"
-        },
-        {
-          "expect": "test_every_printed_failure_line_keeps_its_prefix",
-          "find": "        for problem in problems:\n            head, *rest = problem.splitlines()\n            print(f\"  ✗ {head}\")\n            for continuation in rest:\n                print(f\"      {continuation.strip()}\")",
-          "replace": "        for problem in problems:\n            print(f\"  ✗ {problem}\")",
-          "why": "طباعةُ مخالفةٍ متعدّدة الأسطر كتلةً واحدة تُخرِج سطر الملفّات بلا `✗` ولا إزاحة، فيُقرأ مخالفةً مستقلّة وتنكسر القراءة السطريّة لسجلّ CI — والرسالة جزءٌ من الحارس لا زينةٌ فوقه"
-        }
-      ]
-    },
-    "action_pin_agreement_guard.py": {
-      "test": "tests_v9/test_action_pin_agreement_guard.py",
-      "mutations": [
-        {
-          "expect": "test_a_half_upgrade_is_blocked",
-          "find": "        if len(shas) > allowed:",
-          "replace": "        if False:",
-          "why": "نزعُ بند «بصمةٌ واحدة لكلّ عمل» ⇒ ترقيةٌ تُبدّل ثلاثة من ثلاثة وعشرين تمرّ خضراء، وهو بالحرف ما كانت الحزمة المقترَحة ستفعله؛ و`github_actions_policy_guard` لا يراه لأنّه يسأل «أمثبَّتٌ ببصمة؟» لا «أبصمةٌ واحدة؟»"
-        },
-        {
-          "expect": "test_unifying_without_lowering_the_baseline_is_blocked",
-          "find": "        elif action in DIVERGENCE_BASELINE and len(shas) < allowed:",
-          "replace": "        elif False:",
-          "why": "أساسٌ يبقى بعد توحيدٍ يبتلع عودة التباعد صامتاً: يُوحَّد `checkout` ثمّ يتباعد ثانيةً فيبقى تحت سقفه القديم والحارس أخضر. درسٌ مقيس مرّتين قبله في راتشِتَي `fixme` ودَين الواجهة"
-        },
-        {
-          "expect": "test_a_sha_carrying_two_different_tags_is_blocked",
-          "find": "            if len(tags) > 1:",
-          "replace": "            if False:",
-          "why": "`@<بصمة v7> # v4` أسوأ من تعليقٍ غائب: القارئ التالي يقرؤه وسماً ويبني عليه قرار ترقيةٍ أو تدقيقٍ أمنيّ. وهو الخطأ الذي تقع فيه كلّ ترقيةٍ تُبدّل البصمة وتنسى تعليقها"
-        },
-        {
-          "expect": "test_a_stale_baseline_entry_is_blocked",
-          "find": "    for action in sorted(set(DIVERGENCE_BASELINE) - set(observed)):",
-          "replace": "    for action in sorted(set()):",
-          "why": "مدخلٌ لعملٍ زال من الشجرة يُقرأ ديناً قائماً وقد انتهى — فيُدرَّب قارئه على تجاهل الأساس كلّه، وهو عطل الحارس الأكثر شيوعاً في هذا المستودع"
-        },
-        {
-          "expect": "test_a_missing_workflows_directory_fails_closed",
-          "find": "    if not args.workflows.is_dir():",
+          "expect": "test_unregistered_adjudicated_manifest_is_caught",
+          "find": "    if errors:",
           "replace": "    if False:",
-          "why": "مجلّدٌ غائب أو مسارٌ تغيّر ⇒ صفر بصمة ⇒ صفر مخالفة ⇒ PASS: «لم يُقَس» يُقرأ «متّسق»، وهي الحالة التي تجعل الحارس أخضرَ إلى الأبد وهو يحرس لا شيء"
+          "why": "نزع فرع الفشل ⇒ بيان محكَّم غير مسجَّل يمرّ أخضر وهو العطل الذي بُني له الحارس"
         }
-      ]
+      ],
+      "test": "tests_v9/test_manifest_registry_guard.py"
+    },
+    "platform_module_reachability_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_module_behind_a_package_is_reachable_not_terminal",
+          "find": "        if dotted.endswith(\".__init__\"):\n            index[dotted[: -len(\".__init__\")]] = rel\n",
+          "replace": "",
+          "why": "نزع فهرسة الحزمة باسمها ⇒ كلّ سلسلة تمرّ بـ__init__ تبدو مقطوعة، فتُصنَّف وحدات موصولة فعلاً كسلاسل طرفيّة ميتة — الحارس يخترع العطل بدل أن يجده"
+        },
+        {
+          "expect": "test_relative_imports_resolve_against_the_importing_package",
+          "find": "                if node.level:\n",
+          "replace": "                if False:\n",
+          "why": "ترك الاستيراد النسبيّ بلا حلّ ⇒ from .canonical_water import … لا يُنتِج حافّة، فتبدو canonical_water/canonical_boundary ميتتين وهما مستهلَكتان"
+        },
+        {
+          "expect": "test_a_module_nothing_executes_is_terminal",
+          "find": "    verdict: dict[str, str] = {rel: TERMINAL for rel in files}\n",
+          "replace": "    verdict: dict[str, str] = {rel: MOUNTED_ROUTE for rel in files}\n",
+          "why": "جعل كلّ وحدة قابلة للوصول ابتداءً ⇒ التصنيف يفقد قدرته على قول (ميت)، وهو الغرض الوحيد للحارس"
+        },
+        {
+          "expect": "test_a_path_launched_worker_inside_the_platform_is_a_root_itself",
+          "find": "            if platform_rel and platform_rel in files:\n                roots.add(platform_rel)",
+          "replace": "            if False:\n                roots.add(platform_rel)",
+          "why": "المُشغِّل المُنفَّذ بمسار يُعَدّ قناةً لا جذراً ⇒ نقطة الدخول نفسها تُصنَّف «ميتة» بينما compose يشغّلها"
+        },
+        {
+          "expect": "test_the_container_path_maps_to_the_service_root_not_the_repository_root",
+          "find": "    inside = PLATFORM / tail\n    if inside.is_file():",
+          "replace": "    inside = PLATFORM / tail\n    if False:",
+          "why": "‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01"
+        }
+      ],
+      "test": "tests_v9/test_platform_module_reachability_guard.py"
+    },
+    "probe_leak_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_guard_does_not_fire_on_the_places_that_legitimately_name_the_probe",
+          "find": "        if _is_allowed(rel):\n            continue\n",
+          "replace": "",
+          "why": "نزع استثناء المواضع الشرعيّة ⇒ الحارس يُطلِق على الاختبار الذي يُعرّف المِسبار وعلى الدماغ الذي يشرح الحادثة"
+        }
+      ],
+      "test": "tests_v9/test_probe_leak_guard.py"
+    },
+    "prohibition_reason_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_other_spelling_of_a_prohibition_is_caught_too",
+          "find": "    if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):\n        test, negated = test.operand, True",
+          "replace": "    if False:\n        pass",
+          "why": "إسقاط صيغة `not (\"x\" in y)` — حارسٌ يرى صيغةً واحدة يُلتَفّ عليه بإعادة صياغة لا تُغيّر شيئاً، ولا يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا"
+        },
+        {
+          "expect": "test_the_container_is_derived_from_the_assignment_not_from_its_name",
+          "find": "if container not in srcvars:\n                    continue",
+          "replace": "if False:\n                    continue",
+          "why": "نزع اشتراط أن تكون الحاوية **نصّ مصدر** ⇒ يمتدّ الحارس إلى كلّ تأكيد سالب في المستودع فيُنزَع في أوّل يوم. والمرساة على ملفّ يحمل قارئاً حقيقيّاً: أوّل صياغة عندي لم تحمله فتخطّى المسحُ الملفَّ كلّه، فمرّ الاختبار **بسببٍ آخر** وبقيت الخاصّيّة بلا حارس — كشفَته هذه الطفرة بالذات وهي خضراء"
+        }
+      ],
+      "test": "tests_v9/test_prohibition_reason_guard.py"
+    },
+    "schema_validation_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_missing_meta_schema_is_caught",
+          "find": "    meta = document.get(\"$schema\")\n    if not meta:",
+          "replace": "    meta = document.get(\"$schema\")\n    if False:",
+          "why": "قبولُ مخطَّط بلا $schema ⇒ يعود أحد عشر ملفّاً لا يُعرَف بأيّ مواصفة تُقرأ، وهو العطل الأصليّ الذي بُنِيت البوّابة له"
+        },
+        {
+          "expect": "test_an_external_ref_is_caught",
+          "find": "        if policy[\"ref_policy\"][\"local_only\"] and not ref.startswith(\"#\"):",
+          "replace": "        if False and not ref.startswith(\"#\"):",
+          "why": "قبولُ $ref خارجيّ ⇒ يصير الخضوع رهن الشبكة وترتيب الملفّات لا صحّة العقد"
+        },
+        {
+          "expect": "test_a_schema_invalid_for_its_declared_draft_is_caught",
+          "find": "                validator_cls.check_schema(document)",
+          "replace": "                pass  # noqa",
+          "why": "تخطّي التحقّق من صحّة المخطَّط نفسه ⇒ الحارس يُبلِغ خضرةً عن سؤال لم يطرحه"
+        }
+      ],
+      "test": "tests_v9/test_schema_validation_guard.py"
+    },
+    "snapshot_eligibility_separation_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_an_alter_table_add_column_is_caught_too",
+          "find": "        for column in _ALTER_ADD.findall(sql):",
+          "replace": "        for column in []:",
+          "why": "قراءة `CREATE TABLE` وحدها ⇒ يمرّ `ALTER TABLE ... ADD COLUMN` — وهو المسار **الأرجح عمليّاً**، لأنّ أحداً لا يُعيد كتابة تعريف جدول قائم؛ فيُضاف عمود الأهليّة في هجرة لاحقة والحارس ساكت"
+        },
+        {
+          "expect": "test_losing_its_subject_is_a_failure_not_a_pass",
+          "find": "    if not seen_table:",
+          "replace": "    if False:",
+          "why": "نزع إنفاذ وجود الموضوع ⇒ إعادة تسمية الجدول تجعل الحارس أخضر لأنّه **لا يرى** لا لأنّه لا يجد. الصنف نفسه المُسجَّل في `runtime_contract_generator`"
+        },
+        {
+          "expect": "test_an_eligibility_field_on_the_model_is_caught",
+          "find": "            if re.search(rf\"^\\s+{field}\\s*[:=]\", body, re.MULTILINE):",
+          "replace": "            if False:",
+          "why": "نزع فحص النموذج ⇒ حقلٌ يُضاف إلى `VegetationSnapshotIn` لأنّ واجهةً احتاجته يمرّ. **ادّعيتُ في متن #810 ثلاث طفرات وسجّلتُ اثنتين** — والمراجعة أمسكت الفارق، فهذه هي الثالثة مُسجَّلةً لا مذكورة"
+        },
+        {
+          "expect": "test_add_column_if_not_exists_does_not_slip_through",
+          "find": "    rf\"\\s+add\\s+(?:column\\s+)?(?:if\\s+not\\s+exists\\s+)?{_COLUMN}\",",
+          "replace": "    rf\"\\s+add\\s+(?:column\\s+)?{_COLUMN}\",",
+          "why": "إعادة الصيغة التي أفلتت `ADD COLUMN IF NOT EXISTS`: يُلتقَط `IF` بوصفه اسم العمود فيمرّ الاسم المحظور. والنمط يظهر ٢١ مرّة في هجرات هذه الخدمة — فأرجح طريقٍ إلى العطل كانت الوحيدة التي لا يراها الحارس. وبعد النظرة الأمام صار الأثر أنظف: لا التقاط أصلاً بدل التقاط `IF` — والاختبار يحمرّ في الحالين"
+        },
+        {
+          "expect": "test_the_full_postgresql_grammar_is_caught",
+          "find": "    rf\"alter\\s+table\\s+(?:(?:if\\s+exists|only)\\s+){{0,2}}{_QUALIFIED}(?:\\s*\\*)?\"",
+          "replace": "    rf\"alter\\s+table\\s+(?:only\\s+)?(?:if\\s+exists\\s+)?{_QUALIFIED}(?:\\s*\\*)?\"",
+          "why": "عكسُ ترتيب `IF EXISTS` و`ONLY` — وقواعد PostgreSQL هي `ALTER TABLE [ IF EXISTS ] [ ONLY ] name`. بالترتيب المعكوس تفلت الصيغة القانونيّة `ALTER TABLE IF EXISTS ONLY …` **تماماً**: صفر التقاط لا اسمٌ خاطئ. ثاني ثقب في النحو نفسه — حارس DDL يُكتَب من القواعد المنشورة لا من الصيغة المُصادَفة"
+        },
+        {
+          "expect": "test_every_legal_alter_prefix_is_caught",
+          "find": "{_QUALIFIED}(?:\\s*\\*)?\"",
+          "replace": "{_QUALIFIED}\"",
+          "why": "نزع النجمة الوراثيّة `name [ * ]` من النمط — وهي جزءٌ من القواعد نفسها: `ALTER TABLE <t> * ADD COLUMN decision_eligible` صيغةٌ مشروعة تمرّ بلا التقاط. الثقب الثالث في النحو نفسه، وقد بقي بعد تصحيح ترتيب `IF EXISTS`/`ONLY`"
+        },
+        {
+          "expect": "test_a_quoted_identifier_is_the_same_identifier",
+          "find": "_QUALIFIED = rf\"{_SCHEMA}{_QUOTE}{SNAPSHOT_TABLE}{_QUOTE}\"",
+          "replace": "_QUALIFIED = rf\"{_SCHEMA}{SNAPSHOT_TABLE}\"",
+          "why": "نزع دعم اقتباس **الجدول** ⇒ `ALTER TABLE public.\"<t>\" ADD COLUMN decision_eligible` — هجرة مشروعة تماماً — تمرّ بصفر التقاط. الاقتباس في PostgreSQL يحفظ حالة الأحرف ولا يُنشئ كياناً آخر؛ الثقب الرابع في النحو نفسه"
+        },
+        {
+          "expect": "test_the_word_column_is_never_captured_as_a_column_name",
+          "find": "_COLUMN = rf\"(?!(?:column|if|not|exists)\\b){_QUOTE}(\\w+){_QUOTE}\"",
+          "replace": "_COLUMN = rf\"(?!(?:column|if|not|exists)\\b)(\\w+)\"",
+          "why": "نزع دعم اقتباس **العمود** ⇒ `ADD COLUMN \"policy_version\"` لا يُلتقَط. وقبل النظرة الأمام كان الأسوأ: `(\\w+)` يفشل عند `\"` فيتراجع المُطابِق عن `(?:column\\s+)?` **ويلتقط `COLUMN` اسمَ عمود** — خضرةٌ بعد أن نظر ورأى الشيء الخطأ"
+        },
+        {
+          "expect": "test_a_quoted_column_inside_create_table_is_caught",
+          "find": "rf\"(^|,|\\()\\s*{_QUOTE}{field}{_QUOTE}\\s\"",
+          "replace": "rf\"(^|,|\\()\\s*{field}\\s\"",
+          "why": "نزع دعم اقتباس العمود داخل جسم `CREATE TABLE` ⇒ تجاوزٌ **صامت** مؤكَّد: الجسم يُوجَد والحقل يفلت — بخلاف الجدول المقتبس الذي كان يُسقِط الموضوع فيفشل الحارس بصوتٍ عالٍ. والصامت أخطر لأنّ لا شيء يدلّ عليه"
+        }
+      ],
+      "test": "tests_v9/test_snapshot_eligibility_separation_guard.py"
     },
     "sot_provenance_guard.py": {
       "test": "tests_v9/test_sot_provenance_guard.py",
@@ -909,6 +904,58 @@
           "find": "        other = binding.get(\"accepted_tree_sha\")\n        return other is None or other == tested.get(\"tree_sha\")",
           "replace": "        return True",
           "why": "حقلٌ متقاطعٌ مخالف لا يُقرأ في هذا الوضع، فبيانٌ يقول «الالتزام مطابق» ويحمل شجرةً مخالفة يمرّ متناقضاً داخليّاً — والمُصادِق لا يجوز أن يفترض أنّ البيان جاء من الأداة الرسميّة"
+        }
+      ]
+    },
+    "test_marker_coverage_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_file_in_a_subdirectory_is_seen",
+          "find": "[\"git\", \"ls-files\", \"-z\", \"--\", TESTS_DIR],",
+          "replace": "[\"git\", \"ls-files\", \"-z\", \"--\", TESTS_DIR + \"/test_*.py\"],",
+          "why": "إعادة النمط المسطّح — وهو العطل الذي أسقط ملفّين حقيقيّين: `tests_v9/runtime_activation/` بثمانية اختبارات كان ميّتاً في كلّ وظيفة، و**غير قابل للظهور في الأساس أصلاً** لأنّ الحارس لا يعدّه. والمرساة على حالة مزروعة في مستودع اصطناعيّ لا على عدّاد الملفّات: العدّ ٦٥٨ ⇒ ٦٥٦ فرقٌ لا يُميّزه تأكيد على الحجم"
+        },
+        {
+          "expect": "test_a_marker_that_pytest_ini_does_not_declare_is_not_a_marker",
+          "find": "if not (marker_names_in(ROOT / path) & known)]",
+          "replace": "if not marker_names_in(ROOT / path)]",
+          "why": "نزعُ التحقّق من أنّ الاسم **مُسجَّل في pytest.ini**: عندها يُقرأ `pytestmark = pytest.mark.asyncio` موسوماً بينما pytest يستبعده من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وهو ما كان يفعله التعبير النمطيّ القديم بمطابقة `pytestmark` مجرّداً"
+        }
+      ],
+      "test": "tests/architecture/test_marker_coverage_guard.py"
+    },
+    "visual_fixme_baseline_guard.py": {
+      "test": "tests_v9/test_visual_fixme_baseline_guard.py",
+      "mutations": [
+        {
+          "expect": "test_one_more_fixme_is_blocked",
+          "find": "        if len(positions) > limit:",
+          "replace": "        if False:",
+          "why": "نزعُ الراتشِت الصاعد ⇒ ثالثٌ يُضاف بمبرّرٍ وجيه في لحظته، وعاشرٌ بعده؛ والمجموع مقبرةُ ديون خضراء يقول تقريرُها «0 failed» صادقاً حرفيّاً"
+        },
+        {
+          "expect": "test_removing_a_fixme_without_lowering_the_baseline_is_blocked",
+          "find": "        elif len(positions) < limit:",
+          "replace": "        elif False:",
+          "why": "سقفٌ يبقى بعد إغلاق دَينٍ يبتلع **عودته** صامتاً: يُغلَق واحد ثمّ يُضاف آخر فيبقى العدّاد ثابتاً والحارس أخضر. راتشِتٌ لا يُخفَّض ليس راتشِتاً بل سقفٌ مُرتخٍ"
+        },
+        {
+          "expect": "test_a_fixme_without_a_gap_anchor_is_blocked",
+          "find": "            if not _has_anchor(lines, line_number):",
+          "replace": "            if False:",
+          "why": "عددٌ بلا سببٍ يُنقَل بين الأجيال بلا معنى: «اثنان» لا يقول لماذا ولا متى يُغلَقان، فيرثه من لا يعرف قصّته"
+        },
+        {
+          "expect": "test_a_missing_watched_file_fails_closed",
+          "find": "        if text is None:",
+          "replace": "        if False:\n            pass\n        if text is None:\n            continue\n        if False:",
+          "why": "ملفٌّ نُقِل أو حُذِف ⇒ لا `fixme` ⇒ لا مخالفة: الحالة التي تجعل حارساً «أخضرَ إلى الأبد» وهو يحرس لا شيء"
+        },
+        {
+          "expect": "test_a_mention_in_prose_is_not_counted_as_a_disabled_test",
+          "find": "        if _FIXME_RE.search(line) and not _COMMENT_RE.match(line)",
+          "replace": "        if _FIXME_RE.search(line)",
+          "why": "عدُّ ذِكرِ الاسم في شرحٍ اختباراً مُعطَّلاً — عطلٌ وقع فعلاً في أوّل صياغة (أربعة بدل اثنين). وعدٌّ يُعاقِب التوثيق يُدرِّب كاتبه على حذفه: رقمٌ خاطئ وتوثيقٌ أقلّ"
         }
       ]
     }
