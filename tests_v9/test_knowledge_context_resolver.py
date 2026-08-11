@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -93,9 +93,23 @@ def test_the_raised_message_carries_the_blocking_reason():
     assert "KNOWLEDGE_UNAVAILABLE" in str(exc.value)
 
 
-def test_a_fail_closed_requirement_blocks_when_absent():
+def test_a_required_requirement_blocks_when_absent():
     ctx = _resolver(lambda req: None).resolve(_contract())
     assert any("KNOWLEDGE_UNAVAILABLE" in r for r in ctx.blocking_reasons)
+
+
+def test_fail_closed_blocks_even_an_optional_requirement():
+    """الدور المُميِّز لـ`fail_closed`: يحجب ما كان `required=False`.
+
+    **ولولا هذا الاختبار لكان العَلَم زينة.** مقيسٌ بالزرع لا بالظنّ: نزعُ
+    `fail_closed` من شرط الحجب ترك الجناح كلّه **أخضر** (١٩/١٩) لأنّ كلّ
+    اختبارٍ يمسّه كان يحمل `required=True` أيضاً، فيحجب من البابين. فالخاصّيّة
+    كانت مُعلَنةً في التوقيع وغير مُثبَتةٍ بشيء.
+    """
+    ctx = _resolver(lambda req: None).resolve(_contract(required=False, fail_closed=True))
+    assert not ctx.satisfied
+    assert any("KNOWLEDGE_UNAVAILABLE" in r for r in ctx.blocking_reasons)
+    assert not ctx.limitations, "حاجبٌ لا يجوز أن يُسجَّل قيداً"
 
 
 def test_an_optional_requirement_limits_but_does_not_block():

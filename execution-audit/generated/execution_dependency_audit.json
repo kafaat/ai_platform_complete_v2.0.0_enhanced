@@ -507833,196 +507833,196 @@
       "file": "shared/knowledge/context_resolver.py",
       "source": "_age_seconds",
       "target": "fromisoformat",
-      "line": 33
+      "line": 44
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "_age_seconds",
       "target": "replace",
-      "line": 33
+      "line": 44
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "_age_seconds",
       "target": "timestamp",
-      "line": 38
+      "line": 49
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "__init__",
       "target": "dict",
-      "line": 53
+      "line": 64
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "__init__",
       "target": "dict",
-      "line": 54
+      "line": 65
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "_sources_map",
       "target": "registry",
-      "line": 59
+      "line": 70
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "_sources_map",
-      "line": 68
+      "line": 79
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "ResolvedContext",
-      "line": 71
+      "line": 82
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "get",
-      "line": 81
+      "line": 92
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "append",
-      "line": 83
+      "line": 94
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "append",
-      "line": 87
-    },
-    {
-      "owner": "shared",
-      "file": "shared/knowledge/context_resolver.py",
-      "source": "resolve",
-      "target": "get",
-      "line": 93
-    },
-    {
-      "owner": "shared",
-      "file": "shared/knowledge/context_resolver.py",
-      "source": "resolve",
-      "target": "_record_absence",
-      "line": 95
-    },
-    {
-      "owner": "shared",
-      "file": "shared/knowledge/context_resolver.py",
-      "source": "resolve",
-      "target": "provider",
       "line": 98
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
-      "target": "_record_absence",
-      "line": 100
-    },
-    {
-      "owner": "shared",
-      "file": "shared/knowledge/context_resolver.py",
-      "source": "resolve",
-      "target": "append",
+      "target": "get",
       "line": 104
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
-      "target": "_age_seconds",
+      "target": "_record_absence",
+      "line": 106
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "provider",
+      "line": 109
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_record_absence",
       "line": 111
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
-      "target": "_record_absence",
-      "line": 113
+      "target": "append",
+      "line": 115
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_age_seconds",
+      "line": 122
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "_record_absence",
-      "line": 116
+      "line": 124
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/context_resolver.py",
+      "source": "resolve",
+      "target": "_record_absence",
+      "line": 127
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "ResolvedContext",
-      "line": 121
+      "line": 132
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "set",
-      "line": 124
+      "line": 135
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "sorted",
-      "line": 124
+      "line": 135
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "tuple",
-      "line": 124
+      "line": 135
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "set",
-      "line": 125
+      "line": 136
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "sorted",
-      "line": 125
+      "line": 136
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "resolve",
       "target": "tuple",
-      "line": 125
+      "line": 136
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "_record_absence",
       "target": "append",
-      "line": 141
+      "line": 155
     },
     {
       "owner": "shared",
       "file": "shared/knowledge/context_resolver.py",
       "source": "_record_absence",
       "target": "append",
-      "line": 143
+      "line": 157
     },
     {
       "owner": "shared",
@@ -526396,7 +526396,7 @@
       "symbol": "ContextResolver",
       "kind": "class",
       "file": "shared/knowledge/context_resolver.py",
-      "line": 41,
+      "line": 52,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,
