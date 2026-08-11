@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1842,
     "route_handlers": 1049,
-    "call_edges": 72982,
+    "call_edges": 72983,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -168213,92 +168213,57 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "any",
-      "line": 86
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "max",
-      "line": 92
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "min",
-      "line": 92
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "max",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "max",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 101
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
+      "target": "str",
+      "line": 92
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "any",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "max",
       "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 103
+      "target": "min",
+      "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 104
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "max",
       "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 106
+      "target": "max",
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 108
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 110
+      "target": "get",
+      "line": 111
     },
     {
       "owner": "sahool-platform",
@@ -168311,183 +168276,225 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 123
+      "target": "get",
+      "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 124
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 125
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 126
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 127
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 128
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 129
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 130
+      "target": "append",
+      "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 132
+      "line": 115
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "append",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "append",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "append",
+      "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "append",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "round",
       "line": 133
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "round",
       "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "round",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "round",
       "line": 136
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "round",
       "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "set",
+      "target": "round",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "round",
       "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "sorted",
-      "line": 139
+      "target": "round",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 147
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "set",
-      "line": 140
+      "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "sorted",
-      "line": 140
+      "line": 149
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "set",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "sorted",
+      "line": 150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "CanonicalSprinklerRunoffCapability",
-      "line": 142
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "_digest",
-      "line": 142
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "to_dict",
-      "line": 149
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "isinstance",
-      "line": 150
+      "line": 160
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 153
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 153
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "list",
-      "line": 157
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 158
+      "line": 168
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 158
+      "line": 168
     },
     {
       "owner": "sahool-platform",
@@ -520408,7 +520415,7 @@
       "symbol": "sprinkler_capability_to_mpc_constraints",
       "kind": "function",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "line": 145,
+      "line": 155,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

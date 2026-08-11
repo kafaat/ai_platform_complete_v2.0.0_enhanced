@@ -83,7 +83,17 @@ def build_canonical_sprinkler_runoff_capability(
     slope = _num(terrain.get("maximum_slope_percent"))
     wind = _num(weather.get("wind_speed_m_s"))
     root_zone_refill_cap = _num(root_zone_profile.get("root_zone_refill_cap_mm"))
-    if any(v is None for v in (peak, infiltration, slope, wind, root_zone_refill_cap)):
+    # نَسَبُ منطقة الجذر شرطٌ لا زينة. كان يُقرأ بارتدادٍ إلى `capability_digest`،
+    # فلمّا حُصِر في `profile_digest` بقي بلا فحص — فينتج **قدرةٌ «verified»
+    # ونَسَبُها `None`**: دليلٌ يعرض ثقبَه بوصفه حقيقةً مُتحقَّقة، وهو أسوأ من
+    # الحجب لأنّ من يقرأ `verified` لا يعود ينظر في الأدلّة. مقيسٌ بالتنفيذ قبل
+    # هذا السطر. والارتداد لم يُعَد لأنّ `capability_digest` نَسَبُ عملٍ آخر:
+    # قبولُه يجعل الوثيقة تنسب القيمة إلى مصدرٍ لم يُنتِجها.
+    root_zone_digest = str(root_zone_profile.get("profile_digest") or "")
+    if (
+        any(v is None for v in (peak, infiltration, slope, wind, root_zone_refill_cap))
+        or not root_zone_digest
+    ):
         return {"status": "blocked", "reason": "complete_runoff_evidence_required"}
     if peak <= 0 or infiltration <= 0 or slope < 0 or wind < 0 or root_zone_refill_cap <= 0:
         return {"status": "blocked", "reason": "invalid_runoff_parameters"}
@@ -131,7 +141,7 @@ def build_canonical_sprinkler_runoff_capability(
         "evidence": {
             "machine_capability_digest": machine_capability.get("capability_digest"),
             "package_test_digest": package.get("test_digest"),
-            "root_zone_profile_digest": root_zone_profile.get("profile_digest"),
+            "root_zone_profile_digest": root_zone_digest,
             "root_zone_refill_cap_source": ("canonical_root_zone_profile.root_zone_refill_cap_mm"),
             "terrain_profile_digest": terrain.get("profile_digest"),
             "weather_snapshot_digest": weather.get("snapshot_digest"),

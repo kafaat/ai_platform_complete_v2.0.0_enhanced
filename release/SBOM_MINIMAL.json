@@ -15065,7 +15065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c25b63baf45c4e3941ecad9cacfd470ba11f8aaf1834a0e7096b387318913343"
+          "content": "5587078197c2f14d7726554a13d43230feb9b3ac847205d643bf3b5f033c4fed"
         }
       ],
       "name": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",

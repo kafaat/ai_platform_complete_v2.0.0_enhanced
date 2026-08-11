@@ -152,3 +152,47 @@ def test_m26_does_not_rederive_refill_cap_from_raw_mm():
         "status": "blocked",
         "reason": "complete_runoff_evidence_required",
     }
+
+
+def test_m26_fails_closed_when_root_zone_provenance_digest_is_missing():
+    """قدرةٌ «verified» ونَسَبُها `None` أسوأ من الحجب.
+
+    الارتداد إلى `capability_digest` أُزيل في هذه الشريحة وبقي الحقل بلا فحص،
+    فكان مُنتَجٌ بلا `profile_digest` يُعطي قدرةً **مُتحقَّقة** وأدلّتُها تحمل
+    `None` — ومن يقرأ `verified` لا يعود ينظر في الأدلّة. أمسكه فحصٌ خارجيّ
+    وأُثبِت بالتنفيذ قبل الإصلاح.
+    """
+    root = _real_root_zone_payload()
+    root.pop("profile_digest")
+
+    out = build_canonical_sprinkler_runoff_capability(
+        tenant_id="tenant-1",
+        project_id="project-1",
+        machine_capability=_machine(),
+        package=_package(),
+        root_zone_profile=root,
+        terrain=_terrain(),
+        weather=_weather(),
+    )
+
+    assert out == {
+        "status": "blocked",
+        "reason": "complete_runoff_evidence_required",
+    }
+
+
+def test_a_verified_capability_always_carries_a_root_zone_digest():
+    """البند الموجب: النجاح يحمل النَّسَب، لا مجرّد أنّ الفشل يُحجَب."""
+    out = build_canonical_sprinkler_runoff_capability(
+        tenant_id="tenant-1",
+        project_id="project-1",
+        machine_capability=_machine(),
+        package=_package(),
+        root_zone_profile=_real_root_zone_payload(),
+        terrain=_terrain(),
+        weather=_weather(),
+    )
+
+    assert out.status == "verified"
+    assert out.evidence["root_zone_profile_digest"]
+    assert len(out.evidence["root_zone_profile_digest"]) == 64
