@@ -46,6 +46,14 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/sot_evidence_manifest.schema.json",
+      "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/sot_provenance_policy.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/test_impact_policy.json",
       "kind": "governed"
     }

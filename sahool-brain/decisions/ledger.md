@@ -1529,3 +1529,13 @@ SHAs من `git log --oneline origin/main`.
 | **عدم** بناء حارس ضدّ سوء قراءة حالة الوظيفة | لا شيء في CI يمنع تكراره؛ والإصلاح إجرائيّ ومُسجَّل — وتسجيلُه أصدق من ادّعاء سدّه | حدٌّ مُعلَن |
 
 `runtime_verified: 0` · `production_certified: 0` · `REAL/CUTOVER: BLOCKED` · الحزمة الفيزيائيّة (٢٣ ملفّاً) محجوبة.
+### SoT provenance simplification — P0 accepted with conditions
+
+- القرار: Manifest حتمي واحد + GitHub/Sigstore attestation قائمة + verifier واحد fail-closed + gate واحدة.
+- العدّ المرجعي مشتق من manifest، وليس من تقرير 23/25.
+- الـmanifest subject موقّع مباشرة؛ لا self-hash دائري.
+- PR synthetic merge يُربط بالشجرة، ولا يساوي SHA الإصدار النهائي افتراضاً؛ main/release يعيد البوابة.
+- Rekor outage وقت التحقق لا يحجب إذا bundle + trusted roots تتحقق offline.
+- assurance مشتق L0..L5؛ لا boolean يكتبه caller.
+- CUTOVER/REAL يبقيان BLOCKED؛ هذا القرار يثبت هوية الأدلة ولا يثبت صحة v228 التشغيلية.
+

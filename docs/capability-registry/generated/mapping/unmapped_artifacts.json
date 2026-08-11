@@ -7892,6 +7892,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_sot_provenance_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_source_registry_taxonomy_v63_5.py",
     "kind": "tests"
   },
