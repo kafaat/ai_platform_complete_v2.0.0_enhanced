@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4975,
+    "files_scanned": 4971,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
-      "other": 1323,
+      "other": 1319,
       "tests": 1619,
       "web": 454
     },
     "unmapped_artifacts": 2026,
-    "ambiguous_artifacts": 407
+    "ambiguous_artifacts": 405
   },
   "capabilities": [
     {
@@ -43710,80 +43710,6 @@
           "signals": [
             "content:cog",
             "content:tilejson"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/source_text_assertion_inventory.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 10,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "FM-007",
-          "score": 8,
-          "signals": [
-            "path:inventory"
-          ]
-        },
-        {
-          "capability_id": "DEC-004",
-          "score": 8,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/architecture/source_text_assertion_inventory.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 10,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "FM-007",
-          "score": 8,
-          "signals": [
-            "path:inventory"
-          ]
-        },
-        {
-          "capability_id": "DEC-004",
-          "score": 8,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
           ]
         }
       ]
