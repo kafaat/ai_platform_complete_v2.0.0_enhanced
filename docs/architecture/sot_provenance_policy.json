@@ -1,0 +1,19 @@
+{
+  "schema": "sahool.sot-provenance-policy/v1",
+  "policy_version": 1,
+  "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+  "signer_workflow": "kafaat/ai_platform_complete_v2.0.0_enhanced/.github/workflows/ci.yml",
+  "predicate_type": "https://slsa.dev/provenance/v1",
+  "oidc_issuer": "https://token.actions.githubusercontent.com",
+  "deny_self_hosted_runners": true,
+  "manifest_schema": "sahool.evidence-manifest/v1",
+  "manifest_closure": "exact",
+  "gh_cli": {
+    "version": "2.93.0",
+    "linux_amd64_archive": "gh_2.93.0_linux_amd64.tar.gz",
+    "linux_amd64_archive_sha256": "02d1290eba130e0b896f3709ffff22e1c75a51475ddb70476a85abc6b5807af0",
+    "release_url": "https://github.com/cli/cli/releases/download/v2.93.0/gh_2.93.0_linux_amd64.tar.gz"
+  },
+  "adjudicated_on": "2026-08-11",
+  "version": 1
+}

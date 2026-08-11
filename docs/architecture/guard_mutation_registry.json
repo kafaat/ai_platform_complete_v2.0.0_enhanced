@@ -840,6 +840,77 @@
           "why": "مجلّدٌ غائب أو مسارٌ تغيّر ⇒ صفر بصمة ⇒ صفر مخالفة ⇒ PASS: «لم يُقَس» يُقرأ «متّسق»، وهي الحالة التي تجعل الحارس أخضرَ إلى الأبد وهو يحرس لا شيء"
         }
       ]
+    },
+    "sot_provenance_guard.py": {
+      "test": "tests_v9/test_sot_provenance_guard.py",
+      "mutations": [
+        {
+          "expect": "test_digest_mismatch_is_rejected",
+          "find": "        if actual_digest != expected_digest:",
+          "replace": "        if False:",
+          "why": "قبول بصمة subject مخالفة يلغي ربط البايتات بالـmanifest."
+        },
+        {
+          "expect": "test_unmanifested_file_is_rejected_by_exact_closure",
+          "find": "    if actual_paths != allowed_paths:",
+          "replace": "    if False:",
+          "why": "ملف زائد غير معلن يعيد مشكلة 23/25 كواقع غير محروس."
+        },
+        {
+          "expect": "test_gh_command_requires_exact_signer_workflow_and_oidc",
+          "find": "        \"--signer-workflow\",\n        policy[\"signer_workflow\"],",
+          "replace": "        \"--signer-workflow\",\n        policy[\"repository\"],",
+          "why": "قبول workflow غير المتوقعة يوسع actor identity صامتاً."
+        },
+        {
+          "expect": "test_gh_command_requires_source_digest_and_ref",
+          "find": "        \"--source-digest\",\n        tested_commit,",
+          "replace": "        \"--source-digest\",\n        \"0\" * 40,",
+          "why": "انفصال المصدر المقاس عن source digest الموثق يعيد TOCTOU."
+        },
+        {
+          "expect": "test_gh_command_requires_source_digest_and_ref",
+          "find": "        \"--source-ref\",\n        source_ref,",
+          "replace": "        \"--source-ref\",\n        \"refs/heads/main\",",
+          "why": "تبديل ref يسمح بمصنوعة صحيحة من سياق آخر."
+        },
+        {
+          "expect": "test_gh_command_denies_self_hosted_and_uses_trusted_root",
+          "find": "        \"--custom-trusted-root\",\n        str(trusted_root),",
+          "replace": "        \"--custom-trusted-root\",\n        \"/tmp/untrusted.jsonl\",",
+          "why": "trusted root ليست metadata؛ تغييرها يغير جذر الثقة."
+        },
+        {
+          "expect": "test_gh_command_denies_self_hosted_and_uses_trusted_root",
+          "find": "        \"--deny-self-hosted-runners\",",
+          "replace": "        # mutated: self-hosted runners accepted",
+          "why": "إزالة القيد توسع هوية builder من دون قرار."
+        },
+        {
+          "expect": "test_failed_gh_verification_never_becomes_pass",
+          "find": "    if returncode != 0:",
+          "replace": "    if False:",
+          "why": "فشل الأداة الرسمية لا يجوز أن يتحول إلى PASS."
+        },
+        {
+          "expect": "test_a_malformed_closure_is_rejected_with_its_own_reason",
+          "find": "    if closure.get(\"mode\") != \"exact\":",
+          "replace": "    if False:",
+          "why": "السياسة تفترض إغلاقاً `exact` ولم يكن مفحوصاً: بيانٌ يعلن وضعاً آخر يمرّ فيصير «الإغلاق التامّ» ادّعاءً في وثيقةٍ لا يفرضه أحد"
+        },
+        {
+          "expect": "test_a_malformed_closure_is_rejected_with_its_own_reason",
+          "find": "    if not isinstance(raw_exclusions, list):",
+          "replace": "    if False:",
+          "why": "`set(...)` على غير قائمةٍ نصّيّة يرمي TypeError فيُبلَّغ VERIFIER_INTERNAL_ERROR — سببٌ يقول «عطبٌ في المُصادِق» بينما العطب في البيان، فيبحث المُصلِح في المكان الخطأ"
+        },
+        {
+          "expect": "test_the_verifier_rejects_a_manifest_that_contradicts_itself",
+          "find": "        other = binding.get(\"accepted_tree_sha\")\n        return other is None or other == tested.get(\"tree_sha\")",
+          "replace": "        return True",
+          "why": "حقلٌ متقاطعٌ مخالف لا يُقرأ في هذا الوضع، فبيانٌ يقول «الالتزام مطابق» ويحمل شجرةً مخالفة يمرّ متناقضاً داخليّاً — والمُصادِق لا يجوز أن يفترض أنّ البيان جاء من الأداة الرسميّة"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

@@ -41,6 +41,8 @@
     "raster_boundary_allowlist.json",
     "runtime_contract_nonsecret_keys.json",
     "schema_validation_policy.json",
+    "sot_evidence_manifest.schema.json",
+    "sot_provenance_policy.json",
     "test_impact_policy.json",
     "weather_boundary_allowlist.json",
     "weather_direct_wiring_allowlist.json",

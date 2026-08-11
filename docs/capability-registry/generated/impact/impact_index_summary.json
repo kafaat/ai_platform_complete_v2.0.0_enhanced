@@ -7,7 +7,7 @@
   "inputs": {
     ".github/workflows/capability-governance.yml": "841a4bd4117ead6b068afe0031366ee1a1e4ff85f0e12d8d891bba38492718f9",
     "docs/capability-registry/generated/capability_registry.json": "6bcb108eca9b0d57db16564e85165016926990954d57b583fc71d6c7a29e2c70",
-    "docs/capability-registry/generated/mapping/capability_mapping.json": "bb097d97dbcec548c9ab0f6bd94a40de66fe17fa3ea7e7ccffcd09f17b3a3f76",
+    "docs/capability-registry/generated/mapping/capability_mapping.json": "19412f79e3e01c202ec342c600fee2997504eac929f3129b6886abb6d60c3257",
     "docs/capability-registry/roadmap/roadmap_items.yaml": "a67bb6f7755787dc03b440cb4709d93d9f234124cdb93fb46527dbffd5811527",
     "scripts/ci/capability_impact.py": "1f8b505a6ab4e23d0fce4fb89426360a4aa94d748e9697f6ebb40e47f8137d3d",
     "scripts/ci/capability_roadmap_linker.py": "7de48c0de3fa995f0838be2f42a03ababfda5659b6513bd209559fe6f01e210a",

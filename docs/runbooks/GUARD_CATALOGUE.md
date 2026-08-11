@@ -10,18 +10,18 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **229**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **19**
-- إجماليّ الطفرات المُسجَّلة: **122**
+- حرّاس تحجب في CI: **231**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **20**
+- إجماليّ الطفرات المُسجَّلة: **133**
 
-أي أنّ **210** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (19)
+## الحرّاس المُثبَتة بالتكذيب (20)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -326,6 +326,26 @@
 - نزع دعم اقتباس **العمود** ⇒ `ADD COLUMN "policy_version"` لا يُلتقَط. وقبل النظرة الأمام كان الأسوأ: `(\w+)` يفشل عند `"` فيتراجع المُطابِق عن `(?:column\s+)?` **ويلتقط `COLUMN` اسمَ عمود** — خضرةٌ بعد أن نظر ورأى الشيء الخطأ — يُسقِط `test_the_word_column_is_never_captured_as_a_column_name`
 - نزع دعم اقتباس العمود داخل جسم `CREATE TABLE` ⇒ تجاوزٌ **صامت** مؤكَّد: الجسم يُوجَد والحقل يفلت — بخلاف الجدول المقتبس الذي كان يُسقِط الموضوع فيفشل الحارس بصوتٍ عالٍ. والصامت أخطر لأنّ لا شيء يدلّ عليه — يُسقِط `test_a_quoted_column_inside_create_table_is_caught`
 
+### `sot_provenance_guard.py`
+
+**يحجب في:** `ci.yml` → `live-pg-fake-connection-proofs`
+
+**الاختبار الشاهد:** `tests_v9/test_sot_provenance_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- قبول بصمة subject مخالفة يلغي ربط البايتات بالـmanifest. — يُسقِط `test_digest_mismatch_is_rejected`
+- ملف زائد غير معلن يعيد مشكلة 23/25 كواقع غير محروس. — يُسقِط `test_unmanifested_file_is_rejected_by_exact_closure`
+- قبول workflow غير المتوقعة يوسع actor identity صامتاً. — يُسقِط `test_gh_command_requires_exact_signer_workflow_and_oidc`
+- انفصال المصدر المقاس عن source digest الموثق يعيد TOCTOU. — يُسقِط `test_gh_command_requires_source_digest_and_ref`
+- تبديل ref يسمح بمصنوعة صحيحة من سياق آخر. — يُسقِط `test_gh_command_requires_source_digest_and_ref`
+- trusted root ليست metadata؛ تغييرها يغير جذر الثقة. — يُسقِط `test_gh_command_denies_self_hosted_and_uses_trusted_root`
+- إزالة القيد توسع هوية builder من دون قرار. — يُسقِط `test_gh_command_denies_self_hosted_and_uses_trusted_root`
+- فشل الأداة الرسمية لا يجوز أن يتحول إلى PASS. — يُسقِط `test_failed_gh_verification_never_becomes_pass`
+- السياسة تفترض إغلاقاً `exact` ولم يكن مفحوصاً: بيانٌ يعلن وضعاً آخر يمرّ فيصير «الإغلاق التامّ» ادّعاءً في وثيقةٍ لا يفرضه أحد — يُسقِط `test_a_malformed_closure_is_rejected_with_its_own_reason`
+- `set(...)` على غير قائمةٍ نصّيّة يرمي TypeError فيُبلَّغ VERIFIER_INTERNAL_ERROR — سببٌ يقول «عطبٌ في المُصادِق» بينما العطب في البيان، فيبحث المُصلِح في المكان الخطأ — يُسقِط `test_a_malformed_closure_is_rejected_with_its_own_reason`
+- حقلٌ متقاطعٌ مخالف لا يُقرأ في هذا الوضع، فبيانٌ يقول «الالتزام مطابق» ويحمل شجرةً مخالفة يمرّ متناقضاً داخليّاً — والمُصادِق لا يجوز أن يفترض أنّ البيان جاء من الأداة الرسميّة — يُسقِط `test_the_verifier_rejects_a_manifest_that_contradicts_itself`
+
 ### `test_marker_coverage_guard.py`
 
 **يفرض:** يمنع وُلود اختبار خامد: ملفّ في ``tests_v9`` بلا علامة لا يعمل في أيّ وظيفة CI.
@@ -357,7 +377,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (210)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (211)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -553,6 +573,7 @@
 | `soil_projection_reconciliation_guard.py` | — | `structural-lint` |
 | `soil_runtime_certification_guard.py` | Static ratchet ensuring real-Postgres soil certification remains wired. | `structural-lint` |
 | `soil_supersession_current_pointer_guard.py` | — | `structural-lint` |
+| `sot_evidence_manifest.py` | — | `live-pg-fake-connection-proofs` |
 | `static_governance_closure.py` | Artifact-based closure gate for Path 1 static governance. | `capability-registry` · `apply-as-pull-request` |
 | `tests_tree_coverage_guard.py` | شجرة ``tests/`` تُشغَّل كاملةً ناقص أساس مُبرَّر — لا بقائمة سماح مكتوبة يدويّاً. | `repository-tests` |
 | `unified_production_readiness_gate.py` | Run canonical static production gates and emit one machine-readable verdict. | `unified-readiness-evidence` |

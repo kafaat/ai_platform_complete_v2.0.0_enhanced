@@ -1513,3 +1513,14 @@ SHAs من `git log --oneline origin/main`.
 | منعُ الاشتقاق من `raw_mm` عند غياب الحقل | fallback هنا يُعيد إنتاج العطل نفسه بصمت: يُنتِج رقماً معقولاً من مصدرٍ غير قانونيّ فيبدو النجاح | `test_m26_does_not_rederive_refill_cap_from_raw_mm` |
 | **عدم** تسجيل طفرات للحرّاس الثلاثة | لا اختبار يُشغّلها (تُستدعى مباشرةً في `ci.yml`)، وتسجيلُ طفرةٍ باسم اختبارٍ لا يوجد يُبلِغ تغطيةً لا نملكها — والصمت أصدق من ادّعاء | `guard_mutation_registry.json` |
 | إغلاق ثغرة أساس الترميز **بعددٍ لا باسم** | الأساس كان يُقارَن بمجموعات أسماء، فقراءةٌ ثالثة تُضاف إلى ملفٍّ مُدرَجٍ بقراءتين لا تُحمِر شيئاً — وقد وقع فعلاً في هذه الحزمة | `test_no_baselined_file_adds_a_new_offender_under_its_entry` |
+
+### SoT provenance simplification — P0 accepted with conditions
+
+- القرار: Manifest حتمي واحد + GitHub/Sigstore attestation قائمة + verifier واحد fail-closed + gate واحدة.
+- العدّ المرجعي مشتق من manifest، وليس من تقرير 23/25.
+- الـmanifest subject موقّع مباشرة؛ لا self-hash دائري.
+- PR synthetic merge يُربط بالشجرة، ولا يساوي SHA الإصدار النهائي افتراضاً؛ main/release يعيد البوابة.
+- Rekor outage وقت التحقق لا يحجب إذا bundle + trusted roots تتحقق offline.
+- assurance مشتق L0..L5؛ لا boolean يكتبه caller.
+- CUTOVER/REAL يبقيان BLOCKED؛ هذا القرار يثبت هوية الأدلة ولا يثبت صحة v228 التشغيلية.
+
