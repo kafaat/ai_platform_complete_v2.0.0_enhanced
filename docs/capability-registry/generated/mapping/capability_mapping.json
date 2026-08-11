@@ -5621,11 +5621,15 @@
           "score": 14
         },
         {
-          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:55",
+          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:48",
           "score": 14
         },
         {
-          "value": "FieldWorkspaceTabs.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:48",
+          "value": "FieldWorkspaceRouteShell.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:64",
+          "score": 14
+        },
+        {
+          "value": "FieldWorkspaceTabs.tsx @ services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py:57",
           "score": 14
         },
         {
@@ -5972,7 +5976,7 @@
         "backend": 13,
         "routes": 56,
         "database": 5,
-        "events": 53,
+        "events": 54,
         "web": 2,
         "mobile": 2,
         "tests": 11,

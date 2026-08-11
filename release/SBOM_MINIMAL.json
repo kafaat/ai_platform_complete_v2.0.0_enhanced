@@ -26685,7 +26685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7faf79b2f4d8c3c61fb663a557fd16874984ce0adf0c153964599fdacbb80c2"
+          "content": "0128e3e42e28ae23d46c2701b996af4b773bc33d0b71bc8fc444793e1ea262e1"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
