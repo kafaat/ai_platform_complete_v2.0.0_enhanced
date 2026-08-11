@@ -1855,3 +1855,4 @@ WX-010,test,services/weather-service/tests/test_canonical_weather_state.py,3,app
 WX-010,test,tests/architecture/test_provenance_receipt_and_replay.py,3,applied
 WX-010,test,tests_v9/test_field_state_recompute_provenance_v57_5.py,3,applied
 WX-010,test,tests_v9/test_irrx1_authoritative_provenance_lock.py,3,applied
+WX-010,test,tests_v9/test_sot_provenance_guard.py,3,applied

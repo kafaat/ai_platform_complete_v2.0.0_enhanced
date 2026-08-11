@@ -1282,16 +1282,19 @@ jobs:
           set -euo pipefail
           python scripts/ci/live_pg_role_closure_guard.py \
             --evidence live_pg_role_closure.json
-      - name: Hash the evidence so the artifact names its own bytes
-        # هذه البصمة **سلامة داخلية فقط، وليست إثبات منشأ**. إثبات المنشأ المستقل
-        # هو Sigstore/GitHub attestation في الخطوة التالية، ويربط البصمات نفسها
-        # بهوية workflow وOIDC خارج الملفات التي يجري قياسها.
+      - name: Build the canonical evidence manifest and subject digest set
         if: always()
         run: |
           set -euo pipefail
-          ls -l live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json || true
-          sha256sum live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json \
-            > live_pg_evidence.sha256
+          tested_commit="$(git rev-parse HEAD)"
+          tested_tree="$(git rev-parse HEAD^{tree})"
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            binding_args=(--binding-mode pending_final_rerun)
+          else
+            binding_args=(--binding-mode exact_commit --accepted-commit-sha "$tested_commit" --accepted-tree-sha "$tested_tree")
+          fi
+          python scripts/ci/sot_evidence_manifest.py             --output live_pg_canonical_manifest.json             --file live_pg_evidence.json             --file live_pg_evidence.xml             --file live_pg_role_closure.json             --tested-commit "$tested_commit" --tested-tree "$tested_tree"             --source-ref "${GITHUB_REF}" "${binding_args[@]}"
+          sha256sum live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json             live_pg_canonical_manifest.json > live_pg_evidence.sha256
           cat live_pg_evidence.sha256
       # **محاولتان لا واحدة — والسبب مقيس لا مُفترَض.** أوّل تشغيل فعليّ لهذه الخطوة
       # سقط بـ`InternalError: error fetching tlog entry` ⇒ `network timeout` على
@@ -1344,6 +1347,19 @@ jobs:
           # الفحص معتمداً على بيئةٍ لا على المحتوى — ونتيجةٌ تتغيّر بتغيّر اللغة ليست قياساً.
           python -c "import json,pathlib,sys; json.loads(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))" "$BUNDLE_PATH"
           cp "$BUNDLE_PATH" live_pg_evidence.attestation.json
+      - name: Install the pinned GitHub attestation verifier
+        if: always() && steps.live_pg_copy_attestation.outcome == 'success'
+        run: scripts/ci/install_pinned_gh_attestation_cli.sh
+      - name: Fetch independent trusted roots and enforce the provenance gate
+        if: always() && steps.live_pg_copy_attestation.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh attestation trusted-root > live_pg_trusted_root.jsonl
+          required="L5"
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then required="L3"; fi
+          python scripts/ci/sot_provenance_guard.py             --manifest live_pg_canonical_manifest.json             --policy docs/architecture/sot_provenance_policy.json             --bundle live_pg_evidence.attestation.json             --trusted-root live_pg_trusted_root.jsonl             --artifact-file live_pg_evidence.json             --artifact-file live_pg_evidence.xml             --artifact-file live_pg_role_closure.json             --artifact-file live_pg_canonical_manifest.json             --artifact-file live_pg_evidence.sha256             --artifact-file live_pg_evidence.attestation.json             --artifact-file live_pg_trusted_root.jsonl             --artifact-file live_pg_verification_record.json             --required-assurance "$required"             --output live_pg_verification_record.json
       # **قناتان مفصولتان لأنّ الغرضين مختلفان — والخلط بينهما يُسقِط أحدهما.**
       # حفظُ القياس ليس إثباتَ المنشأ: الأوّل يمنع «وظيفةٌ خضراء بلا دليل»، والثاني
       # يمنع «حزمةٌ توحي بمنشأ لم يُثبَت». وربطُ الرفع بنجاح التوقيع يشتري الثانية
@@ -1361,6 +1377,7 @@ jobs:
             live_pg_evidence.json
             live_pg_evidence.xml
             live_pg_role_closure.json
+            live_pg_canonical_manifest.json
             live_pg_evidence.sha256
           if-no-files-found: error
           retention-days: 30
@@ -1374,6 +1391,23 @@ jobs:
           path: live_pg_evidence.attestation.json
           if-no-files-found: error
           retention-days: 30
+
+      - name: Upload the verified evidence archive
+        if: always() && steps.live_pg_copy_attestation.outcome == 'success'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: live-pg-verified-evidence-${{ github.sha }}
+          path: |
+            live_pg_evidence.json
+            live_pg_evidence.xml
+            live_pg_role_closure.json
+            live_pg_canonical_manifest.json
+            live_pg_evidence.sha256
+            live_pg_evidence.attestation.json
+            live_pg_trusted_root.jsonl
+            live_pg_verification_record.json
+          if-no-files-found: error
+          retention-days: 90
 
   security-scan:
     name: Security Scan
