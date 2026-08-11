@@ -58,7 +58,12 @@ def _read(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as exc:  # فشلٌ مغلق لا تخطٍّ صامت
-        pytest.fail(f"تعذّرت قراءة {path.relative_to(ROOT)} — {exc}")
+        pytest.fail(
+            f"تعذّرت قراءة {path.relative_to(ROOT)} — {exc}\n"
+            "وغيابُ الملفّ نفسه عطلٌ لا عذر: كلّ ملفّ في `NARRATIVES` **يجب** أن يُقرأ "
+            "كي يُقاس. تخطّيه عند الغياب كان يجعل **حذف** ملفّ سجلٍّ يُمرّر الفحص أخضر "
+            "بلا قياس — أي أنّ أرخص طريقة لإسكات هذا الحارس تصير حذفَ ما يقيسه."
+        )
 
 
 def _ids(text: str) -> set[str]:
@@ -142,8 +147,7 @@ def test_every_gap_id_the_journal_narrates_exists_in_the_registry():
 
     missing: list[str] = []
     for path in NARRATIVES:
-        if not path.is_file():
-            continue
+        # لا حارس وجود هنا قصداً: `_read` يفشل مغلقاً على الملفّ المفقود.
         orphans = _ids(_read(path)) - registry_ids - _NARRATED_WITHOUT_ENTRY_BASELINE
         for gap_id in sorted(orphans):
             missing.append(f"{path.relative_to(ROOT)}: {gap_id}")
@@ -178,8 +182,7 @@ def test_the_baseline_only_shrinks_and_names_nothing_the_registry_already_has():
 
     narrated: set[str] = set()
     for path in NARRATIVES:
-        if path.is_file():
-            narrated |= _ids(_read(path))
+        narrated |= _ids(_read(path))  # بلا حارس وجود: الغياب فشلٌ لا تخطٍّ
     stale = sorted(_NARRATED_WITHOUT_ENTRY_BASELINE - narrated)
     assert not stale, (
         "أساسٌ يحمل معرِّفاً لم يعد السجلّ يرويه — إعفاءٌ بائت يُبقي الحارس أضعف ممّا "
