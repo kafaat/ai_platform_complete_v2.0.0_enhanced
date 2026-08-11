@@ -272,7 +272,11 @@ def generate(out_dir: Path = OUT):
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n"
     )
     with (out_dir / "route_handlers.csv").open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["owner", "method", "path", "handler", "file", "line"])
+        w = csv.DictWriter(
+            f,
+            fieldnames=["owner", "method", "path", "handler", "file", "line"],
+            lineterminator="\n",
+        )
         w.writeheader()
         w.writerows(payload["routes"])
     with (out_dir / "dead_code_candidates.csv").open("w", newline="", encoding="utf-8") as f:
@@ -287,7 +291,7 @@ def generate(out_dir: Path = OUT):
             "action",
             "decorated_route",
         ]
-        w = csv.DictWriter(f, fieldnames=fields)
+        w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         w.writerows([{k: x[k] for k in fields} for x in payload["dead_code_candidates"]])
     md = [

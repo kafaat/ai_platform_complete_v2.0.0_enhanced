@@ -68,6 +68,17 @@ CASES = [
     ),
 ]
 
+LF_OWNED_OUTPUTS = [
+    "api_versioning_inventory.csv",
+    "capabilities/generated/capability_link_candidates.csv",
+    "database-audit/generated/database_tables.csv",
+    "docs/capability-registry/generated/mapping/capability_mapping.csv",
+    "execution-audit/generated/dead_code_candidates.csv",
+    "execution-audit/generated/route_handlers.csv",
+    "route_inventory.csv",
+    "service_inventory.csv",
+]
+
 
 def _snapshot(paths: list[str]) -> dict[str, tuple[str, int, int]]:
     result: dict[str, tuple[str, int, int]] = {}
@@ -81,6 +92,13 @@ def _snapshot(paths: list[str]) -> dict[str, tuple[str, int, int]]:
             stat.st_mode,
         )
     return result
+
+
+def test_changed_generated_csv_outputs_use_deterministic_lf() -> None:
+    """CRLF makes changed generated rows fail ``git diff --check`` as whitespace."""
+    for rel in LF_OWNED_OUTPUTS:
+        payload = (ROOT / rel).read_bytes()
+        assert b"\r\n" not in payload, f"generated CSV must use LF: {rel}"
 
 
 @pytest.mark.parametrize(("name", "command", "outputs"), CASES, ids=[c[0] for c in CASES])

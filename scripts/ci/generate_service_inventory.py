@@ -348,7 +348,7 @@ def write_outputs(
         json.dumps(route_json, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     with (output_root / "service_inventory.csv").open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=list(asdict(services[0]).keys()))
+        writer = csv.DictWriter(f, fieldnames=list(asdict(services[0]).keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(service_json)
     with (output_root / "route_inventory.csv").open("w", encoding="utf-8", newline="") as f:
@@ -357,6 +357,7 @@ def write_outputs(
             fieldnames=list(asdict(routes[0]).keys())
             if routes
             else ["service", "file", "line", "method", "path", "function"],
+            lineterminator="\n",
         )
         writer.writeheader()
         writer.writerows(route_json)

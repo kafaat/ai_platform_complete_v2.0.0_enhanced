@@ -7480,6 +7480,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_non_ascii_fixture_path_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_normalized_scene_wiring_v63_2.py",
     "kind": "tests"
   },

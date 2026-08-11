@@ -275,6 +275,76 @@ def test_the_guard_source_is_restored_after_every_mutation(tmp_path: Path) -> No
     assert (ci / "fake_guard.py").read_text(encoding="utf-8") == before
 
 
+def test_isolated_runner_never_plants_in_the_legal_checkout(tmp_path: Path, monkeypatch) -> None:
+    """حتى أثناء الطفرة يبقى checkout الأصلي مطابقاً بايتياً؛ الزرع في المرآة فقط."""
+    ci = _fake_repo(tmp_path)
+    source = ci / "fake_guard.py"
+    before = source.read_bytes()
+    observed_roots: list[Path] = []
+
+    def observe_plant(_test_file: str, run_root: Path) -> tuple[int, str]:
+        observed_roots.append(run_root)
+        assert run_root != tmp_path
+        assert source.read_bytes() == before
+        mirror_source = run_root / "scripts" / "ci" / "fake_guard.py"
+        assert "v < -99" in mirror_source.read_text(encoding="utf-8")
+        return (
+            1,
+            "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed in 0.01s",
+        )
+
+    monkeypatch.setattr(gmg, "_run_tests", observe_plant)
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    assert gmg.run_mutations(reg, ci=ci, root=tmp_path, isolate=True) == []
+    assert observed_roots
+    assert source.read_bytes() == before
+
+
+def test_real_root_defaults_to_an_isolated_workspace(tmp_path: Path, monkeypatch) -> None:
+    """لا يحتاج مستدعي CLI إلى تذكّر راية العزل؛ ROOT القانونيّ يفرضها افتراضياً."""
+    ci = _fake_repo(tmp_path)
+    source = ci / "fake_guard.py"
+    before = source.read_bytes()
+
+    def observe_default(_test_file: str, run_root: Path) -> tuple[int, str]:
+        assert run_root != tmp_path
+        assert source.read_bytes() == before
+        return (
+            1,
+            "FAILED tests/test_fake.py::test_negative_is_rejected\n1 failed in 0.01s",
+        )
+
+    monkeypatch.setattr(gmg, "ROOT", tmp_path)
+    monkeypatch.setattr(gmg, "_run_tests", observe_default)
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    assert gmg.run_mutations(reg, ci=ci, root=tmp_path) == []
+    assert source.read_bytes() == before
+
+
+def test_abrupt_isolated_runner_failure_cannot_contaminate_checkout(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """انقطاع المُشغّل بعد الزرع لا يحتاج استعادةً في checkout: لم يُكتَب فيه أصلاً."""
+    ci = _fake_repo(tmp_path)
+    source = ci / "fake_guard.py"
+    before = source.read_bytes()
+
+    class AbruptRunnerStop(BaseException):
+        pass
+
+    def stop_after_plant(_test_file: str, run_root: Path) -> tuple[int, str]:
+        mirror_source = run_root / "scripts" / "ci" / "fake_guard.py"
+        assert "v < -99" in mirror_source.read_text(encoding="utf-8")
+        assert source.read_bytes() == before
+        raise AbruptRunnerStop
+
+    monkeypatch.setattr(gmg, "_run_tests", stop_after_plant)
+    reg = _reg(mutated=_spec("v < 0", "v < -99", "test_negative_is_rejected"))
+    with pytest.raises(AbruptRunnerStop):
+        gmg.run_mutations(reg, ci=ci, root=tmp_path, isolate=True)
+    assert source.read_bytes() == before
+
+
 def test_the_wrong_test_branch_names_what_actually_failed(tmp_path: Path) -> None:
     """**فرعٌ يقول ما لم يسقط ولا يقول ما سقط لا يُشخَّص من سجلّه.**
 

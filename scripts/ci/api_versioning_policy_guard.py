@@ -218,7 +218,9 @@ def write(rows):
     INV.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     with CSV.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(
-            f, fieldnames=["service", "file", "line", "method", "path", "handler", "classification"]
+            f,
+            fieldnames=["service", "file", "line", "method", "path", "handler", "classification"],
+            lineterminator="\n",
         )
         w.writeheader()
         w.writerows(rows)
