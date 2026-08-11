@@ -5655,3 +5655,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   كان يفشل مغلقاً فعلاً — لكنّ حارسَي `is_file()` يقطعان الطريق إليه. العلاج **حذفُهما**
   لا إضافةُ فحص. مُثبَت بالزرع: نقلُ `log.md` ⇒ اختباران يحمرّان بالاسم، وإعادته ⇒
   `5 passed`. سُجِّل `DELETING-A-JOURNAL-FILE-SILENCED-ITS-OWN-GUARD-01`.
+- **ورسالتا فشلٍ تجزمان بسببٍ لم تقِساه:** «استنساخ ضحل» و«كائن مفقود من الاستنساخ»،
+  و`_registry_ids_at` تبتلع `stderr` بإعادتها `None` وحدها. والزرعان أثبتا خطأ الترجيح:
+  الأوّل أعطى `fatal: Not a valid object name origin/main` (مرجعٌ لا عمق)، والثاني
+  `path … exists on disk, but not in <ref>` (لا كائنٌ مفقود). أُضيف `_git` و`_diagnosis`
+  وصارت الدالّة تُعيد `(ids, proc)` — فمخرجات git تسبق الترجيح. سُجِّل
+  `FAILURE-MESSAGE-ASSERTED-A-CAUSE-IT-NEVER-MEASURED-01`.
