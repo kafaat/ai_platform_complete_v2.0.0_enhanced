@@ -62,17 +62,12 @@ def render_json(payload: object, *, indent: int = 2) -> str:
 
 
 def render_csv(rows: list[dict], fieldnames: list[str] | None = None) -> str:
-    """CSV بنفس ما ينتجه ``csv.DictWriter`` على ملفّ مفتوح بـ``newline=""``.
-
-    ``io.StringIO(newline="")`` ضروريّ لا تجميليّ: بدونه تُترجَم ``\\r\\n`` التي
-    يكتبها ``DictWriter`` إلى ``\\n``، فيختلف النصّ المرسوم عن المكتوب وتفشل
-    المقارنة على ملفّ سليم — إنذار كاذب يُدرَّب المرء على تجاهله.
-    """
+    """CSV حتميّ بـLF، مطابق عبر المنصات ولا يُنتج trailing whitespace في Git."""
     if not rows:
         return ""
     names = fieldnames if fieldnames is not None else list(rows[0].keys())
     buffer = io.StringIO(newline="")
-    writer = csv.DictWriter(buffer, fieldnames=names)
+    writer = csv.DictWriter(buffer, fieldnames=names, lineterminator="\n")
     writer.writeheader()
     writer.writerows(rows)
     return buffer.getvalue()

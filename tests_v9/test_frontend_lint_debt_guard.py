@@ -130,8 +130,13 @@ def test_an_unreadable_report_fails_closed(tmp_path):
     تقريرٌ غائب أو غير قابل للتحليل يعني أنّ الدَّين **لم يُعَدّ** — وقبولُه يجعل
     الحارس أخضرَ بالضبط حين لا يُقاس شيء.
     """
+    # الاسم ASCII عمداً: التأكيد عن **ملفّ غائب**، وخطوة ١٠ تُشغّل الجناح تحت
+    # `LC_ALL=C PYTHONUTF8=0` فيصير ترميز نظام الملفّات ASCII — واسمٌ عربيّ يرفع
+    # `UnicodeEncodeError` **قبل** أن يبلغ الحارس، فيسقط الاختبار على تجهيزته لا على
+    # ما يقيسه. (المحتوى العربيّ أدناه سليم: `write_text` يُثبّت الترميز صراحةً.)
+    # CI-GUARDS-CRASH-ON-NON-UTF8-CONSOLE-01
     with pytest.raises(SystemExit):
-        MOD.main(["--report-file", str(tmp_path / "لا-وجود-له.json")])
+        MOD.main(["--report-file", str(tmp_path / "absent-report.json")])
 
     broken = tmp_path / "report.json"
     broken.write_text("{ليس JSON", encoding="utf-8")

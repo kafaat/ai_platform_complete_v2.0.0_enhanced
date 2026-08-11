@@ -83,7 +83,16 @@ run() {
   local label="$1"; shift
   printf '── %s\n' "$label"
   local rc=0
-  "$@" >/tmp/preflight_step.log 2>&1 || rc=$?
+  # الحرّاس يطبعون بالعربيّة، وطرفيّة Windows الافتراضيّة `cp1252` لا تُرمِّزها ⇒
+  # `UnicodeEncodeError` يُسقِط الحارس **قبل أن يقيس شيئاً**، فيُقرأ فشلاً وهو عطل
+  # طرفيّة. المقيس: سبعة من أربعة عشر حارساً ثابتاً سقطت هكذا على Windows/Python 3.13،
+  # وصفرٌ على Linux؛ وأُعيد إنتاجه بـ`PYTHONIOENCODING=cp1252` ⇒ نفس الاستثناء بالحرف.
+  #
+  # **ويُضبَط هنا لا بـ`export` عامّ، وهذا مقيس لا احتياط:** التصدير العامّ يُورَّث إلى
+  # خطوة ١٠ (`LC_ALL=C PYTHONUTF8=0`) وهي موجودة **لتقيس متّجه الترميز نفسه**، فيُبطِل
+  # غرضها. قيس ذلك مباشرةً: `test_new_assertionless_test_is_rejected` يمرّ بلا المتغيّر
+  # ويسقط معه. فالنطاق جزءٌ من الإصلاح لا تفصيلاً فيه. CI-GUARDS-CRASH-ON-NON-UTF8-CONSOLE-01
+  PYTHONIOENCODING="${PYTHONIOENCODING:-utf-8}" "$@" >/tmp/preflight_step.log 2>&1 || rc=$?
   if [ "$rc" -ne 0 ]; then
     failures=$((failures + 1))
     echo "   ✗ فشل ($rc)"
@@ -261,8 +270,11 @@ if [ "$TIER" = full ]; then
       pip-audit -r requirements_real.txt --ignore-vuln PYSEC-2026-1325
   fi
   # ── ١٠) المتّجه الذي يخفيه Linux: ترميز لغة الآلة (§٣.١٠) ───────────────
+  # `env -u PYTHONIOENCODING` صراحةً: `run` يضبطه لأجل طرفيّات Windows، وهذه الخطوة
+  # وحدها موجودة **لتقيس متّجه الترميز**، فوراثتُها إيّاه تُبطِل غرضها. النزع هنا هو ما
+  # يُبقي الخطوة صادقة. (مقيس: الاختبار يمرّ بلا المتغيّر ويسقط معه.)
   run "١٠) pytest -m unit تحت لغة C" \
-    env LC_ALL=C PYTHONUTF8=0 python3 -m pytest -q -m unit
+    env -u PYTHONIOENCODING LC_ALL=C PYTHONUTF8=0 python3 -m pytest -q -m unit
 fi
 
 # ── ١١) القدرات المتأثّرة — لا جدول مُصلَّب ────────────────────────────────

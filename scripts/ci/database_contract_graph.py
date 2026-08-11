@@ -192,7 +192,7 @@ def render(data):
             "code_reader_count",
             "code_writer_count",
         ]
-        w = csv.DictWriter(f, fieldnames=fields)
+        w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         for r in data["tables"]:
             x = {k: r.get(k) for k in fields}

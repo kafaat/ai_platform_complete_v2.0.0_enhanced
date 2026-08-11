@@ -610,7 +610,7 @@ def write_outputs(data: dict) -> None:
             "tests",
             "governance",
         ]
-        w = csv.DictWriter(f, fieldnames=fields)
+        w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         for c in data["capabilities"]:
             w.writerow(
