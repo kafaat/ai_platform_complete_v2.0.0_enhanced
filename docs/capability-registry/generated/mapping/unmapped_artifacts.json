@@ -6564,6 +6564,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_action_pin_agreement_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_activation_signing_key_isolation_guard.py",
     "kind": "tests"
   },

@@ -575,7 +575,7 @@ jobs:
         working-directory: frontend
       - run: npx playwright test
         working-directory: frontend
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: playwright-report
@@ -1354,7 +1354,7 @@ jobs:
         # الدليل الخام يُرفَع **دائماً** وبفشلٍ مغلق على الغياب. لا يدّعي منشأً:
         # `live_pg_evidence.sha256` سلامةٌ داخليّة فقط، والمنشأ في المصنوعة التالية.
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: live-pg-evidence-${{ github.sha }}
           path: |
@@ -1368,7 +1368,7 @@ jobs:
         # مصنوعةٌ منفصلة اسمُها يقول ما تحمله: وجودُها إثباتُ منشأ، وغيابُها غيابُه —
         # ولا يُقرأ غيابُها فقداناً للدليل. وهذا ما يجعل شرط التوقيع صادقاً بلا ثمن.
         if: always() && steps.live_pg_copy_attestation.outcome == 'success'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: live-pg-evidence-attestation-${{ github.sha }}
           path: live_pg_evidence.attestation.json
