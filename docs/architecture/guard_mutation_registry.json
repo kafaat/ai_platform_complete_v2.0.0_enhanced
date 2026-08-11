@@ -752,6 +752,47 @@
         }
       ],
       "test": "tests_v9/test_live_pg_role_closure_guard.py"
+    },
+    "frontend_lint_debt_guard.py": {
+      "test": "tests_v9/test_frontend_lint_debt_guard.py",
+      "mutations": [
+        {
+          "expect": "test_one_more_warning_is_blocked",
+          "find": "        if actual > limit:",
+          "replace": "        if False:",
+          "why": "نزعُ الراتشِت الصاعد ⇒ تحذيرٌ جديد يدخل بلا حجب، و`eslint` هنا يُبلِّغ تحذيراً لا خطأً فتبقى الوظيفة خضراء — نموٌّ صامت لا يراه أحد لأنّ GitHub يعرض عشرة تعليقات من ثمانين"
+        },
+        {
+          "expect": "test_paying_debt_without_lowering_the_ceiling_is_blocked",
+          "find": "        elif actual < limit:",
+          "replace": "        elif False:",
+          "why": "سقفٌ يبقى بعد سداد دَينٍ يبتلع **عودته**: تُصلَح خمس ثمّ تُضاف خمس فيثبت العدّاد والحارس أخضر. راتشِتٌ لا يُخفَّض ليس راتشِتاً بل سقفٌ مُرتخٍ"
+        },
+        {
+          "expect": "test_a_rule_outside_the_baseline_is_blocked",
+          "find": "    for rule in sorted(set(observed) - set(BASELINE)):",
+          "replace": "    for rule in sorted(set()):",
+          "why": "إهمالُ القواعد خارج الأساس يجعل السقف إجماليّاً فعليّاً: تحويلُ عشرة `any` إلى عشرة `no-unsafe-assignment` يمرّ بلا أثر — استبدالُ دَينٍ بأسوأ منه بمجموعٍ ثابت"
+        },
+        {
+          "expect": "test_the_failure_names_the_files_to_look_at",
+          "find": "                f\"الملفّات: {', '.join(files_for_rule(report, rule)[:8])}\"",
+          "replace": "                \"\"",
+          "why": "رسالةٌ تقول «زاد العدد» بلا أسماء ملفّات تترك قارئها يبحث في ثلاثين ملفّاً؛ ومن يقرأ الأحمر يجب أن يعرف **أين** ينظر وإلّا تعلّم تجاهله"
+        },
+        {
+          "expect": "test_an_unreadable_report_fails_closed",
+          "find": "        except (OSError, json.JSONDecodeError) as exc:\n            raise SystemExit(f\"✗ تعذّرت قراءة {args.report_file}: {exc}\") from None",
+          "replace": "        except (OSError, json.JSONDecodeError):\n            report = []",
+          "why": "تقريرٌ غائب أو مشوَّه يُقرأ «صفر تحذير» ⇒ الحارس أخضرُ بالضبط حين لا يُقاس شيء. و«لم يُقَس» ليس «لم ينمُ»"
+        },
+        {
+          "expect": "test_every_printed_failure_line_keeps_its_prefix",
+          "find": "        for problem in problems:\n            head, *rest = problem.splitlines()\n            print(f\"  ✗ {head}\")\n            for continuation in rest:\n                print(f\"      {continuation.strip()}\")",
+          "replace": "        for problem in problems:\n            print(f\"  ✗ {problem}\")",
+          "why": "طباعةُ مخالفةٍ متعدّدة الأسطر كتلةً واحدة تُخرِج سطر الملفّات بلا `✗` ولا إزاحة، فيُقرأ مخالفةً مستقلّة وتنكسر القراءة السطريّة لسجلّ CI — والرسالة جزءٌ من الحارس لا زينةٌ فوقه"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

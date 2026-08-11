@@ -108,7 +108,10 @@ interface PivotPayload {
   vertices?: number;
 }
 
-interface FieldData {
+// يُصدَّر لأنّ `FieldSetupWizard` يمرّر هذا العقد بعينه إلى `onSaveField`.
+// وكان يستقبله `any`: نسخةٌ ثانية من العقد تنحرف بصمت عن أصلها عند أوّل
+// تغييرٍ هنا. والتصدير يجعل الانحراف **خطأ ترجمة** بدل أن يكون مفاجأة تشغيل.
+export interface FieldData {
   name:          string;
   manager:       string;
   crop:          string;
@@ -125,6 +128,14 @@ interface FieldData {
   map_view?:     { zoom: number; lat: number; lng: number };
   boundary_metadata?: Record<string, unknown>;
   idempotency_key?: string;
+}
+
+// `leaflet-draw` يُركّب `editing` على الطبقة وقت التشغيل، وتعريفات أنواع Leaflet
+// لا تعرفه. فكان الوصول عبر `as any` — وثمنُه أنّ **كلّ** ما بعد النقطة يفقد الفحص:
+// خطأٌ مطبعيّ في `enable` يمرّ بصمت إلى المتصفّح. والتضييق إلى امتدادٍ محلّيّ يُبقي
+// الفحص قائماً على البقيّة ويحصر التساهل في الحقل المجهول وحده.
+interface EditablePolygon extends L.Polygon {
+  editing?: { enable(): void; disable(): void };
 }
 
 interface Props {
@@ -536,7 +547,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     // (كانت تعترض النقر فلا يتحرّك المركز ولا يتغيّر نصف القطر). المضلّع/المستطيل
     // يبقيان بتحرير الرؤوس (المطلوب لهما). isPivot يحكم كلّ ما يلي.
     const isPivot = pivotEditRef.current !== null;
-    if (!isPivot) (poly as any).editing?.enable();
+    const editable = poly as EditablePolygon;
+    if (!isPivot) editable.editing?.enable();
     setLatlngs(pts);
     setAreaHa(geodesicAreaHa(pts));
     setPerimeterM(geodesicPerimeterM(pts));
@@ -571,7 +583,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         keyboard: false,
       });
       // للمضلّع فقط نُعطّل/نُعيد تحرير الرؤوس حول السحب؛ للـpivot لا تحرير رؤوس أصلاً.
-      handle.on('dragstart', () => { if (!isPivot) (poly as any).editing?.disable(); });
+      handle.on('dragstart', () => { if (!isPivot) (poly as EditablePolygon).editing?.disable(); });
       handle.on('drag', () => {
         const now = handle.getLatLng();
         const dLat = now.lat - center.lat;
@@ -592,7 +604,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         if (pivotEditRef.current) pivotEditRef.current.center = center;
       });
       handle.on('dragend', () => {
-        if (!isPivot) (poly as any).editing?.enable();
+        if (!isPivot) (poly as EditablePolygon).editing?.enable();
         const ring = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
         if (ring.length >= 3) pushSnapshot(ring);
         if (pivotEditRef.current) setPivotPayload(makePivotPayload(center, radiusM));

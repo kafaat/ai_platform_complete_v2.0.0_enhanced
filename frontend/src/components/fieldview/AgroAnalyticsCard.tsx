@@ -13,7 +13,7 @@ import {
   betterBadge, buildSeasonMetrics, CROP_RISK_OPTIONS, cropRiskRows, escalationBadge,
   feedbackDirectionBadge, fmtNum, KC_SCENARIO_OPTIONS, kcCompareStages, kcSeriesRows,
   lineageDecisionRows, outcomeCount, parseMeasure, parsePctToFraction, pctFromFraction,
-  priorityAr, psfFacts, riskTypeAr, rotationFacts, scoreOutOf100, seasonMetricRows,
+  priorityAr, psfFacts, riskTypeAr, rotationFacts, seasonMetricRows,
   severityBadge, shortDate, trendArrow, WEATHER_SIGNAL_OPTIONS,
 } from '../../lib/agroAnalytics';
 import type {
@@ -165,17 +165,24 @@ export default function AgroAnalyticsCard({ fieldId, cropLabel, enabled = true }
   const rotFacts = useMemo(() => rotationFacts(rotationQ.data), [rotationQ.data]);
 
   // ── حالة قسم دليل القرار ──
-  const [pbCrop, setPbCrop] = useState('');
+  // **لا مُنتقيَ محصولٍ في هذا القسم — بخلاف قسم المخاطر أعلاه.** كانت هنا حالة
+  // `pbCrop` بلا أيّ مُستدعٍ لـ`setPbCrop`، فتبقى `''` طوال عمر المكوّن ويؤول
+  // `pbCrop || defaultCrop` إلى `defaultCrop` **دائماً**. أي أنّ التجاوز كان
+  // مكتوباً وغير قابل للحدوث — وقراءةُ السطر توحي بخيارٍ لا وجود له.
+  //
+  // فحُذِفت الحالة بدل إسكات الحارس بـ`_setPbCrop`: الإسكات يُبقي حالةً ميّتة
+  // ويُخفي أنّ العقد «دليل القرار مربوطٌ بمحصول الحقل». والحذف **حافظٌ للسلوك
+  // بالضبط** — بخلاف إضافة مُنتقٍ، وهي قرار منتَج لا تنظيفُ دَين.
   const [pbSignals, setPbSignals] = useState<Set<string>>(new Set());
   const [pbRec, setPbRec] = useState('');
   const playbookInput = useMemo<DecisionPlaybookInput | null>(() => {
     if (pbSignals.size === 0) return null; // بلا إشارة ⇒ لا سؤال (تجنّب استدعاء فارغ)
     return {
-      crop: (pbCrop || defaultCrop) || null,
+      crop: defaultCrop || null,
       weather_signals: [...pbSignals].map((s) => ({ signal_type: s, confidence_score: 0.9 })),
       recommendation_ar: pbRec.trim() || null,
     };
-  }, [pbCrop, defaultCrop, pbSignals, pbRec]);
+  }, [defaultCrop, pbSignals, pbRec]);
   const playbookQ = useDecisionPlaybook(isOpen('playbook') ? playbookInput : null);
   const pb = playbookQ.data;
 

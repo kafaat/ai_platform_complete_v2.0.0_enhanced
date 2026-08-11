@@ -7160,6 +7160,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_frontend_lint_debt_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_frontend_nginx_service_proxy_guard.py",
     "kind": "tests"
   },

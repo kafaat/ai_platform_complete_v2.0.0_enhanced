@@ -546,7 +546,6 @@ export default function HubMapGL({
       const mk = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
       soilMarkersRef.current.push(mk);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hillshadeTilesUrl, slopeTilesUrl, soilTilesUrl, contours, soilSamplePoints, basemapId, ready]);
 
   // ── علامات التراكب (تنبيهات/أجهزة/طقس) — إزالة الكلّ ثمّ إعادة بناء ──
@@ -563,7 +562,6 @@ export default function HubMapGL({
     for (const d of deviceMarkers) add(deviceEl(d), d.lat, d.lng);
     for (const o of operationalMarkers) add(operationalEl(o), o.lat, o.lng);
     if (weatherMarker) add(weatherEl(weatherMarker), weatherMarker.lat, weatherMarker.lng);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alertMarkers, deviceMarkers, operationalMarkers, weatherMarker, ready]);
 
   // ── دبابيس الاستكشاف — إزالة الكلّ ثمّ إعادة بناء ──────────────────
@@ -577,7 +575,6 @@ export default function HubMapGL({
         .setLngLat([p.lng, p.lat]).addTo(map);
       pinMarkersRef.current.push(mk);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pins, ready]);
 
   // ── خطّاف اختبار E2E حتميّ (يُبنى فقط حين VITE_E2E_HOOKS=1؛ غائب في بناء الإنتاج/
@@ -609,7 +606,6 @@ export default function HubMapGL({
     return () => {
       delete (window as unknown as { __hubmap?: typeof hook }).__hubmap;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
   // ── مؤشّر الفأرة (crosshair) في وضع الدبابيس ─────────────────────────
@@ -617,7 +613,6 @@ export default function HubMapGL({
     const map = mapRef.current;
     if (!map || !ready) return;
     map.getCanvas().style.cursor = pinMode ? 'crosshair' : '';
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pinMode, ready]);
 
   // ── Terra Draw: تهيئة/تفكيك مع drawTools ────────────────────────────
@@ -712,7 +707,6 @@ export default function HubMapGL({
     }
 
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drawTools, ready]);
 
   // ── تبديل وضع الرسم (polygon/linestring/select) ─────────────────────

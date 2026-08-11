@@ -177,7 +177,6 @@ export default function SeasonRecordEntryPage() {
       setSowingDate(snap.sowingDate ?? '');
       setPhase(snap.phase as Phase);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshList = useCallback(async () => {

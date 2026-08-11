@@ -4,8 +4,10 @@
 // move out incrementally under frontend/src/services/api/*.ts.
 // ═══════════════════════════════════════════════════════════════
 
+// الربط المحلّيّ يقتصر على ما يستهلكه **جسمُ** هذا الملفّ. و`export … from`
+// أدناه يُعيد التصدير من الوحدة مباشرةً، فلا يحتاج رابطاً محلّيّاً — وإدراجُ
+// اسمٍ هنا لمجرّد إعادة تصديره يُنتِج استيراداً ميّتاً يقرؤه القارئ اعتماداً.
 import {
-  MOCK_MODE,
   tryReal,
   kongApi,
   weatherApi,
@@ -13,10 +15,7 @@ import {
   indicatorsApi,
   vegetationApi,
   rasterApi,
-  authApi,
 } from './api/client';
-// Symbols still consumed elsewhere in api.ts, bound locally from their new modules.
-import { fetchFieldDetail } from './api/fieldDetail';
 
 // Calibration domain lives in ./api/calibration; the DECISION STUDIO / EVIDENCE MAP
 // sections below still consume a few of its exports, so bind them locally here.
@@ -2546,7 +2545,6 @@ export const fieldIndicatorTileUrl = (
   if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
   appendTileAccessToken(params);
   const qs = params.toString();
-  // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
 };
 
@@ -2596,7 +2594,6 @@ export const fieldCdseTileUrl = (
   for (const [k, v] of Object.entries(cdseClipParams(geometry, bbox))) params.set(k, v);
   appendTileAccessToken(params);  // مصادقة بلاطة <img> خلف بوّابة auth_request
   const qs = params.toString();
-  // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;
 };
 
@@ -2679,7 +2676,6 @@ export const hillshadeTileUrl = (tenantId?: string | null): string => {
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();
-  // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/elevation/hillshade/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
 };
 
@@ -2690,7 +2686,6 @@ export const slopeTileUrl = (tenantId?: string | null): string => {
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();
-  // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/slope/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
 };
 
@@ -2810,7 +2805,6 @@ export const soilTileUrl = (
   if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();
-  // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/soil/tiles/${property}/${depth}/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
 };
 

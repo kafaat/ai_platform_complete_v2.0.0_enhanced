@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1842,
     "route_handlers": 1049,
-    "call_edges": 72981,
+    "call_edges": 72982,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -427870,16 +427870,23 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
-      "source": "test_field_workspace_tabs_disable_season_bound_tabs_without_season",
+      "source": "test_app_routes_dynamic_field_workspace_without_breaking_compat_page",
       "target": "read",
       "line": 48
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
+      "source": "test_field_workspace_tabs_disable_season_bound_tabs_without_season",
+      "target": "read",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
       "source": "test_workspace_shell_uses_existing_map_card_not_fake_panels_for_map",
       "target": "read",
-      "line": 55
+      "line": 64
     },
     {
       "owner": "sahool-platform",
