@@ -35,16 +35,16 @@
       "runtime_verified": 0
     },
     {
-      "average_assessed_maturity": 1.75,
+      "average_assessed_maturity": 2.0,
       "average_declared_maturity": 3.0,
       "capability_count": 4,
-      "declared_above_evidence": 4,
+      "declared_above_evidence": 3,
       "domain": "gis",
       "maturity_distribution": {
         "0": 0,
         "1": 1,
-        "2": 3,
-        "3": 0,
+        "2": 2,
+        "3": 1,
         "4": 0,
         "5": 0
       },

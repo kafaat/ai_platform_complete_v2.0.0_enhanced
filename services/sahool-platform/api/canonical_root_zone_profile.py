@@ -18,7 +18,7 @@ from core.crop_intelligence.roots import build_root_state
 from api.soil_hydraulic_client import get_soil_hydraulic_profile
 
 SCHEMA_VERSION = "canonical_root_zone_profile.v1"
-PRODUCT_VERSION = "root-zone-hydraulics/1.0.0"
+PRODUCT_VERSION = "root-zone-hydraulics/1.1.0"
 MAX_PROFILE_AGE_DAYS = 730.0
 
 
@@ -63,6 +63,7 @@ class CanonicalRootZoneProfile:
     taw_mm: float
     raw_fraction: float
     raw_mm: float
+    root_zone_refill_cap_mm: float
     field_capacity_weighted: float
     wilting_point_weighted: float
     available_water_capacity_weighted: float
@@ -209,6 +210,10 @@ def build_canonical_root_zone_profile(
 
     soil_ec = _number(soil_ec_ds_m)
     raw_mm = taw_mm * p
+    # Root-zone-only refill cap. This is deliberately not named a final
+    # safe irrigation event: equipment, runoff, slope and wind remain
+    # downstream constraints owned by CanonicalSprinklerRunoffCapability.
+    root_zone_refill_cap_mm = raw_mm
     operational = (
         measured_core
         and infiltration_mm_h is not None
@@ -235,6 +240,7 @@ def build_canonical_root_zone_profile(
         "taw_mm": round(taw_mm, 4),
         "raw_fraction": round(p, 4),
         "raw_mm": round(raw_mm, 4),
+        "root_zone_refill_cap_mm": round(root_zone_refill_cap_mm, 4),
         "field_capacity_weighted": round(weighted_fc / total_depth_cm, 6),
         "wilting_point_weighted": round(weighted_wp / total_depth_cm, 6),
         "available_water_capacity_weighted": round(weighted_awc / total_depth_cm, 6),
@@ -250,6 +256,7 @@ def build_canonical_root_zone_profile(
             "soil_profile_age_days": None
             if profile_age_days is None
             else round(profile_age_days, 2),
+            "root_zone_refill_cap_semantics": "readily_available_water_refill_cap",
         },
         "quality_status": quality,
         "operational_eligible": operational,
