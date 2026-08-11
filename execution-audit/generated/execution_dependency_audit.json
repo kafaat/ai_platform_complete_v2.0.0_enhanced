@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1842,
     "route_handlers": 1049,
-    "call_edges": 72982,
+    "call_edges": 72983,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -166352,27 +166352,13 @@
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "to_dict",
       "target": "asdict",
-      "line": 80
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "now",
-      "line": 97
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 98
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "isinstance",
       "line": 98
     },
     {
@@ -166380,28 +166366,35 @@
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "get",
-      "line": 100
+      "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "isinstance",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
       "line": 101
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "build_root_state",
-      "line": 104
+      "target": "isinstance",
+      "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 106
+      "target": "build_root_state",
+      "line": 105
     },
     {
       "owner": "sahool-platform",
@@ -166436,56 +166429,49 @@
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "get",
-      "line": 112
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "_number",
-      "line": 115
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "float",
-      "line": 119
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "float",
-      "line": 133
+      "line": 111
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "get",
-      "line": 133
+      "line": 113
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "_number",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "float",
+      "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "float",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "sorted",
-      "line": 133
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "_number",
-      "line": 136
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 136
+      "line": 134
     },
     {
       "owner": "sahool-platform",
@@ -166500,27 +166486,27 @@
       "source": "build_canonical_root_zone_profile",
       "target": "get",
       "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "_number",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "min",
-      "line": 142
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "_hydraulic_value",
-      "line": 146
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 146
+      "line": 143
     },
     {
       "owner": "sahool-platform",
@@ -166577,55 +166563,62 @@
       "source": "build_canonical_root_zone_profile",
       "target": "get",
       "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "_hydraulic_value",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
+      "line": 151
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "max",
-      "line": 153
+      "line": 154
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "min",
-      "line": 153
+      "line": 154
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "append",
-      "line": 163
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "append",
-      "line": 165
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "append",
-      "line": 168
+      "line": 169
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "round",
-      "line": 172
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "round",
-      "line": 176
+      "line": 173
     },
     {
       "owner": "sahool-platform",
@@ -166638,78 +166631,78 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
+      "target": "round",
+      "line": 178
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
       "target": "get",
-      "line": 188
+      "line": 189
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "fromisoformat",
-      "line": 192
+      "line": 193
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "replace",
-      "line": 192
+      "line": 193
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "str",
-      "line": 192
+      "line": 193
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "astimezone",
-      "line": 193
+      "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "max",
-      "line": 193
+      "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "total_seconds",
-      "line": 193
+      "line": 194
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "append",
-      "line": 195
+      "line": 196
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "append",
-      "line": 197
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "append",
-      "line": 199
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "min",
-      "line": 201
+      "line": 200
     },
     {
       "owner": "sahool-platform",
@@ -166722,140 +166715,112 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "append",
-      "line": 204
+      "target": "min",
+      "line": 203
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "append",
-      "line": 206
+      "line": 205
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "append",
-      "line": 208
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "append",
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "_number",
-      "line": 210
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "isoformat",
-      "line": 219
+      "line": 224
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "str",
-      "line": 219
+      "line": 224
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "get",
-      "line": 227
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "str",
-      "line": 227
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "get",
-      "line": 228
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "str",
-      "line": 228
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 229
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "str",
-      "line": 229
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 230
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "str",
-      "line": 230
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "isoformat",
-      "line": 231
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "round",
       "line": 233
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "float",
+      "target": "str",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
       "line": 234
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "round",
+      "target": "str",
       "line": 234
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "round",
+      "target": "get",
       "line": 235
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "round",
+      "target": "str",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "isoformat",
       "line": 236
     },
     {
@@ -166863,14 +166828,14 @@
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "round",
-      "line": 237
+      "line": 238
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "round",
-      "line": 238
+      "target": "float",
+      "line": 239
     },
     {
       "owner": "sahool-platform",
@@ -166904,183 +166869,225 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 246
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "str",
-      "line": 246
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 247
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "str",
-      "line": 247
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 248
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "list",
-      "line": 248
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "get",
-      "line": 249
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "build_canonical_root_zone_profile",
-      "target": "list",
-      "line": 249
+      "target": "round",
+      "line": 243
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
       "target": "round",
+      "line": 244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "round",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "round",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "round",
+      "line": 247
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "round",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
       "line": 252
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
-      "target": "CanonicalRootZoneProfile",
+      "target": "str",
+      "line": 252
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
+      "line": 253
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "str",
+      "line": 253
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
+      "line": 254
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "list",
+      "line": 254
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "get",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "list",
+      "line": 255
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
+      "target": "round",
       "line": 258
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "build_canonical_root_zone_profile",
+      "target": "CanonicalRootZoneProfile",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "build_canonical_root_zone_profile",
       "target": "_digest",
-      "line": 258
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "persist_canonical_root_zone_profile",
-      "target": "to_dict",
-      "line": 263
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "persist_canonical_root_zone_profile",
-      "target": "execute",
       "line": 265
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "persist_canonical_root_zone_profile",
+      "target": "to_dict",
+      "line": 270
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "persist_canonical_root_zone_profile",
+      "target": "execute",
+      "line": 272
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "persist_canonical_root_zone_profile",
       "target": "dumps",
-      "line": 292
+      "line": 299
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "fetchrow",
-      "line": 307
+      "line": 314
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "get_soil_hydraulic_profile",
-      "line": 318
+      "line": 325
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "fetchrow",
-      "line": 321
+      "line": 328
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "get",
-      "line": 327
+      "line": 334
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "isinstance",
-      "line": 327
+      "line": 334
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "get",
-      "line": 329
+      "line": 336
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "get",
-      "line": 329
+      "line": 336
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "get",
-      "line": 329
+      "line": 336
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "build_canonical_root_zone_profile",
-      "line": 330
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
-      "source": "resolve_canonical_root_zone_profile",
-      "target": "dict",
       "line": 337
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
+      "target": "dict",
+      "line": 344
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "source": "resolve_canonical_root_zone_profile",
       "target": "isinstance",
-      "line": 341
+      "line": 348
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_root_zone_profile.py",
       "source": "resolve_canonical_root_zone_profile",
       "target": "persist_canonical_root_zone_profile",
-      "line": 342
+      "line": 349
     },
     {
       "owner": "sahool-platform",
@@ -168206,92 +168213,57 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "any",
-      "line": 86
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "max",
-      "line": 92
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "min",
-      "line": 92
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "max",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "max",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 101
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
+      "target": "str",
+      "line": 92
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "any",
+      "line": 94
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "max",
       "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 103
+      "target": "min",
+      "line": 102
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 104
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "max",
       "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 106
+      "target": "max",
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 108
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 110
+      "target": "get",
+      "line": 111
     },
     {
       "owner": "sahool-platform",
@@ -168304,190 +168276,225 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 123
+      "target": "get",
+      "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 124
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 125
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 126
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 127
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 128
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 129
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 130
+      "target": "append",
+      "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 132
+      "line": 115
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "append",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "append",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "append",
+      "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "append",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "round",
       "line": 133
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "round",
       "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "round",
       "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "round",
       "line": 136
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "round",
       "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "set",
+      "target": "round",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "round",
       "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "sorted",
-      "line": 139
+      "target": "round",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 147
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "set",
-      "line": 140
+      "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "sorted",
-      "line": 140
+      "line": 149
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "set",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "sorted",
+      "line": 150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "CanonicalSprinklerRunoffCapability",
-      "line": 142
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "_digest",
-      "line": 142
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "to_dict",
-      "line": 149
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "isinstance",
-      "line": 150
+      "line": 160
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 153
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 153
+      "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "list",
-      "line": 157
+      "line": 167
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 158
+      "line": 168
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 158
+      "line": 168
     },
     {
       "owner": "sahool-platform",
@@ -520408,7 +520415,7 @@
       "symbol": "sprinkler_capability_to_mpc_constraints",
       "kind": "function",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "line": 145,
+      "line": 155,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

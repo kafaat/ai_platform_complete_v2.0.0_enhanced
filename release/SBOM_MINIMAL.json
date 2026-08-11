@@ -15025,7 +15025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27f08c1c48c06ba61b31f6cf9dc2d25845cc9af0ae49036cdaa32f6be1504447"
+          "content": "cd5c4fae9d0256ff06baf17ec2e1ca1f366e8e67fe90c34ee0bd071819059f9f"
         }
       ],
       "name": "services/sahool-platform/api/canonical_root_zone_profile.py",
@@ -15065,7 +15065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec729279710a857d80fb50e55a28e2d2c95af2f54aa71668a685e27564f22815"
+          "content": "5587078197c2f14d7726554a13d43230feb9b3ac847205d643bf3b5f033c4fed"
         }
       ],
       "name": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",

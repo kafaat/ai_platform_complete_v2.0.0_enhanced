@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4964,
+    "files_scanned": 4970,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
-      "other": 1315,
-      "tests": 1616,
+      "other": 1319,
+      "tests": 1618,
       "web": 454
     },
     "unmapped_artifacts": 2025,
-    "ambiguous_artifacts": 404
+    "ambiguous_artifacts": 407
   },
   "capabilities": [
     {
@@ -10270,6 +10270,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py",
+          "score": 9,
+          "signals": [
+            "content:slope",
+            "content:terrain"
+          ]
+        },
+        {
           "path": "tests_v9/test_canonical_vri_prescription.py",
           "score": 9,
           "signals": [
@@ -10646,7 +10654,7 @@
         "events": 51,
         "web": 12,
         "mobile": 0,
-        "tests": 35,
+        "tests": 36,
         "governance": 0,
         "other_evidence": 34
       },
@@ -27557,6 +27565,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_canonical_knowledge_to_hourly_mpc_runtime.py",
+          "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
           "path": "tests_v9/test_canonical_root_zone_profile.py",
           "score": 12,
           "signals": [
@@ -27575,6 +27591,14 @@
         {
           "path": "tests_v9/test_soil_runtime_certification_integration.py",
           "score": 12,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "path": "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py",
+          "score": 10,
           "signals": [
             "content:Soil profile",
             "content:soil profile"
@@ -27763,7 +27787,7 @@
         "events": 36,
         "web": 1,
         "mobile": 0,
-        "tests": 14,
+        "tests": 16,
         "governance": 1,
         "other_evidence": 15
       },
@@ -43724,6 +43748,80 @@
       ]
     },
     {
+      "path": "docs/architecture/source_text_assertion_inventory.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "FM-007",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
+          "capability_id": "DEC-004",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/source_text_assertion_inventory.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "WX-006",
+          "score": 10,
+          "signals": [
+            "content:GDD",
+            "content:gdd"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 10,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "FM-007",
+          "score": 8,
+          "signals": [
+            "path:inventory"
+          ]
+        },
+        {
+          "capability_id": "DEC-004",
+          "score": 8,
+          "signals": [
+            "content:Execution request",
+            "content:execution request"
+          ]
+        }
+      ]
+    },
+    {
       "path": "docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md",
       "kind": "other",
       "candidates": [
@@ -51754,6 +51852,28 @@
           "signals": [
             "content:Execution receipt",
             "content:execution receipt"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_canonical_root_zone_to_sprinkler_contract.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SOIL-001",
+          "score": 10,
+          "signals": [
+            "content:Soil profile",
+            "content:soil profile"
+          ]
+        },
+        {
+          "capability_id": "GIS-003",
+          "score": 9,
+          "signals": [
+            "content:slope",
+            "content:terrain"
           ]
         }
       ]

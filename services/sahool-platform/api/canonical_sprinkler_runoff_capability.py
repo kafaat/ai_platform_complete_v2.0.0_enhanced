@@ -66,7 +66,7 @@ def build_canonical_sprinkler_runoff_capability(
         "operational_eligible"
     ):
         return {"status": "blocked", "reason": "verified_machine_capability_required"}
-    if root_zone_profile.get("status") != "verified" or not root_zone_profile.get(
+    if root_zone_profile.get("quality_status") != "verified" or not root_zone_profile.get(
         "operational_eligible"
     ):
         return {"status": "blocked", "reason": "verified_root_zone_profile_required"}
@@ -82,10 +82,20 @@ def build_canonical_sprinkler_runoff_capability(
     )
     slope = _num(terrain.get("maximum_slope_percent"))
     wind = _num(weather.get("wind_speed_m_s"))
-    max_event = _num(root_zone_profile.get("maximum_safe_event_depth_mm"))
-    if any(v is None for v in (peak, infiltration, slope, wind, max_event)):
+    root_zone_refill_cap = _num(root_zone_profile.get("root_zone_refill_cap_mm"))
+    # نَسَبُ منطقة الجذر شرطٌ لا زينة. كان يُقرأ بارتدادٍ إلى `capability_digest`،
+    # فلمّا حُصِر في `profile_digest` بقي بلا فحص — فينتج **قدرةٌ «verified»
+    # ونَسَبُها `None`**: دليلٌ يعرض ثقبَه بوصفه حقيقةً مُتحقَّقة، وهو أسوأ من
+    # الحجب لأنّ من يقرأ `verified` لا يعود ينظر في الأدلّة. مقيسٌ بالتنفيذ قبل
+    # هذا السطر. والارتداد لم يُعَد لأنّ `capability_digest` نَسَبُ عملٍ آخر:
+    # قبولُه يجعل الوثيقة تنسب القيمة إلى مصدرٍ لم يُنتِجها.
+    root_zone_digest = str(root_zone_profile.get("profile_digest") or "")
+    if (
+        any(v is None for v in (peak, infiltration, slope, wind, root_zone_refill_cap))
+        or not root_zone_digest
+    ):
         return {"status": "blocked", "reason": "complete_runoff_evidence_required"}
-    if peak <= 0 or infiltration <= 0 or slope < 0 or wind < 0 or max_event <= 0:
+    if peak <= 0 or infiltration <= 0 or slope < 0 or wind < 0 or root_zone_refill_cap <= 0:
         return {"status": "blocked", "reason": "invalid_runoff_parameters"}
 
     # Conservative slope factor: 1.0 on flat land, decreasing to 0.5 at 20% slope.
@@ -126,13 +136,13 @@ def build_canonical_sprinkler_runoff_capability(
         "slope_percent": round(slope, 6),
         "runoff_safety_factor": round(safety_factor, 6),
         "runoff_margin_mm_h": round(runoff_margin, 6),
-        "maximum_safe_depth_mm_event": round(max_event, 6),
+        "maximum_safe_depth_mm_event": round(root_zone_refill_cap, 6),
         "wind_derating_factor": round(wind_factor, 6),
         "evidence": {
             "machine_capability_digest": machine_capability.get("capability_digest"),
             "package_test_digest": package.get("test_digest"),
-            "root_zone_profile_digest": root_zone_profile.get("profile_digest")
-            or root_zone_profile.get("capability_digest"),
+            "root_zone_profile_digest": root_zone_digest,
+            "root_zone_refill_cap_source": ("canonical_root_zone_profile.root_zone_refill_cap_mm"),
             "terrain_profile_digest": terrain.get("profile_digest"),
             "weather_snapshot_digest": weather.get("snapshot_digest"),
         },

@@ -89,6 +89,7 @@ def canonical_patches(monkeypatch):
             taw_mm=100.0,
             raw_fraction=0.5,
             raw_mm=50.0,
+            root_zone_refill_cap_mm=50.0,
             field_capacity_weighted=0.30,
             wilting_point_weighted=0.12,
             available_water_capacity_weighted=0.18,

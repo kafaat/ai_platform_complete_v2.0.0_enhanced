@@ -16,10 +16,10 @@ def _machine():
 
 def _root():
     return {
-        "status": "verified",
+        "quality_status": "verified",
         "operational_eligible": True,
         "infiltration_mm_h": 15.0,
-        "maximum_safe_event_depth_mm": 12.0,
+        "root_zone_refill_cap_mm": 12.0,
         "profile_digest": "b" * 64,
     }
 

@@ -210,7 +210,32 @@ def test_the_baseline_never_grows_and_holds_no_dead_entries():
     current, baseline = _scan(), _baseline()
     stale = sorted(set(baseline) - set(current))
     assert not stale, "مداخل في الأساس لم تعد منحرفة — احذفها: " + " · ".join(stale)
-    assert len(baseline) <= 184, f"الأساس نما إلى {len(baseline)}؛ يتقلّص ولا ينمو"
+    assert len(baseline) <= 179, f"الأساس نما إلى {len(baseline)}؛ يتقلّص ولا ينمو"
+
+
+def test_no_baselined_file_adds_a_new_offender_under_its_entry():
+    """الأساس يُقاس بالاسم، والاسمُ لا يقول **كم**.
+
+    **ثغرةٌ قِيست لا فُرِضت:** الاختبار أعلاه يمنع مدخلاً جديداً ويمنع مدخلاً
+    بائتاً، والذي قبله يمنع ملفّاً جديداً — وثلاثتها تقارن **مجموعات أسماء**.
+    فملفٌّ مُدرَجٌ بقراءتين تُضاف إليه ثالثة ولا شيء يحمرّ: اسمُه في الأساس على
+    الحالين. وقد وقع فعلاً — شريحةٌ أضافت `read_text()` ثالثة إلى
+    ``irrigation_runtime_orchestrator_guard`` فمرّت صامتة.
+
+    والأساس يقول عن نفسه إنّه **يتقلّص**؛ فالعدد جزءٌ من العقد لا زينةٌ فيه.
+    """
+    current, baseline = _scan(), _baseline()
+    grown = {
+        path: (baseline[path], current[path])
+        for path in sorted(set(baseline) & set(current))
+        if current[path]["reads"] > baseline[path]["reads"]
+        or current[path]["subprocess"] > baseline[path]["subprocess"]
+    }
+    assert not grown, (
+        "ملفّات في الأساس زاد انحرافُها: "
+        + " · ".join(f"{p} {was} ⇒ {now}" for p, (was, now) in grown.items())
+        + '\nأضِف encoding="utf-8" إلى الموضع الجديد — الأساس يُغطّي القائم لا الزائد.'
+    )
 
 
 def test_the_eight_files_proven_to_break_are_fixed_and_stay_fixed():
