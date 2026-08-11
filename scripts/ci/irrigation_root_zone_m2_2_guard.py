@@ -24,6 +24,7 @@ for token in (
     "governed_soil_hydraulic_profile_missing",
     "field_capacity_weighted",
     "infiltration_mm_h",
+    "root_zone_refill_cap_mm",
     "profile_digest",
 ):
     assert token in product, token

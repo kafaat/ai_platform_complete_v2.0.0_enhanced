@@ -128,14 +128,6 @@
       "reads": 1,
       "subprocess": 0
     },
-    "scripts/ci/irrigation_runtime_orchestrator_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_sprinkler_m2_6_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
     "scripts/ci/irrigation_vri_m4_guard.py": {
       "reads": 2,
       "subprocess": 0

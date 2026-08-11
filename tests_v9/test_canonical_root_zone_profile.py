@@ -72,6 +72,9 @@ def test_build_profile_integrates_layers_to_current_root_depth():
     # AWC = (0.30-0.12)*(1-0.10)=0.162; TAW=1000*0.162*0.6=97.2 mm.
     assert out.taw_mm == pytest.approx(97.2)
     assert out.raw_mm == pytest.approx(48.6)
+    assert out.root_zone_refill_cap_mm == pytest.approx(48.6)
+    assert out.root_zone_refill_cap_mm == pytest.approx(out.raw_mm)
+    assert out.evidence["root_zone_refill_cap_semantics"] == ("readily_available_water_refill_cap")
     assert out.operational_eligible is True
     assert out.quality_status == "verified"
     assert len(out.profile_digest) == 64
@@ -184,3 +187,5 @@ def test_persist_uses_digest_idempotency():
     assert "ON CONFLICT(tenant_id,field_id,season_id,profile_digest) DO NOTHING" in sql
     assert args[0].startswith("rzp_")
     assert args[-2] == out.profile_digest
+    persisted_payload = __import__("json").loads(args[-1])
+    assert persisted_payload["root_zone_refill_cap_mm"] == pytest.approx(48.6)
