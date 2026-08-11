@@ -7,6 +7,8 @@ import subprocess
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PATH = ROOT / "scripts/ci/sot_provenance_guard.py"
 spec = importlib.util.spec_from_file_location("sot_provenance_guard", PATH)
