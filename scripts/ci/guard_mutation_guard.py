@@ -41,6 +41,7 @@ import atexit
 import json
 import os
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -54,11 +55,21 @@ REGISTRY = ROOT / "docs" / "architecture" / "guard_mutation_registry.json"
 # هذا الحارس نفسه ليس استثناءً — يظهر في السجلّ كغيره، ومواصفته تحت الاختبار.
 GUARD_GLOBS = ("*_guard.py", "*_guard.sh")
 
-# In-place mutation is unavoidable because the real tests resolve canonical paths.
-# Keep an explicit restoration ledger so SIGTERM (for example GNU timeout) cannot
-# leave the checkout carrying a planted defect. SIGKILL is not recoverable; CI must
-# use a TERM grace period before KILL.
+# الطفرات تُزرع داخل نسخة مؤقتة من checkout عند تشغيل الأداة الفعلية. يبقى دفتر
+# الاستعادة دفاعاً داخل تلك النسخة، وكذلك للمستودعات الصناعية الصغيرة التي تستدعي
+# ``run_mutations`` مباشرةً في اختبارات الوحدة. وبذلك لا يستطيع SIGKILL أو timeout
+# تلويث شجرة العمل القانونية؛ أسوأ ما يتركه نسخةً مؤقتة خارجها.
 _ACTIVE_RESTORES: dict[Path, str] = {}
+
+_COPY_IGNORE = {
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "node_modules",
+}
 
 
 def _restore_active_sources() -> None:
@@ -272,10 +283,8 @@ def _diagnose_repeat(
     return outcomes
 
 
-def run_mutations(
-    registry: dict, only: str | None = None, ci: Path = CI, root: Path = ROOT
-) -> list[str]:
-    """يزرع كلّ طفرة فعليّاً ويؤكّد أنّ الاختبار المُسمّى سقط. يُرجِع الإخفاقات."""
+def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Path) -> list[str]:
+    """ازرع داخل workspace غير قانونيّ (نسخة مؤقتة أو fixture اختبار فقط)."""
     failures: list[str] = []
     for name, spec in sorted(registry["mutated"].items()):
         if only and name != only:
@@ -352,6 +361,49 @@ def run_mutations(
             else:
                 print(f"  ✓ {label} ⇒ {m['expect']}")
     return failures
+
+
+def _ignore_copy_entries(_directory: str, names: list[str]) -> set[str]:
+    """استبعد caches قابلة لإعادة البناء، لا أدلة المستودع ولا ``.git``."""
+    return {name for name in names if name in _COPY_IGNORE or name.endswith(".pyc")}
+
+
+def run_mutations(
+    registry: dict,
+    only: str | None = None,
+    ci: Path = CI,
+    root: Path = ROOT,
+    *,
+    isolate: bool | None = None,
+) -> list[str]:
+    """ازرع الطفرات خارج شجرة العمل القانونية ثم شغّل اختباراتها.
+
+    استدعاءات اختبارات الوحدة تستخدم مستودعاً صناعياً تحت ``tmp_path``، فتعمل
+    داخله مباشرةً افتراضياً. أمّا التشغيل على ``ROOT`` الحقيقي فينسخ **الحالة
+    الحالية للـworking tree** (ومنها التغييرات غير الملتزم بها) مرةً واحدة إلى
+    دليل مؤقت ويزرع كل الطفرات هناك. لا يصلح ``git worktree`` هنا لأنه يعيد HEAD
+    ويُسقط بالضبط التغييرات التي نريد تحكيمها قبل الالتزام.
+    """
+    resolved_root = root.resolve()
+    if isolate is None:
+        isolate = resolved_root == ROOT.resolve()
+    if not isolate:
+        return _run_mutations_in_place(registry, only, ci, root)
+
+    try:
+        ci_relative = ci.resolve().relative_to(resolved_root)
+    except ValueError as exc:
+        raise ValueError("ci must be contained by the isolated repository root") from exc
+
+    with tempfile.TemporaryDirectory(prefix="sahool-guard-mutation-workspace-") as tmp:
+        mirror = Path(tmp) / "repo"
+        shutil.copytree(
+            resolved_root,
+            mirror,
+            symlinks=True,
+            ignore=_ignore_copy_entries,
+        )
+        return _run_mutations_in_place(registry, only, mirror / ci_relative, mirror)
 
 
 def main() -> int:

@@ -541,6 +541,7 @@ def main() -> int:
     writer = csv.DictWriter(
         candidate_buffer,
         fieldnames=["capability_id", "kind", "value", "score", "decision"],
+        lineterminator="\n",
     )
     writer.writeheader()
     candidates.sort(

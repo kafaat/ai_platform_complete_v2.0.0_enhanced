@@ -178,8 +178,12 @@ def test_an_unreadable_protection_file_fails_closed(tmp_path):
     استجابة خطأ — وهي الحالة المرجَّحة عند سوء الإعداد لا حالةٌ نادرة. وقبولُها يجعل
     الحارس أخضرَ **بالضبط حين لا يُقاس شيء**.
     """
+    # الاسم ASCII عمداً: هذا التأكيد عن **ملفّ غائب**، وتشغيل `pytest -m unit` تحت
+    # `LC_ALL=C PYTHONUTF8=0` (خطوة ١٠) يجعل ترميز نظام الملفّات ASCII، فاسمٌ عربيّ
+    # يرفع `UnicodeEncodeError` **قبل** أن يبلغ الحارس — فيسقط الاختبار على تجهيزته لا
+    # على ما يقيسه. CI-GUARDS-CRASH-ON-NON-UTF8-CONSOLE-01
     with pytest.raises(SystemExit):
-        _run(tmp_path / "لا-وجود-له.json")
+        _run(tmp_path / "absent-protection.json")
 
     broken = tmp_path / "protection.json"
     broken.write_text("{ليس JSON", encoding="utf-8")
