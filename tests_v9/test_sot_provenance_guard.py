@@ -203,3 +203,58 @@ def test_the_manifest_builder_offers_no_unreachable_binding_mode():
         "الوضع غير قابل للبلوغ ما دامت الأداة لا تُنتِج `binding_evidence`؛ "
         "إعادتُه تتطلّب تصميم دليل الربط أوّلاً."
     )
+
+
+def test_a_bare_command_name_resolves_through_path():
+    """`--gh-bin gh` اسمُ أمرٍ — يُحلّ إلى مسارٍ مطلقٍ يُبصَم، لا يُمرَّر كما هو."""
+    resolved = MOD.resolve_executable("sh")
+    assert pathlib.Path(resolved).is_absolute()
+    assert pathlib.Path(resolved).is_file()
+
+
+def test_an_unresolvable_tool_is_a_toolchain_reason(tmp_path):
+    """تعذّرُ الحلّ عطلُ **أداة** لا عطلٌ داخليّ — بالاسم وبالمسار معاً."""
+    for candidate in ("definitely-not-a-real-binary-xyz", str(tmp_path / "nope")):
+        with pytest.raises(RuntimeError) as err:
+            MOD.resolve_executable(candidate)
+        assert str(err.value) == "TOOLCHAIN_MISMATCH"
+
+
+def test_the_hashed_bytes_are_the_invoked_executable(tmp_path):
+    """وصلةٌ رمزيّة تُفكّ: البصمة لِما يُنفَّذ لا لِما يشير إليه.
+
+    وإلّا سجّلنا بصمة الوصلة وشغّلنا هدفها — نَسَبٌ يصف غير ما جرى.
+    """
+    real = tmp_path / "real_tool"
+    real.write_text("#!/bin/sh\necho x\n", encoding="utf-8")
+    real.chmod(0o755)
+    link = tmp_path / "linked_tool"
+    link.symlink_to(real)
+    assert MOD.resolve_executable(str(link)) == str(real.resolve())
+
+
+def test_an_empty_gh_result_list_is_a_crypto_reason(tmp_path, monkeypatch):
+    """`rc=0` وقائمةٌ فارغة ليست نجاحاً: تحقّقٌ بلا نتيجةٍ واحدة لا يُثبِت شيئاً."""
+
+    class _Proc:
+        returncode = 0
+        stdout = "[]"
+        stderr = ""
+
+    monkeypatch.setattr(MOD.subprocess, "run", lambda *a, **k: _Proc())
+    with pytest.raises(RuntimeError) as err:
+        MOD.verify_subject(
+            pathlib.Path("x"),
+            gh="/usr/bin/gh",
+            bundle=tmp_path / "b",
+            trusted_root=tmp_path / "t",
+            policy={
+                "repository": "r",
+                "predicate_type": "p",
+                "signer_workflow": "w",
+                "oidc_issuer": "o",
+            },
+            tested_commit="c",
+            source_ref="refs/heads/main",
+        )
+    assert str(err.value) == "ATTESTATION_CRYPTO_INVALID"

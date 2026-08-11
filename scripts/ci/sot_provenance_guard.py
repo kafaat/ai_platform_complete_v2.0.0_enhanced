@@ -191,6 +191,26 @@ def toolchain(gh: str, policy: dict) -> dict:
     return {"gh_version": first, "gh_binary_sha256": sha256(Path(gh))}
 
 
+def resolve_executable(value: str | None) -> str:
+    """يحلّ الأداة إلى **مسارٍ فعليّ** مرّةً واحدة قبل أيّ استعمال.
+
+    البصمة جزءٌ من سجلّ التحقّق، واسمُ أمرٍ لا يُبصَم: `--gh-bin gh` ينجح عبر
+    `PATH` في `subprocess` ثمّ يسقط في `sha256(Path("gh"))`، فيُبلَّغ خطأً
+    داخليّاً وسببُه أنّ الأداة لم تُحلَّ. و`resolve()` يفكّ الوصلات الرمزيّة
+    فتصير **البايتات المُبصَمة عين ما استُدعي** — لا ملفّاً يشير إليه.
+    """
+    candidate = value or "gh"
+    if "/" in candidate:
+        path = Path(candidate).resolve()
+        if not path.is_file():
+            raise RuntimeError("TOOLCHAIN_MISMATCH")
+        return str(path)
+    resolved = shutil.which(candidate)
+    if not resolved:
+        raise RuntimeError("TOOLCHAIN_MISMATCH")
+    return str(Path(resolved).resolve())
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", required=True)
@@ -217,13 +237,7 @@ def main(argv=None) -> int:
         validate_manifest(manifest_path, manifest, [Path(x) for x in args.artifact_file])
         tested = manifest["tested_identity"]
         source_ref = manifest["source_identity"]["ref"]
-        gh = args.gh_bin or shutil.which("gh")
-        # يُحلّ إلى مسارٍ فعليّ قبل أيّ استعمال: البصمة جزءٌ من سجلّ التحقّق،
-        # واسمُ أمرٍ لا يُبصَم. وتعذّرُ الحلّ عطلُ أداةٍ لا عطلٌ داخليّ.
-        if gh:
-            gh = shutil.which(gh) or (gh if Path(gh).is_file() else None)
-        if not gh:
-            raise RuntimeError("TOOLCHAIN_MISMATCH")
+        gh = resolve_executable(args.gh_bin)
         tc = toolchain(gh, policy)
         subjects = [Path(x["path"]) for x in manifest["files"]] + [manifest_path]
         verified = [
