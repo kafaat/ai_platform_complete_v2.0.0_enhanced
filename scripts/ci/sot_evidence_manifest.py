@@ -70,10 +70,23 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     if len(args.tested_commit) != 40 or len(args.tested_tree) != 40:
         raise SystemExit("SOURCE_IDENTITY_MISMATCH: commit/tree must be full SHA")
-    if args.binding_mode == "exact_commit" and args.accepted_commit_sha != args.tested_commit:
-        raise SystemExit("RELEASE_BINDING_MISMATCH: exact_commit")
-    if args.binding_mode == "exact_tree" and args.accepted_tree_sha != args.tested_tree:
-        raise SystemExit("RELEASE_BINDING_MISMATCH: exact_tree")
+    # **الحقلُ غير المستعمَل في وضعٍ ما ليس حرّاً.** الفحص القديم كان يتأكّد من
+    # الحقل الذي يقرؤه الحارس وحده، فيُنتِج بياناً **متناقضاً داخليّاً**: يقول
+    # «الالتزام مطابق» ويحمل شجرةً مخالفة، ويمرّ لأنّ أحداً لا يقرؤها. والبيان
+    # وثيقةٌ تُقرأ كاملةً لاحقاً، لا مُدخَلاً لدالّةٍ واحدة.
+    if args.binding_mode == "pending_final_rerun":
+        if args.accepted_commit_sha is not None or args.accepted_tree_sha is not None:
+            raise SystemExit("RELEASE_BINDING_MISMATCH: pending_final_rerun")
+    elif args.binding_mode == "exact_commit":
+        if args.accepted_commit_sha != args.tested_commit:
+            raise SystemExit("RELEASE_BINDING_MISMATCH: exact_commit")
+        if args.accepted_tree_sha is not None and args.accepted_tree_sha != args.tested_tree:
+            raise SystemExit("RELEASE_BINDING_MISMATCH: exact_commit tree")
+    elif args.binding_mode == "exact_tree":
+        if args.accepted_tree_sha != args.tested_tree:
+            raise SystemExit("RELEASE_BINDING_MISMATCH: exact_tree")
+        if args.accepted_commit_sha is not None and args.accepted_commit_sha != args.tested_commit:
+            raise SystemExit("RELEASE_BINDING_MISMATCH: exact_tree commit")
     Path(args.output).write_bytes(canonical_bytes(build(args)))
     return 0
 

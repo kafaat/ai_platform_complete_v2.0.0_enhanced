@@ -110,8 +110,16 @@ def test_missing_manifested_file_is_rejected(tmp_path, monkeypatch):
 
 
 def test_failed_gh_verification_never_becomes_pass(tmp_path, monkeypatch):
+    """**ومخرَجُه JSON سليم عمداً.**
+
+    كان يُموِّه بـ`stdout=""`، فلمّا صار `JSONDecodeError` يُنتِج السبب نفسه لم
+    تعد طفرةُ «نزع فحص رمز الخروج» تُميّز شيئاً — أمسكه `guard_mutation_guard`.
+    والخاصّيّة المقصودة أقوى: **رمزُ خروجٍ فاشل يحجب ولو كان المخرَج مفهوماً**.
+    """
     monkeypatch.setattr(
-        subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a[0], 1, "", "bad")
+        subprocess,
+        "run",
+        lambda *a, **k: subprocess.CompletedProcess(a[0], 1, '[{"verified": true}]', "bad"),
     )
     with pytest.raises(RuntimeError, match="ATTESTATION_CRYPTO_INVALID"):
         MOD.verify_subject(
@@ -258,3 +266,273 @@ def test_an_empty_gh_result_list_is_a_crypto_reason(tmp_path, monkeypatch):
             source_ref="refs/heads/main",
         )
     assert str(err.value) == "ATTESTATION_CRYPTO_INVALID"
+
+
+# ── تصنيفُ الأسباب: نقصٌ في السياسة أو الهويّة ليس عطلاً داخليّاً ──────────
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        pytest.param(lambda p: p.pop("repository"), id="missing-repository"),
+        pytest.param(lambda p: p.pop("predicate_type"), id="missing-predicate"),
+        pytest.param(lambda p: p.pop("signer_workflow"), id="missing-signer"),
+        pytest.param(lambda p: p.pop("oidc_issuer"), id="missing-issuer"),
+        pytest.param(lambda p: p.__setitem__("gh_cli", "not-an-object"), id="gh_cli-not-object"),
+        pytest.param(lambda p: p["gh_cli"].pop("version"), id="gh_cli-no-version"),
+        pytest.param(lambda p: p.__setitem__("repository", ""), id="empty-repository"),
+    ],
+)
+def test_a_broken_policy_is_a_policy_reason(mutate):
+    """سببٌ يسمّي **السياسة** لا المُصادِق — وإلّا بحث المُصلِح في المكان الخطأ."""
+    policy = {
+        "repository": "o/r",
+        "predicate_type": "p",
+        "signer_workflow": "w",
+        "oidc_issuer": "i",
+        "gh_cli": {"version": "2.93.0"},
+    }
+    mutate(policy)
+    with pytest.raises(RuntimeError) as err:
+        MOD.validate_policy(policy)
+    assert str(err.value) == "POLICY_MISMATCH"
+
+
+def test_a_valid_policy_passes_through_unchanged():
+    """البند الموجب: التحقّق لا يُعدّل ولا يُضيف افتراضات."""
+    policy = {
+        "repository": "o/r",
+        "predicate_type": "p",
+        "signer_workflow": "w",
+        "oidc_issuer": "i",
+        "gh_cli": {"version": "2.93.0"},
+    }
+    assert MOD.validate_policy(policy) is policy
+
+
+@pytest.mark.parametrize(
+    "value",
+    [None, "text", 5, []],
+    ids=["none", "string", "number", "list"],
+)
+def test_a_non_mapping_identity_is_a_source_identity_reason(value):
+    with pytest.raises(RuntimeError) as err:
+        MOD.require_mapping(value, "SOURCE_IDENTITY_MISMATCH")
+    assert str(err.value) == "SOURCE_IDENTITY_MISMATCH"
+
+
+@pytest.mark.parametrize("value", [None, "", 5, {}], ids=["none", "empty", "number", "dict"])
+def test_a_non_string_ref_is_a_source_identity_reason(value):
+    with pytest.raises(RuntimeError) as err:
+        MOD.require_nonempty_str({"ref": value}, "ref", "SOURCE_IDENTITY_MISMATCH")
+    assert str(err.value) == "SOURCE_IDENTITY_MISMATCH"
+
+
+# ── الإغلاق: بنيةٌ تُتحقَّق لا حقلٌ يُقرأ بافتراض ──────────────────────────
+
+
+def _manifest_with_closure(tmp_path, closure):
+    subject = tmp_path / "subject.txt"
+    subject.write_bytes(b"payload")
+    doc = {
+        "schema": "sahool.evidence-manifest/v1",
+        "closure": closure,
+        "tested_identity": {"commit_sha": "c", "tree_sha": "t"},
+        "source_identity": {"ref": "refs/heads/main"},
+        "release_binding": {"mode": "pending_final_rerun"},
+        "files": [
+            {
+                "path": str(subject),
+                "sha256": MOD.sha256(subject),
+                "size_bytes": subject.stat().st_size,
+            }
+        ],
+    }
+    path = tmp_path / "manifest.json"
+    path.write_bytes(MOD.canonical_manifest_bytes(doc))
+    return path, doc, subject
+
+
+@pytest.mark.parametrize(
+    ("closure", "reason"),
+    [
+        pytest.param("not-an-object", "MANIFEST_NON_CANONICAL", id="closure-not-object"),
+        pytest.param(
+            {"mode": "loose", "transport_exclusions": []},
+            "MANIFEST_CLOSURE_MISMATCH",
+            id="mode-not-exact",
+        ),
+        pytest.param(
+            {"mode": "exact", "transport_exclusions": "x"},
+            "MANIFEST_NON_CANONICAL",
+            id="exclusions-not-list",
+        ),
+        pytest.param(
+            {"mode": "exact", "transport_exclusions": [{"a": 1}]},
+            "MANIFEST_NON_CANONICAL",
+            id="exclusion-not-string",
+        ),
+        pytest.param(
+            {"mode": "exact", "transport_exclusions": [""]},
+            "MANIFEST_NON_CANONICAL",
+            id="exclusion-empty",
+        ),
+        pytest.param(
+            {"mode": "exact", "transport_exclusions": ["a", "a"]},
+            "MANIFEST_NON_CANONICAL",
+            id="exclusion-duplicated",
+        ),
+    ],
+)
+def test_a_malformed_closure_is_rejected_with_its_own_reason(tmp_path, closure, reason):
+    path, doc, subject = _manifest_with_closure(tmp_path, closure)
+    with pytest.raises(RuntimeError) as err:
+        MOD.validate_manifest(path, doc, [subject, path])
+    assert str(err.value) == reason
+
+
+def test_a_subject_cannot_also_be_transport_metadata(tmp_path):
+    """ملفٌّ موقَّعٌ ومُستثنىً معاً يُخرِج بايتاته من الإغلاق ويُحسَب مُغطّىً."""
+    subject = tmp_path / "subject.txt"
+    subject.write_bytes(b"payload")
+    closure = {"mode": "exact", "transport_exclusions": [str(subject)]}
+    path, doc, subject = _manifest_with_closure(tmp_path, closure)
+    with pytest.raises(RuntimeError) as err:
+        MOD.validate_manifest(path, doc, [subject, path])
+    assert str(err.value) == "MANIFEST_CLOSURE_MISMATCH"
+
+
+# ── اتّساق الربط: الحقل غير المستعمَل ليس حرّاً ────────────────────────────
+
+
+@pytest.mark.parametrize(
+    ("binding", "bound"),
+    [
+        pytest.param({"mode": "exact_commit", "accepted_commit_sha": "c"}, True, id="commit-only"),
+        pytest.param(
+            {"mode": "exact_commit", "accepted_commit_sha": "c", "accepted_tree_sha": "t"},
+            True,
+            id="commit-with-matching-tree",
+        ),
+        pytest.param(
+            {"mode": "exact_commit", "accepted_commit_sha": "c", "accepted_tree_sha": "WRONG"},
+            False,
+            id="commit-with-conflicting-tree",
+        ),
+        pytest.param({"mode": "exact_tree", "accepted_tree_sha": "t"}, True, id="tree-only"),
+        pytest.param(
+            {"mode": "exact_tree", "accepted_tree_sha": "t", "accepted_commit_sha": "c"},
+            True,
+            id="tree-with-matching-commit",
+        ),
+        pytest.param(
+            {"mode": "exact_tree", "accepted_tree_sha": "t", "accepted_commit_sha": "WRONG"},
+            False,
+            id="tree-with-conflicting-commit",
+        ),
+    ],
+)
+def test_the_verifier_rejects_a_manifest_that_contradicts_itself(binding, bound):
+    """المُصادِق لا يفترض أنّ البيان جاء من الأداة الرسميّة."""
+    manifest = {"tested_identity": {"commit_sha": "c", "tree_sha": "t"}, "release_binding": binding}
+    assert MOD.release_bound(manifest) is bound
+
+
+# ── الأداة المُنتِجة: ترفض ما يرفضه الحارس، فلا يُولَد بيانٌ متناقض أصلاً ────
+
+# بصماتٌ كاملة (٤٠ خانة): الأداة ترفض المختصر بـ`SOURCE_IDENTITY_MISMATCH`،
+# فقيمةٌ قصيرة كانت ستجعل اختبار **الربط** يخضرّ لسببٍ غير سببه المُعلَن.
+_C = "c" * 40
+_T = "d" * 40
+_WRONG = "e" * 40
+
+_BUILDER_PATH = ROOT / "scripts/ci/sot_evidence_manifest.py"
+_builder_spec = importlib.util.spec_from_file_location("sot_evidence_manifest", _BUILDER_PATH)
+assert _builder_spec is not None and _builder_spec.loader is not None
+BUILDER = importlib.util.module_from_spec(_builder_spec)
+_builder_spec.loader.exec_module(BUILDER)
+
+
+def _builder_argv(tmp_path, subject, **extra):
+    argv = [
+        "--output",
+        str(tmp_path / "m.json"),
+        "--file",
+        str(subject),
+        "--tested-commit",
+        _C,
+        "--tested-tree",
+        _T,
+        "--source-ref",
+        "refs/heads/main",
+    ]
+    for key, value in extra.items():
+        argv += [f"--{key.replace('_', '-')}", value]
+    return argv
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        pytest.param(
+            {
+                "binding_mode": "exact_commit",
+                "accepted_commit_sha": _C,
+                "accepted_tree_sha": _WRONG,
+            },
+            id="exact_commit-conflicting-tree",
+        ),
+        pytest.param(
+            {
+                "binding_mode": "exact_tree",
+                "accepted_tree_sha": _T,
+                "accepted_commit_sha": _WRONG,
+            },
+            id="exact_tree-conflicting-commit",
+        ),
+        pytest.param(
+            {"binding_mode": "pending_final_rerun", "accepted_commit_sha": _C},
+            id="pending-with-commit",
+        ),
+        pytest.param(
+            {"binding_mode": "pending_final_rerun", "accepted_tree_sha": _T},
+            id="pending-with-tree",
+        ),
+        pytest.param(
+            {"binding_mode": "exact_commit", "accepted_commit_sha": _WRONG},
+            id="exact_commit-wrong-commit",
+        ),
+        pytest.param(
+            {"binding_mode": "exact_tree", "accepted_tree_sha": _WRONG}, id="exact_tree-wrong-tree"
+        ),
+    ],
+)
+def test_the_builder_refuses_to_emit_a_contradictory_manifest(tmp_path, extra):
+    subject = tmp_path / "s.txt"
+    subject.write_bytes(b"x")
+    with pytest.raises(SystemExit) as err:
+        BUILDER.main(_builder_argv(tmp_path, subject, **extra))
+    assert "RELEASE_BINDING_MISMATCH" in str(err.value)
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        pytest.param({"binding_mode": "pending_final_rerun"}, id="pending-bare"),
+        pytest.param(
+            {"binding_mode": "exact_commit", "accepted_commit_sha": _C}, id="exact_commit-clean"
+        ),
+        pytest.param(
+            {"binding_mode": "exact_commit", "accepted_commit_sha": _C, "accepted_tree_sha": _T},
+            id="exact_commit-consistent-tree",
+        ),
+        pytest.param(
+            {"binding_mode": "exact_tree", "accepted_tree_sha": _T}, id="exact_tree-clean"
+        ),
+    ],
+)
+def test_the_builder_emits_consistent_manifests(tmp_path, extra):
+    """البند الموجب: التشديد لم يمنع الحالات المشروعة."""
+    subject = tmp_path / "s.txt"
+    subject.write_bytes(b"x")
+    assert BUILDER.main(_builder_argv(tmp_path, subject, **extra)) == 0

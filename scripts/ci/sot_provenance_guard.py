@@ -29,6 +29,35 @@ REASONS = {
 }
 
 
+def require_mapping(value: object, reason: str) -> dict:
+    """قاموسٌ أو سببٌ دقيق — لا `KeyError` يُبلَّغ عطلاً داخليّاً."""
+    if not isinstance(value, dict):
+        raise RuntimeError(reason)
+    return value
+
+
+def require_nonempty_str(mapping: dict, key: str, reason: str) -> str:
+    value = mapping.get(key)
+    if not isinstance(value, str) or not value:
+        raise RuntimeError(reason)
+    return value
+
+
+def validate_policy(policy: dict) -> dict:
+    """السياسة تُتحقَّق **قبل** بناء الأمر أو فحص الأداة.
+
+    الفهرسة المباشرة تُحوِّل حقلاً ناقصاً إلى `KeyError` ⇒ `VERIFIER_INTERNAL_ERROR`،
+    فيبحث قارئ السجلّ عن عطبٍ في المُصادِق بينما العطب في **السياسة**. والفشل
+    مغلقٌ في الحالين، لكنّ السبب المبهم يُطيل التشخيص ويُخفي مَن يُصلِح.
+    """
+    require_mapping(policy, "POLICY_MISMATCH")
+    for key in ("repository", "predicate_type", "signer_workflow", "oidc_issuer"):
+        require_nonempty_str(policy, key, "POLICY_MISMATCH")
+    gh_cli = require_mapping(policy.get("gh_cli"), "POLICY_MISMATCH")
+    require_nonempty_str(gh_cli, "version", "POLICY_MISMATCH")
+    return policy
+
+
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -72,7 +101,25 @@ def validate_manifest(manifest_path: Path, manifest: dict, artifact_files: list[
             raise RuntimeError("SUBJECT_DIGEST_MISMATCH")
         if path.stat().st_size != item.get("size_bytes"):
             raise RuntimeError("SUBJECT_DIGEST_MISMATCH")
-    exclusions = set(manifest.get("closure", {}).get("transport_exclusions", []))
+    # الإغلاق عقدٌ يُتحقَّق، لا حقلٌ يُقرأ بافتراض شكله: `.get("closure", {})`
+    # يبتلع قاموساً مفقوداً، و`set(...)` على غير قائمةٍ نصّيّة يرمي `TypeError`
+    # فيُبلَّغ عطلاً داخليّاً. والوضع نفسه لم يكن مفحوصاً أصلاً رغم أنّ السياسة
+    # تفترضه `exact`.
+    closure = require_mapping(manifest.get("closure"), "MANIFEST_NON_CANONICAL")
+    if closure.get("mode") != "exact":
+        raise RuntimeError("MANIFEST_CLOSURE_MISMATCH")
+    raw_exclusions = closure.get("transport_exclusions")
+    if not isinstance(raw_exclusions, list):
+        raise RuntimeError("MANIFEST_NON_CANONICAL")
+    if any(not isinstance(x, str) or not x for x in raw_exclusions):
+        raise RuntimeError("MANIFEST_NON_CANONICAL")
+    if len(raw_exclusions) != len(set(raw_exclusions)):
+        raise RuntimeError("MANIFEST_NON_CANONICAL")
+    exclusions = set(raw_exclusions)
+    # وملفٌّ لا يكون **موضوعاً موقَّعاً ومُستثنىً نقلاً** في آنٍ واحد: ذلك يُخرِج
+    # بايتاته من الإغلاق بينما يُحسَب مُغطّىً.
+    if exclusions & expected_paths:
+        raise RuntimeError("MANIFEST_CLOSURE_MISMATCH")
     allowed_paths = expected_paths | exclusions | {manifest_path.as_posix()}
     actual_paths = {p.as_posix() for p in artifact_files}
     if actual_paths != allowed_paths:
@@ -158,10 +205,20 @@ def release_bound(manifest: dict) -> bool:
     mode = binding.get("mode")
     if mode == "pending_final_rerun":
         return False
+    # **حقلٌ متقاطعٌ مخالف يُرفض ولو لم يُستعمَل في هذا الوضع.** بيانٌ يقول
+    # «الالتزام مطابق» ويحمل شجرةً مخالفة متناقضٌ داخليّاً؛ وسكوتُ الحارس عنه
+    # يجعل التناقض يمرّ لأنّه لا يقرأ ذلك الحقل — والمُصادِق لا يفترض أنّ البيان
+    # جاء من الأداة الرسميّة.
     if mode == "exact_commit":
-        return binding.get("accepted_commit_sha") == tested.get("commit_sha")
+        if binding.get("accepted_commit_sha") != tested.get("commit_sha"):
+            return False
+        other = binding.get("accepted_tree_sha")
+        return other is None or other == tested.get("tree_sha")
     if mode == "exact_tree":
-        return binding.get("accepted_tree_sha") == tested.get("tree_sha")
+        if binding.get("accepted_tree_sha") != tested.get("tree_sha"):
+            return False
+        other = binding.get("accepted_commit_sha")
+        return other is None or other == tested.get("commit_sha")
     if mode == "tested_merge_to_release":
         return bool(
             binding.get("accepted_commit_sha")
@@ -233,10 +290,13 @@ def main(argv=None) -> int:
             raise RuntimeError("ATTESTATION_LOOKUP_UNAVAILABLE")
         if not trusted_root.is_file() or trusted_root.stat().st_size == 0:
             raise RuntimeError("TRUST_ROOT_INVALID")
-        manifest, policy = load_json(manifest_path), load_json(policy_path)
+        manifest = load_json(manifest_path)
+        policy = validate_policy(load_json(policy_path))
         validate_manifest(manifest_path, manifest, [Path(x) for x in args.artifact_file])
-        tested = manifest["tested_identity"]
-        source_ref = manifest["source_identity"]["ref"]
+        tested = require_mapping(manifest.get("tested_identity"), "SOURCE_IDENTITY_MISMATCH")
+        source = require_mapping(manifest.get("source_identity"), "SOURCE_IDENTITY_MISMATCH")
+        require_nonempty_str(tested, "commit_sha", "SOURCE_IDENTITY_MISMATCH")
+        source_ref = require_nonempty_str(source, "ref", "SOURCE_IDENTITY_MISMATCH")
         gh = resolve_executable(args.gh_bin)
         tc = toolchain(gh, policy)
         subjects = [Path(x["path"]) for x in manifest["files"]] + [manifest_path]

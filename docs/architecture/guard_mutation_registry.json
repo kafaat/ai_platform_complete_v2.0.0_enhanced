@@ -891,6 +891,24 @@
           "find": "    if returncode != 0:",
           "replace": "    if False:",
           "why": "فشل الأداة الرسمية لا يجوز أن يتحول إلى PASS."
+        },
+        {
+          "expect": "test_a_malformed_closure_is_rejected_with_its_own_reason",
+          "find": "    if closure.get(\"mode\") != \"exact\":",
+          "replace": "    if False:",
+          "why": "السياسة تفترض إغلاقاً `exact` ولم يكن مفحوصاً: بيانٌ يعلن وضعاً آخر يمرّ فيصير «الإغلاق التامّ» ادّعاءً في وثيقةٍ لا يفرضه أحد"
+        },
+        {
+          "expect": "test_a_malformed_closure_is_rejected_with_its_own_reason",
+          "find": "    if not isinstance(raw_exclusions, list):",
+          "replace": "    if False:",
+          "why": "`set(...)` على غير قائمةٍ نصّيّة يرمي TypeError فيُبلَّغ VERIFIER_INTERNAL_ERROR — سببٌ يقول «عطبٌ في المُصادِق» بينما العطب في البيان، فيبحث المُصلِح في المكان الخطأ"
+        },
+        {
+          "expect": "test_the_verifier_rejects_a_manifest_that_contradicts_itself",
+          "find": "        other = binding.get(\"accepted_tree_sha\")\n        return other is None or other == tested.get(\"tree_sha\")",
+          "replace": "        return True",
+          "why": "حقلٌ متقاطعٌ مخالف لا يُقرأ في هذا الوضع، فبيانٌ يقول «الالتزام مطابق» ويحمل شجرةً مخالفة يمرّ متناقضاً داخليّاً — والمُصادِق لا يجوز أن يفترض أنّ البيان جاء من الأداة الرسميّة"
         }
       ]
     }

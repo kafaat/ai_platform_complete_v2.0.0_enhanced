@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **231**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **20**
-- إجماليّ الطفرات المُسجَّلة: **130**
+- إجماليّ الطفرات المُسجَّلة: **133**
 
 أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
@@ -342,6 +342,9 @@
 - trusted root ليست metadata؛ تغييرها يغير جذر الثقة. — يُسقِط `test_gh_command_denies_self_hosted_and_uses_trusted_root`
 - إزالة القيد توسع هوية builder من دون قرار. — يُسقِط `test_gh_command_denies_self_hosted_and_uses_trusted_root`
 - فشل الأداة الرسمية لا يجوز أن يتحول إلى PASS. — يُسقِط `test_failed_gh_verification_never_becomes_pass`
+- السياسة تفترض إغلاقاً `exact` ولم يكن مفحوصاً: بيانٌ يعلن وضعاً آخر يمرّ فيصير «الإغلاق التامّ» ادّعاءً في وثيقةٍ لا يفرضه أحد — يُسقِط `test_a_malformed_closure_is_rejected_with_its_own_reason`
+- `set(...)` على غير قائمةٍ نصّيّة يرمي TypeError فيُبلَّغ VERIFIER_INTERNAL_ERROR — سببٌ يقول «عطبٌ في المُصادِق» بينما العطب في البيان، فيبحث المُصلِح في المكان الخطأ — يُسقِط `test_a_malformed_closure_is_rejected_with_its_own_reason`
+- حقلٌ متقاطعٌ مخالف لا يُقرأ في هذا الوضع، فبيانٌ يقول «الالتزام مطابق» ويحمل شجرةً مخالفة يمرّ متناقضاً داخليّاً — والمُصادِق لا يجوز أن يفترض أنّ البيان جاء من الأداة الرسميّة — يُسقِط `test_the_verifier_rejects_a_manifest_that_contradicts_itself`
 
 ### `test_marker_coverage_guard.py`
 
