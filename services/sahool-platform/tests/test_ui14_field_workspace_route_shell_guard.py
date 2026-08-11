@@ -40,8 +40,17 @@ def test_app_routes_dynamic_field_workspace_without_breaking_compat_page():
     assert "FieldWorkspaceRouteShell" in app
     assert 'path="/fields/:fieldId/workspace"' in app
     assert "case 'field-workspace': return <FieldWorkspaceRouteShell />" in app
-    # Compatibility card remains imported because the route shell reuses it rather than rewriting map behavior.
-    assert "./sections/FieldWorkspaceMapCard" in app
+    # **المرساة كانت في الملفّ الخطأ.** الخاصّيّة المقصودة — «القشرة تُعيد استعمال
+    # البطاقة القائمة بدل إعادة كتابة سلوك الخريطة» — تعيش في القشرة لا في `App.tsx`.
+    # فكان الشرطُ يقرأ ورودَ المسار في `App.tsx`، ومرّ على ربطٍ ميّت: `lazy(...)` بلا
+    # مُستهلِكٍ واحد، بلّغ عنه `eslint` بـ`no-unused-vars` وحذفُه لم يمسّ سلوكاً.
+    # أي أنّه كان يحرس صدفةً ويعاقب تنظيفها. المقيس الآن: الاستيراد **حيث يُستعمَل**.
+    shell = read(FRONTEND / "sections" / "FieldWorkspaceRouteShell.tsx")
+    assert "from './FieldWorkspaceMapCard'" in shell
+    assert "FieldWorkspaceMapCard" not in app, (
+        "بطاقة التوافق مُستهلِكُها الوحيد قشرةُ المسار؛ ربطٌ ثانٍ في `App.tsx` "
+        "إمّا ميّتٌ (وهو ما كان) أو مسارٌ موازٍ يلتفّ على القشرة وعقدِ تبويباتها."
+    )
 
 
 def test_field_workspace_tabs_disable_season_bound_tabs_without_season():
