@@ -793,6 +793,41 @@
           "why": "طباعةُ مخالفةٍ متعدّدة الأسطر كتلةً واحدة تُخرِج سطر الملفّات بلا `✗` ولا إزاحة، فيُقرأ مخالفةً مستقلّة وتنكسر القراءة السطريّة لسجلّ CI — والرسالة جزءٌ من الحارس لا زينةٌ فوقه"
         }
       ]
+    },
+    "action_pin_agreement_guard.py": {
+      "test": "tests_v9/test_action_pin_agreement_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_half_upgrade_is_blocked",
+          "find": "        if len(shas) > allowed:",
+          "replace": "        if False:",
+          "why": "نزعُ بند «بصمةٌ واحدة لكلّ عمل» ⇒ ترقيةٌ تُبدّل ثلاثة من ثلاثة وعشرين تمرّ خضراء، وهو بالحرف ما كانت الحزمة المقترَحة ستفعله؛ و`github_actions_policy_guard` لا يراه لأنّه يسأل «أمثبَّتٌ ببصمة؟» لا «أبصمةٌ واحدة؟»"
+        },
+        {
+          "expect": "test_unifying_without_lowering_the_baseline_is_blocked",
+          "find": "        elif action in DIVERGENCE_BASELINE and len(shas) < allowed:",
+          "replace": "        elif False:",
+          "why": "أساسٌ يبقى بعد توحيدٍ يبتلع عودة التباعد صامتاً: يُوحَّد `checkout` ثمّ يتباعد ثانيةً فيبقى تحت سقفه القديم والحارس أخضر. درسٌ مقيس مرّتين قبله في راتشِتَي `fixme` ودَين الواجهة"
+        },
+        {
+          "expect": "test_a_sha_carrying_two_different_tags_is_blocked",
+          "find": "            if len(tags) > 1:",
+          "replace": "            if False:",
+          "why": "`@<بصمة v7> # v4` أسوأ من تعليقٍ غائب: القارئ التالي يقرؤه وسماً ويبني عليه قرار ترقيةٍ أو تدقيقٍ أمنيّ. وهو الخطأ الذي تقع فيه كلّ ترقيةٍ تُبدّل البصمة وتنسى تعليقها"
+        },
+        {
+          "expect": "test_a_stale_baseline_entry_is_blocked",
+          "find": "    for action in sorted(set(DIVERGENCE_BASELINE) - set(observed)):",
+          "replace": "    for action in sorted(set()):",
+          "why": "مدخلٌ لعملٍ زال من الشجرة يُقرأ ديناً قائماً وقد انتهى — فيُدرَّب قارئه على تجاهل الأساس كلّه، وهو عطل الحارس الأكثر شيوعاً في هذا المستودع"
+        },
+        {
+          "expect": "test_a_missing_workflows_directory_fails_closed",
+          "find": "    if not args.workflows.is_dir():",
+          "replace": "    if False:",
+          "why": "مجلّدٌ غائب أو مسارٌ تغيّر ⇒ صفر بصمة ⇒ صفر مخالفة ⇒ PASS: «لم يُقَس» يُقرأ «متّسق»، وهي الحالة التي تجعل الحارس أخضرَ إلى الأبد وهو يحرس لا شيء"
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
