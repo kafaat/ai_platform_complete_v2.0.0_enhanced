@@ -143,7 +143,10 @@ def verify_subject(
     returncode = proc.returncode
     if returncode != 0:
         raise RuntimeError("ATTESTATION_CRYPTO_INVALID")
-    parsed = json.loads(proc.stdout)
+    try:
+        parsed = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("ATTESTATION_CRYPTO_INVALID") from exc
     if not isinstance(parsed, list) or not parsed:
         raise RuntimeError("ATTESTATION_CRYPTO_INVALID")
     return {"subject": str(subject), "gh_result_count": len(parsed)}
@@ -215,6 +218,10 @@ def main(argv=None) -> int:
         tested = manifest["tested_identity"]
         source_ref = manifest["source_identity"]["ref"]
         gh = args.gh_bin or shutil.which("gh")
+        # يُحلّ إلى مسارٍ فعليّ قبل أيّ استعمال: البصمة جزءٌ من سجلّ التحقّق،
+        # واسمُ أمرٍ لا يُبصَم. وتعذّرُ الحلّ عطلُ أداةٍ لا عطلٌ داخليّ.
+        if gh:
+            gh = shutil.which(gh) or (gh if Path(gh).is_file() else None)
         if not gh:
             raise RuntimeError("TOOLCHAIN_MISMATCH")
         tc = toolchain(gh, policy)

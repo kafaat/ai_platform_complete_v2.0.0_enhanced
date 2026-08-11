@@ -143,3 +143,63 @@ def test_exact_commit_binding_requires_same_commit():
         "release_binding": {"mode": "exact_commit", "accepted_commit_sha": "c" * 40},
     }
     assert MOD.release_bound(m) is False
+
+
+def test_unparsable_gh_output_is_a_crypto_reason_not_an_internal_error(tmp_path, monkeypatch):
+    """مخرَجٌ لا يُحلَّل من الأداة الرسميّة عطبُ **تحقّق** لا عطبُ مُصادِق.
+
+    خلطُهما يُضيع الإشارة: قارئ السجلّ يبحث في المُصادِق بينما العطب في مخرَج
+    `gh`. أمسكه فحصٌ خارجيّ.
+    """
+
+    class _Proc:
+        returncode = 0
+        stdout = "not json at all"
+        stderr = ""
+
+    monkeypatch.setattr(MOD.subprocess, "run", lambda *a, **k: _Proc())
+    with pytest.raises(RuntimeError) as err:
+        MOD.verify_subject(
+            pathlib.Path("x"),
+            gh="/usr/bin/gh",
+            bundle=tmp_path / "b",
+            trusted_root=tmp_path / "t",
+            policy={
+                "repository": "r",
+                "predicate_type": "p",
+                "signer_workflow": "w",
+                "oidc_issuer": "o",
+            },
+            tested_commit="c",
+            source_ref="refs/heads/main",
+        )
+    assert str(err.value) == "ATTESTATION_CRYPTO_INVALID"
+
+
+def test_the_manifest_builder_offers_no_unreachable_binding_mode():
+    """خيارٌ يَعِد بضمانٍ لا يُمنَح أسوأ من غيابه.
+
+    `tested_merge_to_release` كان يشترطه الحارس بـ`binding_evidence` والأداة لا
+    تُنتِجه قطّ — فكان الوضع غير قابل لبلوغ L4/L5 أصلاً.
+    """
+    # **يُقاس الخيار المُعلَن لا ورودُ الكلمة.** أوّل صياغةٍ فحصت النصّ كلّه
+    # فأحمرّها **التعليقُ الذي يشرح النزع** — نصٌّ يحرس تهجئةً لا خاصّيّة، وهو
+    # الصنف المُسجَّل في `TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01`.
+    import ast
+
+    tree = ast.parse((ROOT / "scripts/ci/sot_evidence_manifest.py").read_text(encoding="utf-8"))
+    offered: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            for kw in node.keywords:
+                if kw.arg == "choices" and isinstance(kw.value, ast.List):
+                    offered |= {
+                        e.value
+                        for e in kw.value.elts
+                        if isinstance(e, ast.Constant) and isinstance(e.value, str)
+                    }
+    assert offered, "لم يُعثَر على أيّ `choices` — تغيّرت الأداة، راجع الاختبار"
+    assert "tested_merge_to_release" not in offered, (
+        "الوضع غير قابل للبلوغ ما دامت الأداة لا تُنتِج `binding_evidence`؛ "
+        "إعادتُه تتطلّب تصميم دليل الربط أوّلاً."
+    )

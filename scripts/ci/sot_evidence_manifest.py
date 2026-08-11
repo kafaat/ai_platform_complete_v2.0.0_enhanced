@@ -59,7 +59,10 @@ def main(argv=None) -> int:
     ap.add_argument("--source-ref", required=True)
     ap.add_argument(
         "--binding-mode",
-        choices=["pending_final_rerun", "exact_commit", "exact_tree", "tested_merge_to_release"],
+        # `tested_merge_to_release` منزوعٌ عمداً: الحارس يشترط له `binding_evidence`
+        # وهذه الأداة لا تُنتِجه قطّ، فالوضع كان **غير قابل للبلوغ** — خيارٌ يَعِد
+        # بضمانٍ لا يُمنَح. يعود حين يُصمَّم دليلُ الربط، لا قبله.
+        choices=["pending_final_rerun", "exact_commit", "exact_tree"],
         required=True,
     )
     ap.add_argument("--accepted-commit-sha")
