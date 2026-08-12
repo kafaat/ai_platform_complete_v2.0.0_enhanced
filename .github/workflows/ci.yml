@@ -169,6 +169,12 @@ jobs:
         run: pip install 'jsonschema>=4.20.0'
       - name: unified JSON Schema validation (all *.schema.json)
         run: python scripts/ci/schema_validation_guard.py --check
+      # نطاق GUC المستأجِر شجريّاً (`GUC-SCOPE-GUARD-SEES-ONE-FILE-01`): الحارس السابق
+      # يحمل التشخيص الصحيح لعيبٍ إنتاجيّ مؤكَّد لكنّ تأكيده على **ملفّ واحد**. هذا يقيس
+      # الشجرة، و**النطاق لا الوجود**: `set_config(..., true)` خارج معاملة يضيع قبل
+      # الاستعلام التالي ⇒ RLS يُرجِع صفراً. راتشِت بأساسٍ مُعلَن يتقلّص ولا ينمو.
+      - name: tenant GUC scope (tree-wide, ratchet)
+        run: python scripts/ci/tenant_guc_scope_guard.py --check
       # كتالوج الحرّاس: مولَّد من الـworkflows + سجلّ الطفرات + توثيق كلّ حارس. أوّل
       # جرد أخرج رقماً لم يكن يعرفه أحد — **٢١٨ حارساً تحجب في CI و٨ فقط مُثبَتة
       # بالتكذيب**. قائمةٌ يدويّة كانت ستبيت عند أوّل حارس جديد؛ هذه تُشتقّ.

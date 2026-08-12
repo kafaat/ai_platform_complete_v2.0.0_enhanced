@@ -22,12 +22,9 @@ import pytest
 
 pytestmark = pytest.mark.unit
 
-_BLOCKED = pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01 — العيب **قائم**. الإصلاح يمسّ `commands.py` و`_authorize_device_control`، وهما مسار فيزيائيّ محجوب بتجميد أدلّة المرحلة 0. strict=True: نجاحٌ غير متوقَّع يعني أنّ الإصلاح دخل."
-    ),
-)
+# `_BLOCKED` (‏`xfail(strict=True)`) نُزِعت: الإصلاح دخل بقرار المالك برفع الحجر، وأوّل
+# تشغيل بعده أعطى خمسة `[XPASS(strict)]` — نجاحاً غير متوقَّع طالب بنزعها. هذه الاختبارات
+# تقيس الآن **السلوك القائم** لا الدَّين.
 
 # ══════════════════════════════════════════════════════════════════════════
 # **العيب قائم — والاختبار يوثّقه تنفيذيّاً لا نثراً.**
@@ -172,7 +169,6 @@ def _pool_returning(row):
     return _Pool()
 
 
-@_BLOCKED
 async def test_the_authorizer_returns_the_devices_field(actuator, monkeypatch):
     """الحقل يأتي من **استعلام الملكيّة نفسه** — إعادة استعمال لا استعلام ثانٍ."""
     monkeypatch.setattr(actuator, "_pool", _pool_returning({"tenant_id": "t1", "field_id": "f1"}))
@@ -184,7 +180,6 @@ async def test_the_authorizer_returns_the_devices_field(actuator, monkeypatch):
     assert field_id == "f1"
 
 
-@_BLOCKED
 async def test_a_device_with_no_field_returns_none_not_a_crash(actuator, monkeypatch):
     """`None` جوابٌ مشروع — جهازٌ بلا حقل يبقى محكوماً بالمستأجِر والصمّام."""
     monkeypatch.setattr(actuator, "_pool", _pool_returning({"tenant_id": "t1", "field_id": None}))
@@ -196,7 +191,6 @@ async def test_a_device_with_no_field_returns_none_not_a_crash(actuator, monkeyp
     assert field_id is None
 
 
-@_BLOCKED
 async def test_a_foreign_device_still_raises_before_returning_anything(actuator, monkeypatch):
     """توسيع العقد يجب ألّا يُضعِف العزل: جهاز مستأجِر آخر ⇒ 404 كما كان."""
     from fastapi import HTTPException
@@ -208,7 +202,6 @@ async def test_a_foreign_device_still_raises_before_returning_anything(actuator,
     assert exc.value.status_code == 404
 
 
-@_BLOCKED
 async def test_an_unknown_device_still_raises_404(actuator, monkeypatch):
     from fastapi import HTTPException
 
@@ -222,7 +215,6 @@ async def test_an_unknown_device_still_raises_404(actuator, monkeypatch):
 # --------------------------------------- الوصل: الراوتر يمرّر ما يُرجِعه المُصرِّح
 
 
-@_BLOCKED
 def test_the_router_passes_the_field_to_the_killswitch() -> None:
     """فحصٌ نصّيّ **مقصود ومحدود**: يقفل الوصل بين العقدين لا سلوك المفتاح.
 

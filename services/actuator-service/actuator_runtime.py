@@ -509,7 +509,7 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
 _DEVICE_CONTROL_ROLES = {"owner", "manager"}
 
 
-async def _authorize_device_control(claims: dict, device_id: str) -> None:
+async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
     """يحرس التحكّم الفيزيائيّ: فحص الدور + ملكيّة الجهاز للمستأجر (fail-closed).
 
     أمان السلامة الفيزيائيّة + عزل المستأجرين:
@@ -519,6 +519,14 @@ async def _authorize_device_control(claims: dict, device_id: str) -> None:
         يستطيع مستأجِر A تشغيل جهاز مستأجِر B (كسر عزل + خطر فيزيائيّ). غير موجود/لمستأجِر
         آخر ⇒ 404 (لا تسريب وجود عابر للمستأجرين).
       • fail-closed: تعذّر التحقّق من القاعدة (لا pool/خطأ) ⇒ 503، لا تشغيل بلا تحقّق.
+
+    **ويُرجِع `field_id` الجهاز** (‏``MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01``): مسار
+    `/v1/command` كان يستشير المفتاح بلا حقل، و``match_killswitch`` يشترط
+    ``field_id is not None`` لمطابقة صفٍّ بنطاق ``field`` — فمفتاحٌ يوقف **حقلاً بأكمله**
+    كان يحجب مسارَي القواعد والإرسال ولا يحجب اليدويّ، **والفارق غير مرئيّ في الاستجابة**
+    (الأمر ينجح بـ200 كأنّ لا مفتاح). والحقل يُقرأ من **نفس الاستعلام** القائم — إعادة
+    استعمال لا استعلام ثانٍ. وجهازٌ بلا حقل يُرجِع ``None``: محكومٌ بنطاقَي المستأجِر
+    والصمّام، وهو **صحيح لا ثغرة** — لا حقل له.
     """
     role = str(claims.get("role", "")).strip().lower()
     if role not in _DEVICE_CONTROL_ROLES:
@@ -530,16 +538,21 @@ async def _authorize_device_control(claims: dict, device_id: str) -> None:
         raise HTTPException(503, "تعذّر التحقّق من ملكيّة الجهاز — التحكّم معطّل بأمان")
     try:
         async with _pool.acquire() as conn:
-            owner_tenant = await conn.fetchval(
-                "SELECT tenant_id::text FROM iot_devices WHERE device_id = $1", device_id
+            row = await conn.fetchrow(
+                "SELECT tenant_id::text AS tenant_id, field_id::text AS field_id "
+                "FROM iot_devices WHERE device_id = $1",
+                device_id,
             )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ قاعدة ⇒ fail-closed
         raise HTTPException(503, "تعذّر التحقّق من ملكيّة الجهاز — التحكّم معطّل بأمان") from e
     # غير موجود أو لمستأجِر آخر ⇒ 404 موحّد (لا تمييز يكشف وجود أجهزة مستأجِر آخر).
+    owner_tenant = row["tenant_id"] if row is not None else None
     if owner_tenant is None or owner_tenant != tenant_id:
         raise HTTPException(404, "الجهاز غير موجود")
+    field_id = row["field_id"]
+    return str(field_id) if field_id is not None else None
 
 
 # ══════════════════════════════════════════════════════════════
@@ -703,14 +716,40 @@ def _inverse_command(command: str) -> str | None:
     return _INVERSE_COMMANDS.get((command or "").strip().lower())
 
 
+async def _consult_killswitch(
+    tenant_id: str, field_id: str | None, valve_id: str
+) -> tuple[bool, str | None]:
+    """مَفصِلُ استشارة مفتاح الطوارئ — بنفس نطاق ``evaluate_rules`` (مستأجِر+حقل+صمّام).
+
+    مَفصِلٌ لا اختصار: ``_compensate`` تستشير **لكلّ جهاز على حدة**، وفصلُ الاستشارة
+    يجعلها قابلة للقياس مستقلّةً عن حلقة التعويض. و``is_actuation_halted`` نفسها
+    fail-closed، فتعذّر القاعدة يُعيد «مُوقَف» ولا يمرّ أثرٌ فيزيائيّ.
+    """
+    async with _pool.acquire() as ks_conn:
+        return await is_actuation_halted(ks_conn, tenant_id, field_id=field_id, valve_id=valve_id)
+
+
 async def _compensate(
-    prior: list[dict], tenant_id: str, failed_device: str, failed_cmd: str
+    prior: list[dict],
+    tenant_id: str,
+    failed_device: str,
+    failed_cmd: str,
+    field_id: str | None = None,
 ) -> None:
     """خطّاف تعويض أوّليّ (Saga compensation hook) — ليس آلة حالات كاملة.
 
     عند فشل أمر ضمن تسلسل، نحاول إرسال العكس الواضح للأوامر السابقة الناجحة
     (open↔close, on↔off, start↔stop). إن لم يوجد عكس واضح ⇒ نُسجّل أنّ
     التعويض يتطلّب تدخّلاً يدويّاً (لا نُخمّن أمراً قد يكون خطيراً فيزيائيّاً).
+
+    **ومفتاح الطوارئ يُستشار قبل كلّ إرسال** (``COMPENSATION-BYPASSES-KILLSWITCH-01``).
+    والتوقيت هو ما يجعل ذلك حرجاً لا تزيّداً: التعويض يُطلَق **عند فشل أمر في منتصف
+    تسلسل**، أي في اللحظة التي يرجَّح فيها أنّ المشغّل اشتبك المفتاح للتوّ — فكان
+    المسار الوحيد الذي يتجاهل المفتاح هو المسار الذي يعمل **حين يُضغَط**.
+
+    والاستشارة **لكلّ جهاز على حدة**: مفتاح صمّامٍ واحد يحجبه وحده ولا يُوقف تعويض
+    البقيّة. والمحجوب يُسجَّل ``blocked`` لا ``failed`` — الحجب قرارُ سلامة، وتسميتُه
+    فشلاً تُغري بإعادة المحاولة.
 
     حدود الصدق: هذا أوّل خطوة فقط — لا سجلّ Saga دائم، ولا إعادة محاولة،
     ولا ضمان نجاح التعويض نفسه (نُسجّل فشله إن حدث). التعويض الكامل يحتاج
@@ -734,6 +773,23 @@ async def _compensate(
                 command=done["command"],
                 payload=done.get("payload") or {},
                 status="failed",
+                tenant_id=tenant_id,
+            )
+            continue
+        # مفتاح إيقاف طوارئ التشغيل (fail-closed): استشِر قبل أيّ نشر MQTT — بنفس
+        # نطاق `evaluate_rules` تماماً، فبوّابتان تختلفان في النطاق تختلفان في المعنى.
+        halted, halt_reason = await _consult_killswitch(tenant_id, field_id, done["device"])
+        if halted:
+            logger.warning(
+                f"COMPENSATION: مفتاح إيقاف الطوارئ مُشتبَك — حجب العكس '{inv}' على "
+                f"{done['device']} (حقل {field_id}): {halt_reason}"
+            )
+            await log_command(
+                rule_id=done.get("rule_id"),
+                device_id=done["device"],
+                command=inv,
+                payload=done.get("payload") or {},
+                status="blocked",
                 tenant_id=tenant_id,
             )
             continue
@@ -934,7 +990,9 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     _dedup_last_fired.pop(dedup_key, None)
                     if ACTUATOR_IDEMPOTENCY_MODE != "local":
                         await _cluster_clear(tenant_id, field_id, device, cmd)
-                    await _compensate(succeeded, tenant_id, device, cmd)
+                    # `field_id` يُمرَّر من المستدعي الذي يملكه — بدونه يتراجع نطاق
+                    # استشارة المفتاح إلى (مستأجِر+صمّام) بصمت، فيفلت مفتاحُ الحقل.
+                    await _compensate(succeeded, tenant_id, device, cmd, field_id=field_id)
                     triggered.append(
                         {
                             "rule_id": str(row["rule_id"]),

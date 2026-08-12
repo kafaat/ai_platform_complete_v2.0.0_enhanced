@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1848,
     "route_handlers": 1049,
-    "call_edges": 73112,
+    "call_edges": 73120,
     "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -23,7 +23,7 @@
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
-      "line": 70,
+      "line": 74,
       "handler": "list_commands",
       "method": "GET",
       "path": "/v1/commands"
@@ -9314,994 +9314,1050 @@
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_authorize_device_control",
       "target": "get",
-      "line": 523
+      "line": 531
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_authorize_device_control",
       "target": "lower",
-      "line": 523
+      "line": 531
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_authorize_device_control",
       "target": "str",
-      "line": 523
+      "line": 531
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_authorize_device_control",
       "target": "strip",
-      "line": 523
+      "line": 531
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_authorize_device_control",
       "target": "HTTPException",
-      "line": 525
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_authorize_device_control",
-      "target": "str",
-      "line": 527
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_authorize_device_control",
-      "target": "HTTPException",
-      "line": 530
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_authorize_device_control",
-      "target": "acquire",
-      "line": 532
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_authorize_device_control",
-      "target": "fetchval",
       "line": 533
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_authorize_device_control",
-      "target": "HTTPException",
-      "line": 539
+      "target": "str",
+      "line": 535
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_authorize_device_control",
       "target": "HTTPException",
-      "line": 542
+      "line": 538
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_authorize_device_control",
+      "target": "acquire",
+      "line": 540
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_authorize_device_control",
+      "target": "fetchrow",
+      "line": 541
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_authorize_device_control",
+      "target": "HTTPException",
+      "line": 549
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_authorize_device_control",
+      "target": "HTTPException",
+      "line": 553
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_authorize_device_control",
+      "target": "str",
+      "line": 555
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_parse_mqtt_broker_url",
       "target": "urlparse",
-      "line": 553
+      "line": 566
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "send_mqtt_command",
       "target": "debug",
-      "line": 561
+      "line": 574
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "send_mqtt_command",
       "target": "info",
-      "line": 567
+      "line": 580
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "send_mqtt_command",
       "target": "isoformat",
-      "line": 572
+      "line": 585
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "send_mqtt_command",
       "target": "now",
-      "line": 572
+      "line": 585
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "send_mqtt_command",
       "target": "getenv",
-      "line": 578
+      "line": 591
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "send_mqtt_command",
       "target": "encode",
-      "line": 581
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "encode",
-      "line": 581
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "hexdigest",
-      "line": 581
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "new",
-      "line": 581
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "dumps",
-      "line": 582
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "_parse_mqtt_broker_url",
-      "line": 590
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "MQTTClient",
-      "line": 592
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "_mqtt_auth_kwargs",
-      "line": 592
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "publish",
-      "line": 593
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "send_mqtt_command",
-      "target": "info",
       "line": 594
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "send_mqtt_command",
+      "target": "encode",
+      "line": 594
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
+      "target": "hexdigest",
+      "line": 594
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
+      "target": "new",
+      "line": 594
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
+      "target": "dumps",
+      "line": 595
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
+      "target": "_parse_mqtt_broker_url",
+      "line": 603
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
+      "target": "MQTTClient",
+      "line": 605
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
+      "target": "_mqtt_auth_kwargs",
+      "line": 605
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
+      "target": "publish",
+      "line": 606
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
+      "target": "info",
+      "line": 607
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "send_mqtt_command",
       "target": "error",
-      "line": 597
+      "line": 610
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_dedup_should_fire",
       "target": "items",
-      "line": 620
+      "line": 633
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_dedup_should_fire",
       "target": "get",
-      "line": 624
+      "line": 637
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_cluster_should_fire",
       "target": "_cluster_dedup_key",
-      "line": 649
+      "line": 662
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_cluster_should_fire",
       "target": "acquire",
-      "line": 651
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_should_fire",
-      "target": "transaction",
-      "line": 652
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_should_fire",
-      "target": "execute",
-      "line": 653
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_should_fire",
-      "target": "str",
-      "line": 654
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_should_fire",
-      "target": "fetchval",
-      "line": 656
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_should_fire",
-      "target": "str",
       "line": 664
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_cluster_should_fire",
-      "target": "float",
+      "target": "transaction",
       "line": 665
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_cluster_should_fire",
-      "target": "warning",
+      "target": "execute",
+      "line": 666
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_cluster_should_fire",
+      "target": "str",
+      "line": 667
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_cluster_should_fire",
+      "target": "fetchval",
       "line": 669
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_clear",
-      "target": "_cluster_dedup_key",
+      "source": "_cluster_should_fire",
+      "target": "str",
       "line": 677
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_clear",
-      "target": "acquire",
-      "line": 679
+      "source": "_cluster_should_fire",
+      "target": "float",
+      "line": 678
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_clear",
-      "target": "transaction",
-      "line": 680
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_clear",
-      "target": "execute",
-      "line": 681
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "_cluster_clear",
-      "target": "str",
+      "source": "_cluster_should_fire",
+      "target": "warning",
       "line": 682
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_cluster_clear",
+      "target": "_cluster_dedup_key",
+      "line": 690
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_cluster_clear",
+      "target": "acquire",
+      "line": 692
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_cluster_clear",
+      "target": "transaction",
+      "line": 693
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_cluster_clear",
       "target": "execute",
-      "line": 684
+      "line": 694
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_cluster_clear",
+      "target": "str",
+      "line": 695
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_cluster_clear",
+      "target": "execute",
+      "line": 697
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_cluster_clear",
       "target": "warning",
-      "line": 686
+      "line": 699
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_inverse_command",
       "target": "get",
-      "line": 703
+      "line": 716
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_inverse_command",
       "target": "lower",
-      "line": 703
+      "line": 716
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_inverse_command",
       "target": "strip",
-      "line": 703
+      "line": 716
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_consult_killswitch",
+      "target": "acquire",
+      "line": 728
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_consult_killswitch",
+      "target": "is_actuation_halted",
+      "line": 729
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "warning",
-      "line": 719
+      "line": 758
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "len",
-      "line": 721
+      "line": 760
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "reversed",
-      "line": 724
+      "line": 763
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "_inverse_command",
-      "line": 725
+      "line": 764
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "warning",
-      "line": 727
+      "line": 766
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "log_command",
-      "line": 731
+      "line": 770
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "get",
-      "line": 732
+      "line": 771
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "get",
-      "line": 735
+      "line": 774
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_compensate",
+      "target": "_consult_killswitch",
+      "line": 781
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "warning",
-      "line": 740
+      "line": 783
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_compensate",
+      "target": "log_command",
+      "line": 787
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "get",
-      "line": 743
+      "line": 788
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_compensate",
+      "target": "get",
+      "line": 791
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_compensate",
+      "target": "warning",
+      "line": 796
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "_compensate",
+      "target": "get",
+      "line": 799
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "send_mqtt_command",
-      "line": 743
+      "line": 799
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "log_command",
-      "line": 744
+      "line": 800
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "get",
-      "line": 745
+      "line": 801
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "get",
-      "line": 748
+      "line": 804
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "_compensate",
       "target": "error",
-      "line": 753
+      "line": 809
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
       "target": "acquire",
-      "line": 767
+      "line": 823
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
       "target": "fetch",
-      "line": 768
+      "line": 824
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
       "target": "now",
-      "line": 784
+      "line": 840
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
       "target": "list",
-      "line": 791
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "range",
-      "line": 791
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "weekday",
-      "line": 791
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "time",
-      "line": 796
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "date",
-      "line": 803
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "total_seconds",
-      "line": 810
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "float",
-      "line": 815
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "abs",
-      "line": 825
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "_dedup_should_fire",
-      "line": 837
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "monotonic",
-      "line": 838
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "_cluster_should_fire",
-      "line": 844
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "decide_fire",
       "line": 847
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "warning",
+      "target": "range",
+      "line": 847
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "weekday",
+      "line": 847
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "time",
       "line": 852
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "idempotency_counters",
-      "line": 857
+      "target": "date",
+      "line": 859
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "get",
-      "line": 860
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "info",
-      "line": 862
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "append",
+      "target": "total_seconds",
       "line": 866
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "str",
-      "line": 868
+      "target": "float",
+      "line": 871
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "acquire",
+      "target": "abs",
       "line": 881
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "is_actuation_halted",
-      "line": 882
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "warning",
-      "line": 886
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "pop",
-      "line": 890
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "_cluster_clear",
-      "line": 892
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "log_command",
+      "target": "_dedup_should_fire",
       "line": 893
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "str",
+      "target": "monotonic",
       "line": 894
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "append",
-      "line": 901
+      "target": "_cluster_should_fire",
+      "line": 900
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "str",
+      "target": "decide_fire",
       "line": 903
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "send_mqtt_command",
-      "line": 915
+      "target": "warning",
+      "line": 908
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "error",
-      "line": 917
+      "target": "idempotency_counters",
+      "line": 913
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "log_command",
-      "line": 921
+      "target": "get",
+      "line": 916
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "str",
+      "target": "info",
+      "line": 918
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "append",
       "line": 922
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "pop",
-      "line": 934
+      "target": "str",
+      "line": 924
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "_cluster_clear",
-      "line": 936
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "_compensate",
+      "target": "acquire",
       "line": 937
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "append",
+      "target": "is_actuation_halted",
       "line": 938
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
+      "target": "warning",
+      "line": 942
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "pop",
+      "line": 946
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "_cluster_clear",
+      "line": 948
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "log_command",
+      "line": 949
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
       "target": "str",
-      "line": 940
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "acquire",
-      "line": 951
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "execute",
-      "line": 952
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/actuator_runtime.py",
-      "source": "evaluate_rules",
-      "target": "str",
-      "line": 964
+      "line": 950
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
       "target": "append",
-      "line": 969
+      "line": 957
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "append",
+      "target": "str",
+      "line": 959
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "send_mqtt_command",
       "line": 971
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
-      "target": "str",
+      "target": "error",
       "line": 973
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "evaluate_rules",
+      "target": "log_command",
+      "line": 977
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "str",
+      "line": 978
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "pop",
+      "line": 990
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "_cluster_clear",
+      "line": 992
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "_compensate",
+      "line": 995
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "append",
+      "line": 996
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "str",
+      "line": 998
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "acquire",
+      "line": 1009
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "execute",
+      "line": 1010
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "str",
+      "line": 1022
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "append",
+      "line": 1027
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "append",
+      "line": 1029
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
+      "target": "str",
+      "line": 1031
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/actuator_runtime.py",
+      "source": "evaluate_rules",
       "target": "error",
-      "line": 983
+      "line": 1041
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "log_command",
       "target": "acquire",
-      "line": 993
+      "line": 1051
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "log_command",
       "target": "execute",
-      "line": 994
+      "line": 1052
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "log_command",
       "target": "dumps",
-      "line": 1002
+      "line": 1060
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "log_command",
       "target": "warning",
-      "line": 1008
+      "line": 1066
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "info",
-      "line": 1020
+      "line": 1078
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "_parse_mqtt_broker_url",
-      "line": 1023
+      "line": 1081
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "MQTTClient",
-      "line": 1026
+      "line": 1084
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "_mqtt_auth_kwargs",
-      "line": 1026
+      "line": 1084
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "messages",
-      "line": 1027
+      "line": 1085
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "subscribe",
-      "line": 1028
+      "line": 1086
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "info",
-      "line": 1029
+      "line": 1087
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "decode",
-      "line": 1032
+      "line": 1090
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "loads",
-      "line": 1032
+      "line": 1090
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "split",
-      "line": 1033
+      "line": 1091
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "len",
-      "line": 1034
+      "line": 1092
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "float",
-      "line": 1038
+      "line": 1096
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "get",
-      "line": 1038
+      "line": 1096
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "evaluate_rules",
-      "line": 1039
+      "line": 1097
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "warning",
-      "line": 1041
+      "line": 1099
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "error",
-      "line": 1043
+      "line": 1101
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "mqtt_sensor_listener",
       "target": "sleep",
-      "line": 1044
+      "line": 1102
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "create_pool",
-      "line": 1054
+      "line": 1112
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "info",
-      "line": 1055
+      "line": 1113
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "assert_db_role_rls_safe",
-      "line": 1059
+      "line": 1117
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "warning",
-      "line": 1061
+      "line": 1119
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "create_task",
-      "line": 1064
+      "line": 1122
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "mqtt_sensor_listener",
-      "line": 1064
+      "line": 1122
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "_dispatch_consumer_enabled",
-      "line": 1066
+      "line": 1124
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "create_task",
-      "line": 1067
+      "line": 1125
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "dispatch_consumer_loop",
-      "line": 1067
+      "line": 1125
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "info",
-      "line": 1068
+      "line": 1126
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/actuator_runtime.py",
       "source": "lifespan",
       "target": "close",
-      "line": 1071
+      "line": 1129
     },
     {
       "owner": "actuator-service",
@@ -10469,98 +10525,98 @@
       "file": "services/actuator-service/routers/commands.py",
       "source": "send_command",
       "target": "acquire",
-      "line": 46
+      "line": 48
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "send_command",
       "target": "is_actuation_halted",
-      "line": 47
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/routers/commands.py",
-      "source": "send_command",
-      "target": "HTTPException",
       "line": 49
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "send_command",
+      "target": "HTTPException",
+      "line": 53
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/routers/commands.py",
+      "source": "send_command",
       "target": "send_mqtt_command",
-      "line": 50
+      "line": 54
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "send_command",
       "target": "log_command",
-      "line": 51
+      "line": 55
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "send_command",
       "target": "isoformat",
-      "line": 65
+      "line": 69
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "send_command",
       "target": "now",
-      "line": 65
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/routers/commands.py",
-      "source": "list_commands",
-      "target": "get",
       "line": 69
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "list_commands",
+      "target": "get",
+      "line": 73
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/routers/commands.py",
+      "source": "list_commands",
       "target": "Depends",
-      "line": 71
+      "line": 75
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "list_commands",
       "target": "Query",
-      "line": 71
+      "line": 75
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "list_commands",
       "target": "str",
-      "line": 74
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/routers/commands.py",
-      "source": "list_commands",
-      "target": "acquire",
-      "line": 77
-    },
-    {
-      "owner": "actuator-service",
-      "file": "services/actuator-service/routers/commands.py",
-      "source": "list_commands",
-      "target": "fetch",
       "line": 78
     },
     {
       "owner": "actuator-service",
       "file": "services/actuator-service/routers/commands.py",
       "source": "list_commands",
+      "target": "acquire",
+      "line": 81
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/routers/commands.py",
+      "source": "list_commands",
+      "target": "fetch",
+      "line": 82
+    },
+    {
+      "owner": "actuator-service",
+      "file": "services/actuator-service/routers/commands.py",
+      "source": "list_commands",
       "target": "dict",
-      "line": 86
+      "line": 90
     },
     {
       "owner": "actuator-service",
@@ -527202,7 +527258,7 @@
         {
           "file": "services/actuator-service/actuator_runtime.py",
           "symbol": "_parse_mqtt_broker_url",
-          "line": 548,
+          "line": 561,
           "owner": "actuator-service"
         },
         {

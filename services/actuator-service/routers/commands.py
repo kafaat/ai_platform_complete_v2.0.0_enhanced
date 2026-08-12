@@ -39,12 +39,16 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
             },
         )
     # حارس السلامة الفيزيائيّة + العزل: فحص الدور + ملكيّة الجهاز للمستأجِر (fail-closed).
-    await main._authorize_device_control(claims, req.device_id)
+    device_field_id = await main._authorize_device_control(claims, req.device_id)
     # مفتاح إيقاف طوارئ التشغيل (v133، fail-closed): استشِر قبل النشر. مفتاح مُشتبَك
-    # (نطاق مستأجِر أو صمّام هذا الجهاز) ⇒ 423 Locked بالسبب العربيّ، لا تنفيذ فيزيائيّ.
+    # (نطاق مستأجِر أو **حقل** أو صمّام هذا الجهاز) ⇒ 423 Locked بالسبب العربيّ، لا تنفيذ
+    # فيزيائيّ. و`field_id` يأتي من المُصرِّح الذي استعلمه أصلاً — بدونه كان مفتاحُ
+    # الحقل يحجب مسارَي القواعد والإرسال ويترك هذا الباب مفتوحاً، بلا أثرٍ في الاستجابة.
     # (يصل هنا فقط بعد _authorize_device_control الذي يضمن وجود main._pool أو 503.)
     async with main._pool.acquire() as ks_conn:
-        halted, halt_reason = await is_actuation_halted(ks_conn, tenant_id, valve_id=req.device_id)
+        halted, halt_reason = await is_actuation_halted(
+            ks_conn, tenant_id, field_id=device_field_id, valve_id=req.device_id
+        )
     if halted:
         raise HTTPException(423, halt_reason or "التشغيل مُوقَف بمفتاح إيقاف الطوارئ")
     success = await main.send_mqtt_command(req.device_id, req.command, req.payload)

@@ -37,7 +37,7 @@
   "definitions": [
     {
       "kind": "app",
-      "line": 1074,
+      "line": 1132,
       "module": "services.actuator-service.actuator_runtime",
       "node_id": "services.actuator-service.actuator_runtime:app",
       "route_count": 0,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "efc9e42f0b2f5f8143ec71795040ca61e04f18ca5c4a46cb38e09db67ae4951e",
+  "inventory_sha256": "9fc2eeac6d4421ba159af2527a2e48841aa72ad11c982d3d0e933dabbb04ea72",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {

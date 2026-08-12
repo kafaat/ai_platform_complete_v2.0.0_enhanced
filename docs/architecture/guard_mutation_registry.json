@@ -1181,6 +1181,23 @@
           "why": "عدُّ ذِكرِ الاسم في شرحٍ اختباراً مُعطَّلاً — عطلٌ وقع فعلاً في أوّل صياغة (أربعة بدل اثنين). وعدٌّ يُعاقِب التوثيق يُدرِّب كاتبه على حذفه: رقمٌ خاطئ وتوثيقٌ أقلّ"
         }
       ]
+    },
+    "tenant_guc_scope_guard.py": {
+      "test": "tests_v9/test_tenant_guc_scope_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_new_offender_outside_a_transaction_is_blocked",
+          "find": "            if any(a <= lineno <= b for a, b in spans):",
+          "replace": "            if True:",
+          "why": "نزعُ فحص الاحتواء داخل معاملة ⇒ كلّ موضع يُعَدّ سليماً، فيعود الحارس يقيس **وجود** set_config لا **نطاقه** — وهو العطل الأصليّ في `tenant_query_audit.py` الذي منح كلّ موضعٍ معيبٍ شهادة EXPLICIT."
+        },
+        {
+          "expect": "test_prose_describing_the_defect_is_not_counted_as_committing_it",
+          "find": "        if isinstance(arg, ast.Constant) and isinstance(arg.value, str):",
+          "replace": "        if True:  # MUTANT: يعود المسح نصّيّاً لا مُرسًى على الاستدعاء",
+          "why": "نزعُ الترسية على وسائط الاستدعاء ⇒ يعود الكشف يقرأ نصّ الملفّ، فيلتقط **شرح الحارس نفسه** مخالفةً — وقع فعلاً في أوّل صيغة. ملفٌّ يصف عيباً ليس ملفّاً يرتكبه، والـAST وحدها تفرّق."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

@@ -3044,7 +3044,7 @@
         "GET /healthz @ services/actuator-service/routers/health.py:20",
         "GET /readyz @ services/actuator-service/routers/health.py:32",
         "GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:185",
-        "GET /v1/commands @ services/actuator-service/routers/commands.py:70",
+        "GET /v1/commands @ services/actuator-service/routers/commands.py:74",
         "GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18",
         "POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100",
         "POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:179",

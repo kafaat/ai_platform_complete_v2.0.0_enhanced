@@ -475,6 +475,7 @@
         "tests_v9/test_service_tenant_assertion.py",
         "tests_v9/test_soil_field_tenant_authz.py",
         "tests_v9/test_tenant_ai_policy_store_v52.py",
+        "tests_v9/test_tenant_guc_scope_guard.py",
         "tests_v9/test_tenant_provisioning.py",
         "tests_v9/test_tenant_query_audit.py",
         "tests_v9/test_v87_audit_tenant.py",

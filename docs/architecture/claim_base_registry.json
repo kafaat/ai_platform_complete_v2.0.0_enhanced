@@ -22,6 +22,7 @@
     "platform_python_module_baseline.json",
     "s0_s12_execution_baseline.json",
     "source_text_assertion_inventory.json",
+    "tenant_guc_scope_baseline.json",
     "text_encoding_locale_baseline.json"
   ],
   "decided": [

@@ -6,7 +6,9 @@
 كلّ استعلام يلمس **جدولاً مُستأجَراً** (يحوي tenant_id) حسب طريقة ضبط سياق العزل:
 
   • RLS_CONN   — داخل دالّة تستعمل tenant_connection/tenant_connection_for ⇒ RLS مضبوط.
-  • EXPLICIT   — الدالّة تضبط app.current_tenant صراحةً (set_config) ⇒ سياق صريح.
+  • EXPLICIT   — الدالّة تضبط سياق المستأجِر صراحةً **بنطاقٍ يحيا حتّى الاستعلام**.
+                 ضبطٌ بنطاق المعاملة (set_config ..., true) خارج أيّ معاملة **لا يُمنَح**
+                 EXPLICIT — الوجود ليس النطاق، والضبط يضيع قبل الاستعلام التالي.
   • RAW        — لا هذا ولا ذاك ⇒ يعتمد على fail-closed (تحت NOBYPASSRLS يُرجِع صفر
                  صفوف بلا سياق) — يجب أن يكون عمداً (نظام/تعداد عابر) ومُدرَجاً في
                  الـallowlist، وإلّا فهو إمّا تسرّب محتمل (لو الدور يتجاوز RLS) أو عطل صامت.
@@ -203,12 +205,20 @@ def audit() -> list[dict]:
                 sig = lines[fs] if fs < len(lines) else ""
                 if re.search(r"tenant_connection(_for)?\(", ctx):
                     cls = "RLS_CONN"
-                elif (
-                    "set_config('app.current_tenant'" in ctx
-                    or "_apply_tenant_guc" in ctx
-                    or "_tenant_conn(" in ctx
-                ):
+                elif "_apply_tenant_guc" in ctx or "_tenant_conn(" in ctx:
                     cls = "EXPLICIT"
+                elif "set_config('app.current_tenant'" in ctx:
+                    # **الوجود ليس النطاق** (`GUC-SCOPE-GUARD-SEES-ONE-FILE-01`):
+                    # `set_config(..., true)` يضبط بنطاق **المعاملة**، وasyncpg بلا معاملة
+                    # صريحة في autocommit ⇒ الضبط يضيع قبل الاستعلام التالي فيُرجِع RLS
+                    # صفراً. ومنحُ `EXPLICIT` لمجرّد رؤية الاستدعاء كان يُعطي كلّ موضعٍ
+                    # معيبٍ **شهادة سلامة** — وهو أسوأ من عدم التصنيف، لأنّه يُسكِت السؤال.
+                    # فالضبط بنطاق المعاملة لا يُصنَّف `EXPLICIT` إلّا إن وقع داخل واحدة.
+                    _scoped_local = re.search(
+                        r"set_config\(\s*'app\.current_tenant'\s*,[^,]*,\s*true\s*\)", ctx
+                    )
+                    _in_tx = re.search(r"async\s+with\s+[\w.]*\.?(transaction|begin)\(", ctx)
+                    cls = "EXPLICIT" if (not _scoped_local or _in_tx) else "RAW"
                 elif re.search(r"\bconn\b", sig) and not re.search(
                     r"\.acquire\(\)|get_pool\(\)", ctx
                 ):
@@ -230,8 +240,38 @@ def audit() -> list[dict]:
     return rows
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# دَينٌ **كشفه تصحيح المُصنِّف** — وليس allowlist، والفرق ليس لفظيّاً.
+#
+# `_ALLOWLIST_JUSTIFIED` يقول «هذا صحيح ولهذا السبب». وهذا السجلّ يقول عكسه تماماً:
+# «هذا **عيبٌ قائم**، مقيسٌ ومرئيّ، ولم يُصلَح بعد». خلطُهما كان سيُحوّل عطلاً إلى
+# تبرير — وهو ما فعله المُصنِّف القديم حين منح `EXPLICIT` لمجرّد وجود `set_config`.
+#
+# **ولماذا لم تُصلَح هنا:** قاعدة المالك — «أيّ فشل يكشف عيباً إنتاجيّاً يُسجَّل
+# ويوقف الملفّ المعنيّ؛ لا يُصلَح ضمن الشريحة تلقائيّاً». وإصلاحها يمسّ مسارات
+# استعلام في خدمات لم تُقَس حيّاً، فتسجيلُها أصدق من لمسها على عمًى.
+#
+# **يتقلّص ولا ينمو:** موضعٌ جديد يُفشِل البوّابة؛ وموضعٌ أُصلِح يُحذَف من هنا.
+# مُسجَّل في `sahool-brain/gaps/registry.md` تحت `GUC-SCOPE-GUARD-SEES-ONE-FILE-01`.
+_REVEALED_SCOPE_DEBT: dict[str, str] = {
+    "services/soil-service/soil_store.py::soil_observations": (
+        "revealed by scope-aware EXPLICIT: set_config(...,true) outside a transaction"
+    ),
+    "services/mcp_servers/market_server.py::market_sales_listings": (
+        "revealed by scope-aware EXPLICIT: 12/12 set_config sites outside a transaction"
+    ),
+    "services/mcp_servers/market_db_authz.py::inventory_batches": (
+        "revealed by scope-aware EXPLICIT: helper contract does not itself open a transaction"
+    ),
+}
+
+
 def raw_violations(rows: list[dict]) -> list[dict]:
-    """استعلامات RAW على جداول مُستأجَرة خارج الـallowlist (تستوجب تصنيفاً)."""
+    """استعلامات RAW على جداول مُستأجَرة خارج الـallowlist (تستوجب تصنيفاً).
+
+    والدَّين المكشوف (`_REVEALED_SCOPE_DEBT`) يُستثنى من **الحجب** لا من **الرؤية**:
+    يبقى `RAW` في الجرد والإحصاء، ويُطبَع بوصفه ديناً — فلا يُقرأ صمتُه سلامةً.
+    """
     out = []
     for r in rows:
         if r["class"] != "RAW":
@@ -239,7 +279,21 @@ def raw_violations(rows: list[dict]) -> list[dict]:
         key = f"{r['loc'].rsplit(':', 1)[0]}::{r['tables']}"
         if key in ALLOWLIST or r["loc"] in ALLOWLIST:
             continue
+        if key in _REVEALED_SCOPE_DEBT:
+            continue
         out.append(r)
+    return out
+
+
+def revealed_debt(rows: list[dict]) -> list[dict]:
+    """الدَّين المكشوف القائم — يُطبَع ليبقى مرئيّاً، ويُقاس ليتقلّص."""
+    out = []
+    for r in rows:
+        if r["class"] != "RAW":
+            continue
+        key = f"{r['loc'].rsplit(':', 1)[0]}::{r['tables']}"
+        if key in _REVEALED_SCOPE_DEBT:
+            out.append(r)
     return out
 
 
@@ -257,7 +311,13 @@ def main() -> int:
         for r in viol:
             print(f"  {r['loc']}  [{r['tables']}]")
         return 1
-    print("\n✓ كلّ استعلام مُستأجَر إمّا RLS_CONN/EXPLICIT أو RAW مُدرَج عمداً")
+    debt = revealed_debt(rows)
+    if debt:
+        print(f"\n⚠ دَينٌ مكشوف بتصحيح المُصنِّف ({len(debt)}) — عيبٌ قائم لا تبرير:")
+        for r in debt:
+            print(f"  {r['loc']}  [{r['tables']}]")
+        print("  GUC-SCOPE-GUARD-SEES-ONE-FILE-01 · يتقلّص ولا ينمو")
+    print("\n✓ كلّ استعلام مُستأجَر إمّا RLS_CONN/EXPLICIT أو RAW مُدرَج عمداً أو دَينٌ مُعلَن")
     return 0
 
 
