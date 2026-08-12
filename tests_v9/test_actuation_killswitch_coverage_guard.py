@@ -1,14 +1,19 @@
 """تكذيب حارس تغطية مفتاح الإيقاف (actuation_killswitch_coverage_guard).
 
 يُثبِت أنّ الحارس:
-- يمرّ على الشجرة الحاليّة (العيب المجمَّد `_compensate` مُسجَّل دَيناً معلَناً)؛
+- يمرّ على الشجرة الحاليّة **بصفر دَينٍ مجمَّد** — نُزِع ترخيص `_compensate` بعد هبوط
+  الرقعة، ولا استثناء بائتاً؛
 - يسقط على موضع إطلاق **جديد** غير مُغطّى وغير مُسجَّل (الحماية الفعليّة)؛
-- يقبل موضعاً مُغطّى بالمفتاح؛
-- يسقط على استثناء **بائت** صار مُغطّى (إنفاذ عكسيّ ⇒ يُنزَع فور هبوط الرقعة)؛
+- يقبل موضعاً مُغطّى بالمفتاح مباشرةً، **أو عبر مَفصِلٍ واحد داخل الوحدة**؛
+- يسقط على استثناء **بائت** صار مُغطّى — بالاستدعاء المباشر **وعبر المَفصِل**، وهذا
+  الثاني هو ما أخفق أوّل مرّة فأبقى ترخيصاً حيّاً بعد زوال سببه؛
+- **لا** يعدّ سلسلةَ مَفصِلَين ولا مَفصِلاً مستورَداً تغطيةً (حدّان مُعلَنان يُقاسان)؛
 - لا يعدّ **تعريف** المُساعِد نفسه موضعَ إطلاق.
 
-القياس سلوكيّ على الدالّة النقيّة `analyze` بمعطياتٍ مُركَّبة — لا يمسّ المسار الفيزيائيّ
-المجمَّد ولا يعتمد على قاعدة أو خدمة.
+القياس سلوكيّ على الدالّة النقيّة `analyze`: بمعطياتٍ مُركَّبة للحدود، **وعلى الشجرة
+الحقيقيّة** لحالة المَفصِل — لأنّ المعطيات المُركَّبة ذات الاستدعاء المباشر هي بعينها
+ما أعطى خضرةً كاذبة قبل أن تهبط رقعةٌ حقيقيّة. ولا يمسّ الاختبار مساراً فيزيائيّاً
+ولا يعتمد على قاعدة أو خدمة.
 """
 
 from __future__ import annotations
@@ -124,9 +129,7 @@ def test_the_compensation_path_reads_as_covered_through_its_hinge():
     sources = akcg._production_sources()
     rel = "services/actuator-service/actuator_runtime.py"
     uncovered, stale = akcg.analyze(sources, {(rel, "_compensate"): "SOME-GAP-01"})
-    assert (rel, "_compensate") in stale, (
-        "لو قُرِئت غير مُغطّاة لَما بات الاستثناء — وهو العمى بعينه"
-    )
+    assert (rel, "_compensate") in stale, "لو قُرِئت غير مُغطّاة لَما بات الاستثناء — وهو العمى بعينه"
 
 
 def test_unregistered_uncovered_callsite_is_flagged():
@@ -188,7 +191,5 @@ def test_two_hop_indirection_is_not_counted_as_coverage():
 
 def test_a_hinge_in_another_module_is_not_counted_as_coverage():
     """حدٌّ ثانٍ مُعلَن: المَفصِل يُجمَع من الوحدة نفسها، فالمستورَد لا يُعَدّ."""
-    uncovered, stale = akcg.analyze(
-        {"svc/foreign.py": _HINGE_IN_ANOTHER_MODULE}, exceptions={}
-    )
+    uncovered, stale = akcg.analyze({"svc/foreign.py": _HINGE_IN_ANOTHER_MODULE}, exceptions={})
     assert ("svc/foreign.py", "emit_via_foreign_hinge") in uncovered

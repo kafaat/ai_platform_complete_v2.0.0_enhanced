@@ -49,7 +49,7 @@
         },
         {
           "expect": "test_coverage_through_one_same_module_hinge_is_accepted",
-          "find": "    return any(\n        isinstance(n, ast.Call) and _callee_name(n) in helpers for n in ast.walk(fn)\n    )",
+          "find": "    return any(isinstance(n, ast.Call) and _callee_name(n) in helpers for n in ast.walk(fn))",
           "replace": "    return False",
           "why": "قصرُ التغطية على الاستدعاء المباشر يُعيد العمى الذي أبقى ترخيص `_compensate` حيّاً بعد زوال سببه — ويقلب رقعةً صحيحة اتّهاماً."
         },

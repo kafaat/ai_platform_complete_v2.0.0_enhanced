@@ -80,9 +80,7 @@ def _is_covered(fn: ast.AST, helpers: set[str]) -> bool:
     """مُغطّاة إن استشارت المفتاح مباشرةً، أو نادت مَفصِلاً في الوحدة يستشيره."""
     if _calls_name(fn, KILLSWITCH):
         return True
-    return any(
-        isinstance(n, ast.Call) and _callee_name(n) in helpers for n in ast.walk(fn)
-    )
+    return any(isinstance(n, ast.Call) and _callee_name(n) in helpers for n in ast.walk(fn))
 
 
 def _enclosing_functions(tree: ast.AST) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:
