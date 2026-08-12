@@ -520,7 +520,7 @@ async def _authorize_device_control(claims: dict, device_id: str) -> str | None:
         آخر ⇒ 404 (لا تسريب وجود عابر للمستأجرين).
       • fail-closed: تعذّر التحقّق من القاعدة (لا pool/خطأ) ⇒ 503، لا تشغيل بلا تحقّق.
 
-    **ويُرجِع `field_id` الجهاز** (‏``MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01``): مسار
+    **ويُرجِع `field_id` الجهاز** (``MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01``): مسار
     `/v1/command` كان يستشير المفتاح بلا حقل، و``match_killswitch`` يشترط
     ``field_id is not None`` لمطابقة صفٍّ بنطاق ``field`` — فمفتاحٌ يوقف **حقلاً بأكمله**
     كان يحجب مسارَي القواعد والإرسال ولا يحجب اليدويّ، **والفارق غير مرئيّ في الاستجابة**
