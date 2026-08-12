@@ -32,6 +32,7 @@ ALTER TABLE seasons
 | أهو داخل معاملة واحدة | **نعم** — `async with conn.transaction():` تضمّ `INSERT INTO season_simulation_runs` ثمّ `UPDATE seasons … sim_run_id = $8` |
 | الحارس الساكن | `tests_v9/test_historical_season_bridge_static.py` — يفرض وجود العمود **وترتيبَ** الإدراج قبل التحديث |
 | ملفّ تراجع `.down.sql` | **غير موجود** |
+| مالك المِهجرات | `sahool_user` — `migrations/POSTGRES_SETUP.md:47` (وأكّده تدقيقُ قاعدةٍ حيّة 2026-08-12) |
 
 ---
 
@@ -72,10 +73,29 @@ _psql(url, "INSERT INTO schema_migrations(...) ...")   # ← التسجيل
 
 ## ٢) الشروط المسبقة
 
+### الدور — وهنا فخٌّ وقعتُ فيه، فيُقال صريحاً
+
+**استعمل `sahool_user`** — لا `sahool_jobs`:
+
 ```bash
-# الدور: sahool_jobs — صلاحيّة DDL عبر المسار المُهيَّأ
-export DATABASE_URL='postgresql://sahool_jobs:PASS@HOST/sahool'
+export DATABASE_URL='postgresql://sahool_user:PASS@HOST/sahool'
 ```
+
+**ولماذا هذا التحديد يهمّ:** `ALTER TABLE` يشترط **ملكيّة الجدول**، لا صلاحيّةَ
+كتابةٍ فيه. والمرجع القانونيّ لنموذج الأدوار
+(`migrations/POSTGRES_SETUP.md:47`) يقول: «**مالك الهجرات** (`sahool_user`،
+superuser في صورة postgres الرسميّة)». فدورٌ غير مالكٍ يُنتِج
+`must be owner of table seasons` مهما بلغت صلاحيّاته على البيانات.
+
+**وتعليقُ `scripts_v9/migrate.py:57` يذكر `sahool_jobs`** — وهو يصف **مسار النشر
+في k8s** (‏`migration-job.yaml` يمرّر `JOBS_DATABASE_URL`)، لا مالكَ المِهجرات في
+التشغيل اليدويّ. وأوّل صياغةٍ لهذا الدليل أخذت التعليق مرجعاً للأدوار فأوصت
+بالدور الخطأ — أصلحه تدقيقُ قاعدةٍ حيّة أظهر أنّ `sahool_user` هو المالك.
+**والدرس المُعمَّم: تعليقٌ في أداةٍ يصف سياق استدعائها، لا يُعرِّف نموذج الأدوار.**
+
+**وحدُّ صدقٍ على المسار الآليّ:** إن كان النشر في بيئتك يشغّل `migrate.py` بدور
+`sahool_jobs` فهو يعمل هناك بترتيبٍ يمنحه ما يلزم؛ وهذا الدليل يصف **التشغيل
+اليدويّ المباشر**، وفيه المالك هو `sahool_user`.
 
 الأداة تقبل `DATABASE_URL` أو `MIGRATE_DB_URL` أو `JOBS_DATABASE_URL` بهذا
 الترتيب. **لا تضع كلمة المرور في سطر أوامر مشترك ولا في سجلّ** — استعمل
@@ -235,7 +255,8 @@ SELECT s.season_id, s.sim_ran_at, s.sim_run_id,
 | العَرَض | التشخيص | العلاج |
 |---|---|---|
 | `canceling statement due to lock_timeout` | معاملةٌ طويلة تحتجز `seasons` | استعلام §٤ب، ثمّ أعِد في نافذةٍ أهدأ |
-| `permission denied for table seasons` | الدور ليس `sahool_jobs` أو بلا DDL | صحّح `DATABASE_URL` — **لا تُرقِّ الدور** |
+| `must be owner of table seasons` | الدور ليس **مالك** الجدول — و`ALTER` يشترط الملكيّة لا صلاحيّة الكتابة | استعمل `sahool_user` (§٢) — **لا تُرقِّ دوراً آخر ولا تنقل الملكيّة** |
+| `permission denied for table seasons` | لا صلاحيّة أصلاً على الجدول | صحّح `DATABASE_URL` |
 | `status` يقول «غير مُطبَّق» والعمود موجود | نافذة حدّ ١ج | §٦ (‏`ON CONFLICT DO NOTHING` تجعلها آمنة) |
 | «⚠ انجراف checksum» | الملفّ تغيّر بعد تطبيقه | **توقّف** — قارِن بالمستودع قبل أيّ شيء |
 | `v207_present = f` | المِهجرة السابقة غير مفتوحة | افتح `v207` أوّلاً |
