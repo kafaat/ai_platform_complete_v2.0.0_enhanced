@@ -10,9 +10,9 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **232**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **21**
-- إجماليّ الطفرات المُسجَّلة: **140**
+- حرّاس تحجب في CI: **237**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **26**
+- إجماليّ الطفرات المُسجَّلة: **173**
 
 أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
@@ -21,7 +21,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (21)
+## الحرّاس المُثبَتة بالتكذيب (26)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -223,6 +223,41 @@
 - تعطيل العزل الافتراضيّ على ROOT ⇒ تشغيل CLI يعود إلى زرع الطفرات داخل checkout القانونيّ — يُسقِط `test_real_root_defaults_to_an_isolated_workspace`
 - توجيه مصدر الطفرة إلى ci الأصليّ مع بقاء الاختبارات في المرآة ⇒ العزل اسميّ والشجرة القانونية تُمسّ — يُسقِط `test_isolated_runner_never_plants_in_the_legal_checkout`
 
+### `knowledge_provenance_guard.py`
+
+**يفرض:** `KNOWLEDGE-PROVENANCE-01` — مُنتِجٌ قانونيّ يحمل نَسَبَه، أو لا يُقرأ.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_knowledge_provenance_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- نزعُ فحص النَّسَب ⇒ مُنتِجٌ بلا مرساةٍ زمنيّة يمرّ، فيبقى بند الطزاجة في المُحلِّل معطَّلاً بصمت: كلّ عقدٍ يُعلِن `max_age_seconds` يحجب دائماً بـFRESHNESS_UNMEASURABLE ولا أحد يعرف لماذا. — يُسقِط `test_each_required_provenance_field_is_enforced_on_its_own`
+- قبولُ مُنتِجٍ بلا بصمة ⇒ قيمةٌ تُقرأ حقيقةً بلا سبيلٍ إلى مصدرها — وهو الصنف المقيس في M2.6: `verified` ونَسَبُها `None`. — يُسقِط `test_a_producer_without_its_declared_digest_is_blocked`
+- عودةُ الافتراض الصامت: بصمةٌ تُخمَّن ليست بصمة. وقد أطلقت أوّلُ صياغةٍ على `canonical_root_zone_profile` لأنّها افترضت `capability_digest` وبصمتُه `profile_digest`. — يُسقِط `test_an_undeclared_digest_field_is_blocked_not_assumed`
+- إسقاطُ نمط `Cls(**base, capability_digest=...)` ⇒ إيجابيّةٌ كاذبة على كلّ مُنتِجٍ في هذه الشجرة، وهي تُسقِط الحارس بلا أن تُعطِّله لأنّ قارئ الأحمر يتعلّم تجاهله. — يُسقِط `test_a_digest_assigned_as_a_keyword_still_counts`
+- قبولُ «صفر مفحوص» ⇒ أخضرُ لأنّه لم ينظر. — يُسقِط `test_zero_examined_producers_fails_closed`
+- قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه. — يُسقِط `test_a_wrong_schema_fails_closed`
+
+### `knowledge_relation_registry_guard.py`
+
+**يفرض:** `KNOWLEDGE-RELATION-01` — العلاقة المُسجَّلة هي العلاقة المُنفَّذة.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_knowledge_relation_registry_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- نزعُ البند الحامل كلّه: السجلّ يعود ثلاثيّةً تُكتَب مرّةً وتَبيت بصمت، بينما `REQUIRED_LINKS` ثابتٌ يحكم قراراً — كلُّ حلقةٍ غير متاحة تُضيف حجباً وأضعفُها يُبنى عليه `operational_eligible`. — يُسقِط `test_a_chain_that_drifts_from_the_code_is_blocked`
+- قبولُ رمزٍ لا يُقرأ متسلسلاً ⇒ سلسلةٌ لا يقابلها ثابتٌ منفَّذ تمرّ، فيصير «مربوطٌ بالتنفيذ» ادّعاءً في وثيقة. — يُسقِط `test_a_symbol_named_only_in_a_comment_is_not_a_definition`
+- دلالةٌ مُعلَنة لا تُفرَض ليست دلالة: `acyclic` تُكتَب ثمّ تُخالَف بلا أثر. — يُسقِط `test_an_acyclic_relation_with_a_repeated_link_is_blocked`
+- علاقةٌ موجَّهة طرفاها واحد تمرّ ⇒ الاتّجاه يصير حقلاً بلا معنى. — يُسقِط `test_a_directional_relation_with_identical_ends_is_blocked`
+- علاقةٌ لا تقول اتّجاهها لا تُنفَّذ ولا تُختبَر — وقبولُها يُعيد السجلّ رسماً. — يُسقِط `test_a_relation_without_declared_semantics_is_blocked`
+- اسمٌ واحد بدلالتين هو «مصدر الحقيقة الظلّ» بوجهه العلائقيّ. — يُسقِط `test_a_duplicate_relation_name_is_blocked`
+- صفرُ علاقةٍ مُقابَلةٍ بالتنفيذ يمرّ ⇒ أخضرُ لأنّه لم ينظر. — يُسقِط `test_zero_relations_checked_fails_closed`
+
 ### `live_pg_evidence_guard.py`
 
 **يفرض:** عقد وظيفة PG المخصّصة — يُفرَض ويُلخَّص، ولا يُوصَف في تعليق.
@@ -310,6 +345,23 @@
 - إسقاط صيغة `not ("x" in y)` — حارسٌ يرى صيغةً واحدة يُلتَفّ عليه بإعادة صياغة لا تُغيّر شيئاً، ولا يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا — يُسقِط `test_the_other_spelling_of_a_prohibition_is_caught_too`
 - نزع اشتراط أن تكون الحاوية **نصّ مصدر** ⇒ يمتدّ الحارس إلى كلّ تأكيد سالب في المستودع فيُنزَع في أوّل يوم. والمرساة على ملفّ يحمل قارئاً حقيقيّاً: أوّل صياغة عندي لم تحمله فتخطّى المسحُ الملفَّ كلّه، فمرّ الاختبار **بسببٍ آخر** وبقيت الخاصّيّة بلا حارس — كشفَته هذه الطفرة بالذات وهي خضراء — يُسقِط `test_the_container_is_derived_from_the_assignment_not_from_its_name`
 
+### `rag_operational_boundary_guard.py`
+
+**يفرض:** `RAG-ANSWERS-AN-OPERATIONAL-FACT-01` — الاسترجاع لا يجيب عن حقيقةٍ تشغيليّة.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_rag_operational_boundary_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- نزعُ البند الوحيد: وحدةُ استرجاعٍ تجيب عن الحدّ الآمن تمرّ. ومُخرَجُ الاسترجاع نصٌّ معقولٌ دائماً، فالرقم الناتج يبدو صحيحاً ولم يمرّ بالميل ولا التسرّب ولا شهادة الحزمة. — يُسقِط `test_a_rag_module_naming_an_operational_key_is_blocked`
+- مُنتِجٌ قانونيّ يستمدّ حقيقتَه من نصٍّ مُولَّد يقلب اتّجاه الثقة كلَّه: مصدرُ الحقيقة يصير مُستهلِكاً للتخمين. — يُسقِط `test_a_canonical_producer_that_reaches_rag_is_blocked`
+- عدُّ نصوص التوثيق استعمالاً يجعل الشرح الذي يقول «هذا لا يُسأل عنه الاسترجاع» يُحمِر الحارس — فيتعلّم كاتبُه حذف التوثيق: رقمٌ أخضر وتوثيقٌ أقلّ. — يُسقِط `test_a_mention_inside_a_docstring_is_not_a_use`
+- توسيعُ الحدّ إلى غير الاسترجاع يُجرّم كلّ مستهلِكٍ قانونيّ — إيجابيّةٌ كاذبة شاملة تُسقِط الحارس أوّل يوم. — يُسقِط `test_a_non_rag_module_may_name_operational_facts_freely`
+- صفرُ وحدةٍ تبلغ الاسترجاع يمرّ ⇒ الحدّ لم يُقَس، أو العلامات بائتة والحارس يحرس لا شيء. — يُسقِط `test_zero_rag_modules_fails_closed`
+- قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه، فتُقرأ «صفر حقيقة تشغيليّة» ويصير الحدّ فارغاً. — يُسقِط `test_a_wrong_schema_fails_closed`
+
 ### `schema_validation_guard.py`
 
 **يفرض:** One validator for every ``*.schema.json`` in the repository.
@@ -323,6 +375,24 @@
 - قبولُ مخطَّط بلا $schema ⇒ يعود أحد عشر ملفّاً لا يُعرَف بأيّ مواصفة تُقرأ، وهو العطل الأصليّ الذي بُنِيت البوّابة له — يُسقِط `test_a_missing_meta_schema_is_caught`
 - قبولُ $ref خارجيّ ⇒ يصير الخضوع رهن الشبكة وترتيب الملفّات لا صحّة العقد — يُسقِط `test_an_external_ref_is_caught`
 - تخطّي التحقّق من صحّة المخطَّط نفسه ⇒ الحارس يُبلِغ خضرةً عن سؤال لم يطرحه — يُسقِط `test_a_schema_invalid_for_its_declared_draft_is_caught`
+
+### `shadow_source_of_truth_guard.py`
+
+**يفرض:** `SHADOW-SOURCE-OF-TRUTH-01` — مفتاحٌ واحد، مُنتِجٌ واحد، وعقودٌ لا تُخالِف السجلّ.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_shadow_source_of_truth_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- قبولُ مفتاحٍ بمُنتِجَين ⇒ عودةُ العطل المقيس بعينه: `maximum_safe_depth_mm_event` كان اسماً واحداً لقيمتين مختلفتي المعنى، ونَسَبُ إحداهما إلى الأخرى كذب. — يُسقِط `test_two_producers_for_one_key_are_blocked`
+- اسمُ المصدر هويّةٌ لا وصف؛ ومِلَفّان يدّعيانه يجعلان النَّسَب غير قابلٍ للحلّ — فيصير `source_of_truth` سلسلةً لا مرجعاً. — يُسقِط `test_one_source_name_claimed_by_two_modules_is_blocked`
+- أرخصُ طريقٍ إلى مصدر الحقيقة الظلّ وأخفاه: إعلانٌ واحد في عقدٍ يخالف السجلّ، بلا لمسِ أيّ مُنتِج. — يُسقِط `test_a_contract_naming_a_different_source_is_blocked`
+- عقدٌ يُعلِن مفتاحاً غير مُسجَّل يَعِد بمعرفةٍ لا مصدر لها، فيمرّ إلى المُحلِّل ويُحجَب هناك بسببٍ أبعد عن موضع الخطأ. — يُسقِط `test_a_contract_declaring_an_unregistered_key_is_blocked`
+- «لم يُقرأ إعلان» ليس «كلّ الإعلانات موافقة» — والبند الثالث كلّه يصير بلا قياس. — يُسقِط `test_zero_declared_requirements_fails_closed`
+- قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه. — يُسقِط `test_a_wrong_schema_fails_closed`
+- إسقاطُ الإعلان الموضعيّ ⇒ `KnowledgeRequirement("k", "sot")` لا يُقارَن بالسجلّ إطلاقاً، فيمرّ عقدٌ يخالفه **غير مرئيّ** — وهو أخفى من مخالفةٍ صريحة. — يُسقِط `test_a_positionally_declared_contract_is_compared_to_the_registry`
 
 ### `snapshot_eligibility_separation_guard.py`
 
@@ -376,6 +446,24 @@
 
 - إعادة النمط المسطّح — وهو العطل الذي أسقط ملفّين حقيقيّين: `tests_v9/runtime_activation/` بثمانية اختبارات كان ميّتاً في كلّ وظيفة، و**غير قابل للظهور في الأساس أصلاً** لأنّ الحارس لا يعدّه. والمرساة على حالة مزروعة في مستودع اصطناعيّ لا على عدّاد الملفّات: العدّ ٦٥٨ ⇒ ٦٥٦ فرقٌ لا يُميّزه تأكيد على الحجم — يُسقِط `test_a_file_in_a_subdirectory_is_seen`
 - نزعُ التحقّق من أنّ الاسم **مُسجَّل في pytest.ini**: عندها يُقرأ `pytestmark = pytest.mark.asyncio` موسوماً بينما pytest يستبعده من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وهو ما كان يفعله التعبير النمطيّ القديم بمطابقة `pytestmark` مجرّداً — يُسقِط `test_a_marker_that_pytest_ini_does_not_declare_is_not_a_marker`
+
+### `undeclared_context_dependency_guard.py`
+
+**يفرض:** `UNDECLARED-CONTEXT-DEPENDENCY-01` — مُستهلِكٌ عبر الطبقة يُعلِن ما يطلبه.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_undeclared_context_dependency_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- نزعُ البند الوحيد الذي يوجد الحارس لأجله: طلبٌ عبر المُحلِّل بلا إعلان يمرّ، فتعود التبعيّة إلى رأس كاتبها — وهو ما بُنيت الطبقة لإخراجه منه. — يُسقِط `test_a_registered_but_undeclared_request_is_blocked`
+- طلبُ مفتاحٍ لا مصدر حقيقةٍ له يسقط إلى رسالة «غير مُعلَن»، فيبحث المُصلِح عن عقدٍ ينقصه بينما المفقود مصدرٌ أصلاً. — يُسقِط `test_an_unregistered_request_is_blocked_with_its_own_reason`
+- من يسأل عن النَّسَب يعتمد على المفتاح اعتماداً كاملاً؛ وإسقاطُ `provenance` يترك باباً مفتوحاً بلا سبب. — يُسقِط `test_provenance_is_watched_like_require`
+- عدُّ كلّ استدعاءٍ ذي سمة طلباً ⇒ ضجيجٌ يجعل قارئ الأحمر يتجاهله، وهو ما يُسقِط الحارس بلا تعطيله. ومرساتُه أُعيدت: توسيعُ الحصر لا يُحمِر اختبار التعليق (التعليقات لا تصل إلى ast أصلاً) بل يُحمِر الشجرة الحيّة — أي «حمرّ بغير المتوقَّع». — يُسقِط `test_another_method_with_a_string_argument_is_not_a_request`
+- مسحُ الاختبارات ⇒ مفاتيحُ تركيبيّة في تجهيزاتها تُحمِر حارس الإنتاج، فيُنزَع أوّل يوم. — يُسقِط `test_test_files_are_not_scanned`
+- بلا عقدٍ مقروء يمرّ الحارس على عالمٍ فارغ فيقول «لا مخالفة» عن سؤالٍ لم يُطرَح — وقد كان هذا حاله فعلاً عند أوّل تشغيل (صفر طلب). — يُسقِط `test_no_declared_keys_fails_closed`
+- عودةُ قراءة الوسائط الموضعيّة وحدها ⇒ `ctx.require(key="…")` مسارُ تجاوزٍ مفتوح. و`require(self, key: str)` ليست positional-only فالصيغة مشروعة تماماً، ولا يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا. أمسكتها المراجعة. — يُسقِط `test_a_keyword_argument_request_is_seen`
 
 ### `visual_fixme_baseline_guard.py`
 

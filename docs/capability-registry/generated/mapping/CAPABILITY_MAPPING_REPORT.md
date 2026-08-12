@@ -12,9 +12,9 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4980**
+- Files scanned: **4993**
 - Ambiguous artifacts queued: **405**
-- Unmapped artifacts queued: **2027**
+- Unmapped artifacts queued: **2032**
 
 ## Capability coverage
 
@@ -50,7 +50,7 @@
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 0 | 4 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 1 | 3 |
 | IRR-004 | irrigation | 9 | 2 | 3 | 3 | 2 | 0 | 7 | 6 |
-| IRR-005 | irrigation | 3 | 2 | 0 | 5 | 3 | 0 | 7 | 5 |
+| IRR-005 | irrigation | 3 | 2 | 0 | 12 | 3 | 0 | 8 | 5 |
 | IRR-006 | irrigation | 0 | 0 | 0 | 2 | 0 | 0 | 1 | 2 |
 | IRR-007 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | IRR-008 | irrigation | 0 | 0 | 17 | 0 | 0 | 0 | 0 | 1 |
@@ -94,7 +94,7 @@
 | WX-001 | weather | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | WX-002 | weather | 22 | 51 | 8 | 56 | 9 | 0 | 21 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
-| WX-004 | weather | 59 | 53 | 0 | 78 | 19 | 0 | 57 | 5 |
+| WX-004 | weather | 59 | 53 | 0 | 81 | 19 | 0 | 57 | 5 |
 | WX-005 | weather | 8 | 29 | 0 | 6 | 2 | 0 | 6 | 5 |
 | WX-006 | weather | 84 | 26 | 35 | 26 | 16 | 0 | 44 | 6 |
 | WX-007 | weather | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 530,
+      "evidence_count": 531,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -558,6 +558,7 @@
         "shared/field_runtime_cohesion.py",
         "shared/governance/chemical_lineage.py",
         "shared/knowledge/contracts.py",
+        "shared/knowledge/providers.py",
         "shared/runtime_identity.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "shared/test_federated_agent_runtime.py",
@@ -570,7 +571,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 466,
+      "evidence_count": 467,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -1046,6 +1047,7 @@
         "shared/field_runtime_cohesion.py",
         "shared/governance/chemical_lineage.py",
         "shared/knowledge/irrigation_context.py",
+        "shared/knowledge/providers.py",
         "shared/marketplace_ecosystem_phase12.py",
         "shared/marketplace_plugin_runtime.py",
         "shared/memory/__init__.py",
@@ -2262,8 +2264,8 @@
         "services/sahool-platform/core/decision_playbook.py",
         "services/sahool-platform/core/evidence_graph.py"
       ],
-      "source_evidence_count": 530,
-      "target_evidence_count": 466,
+      "source_evidence_count": 531,
+      "target_evidence_count": 467,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2363,7 +2365,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 466,
+      "source_evidence_count": 467,
       "target_evidence_count": 159,
       "static_supported": true,
       "runtime_verified": false
@@ -2615,5 +2617,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "8567c03a85c2062f60931841c76a332ce31893dbe73dce0a48477a5f64501a04"
+  "content_sha256": "9b09a58bf110c3fc93a6463cdbc8c188b526bde69761d9c76d1cb2bf27361324"
 }

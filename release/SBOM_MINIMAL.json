@@ -14985,7 +14985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a89175efaf06ce82f8091174b1541099335b6a017dcb6301061cd7d258fc6d5"
+          "content": "39c19df9e778ea5d1f5db4570c7a4b394ff155f62b2123a56b878f5cdad0fae8"
         }
       ],
       "name": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
@@ -15065,7 +15065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5587078197c2f14d7726554a13d43230feb9b3ac847205d643bf3b5f033c4fed"
+          "content": "37e7f6bdd101946527649beb409be710efa211fc57ecfd9f66584666c2c06b6e"
         }
       ],
       "name": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
@@ -16405,7 +16405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f014a0b98861d59c287d0756b2f1b4b171a528ddcf7fd59422e9d063b94511ee"
+          "content": "08112c6cf166bb3b9906abc011d3565934c4eb381653e4778e3525a9dfb4aae3"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
@@ -30375,10 +30375,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e04bb4a73f05385681edb0d34f2ae09e8d92a535a5808a3eb310df662511db5d"
+          "content": "8592635ecc0242390d7a71fda85537e4a6b94823fc54e082e2c7b97053bcfca2"
         }
       ],
       "name": "shared/knowledge/irrigation_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8ed1b6a36e8a200c1579a18147ff82e4113f97721c0b8dd60259cbcd5c16fa0e"
+        }
+      ],
+      "name": "shared/knowledge/providers.py",
       "type": "file"
     },
     {

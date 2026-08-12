@@ -3,10 +3,10 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1847,
+    "python_files_parsed": 1848,
     "route_handlers": 1049,
-    "call_edges": 73058,
-    "dead_code_candidates": 614,
+    "call_edges": 73112,
+    "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -162880,105 +162880,98 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_digest",
       "target": "hexdigest",
-      "line": 24
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_digest",
       "target": "sha256",
-      "line": 24
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_digest",
       "target": "dumps",
-      "line": 25
+      "line": 26
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_digest",
       "target": "encode",
-      "line": 25
+      "line": 26
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_number",
       "target": "isinstance",
-      "line": 30
+      "line": 31
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_number",
       "target": "isinstance",
-      "line": 30
+      "line": 31
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_number",
       "target": "float",
-      "line": 32
+      "line": 33
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_number",
       "target": "isfinite",
-      "line": 33
+      "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_as_dict",
       "target": "hasattr",
-      "line": 37
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_as_dict",
-      "target": "to_dict",
       "line": 38
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_as_dict",
-      "target": "dict",
+      "target": "to_dict",
       "line": 39
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_as_dict",
+      "target": "dict",
+      "line": 40
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "get",
-      "line": 43
+      "line": 44
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "str",
-      "line": 43
+      "line": 44
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "bool",
-      "line": 44
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_link_state",
-      "target": "get",
-      "line": 44
+      "line": 45
     },
     {
       "owner": "sahool-platform",
@@ -162986,19 +162979,19 @@
       "source": "_link_state",
       "target": "get",
       "line": 45
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_link_state",
+      "target": "get",
+      "line": 46
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "list",
-      "line": 45
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_link_state",
-      "target": "get",
       "line": 46
     },
     {
@@ -163006,27 +162999,27 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "get",
-      "line": 46
+      "line": 47
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_link_state",
+      "target": "get",
+      "line": 47
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "append",
-      "line": 47
+      "line": 48
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "str",
-      "line": 47
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_link_state",
-      "target": "get",
       "line": 48
     },
     {
@@ -163034,104 +163027,104 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "get",
-      "line": 48
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_link_state",
+      "target": "get",
+      "line": 49
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "upper",
-      "line": 51
+      "line": 52
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "isinstance",
-      "line": 53
+      "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "len",
-      "line": 53
+      "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "upper",
-      "line": 55
+      "line": 56
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "set",
-      "line": 64
+      "line": 65
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_link_state",
       "target": "sorted",
-      "line": 64
+      "line": 65
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "to_dict",
       "target": "asdict",
-      "line": 103
+      "line": 106
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "get",
-      "line": 107
+      "line": 110
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "get",
-      "line": 107
+      "line": 110
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "str",
-      "line": 107
+      "line": 110
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "get",
-      "line": 108
+      "line": 111
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "get",
-      "line": 108
+      "line": 111
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "str",
-      "line": 108
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_controller_state",
-      "target": "append",
       "line": 111
     },
     {
@@ -163139,20 +163132,6 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "append",
-      "line": 113
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_controller_state",
-      "target": "get",
-      "line": 114
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_controller_state",
-      "target": "str",
       "line": 114
     },
     {
@@ -163160,34 +163139,27 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "append",
-      "line": 115
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "get",
-      "line": 116
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_controller_state",
-      "target": "str",
-      "line": 116
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_controller_state",
-      "target": "append",
       "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
-      "target": "bool",
+      "target": "str",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_controller_state",
+      "target": "append",
       "line": 118
     },
     {
@@ -163195,27 +163167,20 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "get",
-      "line": 118
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_controller_state",
-      "target": "append",
       "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
-      "target": "dict",
-      "line": 120
+      "target": "str",
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
-      "target": "get",
+      "target": "append",
       "line": 120
     },
     {
@@ -163223,55 +163188,48 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "bool",
-      "line": 123
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "get",
-      "line": 123
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "append",
-      "line": 124
+      "line": 122
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
-      "target": "upper",
-      "line": 124
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_controller_state",
-      "target": "get",
-      "line": 125
+      "target": "dict",
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "get",
-      "line": 125
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
-      "target": "isinstance",
+      "target": "bool",
       "line": 126
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
-      "target": "len",
+      "target": "get",
       "line": 126
     },
     {
@@ -163285,77 +163243,98 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
+      "target": "upper",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_controller_state",
+      "target": "get",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_controller_state",
+      "target": "get",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_controller_state",
+      "target": "isinstance",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_controller_state",
+      "target": "len",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_controller_state",
+      "target": "append",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_controller_state",
       "target": "set",
-      "line": 135
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_controller_state",
       "target": "sorted",
-      "line": 135
+      "line": 138
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
       "target": "get",
-      "line": 146
+      "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
       "target": "list",
-      "line": 146
+      "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
       "target": "get",
-      "line": 147
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
-      "target": "set",
-      "line": 147
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
-      "target": "str",
-      "line": 147
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
-      "target": "_number",
-      "line": 148
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
-      "target": "get",
-      "line": 148
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
-      "target": "issubset",
       "line": 150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
-      "target": "append",
+      "target": "set",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_hourly_windows",
+      "target": "str",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_hourly_windows",
+      "target": "_number",
       "line": 151
     },
     {
@@ -163363,49 +163342,49 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
       "target": "get",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_hourly_windows",
+      "target": "issubset",
       "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
-      "target": "str",
-      "line": 153
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
-      "target": "bool",
+      "target": "append",
       "line": 154
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
-      "target": "round",
-      "line": 155
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
-      "target": "round",
+      "target": "get",
       "line": 156
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
-      "target": "_number",
+      "target": "str",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_hourly_windows",
+      "target": "bool",
       "line": 157
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
-      "target": "get",
-      "line": 157
+      "target": "round",
+      "line": 158
     },
     {
       "owner": "sahool-platform",
@@ -163432,20 +163411,6 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
-      "target": "_number",
-      "line": 162
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
-      "target": "get",
-      "line": 162
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "_hourly_windows",
       "target": "round",
       "line": 162
     },
@@ -163453,99 +163418,106 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "_hourly_windows",
-      "target": "sorted",
+      "target": "_number",
       "line": 163
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_as_dict",
-      "line": 195
+      "source": "_hourly_windows",
+      "target": "get",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_hourly_windows",
+      "target": "_number",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_hourly_windows",
+      "target": "get",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_hourly_windows",
+      "target": "round",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "_hourly_windows",
+      "target": "sorted",
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "_as_dict",
-      "line": 196
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_as_dict",
-      "line": 197
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_as_dict",
-      "line": 198
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_as_dict",
+      "target": "now",
       "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
+      "target": "_as_dict",
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_as_dict",
       "line": 201
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
-      "line": 201
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_controller_state",
+      "target": "_as_dict",
       "line": 202
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "_link_state",
+      "target": "_as_dict",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_as_dict",
       "line": 204
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "_link_state",
-      "line": 205
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_link_state",
+      "target": "get",
       "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "_link_state",
-      "line": 207
+      "target": "str",
+      "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "_link_state",
-      "line": 208
+      "target": "_controller_state",
+      "line": 207
     },
     {
       "owner": "sahool-platform",
@@ -163558,56 +163530,49 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
+      "target": "_link_state",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_link_state",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_link_state",
+      "line": 212
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_link_state",
+      "line": 213
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_link_state",
+      "line": 214
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
       "target": "extend",
-      "line": 217
+      "line": 222
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "upper",
-      "line": 217
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 220
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
-      "line": 220
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 221
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
-      "line": 221
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 222
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
       "line": 222
     },
     {
@@ -163615,118 +163580,125 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 223
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
-      "line": 223
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
       "line": 225
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
+      "target": "str",
+      "line": 225
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 226
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "str",
+      "line": 226
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
       "line": 227
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
+      "target": "str",
+      "line": 227
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "str",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
       "target": "append",
-      "line": 229
+      "line": 230
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "_number",
-      "line": 231
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 231
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_number",
+      "target": "append",
       "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 232
+      "target": "append",
+      "line": 234
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "_number",
-      "line": 233
+      "line": 236
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 233
+      "line": 236
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_number",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_number",
+      "line": 238
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 238
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "min",
-      "line": 239
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
-      "line": 241
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_number",
-      "line": 243
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 243
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_number",
-      "line": 244
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
       "line": 244
     },
     {
@@ -163740,7 +163712,14 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
+      "target": "_number",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
       "line": 248
     },
     {
@@ -163748,168 +163727,168 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "_number",
-      "line": 250
+      "line": 249
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 250
+      "line": 249
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "set",
+      "target": "append",
       "line": 251
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
-      "line": 251
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_hourly_windows",
-      "line": 252
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
       "target": "append",
-      "line": 258
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "any",
-      "line": 259
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
-      "line": 260
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "next",
-      "line": 262
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
-      "line": 268
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
-      "line": 270
+      "line": 253
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "_number",
-      "line": 271
+      "line": 255
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 271
+      "line": 255
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
-      "line": 273
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "min",
-      "line": 273
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "len",
-      "line": 275
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "sum",
-      "line": 275
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "append",
-      "line": 279
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "min",
-      "line": 280
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "extend",
-      "line": 283
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 283
+      "target": "set",
+      "line": 256
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "str",
-      "line": 283
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_hourly_windows",
+      "line": 257
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "append",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "any",
+      "line": 264
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "append",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "next",
+      "line": 267
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "append",
+      "line": 273
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "append",
+      "line": 275
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_number",
+      "line": 276
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 286
+      "line": 276
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 287
+      "target": "append",
+      "line": 278
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "min",
+      "line": 278
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "len",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "sum",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "append",
+      "line": 284
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "min",
+      "line": 285
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "extend",
+      "line": 288
     },
     {
       "owner": "sahool-platform",
@@ -163922,15 +163901,8 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 289
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 290
+      "target": "str",
+      "line": 288
     },
     {
       "owner": "sahool-platform",
@@ -163944,61 +163916,54 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 301
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
-      "line": 301
+      "line": 292
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
+      "line": 293
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 294
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 295
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 296
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "isoformat",
+      "line": 302
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "isoformat",
       "line": 303
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
-      "line": 303
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 304
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "str",
-      "line": 304
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "round",
-      "line": 308
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_number",
-      "line": 309
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
       "line": 309
     },
@@ -164006,22 +163971,8 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "round",
+      "target": "str",
       "line": 309
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "round",
-      "line": 310
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_number",
-      "line": 311
     },
     {
       "owner": "sahool-platform",
@@ -164034,22 +163985,22 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "_number",
-      "line": 315
+      "target": "str",
+      "line": 311
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 315
+      "line": 312
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "float",
-      "line": 316
+      "target": "str",
+      "line": 312
     },
     {
       "owner": "sahool-platform",
@@ -164063,14 +164014,21 @@
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "_number",
-      "line": 318
+      "line": 317
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 318
+      "line": 317
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "round",
+      "line": 317
     },
     {
       "owner": "sahool-platform",
@@ -164083,22 +164041,15 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "round",
+      "target": "_number",
       "line": 319
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "round",
-      "line": 320
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "min",
-      "line": 321
+      "target": "get",
+      "line": 319
     },
     {
       "owner": "sahool-platform",
@@ -164113,195 +164064,265 @@
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
       "line": 323
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "round",
-      "line": 323
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "_number",
-      "line": 326
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "source": "build_canonical_irrigation_capability_graph",
-      "target": "get",
-      "line": 326
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "float",
-      "line": 327
+      "line": 324
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "round",
-      "line": 327
+      "line": 324
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "_number",
-      "line": 329
+      "line": 326
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 329
+      "line": 326
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "round",
+      "line": 326
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "round",
+      "line": 327
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "round",
+      "line": 328
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "min",
       "line": 329
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
-      "target": "bool",
-      "line": 332
+      "target": "_number",
+      "line": 331
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "get",
-      "line": 333
+      "line": 331
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "round",
+      "line": 331
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_number",
+      "line": 334
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 334
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "float",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "round",
+      "line": 335
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "_number",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "round",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "bool",
+      "line": 340
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "source": "build_canonical_irrigation_capability_graph",
+      "target": "get",
+      "line": 341
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "items",
-      "line": 333
+      "line": 341
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "sorted",
-      "line": 333
+      "line": 341
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "set",
-      "line": 337
+      "line": 345
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "sorted",
-      "line": 337
+      "line": 345
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "set",
-      "line": 338
+      "line": 346
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "sorted",
-      "line": 338
+      "line": 346
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "CanonicalIrrigationCapabilityGraph",
-      "line": 340
+      "line": 348
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "build_canonical_irrigation_capability_graph",
       "target": "_digest",
-      "line": 340
+      "line": 348
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "isinstance",
-      "line": 347
+      "line": 355
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "to_dict",
-      "line": 347
+      "line": 355
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "get",
-      "line": 348
+      "line": 356
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "get",
-      "line": 348
+      "line": 356
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "get",
-      "line": 352
+      "line": 360
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "get",
-      "line": 353
+      "line": 361
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "list",
-      "line": 353
+      "line": 361
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "get",
-      "line": 354
+      "line": 362
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
       "source": "irrigation_capability_graph_to_mpc_constraints",
       "target": "get",
-      "line": 372
+      "line": 380
     },
     {
       "owner": "sahool-platform",
@@ -167997,83 +168018,69 @@
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_digest",
       "target": "hexdigest",
-      "line": 16
+      "line": 17
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_digest",
       "target": "sha256",
-      "line": 16
+      "line": 17
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_digest",
       "target": "dumps",
-      "line": 17
+      "line": 18
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_digest",
       "target": "encode",
-      "line": 17
+      "line": 18
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_num",
       "target": "isinstance",
-      "line": 22
+      "line": 23
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_num",
       "target": "isinstance",
-      "line": 22
+      "line": 23
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_num",
       "target": "float",
-      "line": 24
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "_num",
       "target": "isfinite",
-      "line": 25
+      "line": 26
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "to_dict",
       "target": "asdict",
-      "line": 52
+      "line": 55
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 65
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 65
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "now",
       "line": 69
     },
     {
@@ -168081,28 +168088,14 @@
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 69
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 73
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 73
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "str",
-      "line": 73
+      "line": 70
     },
     {
       "owner": "sahool-platform",
@@ -168115,7 +168108,7 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "str",
+      "target": "get",
       "line": 74
     },
     {
@@ -168123,20 +168116,6 @@
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 75
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "str",
-      "line": 75
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "_num",
       "line": 78
     },
     {
@@ -168150,7 +168129,21 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "_num",
+      "target": "str",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 79
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "str",
       "line": 79
     },
     {
@@ -168164,8 +168157,8 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 81
+      "target": "str",
+      "line": 80
     },
     {
       "owner": "sahool-platform",
@@ -168193,111 +168186,111 @@
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 84
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 86
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "_num",
-      "line": 85
+      "line": 88
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 85
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "_num",
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 92
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "_num",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 90
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 97
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "str",
-      "line": 92
+      "line": 97
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "any",
-      "line": 94
+      "line": 99
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "max",
-      "line": 102
+      "line": 107
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "min",
-      "line": 102
+      "line": 107
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "max",
-      "line": 105
+      "line": 110
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "max",
-      "line": 105
+      "line": 110
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "get",
-      "line": 111
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 112
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 113
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
-      "line": 114
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 115
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "append",
       "line": 116
     },
     {
@@ -168305,6 +168298,13 @@
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "append",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
       "line": 118
     },
     {
@@ -168312,6 +168312,13 @@
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "append",
+      "line": 119
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
       "line": 120
     },
     {
@@ -168319,41 +168326,62 @@
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "append",
-      "line": 122
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 133
+      "target": "append",
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 134
+      "target": "append",
+      "line": 125
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
+      "target": "append",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "isoformat",
       "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
+      "target": "str",
       "line": 136
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
+      "target": "get",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "isoformat",
       "line": 137
     },
     {
@@ -168361,140 +168389,175 @@
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "round",
-      "line": 138
+      "line": 145
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "round",
-      "line": 139
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "round",
-      "line": 140
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 142
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
-      "line": 143
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
       "line": 146
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "get",
+      "target": "round",
       "line": 147
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "set",
+      "target": "round",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "round",
       "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
-      "target": "sorted",
-      "line": 149
+      "target": "round",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "round",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "round",
+      "line": 152
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 158
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "get",
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "set",
-      "line": 150
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "sorted",
-      "line": 150
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "set",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "source": "build_canonical_sprinkler_runoff_capability",
+      "target": "sorted",
+      "line": 162
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "CanonicalSprinklerRunoffCapability",
-      "line": 152
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "build_canonical_sprinkler_runoff_capability",
       "target": "_digest",
-      "line": 152
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "to_dict",
-      "line": 159
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "isinstance",
-      "line": 160
+      "line": 172
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 163
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 163
+      "line": 175
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "list",
-      "line": 167
+      "line": 179
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 168
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
       "source": "sprinkler_capability_to_mpc_constraints",
       "target": "get",
-      "line": 168
+      "line": 180
     },
     {
       "owner": "sahool-platform",
@@ -203354,98 +203417,49 @@
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_digest",
       "target": "hexdigest",
-      "line": 22
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_digest",
       "target": "sha256",
-      "line": 22
+      "line": 25
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_digest",
       "target": "dumps",
-      "line": 23
+      "line": 26
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_digest",
       "target": "encode",
-      "line": 23
+      "line": 26
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_blocked",
       "target": "_digest",
-      "line": 38
+      "line": 41
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_latest_capability_graph",
       "target": "fetchrow",
-      "line": 43
+      "line": 46
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_latest_capability_graph",
       "target": "dict",
-      "line": 56
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_capability_graph",
-      "target": "setdefault",
-      "line": 57
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_capability_graph",
-      "target": "str",
-      "line": 57
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_capability_graph",
-      "target": "setdefault",
-      "line": 58
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_capability_graph",
-      "target": "str",
-      "line": 58
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_capability_graph",
-      "target": "setdefault",
       "line": 59
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_capability_graph",
-      "target": "str",
-      "line": 59
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_capability_graph",
-      "target": "bool",
-      "line": 60
     },
     {
       "owner": "sahool-platform",
@@ -203457,233 +203471,268 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_capability_graph",
+      "target": "str",
+      "line": 60
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_capability_graph",
+      "target": "setdefault",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_capability_graph",
+      "target": "str",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_capability_graph",
+      "target": "setdefault",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_capability_graph",
+      "target": "str",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_capability_graph",
+      "target": "bool",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_capability_graph",
+      "target": "setdefault",
+      "line": 63
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_latest_executability_gate",
       "target": "fetchrow",
-      "line": 67
+      "line": 70
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_latest_executability_gate",
       "target": "dict",
-      "line": 83
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_executability_gate",
-      "target": "now",
-      "line": 85
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_executability_gate",
-      "target": "bool",
       "line": 86
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_latest_executability_gate",
+      "target": "now",
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_executability_gate",
+      "target": "bool",
+      "line": 89
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_executability_gate",
       "target": "update",
-      "line": 87
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_latest_executability_gate",
       "target": "isoformat",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_executability_gate",
-      "target": "list",
-      "line": 92
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_latest_executability_gate",
-      "target": "str",
       "line": 94
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_latest_executability_gate",
-      "target": "str",
+      "target": "list",
       "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_executability_gate",
+      "target": "str",
+      "line": 97
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_latest_executability_gate",
+      "target": "str",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 115
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "list",
-      "line": 115
+      "line": 118
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 116
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "list",
-      "line": 116
+      "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 120
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 120
+      "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 121
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "get",
-      "line": 122
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "_field_weather_context",
       "line": 124
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
-      "target": "float",
+      "target": "get",
+      "line": 125
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
+      "target": "_field_weather_context",
       "line": 127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
+      "target": "float",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
       "target": "get",
-      "line": 127
+      "line": 130
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "str",
-      "line": 127
+      "line": 130
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 129
+      "line": 132
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 129
+      "line": 132
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "float",
-      "line": 132
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 132
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 132
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "str",
-      "line": 132
+      "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 134
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "get_hourly_etc_product",
-      "line": 136
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "float",
       "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
+      "target": "get_hourly_etc_product",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
       "target": "float",
-      "line": 138
+      "line": 140
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
-      "target": "get",
-      "line": 144
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "get",
-      "line": 144
+      "target": "float",
+      "line": 141
     },
     {
       "owner": "sahool-platform",
@@ -203703,8 +203752,8 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
-      "target": "str",
-      "line": 147
+      "target": "get",
+      "line": 150
     },
     {
       "owner": "sahool-platform",
@@ -203719,97 +203768,90 @@
       "source": "_hourly_forecast",
       "target": "str",
       "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
+      "target": "get",
+      "line": 153
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
+      "target": "str",
+      "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "fromisoformat",
-      "line": 152
+      "line": 155
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "replace",
-      "line": 152
+      "line": 155
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "replace",
-      "line": 156
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "astimezone",
-      "line": 158
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "isoformat",
-      "line": 158
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "replace",
-      "line": 158
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "replace",
-      "line": 158
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 163
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "get",
-      "line": 169
+      "line": 172
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "append",
-      "line": 171
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "float",
       "line": 174
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "float",
-      "line": 175
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "float",
-      "line": 176
     },
     {
       "owner": "sahool-platform",
@@ -203836,7 +203878,7 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
-      "target": "get",
+      "target": "float",
       "line": 180
     },
     {
@@ -203844,21 +203886,14 @@
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "float",
-      "line": 182
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "get",
-      "line": 182
+      "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "float",
-      "line": 183
+      "line": 182
     },
     {
       "owner": "sahool-platform",
@@ -203872,21 +203907,21 @@
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "float",
-      "line": 184
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "get",
-      "line": 184
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_hourly_forecast",
-      "target": "list",
       "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
+      "target": "get",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
+      "target": "float",
+      "line": 186
     },
     {
       "owner": "sahool-platform",
@@ -203899,6 +203934,13 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
+      "target": "float",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
       "target": "get",
       "line": 187
     },
@@ -203906,8 +203948,15 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
-      "target": "_digest",
-      "line": 190
+      "target": "list",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
+      "target": "get",
+      "line": 189
     },
     {
       "owner": "sahool-platform",
@@ -203920,21 +203969,28 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
-      "target": "str",
-      "line": 190
+      "target": "_digest",
+      "line": 193
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
+      "target": "get",
+      "line": 193
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "str",
-      "line": 191
+      "line": 193
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
-      "target": "len",
+      "target": "str",
       "line": 194
     },
     {
@@ -203942,83 +203998,48 @@
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "len",
-      "line": 196
+      "line": 197
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_hourly_forecast",
       "target": "len",
-      "line": 201
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_hourly_forecast",
+      "target": "len",
+      "line": 204
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_persist_schedule",
       "target": "fetchrow",
-      "line": 208
+      "line": 211
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_persist_schedule",
       "target": "get",
-      "line": 229
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_persist_schedule",
       "target": "get",
-      "line": 230
+      "line": 233
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_persist_schedule",
       "target": "int",
-      "line": 230
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "float",
-      "line": 231
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "get",
-      "line": 231
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "float",
-      "line": 232
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "get",
-      "line": 232
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "float",
-      "line": 233
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "get",
       "line": 233
     },
     {
@@ -204034,48 +204055,69 @@
       "source": "_persist_schedule",
       "target": "get",
       "line": 234
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "float",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "get",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "float",
+      "line": 236
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "get",
+      "line": 236
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "float",
+      "line": 237
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "get",
+      "line": 237
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_persist_schedule",
       "target": "dumps",
-      "line": 239
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "get",
       "line": 242
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "_persist_schedule",
+      "target": "get",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
       "target": "execute",
-      "line": 243
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "float",
-      "line": 255
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "float",
-      "line": 256
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "_persist_schedule",
-      "target": "float",
-      "line": 257
+      "line": 246
     },
     {
       "owner": "sahool-platform",
@@ -204094,86 +204136,100 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "float",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "float",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "_persist_schedule",
+      "target": "float",
+      "line": 262
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "int",
-      "line": 273
+      "line": 276
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "max",
-      "line": 273
+      "line": 276
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "min",
-      "line": 273
+      "line": 276
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "resolve_canonical_water_state",
-      "line": 274
+      "line": 277
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "max",
-      "line": 278
+      "line": 281
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "isinstance",
-      "line": 280
+      "line": 283
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "to_dict",
-      "line": 280
+      "line": 283
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "get",
-      "line": 281
+      "line": 284
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "get",
-      "line": 281
+      "line": 284
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "_blocked",
-      "line": 282
+      "line": 285
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "get",
-      "line": 284
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "str",
-      "line": 284
+      "line": 287
     },
     {
       "owner": "sahool-platform",
@@ -204186,28 +204242,21 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "fetchval",
-      "line": 288
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "float",
-      "line": 289
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "_blocked",
+      "target": "str",
       "line": 290
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "_latest_capability_graph",
+      "target": "fetchval",
+      "line": 291
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "float",
       "line": 292
     },
     {
@@ -204215,104 +204264,111 @@
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "_blocked",
-      "line": 294
+      "line": 293
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "str",
+      "target": "_latest_capability_graph",
       "line": 295
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "get",
-      "line": 296
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "get",
-      "line": 296
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "_latest_executability_gate",
-      "line": 298
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
       "target": "_blocked",
-      "line": 302
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "_hourly_forecast",
-      "line": 304
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "_blocked",
-      "line": 313
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "get",
-      "line": 315
+      "line": 297
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "str",
-      "line": 315
+      "line": 298
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "get",
-      "line": 316
+      "line": 299
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "solve_hourly_energy_aware_mpc",
+      "target": "get",
+      "line": 299
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "_latest_executability_gate",
+      "line": 301
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "_blocked",
+      "line": 305
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "ContextResolver",
+      "line": 314
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "resolve",
+      "line": 314
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "irrigation_capability_provider",
+      "line": 315
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "_blocked",
       "line": 318
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "to_dict",
-      "line": 318
+      "target": "list",
+      "line": 321
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "float",
-      "line": 326
+      "target": "provenance",
+      "line": 323
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "_digest",
+      "target": "_hourly_forecast",
+      "line": 325
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "_blocked",
       "line": 334
     },
     {
@@ -204320,21 +204376,84 @@
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "get",
-      "line": 340
+      "line": 336
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "str",
+      "line": 336
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "get",
-      "line": 341
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "solve_hourly_energy_aware_mpc",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "to_dict",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "float",
+      "line": 347
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "require",
+      "line": 360
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "list",
+      "line": 366
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "_digest",
+      "line": 368
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "get",
+      "line": 374
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "get",
+      "line": 375
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "_persist_schedule",
-      "line": 345
+      "line": 379
     },
     {
       "owner": "sahool-platform",
@@ -508054,6 +508173,265 @@
     },
     {
       "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "_finite",
+      "target": "isinstance",
+      "line": 26
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "_finite",
+      "target": "isinstance",
+      "line": 26
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "_finite",
+      "target": "float",
+      "line": 28
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "_finite",
+      "target": "isfinite",
+      "line": 29
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "_digest_of",
+      "target": "get",
+      "line": 34
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "_digest_of",
+      "target": "isinstance",
+      "line": 35
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "get",
+      "line": 57
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "get",
+      "line": 57
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "_finite",
+      "line": 60
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "get",
+      "line": 60
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "_finite",
+      "line": 60
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "get",
+      "line": 60
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "_digest_of",
+      "line": 63
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "_digest_of",
+      "line": 63
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "KnowledgeValue",
+      "line": 67
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "KnowledgeValue",
+      "line": 67
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "get",
+      "line": 71
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "str",
+      "line": 71
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "get",
+      "line": 71
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "str",
+      "line": 71
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "get",
+      "line": 72
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "str",
+      "line": 72
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "get",
+      "line": 72
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "str",
+      "line": 72
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "get",
+      "line": 73
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "str",
+      "line": 73
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "get",
+      "line": 73
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "str",
+      "line": 73
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "get",
+      "line": 74
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "get",
+      "line": 74
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "mapping_provider",
+      "target": "str",
+      "line": 74
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "get",
+      "line": 74
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "get",
+      "line": 74
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "provide",
+      "target": "str",
+      "line": 74
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "irrigation_capability_provider",
+      "target": "mapping_provider",
+      "line": 83
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "root_zone_provider",
+      "target": "mapping_provider",
+      "line": 94
+    },
+    {
+      "owner": "shared",
+      "file": "shared/knowledge/providers.py",
+      "source": "sprinkler_provider",
+      "target": "mapping_provider",
+      "line": 105
+    },
+    {
+      "owner": "shared",
       "file": "shared/knowledge/source_registry.py",
       "source": "_require_str",
       "target": "get",
@@ -520841,7 +521219,7 @@
       "symbol": "build_canonical_irrigation_capability_graph",
       "kind": "function",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "line": 176,
+      "line": 179,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -520852,7 +521230,7 @@
       "symbol": "irrigation_capability_graph_to_mpc_constraints",
       "kind": "function",
       "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "line": 343,
+      "line": 351,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -520929,7 +521307,7 @@
       "symbol": "build_canonical_sprinkler_runoff_capability",
       "kind": "function",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "line": 55,
+      "line": 58,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -520940,7 +521318,7 @@
       "symbol": "sprinkler_capability_to_mpc_constraints",
       "kind": "function",
       "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
-      "line": 155,
+      "line": 167,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
@@ -526393,10 +526771,21 @@
       "action": "review_before_delete"
     },
     {
-      "symbol": "ContextResolver",
-      "kind": "class",
-      "file": "shared/knowledge/context_resolver.py",
-      "line": 52,
+      "symbol": "root_zone_provider",
+      "kind": "function",
+      "file": "shared/knowledge/providers.py",
+      "line": 92,
+      "owner": "shared",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "medium",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "sprinkler_provider",
+      "kind": "function",
+      "file": "shared/knowledge/providers.py",
+      "line": 103,
       "owner": "shared",
       "decorated_route": false,
       "reference_count": 0,
@@ -526705,6 +527094,12 @@
           "symbol": "_finite",
           "line": 63,
           "owner": "sahool-platform"
+        },
+        {
+          "file": "shared/knowledge/providers.py",
+          "symbol": "_finite",
+          "line": 25,
+          "owner": "shared"
         }
       ]
     },
@@ -527034,7 +527429,7 @@
         {
           "file": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
           "symbol": "_number",
-          "line": 29,
+          "line": 30,
           "owner": "sahool-platform"
         },
         {
@@ -527046,7 +527441,7 @@
         {
           "file": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
           "symbol": "_num",
-          "line": 21,
+          "line": 22,
           "owner": "sahool-platform"
         },
         {

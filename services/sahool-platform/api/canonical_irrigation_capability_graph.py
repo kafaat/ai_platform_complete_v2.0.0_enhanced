@@ -13,6 +13,7 @@ import hashlib
 import json
 import math
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 SCHEMA_VERSION = "canonical_irrigation_capability_graph.v1"
@@ -69,6 +70,8 @@ def _link_state(name: str, capability: dict[str, Any]) -> dict[str, Any]:
 class CanonicalIrrigationCapabilityGraph:
     schema_version: str
     product_version: str
+    generated_at: str
+    effective_at: str
     tenant_id: str
     project_id: str
     field_id: str
@@ -186,12 +189,14 @@ def build_canonical_irrigation_capability_graph(
     energy_capability: dict[str, Any] | Any,
     controller: dict[str, Any],
     required_energy_load_ids: list[str] | None = None,
+    now: datetime | None = None,
 ) -> CanonicalIrrigationCapabilityGraph:
     """Build the weakest-link irrigation operating capability.
 
     Every source link must be verified, operationally eligible and carry a
     full SHA-256 digest. Any missing or blocked link blocks the whole graph.
     """
+    now = now or datetime.now(UTC)
     well = _as_dict(well_capability)
     hydraulic = _as_dict(hydraulic_capability)
     machine = _as_dict(machine_capability)
@@ -293,6 +298,9 @@ def build_canonical_irrigation_capability_graph(
     base = {
         "schema_version": SCHEMA_VERSION,
         "product_version": PRODUCT_VERSION,
+        # مرساةٌ زمنيّة موحَّدة عبر المُنتِجين — بدونها لا يُقاس عمرُ القيمة.
+        "generated_at": now.isoformat(),
+        "effective_at": now.isoformat(),
         "tenant_id": tenant_id,
         "project_id": project_id,
         "field_id": field_id,

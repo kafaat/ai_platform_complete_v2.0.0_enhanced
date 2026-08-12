@@ -526,6 +526,94 @@
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
     },
+    "knowledge_provenance_guard.py": {
+      "test": "tests_v9/test_knowledge_provenance_guard.py",
+      "mutations": [
+        {
+          "expect": "test_each_required_provenance_field_is_enforced_on_its_own",
+          "find": "        missing = [field for field in REQUIRED_PROVENANCE if field not in emitted]",
+          "replace": "        missing = []",
+          "why": "نزعُ فحص النَّسَب ⇒ مُنتِجٌ بلا مرساةٍ زمنيّة يمرّ، فيبقى بند الطزاجة في المُحلِّل معطَّلاً بصمت: كلّ عقدٍ يُعلِن `max_age_seconds` يحجب دائماً بـFRESHNESS_UNMEASURABLE ولا أحد يعرف لماذا."
+        },
+        {
+          "expect": "test_a_producer_without_its_declared_digest_is_blocked",
+          "find": "        if digest_field not in emitted and f\"{digest_field}=\" not in source:",
+          "replace": "        if False:",
+          "why": "قبولُ مُنتِجٍ بلا بصمة ⇒ قيمةٌ تُقرأ حقيقةً بلا سبيلٍ إلى مصدرها — وهو الصنف المقيس في M2.6: `verified` ونَسَبُها `None`."
+        },
+        {
+          "expect": "test_an_undeclared_digest_field_is_blocked_not_assumed",
+          "find": "        if digest_field is None:",
+          "replace": "        if False:",
+          "why": "عودةُ الافتراض الصامت: بصمةٌ تُخمَّن ليست بصمة. وقد أطلقت أوّلُ صياغةٍ على `canonical_root_zone_profile` لأنّها افترضت `capability_digest` وبصمتُه `profile_digest`."
+        },
+        {
+          "expect": "test_a_digest_assigned_as_a_keyword_still_counts",
+          "find": "        if digest_field not in emitted and f\"{digest_field}=\" not in source:",
+          "replace": "        if digest_field not in emitted:",
+          "why": "إسقاطُ نمط `Cls(**base, capability_digest=...)` ⇒ إيجابيّةٌ كاذبة على كلّ مُنتِجٍ في هذه الشجرة، وهي تُسقِط الحارس بلا أن تُعطِّله لأنّ قارئ الأحمر يتعلّم تجاهله."
+        },
+        {
+          "expect": "test_zero_examined_producers_fails_closed",
+          "find": "    if examined == 0:",
+          "replace": "    if False:",
+          "why": "قبولُ «صفر مفحوص» ⇒ أخضرُ لأنّه لم ينظر."
+        },
+        {
+          "expect": "test_a_wrong_schema_fails_closed",
+          "find": "    if not isinstance(raw, dict) or raw.get(\"schema\") != REGISTRY_SCHEMA:",
+          "replace": "    if False:",
+          "why": "قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه."
+        }
+      ]
+    },
+    "knowledge_relation_registry_guard.py": {
+      "test": "tests_v9/test_knowledge_relation_registry_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_chain_that_drifts_from_the_code_is_blocked",
+          "find": "        if executed != list(chain):",
+          "replace": "        if False:",
+          "why": "نزعُ البند الحامل كلّه: السجلّ يعود ثلاثيّةً تُكتَب مرّةً وتَبيت بصمت، بينما `REQUIRED_LINKS` ثابتٌ يحكم قراراً — كلُّ حلقةٍ غير متاحة تُضيف حجباً وأضعفُها يُبنى عليه `operational_eligible`."
+        },
+        {
+          "expect": "test_a_symbol_named_only_in_a_comment_is_not_a_definition",
+          "find": "        if executed is None:",
+          "replace": "        if False:",
+          "why": "قبولُ رمزٍ لا يُقرأ متسلسلاً ⇒ سلسلةٌ لا يقابلها ثابتٌ منفَّذ تمرّ، فيصير «مربوطٌ بالتنفيذ» ادّعاءً في وثيقة."
+        },
+        {
+          "expect": "test_an_acyclic_relation_with_a_repeated_link_is_blocked",
+          "find": "        if semantics.get(\"acyclic\") and len(set(chain)) != len(chain):",
+          "replace": "        if False:",
+          "why": "دلالةٌ مُعلَنة لا تُفرَض ليست دلالة: `acyclic` تُكتَب ثمّ تُخالَف بلا أثر."
+        },
+        {
+          "expect": "test_a_directional_relation_with_identical_ends_is_blocked",
+          "find": "        if semantics.get(\"directional\") and relation.get(\"from\") == relation.get(\"to\"):",
+          "replace": "        if False:",
+          "why": "علاقةٌ موجَّهة طرفاها واحد تمرّ ⇒ الاتّجاه يصير حقلاً بلا معنى."
+        },
+        {
+          "expect": "test_a_relation_without_declared_semantics_is_blocked",
+          "find": "        if not isinstance(semantics, dict) or \"directional\" not in semantics:",
+          "replace": "        if False:",
+          "why": "علاقةٌ لا تقول اتّجاهها لا تُنفَّذ ولا تُختبَر — وقبولُها يُعيد السجلّ رسماً."
+        },
+        {
+          "expect": "test_a_duplicate_relation_name_is_blocked",
+          "find": "        if name in seen:",
+          "replace": "        if False:",
+          "why": "اسمٌ واحد بدلالتين هو «مصدر الحقيقة الظلّ» بوجهه العلائقيّ."
+        },
+        {
+          "expect": "test_zero_relations_checked_fails_closed",
+          "find": "    if checked == 0:",
+          "replace": "    if False:",
+          "why": "صفرُ علاقةٍ مُقابَلةٍ بالتنفيذ يمرّ ⇒ أخضرُ لأنّه لم ينظر."
+        }
+      ]
+    },
     "live_pg_evidence_guard.py": {
       "mutations": [
         {
@@ -754,6 +842,47 @@
       ],
       "test": "tests_v9/test_prohibition_reason_guard.py"
     },
+    "rag_operational_boundary_guard.py": {
+      "test": "tests_v9/test_rag_operational_boundary_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_rag_module_naming_an_operational_key_is_blocked",
+          "find": "            named = {fact for fact in operational if any(fact in text for text in literals)}",
+          "replace": "            named = set()",
+          "why": "نزعُ البند الوحيد: وحدةُ استرجاعٍ تجيب عن الحدّ الآمن تمرّ. ومُخرَجُ الاسترجاع نصٌّ معقولٌ دائماً، فالرقم الناتج يبدو صحيحاً ولم يمرّ بالميل ولا التسرّب ولا شهادة الحزمة."
+        },
+        {
+          "expect": "test_a_canonical_producer_that_reaches_rag_is_blocked",
+          "find": "        if rel in modules and is_rag:",
+          "replace": "        if False:",
+          "why": "مُنتِجٌ قانونيّ يستمدّ حقيقتَه من نصٍّ مُولَّد يقلب اتّجاه الثقة كلَّه: مصدرُ الحقيقة يصير مُستهلِكاً للتخمين."
+        },
+        {
+          "expect": "test_a_mention_inside_a_docstring_is_not_a_use",
+          "find": "            if node.value not in docstrings:",
+          "replace": "            if True:",
+          "why": "عدُّ نصوص التوثيق استعمالاً يجعل الشرح الذي يقول «هذا لا يُسأل عنه الاسترجاع» يُحمِر الحارس — فيتعلّم كاتبُه حذف التوثيق: رقمٌ أخضر وتوثيقٌ أقلّ."
+        },
+        {
+          "expect": "test_a_non_rag_module_may_name_operational_facts_freely",
+          "find": "        if is_rag:",
+          "replace": "        if True:",
+          "why": "توسيعُ الحدّ إلى غير الاسترجاع يُجرّم كلّ مستهلِكٍ قانونيّ — إيجابيّةٌ كاذبة شاملة تُسقِط الحارس أوّل يوم."
+        },
+        {
+          "expect": "test_zero_rag_modules_fails_closed",
+          "find": "    if rag_files == 0:",
+          "replace": "    if False:",
+          "why": "صفرُ وحدةٍ تبلغ الاسترجاع يمرّ ⇒ الحدّ لم يُقَس، أو العلامات بائتة والحارس يحرس لا شيء."
+        },
+        {
+          "expect": "test_a_wrong_schema_fails_closed",
+          "find": "    if not isinstance(raw, dict) or raw.get(\"schema\") != REGISTRY_SCHEMA:",
+          "replace": "    if False:",
+          "why": "قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه، فتُقرأ «صفر حقيقة تشغيليّة» ويصير الحدّ فارغاً."
+        }
+      ]
+    },
     "schema_validation_guard.py": {
       "mutations": [
         {
@@ -776,6 +905,53 @@
         }
       ],
       "test": "tests_v9/test_schema_validation_guard.py"
+    },
+    "shadow_source_of_truth_guard.py": {
+      "test": "tests_v9/test_shadow_source_of_truth_guard.py",
+      "mutations": [
+        {
+          "expect": "test_two_producers_for_one_key_are_blocked",
+          "find": "        if key in by_key:",
+          "replace": "        if False:",
+          "why": "قبولُ مفتاحٍ بمُنتِجَين ⇒ عودةُ العطل المقيس بعينه: `maximum_safe_depth_mm_event` كان اسماً واحداً لقيمتين مختلفتي المعنى، ونَسَبُ إحداهما إلى الأخرى كذب."
+        },
+        {
+          "expect": "test_one_source_name_claimed_by_two_modules_is_blocked",
+          "find": "        if previous is not None and previous != module:",
+          "replace": "        if False:",
+          "why": "اسمُ المصدر هويّةٌ لا وصف؛ ومِلَفّان يدّعيانه يجعلان النَّسَب غير قابلٍ للحلّ — فيصير `source_of_truth` سلسلةً لا مرجعاً."
+        },
+        {
+          "expect": "test_a_contract_naming_a_different_source_is_blocked",
+          "find": "            elif registered != source:",
+          "replace": "            elif False:",
+          "why": "أرخصُ طريقٍ إلى مصدر الحقيقة الظلّ وأخفاه: إعلانٌ واحد في عقدٍ يخالف السجلّ، بلا لمسِ أيّ مُنتِج."
+        },
+        {
+          "expect": "test_a_contract_declaring_an_unregistered_key_is_blocked",
+          "find": "            if registered is None:",
+          "replace": "            if False:",
+          "why": "عقدٌ يُعلِن مفتاحاً غير مُسجَّل يَعِد بمعرفةٍ لا مصدر لها، فيمرّ إلى المُحلِّل ويُحجَب هناك بسببٍ أبعد عن موضع الخطأ."
+        },
+        {
+          "expect": "test_zero_declared_requirements_fails_closed",
+          "find": "    if declared == 0:",
+          "replace": "    if False:",
+          "why": "«لم يُقرأ إعلان» ليس «كلّ الإعلانات موافقة» — والبند الثالث كلّه يصير بلا قياس."
+        },
+        {
+          "expect": "test_a_wrong_schema_fails_closed",
+          "find": "    if not isinstance(raw, dict) or raw.get(\"schema\") != REGISTRY_SCHEMA:",
+          "replace": "    if False:",
+          "why": "قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه."
+        },
+        {
+          "expect": "test_a_positionally_declared_contract_is_compared_to_the_registry",
+          "find": "        for index, name in enumerate(POSITIONAL_FIELDS):",
+          "replace": "        for index, name in enumerate(()):",
+          "why": "إسقاطُ الإعلان الموضعيّ ⇒ `KnowledgeRequirement(\"k\", \"sot\")` لا يُقارَن بالسجلّ إطلاقاً، فيمرّ عقدٌ يخالفه **غير مرئيّ** — وهو أخفى من مخالفةٍ صريحة."
+        }
+      ]
     },
     "snapshot_eligibility_separation_guard.py": {
       "mutations": [
@@ -923,6 +1099,53 @@
         }
       ],
       "test": "tests/architecture/test_marker_coverage_guard.py"
+    },
+    "undeclared_context_dependency_guard.py": {
+      "test": "tests_v9/test_undeclared_context_dependency_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_registered_but_undeclared_request_is_blocked",
+          "find": "            elif key not in declared:",
+          "replace": "            elif False:",
+          "why": "نزعُ البند الوحيد الذي يوجد الحارس لأجله: طلبٌ عبر المُحلِّل بلا إعلان يمرّ، فتعود التبعيّة إلى رأس كاتبها — وهو ما بُنيت الطبقة لإخراجه منه."
+        },
+        {
+          "expect": "test_an_unregistered_request_is_blocked_with_its_own_reason",
+          "find": "            if key not in registered:",
+          "replace": "            if False:",
+          "why": "طلبُ مفتاحٍ لا مصدر حقيقةٍ له يسقط إلى رسالة «غير مُعلَن»، فيبحث المُصلِح عن عقدٍ ينقصه بينما المفقود مصدرٌ أصلاً."
+        },
+        {
+          "expect": "test_provenance_is_watched_like_require",
+          "find": "RESOLVER_METHODS = {\"require\", \"provenance\"}",
+          "replace": "RESOLVER_METHODS = {\"require\"}",
+          "why": "من يسأل عن النَّسَب يعتمد على المفتاح اعتماداً كاملاً؛ وإسقاطُ `provenance` يترك باباً مفتوحاً بلا سبب."
+        },
+        {
+          "expect": "test_another_method_with_a_string_argument_is_not_a_request",
+          "find": "        if not isinstance(func, ast.Attribute) or func.attr not in RESOLVER_METHODS:",
+          "replace": "        if not isinstance(func, ast.Attribute):",
+          "why": "عدُّ كلّ استدعاءٍ ذي سمة طلباً ⇒ ضجيجٌ يجعل قارئ الأحمر يتجاهله، وهو ما يُسقِط الحارس بلا تعطيله. ومرساتُه أُعيدت: توسيعُ الحصر لا يُحمِر اختبار التعليق (التعليقات لا تصل إلى ast أصلاً) بل يُحمِر الشجرة الحيّة — أي «حمرّ بغير المتوقَّع»."
+        },
+        {
+          "expect": "test_test_files_are_not_scanned",
+          "find": "            if path.name.startswith(\"test_\"):",
+          "replace": "            if False:",
+          "why": "مسحُ الاختبارات ⇒ مفاتيحُ تركيبيّة في تجهيزاتها تُحمِر حارس الإنتاج، فيُنزَع أوّل يوم."
+        },
+        {
+          "expect": "test_no_declared_keys_fails_closed",
+          "find": "    if not declared:",
+          "replace": "    if False:",
+          "why": "بلا عقدٍ مقروء يمرّ الحارس على عالمٍ فارغ فيقول «لا مخالفة» عن سؤالٍ لم يُطرَح — وقد كان هذا حاله فعلاً عند أوّل تشغيل (صفر طلب)."
+        },
+        {
+          "expect": "test_a_keyword_argument_request_is_seen",
+          "find": "        candidates = list(node.args) + [kw.value for kw in node.keywords if kw.arg == \"key\"]",
+          "replace": "        candidates = list(node.args)",
+          "why": "عودةُ قراءة الوسائط الموضعيّة وحدها ⇒ `ctx.require(key=\"…\")` مسارُ تجاوزٍ مفتوح. و`require(self, key: str)` ليست positional-only فالصيغة مشروعة تماماً، ولا يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا. أمسكتها المراجعة."
+        }
+      ]
     },
     "visual_fixme_baseline_guard.py": {
       "test": "tests_v9/test_visual_fixme_baseline_guard.py",

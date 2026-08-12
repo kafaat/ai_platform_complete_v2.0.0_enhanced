@@ -1384,7 +1384,8 @@
         "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
         "services/sahool-platform/tests/test_irrigation_runtime_orchestrator.py",
         "tests_v9/test_irrigation_recommendation_policy.py",
-        "tests_v9/test_knowledge_context_resolver.py"
+        "tests_v9/test_knowledge_context_resolver.py",
+        "tests_v9/test_knowledge_providers_and_adoption.py"
       ]
     },
     {

@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 SCHEMA_VERSION = "canonical_sprinkler_runoff_capability.v1"
@@ -29,6 +30,8 @@ def _num(value: Any) -> float | None:
 class CanonicalSprinklerRunoffCapability:
     schema_version: str
     product_version: str
+    generated_at: str
+    effective_at: str
     tenant_id: str
     project_id: str
     machine_id: str
@@ -61,7 +64,9 @@ def build_canonical_sprinkler_runoff_capability(
     root_zone_profile: dict[str, Any],
     terrain: dict[str, Any],
     weather: dict[str, Any],
+    now: datetime | None = None,
 ) -> CanonicalSprinklerRunoffCapability | dict[str, Any]:
+    now = now or datetime.now(UTC)
     if machine_capability.get("status") != "verified" or not machine_capability.get(
         "operational_eligible"
     ):
@@ -124,6 +129,13 @@ def build_canonical_sprinkler_runoff_capability(
     base = {
         "schema_version": SCHEMA_VERSION,
         "product_version": PRODUCT_VERSION,
+        # مرساةٌ زمنيّة: بدونها لا يُقاس عمرُ القيمة، فيصير كلّ عقدٍ يُعلِن
+        # `max_age_seconds` حاجباً دائماً بـ`FRESHNESS_UNMEASURABLE`. و`effective_at`
+        # يتبع لقطة الطقس لا لحظةَ الحساب، لأنّ الرياح هي ما يَبيت هنا.
+        "generated_at": now.isoformat(),
+        "effective_at": str(
+            weather.get("observed_at") or weather.get("generated_at") or now.isoformat()
+        ),
         "tenant_id": tenant_id,
         "project_id": project_id,
         "machine_id": machine_id,
