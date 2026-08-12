@@ -526,6 +526,47 @@
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
     },
+    "knowledge_provenance_guard.py": {
+      "test": "tests_v9/test_knowledge_provenance_guard.py",
+      "mutations": [
+        {
+          "expect": "test_each_required_provenance_field_is_enforced_on_its_own",
+          "find": "        missing = [field for field in REQUIRED_PROVENANCE if field not in emitted]",
+          "replace": "        missing = []",
+          "why": "نزعُ فحص النَّسَب ⇒ مُنتِجٌ بلا مرساةٍ زمنيّة يمرّ، فيبقى بند الطزاجة في المُحلِّل معطَّلاً بصمت: كلّ عقدٍ يُعلِن `max_age_seconds` يحجب دائماً بـFRESHNESS_UNMEASURABLE ولا أحد يعرف لماذا."
+        },
+        {
+          "expect": "test_a_producer_without_its_declared_digest_is_blocked",
+          "find": "        if digest_field not in emitted and f\"{digest_field}=\" not in source:",
+          "replace": "        if False:",
+          "why": "قبولُ مُنتِجٍ بلا بصمة ⇒ قيمةٌ تُقرأ حقيقةً بلا سبيلٍ إلى مصدرها — وهو الصنف المقيس في M2.6: `verified` ونَسَبُها `None`."
+        },
+        {
+          "expect": "test_an_undeclared_digest_field_is_blocked_not_assumed",
+          "find": "        if digest_field is None:",
+          "replace": "        if False:",
+          "why": "عودةُ الافتراض الصامت: بصمةٌ تُخمَّن ليست بصمة. وقد أطلقت أوّلُ صياغةٍ على `canonical_root_zone_profile` لأنّها افترضت `capability_digest` وبصمتُه `profile_digest`."
+        },
+        {
+          "expect": "test_a_digest_assigned_as_a_keyword_still_counts",
+          "find": "        if digest_field not in emitted and f\"{digest_field}=\" not in source:",
+          "replace": "        if digest_field not in emitted:",
+          "why": "إسقاطُ نمط `Cls(**base, capability_digest=...)` ⇒ إيجابيّةٌ كاذبة على كلّ مُنتِجٍ في هذه الشجرة، وهي تُسقِط الحارس بلا أن تُعطِّله لأنّ قارئ الأحمر يتعلّم تجاهله."
+        },
+        {
+          "expect": "test_zero_examined_producers_fails_closed",
+          "find": "    if examined == 0:",
+          "replace": "    if False:",
+          "why": "قبولُ «صفر مفحوص» ⇒ أخضرُ لأنّه لم ينظر."
+        },
+        {
+          "expect": "test_a_wrong_schema_fails_closed",
+          "find": "    if not isinstance(raw, dict) or raw.get(\"schema\") != REGISTRY_SCHEMA:",
+          "replace": "    if False:",
+          "why": "قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه."
+        }
+      ]
+    },
     "live_pg_evidence_guard.py": {
       "mutations": [
         {

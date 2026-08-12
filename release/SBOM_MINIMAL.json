@@ -14985,7 +14985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a89175efaf06ce82f8091174b1541099335b6a017dcb6301061cd7d258fc6d5"
+          "content": "39c19df9e778ea5d1f5db4570c7a4b394ff155f62b2123a56b878f5cdad0fae8"
         }
       ],
       "name": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
@@ -15065,7 +15065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5587078197c2f14d7726554a13d43230feb9b3ac847205d643bf3b5f033c4fed"
+          "content": "37e7f6bdd101946527649beb409be710efa211fc57ecfd9f66584666c2c06b6e"
         }
       ],
       "name": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",

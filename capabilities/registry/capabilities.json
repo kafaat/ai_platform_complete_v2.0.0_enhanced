@@ -2373,6 +2373,7 @@
         "tests/architecture/test_provenance_receipt_and_replay.py",
         "tests_v9/test_field_state_recompute_provenance_v57_5.py",
         "tests_v9/test_irrx1_authoritative_provenance_lock.py",
+        "tests_v9/test_knowledge_provenance_guard.py",
         "tests_v9/test_sot_provenance_guard.py"
       ],
       "runtime": {
@@ -2405,7 +2406,7 @@
           "path": "services/sahool-platform/docs/INFORMATION_PROVENANCE.md"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
