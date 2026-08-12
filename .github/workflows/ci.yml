@@ -204,6 +204,8 @@ jobs:
         run: python scripts/ci/undeclared_context_dependency_guard.py
       - name: rag operational boundary guard (RAG-ANSWERS-AN-OPERATIONAL-FACT-01)
         run: python scripts/ci/rag_operational_boundary_guard.py
+      - name: knowledge relation registry guard (KNOWLEDGE-RELATION-01)
+        run: python scripts/ci/knowledge_relation_registry_guard.py
       - name: irrigation M2.7 energy microgrid guard
         run: python scripts/ci/irrigation_energy_m2_7_guard.py
       - name: irrigation M2.8 capability graph guard

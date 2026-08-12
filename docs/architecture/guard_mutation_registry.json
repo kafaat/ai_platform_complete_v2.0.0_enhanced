@@ -567,6 +567,53 @@
         }
       ]
     },
+    "knowledge_relation_registry_guard.py": {
+      "test": "tests_v9/test_knowledge_relation_registry_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_chain_that_drifts_from_the_code_is_blocked",
+          "find": "        if executed != list(chain):",
+          "replace": "        if False:",
+          "why": "نزعُ البند الحامل كلّه: السجلّ يعود ثلاثيّةً تُكتَب مرّةً وتَبيت بصمت، بينما `REQUIRED_LINKS` ثابتٌ يحكم قراراً — كلُّ حلقةٍ غير متاحة تُضيف حجباً وأضعفُها يُبنى عليه `operational_eligible`."
+        },
+        {
+          "expect": "test_a_symbol_named_only_in_a_comment_is_not_a_definition",
+          "find": "        if executed is None:",
+          "replace": "        if False:",
+          "why": "قبولُ رمزٍ لا يُقرأ متسلسلاً ⇒ سلسلةٌ لا يقابلها ثابتٌ منفَّذ تمرّ، فيصير «مربوطٌ بالتنفيذ» ادّعاءً في وثيقة."
+        },
+        {
+          "expect": "test_an_acyclic_relation_with_a_repeated_link_is_blocked",
+          "find": "        if semantics.get(\"acyclic\") and len(set(chain)) != len(chain):",
+          "replace": "        if False:",
+          "why": "دلالةٌ مُعلَنة لا تُفرَض ليست دلالة: `acyclic` تُكتَب ثمّ تُخالَف بلا أثر."
+        },
+        {
+          "expect": "test_a_directional_relation_with_identical_ends_is_blocked",
+          "find": "        if semantics.get(\"directional\") and relation.get(\"from\") == relation.get(\"to\"):",
+          "replace": "        if False:",
+          "why": "علاقةٌ موجَّهة طرفاها واحد تمرّ ⇒ الاتّجاه يصير حقلاً بلا معنى."
+        },
+        {
+          "expect": "test_a_relation_without_declared_semantics_is_blocked",
+          "find": "        if not isinstance(semantics, dict) or \"directional\" not in semantics:",
+          "replace": "        if False:",
+          "why": "علاقةٌ لا تقول اتّجاهها لا تُنفَّذ ولا تُختبَر — وقبولُها يُعيد السجلّ رسماً."
+        },
+        {
+          "expect": "test_a_duplicate_relation_name_is_blocked",
+          "find": "        if name in seen:",
+          "replace": "        if False:",
+          "why": "اسمٌ واحد بدلالتين هو «مصدر الحقيقة الظلّ» بوجهه العلائقيّ."
+        },
+        {
+          "expect": "test_zero_relations_checked_fails_closed",
+          "find": "    if checked == 0:",
+          "replace": "    if False:",
+          "why": "صفرُ علاقةٍ مُقابَلةٍ بالتنفيذ يمرّ ⇒ أخضرُ لأنّه لم ينظر."
+        }
+      ]
+    },
     "live_pg_evidence_guard.py": {
       "mutations": [
         {

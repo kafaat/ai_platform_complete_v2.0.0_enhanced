@@ -22,6 +22,10 @@
       "kind": "legacy_schema_version"
     },
     {
+      "path": "docs/architecture/knowledge_relation_registry.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/knowledge_source_registry.json",
       "kind": "governed"
     },

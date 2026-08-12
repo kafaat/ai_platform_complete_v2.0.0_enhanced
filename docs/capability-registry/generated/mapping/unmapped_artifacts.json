@@ -7364,6 +7364,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_knowledge_relation_registry_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_layer_evict_v30_9.py",
     "kind": "tests"
   },

@@ -1,0 +1,38 @@
+{
+  "schema": "sahool.knowledge_relation_registry",
+  "version": 1,
+  "adjudicated_on": "2026-08-12",
+  "note_ar": "سجلّ العلاقات المعرفيّة (KNOWLEDGE-RELATION-01). الغرض ليس رسم ثلاثيّات (Field --hasCrop--> Wheat) بل تسجيل علاقةٍ **قابلة للتنفيذ والاختبار**: لها اتّجاه ودلالة وقيود ومستهلكون، ويفرض حارسٌ أنّ ما هو مكتوب هنا هو ما ينفَّذ هناك.",
+  "adjudication_reason_ar": "قرارٌ لا قياس: أيُّ العلاقات قانونيّةٌ وما دلالتها حكمٌ معماريّ. ولذلك `adjudicated_on` لا `measured_on`.",
+  "scope_note_ar": "علاقةٌ واحدة في هذه الشريحة — ولم تُخترَع بل سُجِّلت: `REQUIRED_LINKS` في `canonical_irrigation_capability_graph` تحكم فعلاً قرار «أضعف حلقة» وتُنتِج الحجب. وتسجيلُ علاقاتٍ لا ينفّذها شيء كان سيُنتِج رسماً جميلاً بلا أثر — وهو ما تستثنيه هذه الشريحة صراحةً.",
+  "relations": [
+    {
+      "name": "feeds",
+      "from": "water_source",
+      "to": "controller",
+      "semantics": {
+        "directional": true,
+        "temporal": true,
+        "acyclic": true
+      },
+      "constraints": {
+        "requires_active_relation": true,
+        "weakest_link_gates_the_chain": true
+      },
+      "chain_source_module": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "chain_symbol": "REQUIRED_LINKS",
+      "chain": [
+        "well",
+        "hydraulic",
+        "machine",
+        "sprinkler",
+        "energy",
+        "controller"
+      ],
+      "executable_because_ar": "السلسلة ليست وصفاً: كلُّ حلقةٍ غير `available` تُضيف سببَ حجبٍ باسمها (`WELL::…`)، وأضعفُ حلقةٍ تُحدَّد منها ويُبنى عليها `operational_eligible`. فتغييرُ السلسلة يغيّر قرارَ تشغيلٍ حقيقيّاً.",
+      "consumers": [
+        "services/sahool-platform/api/canonical_irrigation_capability_graph.py"
+      ]
+    }
+  ]
+}
