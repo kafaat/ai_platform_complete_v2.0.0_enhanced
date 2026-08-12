@@ -14,6 +14,16 @@
 **إنفاذ عكسيّ:** حين تهبط رقعة M-01 (بعد فتح GATE-01) وتصير الدالّة مُغطّاة، يصير
 الاستثناء بائتاً ⇒ الحارس يسقط ويُطالِب بنزعه. فلا يبقى ترخيصٌ ميّت يُخفي انحداراً لاحقاً.
 
+**والتغطية تُقاس عبر مَفصِلٍ واحد داخل الوحدة، لا بالاستدعاء المباشر وحده** — وهذا
+سُدَّ بعد أن أخفق الإنفاذ العكسيّ على أوّل رقعةٍ حقيقيّة: هبطت رقعة M-01 تستشير المفتاح
+عبر `_consult_killswitch` (مَفصِلٌ يلزم كي يُستشار المفتاح **بنفس نطاق** القاعدة:
+مستأجِر+حقل+صمّام)، فقرأها الحارس «غير مُغطّاة» ⇒ لم يَبِت الاستثناء ⇒ بقي الترخيص
+حيّاً بعد زوال سببه. ونزعُ الاستثناء وحده كان يقلب العطل اتّهاماً كاذباً: الدالّة
+تستشير فعلاً. فالعلاج في **الكشف** لا في السجلّ.
+
+**وحدّه مستوىً واحد، مُعلَنٌ ومُختبَر:** سلسلةٌ من مَفصِلَين لا تُعَدّ تغطية. تتبُّعُ
+عمقٍ عشوائيّ يقتضي رسمَ نداءٍ كاملاً، وحارسٌ يزعم ما لا يقيس أسوأ من حارسٍ يُعلِن حدّه.
+
 الفحص على الكود المُنفَّذ عبر AST: تُجرَّد docstrings/التعليقات ضمنيّاً (نبحث عن عُقَد
 `ast.Call`، لا نصّ)، فلا إيجابيّة كاذبة من توثيقٍ يذكر الرمز.
 """
@@ -34,12 +44,11 @@ KILLSWITCH = "is_actuation_halted"
 
 # مواضع إطلاق مكشوفة معروفة ومجمَّدة خلف GATE-01 — دَين معلَن، لا تغطية صامتة.
 # المفتاح (rel_path, function_name) ⇒ معرّف الفجوة. يُنزَع فور هبوط الرقعة (إنفاذ عكسيّ).
-FROZEN_EXCEPTIONS: dict[tuple[str, str], str] = {
-    (
-        "services/actuator-service/actuator_runtime.py",
-        "_compensate",
-    ): "COMPENSATION-BYPASSES-KILLSWITCH-01",
-}
+#
+# فارغٌ اليوم: كان يحمل `_compensate` تحت COMPENSATION-BYPASSES-KILLSWITCH-01، ونُزِع
+# حين هبطت الرقعة وصارت الدالّة تستشير المفتاح عبر `_consult_killswitch`. وإبقاؤه بعد
+# ذلك كان يمنح ترخيصاً لعطلٍ زال — فمن ينزع الاستشارة غداً يمرّ أخضر بترخيصٍ ميّت.
+FROZEN_EXCEPTIONS: dict[tuple[str, str], str] = {}
 
 _SKIP_DIR_PARTS = {"__pycache__", ".venv", "node_modules", "site-packages", ".git"}
 
@@ -56,6 +65,24 @@ def _callee_name(node: ast.Call) -> str | None:
 
 def _calls_name(scope: ast.AST, name: str) -> bool:
     return any(isinstance(n, ast.Call) and _callee_name(n) == name for n in ast.walk(scope))
+
+
+def _consulting_helpers(tree: ast.AST) -> set[str]:
+    """دوالُّ هذه الوحدة التي تستشير المفتاح **مباشرةً** — مَفاصِلُ تُعَدّ تغطية.
+
+    مستوىً واحد بالقصد (انظر حدّ التمهيد): يُجمَع من الوحدة نفسها فقط، فمَفصِلٌ
+    مستوردٌ من وحدةٍ أخرى لا يُعَدّ — لأنّ إثبات ذلك يقتضي حلّ الاستيرادات.
+    """
+    return {fn.name for fn in _enclosing_functions(tree) if _calls_name(fn, KILLSWITCH)}
+
+
+def _is_covered(fn: ast.AST, helpers: set[str]) -> bool:
+    """مُغطّاة إن استشارت المفتاح مباشرةً، أو نادت مَفصِلاً في الوحدة يستشيره."""
+    if _calls_name(fn, KILLSWITCH):
+        return True
+    return any(
+        isinstance(n, ast.Call) and _callee_name(n) in helpers for n in ast.walk(fn)
+    )
 
 
 def _enclosing_functions(tree: ast.AST) -> list[ast.FunctionDef | ast.AsyncFunctionDef]:
@@ -77,6 +104,7 @@ def analyze(sources: dict[str, str], exceptions: dict[tuple[str, str], str]):
             tree = ast.parse(code)
         except SyntaxError:
             continue
+        helpers = _consulting_helpers(tree)
         for fn in _enclosing_functions(tree):
             # هل تُطلِق هذه الدالّة أمراً عبر المُساعِد؟ (استدعاء لا تعريف)
             emits = any(
@@ -87,7 +115,7 @@ def analyze(sources: dict[str, str], exceptions: dict[tuple[str, str], str]):
             )
             if not emits:
                 continue
-            covered = _calls_name(fn, KILLSWITCH)
+            covered = _is_covered(fn, helpers)
             key = (rel, fn.name)
             if covered:
                 if key in exceptions:

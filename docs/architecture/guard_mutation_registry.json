@@ -46,6 +46,18 @@
           "find": "                uncovered_unregistered.append(key)",
           "replace": "                pass  # mutated: أُسقِط رصدُ موضع الإطلاق غير المُغطّى",
           "why": "تعطيل تسجيل الموضع غير المُغطّى ⇒ استدعاء send_mqtt_command بلا is_actuation_halted يمرّ صامتاً — نفس عمى الحارس السابق الذي وُجِد هذا ليسدّه"
+        },
+        {
+          "expect": "test_coverage_through_one_same_module_hinge_is_accepted",
+          "find": "    return any(\n        isinstance(n, ast.Call) and _callee_name(n) in helpers for n in ast.walk(fn)\n    )",
+          "replace": "    return False",
+          "why": "قصرُ التغطية على الاستدعاء المباشر يُعيد العمى الذي أبقى ترخيص `_compensate` حيّاً بعد زوال سببه — ويقلب رقعةً صحيحة اتّهاماً."
+        },
+        {
+          "expect": "test_two_hop_indirection_is_not_counted_as_coverage",
+          "find": "    return {fn.name for fn in _enclosing_functions(tree) if _calls_name(fn, KILLSWITCH)}",
+          "replace": "    return {fn.name for fn in _enclosing_functions(tree)}",
+          "why": "مَفصِلٌ بلا شرطِ استشارة يجعل **أيّ** نداءٍ تغطيةً — فيمرّ كلّ موضع إطلاق، والحارس يُبلِغ أماناً لا يقيسه."
         }
       ],
       "test": "tests_v9/test_actuation_killswitch_coverage_guard.py"
