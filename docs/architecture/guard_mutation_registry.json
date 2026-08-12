@@ -795,6 +795,47 @@
       ],
       "test": "tests_v9/test_prohibition_reason_guard.py"
     },
+    "rag_operational_boundary_guard.py": {
+      "test": "tests_v9/test_rag_operational_boundary_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_rag_module_naming_an_operational_key_is_blocked",
+          "find": "            named = {fact for fact in operational if any(fact in text for text in literals)}",
+          "replace": "            named = set()",
+          "why": "نزعُ البند الوحيد: وحدةُ استرجاعٍ تجيب عن الحدّ الآمن تمرّ. ومُخرَجُ الاسترجاع نصٌّ معقولٌ دائماً، فالرقم الناتج يبدو صحيحاً ولم يمرّ بالميل ولا التسرّب ولا شهادة الحزمة."
+        },
+        {
+          "expect": "test_a_canonical_producer_that_reaches_rag_is_blocked",
+          "find": "        if rel in modules and is_rag:",
+          "replace": "        if False:",
+          "why": "مُنتِجٌ قانونيّ يستمدّ حقيقتَه من نصٍّ مُولَّد يقلب اتّجاه الثقة كلَّه: مصدرُ الحقيقة يصير مُستهلِكاً للتخمين."
+        },
+        {
+          "expect": "test_a_mention_inside_a_docstring_is_not_a_use",
+          "find": "            if node.value not in docstrings:",
+          "replace": "            if True:",
+          "why": "عدُّ نصوص التوثيق استعمالاً يجعل الشرح الذي يقول «هذا لا يُسأل عنه الاسترجاع» يُحمِر الحارس — فيتعلّم كاتبُه حذف التوثيق: رقمٌ أخضر وتوثيقٌ أقلّ."
+        },
+        {
+          "expect": "test_a_non_rag_module_may_name_operational_facts_freely",
+          "find": "        if is_rag:",
+          "replace": "        if True:",
+          "why": "توسيعُ الحدّ إلى غير الاسترجاع يُجرّم كلّ مستهلِكٍ قانونيّ — إيجابيّةٌ كاذبة شاملة تُسقِط الحارس أوّل يوم."
+        },
+        {
+          "expect": "test_zero_rag_modules_fails_closed",
+          "find": "    if rag_files == 0:",
+          "replace": "    if False:",
+          "why": "صفرُ وحدةٍ تبلغ الاسترجاع يمرّ ⇒ الحدّ لم يُقَس، أو العلامات بائتة والحارس يحرس لا شيء."
+        },
+        {
+          "expect": "test_a_wrong_schema_fails_closed",
+          "find": "    if not isinstance(raw, dict) or raw.get(\"schema\") != REGISTRY_SCHEMA:",
+          "replace": "    if False:",
+          "why": "قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه، فتُقرأ «صفر حقيقة تشغيليّة» ويصير الحدّ فارغاً."
+        }
+      ]
+    },
     "schema_validation_guard.py": {
       "mutations": [
         {
