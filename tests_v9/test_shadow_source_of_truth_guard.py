@@ -149,3 +149,19 @@ def test_the_live_contracts_are_actually_read():
     problems, declared = guard.violations(keys, guard.CONTRACT_DIR)
     assert problems == []
     assert declared >= 2, f"عدد المتطلّبات المُعلَنة انخفض: {declared}"
+
+
+def test_a_positionally_declared_contract_is_compared_to_the_registry(tmp_path):
+    """البند (٣) كان قابلاً للتجاوز بإعلانٍ موضعيّ لا يُقارَن بالسجلّ إطلاقاً.
+
+    `KnowledgeRequirement` صنفُ بيانات، فالتمرير الموضعيّ مشروع — وقراءةُ
+    المُسمّى وحده جعلت المخالفة **غير مرئيّة**، وهي أخفى من مخالفةٍ صريحة.
+    أمسكتها المراجعة.
+    """
+    body = (
+        "from .contracts import KnowledgeRequirement\n"
+        'R = KnowledgeRequirement("a.k", "sot_other")\n'
+    )
+    problems, declared = guard.violations([_entry()], _contracts(tmp_path, body))
+    assert declared == 1
+    assert any("مصدرُ حقيقةٍ ظلّ" in p for p in problems)

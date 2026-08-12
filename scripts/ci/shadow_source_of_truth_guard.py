@@ -36,6 +36,9 @@ REGISTRY = ROOT / "docs" / "architecture" / "knowledge_source_registry.json"
 REGISTRY_SCHEMA = "sahool.knowledge_source_registry"
 CONTRACT_DIR = ROOT / "shared" / "knowledge"
 
+# ترتيبُ حقول `KnowledgeRequirement` كما يُعرّفها `shared/knowledge/contracts.py`.
+POSITIONAL_FIELDS = ("key", "source_of_truth")
+
 
 def load_keys(registry_path: Path) -> list[dict]:
     if not registry_path.is_file():
@@ -67,6 +70,13 @@ def declared_requirements(tree: ast.AST) -> list[tuple[str, str]]:
         if name != "KnowledgeRequirement":
             continue
         found: dict[str, str] = {}
+        # صنفُ بياناتٍ يقبل التمرير الموضعيّ: `KnowledgeRequirement("k", "sot")`.
+        # وقراءةُ المُسمّى وحده تركت البند (٣) قابلاً للتجاوز بإعلانٍ موضعيّ لا
+        # يُقارَن بالسجلّ إطلاقاً — وهو أخفى من مخالفةٍ صريحة.
+        for index, name in enumerate(POSITIONAL_FIELDS):
+            if index < len(node.args) and isinstance(node.args[index], ast.Constant):
+                if isinstance(node.args[index].value, str):
+                    found[name] = node.args[index].value
         for kw in node.keywords:
             if kw.arg in {"key", "source_of_truth"} and isinstance(kw.value, ast.Constant):
                 if isinstance(kw.value.value, str):

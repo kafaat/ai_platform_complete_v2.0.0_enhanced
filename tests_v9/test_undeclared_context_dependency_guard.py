@@ -117,7 +117,9 @@ def test_test_files_are_not_scanned(tmp_path):
     """اختباراتٌ تطلب مفاتيح تركيبيّة يجب ألّا تُحمِر حارس الإنتاج."""
     pkg = tmp_path / "services"
     pkg.mkdir()
-    (pkg / "test_thing.py").write_text('def f(ctx):\n    return ctx.require("a.ghost")\n', "utf-8")
+    (pkg / "test_thing.py").write_text(
+        'def f(ctx):\n    return ctx.require("a.ghost")\n', encoding="utf-8"
+    )
     files = guard.scan_files(tmp_path, ("services",), tmp_path / "shared" / "knowledge")
     assert files == []
 
@@ -126,7 +128,9 @@ def test_the_contract_directory_itself_is_excluded(tmp_path):
     """`shared/knowledge/` هو مُعرِّف الطبقة لا مستهلِكُها."""
     contracts = tmp_path / "shared" / "knowledge"
     contracts.mkdir(parents=True)
-    (contracts / "c.py").write_text('def f(ctx):\n    return ctx.require("a.ghost")\n', "utf-8")
+    (contracts / "c.py").write_text(
+        'def f(ctx):\n    return ctx.require("a.ghost")\n', encoding="utf-8"
+    )
     files = guard.scan_files(tmp_path, ("shared",), contracts)
     assert files == []
 
@@ -172,3 +176,31 @@ def test_the_live_tree_actually_contains_a_resolver_request():
     problems, requests = guard.violations(registered, declared, files, guard.ROOT)
     assert problems == []
     assert requests >= 1, "لا طلبَ حقيقيّاً في الشجرة — الحارس لا يقيس شيئاً"
+
+
+def test_a_keyword_argument_request_is_seen(tmp_path):
+    """`ctx.require(key="…")` مسارُ تجاوزٍ حقيقيّ لو قُرِئت الوسائط الموضعيّة وحدها.
+
+    و`require(self, key: str)` ليست positional-only، فالصيغة مشروعة تماماً — ولا
+    يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا. أمسكتها المراجعة.
+    """
+    files, root = _consumer(tmp_path, 'def f(ctx):\n    return ctx.require(key="a.other")\n')
+    problems, requests = guard.violations(_REGISTERED, _DECLARED, files, root)
+    assert requests == 1
+    assert problems and "بلا إعلانٍ في أيّ عقد" in problems[0]
+
+
+def test_a_positionally_declared_requirement_is_seen(tmp_path):
+    """`KnowledgeRequirement("k", "sot")` — صنفُ بياناتٍ يقبل الموضعيّ.
+
+    وقراءةُ المُسمّى وحده كانت تجعل الإعلان الموضعيّ غير مرئيّ، فيبدو الطلبُ
+    المعتمِد عليه «غير مُعلَن» وهو مُعلَنٌ فعلاً.
+    """
+    contracts = tmp_path / "contracts"
+    contracts.mkdir()
+    (contracts / "c.py").write_text(
+        "from .contracts import KnowledgeRequirement\n"
+        'R = KnowledgeRequirement("a.other", "sot_a")\n',
+        encoding="utf-8",
+    )
+    assert "a.other" in guard.declared_keys(contracts)

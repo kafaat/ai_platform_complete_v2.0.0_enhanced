@@ -68,6 +68,14 @@ def declared_keys(contract_dir: Path) -> set[str]:
             name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
             if name != "KnowledgeRequirement":
                 continue
+            # `KnowledgeRequirement` صنفُ بيانات، فيقبل التمرير الموضعيّ:
+            # `KnowledgeRequirement("k", "sot")`. وقراءةُ المُسمّى وحده كانت
+            # تجعل إعلاناً موضعيّاً **غير مرئيّ**، فيبدو كلُّ طلبٍ يعتمد عليه
+            # «غير مُعلَن» — أو يفلت الفحص كلّه. الحقلان الأوّلان بالترتيب هما
+            # `key` ثمّ `source_of_truth`.
+            if node.args and isinstance(node.args[0], ast.Constant):
+                if isinstance(node.args[0].value, str):
+                    found.add(node.args[0].value)
             for kw in node.keywords:
                 if kw.arg == "key" and isinstance(kw.value, ast.Constant):
                     if isinstance(kw.value.value, str):
@@ -76,7 +84,12 @@ def declared_keys(contract_dir: Path) -> set[str]:
 
 
 def requested_keys(tree: ast.AST) -> set[str]:
-    """السلاسل المُمرَّرة إلى `.require(...)` / `.provenance(...)`."""
+    """السلاسل المُمرَّرة إلى `.require(...)` / `.provenance(...)`.
+
+    **موضعيّةً ومُسمّاةً معاً.** و`require(self, key: str)` ليست
+    positional-only، فقراءةُ `node.args` وحدها كانت تترك `ctx.require(key="…")`
+    مساراً مفتوحاً للتجاوز — بلا حاجةٍ إلى نيّةٍ سيّئة: يكفي أن يكتبها أحدٌ هكذا.
+    """
     found: set[str] = set()
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
@@ -84,7 +97,8 @@ def requested_keys(tree: ast.AST) -> set[str]:
         func = node.func
         if not isinstance(func, ast.Attribute) or func.attr not in RESOLVER_METHODS:
             continue
-        for arg in node.args:
+        candidates = list(node.args) + [kw.value for kw in node.keywords if kw.arg == "key"]
+        for arg in candidates:
             if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
                 found.add(arg.value)
     return found

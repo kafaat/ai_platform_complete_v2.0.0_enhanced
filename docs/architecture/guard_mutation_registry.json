@@ -944,6 +944,12 @@
           "find": "    if not isinstance(raw, dict) or raw.get(\"schema\") != REGISTRY_SCHEMA:",
           "replace": "    if False:",
           "why": "قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه."
+        },
+        {
+          "expect": "test_a_positionally_declared_contract_is_compared_to_the_registry",
+          "find": "        for index, name in enumerate(POSITIONAL_FIELDS):",
+          "replace": "        for index, name in enumerate(()):",
+          "why": "إسقاطُ الإعلان الموضعيّ ⇒ `KnowledgeRequirement(\"k\", \"sot\")` لا يُقارَن بالسجلّ إطلاقاً، فيمرّ عقدٌ يخالفه **غير مرئيّ** — وهو أخفى من مخالفةٍ صريحة."
         }
       ]
     },
@@ -1132,6 +1138,12 @@
           "find": "    if not declared:",
           "replace": "    if False:",
           "why": "بلا عقدٍ مقروء يمرّ الحارس على عالمٍ فارغ فيقول «لا مخالفة» عن سؤالٍ لم يُطرَح — وقد كان هذا حاله فعلاً عند أوّل تشغيل (صفر طلب)."
+        },
+        {
+          "expect": "test_a_keyword_argument_request_is_seen",
+          "find": "        candidates = list(node.args) + [kw.value for kw in node.keywords if kw.arg == \"key\"]",
+          "replace": "        candidates = list(node.args)",
+          "why": "عودةُ قراءة الوسائط الموضعيّة وحدها ⇒ `ctx.require(key=\"…\")` مسارُ تجاوزٍ مفتوح. و`require(self, key: str)` ليست positional-only فالصيغة مشروعة تماماً، ولا يحتاج الالتفافُ نيّةً سيّئة: يكفي أن يكتبها أحدٌ هكذا. أمسكتها المراجعة."
         }
       ]
     },
