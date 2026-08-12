@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4996,
+    "files_scanned": 4998,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
-      "other": 1335,
-      "tests": 1628,
+      "other": 1336,
+      "tests": 1629,
       "web": 454
     },
-    "unmapped_artifacts": 2032,
+    "unmapped_artifacts": 2033,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -6800,6 +6800,14 @@
           "score": 14
         },
         {
+          "value": "seasons @ docs/runbooks/V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md:10",
+          "score": 14
+        },
+        {
+          "value": "seasons @ docs/runbooks/V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md:55",
+          "score": 14
+        },
+        {
           "value": "seasons @ migrations/v150_seasons_yield_nonnegative_check.sql:21",
           "score": 14
         },
@@ -7655,6 +7663,14 @@
           ]
         },
         {
+          "path": "docs/runbooks/V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md",
+          "score": 14,
+          "signals": [
+            "path:season",
+            "content:season"
+          ]
+        },
+        {
           "path": "docs/specs/SEASON-RECORD-ENTRY-01_spec.md",
           "score": 14,
           "signals": [
@@ -7735,13 +7751,13 @@
       "evidence_counts": {
         "backend": 30,
         "routes": 82,
-        "database": 82,
+        "database": 84,
         "events": 54,
         "web": 12,
         "mobile": 1,
         "tests": 34,
         "governance": 0,
-        "other_evidence": 15
+        "other_evidence": 16
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -42645,6 +42661,10 @@
     },
     {
       "path": "tests_v9/test_v203_sowing_range_static.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_v208_runbook_role_matches_role_model.py",
       "kind": "tests"
     },
     {
