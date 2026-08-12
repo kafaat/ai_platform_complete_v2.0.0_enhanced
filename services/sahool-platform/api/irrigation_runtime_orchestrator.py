@@ -320,6 +320,7 @@ async def orchestrate_irrigation_recommendation(
             reason="knowledge_context_unsatisfied",
             missing=list(context.blocking_reasons),
         )
+    safe_depth_provenance = context.provenance("irrigation.maximum_safe_depth_mm_event")
 
     hourly, hourly_product = await _hourly_forecast(
         tenant_id=tenant_id,
@@ -351,6 +352,19 @@ async def orchestrate_irrigation_recommendation(
     schedule["hourly_weather_source"] = "weather-engine/open-meteo-fao-et0"
     schedule["mode"] = "operational"
     schedule["facts_source"] = "server_owned_canonical_truth"
+    # المعرفة التي بُنِيت عليها التوصية تُصدَر **بنَسَبها**، لا بقيمتها وحدها:
+    # قارئُ الجدول يحتاج أن يعرف من أيّ مُنتِجٍ جاء الحدّ الآمن وبأيّ بصمة،
+    # وإلّا صار الرقم حقيقةً بلا سبيلٍ إلى مصدرها.
+    schedule["knowledge_context"] = {
+        "task": IRRIGATION_RECOMMENDATION_CONTEXT.task,
+        "irrigation.maximum_safe_depth_mm_event": context.require(
+            "irrigation.maximum_safe_depth_mm_event"
+        ),
+        "source_of_truth": safe_depth_provenance.source_of_truth,
+        "producer": safe_depth_provenance.producer,
+        "observed_at": safe_depth_provenance.observed_at,
+        "evidence_refs": list(safe_depth_provenance.evidence_refs),
+    }
     schedule["orchestration_digest"] = _digest(
         {
             "schedule_digest": schedule["schedule_digest"],

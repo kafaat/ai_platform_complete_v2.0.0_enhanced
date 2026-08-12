@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1848,
     "route_handlers": 1049,
-    "call_edges": 73109,
+    "call_edges": 73112,
     "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -204354,29 +204354,22 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
+      "target": "provenance",
+      "line": 323
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
       "target": "_hourly_forecast",
-      "line": 324
+      "line": 325
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "_blocked",
-      "line": 333
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "get",
-      "line": 335
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "str",
-      "line": 335
+      "line": 334
     },
     {
       "owner": "sahool-platform",
@@ -204389,50 +204382,78 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
+      "target": "str",
+      "line": 336
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "get",
+      "line": 337
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
       "target": "solve_hourly_energy_aware_mpc",
-      "line": 338
+      "line": 339
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "to_dict",
-      "line": 338
+      "line": 339
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "float",
-      "line": 346
+      "line": 347
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
-      "target": "_digest",
-      "line": 354
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
-      "source": "orchestrate_irrigation_recommendation",
-      "target": "get",
+      "target": "require",
       "line": 360
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
+      "target": "list",
+      "line": 366
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "_digest",
+      "line": 368
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
       "target": "get",
-      "line": 361
+      "line": 374
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+      "source": "orchestrate_irrigation_recommendation",
+      "target": "get",
+      "line": 375
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
       "source": "orchestrate_irrigation_recommendation",
       "target": "_persist_schedule",
-      "line": 365
+      "line": 379
     },
     {
       "owner": "sahool-platform",

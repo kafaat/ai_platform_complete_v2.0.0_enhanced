@@ -7852,6 +7852,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_shadow_source_of_truth_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_sim_golden.py",
     "kind": "tests"
   },
@@ -7965,6 +7969,10 @@
   },
   {
     "path": "tests_v9/test_tts_providers_20260702.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_undeclared_context_dependency_guard.py",
     "kind": "tests"
   },
   {

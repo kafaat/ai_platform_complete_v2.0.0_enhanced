@@ -818,6 +818,47 @@
       ],
       "test": "tests_v9/test_schema_validation_guard.py"
     },
+    "shadow_source_of_truth_guard.py": {
+      "test": "tests_v9/test_shadow_source_of_truth_guard.py",
+      "mutations": [
+        {
+          "expect": "test_two_producers_for_one_key_are_blocked",
+          "find": "        if key in by_key:",
+          "replace": "        if False:",
+          "why": "قبولُ مفتاحٍ بمُنتِجَين ⇒ عودةُ العطل المقيس بعينه: `maximum_safe_depth_mm_event` كان اسماً واحداً لقيمتين مختلفتي المعنى، ونَسَبُ إحداهما إلى الأخرى كذب."
+        },
+        {
+          "expect": "test_one_source_name_claimed_by_two_modules_is_blocked",
+          "find": "        if previous is not None and previous != module:",
+          "replace": "        if False:",
+          "why": "اسمُ المصدر هويّةٌ لا وصف؛ ومِلَفّان يدّعيانه يجعلان النَّسَب غير قابلٍ للحلّ — فيصير `source_of_truth` سلسلةً لا مرجعاً."
+        },
+        {
+          "expect": "test_a_contract_naming_a_different_source_is_blocked",
+          "find": "            elif registered != source:",
+          "replace": "            elif False:",
+          "why": "أرخصُ طريقٍ إلى مصدر الحقيقة الظلّ وأخفاه: إعلانٌ واحد في عقدٍ يخالف السجلّ، بلا لمسِ أيّ مُنتِج."
+        },
+        {
+          "expect": "test_a_contract_declaring_an_unregistered_key_is_blocked",
+          "find": "            if registered is None:",
+          "replace": "            if False:",
+          "why": "عقدٌ يُعلِن مفتاحاً غير مُسجَّل يَعِد بمعرفةٍ لا مصدر لها، فيمرّ إلى المُحلِّل ويُحجَب هناك بسببٍ أبعد عن موضع الخطأ."
+        },
+        {
+          "expect": "test_zero_declared_requirements_fails_closed",
+          "find": "    if declared == 0:",
+          "replace": "    if False:",
+          "why": "«لم يُقرأ إعلان» ليس «كلّ الإعلانات موافقة» — والبند الثالث كلّه يصير بلا قياس."
+        },
+        {
+          "expect": "test_a_wrong_schema_fails_closed",
+          "find": "    if not isinstance(raw, dict) or raw.get(\"schema\") != REGISTRY_SCHEMA:",
+          "replace": "    if False:",
+          "why": "قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه."
+        }
+      ]
+    },
     "snapshot_eligibility_separation_guard.py": {
       "mutations": [
         {
@@ -964,6 +1005,47 @@
         }
       ],
       "test": "tests/architecture/test_marker_coverage_guard.py"
+    },
+    "undeclared_context_dependency_guard.py": {
+      "test": "tests_v9/test_undeclared_context_dependency_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_registered_but_undeclared_request_is_blocked",
+          "find": "            elif key not in declared:",
+          "replace": "            elif False:",
+          "why": "نزعُ البند الوحيد الذي يوجد الحارس لأجله: طلبٌ عبر المُحلِّل بلا إعلان يمرّ، فتعود التبعيّة إلى رأس كاتبها — وهو ما بُنيت الطبقة لإخراجه منه."
+        },
+        {
+          "expect": "test_an_unregistered_request_is_blocked_with_its_own_reason",
+          "find": "            if key not in registered:",
+          "replace": "            if False:",
+          "why": "طلبُ مفتاحٍ لا مصدر حقيقةٍ له يسقط إلى رسالة «غير مُعلَن»، فيبحث المُصلِح عن عقدٍ ينقصه بينما المفقود مصدرٌ أصلاً."
+        },
+        {
+          "expect": "test_provenance_is_watched_like_require",
+          "find": "RESOLVER_METHODS = {\"require\", \"provenance\"}",
+          "replace": "RESOLVER_METHODS = {\"require\"}",
+          "why": "من يسأل عن النَّسَب يعتمد على المفتاح اعتماداً كاملاً؛ وإسقاطُ `provenance` يترك باباً مفتوحاً بلا سبب."
+        },
+        {
+          "expect": "test_another_method_with_a_string_argument_is_not_a_request",
+          "find": "        if not isinstance(func, ast.Attribute) or func.attr not in RESOLVER_METHODS:",
+          "replace": "        if not isinstance(func, ast.Attribute):",
+          "why": "عدُّ كلّ استدعاءٍ ذي سمة طلباً ⇒ ضجيجٌ يجعل قارئ الأحمر يتجاهله، وهو ما يُسقِط الحارس بلا تعطيله. ومرساتُه أُعيدت: توسيعُ الحصر لا يُحمِر اختبار التعليق (التعليقات لا تصل إلى ast أصلاً) بل يُحمِر الشجرة الحيّة — أي «حمرّ بغير المتوقَّع»."
+        },
+        {
+          "expect": "test_test_files_are_not_scanned",
+          "find": "            if path.name.startswith(\"test_\"):",
+          "replace": "            if False:",
+          "why": "مسحُ الاختبارات ⇒ مفاتيحُ تركيبيّة في تجهيزاتها تُحمِر حارس الإنتاج، فيُنزَع أوّل يوم."
+        },
+        {
+          "expect": "test_no_declared_keys_fails_closed",
+          "find": "    if not declared:",
+          "replace": "    if False:",
+          "why": "بلا عقدٍ مقروء يمرّ الحارس على عالمٍ فارغ فيقول «لا مخالفة» عن سؤالٍ لم يُطرَح — وقد كان هذا حاله فعلاً عند أوّل تشغيل (صفر طلب)."
+        }
+      ]
     },
     "visual_fixme_baseline_guard.py": {
       "test": "tests_v9/test_visual_fixme_baseline_guard.py",

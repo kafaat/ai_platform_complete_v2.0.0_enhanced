@@ -29,7 +29,7 @@ IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
 IRR-002,irrigation,Water quality samples,True,4,2,6,8,1,0,0,0,0
 IRR-003,irrigation,Field water-source binding,True,3,1,0,4,0,0,0,1,0
 IRR-004,irrigation,Water balance,True,6,9,2,3,3,2,0,7,0
-IRR-005,irrigation,Irrigation recommendation,True,5,3,2,0,9,3,0,8,0
+IRR-005,irrigation,Irrigation recommendation,True,5,3,2,0,12,3,0,8,0
 IRR-006,irrigation,Irrigation scheduling,True,2,0,0,0,2,0,0,1,0
 IRR-007,irrigation,Pump and valve control,False,0,0,0,0,0,0,0,0,0
 IRR-008,irrigation,Execution verification,True,1,0,0,17,0,0,0,0,0
@@ -73,7 +73,7 @@ SOIL-005,soil,Soil water properties,True,3,5,0,0,2,0,0,2,0
 WX-001,weather,Current weather,False,0,0,0,0,0,0,0,0,0
 WX-002,weather,Weather forecast,True,6,22,51,8,56,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
-WX-004,weather,ET0,True,5,59,53,0,78,19,0,57,0
+WX-004,weather,ET0,True,5,59,53,0,81,19,0,57,0
 WX-005,weather,VPD,True,5,8,29,0,6,2,0,6,0
 WX-006,weather,GDD,True,6,84,26,35,26,16,0,44,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0
