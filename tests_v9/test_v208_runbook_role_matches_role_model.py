@@ -52,6 +52,18 @@ _TARGET = "v208_seasons_sim_run_lineage.sql"
 
 _ARABIC_DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 
+# **المرساة على اسم الدور، لا على شكل الاعتماد بعده.** أوّل صياغةٍ اشترطت `:`
+# بعد الاسم — أي أنّها كانت تفترض كلمةَ مرورٍ **داخل المثال**، فتُحمِرّ على من
+# يُزيلها. وقد كان المثال فعلاً `…sahool_user:PASS@…` وهو يناقض سطراً في الدليل
+# نفسه: «لا تضع كلمة المرور في سطر أوامر مشترك ولا في سجلّ». أمسكتها المراجعة.
+_EXPORT_RE = r"export DATABASE_URL='postgresql://([a-z_]+)[:@]"
+
+# وشكلٌ يحمل اعتماداً: `scheme://user:anything@host`. النائبُ `PASS` ليس سرّاً،
+# لكنّه **يُنسَخ كما هو** إلى سطر أوامرٍ وسجلٍّ وتاريخ صدفة — والمثال يُعلِّم
+# العادة لا القيمة. وواجهةُ المراجعة أخفت السطر (‏`******localhost/sahool`)
+# لأنّها رأت فيه شكلَ اعتماد، فصار المثال غير مقروءٍ حيث يُراجَع.
+_CREDENTIAL_RE = r"postgresql://[a-z_]+:[^@'\s]+@"
+
 
 def _read(path: Path) -> str:
     assert path.is_file(), f"مفقود: {path}"
@@ -85,7 +97,7 @@ def test_the_role_model_still_names_sahool_user_as_the_migrations_owner():
 def test_the_runbook_exports_the_owner_role_not_another():
     """المرساة على **سطر التصدير**: هو ما يُنسَخ ويُنفَّذ، لا ما يُقرأ شرحاً."""
     text = _read(_RUNBOOK)
-    exports = re.findall(r"export DATABASE_URL='postgresql://([a-z_]+):", text)
+    exports = re.findall(_EXPORT_RE, text)
     assert exports, "لا سطر تصديرٍ في الدليل — تغيّرت بنيته، راجِعه"
     assert set(exports) == {_OWNER}, (
         f"الدليل يُصدِّر أدواراً غير المالك: {sorted(set(exports))}. "
@@ -150,11 +162,32 @@ def test_the_tool_itself_teaches_the_owner_role():
     المسار: تصل إلى كلّ من شغّل الأداة بلا إعداد، ومنهم من لم يقرأ الدليل قطّ.
     فبقاؤها على الدور الخطأ كان يعني أنّ التصويب في الوثيقة يغطّي الأقلّيّة.
     """
-    exports = re.findall(r"export DATABASE_URL='postgresql://([a-z_]+):", _read(_TOOL))
+    exports = re.findall(_EXPORT_RE, _read(_TOOL))
     assert exports, "لا سطر مثالٍ في رسالة الأداة — تغيّرت بنيتها، راجِعها"
     assert set(exports) == {_OWNER}, (
         f"الأداة تطبع مثالاً بدورٍ غير المالك: {sorted(set(exports))}. "
         "و`ALTER TABLE` يشترط ملكيّة الجدول لا صلاحيّة الكتابة"
+    )
+
+
+@pytest.mark.parametrize("path", (_TOOL, _RUNBOOK), ids=lambda p: p.name)
+def test_no_example_here_teaches_putting_a_password_in_the_command_line(path):
+    """الدليل كان يناقض نفسه، والأداة تعلّم ما ينهى عنه.
+
+    §٢ يقول حرفيّاً: «**لا تضع كلمة المرور في سطر أوامر مشترك ولا في سجلّ** —
+    استعمل `~/.pgpass` أو متغيّر بيئةٍ من خزنة الأسرار». وكان المثال فوقه
+    `postgresql://sahool_user:PASS@HOST/sahool` — أي أنّ الوثيقة تنهى وتُعلِّم
+    النقيض في صفحةٍ واحدة، والمثالُ هو ما يُنسَخ لا النهي.
+
+    **والنائب ليس سرّاً وهذا ليس دفاعاً عنه:** ما يُتعلَّم هو **الشكل**، ومن
+    ينسخه يستبدل `PASS` بالقيمة الحقيقيّة فيضعها في سطر الأوامر وتاريخ الصدفة
+    وسجلّ العمليّات. والصيغة `user@host` تُسلِّم الاعتماد إلى `~/.pgpass` أو إلى
+    الخزنة، فيصير المسار الصحيح هو المسار الأسهل.
+    """
+    found = re.findall(_CREDENTIAL_RE, _read(path))
+    assert not found, (
+        f"{path.name} يحمل مثالاً بصيغة `user:password@host`: {found}. "
+        "استعمل `postgresql://<role>@<host>/<db>` واترك الاعتماد لـ`~/.pgpass`"
     )
 
 

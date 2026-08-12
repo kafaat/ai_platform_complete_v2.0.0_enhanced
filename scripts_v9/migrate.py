@@ -64,8 +64,9 @@ def _db_url() -> str:
     url = os.getenv("DATABASE_URL") or os.getenv("MIGRATE_DB_URL") or os.getenv("JOBS_DATABASE_URL")
     if not url:
         print("✗ DATABASE_URL غير مضبوط. اضبطه ثمّ أعِد المحاولة.")
-        print("  export DATABASE_URL='postgresql://sahool_user:PASS@localhost/sahool'")
+        print("  export DATABASE_URL='postgresql://sahool_user@localhost/sahool'")
         print("  (sahool_user = مالك الهجرات؛ الـDDL يشترط ملكيّة الجدول)")
+        print("  (كلمة المرور من ~/.pgpass أو خزنة الأسرار — لا في المثال ولا في سطر الأوامر)")
         sys.exit(2)
     return url
 

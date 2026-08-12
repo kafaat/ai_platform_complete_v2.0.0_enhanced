@@ -80,7 +80,7 @@ _psql(url, "INSERT INTO schema_migrations(...) ...")   # ← التسجيل
 **استعمل `sahool_user`** — لا `sahool_jobs`:
 
 ```bash
-export DATABASE_URL='postgresql://sahool_user:PASS@HOST/sahool'
+export DATABASE_URL='postgresql://sahool_user@HOST/sahool'
 ```
 
 **ولماذا هذا التحديد يهمّ:** `ALTER TABLE` يشترط **ملكيّة الجدول**، لا صلاحيّةَ
