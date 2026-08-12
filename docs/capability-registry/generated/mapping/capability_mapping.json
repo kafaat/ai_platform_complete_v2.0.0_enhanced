@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4994,
+    "files_scanned": 4995,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
       "other": 1334,
-      "tests": 1627,
+      "tests": 1628,
       "web": 454
     },
-    "unmapped_artifacts": 2032,
+    "unmapped_artifacts": 2033,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -6780,7 +6780,7 @@
           "score": 14
         },
         {
-          "value": "seasons @ docs/runbooks/V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md:53",
+          "value": "seasons @ docs/runbooks/V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md:55",
           "score": 14
         },
         {
@@ -42637,6 +42637,10 @@
     },
     {
       "path": "tests_v9/test_v203_sowing_range_static.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_v208_runbook_role_matches_role_model.py",
       "kind": "tests"
     },
     {

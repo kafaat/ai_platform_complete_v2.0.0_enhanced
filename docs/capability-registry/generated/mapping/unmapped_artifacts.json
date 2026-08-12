@@ -8024,6 +8024,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_v208_runbook_role_matches_role_model.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_v9_feature_transfer_20260702.py",
     "kind": "tests"
   },

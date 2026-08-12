@@ -49,7 +49,9 @@ ALTER TABLE seasons
 ### ١ب) لا تراجعَ آليّ
 
 `cmd_down` يبحث عن `v208_seasons_sim_run_lineage.down.sql` ولا يجده، فيقول
-حرفيّاً: «لا يوجد تراجع وهميّ» ويخرج بـ`1`. والتراجع اليدويّ
+حرفيّاً — والسلسلة تُنقَل كما تُطبَع لأنّها ما يُبحَث به في السجلّات:
+`أنشئ v208_seasons_sim_run_lineage.down.sql أوّلاً. لا يوجد تراجع وهمي.`
+ثمّ يخرج بـ`1`. والتراجع اليدويّ
 (`ALTER TABLE seasons DROP COLUMN sim_run_id`) **يُتلِف نَسَبَ كلّ صفٍّ كُتِب بعد
 الفتح** — لا يستعيد حالةً بل يمحو معرفة.
 
@@ -215,8 +217,9 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c \
    ON CONFLICT (version) DO NOTHING;"
 ```
 
-ثمّ `python3 scripts_v9/migrate.py status | grep v208` ⇒ يجب أن يقول `✓ مُطبَّق`
-**بلا** «⚠ انجراف checksum». والانجراف يعني أنّ الملفّ تغيّر بعد تطبيقه — وهو
+ثمّ `python3 scripts_v9/migrate.py status | grep v208` ⇒ السطر المتوقَّع حرفيّاً:
+`  ✓ v208_seasons_sim_run_lineage.sql (مُطبَّق)` — **بلا** لاحقة
+`⚠ انجراف checksum!`. والانجراف يعني أنّ الملفّ تغيّر بعد تطبيقه — وهو
 تحقيقٌ مستقلّ لا يُتجاوَز بإعادة التسجيل.
 
 ---
@@ -258,7 +261,7 @@ SELECT s.season_id, s.sim_ran_at, s.sim_run_id,
 | `must be owner of table seasons` | الدور ليس **مالك** الجدول — و`ALTER` يشترط الملكيّة لا صلاحيّة الكتابة | استعمل `sahool_user` (§٢) — **لا تُرقِّ دوراً آخر ولا تنقل الملكيّة** |
 | `permission denied for table seasons` | لا صلاحيّة أصلاً على الجدول | صحّح `DATABASE_URL` |
 | `status` يقول «غير مُطبَّق» والعمود موجود | نافذة حدّ ١ج | §٦ (‏`ON CONFLICT DO NOTHING` تجعلها آمنة) |
-| «⚠ انجراف checksum» | الملفّ تغيّر بعد تطبيقه | **توقّف** — قارِن بالمستودع قبل أيّ شيء |
+| `⚠ انجراف checksum!` | الملفّ تغيّر بعد تطبيقه | **توقّف** — قارِن بالمستودع قبل أيّ شيء |
 | `v207_present = f` | المِهجرة السابقة غير مفتوحة | افتح `v207` أوّلاً |
 
 ---
