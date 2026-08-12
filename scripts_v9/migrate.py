@@ -55,7 +55,7 @@ MIGRATION_ORDER = manifest_order()
 
 def _db_url() -> str:
     # JOBS_DATABASE_URL مقبولٌ لأنّ helm/k8s يمرّر السرّ **بهذا الاسم**
-    # (templates/migration-job.yaml:30) — والاسم هنا اسمُ متغيّرٍ لا اسمُ دور.
+    # (helm/sahool/templates/migration-job.yaml:30) — والاسم هنا اسمُ متغيّرٍ لا اسمُ دور.
     # أمّا الدور الذي يجب أن يشير إليه الـDSN فهو **مالك الهجرات** `sahool_user`
     # (migrations/POSTGRES_SETUP.md:47): الـDDL يشترط **ملكيّة الجدول** لا صلاحيّة
     # كتابةٍ فيه، فدورٌ غير مالكٍ يُنتِج `must be owner of table ...`.

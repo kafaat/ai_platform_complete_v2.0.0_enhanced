@@ -169,7 +169,7 @@ def test_the_correction_did_not_break_the_deployment_path():
     """حدُّ التصويب: الاسم يبقى مقبولاً.
 
     `JOBS_DATABASE_URL` اسمُ **متغيّرٍ** يمرّره helm بهذا الاسم
-    (`templates/migration-job.yaml`)، لا اسمُ دور. وحذفُه انتقاماً من التعليق
+    (`helm/sahool/templates/migration-job.yaml`)، لا اسمُ دور. وحذفُه انتقاماً من التعليق
     الخاطئ كان سيكسر مسار النشر — تصويبٌ يُنتِج عطلاً أكبر ممّا أصلح.
     """
     assert "JOBS_DATABASE_URL" in _read(_TOOL), (
@@ -220,6 +220,50 @@ def test_the_gate_cannot_crash_on_a_target_outside_the_manifest():
     order = _load_tool().MIGRATION_ORDER
     assert _TARGET in order, f"{_TARGET} ليست في MANIFEST — الفحص الحاجب ينهار"
     assert order.index(_TARGET) > 0, "لا سابقاتٍ لها — الفحص يقيس مجموعةً فارغة"
+
+
+# ───────────────── الإحالة إلى مسار helm — إحالةٌ لا تُتَّبع ليست إحالة ─────────────────
+
+_HELM_JOB = _ROOT / "helm" / "sahool" / "templates" / "migration-job.yaml"
+
+# **ولا يُفحَص هذا الملفّ بغياب الصيغة الخاطئة** — فهو مضطرٌّ إلى عرضها ليشرحها،
+# تماماً كما يذكر الدليلُ `sahool_jobs` عمداً. وأوّل صياغةٍ لهذا الحارس فحصته
+# فأحمرّ على **شرحه هو**: الصنف `TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01`
+# المُسجَّل في صدر هذا الملفّ، وقعتُ فيه وأنا أعالجه. ويحرسه هنا التأكيد الموجَب
+# التالي: المطلوب أن تكون الإحالة **صحيحة**، لا أن تغيب الصيغة الخاطئة.
+_CITING_FILES = (_TOOL, _RUNBOOK)
+
+
+@pytest.mark.parametrize("path", _CITING_FILES, ids=lambda p: p.name)
+def test_the_helm_citation_is_repo_relative_not_a_dangling_suffix(path):
+    """`templates/migration-job.yaml` مجرّداً لا يقع على شيء من جذر المستودع.
+
+    وكتبتُها هكذا في **ثلاثة** مواضع، فأمسكتها المراجعة في ثلاثتها. وهي بالضبط
+    الصنف الذي يعالجه هذا الالتزام: إحالةٌ تبدو دقيقة ولا تُتَّبع، فيصير الادّعاء
+    المستند إليها غير قابلٍ للفحص — وهو أسوأ من غياب الإحالة، لأنّه يشتري ثقةً
+    بلا ما يقابلها.
+    """
+    stale = re.findall(r"(?<!helm/sahool/)templates/migration-job\.yaml", _read(path))
+    assert not stale, (
+        f"{path.name} يُحيل إلى `templates/migration-job.yaml` مجرّداً — "
+        "المسار من جذر المستودع هو `helm/sahool/templates/migration-job.yaml`"
+    )
+
+
+def test_the_cited_helm_line_still_defines_the_variable():
+    """رقمُ السطر يُشتقّ ويُقارَن، فلا يُثبَّت في تأكيدٍ يبيت صامتاً.
+
+    وإن انزاح التعريف، تُحمِرّ الرسالةُ **بالرقم الصحيح** — فيصير الحارس دليلاً
+    إلى التصويب لا مجرّد إعلانِ خطأ.
+    """
+    lines = _read(_HELM_JOB).splitlines()
+    actual = [i for i, line in enumerate(lines, 1) if "- name: JOBS_DATABASE_URL" in line]
+    assert len(actual) == 1, f"تعريفات JOBS_DATABASE_URL في {_HELM_JOB.name}: {actual}"
+    cited = f"helm/sahool/templates/migration-job.yaml:{actual[0]}"
+    for path in (_TOOL, _RUNBOOK):
+        assert cited in _read(path), (
+            f"{path.name} يُحيل إلى سطرٍ غير الذي يعرّف المتغيّر — الصحيح `{cited}`"
+        )
 
 
 def test_the_position_claim_in_the_runbook_is_still_measured():
