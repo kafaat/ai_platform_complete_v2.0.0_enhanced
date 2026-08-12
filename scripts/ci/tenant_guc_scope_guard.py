@@ -183,6 +183,15 @@ def _load_baseline() -> dict:
 
 
 def main() -> int:
+    # مخرَجُ هذا الحارس عربيّ، و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب
+    # **صحيحاً** ثمّ يموت وهو يطبع نجاحه (`UnicodeEncodeError`) ⇒ خروجٌ بـ1 يُقرَأ
+    # «الحارس يحجب» وهو قد مرّ. حارسٌ يُبلِغ فشلاً لأنّه عجز عن طباعة نجاحه أسوأ من
+    # حارسٍ صامت. القراءة كانت مثبَّتة بـ`encoding="utf-8"` منذ البداية — والمنسيّ
+    # الكتابة. مقيس: §١٠ من `preflight --full` أسقطه، والحالة مُسجَّلة في سجلّ الفجوات.
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8")
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--generate", action="store_true")
