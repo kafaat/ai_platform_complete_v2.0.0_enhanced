@@ -14,12 +14,27 @@
 عمداً ليشرح لماذا هو الخطأ. فتأكيدُ غيابِ الاسم كان سيُحمِرّ على الشرح نفسه —
 وهو الصنف المُسجَّل `TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01`.
 
+**ومتابعةُ ما بعد `#834` تُغلِق بابين بقيا مفتوحين بعد دمجه:**
+
+**(F1)** الدليل صُوِّب، و**المصدرُ الذي أنتج الخطأ لم يُصوَّب**: `migrate.py` ظلّ
+يطبع عند غياب `DATABASE_URL` مثالاً بدور `sahool_jobs`. وتصحيحُ الأثر مع بقاء
+السبب يعيد إنتاج الخطأ على أوّل قارئٍ لا يمرّ بالدليل — وهو الأكثر، لأنّ رسالة
+الأداة تصل إليه بلا أن يطلبها.
+
+**(F2)** المسار المُستهدَف (§٤ب) كان يسمح بتطبيق `v208` وحدها بلا شرط، وهي
+المُدخَل ٢١٣ من ٢٢٦ — فيصير `schema_migrations` **غير مرتَّبٍ بادئةً**: ثقبٌ في
+السجلّ يجعل «إلى أين وصل المخطَّط؟» سؤالاً بجوابٍ كاذب. فأُضيف فحصٌ حاجب،
+و**يستورد الأداة نفسها** فلا يستطيع أن ينحرف عن منطقها. وتأكيداتُه هنا تُحمِرّ
+إن سقط الفحص أو نادى اسماً لم تعد الأداة تُصدِّره.
+
 فحص صرف — ``pytest -m unit``.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -30,13 +45,32 @@ _ROOT = Path(__file__).resolve().parents[1]
 _RUNBOOK = _ROOT / "docs" / "runbooks" / "V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md"
 _ROLE_MODEL = _ROOT / "migrations" / "POSTGRES_SETUP.md"
 _MIGRATION = _ROOT / "migrations" / "v208_seasons_sim_run_lineage.sql"
+_TOOL = _ROOT / "scripts_v9" / "migrate.py"
 
 _OWNER = "sahool_user"
+_TARGET = "v208_seasons_sim_run_lineage.sql"
+
+_ARABIC_DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 
 
 def _read(path: Path) -> str:
     assert path.is_file(), f"مفقود: {path}"
     return path.read_text(encoding="utf-8")
+
+
+def _load_tool():
+    """تُستورَد الأداة فعلاً — لا يُبحَث عن أسمائها نصّاً.
+
+    فوجودُ `MIGRATION_ORDER` في ملفٍّ لا يعني أنّ الاستيراد يُصدِّره؛ والفحص
+    الحاجب في الدليل ينادي هذه الأسماء على **وحدةٍ مستورَدة**، فيجب أن يُقاس
+    كما يُنفَّذ.
+    """
+    spec = importlib.util.spec_from_file_location("migrate_tool_under_test", _TOOL)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_the_role_model_still_names_sahool_user_as_the_migrations_owner():
@@ -100,7 +134,103 @@ def test_every_quoted_tool_string_matches_the_tool_byte_for_byte(quoted):
     و«✓ مُطبَّق» والأداة تطبع `✓ <اسم الملفّ> (مُطبَّق)` · وانجرافٌ بلا علامة
     تعجّب. أمسكتها المراجعة، وهذا يمنع عودتها.
     """
-    tool = _read(_ROOT / "scripts_v9" / "migrate.py")
+    tool = _read(_TOOL)
     runbook = _read(_RUNBOOK)
     assert quoted in tool, f"الأداة لم تعد تطبع {quoted!r} — راجِع الدليل"
     assert quoted in runbook, f"الدليل يقتبس صيغةً لا تطبعها الأداة بدل {quoted!r}"
+
+
+# ───────────────────────── F1 — تصويبُ المصدر لا الأثر ─────────────────────────
+
+
+def test_the_tool_itself_teaches_the_owner_role():
+    """المرساة نفسها، على **الأداة** هذه المرّة.
+
+    رسالةُ `migrate.py` عند غياب `DATABASE_URL` هي أوسع سطرِ توجيهٍ في هذا
+    المسار: تصل إلى كلّ من شغّل الأداة بلا إعداد، ومنهم من لم يقرأ الدليل قطّ.
+    فبقاؤها على الدور الخطأ كان يعني أنّ التصويب في الوثيقة يغطّي الأقلّيّة.
+    """
+    exports = re.findall(r"export DATABASE_URL='postgresql://([a-z_]+):", _read(_TOOL))
+    assert exports, "لا سطر مثالٍ في رسالة الأداة — تغيّرت بنيتها، راجِعها"
+    assert set(exports) == {_OWNER}, (
+        f"الأداة تطبع مثالاً بدورٍ غير المالك: {sorted(set(exports))}. "
+        "و`ALTER TABLE` يشترط ملكيّة الجدول لا صلاحيّة الكتابة"
+    )
+
+
+def test_the_tool_cites_the_authoritative_role_model():
+    """توجيهٌ بلا مرجع يُعاد اختراعُه خطأً — وهكذا وقع العطل أوّل مرّة."""
+    assert "POSTGRES_SETUP.md" in _read(_TOOL), (
+        "تعليق الأداة لا يُحيل إلى المرجع القانونيّ لنموذج الأدوار"
+    )
+
+
+def test_the_correction_did_not_break_the_deployment_path():
+    """حدُّ التصويب: الاسم يبقى مقبولاً.
+
+    `JOBS_DATABASE_URL` اسمُ **متغيّرٍ** يمرّره helm بهذا الاسم
+    (`templates/migration-job.yaml`)، لا اسمُ دور. وحذفُه انتقاماً من التعليق
+    الخاطئ كان سيكسر مسار النشر — تصويبٌ يُنتِج عطلاً أكبر ممّا أصلح.
+    """
+    assert "JOBS_DATABASE_URL" in _read(_TOOL), (
+        "الأداة لم تعد تقبل JOBS_DATABASE_URL — مسار helm ينكسر"
+    )
+
+
+# ──────────────────── F2 — الفحص الحاجب قبل المسار المُستهدَف ────────────────────
+
+_GATE_SYMBOLS = ("MIGRATION_ORDER", "MIGRATIONS_DIR", "_applied", "_db_url", "_checksum")
+
+
+@pytest.mark.parametrize("symbol", _GATE_SYMBOLS)
+def test_every_symbol_the_gate_calls_still_exists_in_the_tool(symbol):
+    """مقتطفٌ في دليلٍ ينهار عند التنفيذ أسوأ من لا مقتطف.
+
+    فهو يُقرَأ ضماناً ويُنفَّذ فيرمي `AttributeError` في اللحظة التي بُني ليؤمّنها.
+    وربطُ الفحص بالأداة (بدل إعادة كتابة منطقها) اشترى امتناعاً عن الانحراف
+    وأورث تبعيّةً على أسمائها — وهذه التأكيدات هي ثمنُها المدفوع.
+    """
+    assert f"mig.{symbol}" in _read(_RUNBOOK), (
+        f"الفحص الحاجب لم يعد ينادي {symbol} — راجِع §٤ب قبل أن تُسقِط التأكيد"
+    )
+    assert hasattr(_load_tool(), symbol), (
+        f"الدليل ينادي `mig.{symbol}` والأداة لا تُصدِّره — المقتطف ينهار عند التنفيذ"
+    )
+
+
+def test_the_gate_precedes_the_targeted_apply_command():
+    """شرطٌ مسبق يظهر **بعد** الأمر ليس شرطاً مسبقاً.
+
+    والقارئ المستعجل ينسخ أوّل كتلةٍ يجدها؛ فالترتيب هنا خاصّيّةٌ لا تنسيق.
+    """
+    text = _read(_RUNBOOK)
+    gate = text.find("شرطٌ حاجب")
+    apply_cmd = text.find(f"-f migrations/{_TARGET}")
+    assert gate != -1, "سقط الفحص الحاجب من §٤ب"
+    assert apply_cmd != -1, "تغيّر أمر التطبيق المُستهدَف — راجِع المرساة"
+    assert gate < apply_cmd, "الفحص الحاجب يظهر بعد أمر التطبيق فلا يحجب شيئاً"
+
+
+def test_the_gate_cannot_crash_on_a_target_outside_the_manifest():
+    """الفحص يستدعي `order.index(TARGET)` — وهي ترمي إن غاب الهدف.
+
+    وانهيارُه بـ`ValueError` يُقرَأ «الأداة معطوبة» لا «الهدف غير مُسجَّل»،
+    فيُرسِل المُشغِّل إلى التشخيص الخطأ. وهذا يُثبِت الفرضيّة التي يقوم عليها.
+    """
+    order = _load_tool().MIGRATION_ORDER
+    assert _TARGET in order, f"{_TARGET} ليست في MANIFEST — الفحص الحاجب ينهار"
+    assert order.index(_TARGET) > 0, "لا سابقاتٍ لها — الفحص يقيس مجموعةً فارغة"
+
+
+def test_the_position_claim_in_the_runbook_is_still_measured():
+    """«٢١٣ من ٢٢٦» رقمٌ مقيس، والأرقام المقيسة تنجرف صامتةً.
+
+    وهو ليس زينة: عليه يقوم تبرير الفحص الحاجب (كم سابقةً يمكن تخطّيها).
+    """
+    order = _load_tool().MIGRATION_ORDER
+    position = str(order.index(_TARGET) + 1).translate(_ARABIC_DIGITS)
+    total = str(len(order)).translate(_ARABIC_DIGITS)
+    text = _read(_RUNBOOK)
+    assert f"**{position}** من {total}" in text or f"{position} من {total}" in text, (
+        f"الدليل لا يقول «{position} من {total}» — انجرف الترتيب في MANIFEST"
+    )

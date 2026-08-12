@@ -89,14 +89,19 @@ export DATABASE_URL='postgresql://sahool_user:PASS@HOST/sahool'
 superuser في صورة postgres الرسميّة)». فدورٌ غير مالكٍ يُنتِج
 `must be owner of table seasons` مهما بلغت صلاحيّاته على البيانات.
 
-**وتعليقُ `scripts_v9/migrate.py:57` يذكر `sahool_jobs`** — وهو يصف **مسار النشر
-في k8s** (‏`migration-job.yaml` يمرّر `JOBS_DATABASE_URL`)، لا مالكَ المِهجرات في
-التشغيل اليدويّ. وأوّل صياغةٍ لهذا الدليل أخذت التعليق مرجعاً للأدوار فأوصت
-بالدور الخطأ — أصلحه تدقيقُ قاعدةٍ حيّة أظهر أنّ `sahool_user` هو المالك.
-**والدرس المُعمَّم: تعليقٌ في أداةٍ يصف سياق استدعائها، لا يُعرِّف نموذج الأدوار.**
+**وقد كان `scripts_v9/migrate.py` نفسه يعلّم الخطأ:** تعليقُه قال «الهجرات
+تُطبَّق بدور `sahool_jobs`»، ورسالتُه عند غياب `DATABASE_URL` طبعت مثالاً بذلك
+الدور — فأخذت أوّلُ صياغةٍ لهذا الدليل التعليقَ مرجعاً وأوصت بالدور الخطأ.
+كشفه تدقيقُ قاعدةٍ حيّة (2026-08-12)، وصُوِّب **المصدر** بعده: الأداة الآن تطبع
+مثال `sahool_user` وتقول لماذا.
 
-**وحدُّ صدقٍ على المسار الآليّ:** إن كان النشر في بيئتك يشغّل `migrate.py` بدور
-`sahool_jobs` فهو يعمل هناك بترتيبٍ يمنحه ما يلزم؛ وهذا الدليل يصف **التشغيل
+**والدرس المُعمَّم: تعليقٌ في أداةٍ يصف سياق استدعائها، لا يُعرِّف نموذج الأدوار.**
+واسمُ `JOBS_DATABASE_URL` اسمُ **متغيّرٍ** يمرّره helm بهذا الاسم
+(‏`templates/migration-job.yaml:30`)، لا اسمُ دور — وما يشير إليه الـDSN داخل
+السرّ قرارُ نشرٍ لا تراه الشجرة.
+
+**وحدُّ صدقٍ على المسار الآليّ:** إن كان النشر في بيئتك يشغّل `migrate.py` بدورٍ
+غير المالك فهو يعمل هناك بترتيبٍ يمنحه ما يلزم؛ وهذا الدليل يصف **التشغيل
 اليدويّ المباشر**، وفيه المالك هو `sahool_user`.
 
 الأداة تقبل `DATABASE_URL` أو `MIGRATE_DB_URL` أو `JOBS_DATABASE_URL` بهذا
@@ -150,7 +155,51 @@ python3 scripts_v9/migrate.py up
 ### ٤ب) المسار المُستهدَف — `v208` وحدها
 
 يُستعمَل حين توجد مِهجراتٌ معلّقة أخرى لا تريد فتحها الآن. **يُطبَّق ويُسجَّل
-بيده**، فانتبه للخطوة ٦:
+بيده**، فانتبه للخطوة ٦.
+
+#### شرطٌ حاجب قبل هذا المسار: كلُّ سابقاتها مُطبَّقة وبصماتُها سليمة
+
+`v208` هي المُدخَل **٢١٣** من ٢٢٦. وتطبيقُها وحدها فوق سابقاتٍ معلّقة يُنتِج
+سجلّاً **غير مرتَّبٍ بادئةً** (`schema_migrations` فيه ثقب): الأداة تفترض في
+`cmd_down` أنّ آخِر مُطبَّقٍ بترتيب `MANIFEST` هو آخِر ما جرى فعلاً، وأيُّ قراءةٍ
+لاحقة تسأل «إلى أين وصل المخطَّط؟» تقرأ رقماً يكذب. والأسوأ أنّ سابقةً معلّقة قد
+تكون هي التي تُنشئ `seasons` أو تعدّلها — فتصطدم بعمودٍ لم تتوقّعه.
+
+وبصمةٌ منجرفة في **سابقة** لا تقلّ خطورة: تعني أنّ الملفّ تغيّر بعد تطبيقه،
+فالمخطَّط الذي تبني عليه ليس المخطَّط الذي يصفه المستودع.
+
+يُشغَّل هذا الفحص من جذر المستودع، وهو **يستورد الأداة نفسها** فلا يستطيع أن
+ينحرف عن منطقها:
+
+```bash
+python3 - <<'PY'
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("mig", "scripts_v9/migrate.py")
+mig = importlib.util.module_from_spec(spec); spec.loader.exec_module(mig)
+
+TARGET = "v208_seasons_sim_run_lineage.sql"
+applied = mig._applied(mig._db_url())
+order = mig.MIGRATION_ORDER
+predecessors = order[: order.index(TARGET)]
+
+pending = [m for m in predecessors if m not in applied]
+drifted = [
+    m for m in predecessors
+    if m in applied
+    and (mig.MIGRATIONS_DIR / m).exists()
+    and applied[m] != mig._checksum(mig.MIGRATIONS_DIR / m)
+]
+for m in pending[:20]:
+    print(f"  ○ سابقةٌ معلّقة: {m}")
+for m in drifted[:20]:
+    print(f"  ⚠ بصمةٌ منجرفة: {m}")
+print(f"المعلّق قبل {TARGET}: {len(pending)} · المنجرف: {len(drifted)}")
+sys.exit(1 if (pending or drifted) else 0)
+PY
+```
+
+**`exit 0` شرطٌ للمضيّ.** وإن خرج بـ`1` فلا تُطبِّق `v208` وحدها: افتح السابقات
+بالمسار ٤أ أوّلاً، أو حقّق في الانجراف — وهو تحقيقٌ مستقلّ لا يُتجاوَز.
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
