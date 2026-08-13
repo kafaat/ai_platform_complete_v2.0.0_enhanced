@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5013,
+    "files_scanned": 5014,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 60,
       "mobile": 51,
       "other": 1344,
-      "tests": 1635,
+      "tests": 1636,
       "web": 454
     },
     "unmapped_artifacts": 2039,
@@ -22753,6 +22753,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_raster_tiler_service_contract.py",
+          "score": 14,
+          "signals": [
+            "path:raster tile",
+            "content:raster tile"
+          ]
+        },
+        {
           "path": "services/raster-service/test_cdse_tilejson_availability.py",
           "score": 13,
           "signals": [
@@ -23069,7 +23077,7 @@
         "events": 12,
         "web": 1,
         "mobile": 0,
-        "tests": 21,
+        "tests": 22,
         "governance": 0,
         "other_evidence": 23
       },

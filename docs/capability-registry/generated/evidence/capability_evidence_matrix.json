@@ -2639,7 +2639,8 @@
       },
       "evidence_score": 7,
       "integration_test_paths": [
-        "tests_v9/test_frontend_tilejson_date_contract_guard.py"
+        "tests_v9/test_frontend_tilejson_date_contract_guard.py",
+        "tests_v9/test_raster_tiler_service_contract.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",

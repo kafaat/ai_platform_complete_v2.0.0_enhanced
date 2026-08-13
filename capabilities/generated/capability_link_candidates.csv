@@ -1685,6 +1685,7 @@ SAT-009,test,tests_v9/test_raster_scene_model_v63.py,3,applied
 SAT-009,test,tests_v9/test_raster_source_guard_internal_pipelines.py,3,applied
 SAT-009,test,tests_v9/test_raster_tile_http_cookie_runtime_fix_20260715.py,5,applied
 SAT-009,test,tests_v9/test_raster_tilejson_cache_index_fix_20260626.py,5,applied
+SAT-009,test,tests_v9/test_raster_tiler_service_contract.py,3,applied
 SAT-009,test,tests_v9/test_raster_topographic_qa_guard.py,3,applied
 SAT-009,test,tests_v9/test_raster_validated_product_guard.py,3,applied
 SAT-009,test,tests_v9/test_raster_worker_heartbeat_guard_v21.py,3,applied
