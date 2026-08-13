@@ -1,5 +1,6 @@
 {
   "schema": "sahool.gate01_adjudication/v1",
+  "version": 1,
   "adjudication_id": "GATE01-ADJ-2026-08-13-001",
   "gate_id": "GATE-01",
   "status": "ISSUED",

@@ -22,6 +22,10 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/guard_mutation_registry.json",
       "kind": "legacy_schema_version"
     },
