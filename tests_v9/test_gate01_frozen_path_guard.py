@@ -237,17 +237,50 @@ def test_the_real_reverted_patch_would_still_be_caught_without_its_authorization
     assert used is None and errors
 
 
-def test_the_live_tree_is_permitted_only_by_an_exact_authorization():
-    """والشجرة الحاليّة تمرّ **بتفويضها** لا بغيابه — الفرق يُقاس لا يُفترَض."""
+def test_a_consumed_authorization_no_longer_permits_the_touch_it_authorised():
+    """دورةُ الحياة تكتمل هنا: `one_time` نيّةٌ حتّى يُثبِتها الرفضُ بعد الاستهلاك.
+
+    قبل الدمج كان هذا التفويض يُمرِّر المسارَين بعينهما (وهو ما وثّقه #837). وبعد
+    ختمه `CONSUMED` يُحجَب **المسّ نفسه** — فلا يصير إذنٌ صدر لرقعةٍ باباً دائماً
+    لكلّ PR لاحقة. والبوّابة لم تُفتَح في أيٍّ من الحالين.
+    """
     policy = guard.load_policy(_POLICY)
     blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
     adjs = guard.load_adjudications(_ADJ_DIR)
-    errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, adjs, blobs)
-    assert errors == [], errors
-    assert used == "GATE01-ADJ-2026-08-13-001"
+    assert adjs, "لا تفويض منشور — الاختبار يقيس فراغاً"
 
-    stripped = [copy.deepcopy(a) for a in adjs]
-    for a in stripped:
-        a["status"] = "CONSUMED"
-    errors2, used2 = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, stripped, blobs)
-    assert used2 is None and errors2, "تفويضٌ مُستهلَك مرّ — الاستعمال مرّةً واحدة غير مفروض"
+    errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, adjs, blobs)
+    assert used is None, f"تفويضٌ مُستهلَك ما زال يُمرِّر: {used}"
+    assert any("ISSUED" in e for e in errors), errors
+
+    # وبإعادته إلى ISSUED يمرّ — فالرفض سببه الاستهلاك لا عطبٌ في المطابقة.
+    revived = [copy.deepcopy(a) for a in adjs]
+    for a in revived:
+        a["status"] = "ISSUED"
+    errors2, used2 = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, revived, blobs)
+    assert errors2 == [], errors2
+    assert used2 == "GATE01-ADJ-2026-08-13-001"
+
+
+def test_every_consumed_authorization_names_the_merge_that_consumed_it():
+    """‏`CONSUMED` بلا `merge_sha` ادّعاءُ استهلاكٍ لا سجلّه — ولا يُقبَل."""
+    for adj in guard.load_adjudications(_ADJ_DIR):
+        if adj.get("status") != "CONSUMED":
+            continue
+        merge_sha = (adj.get("consumption") or {}).get("merge_sha")
+        assert isinstance(merge_sha, str) and len(merge_sha) == 40, (
+            f"{adj['adjudication_id']}: مُستهلَك بلا SHA دمجٍ كامل"
+        )
+
+
+def test_a_consumed_record_still_describes_what_actually_landed():
+    """السجلّ يبقى قابلاً للفحص بعد الاستهلاك — وإلّا صار أثراً لا يُراجَع.
+
+    البايتات المأذونة هي بايتات الشجرة بعد الدمج؛ فانحرافُها يعني أنّ ما دخل ليس
+    ما أُذِن به، وذلك يُكشَف هنا لا في مراجعةٍ بشريّة.
+    """
+    for adj in guard.load_adjudications(_ADJ_DIR):
+        for path, declared in adj["authorized_blobs"].items():
+            assert guard.blob_sha(path) == declared, (
+                f"{adj['adjudication_id']}/{path}: ما دخل يخالف ما أُذِن به"
+            )
