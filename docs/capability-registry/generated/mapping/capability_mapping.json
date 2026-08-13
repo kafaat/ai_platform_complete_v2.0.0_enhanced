@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 4998,
+    "files_scanned": 5000,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
-      "other": 1336,
-      "tests": 1629,
+      "other": 1337,
+      "tests": 1630,
       "web": 454
     },
-    "unmapped_artifacts": 2034,
+    "unmapped_artifacts": 2035,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -562,7 +562,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:432",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:440",
           "score": 12
         },
         {
@@ -2245,7 +2245,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:432",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:440",
           "score": 12
         },
         {
@@ -14230,7 +14230,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:432",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:440",
           "score": 12
         },
         {
@@ -23979,7 +23979,7 @@
           "score": 10
         },
         {
-          "value": "decision_lineage_v183_guard.py @ docs/architecture/guard_mutation_registry.json:1225",
+          "value": "decision_lineage_v183_guard.py @ docs/architecture/guard_mutation_registry.json:1248",
           "score": 9
         },
         {
@@ -23987,11 +23987,11 @@
           "score": 9
         },
         {
-          "value": "irrigation_as_applied_m2_11_guard.py @ docs/architecture/guard_mutation_registry.json:1239",
+          "value": "irrigation_as_applied_m2_11_guard.py @ docs/architecture/guard_mutation_registry.json:1262",
           "score": 9
         },
         {
-          "value": "irrigation_capability_graph_m2_8_guard.py @ docs/architecture/guard_mutation_registry.json:1240",
+          "value": "irrigation_capability_graph_m2_8_guard.py @ docs/architecture/guard_mutation_registry.json:1263",
           "score": 9
         },
         {
@@ -23999,23 +23999,23 @@
           "score": 9
         },
         {
-          "value": "irrigation_closed_loop_m5_guard.py @ docs/architecture/guard_mutation_registry.json:1241",
+          "value": "irrigation_closed_loop_m5_guard.py @ docs/architecture/guard_mutation_registry.json:1264",
           "score": 9
         },
         {
-          "value": "irrigation_closed_loop_runtime_guard.py @ docs/architecture/guard_mutation_registry.json:1242",
+          "value": "irrigation_closed_loop_runtime_guard.py @ docs/architecture/guard_mutation_registry.json:1265",
           "score": 9
         },
         {
-          "value": "irrigation_commissioning_m2_10_guard.py @ docs/architecture/guard_mutation_registry.json:1243",
+          "value": "irrigation_commissioning_m2_10_guard.py @ docs/architecture/guard_mutation_registry.json:1266",
           "score": 9
         },
         {
-          "value": "irrigation_controller_edge_m2_9_guard.py @ docs/architecture/guard_mutation_registry.json:1244",
+          "value": "irrigation_controller_edge_m2_9_guard.py @ docs/architecture/guard_mutation_registry.json:1267",
           "score": 9
         },
         {
-          "value": "irrigation_convergence_guard.py @ docs/architecture/guard_mutation_registry.json:1245",
+          "value": "irrigation_convergence_guard.py @ docs/architecture/guard_mutation_registry.json:1268",
           "score": 9
         },
         {
@@ -24023,63 +24023,63 @@
           "score": 9
         },
         {
-          "value": "irrigation_energy_m2_7_guard.py @ docs/architecture/guard_mutation_registry.json:1246",
+          "value": "irrigation_energy_m2_7_guard.py @ docs/architecture/guard_mutation_registry.json:1269",
           "score": 9
         },
         {
-          "value": "irrigation_engineering_m2_1_guard.py @ docs/architecture/guard_mutation_registry.json:1247",
+          "value": "irrigation_engineering_m2_1_guard.py @ docs/architecture/guard_mutation_registry.json:1270",
           "score": 9
         },
         {
-          "value": "irrigation_hourly_mpc_m3_guard.py @ docs/architecture/guard_mutation_registry.json:1248",
+          "value": "irrigation_hourly_mpc_m3_guard.py @ docs/architecture/guard_mutation_registry.json:1271",
           "score": 9
         },
         {
-          "value": "irrigation_hydraulic_m2_4_guard.py @ docs/architecture/guard_mutation_registry.json:1249",
+          "value": "irrigation_hydraulic_m2_4_guard.py @ docs/architecture/guard_mutation_registry.json:1272",
           "score": 9
         },
         {
-          "value": "irrigation_machine_m2_5_guard.py @ docs/architecture/guard_mutation_registry.json:1250",
+          "value": "irrigation_machine_m2_5_guard.py @ docs/architecture/guard_mutation_registry.json:1273",
           "score": 9
         },
         {
-          "value": "irrigation_rls_canonical_guard.py @ docs/architecture/guard_mutation_registry.json:1251",
+          "value": "irrigation_rls_canonical_guard.py @ docs/architecture/guard_mutation_registry.json:1274",
           "score": 9
         },
         {
-          "value": "irrigation_root_zone_m2_2_guard.py @ docs/architecture/guard_mutation_registry.json:1252",
+          "value": "irrigation_root_zone_m2_2_guard.py @ docs/architecture/guard_mutation_registry.json:1275",
           "score": 9
         },
         {
-          "value": "irrigation_runtime_orchestrator_guard.py @ docs/architecture/guard_mutation_registry.json:1253",
+          "value": "irrigation_runtime_orchestrator_guard.py @ docs/architecture/guard_mutation_registry.json:1276",
           "score": 9
         },
         {
-          "value": "irrigation_sprinkler_m2_6_guard.py @ docs/architecture/guard_mutation_registry.json:1254",
+          "value": "irrigation_sprinkler_m2_6_guard.py @ docs/architecture/guard_mutation_registry.json:1277",
           "score": 9
         },
         {
-          "value": "irrigation_vri_m4_guard.py @ docs/architecture/guard_mutation_registry.json:1255",
+          "value": "irrigation_vri_m4_guard.py @ docs/architecture/guard_mutation_registry.json:1278",
           "score": 9
         },
         {
-          "value": "irrigation_well_digital_twin_m2_3_guard.py @ docs/architecture/guard_mutation_registry.json:1256",
+          "value": "irrigation_well_digital_twin_m2_3_guard.py @ docs/architecture/guard_mutation_registry.json:1279",
           "score": 9
         },
         {
-          "value": "irrx1_manual_execution_guard.py @ docs/architecture/guard_mutation_registry.json:1264",
+          "value": "irrx1_manual_execution_guard.py @ docs/architecture/guard_mutation_registry.json:1287",
           "score": 9
         },
         {
-          "value": "nginx_weather_edge_path_guard.py @ docs/architecture/guard_mutation_registry.json:1272",
+          "value": "nginx_weather_edge_path_guard.py @ docs/architecture/guard_mutation_registry.json:1295",
           "score": 9
         },
         {
-          "value": "raw_weather_processing_contract_guard.py @ docs/architecture/guard_mutation_registry.json:1292",
+          "value": "raw_weather_processing_contract_guard.py @ docs/architecture/guard_mutation_registry.json:1315",
           "score": 9
         },
         {
-          "value": "sahool.guard-mutation-registry.v1 @ docs/architecture/guard_mutation_registry.json:1209",
+          "value": "sahool.guard-mutation-registry.v1 @ docs/architecture/guard_mutation_registry.json:1232",
           "score": 9
         },
         {
@@ -24087,63 +24087,63 @@
           "score": 9
         },
         {
-          "value": "soil_canonical_store_guard.py @ docs/architecture/guard_mutation_registry.json:1305",
+          "value": "soil_canonical_store_guard.py @ docs/architecture/guard_mutation_registry.json:1328",
           "score": 9
         },
         {
-          "value": "soil_full_chain_guard.py @ docs/architecture/guard_mutation_registry.json:1306",
+          "value": "soil_full_chain_guard.py @ docs/architecture/guard_mutation_registry.json:1329",
           "score": 9
         },
         {
-          "value": "soil_lab_projection_guard.py @ docs/architecture/guard_mutation_registry.json:1307",
+          "value": "soil_lab_projection_guard.py @ docs/architecture/guard_mutation_registry.json:1330",
           "score": 9
         },
         {
-          "value": "soil_lab_supersession_lineage_guard.py @ docs/architecture/guard_mutation_registry.json:1308",
+          "value": "soil_lab_supersession_lineage_guard.py @ docs/architecture/guard_mutation_registry.json:1331",
           "score": 9
         },
         {
-          "value": "soil_p1_products_guard.py @ docs/architecture/guard_mutation_registry.json:1309",
+          "value": "soil_p1_products_guard.py @ docs/architecture/guard_mutation_registry.json:1332",
           "score": 9
         },
         {
-          "value": "soil_p2_products_guard.py @ docs/architecture/guard_mutation_registry.json:1310",
+          "value": "soil_p2_products_guard.py @ docs/architecture/guard_mutation_registry.json:1333",
           "score": 9
         },
         {
-          "value": "soil_p3_products_guard.py @ docs/architecture/guard_mutation_registry.json:1311",
+          "value": "soil_p3_products_guard.py @ docs/architecture/guard_mutation_registry.json:1334",
           "score": 9
         },
         {
-          "value": "soil_p4_closed_loop_guard.py @ docs/architecture/guard_mutation_registry.json:1312",
+          "value": "soil_p4_closed_loop_guard.py @ docs/architecture/guard_mutation_registry.json:1335",
           "score": 9
         },
         {
-          "value": "soil_p5_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1313",
+          "value": "soil_p5_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1336",
           "score": 9
         },
         {
-          "value": "soil_p6_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1314",
+          "value": "soil_p6_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1337",
           "score": 9
         },
         {
-          "value": "soil_profile_contract_guard.py @ docs/architecture/guard_mutation_registry.json:1315",
+          "value": "soil_profile_contract_guard.py @ docs/architecture/guard_mutation_registry.json:1338",
           "score": 9
         },
         {
-          "value": "soil_projection_observability_guard.py @ docs/architecture/guard_mutation_registry.json:1316",
+          "value": "soil_projection_observability_guard.py @ docs/architecture/guard_mutation_registry.json:1339",
           "score": 9
         },
         {
-          "value": "soil_projection_reconciliation_guard.py @ docs/architecture/guard_mutation_registry.json:1317",
+          "value": "soil_projection_reconciliation_guard.py @ docs/architecture/guard_mutation_registry.json:1340",
           "score": 9
         },
         {
-          "value": "soil_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1318",
+          "value": "soil_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1341",
           "score": 9
         },
         {
-          "value": "soil_supersession_current_pointer_guard.py @ docs/architecture/guard_mutation_registry.json:1319",
+          "value": "soil_supersession_current_pointer_guard.py @ docs/architecture/guard_mutation_registry.json:1342",
           "score": 9
         },
         {
@@ -24155,11 +24155,11 @@
           "score": 9
         },
         {
-          "value": "weather_engine_formula_guard.py @ docs/architecture/guard_mutation_registry.json:1325",
+          "value": "weather_engine_formula_guard.py @ docs/architecture/guard_mutation_registry.json:1348",
           "score": 9
         },
         {
-          "value": "weather_hourly_etc_wx_i1_guard.py @ docs/architecture/guard_mutation_registry.json:1326",
+          "value": "weather_hourly_etc_wx_i1_guard.py @ docs/architecture/guard_mutation_registry.json:1349",
           "score": 9
         },
         {
@@ -27454,7 +27454,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:432",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:440",
           "score": 12
         },
         {
@@ -41665,6 +41665,10 @@
     },
     {
       "path": "tests_v9/test_entity_id_text.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_env_compose_default_override_guard.py",
       "kind": "tests"
     },
     {
