@@ -3011,6 +3011,16 @@ GNU وBusyBox وBSD، **ولا يجوز الاعتماد عليه**. والبد�
 
 **ولماذا إلحاقاً لا تحريراً:** السجلّ إلحاقيّ بالعقد، ومحوُ تفسيرٍ قِيل ثمّ رُدَّ يمحو
 أنّه رُدّ — وذلك جزءٌ من السجلّ لا ضجيجٌ فيه.
+## STATIC-GUARD-MEASURES-OCCURRENCE-NOT-EFFECT-01 — `mitigated` (2026-08-13 · مسارَي المُشغّلات) · `open` (الصنف)
+
+- **المصدر:** `scripts/ci/actuation_killswitch_coverage_guard.py` — يفرض أنّ كلّ موضع إطلاق فيزيائيّ **يستشير** مفتاح الطوارئ. وحدُّه مكتوبٌ في موضعه وفي `docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json` (`$honesty_limit_ar`) حرفيّاً: «يقيس **وقوع** استشارة المفتاح لا أنّ نتيجتها تمنع الإرسال».
+- **العلّة:** بين «يستشير» و«يمنع» ثلاثة أعطال يمرّ عليها الحارس **أخضر**: (١) يستشير ثمّ **يتجاهل** النتيجة · (٢) يستشير **بنطاقٍ أضيق** (`field_id=None`) فلا يُطابِق مفتاح الحقل — وهو `MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01` بعينه · (٣) يستشير **بعد** النشر، فالاستشارة موجودة والأثر وقع.
+- **وأضعفُ موضعٍ كان الراوتر:** `/v1/command` كان مقيساً بفحصٍ **نصّيّ** وحده (`test_the_router_passes_the_field_to_the_killswitch`)، ووثيقتُه تُقرّ بذلك: «ما يبقى بلا تغطية هو **أنّ الراوتر يستعمل القيمة**». وفحصٌ نصّيّ يمرّ على استشارةٍ نتيجتُها مُهمَلة.
+- **العلاج المُنفَّذ:** قسمٌ ثانٍ في `docs/architecture/guard_mutation_registry.json` اسمه `behavioural`، مفاتيحه **مسارات مصادر إنتاج** لا أسماء حرّاس، وطفراتُه تُزرَع في المنطق نفسه ويجب أن يحمرّ اختبارُ **أثره** المُسمّى. سبعُ طفرات على `services/actuator-service/actuator_runtime.py` و`routers/commands.py` — وهما بعينهما ما أذن به `GATE01-ADJ-2026-08-13-001`، فيقيس التفويضُ ما مُنِح لأجله.
+- **ونتيجةٌ قِيست ولم تكن متوقَّعة:** أكثر الاختبارات كانت **قائمة** (`test_compensation_killswitch.py` · `test_manual_command_killswitch_scope.py`) منذ إغلاق الدَّينين؛ الناقص أنّ أحداً لم يزرع العطل ويُثبِت أنّها تحمرّ. فالجديد **تسجيلٌ وزرع** لا كتابةُ اختبارات — عدا الراوتر، فأُضيف له `tests_v9/test_actuation_killswitch_behaviour.py` (أربعة اختبارات تُشغّل `send_command` وتقيس ما وصل إلى الوسيط).
+- **والآليّة نفسها مُكذَّبة:** ثلاث طفرات على `guard_mutation_guard.py` تمنع إهمال القسم صامتاً — إفراغُه · تخطّي مصدرٍ مفقود · فحصٌ ثابت بلا زرع — ورابعة تُثبِت أنّ `test` على مستوى الطفرة يُحترَم (وحدةُ إنتاجٍ واحدة تُقاس بأكثر من جناح).
+- **حدّ صدق — ولهذا الصنف `open`:** ما سُدّ هو **مسارا المُشغّلات** وحدهما. وحارسُ التغطية الساكن ما زال يقيس الوقوع على كلّ ما عداهما، و`GUARD_CATALOGUE.md` يقول المقياس: **٢٤٠ حارساً يحجب في CI، ٢٩ منها مُثبَتة بالتكذيب**. ولا يُشغَّل هنا stack حيّ ولا PostgreSQL — القياس بمحاكاة وحدة، و`aiomqtt` مُرقَّع بجذع.
+
 ## COMPENSATION-BYPASSES-KILLSWITCH-01 — `fixed` (2026-08-12 · رُفِع الحجر بقرار المالك)
 
 **أُصلِح.** أُضيف مَفصِل `_consult_killswitch(tenant, field, valve)` و**استشارة لكلّ جهاز**
@@ -3023,6 +3033,15 @@ GNU وBusyBox وBSD، **ولا يجوز الاعتماد عليه**. والبد�
 
 **مُثبَت بالتكذيب:** زرعُ `halted = (False, None)` أسقط **٥** اختبارات بالاسم؛ والاستعادة
 أعادت الثمانية. **وحدّ صدق باقٍ:** مُثبَت بمحاكاة وحدة — لم يُشغَّل stack حيّ ولا PostgreSQL.
+
+**ولحقَه ختمُ 2026-08-13 — صار مُثبَتاً بالتكذيب في السجلّ لا في جلسةٍ عابرة:** ثلاث
+طفرات مُسجَّلة تحت `behavioural` تُزرَع في `_compensate` و`_consult_killswitch` وتُشغَّل
+في CI (`guard_mutation_guard --run`): إسقاطُ الاستشارة ⇒ يُسقِط
+`test_engaged_killswitch_blocks_the_inverse_command` · إسقاطُ `continue` بعد التسجيل
+`blocked` (يستشير ثمّ يتجاهل) ⇒ يُسقِط
+`test_a_blocked_compensation_is_recorded_as_blocked_not_failed` · تضييقُ النطاق داخل
+المَفصِل ⇒ يُسقِط `test_the_seam_forwards_the_full_scope`. والاختبارات كانت قائمة؛
+الجديد أنّ أحداً زرع العطل وأثبت احمرارها.
 
 **ولحقَه `REVERSE-ENFORCEMENT-BLIND-TO-ITS-OWN-PATCH-01`:** الإصلاح ترك ترخيصاً ميّتاً
 في `actuation_killswitch_coverage_guard` لأنّ الاستشارة تمرّ بمَفصِل. انظر المدخلة أدناه.
@@ -3053,6 +3072,15 @@ GNU وBusyBox وBSD، **ولا يجوز الاعتماد عليه**. والبد�
 `test_the_router_passes_the_field_to_the_killswitch` بالاسم. خمسة `[XPASS(strict)]` عند
 دخول الإصلاح ⇒ نُزِعت العلامة. وجهازٌ بلا حقل يُرجِع `None` — محكومٌ بالمستأجِر والصمّام،
 **صحيح لا ثغرة**.
+
+**وختمُ 2026-08-13 — سُدّ آخرُ ما كان نصّيّاً:** كان الوصل مقيساً بفحصٍ نصّيّ وحده
+(`test_the_router_passes_the_field_to_the_killswitch`)، وهو يمرّ على استشارةٍ نتيجتُها
+مُهمَلة. فأُضيف `tests_v9/test_actuation_killswitch_behaviour.py` يُشغّل `send_command`
+نفسها، وثلاث طفرات مُسجَّلة تحت `behavioural`: `field_id=None` ⇒ يُسقِط
+`test_manual_command_consults_the_killswitch_with_the_authoritative_field` · تعطيلُ
+`if halted:` ⇒ يُسقِط `test_a_field_scoped_halt_blocks_a_manual_valve_command` · حجبٌ
+شامل ⇒ يُسقِط `test_a_clear_killswitch_still_lets_a_manual_command_through` (فمنعُ
+تشغيلٍ مشروع عطلٌ أيضاً).
 
 <details><summary>الوصف الأصليّ (قبل الإصلاح)</summary>
 

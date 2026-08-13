@@ -29,6 +29,13 @@
 أنّه حمرّ **وأنّ الاختبار المُسمّى بعينه** هو الذي سقط. لأنّ «سقط شيء ما» يمرّ على
 طفرة كسرت الاستيراد لا القاعدة.
 
+**وقسمٌ ثانٍ — ``behavioural``:** الحرّاس الساكنة تقيس **وقوع** الشيء لا **أثره**.
+حارسُ تغطية مفتاح الطوارئ مثلاً يُثبِت أنّ كلّ موضع إطلاق **يستشير** المفتاح، ويمرّ
+أخضر على مسارٍ يستشيره ثمّ يتجاهل نتيجته، أو يستشيره **بنطاقٍ أضيق** فلا يُطابِق،
+أو يستشيره **بعد** النشر. فمفاتيح هذا القسم **مسارات مصادر** لا أسماء حرّاس، وطفراته
+تُزرع في منطق الإنتاج نفسه ويجب أن تحمرّ اختباراتُ سلوكه المُسمّاة. ونفس الصرامة
+تحكمه: سلسلةٌ فريدة في المصدر، و``expect`` يسمّي اختباراً موجوداً.
+
     python scripts/ci/guard_mutation_guard.py           # الفحص الثابت (بوّابة)
     python scripts/ci/guard_mutation_guard.py --run     # زرعٌ وتشغيل فعليّ
     python scripts/ci/guard_mutation_guard.py --run --only claim_base_guard.py
@@ -98,6 +105,75 @@ def guard_inventory(ci: Path = CI) -> set[str]:
     return {p.name for glob in GUARD_GLOBS for p in ci.glob(glob)}
 
 
+def behavioural_specs(registry: dict, root: Path = ROOT) -> list[tuple[str, Path, dict]]:
+    """المواصفات السلوكيّة: ``(المعرِّف، مسار المصدر، المواصفة)`` — مفاتيحها **مسارات**.
+
+    قسمٌ منفصل عن ``mutated`` عمداً: ذاك يُكذِّب **حارساً** (هل يُطلِق على عطلٍ مزروع
+    في نفسه؟)، وهذا يُكذِّب **سلوكاً** (هل يمنع الأثر الفيزيائيّ فعلاً؟). ودمجُهما
+    كان سيخلط جردَ الحرّاس بجرد المصادر ويُفسِد حساب الدَّين — والقاعدتان تُقاسان
+    بنفس الصرامة: سلسلةٌ فريدة في المصدر، و`expect` يسمّي اختباراً موجوداً.
+
+    وُجِد لأنّ الحرّاس الساكنة تقيس **وقوع** الاستشارة لا **أثرها**: مسارٌ يستشير
+    مفتاح الطوارئ ثمّ يتجاهل نتيجته يمرّ عليها كلّها أخضر.
+    """
+    # مفاتيح `$` تعليقاتٌ محلّيّة كعُرف بقيّة هذا السجلّ (`unmutated_debt`)، لا مواصفات.
+    return [
+        (path, root / path, spec)
+        for path, spec in sorted(registry.get("behavioural", {}).items())
+        if not path.startswith("$")
+    ]
+
+
+def mutation_test(spec: dict, mutation: dict) -> str:
+    """جناحُ هذه الطفرة: ``mutation["test"]`` إن وُجِد، وإلّا جناحُ المواصفة.
+
+    وحدةُ إنتاجٍ واحدة تُقاس بأكثر من جناح سلوكيّ — التعويض في جناحه والتصريح في
+    جناحه. وإلزامُ جناحٍ واحد لكلّ ملفّ كان يدفع اختباراً إلى ملفٍّ لا يخصّه أو
+    يُسقِط الطفرة أصلاً؛ وكلاهما يُنقِص القياس لأجل شكل السجلّ.
+    """
+    return mutation.get("test") or spec["test"]
+
+
+def _spec_failures(label: str, src: Path, spec: dict, root: Path, section: str) -> list[str]:
+    """قواعد المواصفة الواحدة — واحدةٌ للحرّاس وللسلوك، فلا يرث قسمٌ صرامةً أقلّ."""
+    failures: list[str] = []
+    content = src.read_text(encoding="utf-8")
+    if not spec.get("mutations"):
+        failures.append(f"{label}: مُدرَج في `{section}` بلا طفرة واحدة")
+    for i, m in enumerate(spec.get("mutations", [])):
+        declared_test = mutation_test(spec, m)
+        test_file = root / declared_test
+        test_src = ""
+        if not test_file.exists():
+            failures.append(f"{label}[{i}]: ملفّ الاختبار المُعلَن غير موجود — {declared_test}")
+        else:
+            test_src = test_file.read_text(encoding="utf-8")
+        occurrences = content.count(m["find"])
+        if occurrences == 0:
+            failures.append(
+                f"{label}[{i}]: سلسلة الطفرة لم تعد في المصدر — مواصفة بائتة"
+                f"\n  تُبلِّغ تغطيةً لا تملكها: {m['find'][:60]!r}"
+            )
+        elif occurrences > 1:
+            failures.append(
+                f"{label}[{i}]: سلسلة الطفرة تتكرّر {occurrences} مرّات — الزرع"
+                f"\n  غير محدَّد الموضع: {m['find'][:60]!r}"
+            )
+        # `expect` لا بدّ أن يكون **اسم اختبار موجوداً** لا بادئةً. و`"test_"`
+        # وحدها تطابق أيّ سقوط، فتُحوّل شرط «الاختبار المُسمّى» إلى «شيء ما
+        # سقط» — وهو الشرط الذي وُجِد `expect` ليمنعه. (وقعتُ فيها هنا أوّلاً.)
+        expect = m.get("expect", "")
+        if not expect:
+            failures.append(f"{label}[{i}]: بلا `expect` يسمّي الاختبار الذي يسقط")
+        elif test_src and f"def {expect}(" not in test_src:
+            failures.append(
+                f"{label}[{i}]: `expect` لا يسمّي اختباراً في {declared_test} —"
+                f"\n  {expect!r}. بادئةٌ عامّة تطابق أيّ سقوط وتُعيد الشرط إلى"
+                "\n  «سقط شيء ما»، وهو ما يمرّ على طفرةٍ كسرت الاستيراد."
+            )
+    return failures
+
+
 def check(registry: dict, ci: Path = CI, root: Path = ROOT) -> list[str]:
     """أسباب الحجب. الفارغة تعني مروراً."""
     failures: list[str] = []
@@ -134,39 +210,19 @@ def check(registry: dict, ci: Path = CI, root: Path = ROOT) -> list[str]:
         src = ci / name
         if not src.exists():
             continue
-        content = src.read_text(encoding="utf-8")
-        test_file = root / spec["test"]
-        test_src = ""
-        if not test_file.exists():
-            failures.append(f"{name}: ملفّ الاختبار المُعلَن غير موجود — {spec['test']}")
-        else:
-            test_src = test_file.read_text(encoding="utf-8")
-        if not spec.get("mutations"):
-            failures.append(f"{name}: مُدرَج في `mutated` بلا طفرة واحدة")
-        for i, m in enumerate(spec.get("mutations", [])):
-            occurrences = content.count(m["find"])
-            if occurrences == 0:
-                failures.append(
-                    f"{name}[{i}]: سلسلة الطفرة لم تعد في المصدر — مواصفة بائتة"
-                    f"\n  تُبلِّغ تغطيةً لا تملكها: {m['find'][:60]!r}"
-                )
-            elif occurrences > 1:
-                failures.append(
-                    f"{name}[{i}]: سلسلة الطفرة تتكرّر {occurrences} مرّات — الزرع"
-                    f"\n  غير محدَّد الموضع: {m['find'][:60]!r}"
-                )
-            # `expect` لا بدّ أن يكون **اسم اختبار موجوداً** لا بادئةً. و`"test_"`
-            # وحدها تطابق أيّ سقوط، فتُحوّل شرط «الاختبار المُسمّى» إلى «شيء ما
-            # سقط» — وهو الشرط الذي وُجِد `expect` ليمنعه. (وقعتُ فيها هنا أوّلاً.)
-            expect = m.get("expect", "")
-            if not expect:
-                failures.append(f"{name}[{i}]: بلا `expect` يسمّي الاختبار الذي يسقط")
-            elif test_src and f"def {expect}(" not in test_src:
-                failures.append(
-                    f"{name}[{i}]: `expect` لا يسمّي اختباراً في {spec['test']} —"
-                    f"\n  {expect!r}. بادئةٌ عامّة تطابق أيّ سقوط وتُعيد الشرط إلى"
-                    "\n  «سقط شيء ما»، وهو ما يمرّ على طفرةٍ كسرت الاستيراد."
-                )
+        failures += _spec_failures(name, src, spec, root, "mutated")
+
+    # المواصفات السلوكيّة: مصدرٌ غائب **يُحجَب** ولا يُتخطّى. الحرّاس يُغطّيهم `ghost`
+    # أعلاه من الجرد؛ ولا جردَ للمصادر — فتخطّي المفقود هنا يُسقِط المواصفة صامتةً،
+    # وهو بالضبط «حارسٌ يُبلِّغ نتيجةً عن سؤال لم يطرحه».
+    for label, src, spec in behavioural_specs(registry, root):
+        if not src.exists():
+            failures.append(
+                f"{label}: مصدرٌ سلوكيّ مُواصَف غير موجود — المواصفة تصف ملفّاً"
+                "\n  ليس في الشجرة، فلا تُكذِّب شيئاً."
+            )
+            continue
+        failures += _spec_failures(label, src, spec, root, "behavioural")
 
     return failures
 
@@ -286,17 +342,19 @@ def _diagnose_repeat(
 def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Path) -> list[str]:
     """ازرع داخل workspace غير قانونيّ (نسخة مؤقتة أو fixture اختبار فقط)."""
     failures: list[str] = []
-    for name, spec in sorted(registry["mutated"].items()):
+    plantable = [(name, ci / name, spec) for name, spec in sorted(registry["mutated"].items())]
+    plantable += behavioural_specs(registry, root)
+    for name, src, spec in plantable:
         if only and name != only:
             continue
-        src = ci / name
         original = src.read_text(encoding="utf-8")
         for i, m in enumerate(spec["mutations"]):
             label = f"{name}[{i}] {m.get('why', '')}"
+            test_file = mutation_test(spec, m)
             try:
                 _ACTIVE_RESTORES[src] = original
                 src.write_text(original.replace(m["find"], m["replace"], 1), encoding="utf-8")
-                code, out = _run_tests(spec["test"], root)
+                code, out = _run_tests(test_file, root)
             finally:
                 src.write_text(original, encoding="utf-8")
                 _ACTIVE_RESTORES.pop(src, None)
@@ -322,7 +380,7 @@ def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Pa
                     "\n    بدل أن يمرّ بالقاعدة نفسها."
                 )
             elif m["expect"] not in out:
-                repeats = _diagnose_repeat(src, original, m, spec["test"], root)
+                repeats = _diagnose_repeat(src, original, m, test_file, root)
                 stable = len(set(repeats)) == 1
                 repeat_detail = " · ".join(
                     f"{kind}:{','.join(names) or '-'}" for kind, names in repeats
@@ -415,10 +473,13 @@ def main() -> int:
     registry = load_registry()
     failures = check(registry)
     n_mut = sum(len(s["mutations"]) for s in registry["mutated"].values())
+    behavioural = behavioural_specs(registry)
+    n_beh = sum(len(spec["mutations"]) for _, _, spec in behavioural)
     debt = len([k for k in registry["unmutated_debt"] if not k.startswith("$")])
     print(
         f"guard_mutation_guard: {len(registry['mutated'])} حارساً مُواصَفاً "
-        f"({n_mut} طفرة) · {debt} ديناً مُعلَناً"
+        f"({n_mut} طفرة) · {debt} ديناً مُعلَناً · "
+        f"{len(behavioural)} مصدراً سلوكيّاً ({n_beh} طفرة)"
     )
 
     if args.run and not failures:

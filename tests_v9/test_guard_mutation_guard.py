@@ -476,3 +476,149 @@ def test_a_restore_that_did_not_restore_is_reported():
     source = (ROOT / "scripts/ci/guard_mutation_guard.py").read_text(encoding="utf-8")
     assert 'src.read_text(encoding="utf-8") != original' in source
     assert "الاستعادة لم تُعِد المصدر إلى أصله" in source
+
+
+# ------------------------------------- القسم السلوكيّ: مصادرُ إنتاج لا حرّاس
+#
+# الحرّاس الساكنة تقيس **وقوع** الشيء لا **أثره** — يستشير مفتاح الطوارئ ثمّ يتجاهل
+# نتيجته، أو يستشيره بنطاقٍ أضيق، أو بعد النشر. قسمُ `behavioural` يزرع ذلك في منطق
+# الإنتاج نفسه. وهذه الاختبارات تُكذِّب **القسم**: لو أُسقِط من الفحص أو من المُشغِّل
+# لبقي كلّ شيء أخضر — وهو بعينه العمى الذي وُجِدت هذه الآليّة لتمنعه.
+
+_BEHAVIOUR_SRC = '''\
+"""مصدرٌ صناعيّ: بوّابةٌ تستشير ثمّ **تقرأ** النتيجة."""
+
+
+def publish(halted, sent):
+    if halted:
+        return sent
+    sent.append("mqtt")
+    return sent
+'''
+
+_BEHAVIOUR_TEST = """\
+import importlib.util
+from pathlib import Path
+
+_S = importlib.util.spec_from_file_location(
+    "fake_effect", Path(__file__).resolve().parents[1] / "services" / "fake_effect.py"
+)
+g = importlib.util.module_from_spec(_S)
+_S.loader.exec_module(g)
+
+
+def test_a_halt_prevents_the_publish():
+    assert g.publish(True, []) == []
+"""
+
+
+def _behaviour_repo(tmp_path: Path, test_src: str = _BEHAVIOUR_TEST) -> Path:
+    ci = _fake_repo(tmp_path)
+    svc = tmp_path / "services"
+    svc.mkdir()
+    (svc / "fake_effect.py").write_text(_BEHAVIOUR_SRC, encoding="utf-8")
+    (tmp_path / "tests" / "test_behaviour.py").write_text(test_src, encoding="utf-8")
+    return ci
+
+
+def _behaviour_reg(find: str, replace: str, expect: str, path: str = "services/fake_effect.py"):
+    return _reg(
+        behavioural={
+            path: {
+                "test": "tests/test_behaviour.py",
+                "mutations": [
+                    {"why": "زرع سلوكيّ", "find": find, "replace": replace, "expect": expect}
+                ],
+            }
+        }
+    )
+
+
+def test_a_stale_behavioural_mutation_string_is_blocked(tmp_path: Path) -> None:
+    """نفس صرامة قسم الحرّاس — قسمٌ يرث صرامةً أقلّ يصير باباً خلفيّاً."""
+    ci = _behaviour_repo(tmp_path)
+    reg = _behaviour_reg("if halted_XX:", "if False:", "test_a_halt_prevents_the_publish")
+    failures = gmg.check(reg, ci, tmp_path)
+    assert any("مواصفة بائتة" in f for f in failures)
+
+
+def test_a_behavioural_spec_for_a_missing_source_is_blocked(tmp_path: Path) -> None:
+    """لا جردَ للمصادر يُمسِك الشبح كما يُمسِكه `ghost` للحرّاس — فالغياب يُحجَب هنا.
+
+    وتخطّيه صامتاً كان يُسقِط المواصفة بلا أثر: السجلّ يقول «مقيس» ولا شيء يُقاس.
+    """
+    ci = _behaviour_repo(tmp_path)
+    reg = _behaviour_reg(
+        "if halted:", "if False:", "test_a_halt_prevents_the_publish", path="services/gone.py"
+    )
+    failures = gmg.check(reg, ci, tmp_path)
+    assert any("مصدرٌ سلوكيّ مُواصَف غير موجود" in f for f in failures)
+
+
+def test_a_behavioural_mutation_is_actually_planted_in_its_source(tmp_path: Path) -> None:
+    """الشرط الفارق: **الأخضر تحت عطلٍ مزروع يُبلَّغ**.
+
+    الاختبار الصناعيّ هنا لا يمرّ بالبوّابة، فلو زُرِعت الطفرة فعلاً لبقي أخضر ⇒ إخفاق
+    يجب أن يظهر. ولو لم يُزرَع شيء (القسم مُهمَل) لعادت القائمة فارغة — فالخضرة نفسها
+    هي ما تُكذِّبه هذه الحالة، لا الحمرة.
+    """
+    ci = _behaviour_repo(
+        tmp_path,
+        test_src="def test_a_halt_prevents_the_publish():\n    assert True  # لا يمسّ المصدر\n",
+    )
+    reg = _behaviour_reg("if halted:", "if False:", "test_a_halt_prevents_the_publish")
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+    assert any("العطل مزروع والاختبار **أخضر**" in f for f in failures)
+
+
+def test_a_behavioural_plant_that_turns_its_named_test_red_is_proof(tmp_path: Path) -> None:
+    ci = _behaviour_repo(tmp_path)
+    reg = _behaviour_reg("if halted:", "if False:", "test_a_halt_prevents_the_publish")
+    assert gmg.run_mutations(reg, ci=ci, root=tmp_path) == []
+
+
+def test_the_behavioural_source_is_restored_after_every_plant(tmp_path: Path) -> None:
+    """الزرع يكتب في **منطق إنتاج**، فاستعادته شرط سلامة لا تفصيل."""
+    ci = _behaviour_repo(tmp_path)
+    source = tmp_path / "services" / "fake_effect.py"
+    before = source.read_bytes()
+    reg = _behaviour_reg("if halted:", "if False:", "test_a_halt_prevents_the_publish")
+    gmg.run_mutations(reg, ci=ci, root=tmp_path)
+    assert source.read_bytes() == before
+
+
+def test_the_real_behavioural_section_is_not_empty() -> None:
+    """قسمٌ فارغ يمرّ بالفحص كلّه — و«لا مواصفة» تُقرأ خضرةً كما تُقرأ «لا عطل»."""
+    specs = gmg.behavioural_specs(REAL, ROOT)
+    assert specs, "القسم السلوكيّ فارغ — الحرّاس الساكنة وحدها لا تقيس الأثر"
+    for label, src, spec in specs:
+        assert src.exists(), label
+        assert spec["mutations"], label
+        for m in spec["mutations"]:
+            assert m["why"], label
+            assert m["find"] != m["replace"], label
+            # جناحُ الطفرة قد يخصّها — وحدةُ إنتاجٍ واحدة تُقاس بأكثر من جناح.
+            test_src = (ROOT / gmg.mutation_test(spec, m)).read_text(encoding="utf-8")
+            assert f"def {m['expect']}(" in test_src, f"{label}: {m['expect']}"
+
+
+def test_a_mutation_may_name_its_own_test_file(tmp_path: Path) -> None:
+    """وحدةُ إنتاجٍ واحدة تُقاس بأكثر من جناح — التعويض في جناحه والتصريح في جناحه.
+
+    وإلزامُ جناحٍ واحد لكلّ ملفّ يدفع اختباراً إلى ملفٍّ لا يخصّه أو يُسقِط الطفرة
+    أصلاً؛ وكلاهما يُنقِص القياس لأجل شكل السجلّ.
+
+    والحالة مُصمَّمة لتفرّق: جناحُ المواصفة **لا يمسّ** المصدر، والجناحُ المُسمّى على
+    الطفرة يمسّه. فإن أُهمِل الحقل عاد «أخضر تحت عطلٍ مزروع» ⇒ إخفاق.
+    """
+    ci = _behaviour_repo(
+        tmp_path,
+        test_src="def test_a_halt_prevents_the_publish():\n    assert True  # لا يمسّ المصدر\n",
+    )
+    (tmp_path / "tests" / "test_covering.py").write_text(_BEHAVIOUR_TEST, encoding="utf-8")
+    reg = _behaviour_reg("if halted:", "if False:", "test_a_halt_prevents_the_publish")
+    reg["behavioural"]["services/fake_effect.py"]["mutations"][0]["test"] = "tests/test_covering.py"
+
+    # `check` تشتكي أيضاً من الحارس الصناعيّ بلا مواصفة — والمقيس هنا القسم السلوكيّ.
+    assert [f for f in gmg.check(reg, ci, tmp_path) if "fake_effect" in f] == []
+    assert gmg.run_mutations(reg, ci=ci, root=tmp_path) == []

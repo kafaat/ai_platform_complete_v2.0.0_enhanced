@@ -6576,6 +6576,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_actuation_killswitch_behaviour.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_actuation_killswitch_coverage_guard.py",
     "kind": "tests"
   },

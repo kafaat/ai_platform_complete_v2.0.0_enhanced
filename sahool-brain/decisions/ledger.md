@@ -1599,3 +1599,13 @@ SHAs من `git log --oneline origin/main`.
 
 `runtime_verified: 0` · `production_certified: 0` · REAL/CUTOVER: BLOCKED باقٍ.
 - **`f2202191` (بلا التزام جديد على المسار المحجوب) — أُرجِعت رقعة `A1`/`A2` (`M-01`/`M-02`) بعد تنفيذها، للمرّة الثانية في هذا المستودع.** السبب: `GATE-01-EXECUTION-CONTROL-SLICE-WITHHELD-01` حكمُ مالكٍ مُسجَّل (2026-08-09) يحمل `PHASE_0_EVIDENCE_FREEZE: NOT_PROVEN` و`PHASE_1_CODE_CHANGES: NOT_AUTHORIZED`، ونصُّه «لا تُدمَج حتّى تجميد evidence pack وقبولها **صراحةً** على SHA نهائيّ»؛ و`services/actuator-service/actuator_runtime.py` و`services/actuator-service/routers/commands.py` مُسمَّيان ضمن الـ٢٣ ملفّاً المحجوبة. أُرجِعت الملفّات الثلاثة (مع `scripts/ci/actuation_killswitch_coverage_guard.py`) إلى `f2202191` بايتاً — `git diff` عليها فارغ — والرقعة محفوظة خارج المستودع. **ولم يُفتَح الحجب من طرفي:** لا ملفّ في الشجرة يحمل `frozen_commit_sha` (الحزمة خارجها)، فادّعاء التجميد كان سيكون اصطناع دليل تشغيليّ. **واعتراضٌ مُسجَّل غير منفَّذ:** عقد `test_compensation_killswitch.py` يمنع إرسال العكس **المُهدِّئ** (`close`/`off`/`stop`) تحت المفتاح، وهو الاتّجاه الذي يريده الإيقاف نفسه؛ يُعرَض على المالك ولا يُغيَّر اجتهاداً.
+
+
+## 2026-08-13 (ب) — قسمٌ سلوكيّ في سجلّ الطفرات، منفصلٌ عن قسم الحرّاس
+
+- **القرار:** يُضاف إلى `guard_mutation_registry.json` قسمٌ `behavioural` مفاتيحه **مسارات مصادر إنتاج**، منفصلٌ عن `mutated` لا مدموجٌ فيه.
+- **السبب:** القسمان يُكذِّبان شيئين مختلفين — `mutated` يسأل «هل يُطلِق هذا الحارس على عطلٍ مزروع فيه؟»، و`behavioural` يسأل «هل يمنع هذا المسار الأثر الفيزيائيّ فعلاً؟». ودمجُهما كان سيخلط جردَ الحرّاس بجرد المصادر ويُفسِد حساب `unmutated_debt` (الذي يُقاس على جرد `scripts/ci` وحده). والصرامة واحدة: سلسلةٌ فريدة في المصدر، و`expect` يسمّي اختباراً موجوداً — عبر `_spec_failures` المشتركة.
+- **وقرارٌ ثانٍ:** `test` يجوز أن يُعلَن **على مستوى الطفرة** لا المواصفة. السبب مقيس: `actuator_runtime.py` تُقاس بجناحين — التعويض في `test_compensation_killswitch.py` والتصريح في `test_manual_command_killswitch_scope.py`. وإلزامُ جناحٍ واحد كان يدفع اختباراً إلى ملفٍّ لا يخصّه أو يُسقِط الطفرة؛ وكلاهما يُنقِص القياس لأجل شكل السجلّ.
+- **وقرارٌ ثالث:** لا تُكتَب اختبارات جديدة حيث توجد أجنحةٌ سلوكيّة قائمة. المقيس أنّ أجنحة التعويض والمُصرِّح كانت تغطّي فعلاً، والناقص تسجيلُها وزرعُ العطل — فكتابةُ جناحٍ موازٍ كانت ستُضاعِف الصيانة وتُوهِم بتغطيةٍ جديدة. أُضيف جناحٌ للراوتر وحده لأنّه كان مقيساً نصّيّاً بإقرار وثيقته.
+- **النطاق:** المساران هما بعينهما ما أذن به `GATE01-ADJ-2026-08-13-001` — لا توسيع. و`GATE-01` تبقى مغلقة، والتفويض `CONSUMED`، و`REAL/CUTOVER: BLOCKED`.
+- **المرجع:** `docs/architecture/guard_mutation_registry.json` · `scripts/ci/guard_mutation_guard.py` · `tests_v9/test_actuation_killswitch_behaviour.py` · الفجوة `STATIC-GUARD-MEASURES-OCCURRENCE-NOT-EFFECT-01`.
