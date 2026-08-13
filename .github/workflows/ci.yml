@@ -314,6 +314,14 @@ jobs:
       - name: env-compose-drift-guard
         run: python scripts/ci/env_compose_drift_guard.py --check
 
+      # المحور الثاني — **القيمة** لا الحضور: `.env.example` (الذي يطلب المستودع نسخه)
+      # لا يجوز أن يُبطِل افتراض compose الآمن إلى `localhost`. الافتراضيّ `${VAR:-…}`
+      # لا يعمل إلّا مع متغيّرٍ **غير مضبوط**، و`localhost` داخل الحاوية هي الحاوية
+      # نفسها. قِيس حيّاً (2026-08-12): أربعة عمّال مفصولون عن NATS بهذا السبب —
+      # والحضور كان سليماً تماماً، فحارس الانجراف أعلاه لا يراه.
+      - name: env-compose-default-override-guard
+        run: python scripts/ci/env_compose_default_override_guard.py
+
       - name: backfill-ui-sync-gate
         run: python scripts/ci/backfill_ui_sync_gate.py
 
