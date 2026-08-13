@@ -1315,6 +1315,36 @@
           "find": "            binding.get(\"accepted_ref\") in release_refs\n            and binding.get(\"accepted_commit_sha\")",
           "replace": "            binding.get(\"accepted_commit_sha\")",
           "why": "وضعُ الدمج بلا قياس مرجع الإصدار الذي يسمّيه: يبقى بابٌ يبلغ L4 من أيّ مصدر بمجرّد إعلان binding_evidence."
+        },
+        {
+          "expect": "test_a_failed_run_is_refused_even_though_the_bundle_is_valid",
+          "find": "    if outcome.get(\"run_conclusion\") != \"success\":\n        return False, \"EXECUTION_RUN_NOT_SUCCESSFUL\"",
+          "replace": "    if False:  # mutated: خلاصةُ التشغيل لا تُقرأ\n        return False, \"EXECUTION_RUN_NOT_SUCCESSFUL\"",
+          "why": "هذا هو العطل الذي كُشِف بالتحقّق المستقلّ: حزمة Sigstore صحيحة تشفيريّاً بالكامل — توقيع DSSE، وربطُ payloadHash بـRekor، وإثبات Merkle، وهويّة Fulcio — والتشغيل الذي أنتجها خلاصتُه `failure`. وبلا هذا الفرع يصير «attested ⇒ certified»، فيكفي لبلوغ L5 أن تُنتَج مصنوعتان تقولان PASS في تشغيلٍ ساقط."
+        },
+        {
+          "expect": "test_a_manifest_without_an_execution_outcome_is_not_read_as_success",
+          "find": "    outcome = manifest.get(\"execution_outcome\")\n    if not isinstance(outcome, dict):\n        return False, \"EXECUTION_OUTCOME_MISSING\"",
+          "replace": "    outcome = manifest.get(\"execution_outcome\")\n    if not isinstance(outcome, dict):\n        return True, \"\"  # mutated: الغياب يُقرأ نجاحاً",
+          "why": "قراءةُ الغياب نجاحاً تُفرِّغ الشرط كلّه: كلّ بيانٍ قديم أو مصنوعٍ يدويّاً يبلغ L4/L5 بلا أن يُعلِن خلاصة تشغيله. و«لم يُقَس» ليس «مرّ»."
+        },
+        {
+          "expect": "test_an_outcome_for_another_commit_does_not_vouch_for_this_one",
+          "find": "    if outcome.get(\"head_sha\") != tested_commit:\n        return False, \"EXECUTION_OUTCOME_FOREIGN_COMMIT\"",
+          "replace": "    if False:  # mutated: أيّ خلاصة تشهد لأيّ لقطة\n        return False, \"EXECUTION_OUTCOME_FOREIGN_COMMIT\"",
+          "why": "بلا الربط بالالتزام تصلح خلاصةُ **أيّ** تشغيلٍ ناجح شهادةً لأيّ لقطة — وهو نفس صنف «دليلٌ من SHA سابق» الذي يمنعه ظرفُ دليل حماية الفرع."
+        },
+        {
+          "expect": "test_a_failed_job_inside_a_green_run_is_refused",
+          "find": "    if any(value != \"success\" for value in jobs.values()):\n        return False, \"EXECUTION_JOB_NOT_SUCCESSFUL\"",
+          "replace": "    if False:  # mutated: الوظائف لا تُفحَص إفراديّاً\n        return False, \"EXECUTION_JOB_NOT_SUCCESSFUL\"",
+          "why": "الخلاصة المجمَّعة ليست دليلاً — درسٌ مُسجَّل في هذا المستودع باسمه `JOB-STATUS-HID-A-FAILED-STEP-01`. ووظيفةٌ ساقطة داخل تشغيلٍ يُعلَن ناجحاً هي بالضبط ما وقع في run 31728316326 (`Repository Tests`)."
+        },
+        {
+          "expect": "test_a_missing_outcome_is_recorded_even_while_unenforced",
+          "find": "            record[\"reason_codes\"].append(execution_reason)\n            if not require_execution:\n                record[\"reason_codes\"].append(\"EXECUTION_OUTCOME_NOT_ENFORCED\")",
+          "replace": "            pass  # mutated: الدَّين لا يُكتَب في السجلّ",
+          "why": "شرطٌ معطَّل **وصامت** رخصةٌ مفتوحة: سجلٌّ يقول L5 ولا يقول «وخلاصةُ التشغيل لم تُعلَن» يُقرَأ اعتماداً كاملاً وهو ليس منه. وكتابةُ الدَّين هي ما يفصل «مؤجَّل بسببٍ مقيس» عن «متروك»."
         }
       ]
     },
