@@ -1092,6 +1092,24 @@
           "find": "        other = binding.get(\"accepted_tree_sha\")\n        return other is None or other == tested.get(\"tree_sha\")",
           "replace": "        return True",
           "why": "حقلٌ متقاطعٌ مخالف لا يُقرأ في هذا الوضع، فبيانٌ يقول «الالتزام مطابق» ويحمل شجرةً مخالفة يمرّ متناقضاً داخليّاً — والمُصادِق لا يجوز أن يفترض أنّ البيان جاء من الأداة الرسميّة"
+        },
+        {
+          "expect": "test_a_feature_branch_with_exact_commit_binding_is_not_release_bound",
+          "find": "        if source_ref not in release_refs:\n            return False",
+          "replace": "        if False:\n            return False",
+          "why": "نزعُ نطاق المرجع يُعيد الثغرة بعينها: دفعةٌ إلى فرع عملٍ غير محميّ تبلغ L5 بربطٍ سليمٍ تماماً — وهي الحادثة المقيسة على ffc29415."
+        },
+        {
+          "expect": "test_a_policy_without_a_release_ref_list_is_an_incomplete_contract_not_a_permissive_one",
+          "find": "    if not isinstance(release_refs, list) or not release_refs:\n        # سياسةٌ بلا قائمة مراجع لا تُقرَأ «كلّ المراجع مقبولة» — تُقرَأ عقداً ناقصاً.\n        raise RuntimeError(\"RELEASE_REF_POLICY_MISSING\")",
+          "replace": "    if False:\n        raise RuntimeError(\"RELEASE_REF_POLICY_MISSING\")\n    release_refs = release_refs or []",
+          "why": "سياسةٌ ناقصة تُقرَأ متساهلةً بدل أن تفشل مغلقةً — فحذفُ حقلٍ من السياسة يصير طريقاً صامتاً إلى L5."
+        },
+        {
+          "expect": "test_merge_to_release_is_measured_by_the_release_ref_it_names",
+          "find": "            binding.get(\"accepted_ref\") in release_refs\n            and binding.get(\"accepted_commit_sha\")",
+          "replace": "            binding.get(\"accepted_commit_sha\")",
+          "why": "وضعُ الدمج بلا قياس مرجع الإصدار الذي يسمّيه: يبقى بابٌ يبلغ L4 من أيّ مصدر بمجرّد إعلان binding_evidence."
         }
       ]
     },

@@ -1380,8 +1380,16 @@ jobs:
         run: |
           set -euo pipefail
           gh attestation trusted-root > live_pg_trusted_root.jsonl
-          required="L5"
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then required="L3"; fi
+          # **المطلوب يتبع المصدر، لا الحدث وحده.** كان التقسيم «pull_request ⇒ L3،
+          # وكلّ ما عداه ⇒ L5»، فكان يطلب من دفعةٍ إلى فرع عمل ضمانَ إصدار. والحارس
+          # الآن يسقّف الفرع غير المعتمد عند L3 (release_refs في السياسة)، فطلبُ L5
+          # منه يحجب كلّ فرع. والسقف والطلب وجهان لعقدٍ واحد: هذا يقول ما يُنال،
+          # وذاك ما يُشترَط — وافتراقهما يحجب الصالح أو يمرّر غير الصالح.
+          # والقرار هنا تيسيرٌ لا ترخيص: القاطع في الحارس، وهذا لا يمنح ما يمنعه.
+          required="L3"
+          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            required="L5"
+          fi
           python scripts/ci/sot_provenance_guard.py             --manifest live_pg_canonical_manifest.json             --policy docs/architecture/sot_provenance_policy.json             --bundle live_pg_evidence.attestation.json             --trusted-root live_pg_trusted_root.jsonl             --artifact-file live_pg_evidence.json             --artifact-file live_pg_evidence.xml             --artifact-file live_pg_role_closure.json             --artifact-file live_pg_canonical_manifest.json             --artifact-file live_pg_evidence.sha256             --artifact-file live_pg_evidence.attestation.json             --artifact-file live_pg_trusted_root.jsonl             --artifact-file live_pg_verification_record.json             --required-assurance "$required"             --output live_pg_verification_record.json
       # **قناتان مفصولتان لأنّ الغرضين مختلفان — والخلط بينهما يُسقِط أحدهما.**
       # حفظُ القياس ليس إثباتَ المنشأ: الأوّل يمنع «وظيفةٌ خضراء بلا دليل»، والثاني
