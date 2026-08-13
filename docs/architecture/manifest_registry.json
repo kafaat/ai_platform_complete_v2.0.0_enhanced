@@ -18,6 +18,10 @@
       "kind": "legacy_adjudicated"
     },
     {
+      "path": "docs/architecture/gate01_frozen_paths.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/guard_mutation_registry.json",
       "kind": "legacy_schema_version"
     },
