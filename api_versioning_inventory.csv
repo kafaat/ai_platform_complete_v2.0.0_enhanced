@@ -1,6 +1,6 @@
 service,file,line,method,path,handler,classification
 actuator-service,services/actuator-service/routers/commands.py,25,POST,/v1/command,send_command,versioned
-actuator-service,services/actuator-service/routers/commands.py,70,GET,/v1/commands,list_commands,versioned
+actuator-service,services/actuator-service/routers/commands.py,74,GET,/v1/commands,list_commands,versioned
 actuator-service,services/actuator-service/routers/health.py,20,GET,/healthz,health,infra
 actuator-service,services/actuator-service/routers/health.py,20,GET,/health,health,infra
 actuator-service,services/actuator-service/routers/health.py,32,GET,/readyz,readyz,infra

@@ -54,7 +54,7 @@ git diff --name-only origin/main...HEAD \
 والسبيل. ولمعرفة ما هو مجمَّد أصلاً قبل أن تبدأ:
 
 ```bash
-python3 -c "import json;d=json.load(open('docs/architecture/gate01_frozen_paths.json'));\
+python3 -c "import json;d=json.load(open('docs/architecture/gate01_policy.json'));\
 print(d['gate']['state']);print(*d['frozen_paths'],sep='\n')"
 ```
 

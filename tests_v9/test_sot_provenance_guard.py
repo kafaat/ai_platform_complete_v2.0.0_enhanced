@@ -24,6 +24,7 @@ def _policy():
         "predicate_type": "https://slsa.dev/provenance/v1",
         "oidc_issuer": "https://token.actions.githubusercontent.com",
         "gh_cli": {"version": "2.93.0"},
+        "release_refs": ["refs/heads/main"],
     }
 
 
@@ -139,7 +140,9 @@ def test_pending_pr_binding_cannot_reach_release_bound():
             {
                 "tested_identity": {"commit_sha": "a" * 40, "tree_sha": "b" * 40},
                 "release_binding": {"mode": "pending_final_rerun"},
-            }
+            },
+            _policy(),
+            "refs/heads/main",
         )
         is False
     )
@@ -150,7 +153,7 @@ def test_exact_commit_binding_requires_same_commit():
         "tested_identity": {"commit_sha": "a" * 40, "tree_sha": "b" * 40},
         "release_binding": {"mode": "exact_commit", "accepted_commit_sha": "c" * 40},
     }
-    assert MOD.release_bound(m) is False
+    assert MOD.release_bound(m, _policy(), "refs/heads/main") is False
 
 
 def test_unparsable_gh_output_is_a_crypto_reason_not_an_internal_error(tmp_path, monkeypatch):
@@ -435,7 +438,7 @@ def test_a_subject_cannot_also_be_transport_metadata(tmp_path):
 def test_the_verifier_rejects_a_manifest_that_contradicts_itself(binding, bound):
     """المُصادِق لا يفترض أنّ البيان جاء من الأداة الرسميّة."""
     manifest = {"tested_identity": {"commit_sha": "c", "tree_sha": "t"}, "release_binding": binding}
-    assert MOD.release_bound(manifest) is bound
+    assert MOD.release_bound(manifest, _policy(), "refs/heads/main") is bound
 
 
 # ── الأداة المُنتِجة: ترفض ما يرفضه الحارس، فلا يُولَد بيانٌ متناقض أصلاً ────
@@ -536,3 +539,98 @@ def test_the_builder_emits_consistent_manifests(tmp_path, extra):
     subject = tmp_path / "s.txt"
     subject.write_bytes(b"x")
     assert BUILDER.main(_builder_argv(tmp_path, subject, **extra)) == 0
+
+
+# ── نطاق المرجع: من أين جاء الدليل، لا اتّساق بصماته وحده ────────────────────
+# `UNPROTECTED-BRANCH-CAN-ATTAIN-L5-01` — كانت `release_bound` تقيس تطابق الالتزام
+# والشجرة ولا تسأل عن المرجع، فبلغت دفعةٌ إلى فرع عملٍ غير محميّ المستوى L5.
+# الحادثة مقيسة لا مفترَضة: `attestation/40374289` على `ffc29415`.
+
+_FEATURE_REF = "refs/heads/claude/project-exploration-dtjw3p"
+
+
+def _exact_commit_manifest(commit="a" * 40, tree="b" * 40):
+    return {
+        "tested_identity": {"commit_sha": commit, "tree_sha": tree},
+        "release_binding": {
+            "mode": "exact_commit",
+            "accepted_commit_sha": commit,
+            "accepted_tree_sha": tree,
+        },
+    }
+
+
+def test_a_feature_branch_with_exact_commit_binding_is_not_release_bound():
+    """الحالة التي وقعت: ربطٌ سليمٌ تماماً على فرعٍ غير معتمد ⇒ ليس إصداراً.
+
+    كلّ ما في البيان صحيح — الالتزام يطابق والشجرة تطابق — والناقص أنّ المصدر
+    فرعُ عمل. فالضمان دالّةٌ في المصدر أيضاً، لا في الاتّساق وحده.
+    """
+    assert MOD.release_bound(_exact_commit_manifest(), _policy(), _FEATURE_REF) is False
+
+
+def test_the_same_manifest_on_an_authorised_ref_is_release_bound():
+    """والمقابلة تُثبِت أنّ الفحص يقيس المرجع لا يرفض الجميع."""
+    assert MOD.release_bound(_exact_commit_manifest(), _policy(), "refs/heads/main") is True
+
+
+@pytest.mark.parametrize(
+    "ref",
+    [
+        "refs/heads/main-backup",  # بادئةٌ تتشبّه بـmain
+        "refs/heads/mainline",
+        "refs/tags/v9.1.0",  # وسمٌ غير مُعلَن في السياسة
+        "refs/pull/835/merge",
+    ],
+    ids=["main-prefix-lookalike", "mainline", "undeclared-tag", "pr-merge-ref"],
+)
+def test_refs_that_merely_resemble_a_release_ref_are_rejected(ref):
+    """المطابقة تامّة لا بادئة — وإلّا صار `main-backup` إصداراً."""
+    assert MOD.release_bound(_exact_commit_manifest(), _policy(), ref) is False
+
+
+def test_exact_tree_binding_is_also_scoped_by_ref():
+    """الوضع الثاني الذي يقول «المصدر هو الإصدار» يخضع للقاعدة نفسها."""
+    m = {
+        "tested_identity": {"commit_sha": "c", "tree_sha": "t"},
+        "release_binding": {"mode": "exact_tree", "accepted_tree_sha": "t"},
+    }
+    assert MOD.release_bound(m, _policy(), _FEATURE_REF) is False
+    assert MOD.release_bound(m, _policy(), "refs/heads/main") is True
+
+
+def test_merge_to_release_is_measured_by_the_release_ref_it_names():
+    """غرضُ هذا الوضع أنّ المصدر **ليس** الإصدار، فيُقاس بمرجعه المقبول لا بمصدره."""
+    base = {
+        "tested_identity": {"commit_sha": "c", "tree_sha": "t"},
+        "release_binding": {
+            "mode": "tested_merge_to_release",
+            "accepted_commit_sha": "c",
+            "accepted_tree_sha": "t",
+            "binding_evidence": "merge-preview",
+        },
+    }
+    # بلا تسمية الإصدار ⇒ رفضٌ لا تساهُل.
+    assert MOD.release_bound(base, _policy(), _FEATURE_REF) is False
+    named = {
+        **base,
+        "release_binding": {**base["release_binding"], "accepted_ref": "refs/heads/main"},
+    }
+    assert MOD.release_bound(named, _policy(), _FEATURE_REF) is True
+    astray = {**base, "release_binding": {**base["release_binding"], "accepted_ref": _FEATURE_REF}}
+    assert MOD.release_bound(astray, _policy(), _FEATURE_REF) is False
+
+
+def test_a_policy_without_a_release_ref_list_is_an_incomplete_contract_not_a_permissive_one():
+    """سياسةٌ بلا قائمة لا تُقرَأ «كلّ المراجع مقبولة» — تفشل مغلقةً."""
+    policy = {k: v for k, v in _policy().items() if k != "release_refs"}
+    with pytest.raises(RuntimeError, match="RELEASE_REF_POLICY_MISSING"):
+        MOD.release_bound(_exact_commit_manifest(), policy, "refs/heads/main")
+
+
+def test_the_shipped_policy_declares_its_release_refs():
+    """العقد بياناتٌ في السياسة المُصدَّرة لا شرطٌ في YAML — وإلّا حرس مساراً واحداً."""
+    shipped = json.loads(
+        (ROOT / "docs" / "architecture" / "sot_provenance_policy.json").read_text(encoding="utf-8")
+    )
+    assert shipped["release_refs"] == ["refs/heads/main"]

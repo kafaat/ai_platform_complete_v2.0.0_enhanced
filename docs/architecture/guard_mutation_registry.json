@@ -46,6 +46,18 @@
           "find": "                uncovered_unregistered.append(key)",
           "replace": "                pass  # mutated: أُسقِط رصدُ موضع الإطلاق غير المُغطّى",
           "why": "تعطيل تسجيل الموضع غير المُغطّى ⇒ استدعاء send_mqtt_command بلا is_actuation_halted يمرّ صامتاً — نفس عمى الحارس السابق الذي وُجِد هذا ليسدّه"
+        },
+        {
+          "expect": "test_coverage_through_one_same_module_hinge_is_accepted",
+          "find": "    return any(isinstance(n, ast.Call) and _callee_name(n) in helpers for n in ast.walk(fn))",
+          "replace": "    return False",
+          "why": "قصرُ التغطية على الاستدعاء المباشر يُعيد العمى الذي أبقى ترخيص `_compensate` حيّاً بعد زوال سببه — ويقلب رقعةً صحيحة اتّهاماً."
+        },
+        {
+          "expect": "test_two_hop_indirection_is_not_counted_as_coverage",
+          "find": "    return {fn.name for fn in _enclosing_functions(tree) if _calls_name(fn, KILLSWITCH)}",
+          "replace": "    return {fn.name for fn in _enclosing_functions(tree)}",
+          "why": "مَفصِلٌ بلا شرطِ استشارة يجعل **أيّ** نداءٍ تغطيةً — فيمرّ كلّ موضع إطلاق، والحارس يُبلِغ أماناً لا يقيسه."
         }
       ],
       "test": "tests_v9/test_actuation_killswitch_coverage_guard.py"
@@ -355,6 +367,29 @@
       ],
       "test": "tests_v9/test_container_command_path_guard.py"
     },
+    "env_compose_default_override_guard.py": {
+      "test": "tests_v9/test_env_compose_default_override_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_localhost_value_that_defeats_a_container_default_is_blocked",
+          "find": "        if not _LOOPBACK.search(env[var]):",
+          "replace": "        if True:",
+          "why": "نزعُ الكشف نفسه ⇒ يمرّ `.env.example` الذي يُبطِل افتراض compose أخضر — وهو بالحرف ما فصل أربعة عمّال عن NATS في البيئة الحيّة 2026-08-12."
+        },
+        {
+          "expect": "test_a_localhost_default_in_compose_is_a_legitimate_purpose",
+          "find": "        if _LOOPBACK.search(default):",
+          "replace": "        if False:",
+          "why": "نزعُ استثناء «compose نفسه يقصد المضيف» يُجرّم `CORS_ORIGINS` و`DOMAIN` — إيجابيّات كاذبة تُسقِط الحارس بلا تعطيله، لأنّ قارئ الأحمر يتعلّم تجاهله."
+        },
+        {
+          "expect": "test_a_non_url_default_is_out_of_scope",
+          "find": "        if \"://\" not in default:",
+          "replace": "        if False:",
+          "why": "توسيعُ النطاق إلى قيمٍ ليست عناوين يجعل `localhost` في أيّ سلسلة مخالفةً — ضجيجٌ يُخفي المخالفة الحقيقيّة بين كاذبات."
+        }
+      ]
+    },
     "fake_connection_debt_guard.py": {
       "mutations": [
         {
@@ -434,6 +469,71 @@
           "find": "        for problem in problems:\n            head, *rest = problem.splitlines()\n            print(f\"  ✗ {head}\")\n            for continuation in rest:\n                print(f\"      {continuation.strip()}\")",
           "replace": "        for problem in problems:\n            print(f\"  ✗ {problem}\")",
           "why": "طباعةُ مخالفةٍ متعدّدة الأسطر كتلةً واحدة تُخرِج سطر الملفّات بلا `✗` ولا إزاحة، فيُقرأ مخالفةً مستقلّة وتنكسر القراءة السطريّة لسجلّ CI — والرسالة جزءٌ من الحارس لا زينةٌ فوقه"
+        }
+      ]
+    },
+    "gate01_frozen_path_guard.py": {
+      "test": "tests_v9/test_gate01_frozen_path_guard.py",
+      "mutations": [
+        {
+          "expect": "test_touching_a_frozen_path_is_blocked",
+          "find": "    touched = {p for p in changed if p in frozen}",
+          "replace": "    touched = set()",
+          "why": "تعطيل رصد المسّ يُفرِّغ البوّابة: يمرّ كلّ مسارٍ مجمَّد صامتاً (موروثة من #836، أُعيد رسوّها على النموذج الجديد)."
+        },
+        {
+          "expect": "test_any_state_that_is_not_open_fails_closed",
+          "find": "    if str(gate.get(\"state\", \"\")).strip().upper() == \"OPEN\":",
+          "replace": "    if str(gate.get(\"state\", \"\")).strip().upper() != \"IMPOSSIBLE\":",
+          "why": "حالةٌ غير OPEN تُقرأ مفتوحةً ⇒ CLOSED نفسها تصير إذناً عامّاً (موروثة من #836)."
+        },
+        {
+          "expect": "test_an_empty_frozen_list_fails_closed",
+          "find": "    if not policy.get(\"frozen_paths\"):",
+          "replace": "    if False:",
+          "why": "قائمةٌ مجمَّدة فارغة تُقرأ «لا شيء يُحمى» بدل «عقدٌ ناقص» — تُفرِّغ الحارس بلا أن تُحمِّره (موروثة من #836)."
+        },
+        {
+          "expect": "test_an_extra_frozen_path_beyond_the_authorization_is_blocked",
+          "find": "    extra = sorted(touched - set(allowed))\n    if extra:",
+          "replace": "    extra = sorted(touched - set(allowed))\n    if False:",
+          "why": "تفويضٌ لمسارَين يُرخّص لأيّ مسارٍ مجمَّد آخر في الدفعة نفسها — أوسع ممّا أذن به المالك."
+        },
+        {
+          "expect": "test_a_single_changed_byte_invalidates_the_authorization",
+          "find": "            elif actual != declared_blobs:",
+          "replace": "            elif False:",
+          "why": "نزعُ ربط البايتات يُحوّل الإذن من «هذه البايتات» إلى «هذا المسار» — فتُبدَّل الرقعة بعد الموافقة بلا أن يُحمِرّ شيء."
+        },
+        {
+          "expect": "test_a_forged_patch_digest_is_rejected",
+          "find": "            if canonical_patch_digest(declared_blobs) != adj.get(\"authorized_patch_sha256\"):",
+          "replace": "            if False:",
+          "why": "بصمةٌ مُعلَنة لا تُشتقّ من بصماتها تمرّ ⇒ تفويضٌ يناقض نفسه يُقرأ إذناً."
+        },
+        {
+          "expect": "test_a_consumed_or_revoked_authorization_cannot_be_reused",
+          "find": "    if status != \"ISSUED\":",
+          "replace": "    if False:",
+          "why": "المُستهلَك والملغى يُعاد استعمالهما ⇒ إذنٌ لمرّةٍ واحدة يصير باباً دائماً لكلّ PR لاحقة."
+        },
+        {
+          "expect": "test_an_authorization_against_a_different_baseline_is_rejected",
+          "find": "        if baseline.get(\"commit_sha\") != want:",
+          "replace": "        if False:",
+          "why": "تفويضٌ على أساسٍ غير المُجمَّد يمرّ ⇒ ينفصل الإذن عن الأدلّة التي بُني عليها."
+        },
+        {
+          "expect": "test_an_authorization_for_another_gate_does_not_authorise_this_one",
+          "find": "    if adj.get(\"gate_id\") != policy.get(\"gate\", {}).get(\"id\"):",
+          "replace": "    if False:",
+          "why": "إذنُ بوّابةٍ أخرى يفتح هذه ⇒ تتسرّب التفويضات بين البوّابات."
+        },
+        {
+          "expect": "test_a_malformed_authorization_fails_closed",
+          "find": "    if adj.get(\"schema\") != \"sahool.gate01_adjudication/v1\":",
+          "replace": "    if False:",
+          "why": "مخطَّطٌ مجهول يُقرأ إذناً ⇒ أيّ JSON في المجلَّد يصير تفويضاً."
         }
       ]
     },
@@ -1080,6 +1180,41 @@
           "find": "        other = binding.get(\"accepted_tree_sha\")\n        return other is None or other == tested.get(\"tree_sha\")",
           "replace": "        return True",
           "why": "حقلٌ متقاطعٌ مخالف لا يُقرأ في هذا الوضع، فبيانٌ يقول «الالتزام مطابق» ويحمل شجرةً مخالفة يمرّ متناقضاً داخليّاً — والمُصادِق لا يجوز أن يفترض أنّ البيان جاء من الأداة الرسميّة"
+        },
+        {
+          "expect": "test_a_feature_branch_with_exact_commit_binding_is_not_release_bound",
+          "find": "        if source_ref not in release_refs:\n            return False",
+          "replace": "        if False:\n            return False",
+          "why": "نزعُ نطاق المرجع يُعيد الثغرة بعينها: دفعةٌ إلى فرع عملٍ غير محميّ تبلغ L5 بربطٍ سليمٍ تماماً — وهي الحادثة المقيسة على ffc29415."
+        },
+        {
+          "expect": "test_a_policy_without_a_release_ref_list_is_an_incomplete_contract_not_a_permissive_one",
+          "find": "    if not isinstance(release_refs, list) or not release_refs:\n        # سياسةٌ بلا قائمة مراجع لا تُقرَأ «كلّ المراجع مقبولة» — تُقرَأ عقداً ناقصاً.\n        raise RuntimeError(\"RELEASE_REF_POLICY_MISSING\")",
+          "replace": "    if False:\n        raise RuntimeError(\"RELEASE_REF_POLICY_MISSING\")\n    release_refs = release_refs or []",
+          "why": "سياسةٌ ناقصة تُقرَأ متساهلةً بدل أن تفشل مغلقةً — فحذفُ حقلٍ من السياسة يصير طريقاً صامتاً إلى L5."
+        },
+        {
+          "expect": "test_merge_to_release_is_measured_by_the_release_ref_it_names",
+          "find": "            binding.get(\"accepted_ref\") in release_refs\n            and binding.get(\"accepted_commit_sha\")",
+          "replace": "            binding.get(\"accepted_commit_sha\")",
+          "why": "وضعُ الدمج بلا قياس مرجع الإصدار الذي يسمّيه: يبقى بابٌ يبلغ L4 من أيّ مصدر بمجرّد إعلان binding_evidence."
+        }
+      ]
+    },
+    "tenant_guc_scope_guard.py": {
+      "test": "tests_v9/test_tenant_guc_scope_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_new_offender_outside_a_transaction_is_blocked",
+          "find": "            if any(a <= lineno <= b for a, b in spans):",
+          "replace": "            if True:",
+          "why": "نزعُ فحص الاحتواء داخل معاملة ⇒ كلّ موضع يُعَدّ سليماً، فيعود الحارس يقيس **وجود** set_config لا **نطاقه** — وهو العطل الأصليّ في `tenant_query_audit.py` الذي منح كلّ موضعٍ معيبٍ شهادة EXPLICIT."
+        },
+        {
+          "expect": "test_prose_describing_the_defect_is_not_counted_as_committing_it",
+          "find": "        if isinstance(arg, ast.Constant) and isinstance(arg.value, str):",
+          "replace": "        if True:  # MUTANT: يعود المسح نصّيّاً لا مُرسًى على الاستدعاء",
+          "why": "نزعُ الترسية على وسائط الاستدعاء ⇒ يعود الكشف يقرأ نصّ الملفّ، فيلتقط **شرح الحارس نفسه** مخالفةً — وقع فعلاً في أوّل صيغة. ملفٌّ يصف عيباً ليس ملفّاً يرتكبه، والـAST وحدها تفرّق."
         }
       ]
     },
@@ -1179,52 +1314,6 @@
           "find": "        if _FIXME_RE.search(line) and not _COMMENT_RE.match(line)",
           "replace": "        if _FIXME_RE.search(line)",
           "why": "عدُّ ذِكرِ الاسم في شرحٍ اختباراً مُعطَّلاً — عطلٌ وقع فعلاً في أوّل صياغة (أربعة بدل اثنين). وعدٌّ يُعاقِب التوثيق يُدرِّب كاتبه على حذفه: رقمٌ خاطئ وتوثيقٌ أقلّ"
-        }
-      ]
-    },
-    "gate01_frozen_path_guard.py": {
-      "test": "tests_v9/test_gate01_frozen_path_guard.py",
-      "mutations": [
-        {
-          "expect": "test_touching_a_frozen_path_is_blocked",
-          "find": "    hits = sorted(p for p in changed if p in frozen)",
-          "replace": "    hits = []",
-          "why": "نزعُ الكشف نفسه ⇒ يمرّ مسٌّ لمسارٍ مجمَّد أخضر، وهو بالحرف الحادثة التي وقعت مرّتين وأُرجِعت رقعتُها بايتاً في المرّتين."
-        },
-        {
-          "expect": "test_any_state_that_is_not_open_fails_closed",
-          "find": "    if str(gate.get(\"state\", \"\")).strip().upper() == \"OPEN\":",
-          "replace": "    if str(gate.get(\"state\", \"\")).strip().upper() != \"CLOSED\":",
-          "why": "قلبُ الشرط إلى «كلّ ما ليس CLOSED مفتوح» يجعل حقلاً مشوَّهاً أو غائباً إذناً — والافتراضيّ يصير المرور لا الإغلاق، وهو أخطر من غياب الحارس لأنّ خضرته تُقرأ تصريحاً."
-        },
-        {
-          "expect": "test_an_empty_frozen_list_fails_closed",
-          "find": "    if not policy.get(\"frozen_paths\"):",
-          "replace": "    if False:",
-          "why": "قائمةٌ فارغة تجعل الحارس يمرّ على كلّ شيء دائماً — خضرةٌ عن سؤالٍ لم يُطرَح، ويُلغى الحارس بتفريغ حقلٍ واحد بدل حذف ملفّ يُلاحَظ."
-        }
-      ]
-    },
-    "env_compose_default_override_guard.py": {
-      "test": "tests_v9/test_env_compose_default_override_guard.py",
-      "mutations": [
-        {
-          "expect": "test_a_localhost_value_that_defeats_a_container_default_is_blocked",
-          "find": "        if not _LOOPBACK.search(env[var]):",
-          "replace": "        if True:",
-          "why": "نزعُ الكشف نفسه ⇒ يمرّ `.env.example` الذي يُبطِل افتراض compose أخضر — وهو بالحرف ما فصل أربعة عمّال عن NATS في البيئة الحيّة 2026-08-12."
-        },
-        {
-          "expect": "test_a_localhost_default_in_compose_is_a_legitimate_purpose",
-          "find": "        if _LOOPBACK.search(default):",
-          "replace": "        if False:",
-          "why": "نزعُ استثناء «compose نفسه يقصد المضيف» يُجرّم `CORS_ORIGINS` و`DOMAIN` — إيجابيّات كاذبة تُسقِط الحارس بلا تعطيله، لأنّ قارئ الأحمر يتعلّم تجاهله."
-        },
-        {
-          "expect": "test_a_non_url_default_is_out_of_scope",
-          "find": "        if \"://\" not in default:",
-          "replace": "        if False:",
-          "why": "توسيعُ النطاق إلى قيمٍ ليست عناوين يجعل `localhost` في أيّ سلسلة مخالفةً — ضجيجٌ يُخفي المخالفة الحقيقيّة بين كاذبات."
         }
       ]
     }

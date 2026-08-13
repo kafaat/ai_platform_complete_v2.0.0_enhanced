@@ -18,7 +18,11 @@
       "kind": "legacy_adjudicated"
     },
     {
-      "path": "docs/architecture/gate01_frozen_paths.json",
+      "path": "docs/architecture/gate01_policy.json",
+      "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json",
       "kind": "governed"
     },
     {

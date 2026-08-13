@@ -199,16 +199,41 @@ def verify_subject(
     return {"subject": str(subject), "gh_result_count": len(parsed)}
 
 
-def release_bound(manifest: dict) -> bool:
+def release_bound(manifest: dict, policy: dict, source_ref: str) -> bool:
+    """أهذا الدليل **مربوطٌ بإصدار**؟ — والمرجع شرطٌ أوّل لا تفصيلٌ أخير.
+
+    الضمان دالّةٌ في **من أين** جاء الدليل، لا في اتّساق بصماته وحده. وكان هذا
+    الفحص يقيس تطابق الالتزام/الشجرة ولا يسأل عن المرجع إطلاقاً، فبلغت دفعةٌ إلى
+    فرع عملٍ غير محميّ المستوى **L5**: ‏`push` + `exact_commit` + أدلّة حيّة ناجحة
+    ⇒ L5، على `refs/heads/claude/…`. مقيسٌ بالحادثة لا مُفترَضاً:
+    ‏`attestation/40374289` على `ffc29415` (‏`UNPROTECTED-BRANCH-CAN-ATTAIN-L5-01`).
+
+    والقائمة تُقرأ من **السياسة المُصدَّرة** لا من YAML: شرطٌ في `ci.yml` وحده
+    يحرس مساراً واحداً، ويستطيع أيّ workflow آخر تمرير `exact_commit` من فرعٍ غير
+    معتمد. والحكم داخل الحارس يسري على كلّ من يستدعيه.
+
+    و`tested_merge_to_release` يُقاس بمرجعه المقبول لا بمصدره — لأنّ غرض الوضع أنّ
+    المصدر **ليس** الإصدار. وغيابُ ذلك المرجع رفضٌ لا تساهُل: وضعٌ يعجز عن تسمية
+    إصداره لا يُمنَح ضمانَ إصدار.
+    """
     tested = manifest["tested_identity"]
     binding = manifest["release_binding"]
     mode = binding.get("mode")
     if mode == "pending_final_rerun":
         return False
+
+    release_refs = policy.get("release_refs")
+    if not isinstance(release_refs, list) or not release_refs:
+        # سياسةٌ بلا قائمة مراجع لا تُقرَأ «كلّ المراجع مقبولة» — تُقرَأ عقداً ناقصاً.
+        raise RuntimeError("RELEASE_REF_POLICY_MISSING")
     # **حقلٌ متقاطعٌ مخالف يُرفض ولو لم يُستعمَل في هذا الوضع.** بيانٌ يقول
     # «الالتزام مطابق» ويحمل شجرةً مخالفة متناقضٌ داخليّاً؛ وسكوتُ الحارس عنه
     # يجعل التناقض يمرّ لأنّه لا يقرأ ذلك الحقل — والمُصادِق لا يفترض أنّ البيان
     # جاء من الأداة الرسميّة.
+    if mode in ("exact_commit", "exact_tree"):
+        # هذان الوضعان يقولان «المصدر المُختبَر **هو** الإصدار» — فيُقاسان بمرجعه.
+        if source_ref not in release_refs:
+            return False
     if mode == "exact_commit":
         if binding.get("accepted_commit_sha") != tested.get("commit_sha"):
             return False
@@ -220,8 +245,10 @@ def release_bound(manifest: dict) -> bool:
         other = binding.get("accepted_commit_sha")
         return other is None or other == tested.get("commit_sha")
     if mode == "tested_merge_to_release":
+        # غرض الوضع أنّ المصدر ليس الإصدار، فالمقياس مرجعُ الإصدار الذي يسمّيه هو.
         return bool(
-            binding.get("accepted_commit_sha")
+            binding.get("accepted_ref") in release_refs
+            and binding.get("accepted_commit_sha")
             and binding.get("accepted_tree_sha")
             and binding.get("binding_evidence")
         )
@@ -313,7 +340,7 @@ def main(argv=None) -> int:
             for s in subjects
         ]
         level = "L3"
-        if release_bound(manifest):
+        if release_bound(manifest, policy, source_ref):
             level = "L4"
         if level == "L4" and evidence_passes():
             level = "L5"

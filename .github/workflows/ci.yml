@@ -169,6 +169,12 @@ jobs:
         run: pip install 'jsonschema>=4.20.0'
       - name: unified JSON Schema validation (all *.schema.json)
         run: python scripts/ci/schema_validation_guard.py --check
+      # نطاق GUC المستأجِر شجريّاً (`GUC-SCOPE-GUARD-SEES-ONE-FILE-01`): الحارس السابق
+      # يحمل التشخيص الصحيح لعيبٍ إنتاجيّ مؤكَّد لكنّ تأكيده على **ملفّ واحد**. هذا يقيس
+      # الشجرة، و**النطاق لا الوجود**: `set_config(..., true)` خارج معاملة يضيع قبل
+      # الاستعلام التالي ⇒ RLS يُرجِع صفراً. راتشِت بأساسٍ مُعلَن يتقلّص ولا ينمو.
+      - name: tenant GUC scope (tree-wide, ratchet)
+        run: python scripts/ci/tenant_guc_scope_guard.py --check
       # كتالوج الحرّاس: مولَّد من الـworkflows + سجلّ الطفرات + توثيق كلّ حارس. أوّل
       # جرد أخرج رقماً لم يكن يعرفه أحد — **٢١٨ حارساً تحجب في CI و٨ فقط مُثبَتة
       # بالتكذيب**. قائمةٌ يدويّة كانت ستبيت عند أوّل حارس جديد؛ هذه تُشتقّ.
@@ -1382,8 +1388,16 @@ jobs:
         run: |
           set -euo pipefail
           gh attestation trusted-root > live_pg_trusted_root.jsonl
-          required="L5"
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then required="L3"; fi
+          # **المطلوب يتبع المصدر، لا الحدث وحده.** كان التقسيم «pull_request ⇒ L3،
+          # وكلّ ما عداه ⇒ L5»، فكان يطلب من دفعةٍ إلى فرع عمل ضمانَ إصدار. والحارس
+          # الآن يسقّف الفرع غير المعتمد عند L3 (release_refs في السياسة)، فطلبُ L5
+          # منه يحجب كلّ فرع. والسقف والطلب وجهان لعقدٍ واحد: هذا يقول ما يُنال،
+          # وذاك ما يُشترَط — وافتراقهما يحجب الصالح أو يمرّر غير الصالح.
+          # والقرار هنا تيسيرٌ لا ترخيص: القاطع في الحارس، وهذا لا يمنح ما يمنعه.
+          required="L3"
+          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            required="L5"
+          fi
           python scripts/ci/sot_provenance_guard.py             --manifest live_pg_canonical_manifest.json             --policy docs/architecture/sot_provenance_policy.json             --bundle live_pg_evidence.attestation.json             --trusted-root live_pg_trusted_root.jsonl             --artifact-file live_pg_evidence.json             --artifact-file live_pg_evidence.xml             --artifact-file live_pg_role_closure.json             --artifact-file live_pg_canonical_manifest.json             --artifact-file live_pg_evidence.sha256             --artifact-file live_pg_evidence.attestation.json             --artifact-file live_pg_trusted_root.jsonl             --artifact-file live_pg_verification_record.json             --required-assurance "$required"             --output live_pg_verification_record.json
       # **قناتان مفصولتان لأنّ الغرضين مختلفان — والخلط بينهما يُسقِط أحدهما.**
       # حفظُ القياس ليس إثباتَ المنشأ: الأوّل يمنع «وظيفةٌ خضراء بلا دليل»، والثاني

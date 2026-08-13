@@ -1,0 +1,54 @@
+{
+  "schema": "sahool.gate01_policy/v2",
+  "version": 2,
+  "adjudicated_on": "2026-08-13",
+  "supersedes_ar": "‏`docs/architecture/gate01_frozen_paths.json` v1 — كان يحمل مفتاحاً ثنائيّاً (‏`state` = OPEN/CLOSED) ونطاقاً واحداً. والعطل أنّ نموذج الحالة **أفقر من القرارات الحقيقيّة**: لا يستطيع تمثيل «البوّابة مغلقة عالميّاً، ولهذه الرقعة بعينها إذنٌ مقيَّد». فكان الخياران الوحيدان فتحَ كلّ المسارات لأجل رقعة، أو ردَّ إصلاحٍ صحيح.",
+  "what_this_file_answers_ar": "ما الذي تحميه GATE-01، وبأيّ حالة مرحليّة. ولا يحمل أيّ استثناء.",
+  "what_it_does_not_answer_ar": "من أذن وبأيّ نطاق — ذلك في `gates/adjudications/*.json`، وهو **نسخة تفويض** لا سياسة. ‏(‏Policy مقابل Authorization، كسياسة RBAC مقابل رمز وصول.) وفصلُهما ليس SoT ثالثاً: السياسة تدوم والتفويض يُستهلَك.",
+  "gate": {
+    "id": "GATE-01",
+    "gap_id": "GATE-01-EXECUTION-CONTROL-SLICE-WITHHELD-01",
+    "state": "CLOSED",
+    "owner_ruling_on": "2026-08-09",
+    "ruling_source": "sahool-brain/gaps/registry.md",
+    "state_semantics_ar": {
+      "CLOSED": "عملُ المرحلة ١ على الأثر الفيزيائيّ **محظورٌ عالميّاً**، إلّا بتفويضٍ محكَّمٍ مقيَّدٍ يُستهلَك مرّةً واحدة.",
+      "OPEN": "تجميدُ أدلّة المرحلة ٠ قُبِل **نهائيّاً**، وعملُ المرحلة ١ مأذونٌ عموماً. انتقالُ مرحلةٍ لا استثناءُ PR."
+    },
+    "why_open_is_not_a_pr_exception_ar": "فتحُ البوّابة كلّها لأجل رقعةٍ واحدة أوسع من الحاجة: يرفع الحجر عن **كلّ** مسارٍ مجمَّد وعن كلّ PR لاحقة. التفويض المقيَّد أضيق وأقلّ خطراً — ولذلك لا transition من CLOSED إلى OPEN لمجرّد أنّ رقعةً تحتاج لمسَ ملفّ."
+  },
+  "phase0_baseline": {
+    "$comment_ar": "الشجرة **قبل** التعديل التي جُمِّدت أدلّتها — لا SHA الرقعة التي تمسّ المسارات المجمَّدة. وكان `frozen_commit_sha` الواحد يحمل الدلالتين فيلتبسان.",
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "tree_sha": "ac25432304025877477eb5096272027b3213ced3",
+    "evidence_run_id": "31701614219",
+    "evidence_conclusion": "success",
+    "artifact_digests": {
+      "live-pg-verified-evidence": "sha256:257206bf7f3212d083c8cf73b7e2cfdb4001f1ecf71bc24c0615d863fdd438a9",
+      "live-pg-evidence-attestation": "sha256:e36a658d90404a9815a98e7133744b40b27adbd8a775c94204f26a6f3f145b25",
+      "live-pg-evidence": "sha256:272000e5179026fa303321769dd4881bdda2fc9ebd845e818ded79f4e77fe07e"
+    },
+    "evidence_status": "FROZEN",
+    "honesty_limit_ar": "البصمات **مقروءة من واجهة GitHub لمصنوعات ذلك التشغيل**، لا مُنزَّلة ومُعاد حسابها هنا — فهي مرساةٌ تكشف التبديل لا تحقّقٌ تشفيريّ مستقلّ. والتحقّق التشفيريّ الكامل يقع في `sot_provenance_guard` داخل ذلك التشغيل نفسه، وقد بلغ حكمه VERIFIED على مرجعٍ إصداريّ."
+  },
+  "frozen_paths": [
+    "services/actuator-service/actuator_runtime.py",
+    "services/actuator-service/routers/commands.py",
+    "services/sahool-platform/api/phase_runtime_workers.py",
+    "services/sahool-platform/api/phase_runtime_store.py",
+    "services/sahool-platform/api/event_bus.py",
+    "migrations/v228_phase_runtime_claim_leases.sql",
+    "migrations/MANIFEST.txt",
+    "migrations/run_migrations.sql",
+    "docs/architecture/db_ownership.yml",
+    "docs/architecture/physical_effect_boundary_contract.json"
+  ],
+  "not_yet_in_tree": [
+    "migrations/v228_phase_runtime_claim_leases.sql",
+    "migrations/run_migrations.sql"
+  ],
+  "not_yet_in_tree_note_ar": "هذان مساران من **الشريحة المحجوبة نفسها** — لم يُدمَجا قطّ، فلا وجود لهما في الشجرة. وتجميدهما يعني «لا تُنشئهما» لا «لا تُعدّلهما»، و`git diff --name-only` يُبلّغ الإضافة كما يُبلّغ التعديل فيلتقطهما الحارس بلا استثناء. صُرِّح بهما هنا كي لا يُقرأ غيابُهما سهواً ولا يُحذفا ظنّاً أنّهما انزياحُ تسمية.",
+  "scope_note_ar": "القائمة تحمل المسارات المُسمّاة صراحةً في حكم المالك والقابلة للتثبيت على مسارٍ واحد لا لبس فيه. والحكم يذكر كذلك «اختبارات killswitch والحدث والoutbox وclaim» و«تدقيق المستأجِر واختباره» — وهي أوصافٌ لا مسارات، فلم تُدرَج كي لا يُحمِرّ الحارس على ملفٍّ لم يقصده الحكم. فالتغطية هنا **أضيق من الحكم عمداً**، والحارس يُعلِن ذلك في مخرَجه بدل أن يُوهِم اكتمالاً.",
+  "why_a_guard_ar": "كان الحكم مفروضاً بقراءة بشرٍ لملفٍّ نثريّ — فمُسّت المسارات المجمَّدة مرّتين (2026-08-09 و2026-08-13)، وفي المرّتين نُفِّذت رقعةٌ كاملة ثمّ أُرجِعت. والكلفة ليست الوقت وحده: كلّ من يُعدّل مساراً يظنّ تعديله تحسيناً، فالنيّة الحسنة ليست حارساً. هذا الملفّ يجعل الحكم تنفيذيّاً: يُحمِرّ CI عند أوّل مسٍّ بدل أن يُكتشَف بعد اكتمال العمل.",
+  "honesty_limit_ar": "هذه السياسة تصف الحماية ولا تمنحها: الحارس يشتقّ PASS/BLOCK منها ومن التفويضات، ولا يملك القرار أيٌّ منهما وحده. وخضرةُ الحارس تعني «لم يُمَسّ مجمَّدٌ بلا إذنٍ مطابق» لا «التعديل صحيح» — صحّةُ الرقعة تقيسها اختباراتها وطفراتها."
+}

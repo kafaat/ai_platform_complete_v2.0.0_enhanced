@@ -302,6 +302,7 @@ FM-001,test,tests_v9/test_rls_tenant_coverage.py,3,applied
 FM-001,test,tests_v9/test_service_tenant_assertion.py,3,applied
 FM-001,test,tests_v9/test_soil_field_tenant_authz.py,3,applied
 FM-001,test,tests_v9/test_tenant_ai_policy_store_v52.py,3,applied
+FM-001,test,tests_v9/test_tenant_guc_scope_guard.py,3,applied
 FM-001,test,tests_v9/test_tenant_provisioning.py,3,applied
 FM-001,test,tests_v9/test_tenant_query_audit.py,3,applied
 FM-001,test,tests_v9/test_tile_auth_cookie_guard.py,3,applied
@@ -1097,7 +1098,7 @@ IRR-007,api,GET /health @ services/actuator-service/routers/health.py:20,3,appli
 IRR-007,api,GET /healthz @ services/actuator-service/routers/health.py:20,3,applied
 IRR-007,api,GET /readyz @ services/actuator-service/routers/health.py:32,3,applied
 IRR-007,api,GET /v1/agent/actuator-audit @ services/supervisor-agent/routers/agent.py:185,2,applied
-IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:70,3,applied
+IRR-007,api,GET /v1/commands @ services/actuator-service/routers/commands.py:74,3,applied
 IRR-007,api,GET /v1/idempotency/metrics @ services/actuator-service/routers/metrics.py:18,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves @ services/sahool-platform/api/routers/irrigation.py:100,3,applied
 IRR-007,api,POST /api/v1/irrigation/valves/{valve_id}/state @ services/sahool-platform/api/routers/irrigation.py:179,3,applied

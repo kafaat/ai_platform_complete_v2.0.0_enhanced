@@ -11,7 +11,7 @@
   {
     "service": "actuator-service",
     "file": "services/actuator-service/routers/commands.py",
-    "line": 70,
+    "line": 74,
     "method": "GET",
     "path": "/v1/commands",
     "handler": "list_commands",

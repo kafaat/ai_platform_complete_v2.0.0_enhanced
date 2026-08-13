@@ -22,6 +22,7 @@
     "platform_python_module_baseline.json",
     "s0_s12_execution_baseline.json",
     "source_text_assertion_inventory.json",
+    "tenant_guc_scope_baseline.json",
     "text_encoding_locale_baseline.json"
   ],
   "decided": [
@@ -31,7 +32,7 @@
     "decision_outcome_learning_bridge_allowlist.json",
     "deferred_import_declaration_contract.json",
     "expected_control_flow_exceptions.json",
-    "gate01_frozen_paths.json",
+    "gate01_policy.json",
     "guard_mutation_registry.json",
     "knowledge_relation_registry.json",
     "knowledge_source_registry.json",

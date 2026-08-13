@@ -1,6 +1,6 @@
 service,file,line,method,path,function
 actuator-service,services/actuator-service/routers/commands.py,25,POST,/v1/command,send_command
-actuator-service,services/actuator-service/routers/commands.py,70,GET,/v1/commands,list_commands
+actuator-service,services/actuator-service/routers/commands.py,74,GET,/v1/commands,list_commands
 actuator-service,services/actuator-service/routers/health.py,20,GET,/healthz,health
 actuator-service,services/actuator-service/routers/health.py,20,GET,/health,health
 actuator-service,services/actuator-service/routers/health.py,32,GET,/readyz,readyz
