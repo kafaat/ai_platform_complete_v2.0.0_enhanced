@@ -175,9 +175,7 @@ def test_loader_returns_six_key_identity(runtime_identity_module, tmp_path):
 
 def test_loader_fails_closed_when_metadata_missing(runtime_identity_module, tmp_path):
     with pytest.raises(runtime_identity_module.BuildIdentityError):
-        runtime_identity_module.load_build_identity(
-            SERVICE_NAME, tmp_path / "missing.json"
-        )
+        runtime_identity_module.load_build_identity(SERVICE_NAME, tmp_path / "missing.json")
 
 
 def test_loader_fails_closed_on_service_mismatch(runtime_identity_module, tmp_path):
