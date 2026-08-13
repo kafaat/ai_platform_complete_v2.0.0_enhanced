@@ -54,12 +54,19 @@ MIGRATION_ORDER = manifest_order()
 
 
 def _db_url() -> str:
-    # JOBS_DATABASE_URL: الهجرات تُطبَّق بدور sahool_jobs (صلاحيّة DDL عبر المسار
-    # المُهيَّأ)؛ helm/k8s يمرّره باسمه (migration-job.yaml)، فنقبله كي يعمل مسار النشر.
+    # JOBS_DATABASE_URL مقبولٌ لأنّ helm/k8s يمرّر السرّ **بهذا الاسم**
+    # (helm/sahool/templates/migration-job.yaml:30) — والاسم هنا اسمُ متغيّرٍ لا اسمُ دور.
+    # أمّا الدور الذي يجب أن يشير إليه الـDSN فهو **مالك الهجرات** `sahool_user`
+    # (migrations/POSTGRES_SETUP.md:47): الـDDL يشترط **ملكيّة الجدول** لا صلاحيّة
+    # كتابةٍ فيه، فدورٌ غير مالكٍ يُنتِج `must be owner of table ...`.
+    # وكان هذا التعليق يقول «تُطبَّق بدور sahool_jobs» فقُرِئ تعريفاً لنموذج
+    # الأدوار، فأنتج دليلَ تشغيلٍ يوصي بالدور الخطأ (#834).
     url = os.getenv("DATABASE_URL") or os.getenv("MIGRATE_DB_URL") or os.getenv("JOBS_DATABASE_URL")
     if not url:
         print("✗ DATABASE_URL غير مضبوط. اضبطه ثمّ أعِد المحاولة.")
-        print("  export DATABASE_URL='postgresql://sahool_jobs:PASS@localhost/sahool'")
+        print("  export DATABASE_URL='postgresql://sahool_user@localhost/sahool'")
+        print("  (sahool_user = مالك الهجرات؛ الـDDL يشترط ملكيّة الجدول)")
+        print("  (كلمة المرور من ~/.pgpass أو خزنة الأسرار — لا في المثال ولا في سطر الأوامر)")
         sys.exit(2)
     return url
 
