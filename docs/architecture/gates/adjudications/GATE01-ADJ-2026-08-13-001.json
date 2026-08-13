@@ -1,0 +1,48 @@
+{
+  "schema": "sahool.gate01_adjudication/v1",
+  "adjudication_id": "GATE01-ADJ-2026-08-13-001",
+  "gate_id": "GATE-01",
+  "status": "ISSUED",
+  "approved_by": "owner",
+  "adjudicated_on": "2026-08-13",
+  "pr": 837,
+  "one_time": true,
+  "$what_this_is_ar": "نسخةُ تفويضٍ واحدة، لا تغييرُ سياسة. البوّابة تبقى **CLOSED عالميّاً**، وهذا يأذن بمجموعةِ بايتاتٍ بعينها في مسارَين بعينهما. ولا يستطيع PR آخر — ولا هذه الـPR — أن يمسّ مساراً مجمَّداً ثالثاً به.",
+  "phase0_baseline_ref": {
+    "commit_sha": "6ba0bef56f47926ce657515fe1717019522f868b",
+    "must_match_policy": true,
+    "$why_ar": "تفويضٌ يشير إلى أساسٍ غير الذي جُمِّد لا يُقرأ إذناً — يُقرأ تناقضاً، فيُرفض."
+  },
+  "allowed_paths": [
+    "services/actuator-service/actuator_runtime.py",
+    "services/actuator-service/routers/commands.py"
+  ],
+  "allowed_gap_closures": [
+    "COMPENSATION-BYPASSES-KILLSWITCH-01",
+    "MANUAL-COMMAND-KILLSWITCH-SCOPE-BLIND-01"
+  ],
+  "authorized_patch_sha256": "e4b998501e7e90a7f1d3ca335a7f25b2151bf4c33031a977770002ed0dd121db",
+  "authorized_blobs": {
+    "services/actuator-service/actuator_runtime.py": "3583eb102d39a047bc5b8fd2de918b19307ed120",
+    "services/actuator-service/routers/commands.py": "85787dd13469ce1ca70d62ab6dfe6114b1f8c06d"
+  },
+  "$patch_digest_recipe_ar": "‏sha256 على نصٍّ قانونيّ: أسطرٌ مرتّبة بالمسار، كلٌّ `path\\0blob_sha\\n`. ‏blob_sha هو `git hash-object` للمحتوى — فالربط **بالبايتات** لا بالاسم: «أوافق على هذه البايتات» لا «أوافق على PR رقم ٨٣٧». وتغيُّر محرفٍ واحد يُبطِله.",
+  "bindings": {
+    "require_patch_digest": true,
+    "require_paths_subset": true,
+    "require_baseline_match": true,
+    "require_exact_head_sha": false,
+    "observed_head_sha_at_issue": "0c8a7209",
+    "$why_head_binding_off_ar": "الآليّة منفَّذة ومُختبَرة، وهذه النسخة لا تستعملها **بسببٍ مقيس لا تفضيلاً**: مِلَفُّ التفويض نفسه يُلتزَم بعد الرقعة، فأيُّ رأسٍ يُكتَب فيه يسبق الرأس النهائيّ بالضرورة. وmain تحرّكت **مرّتين** أثناء هذه الـPR وحدها (‏f2202191 ⇒ 6ba0bef5 ⇒ 6b0fb7cd)، فكلّ دمجٍ لاحق يُبطِل ربطاً بالرأس قبل أن يُستهلَك. وبصمةُ البايتات تُعطي الضمانة نفسها وأقوى: تنجو من الدمج، وتسقط على تغيُّر محرفٍ في المسموح. ومن أراد ربط الرأس فالحقل قائمٌ ويُفرَض حين يكون true."
+  },
+  "consumption": {
+    "status_values": [
+      "ISSUED",
+      "CONSUMED",
+      "REVOKED"
+    ],
+    "merge_sha": null,
+    "$why_one_shot_ar": "تفويضٌ يبقى صالحاً بعد الدمج يصير باباً دائماً: من أعاد استعمال المعرّف نفسه في PR لاحقة مرّ بإذنٍ صدر لغيره. فبعد الدمج يُختَم CONSUMED بـ`merge_sha`، ويرفض الحارس المُستهلَك."
+  },
+  "$honesty_limit_ar": "هذا يأذن بالمسّ ولا يشهد بالصحّة. إغلاقُ الدَّينين يُثبَت باختباراتهما وطفراتهما، لا بهذا الملفّ — وحدُّ الحارس القائم مكتوبٌ في موضعه: يقيس **وقوع** استشارة المفتاح لا أنّ نتيجتها تمنع الإرسال، وذلك لم يُسدّ بعدُ."
+}

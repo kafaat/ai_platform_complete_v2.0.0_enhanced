@@ -477,21 +477,63 @@
       "mutations": [
         {
           "expect": "test_touching_a_frozen_path_is_blocked",
-          "find": "    hits = sorted(p for p in changed if p in frozen)",
-          "replace": "    hits = []",
-          "why": "نزعُ الكشف نفسه ⇒ يمرّ مسٌّ لمسارٍ مجمَّد أخضر، وهو بالحرف الحادثة التي وقعت مرّتين وأُرجِعت رقعتُها بايتاً في المرّتين."
+          "find": "    touched = {p for p in changed if p in frozen}",
+          "replace": "    touched = set()",
+          "why": "تعطيل رصد المسّ يُفرِّغ البوّابة: يمرّ كلّ مسارٍ مجمَّد صامتاً (موروثة من #836، أُعيد رسوّها على النموذج الجديد)."
         },
         {
           "expect": "test_any_state_that_is_not_open_fails_closed",
           "find": "    if str(gate.get(\"state\", \"\")).strip().upper() == \"OPEN\":",
-          "replace": "    if str(gate.get(\"state\", \"\")).strip().upper() != \"CLOSED\":",
-          "why": "قلبُ الشرط إلى «كلّ ما ليس CLOSED مفتوح» يجعل حقلاً مشوَّهاً أو غائباً إذناً — والافتراضيّ يصير المرور لا الإغلاق، وهو أخطر من غياب الحارس لأنّ خضرته تُقرأ تصريحاً."
+          "replace": "    if str(gate.get(\"state\", \"\")).strip().upper() != \"IMPOSSIBLE\":",
+          "why": "حالةٌ غير OPEN تُقرأ مفتوحةً ⇒ CLOSED نفسها تصير إذناً عامّاً (موروثة من #836)."
         },
         {
           "expect": "test_an_empty_frozen_list_fails_closed",
           "find": "    if not policy.get(\"frozen_paths\"):",
           "replace": "    if False:",
-          "why": "قائمةٌ فارغة تجعل الحارس يمرّ على كلّ شيء دائماً — خضرةٌ عن سؤالٍ لم يُطرَح، ويُلغى الحارس بتفريغ حقلٍ واحد بدل حذف ملفّ يُلاحَظ."
+          "why": "قائمةٌ مجمَّدة فارغة تُقرأ «لا شيء يُحمى» بدل «عقدٌ ناقص» — تُفرِّغ الحارس بلا أن تُحمِّره (موروثة من #836)."
+        },
+        {
+          "expect": "test_an_extra_frozen_path_beyond_the_authorization_is_blocked",
+          "find": "    extra = sorted(touched - set(allowed))\n    if extra:",
+          "replace": "    extra = sorted(touched - set(allowed))\n    if False:",
+          "why": "تفويضٌ لمسارَين يُرخّص لأيّ مسارٍ مجمَّد آخر في الدفعة نفسها — أوسع ممّا أذن به المالك."
+        },
+        {
+          "expect": "test_a_single_changed_byte_invalidates_the_authorization",
+          "find": "            elif actual != declared_blobs:",
+          "replace": "            elif False:",
+          "why": "نزعُ ربط البايتات يُحوّل الإذن من «هذه البايتات» إلى «هذا المسار» — فتُبدَّل الرقعة بعد الموافقة بلا أن يُحمِرّ شيء."
+        },
+        {
+          "expect": "test_a_forged_patch_digest_is_rejected",
+          "find": "            if canonical_patch_digest(declared_blobs) != adj.get(\"authorized_patch_sha256\"):",
+          "replace": "            if False:",
+          "why": "بصمةٌ مُعلَنة لا تُشتقّ من بصماتها تمرّ ⇒ تفويضٌ يناقض نفسه يُقرأ إذناً."
+        },
+        {
+          "expect": "test_a_consumed_or_revoked_authorization_cannot_be_reused",
+          "find": "    if status != \"ISSUED\":",
+          "replace": "    if False:",
+          "why": "المُستهلَك والملغى يُعاد استعمالهما ⇒ إذنٌ لمرّةٍ واحدة يصير باباً دائماً لكلّ PR لاحقة."
+        },
+        {
+          "expect": "test_an_authorization_against_a_different_baseline_is_rejected",
+          "find": "        if baseline.get(\"commit_sha\") != want:",
+          "replace": "        if False:",
+          "why": "تفويضٌ على أساسٍ غير المُجمَّد يمرّ ⇒ ينفصل الإذن عن الأدلّة التي بُني عليها."
+        },
+        {
+          "expect": "test_an_authorization_for_another_gate_does_not_authorise_this_one",
+          "find": "    if adj.get(\"gate_id\") != policy.get(\"gate\", {}).get(\"id\"):",
+          "replace": "    if False:",
+          "why": "إذنُ بوّابةٍ أخرى يفتح هذه ⇒ تتسرّب التفويضات بين البوّابات."
+        },
+        {
+          "expect": "test_a_malformed_authorization_fails_closed",
+          "find": "    if adj.get(\"schema\") != \"sahool.gate01_adjudication/v1\":",
+          "replace": "    if False:",
+          "why": "مخطَّطٌ مجهول يُقرأ إذناً ⇒ أيّ JSON في المجلَّد يصير تفويضاً."
         }
       ]
     },

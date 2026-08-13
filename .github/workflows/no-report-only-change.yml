@@ -16,15 +16,6 @@ jobs:
           git diff --name-only origin/${{ github.base_ref }}...HEAD | python scripts/ci/no_report_only_change_guard.py --stdin
       - name: Prevent brain-only certification state transitions
         run: python scripts/ci/brain_state_transition_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
-      # GATE-01-EXECUTION-CONTROL-SLICE-WITHHELD-01: حكم المالك (2026-08-09) يمنع تعديل
-      # مسارات التنفيذ الفيزيائيّ قبل تجميد أدلّة المرحلة 0. وكان مفروضاً بقراءة بشرٍ
-      # لملفٍّ نثريّ في `sahool-brain/` — فمُسّت المسارات **مرّتين** (2026-08-09 و
-      # 2026-08-13)، وفي المرّتين نُفِّذت رقعةٌ كاملة ثمّ أُرجِعت بايتاً. والنيّة الحسنة
-      # ليست حارساً: السجلّ نفسه يقول «كلّ من يُعدّل مساراً يظنّ تعديله تحسيناً».
-      # هنا يصير الحكم تنفيذيّاً — يُحمِرّ عند أوّل مسٍّ لا بعد اكتمال العمل.
-      - name: Frozen GATE-01 paths must not be touched while the gate is closed
-        run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | python scripts/ci/gate01_frozen_path_guard.py --stdin
       # BRAIN-DEFERRAL-LEAK-01: كلّ تأجيل في hot.md يحتاج معرّف فجوة مسجَّلاً.
       # القاعدة كانت عُرفاً في CLAUDE.md؛ هنا تصير إنفاذاً.
       - name: Deferrals in hot.md must be registered as gaps
@@ -52,3 +43,28 @@ jobs:
       # `32efdc90..cb6598fe` (يسقط) وعلى دمج اصطناعيّ يأخذ الجانب الفارغ.
       - name: An append-only journal may not shrink, on any parent
         run: python scripts/ci/brain_append_only_guard.py --base "origin/${{ github.base_ref }}" --head HEAD
+
+  # ── وظيفةٌ مستقلّة عمداً ────────────────────────────────────────────────────
+  # GATE01-DIAGNOSIS-HIDDEN-BY-THE-JOB-NAME-01: كان هذا الفحص خطوةً داخل وظيفة
+  # `no-report-only-change`، فيقرأ المحكِّم في GitHub «‏No Report-only Change = RED»
+  # بينما السبب «مسارٌ فيزيائيّ مجمَّد خلف GATE-01 مُسّ». اسمٌ يصف غير ما قاس يُطيل
+  # التشخيص ويُخفي مَن يُصلِح — وهو صنفٌ مُسجَّل في هذا المستودع لا ملاحظةُ ذوق.
+  # وفصلُها يُتيح كذلك إعادة تشغيل البوّابة وحدها بدل الجناح كلّه.
+  gate01-physical-effect-freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      # حكم المالك (2026-08-09) يمنع تعديل مسارات التنفيذ الفيزيائيّ قبل تجميد أدلّة
+      # المرحلة 0. وكان مفروضاً بقراءة بشرٍ لملفٍّ نثريّ — فمُسّت المسارات **مرّتين**
+      # (2026-08-09 و2026-08-13)، وفي المرّتين نُفِّذت رقعةٌ كاملة ثمّ أُرجِعت بايتاً.
+      # والنموذج الآن يقبل **تفويضاً مقيَّداً يُستهلَك**: البوّابة تبقى مغلقة عالميّاً،
+      # ويأذن المالك لبايتاتٍ بعينها في مسارٍ بعينه — فلا يُفتَح الكلّ لأجل رقعة، ولا
+      # يُردّ إصلاحٌ صحيح.
+      - name: GATE-01 physical-effect freeze (scoped authorization)
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | python scripts/ci/gate01_frozen_path_guard.py --stdin

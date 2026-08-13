@@ -1,108 +1,224 @@
 #!/usr/bin/env python3
-"""حارس المسارات المجمَّدة خلف GATE-01 — يجعل حكم المالك تنفيذيّاً لا نثريّاً.
+"""حارس المسارات المجمَّدة خلف GATE-01 — بوّابةُ **تفويضٍ مقيَّد**، لا مفتاحٌ ثنائيّ.
 
-**العطل الذي وُجِد لأجله وقع مرّتين:** حكم المالك (`GATE-01-EXECUTION-CONTROL-SLICE-WITHHELD-01`،
-2026-08-09) يمنع تعديل مسارات التنفيذ الفيزيائيّ قبل تجميد أدلّة المرحلة 0. وكان مفروضاً
-بقراءة بشرٍ لملفٍّ نثريّ في `sahool-brain/` — فمُسّت المسارات في 2026-08-09 و2026-08-13،
-وفي المرّتين نُفِّذت رقعةٌ كاملة ثمّ أُرجِعت بايتاً.
+**العطل الذي وُجِد هذا النموذج لأجله:** الصيغة الأولى كانت `state` = OPEN/CLOSED وحدها،
+فلا تستطيع تمثيل الحالة المشروعة التالية: *البوّابة مغلقة عالميّاً، ولهذه الرقعة بعينها
+على هذه البايتات بعينها إذنُ مالكٍ بعد تجميد أدلّة المرحلة ٠*. فكان الخياران الوحيدان
+**فتحَ كلّ المسارات لأجل رقعة** أو **ردَّ إصلاحٍ صحيح** — والمشكلة في نموذج الحالة لا
+في الحارس: كان يعمل كما صُمِّم، وتصميمُه أفقر من القرارات الحقيقيّة.
 
-**ولماذا لا تكفي النيّة:** السجلّ نفسه يقول «التعديل يزيد الإيقاف» **ليس استثناءً؛ كلّ من
-يُعدّل مساراً يظنّ تعديله تحسيناً». فالمنع يجب أن يقع **قبل** العمل لا بعده، وذلك لا يكون
-بوثيقةٍ تُقرَأ بل ببوّابةٍ تُحمِرّ.
+شجرة القرار::
 
-**وما لا يفعله — يُقال لأنّه يُسأل عنه:** لا يفتح البوّابة، ولا يُثبِّت أدلّة، ولا يحكم على
-صحّة التعديل. خضرتُه تعني «لم يُمَسّ مسارٌ مجمَّد»، لا «التغيير سليم». والفتح يبقى بقرار
-مالكٍ يضبط `frozen_commit_sha` ويُحوِّل `state` إلى `OPEN` في
-`docs/architecture/gate01_frozen_paths.json`.
+    مسارٌ مجمَّد مُعدَّل؟
+        ├─ لا  ⇒ PASS
+        └─ نعم
+             البوّابة OPEN؟
+               ├─ نعم ⇒ PASS  (انتقالُ مرحلةٍ قُبِل نهائيّاً)
+               └─ لا
+                    تفويضٌ مقيَّد مطابق؟
+                      ├─ لا  ⇒ BLOCK
+                      └─ نعم ⇒ الأساس مطابق؟ · المسارات مجموعةٌ جزئيّة؟
+                                 · بصمة البايتات مطابقة؟ · غير مُستهلَك؟
+                                    ├─ أيٌّ منها لا ⇒ BLOCK
+                                    └─ كلّها نعم   ⇒ PASS
 
-الاستعمال في CI:
+**والفصل بين السياسة والتفويض مقصود:** `gate01_policy.json` يجيب «ما الذي يُحمى وبأيّ
+مرحلة»، و`gates/adjudications/*.json` يجيب «من أذن وبأيّ نطاق». (والسياسة تبقى في
+`docs/architecture/` مباشرةً لا في مجلَّد فرعيّ، لأنّ `claim_base_guard` يمسح المستوى
+الأعلى وحده — فنقلُها كان يُخرِجها من فحصٍ قائم يُلزِمها ختمَ تحكيم.) وهما ليسا مصدرَي
+حقيقةٍ متنافسين بل سياسةٌ ونسخةُ تفويض — كسياسة RBAC مقابل رمز وصول: الأولى تدوم
+والثانية تُستهلَك.
 
-    git diff --name-only origin/main...HEAD | python scripts/ci/gate01_frozen_path_guard.py --stdin
+**والربط بالبايتات لا بالاسم:** `authorized_patch_sha256` يُحسَب على نصٍّ قانونيّ من
+‏`path\\0blob_sha` مرتّبةً. فالقرار «أوافق على هذه البايتات» لا «أوافق على PR رقم كذا»،
+وتغيُّر محرفٍ واحد في مسارٍ مسموح يُبطِل التفويض. وينجو من الدمج وإعادة الأساس ما دامت
+البايتات المأذونة نفسها.
+
+**وكلّ فرعٍ يفشل مغلقاً:** تفويضٌ مشوَّه، أو أساسٌ مخالف، أو مسارٌ زائد، أو بصمةٌ لا
+تطابق، أو مُستهلَك ⇒ حجب. فملفٌّ لا يُحلَّل ليس إذناً.
+
+**وحدّ صدقٍ مكتوب:** هذا يمنع **مسّاً غير مأذون** ولا يفعل غير ذلك — لا يفتح البوّابة،
+ولا يُثبِّت أدلّة، ولا يحكم على صحّة التعديل. وخضرتُه تعني «لم يُمَسّ مجمَّدٌ بلا إذنٍ
+مطابق»، وصحّةُ الرقعة تقيسها اختباراتها وطفراتها.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-POLICY = ROOT / "docs" / "architecture" / "gate01_frozen_paths.json"
-SCHEMA = "sahool.gate01_frozen_paths"
+POLICY = ROOT / "docs" / "architecture" / "gate01_policy.json"
+ADJUDICATIONS = ROOT / "docs" / "architecture" / "gates" / "adjudications"
 
 
-def violations(policy: dict, changed: list[str]) -> list[str]:
-    """منطق نقيّ: أيّ مسارٍ مُغيَّر يقع تحت التجميد والبوّابة مغلقة؟
+def _load(path: Path) -> dict:
+    """قراءةٌ تفشل مغلقةً: ملفٌّ مفقود أو لا يُحلَّل ليس سياسةً ولا إذناً."""
+    return json.loads(path.read_text(encoding="utf-8"))
 
-    البوّابة **مفتوحة فقط** بـ`state == "OPEN"`؛ وأيّ قيمةٍ أخرى (أو غيابها) تُعامَل
-    إغلاقاً — fail-closed، لأنّ حقلاً مشوَّهاً ليس إذناً.
+
+def load_policy(path: Path = POLICY) -> dict:
+    """السياسة تُتحقَّق قبل أن تُستعمَل — ثلاث خصائص أثبتها #836 بطفراتها، تبقى مفروضة.
+
+    وُرِّثت من الصيغة الأولى عمداً: تحسينُ النموذج لا يجوز أن يُسقِط ما أُثبِت قبله.
     """
-    gate = policy.get("gate") or {}
-    if str(gate.get("state", "")).strip().upper() == "OPEN":
-        return []
-    frozen = {str(p) for p in policy.get("frozen_paths") or []}
-    gap = gate.get("gap_id", "GATE-01")
-    hits = sorted(p for p in changed if p in frozen)
-    return [
-        f"مسارٌ مجمَّد خلف {gap} مُعدَّل: {p} — البوّابة مغلقة "
-        f"(`phase_1_code_changes: {gate.get('phase_1_code_changes')}`). "
-        "أرجِع الملفّ، أو افتح البوّابة بقرار مالكٍ صريح على SHA نهائيّ."
-        for p in hits
-    ]
-
-
-def load_policy(path: Path) -> dict:
-    """قراءةٌ fail-closed: ملفٌّ مفقود أو مخطَّطٌ مخالف ⇒ خروجٌ لا مرور.
-
-    فسياسةٌ لا تُقرأ ليست «لا تجميد»؛ هي **تعذّر قياس**، ومعاملتُها مروراً تُلغي
-    الحارس بحذف ملفٍّ واحد.
-    """
-    if not path.is_file():
-        print(f"gate01_frozen_path_guard_failed: سياسة التجميد مفقودة: {path}")
-        raise SystemExit(2)
-    try:
-        policy = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        print(f"gate01_frozen_path_guard_failed: تعذّر تحليل السياسة: {exc}")
-        raise SystemExit(2) from exc
-    if policy.get("schema") != SCHEMA:
-        print(f"gate01_frozen_path_guard_failed: مخطَّطٌ غير متوقَّع: {policy.get('schema')!r}")
-        raise SystemExit(2)
+    policy = _load(path)
+    if str(policy.get("schema", "")).split("/")[0] != "sahool.gate01_policy":
+        raise RuntimeError("GATE01_POLICY_SCHEMA_MISMATCH")
+    # قائمةٌ فارغة ليست «لا شيء مجمَّد» — هي عقدٌ ناقص: تُفرِّغ الحارس بلا أن تُحمِّره.
     if not policy.get("frozen_paths"):
-        print("gate01_frozen_path_guard_failed: قائمة المسارات المجمَّدة فارغة — حارسٌ لا يقيس شيئاً")
-        raise SystemExit(2)
+        raise RuntimeError("GATE01_POLICY_EMPTY_FROZEN_LIST")
     return policy
 
 
+def canonical_patch_digest(blobs: dict[str, str]) -> str:
+    """بصمة البايتات المأذونة — الوصفة مُعلَنة في التفويض نفسه فتُراجَع لا تُخمَّن."""
+    canon = "".join(f"{p}\0{blobs[p]}\n" for p in sorted(blobs))
+    return hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
+def blob_sha(path: str, root: Path = ROOT) -> str | None:
+    """بصمة المحتوى في الشجرة. ``None`` إن غاب الملفّ — والغياب لا يُقرأ تطابقاً."""
+    proc = subprocess.run(
+        ["git", "-C", str(root), "hash-object", path],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    out = proc.stdout.strip()
+    return out if proc.returncode == 0 and out else None
+
+
+def load_adjudications(directory: Path = ADJUDICATIONS) -> list[dict]:
+    if not directory.is_dir():
+        return []
+    out = []
+    for path in sorted(directory.glob("*.json")):
+        out.append(_load(path))
+    return out
+
+
+def _authorization_errors(
+    adj: dict, policy: dict, touched: set[str], blobs: dict[str, str]
+) -> list[str]:
+    """أسبابُ رفض هذا التفويض لهذا المسّ. الفارغة تعني أنّه يُغطّيه بالكامل."""
+    errs: list[str] = []
+    ident = adj.get("adjudication_id", "<بلا معرّف>")
+
+    if adj.get("schema") != "sahool.gate01_adjudication/v1":
+        return [f"{ident}: مخطَّطٌ غير معروف — لا يُقرأ إذناً"]
+    if adj.get("gate_id") != policy.get("gate", {}).get("id"):
+        errs.append(f"{ident}: تفويضٌ لبوّابةٍ أخرى")
+
+    status = adj.get("status")
+    if status != "ISSUED":
+        errs.append(f"{ident}: حالته {status!r} لا ISSUED — المُستهلَك والملغى لا يُعاد استعمالهما")
+
+    baseline = adj.get("phase0_baseline_ref") or {}
+    if baseline.get("must_match_policy") is not False:
+        want = (policy.get("phase0_baseline") or {}).get("commit_sha")
+        if baseline.get("commit_sha") != want:
+            errs.append(f"{ident}: أساسُه لا يطابق الأساس المُجمَّد في السياسة")
+
+    allowed = adj.get("allowed_paths")
+    if not isinstance(allowed, list) or not allowed:
+        return errs + [f"{ident}: بلا `allowed_paths` — تفويضٌ مشوَّه"]
+    extra = sorted(touched - set(allowed))
+    if extra:
+        errs.append(f"{ident}: مسارٌ مجمَّد خارج المأذون: {extra}")
+
+    bindings = adj.get("bindings") or {}
+    if bindings.get("require_patch_digest") is not False:
+        declared_blobs = adj.get("authorized_blobs")
+        if not isinstance(declared_blobs, dict) or set(declared_blobs) != set(allowed):
+            errs.append(f"{ident}: `authorized_blobs` لا يغطّي المأذون بالضبط")
+        else:
+            if canonical_patch_digest(declared_blobs) != adj.get("authorized_patch_sha256"):
+                errs.append(
+                    f"{ident}: البصمة المُعلَنة لا تُشتقّ من البصمات المُعلَنة — تفويضٌ يناقض نفسه"
+                )
+            actual = {p: blobs.get(p) for p in allowed}
+            if any(v is None for v in actual.values()):
+                errs.append(f"{ident}: مسارٌ مأذون غير موجود في الشجرة")
+            elif actual != declared_blobs:
+                errs.append(
+                    f"{ident}: بايتاتُ الشجرة تخالف المأذون — التفويض على بايتاتٍ بعينها، "
+                    "وتغيُّر محرفٍ يُبطِله"
+                )
+
+    if bindings.get("require_exact_head_sha") is True:
+        head = subprocess.run(
+            ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        ).stdout.strip()
+        if head != adj.get("head_sha"):
+            errs.append(f"{ident}: الرأس تغيّر عمّا أُذِن به")
+
+    return errs
+
+
+def evaluate(changed: list[str], policy: dict, adjudications: list[dict], blobs: dict[str, str]):
+    """يُرجِع (أخطاء، معرّف التفويض المُستعمَل أو None). فارغةٌ تعني PASS."""
+    frozen = set(policy.get("frozen_paths") or [])
+    touched = {p for p in changed if p in frozen}
+    if not touched:
+        return [], None
+
+    gate = policy.get("gate") or {}
+    if str(gate.get("state", "")).strip().upper() == "OPEN":
+        return [], None
+
+    if not adjudications:
+        return [
+            f"مسارٌ مجمَّد خلف {gate.get('gap_id')} مُعدَّل بلا تفويض: {sorted(touched)} — "
+            "البوّابة مغلقة. أصدِر تفويضاً مقيَّداً بقرار مالك، أو أرجِع الملفّ."
+        ], None
+
+    reasons: list[str] = []
+    for adj in adjudications:
+        errs = _authorization_errors(adj, policy, touched, blobs)
+        if not errs:
+            return [], adj.get("adjudication_id")
+        reasons.extend(errs)
+    return (
+        [f"مسارٌ مجمَّد مُعدَّل ولا تفويض يُغطّيه: {sorted(touched)}"] + reasons,
+        None,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="حارس المسارات المجمَّدة خلف GATE-01")
+    parser = argparse.ArgumentParser(description="حارس GATE-01 — تفويضٌ مقيَّد يُستهلَك")
     parser.add_argument("--stdin", action="store_true", help="اقرأ المسارات المُغيَّرة من stdin")
     parser.add_argument("--policy", default=str(POLICY))
+    parser.add_argument("--adjudications", default=str(ADJUDICATIONS))
     args = parser.parse_args(argv)
 
-    policy = load_policy(Path(args.policy))
     changed = (
         [line.strip() for line in sys.stdin.read().splitlines() if line.strip()]
         if args.stdin
         else []
     )
+    policy = load_policy(Path(args.policy))
+    adjudications = load_adjudications(Path(args.adjudications))
+    blobs = {p: blob_sha(p) for p in (policy.get("frozen_paths") or [])}
 
-    problems = violations(policy, changed)
-    if problems:
+    errors, used = evaluate(changed, policy, adjudications, blobs)
+    if errors:
         print("gate01_frozen_path_guard_failed")
-        print("\n".join(f"- {p}" for p in problems))
+        for e in errors:
+            print(f"- {e}")
         return 1
-
-    gate = policy["gate"]
-    n = len(policy["frozen_paths"])
-    state = gate.get("state")
-    print(
-        f"gate01_frozen_path_guard_ok (البوّابة: {state} · مسارات مجمَّدة: {n} · "
-        f"مسارات مفحوصة: {len(changed)})"
-    )
+    print(f"gate01_frozen_path_guard_ok{f' (تفويض: {used})' if used else ''}")
     return 0
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+if __name__ == "__main__":  # pragma: no cover
+    raise SystemExit(main())
