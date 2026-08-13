@@ -7788,6 +7788,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_run_outcome_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_runtime_container_deep_contract_guard.py",
     "kind": "tests"
   },

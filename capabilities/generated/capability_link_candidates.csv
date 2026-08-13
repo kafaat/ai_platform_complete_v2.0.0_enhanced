@@ -167,6 +167,7 @@ DEC-007,test,services/sahool-platform/tests/test_outcome_endpoint.py,3,applied
 DEC-007,test,services/sahool-platform/tests/test_outcome_reconciler.py,3,applied
 DEC-007,test,services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py,3,applied
 DEC-007,test,tests_v9/test_outcome_measurement.py,3,applied
+DEC-007,test,tests_v9/test_run_outcome_guard.py,3,applied
 DEC-008,api,POST /api/v1/outcomes/{outcome_id}/learning-attribution @ services/sahool-platform/api/routers/decision_review.py:523,6,applied
 DEC-008,api,POST /v1/fields/{field_id}/soil/learning-attributions @ services/soil-service/routers/p4_workflow.py:114,4,applied
 DEC-008,api,POST /v1/outcomes/{outcome_id}/learning-attribution @ services/decision-service/main.py:1933,7,applied

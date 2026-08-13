@@ -4636,7 +4636,8 @@
         "services/sahool-platform/tests/test_outcome_endpoint.py",
         "services/sahool-platform/tests/test_outcome_reconciler.py",
         "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
-        "tests_v9/test_outcome_measurement.py"
+        "tests_v9/test_outcome_measurement.py",
+        "tests_v9/test_run_outcome_guard.py"
       ],
       "runtime": {
         "metrics": [],
@@ -4659,7 +4660,8 @@
           "receipt:test:services/sahool-platform/tests/test_outcome_endpoint.py",
           "receipt:test:services/sahool-platform/tests/test_outcome_reconciler.py",
           "receipt:test:services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
-          "receipt:test:tests_v9/test_outcome_measurement.py"
+          "receipt:test:tests_v9/test_outcome_measurement.py",
+          "receipt:test:tests_v9/test_run_outcome_guard.py"
         ],
         "audit_events": []
       },
@@ -4685,7 +4687,7 @@
           "path": "services/sahool-platform/api/outcome_measurement.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=6, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=13, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

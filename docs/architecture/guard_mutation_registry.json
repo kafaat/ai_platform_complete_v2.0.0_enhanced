@@ -1324,8 +1324,8 @@
         },
         {
           "expect": "test_a_manifest_without_an_execution_outcome_is_not_read_as_success",
-          "find": "    outcome = manifest.get(\"execution_outcome\")\n    if not isinstance(outcome, dict):\n        return False, \"EXECUTION_OUTCOME_MISSING\"",
-          "replace": "    outcome = manifest.get(\"execution_outcome\")\n    if not isinstance(outcome, dict):\n        return True, \"\"  # mutated: الغياب يُقرأ نجاحاً",
+          "find": "    if not isinstance(outcome, dict):\n        return False, \"EXECUTION_OUTCOME_MISSING\"",
+          "replace": "    if not isinstance(outcome, dict):\n        return True, \"\"  # mutated: الغياب يُقرأ نجاحاً",
           "why": "قراءةُ الغياب نجاحاً تُفرِّغ الشرط كلّه: كلّ بيانٍ قديم أو مصنوعٍ يدويّاً يبلغ L4/L5 بلا أن يُعلِن خلاصة تشغيله. و«لم يُقَس» ليس «مرّ»."
         },
         {
@@ -1519,6 +1519,35 @@
           "find": "        if count > allowed:",
           "replace": "        if False:  # mutated: النموّ لا يُحجَب",
           "why": "بلا حدٍّ للنموّ يصير الأساس جرداً لا عقداً: يُسجّل ما وقع ولا يمنع تكراره — وهو حرفيّاً ما قاله سجلّ الفجوة: «إغلاقه يخلط أصلحتُ ما وقع بمنعتُ أن يقع»."
+        }
+      ]
+    },
+    "run_outcome_guard.py": {
+      "test": "tests_v9/test_run_outcome_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_run_still_in_progress_is_refused",
+          "find": "    if run.get(\"status\") != \"completed\":\n        problems.append(f\"`status` = {run.get('status')!r} — «قيد التنفيذ» ليس «نجح»\")",
+          "replace": "    if False:  # mutated: تشغيلٌ لم يكتمل يُقبَل\n        problems.append(f\"`status` = {run.get('status')!r} — «قيد التنفيذ» ليس «نجح»\")",
+          "why": "تشغيلٌ لم يكتمل خلاصتُه `null`، فتُقرأ «ليست success» فتحجب — لكنّ قبولَ اللقطة أصلاً يفتح باباً لاعتمادٍ يُبنى على جردٍ ناقص: وظائفُ لم تبدأ بعدُ تُقرأ كأنّها كلّ ما سيجري."
+        },
+        {
+          "expect": "test_an_empty_job_inventory_is_refused",
+          "find": "    if not conclusions:\n        raise SystemExit(\"✗ جردُ وظائف فارغ — «لم تُقرأ» ليست «كلّها نجحت».\")",
+          "replace": "    if False:  # mutated: جردٌ فارغ يمرّ\n        raise SystemExit(\"✗ جردُ وظائف فارغ — «لم تُقرأ» ليست «كلّها نجحت».\")",
+          "why": "جردٌ فارغ يجعل شرط «كلّ الوظائف ناجحة» صادقاً خواءً (`any` على فراغ = False)، فيمرّ **كلّ** تشغيل. وهو صنف «حارسٌ يُحقّقه لا شيء» بعينه."
+        },
+        {
+          "expect": "test_a_run_of_another_workflow_is_refused",
+          "find": "    if run.get(\"path\") != expect_workflow_path:",
+          "replace": "    if False:  # mutated: أيّ workflow يشهد لأيّ اعتماد",
+          "why": "workflow آخر في نفس المستودع يُنتِج خلاصةً **صادقة عن شيء غير المقصود** — وهو نفس صنف «نتيجةٌ صحيحة عن سؤالٍ لم يُطرَح» الذي أسقط أوّل صياغة لحارس حماية الفرع."
+        },
+        {
+          "expect": "test_an_incomplete_job_is_recorded_by_its_status_not_as_blank",
+          "find": "        out[name] = job.get(\"conclusion\") or f\"<{job.get('status', 'unknown')}>\"",
+          "replace": "        out[name] = job.get(\"conclusion\") or \"success\"  # mutated: الفراغ يُقرأ نجاحاً",
+          "why": "وظيفةٌ لم تكتمل خلاصتُها `null`، وقراءتُها نجاحاً تُحوِّل «لم تنتهِ» إلى «نجحت» — وهو أخطر أشكال الفشل المفتوح: يُبلِغ اعتماداً عن عملٍ لم يقع."
         }
       ]
     }

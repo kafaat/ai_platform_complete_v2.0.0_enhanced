@@ -26,6 +26,14 @@ REASONS = {
     "POLICY_MISMATCH",
     "TOOLCHAIN_MISMATCH",
     "VERIFIER_INTERNAL_ERROR",
+    # ATTESTED-IS-NOT-CERTIFIED-01 — أسبابُ الاعتماد، لا أسبابُ المنشأ.
+    "EXECUTION_OUTCOME_MISSING",
+    "EXECUTION_OUTCOME_UNREADABLE",
+    "EXECUTION_OUTCOME_FOREIGN_COMMIT",
+    "EXECUTION_RUN_NOT_SUCCESSFUL",
+    "EXECUTION_JOBS_UNDECLARED",
+    "EXECUTION_JOB_NOT_SUCCESSFUL",
+    "EXECUTION_OUTCOME_NOT_ENFORCED",
 }
 
 
@@ -255,8 +263,15 @@ def release_bound(manifest: dict, policy: dict, source_ref: str) -> bool:
     raise RuntimeError("RELEASE_BINDING_MISMATCH")
 
 
-def execution_clean(manifest: dict, tested_commit: str) -> tuple[bool, str]:
+def execution_clean(outcome: object, tested_commit: str) -> tuple[bool, str]:
     """أنتجَ هذا الدليلَ تشغيلٌ **نجح**؟ — ``(نظيف، سببُ الرفض)``.
+
+    **ولماذا وثيقةٌ منفصلة لا حقلٌ في البيان — تصحيحٌ لصياغتي الأولى:**
+    ``live_pg_canonical_manifest.json`` **من الموضوعات الموقَّعة الأربعة**، فبصمتُه
+    داخل الشهادة. وإضافةُ ``execution_outcome`` إليه بعد التشغيل تُغيّر تلك البصمة
+    فتكسر التحقّق — أي أنّ التصميم الأوّل كان **غير قابل للتنفيذ** لا مجرّد أضعف.
+    فالخلاصة تُقرأ من واجهة GitHub بعد اكتمال التشغيل وتُسلَّم ملفّاً مستقلّاً،
+    ويبقى الرابطُ بينهما **الالتزامَ المُختبَر** لا مجاورةً في ملفّ.
 
     `ATTESTED-IS-NOT-CERTIFIED-01`. الشهادةُ تقول بصدق «GitHub Actions بهذا الـworkflow
     وهذه اللقطة أنتج هذه المصنوعات ووقّع منشأها». وهذا **لا** يقول إنّ اللقطة اجتازت
@@ -277,7 +292,6 @@ def execution_clean(manifest: dict, tested_commit: str) -> tuple[bool, str]:
     **والربط بالالتزام شرطٌ لا زينة:** خلاصةُ تشغيلٍ آخر — ولو ناجحاً — لا تشهد لهذه
     اللقطة. فيُطابَق ``head_sha`` بالالتزام المُختبَر.
     """
-    outcome = manifest.get("execution_outcome")
     if not isinstance(outcome, dict):
         return False, "EXECUTION_OUTCOME_MISSING"
     if outcome.get("run_conclusion") != "success":
@@ -340,6 +354,21 @@ def main(argv=None) -> int:
     ap.add_argument("--trusted-root", required=True)
     ap.add_argument("--artifact-file", action="append", required=True)
     ap.add_argument("--required-assurance", choices=list(LEVELS), default="L3")
+    ap.add_argument(
+        "--execution-outcome",
+        help=(
+            "وثيقةُ خلاصة التشغيل (run_conclusion · job_conclusions · head_sha). "
+            "تُقرأ من واجهة GitHub **بعد** اكتمال التشغيل — لا تُولَّد من داخله."
+        ),
+    )
+    ap.add_argument(
+        "--require-execution-outcome",
+        action="store_true",
+        help=(
+            "افرِض خلاصةَ تشغيلٍ ناجحة لبلوغ L4/L5. تستعمله وظيفةُ الاعتماد بعد "
+            "انتهاء التشغيل؛ والاستدعاءُ **داخل** التشغيل لا يستطيعها فيُسجّل الدَّين."
+        ),
+    )
     ap.add_argument("--output", required=True)
     ap.add_argument("--gh-bin")
     args = ap.parse_args(argv)
@@ -380,14 +409,25 @@ def main(argv=None) -> int:
         # ATTESTED-IS-NOT-CERTIFIED-01: الارتقاء إلى L4 يشترط **شرطين مستقلّين**:
         # مرجعاً معتمداً (من أين)، وتشغيلاً ناجحاً أنتج الدليل (بأيّ حال). وسقوطُ
         # الثاني ليس فساداً في الحزمة — هو رفضُ **اعتماد** لدليل منشأٍ صحيح.
-        clean, execution_reason = execution_clean(manifest, tested["commit_sha"])
+        # الخلاصة تُقرأ من ملفّها المستقلّ. وغيابُ الملفّ المُمرَّر ليس «لم يُطلَب»:
+        # رايةٌ تشير إلى ملفٍّ لا يُقرأ تعني أنّ الجلب لم يعمل، وقراءةُ ذلك سلامةً
+        # هي بعينها «لم يُقَس ⇒ مرّ».
+        outcome: object = None
+        if args.execution_outcome:
+            try:
+                outcome = load_json(Path(args.execution_outcome))
+            except (OSError, ValueError, json.JSONDecodeError):
+                raise RuntimeError("EXECUTION_OUTCOME_UNREADABLE") from None
+        clean, execution_reason = execution_clean(outcome, tested["commit_sha"])
         # **ولماذا الشرط مربوطٌ بالسياسة لا مفروضاً اليوم:** خلاصةُ التشغيل لا تُعرَف
         # **من داخله** — وظيفةٌ تعمل الآن لا تستطيع أن تقول كيف انتهى تشغيلُها. فالبيان
         # المُولَّد داخل التشغيل لا يستطيع إعلانها بصدق، وفرضُها اليوم كان يُحمِّر `main`
         # على غياب شيءٍ لا يملك المُنتِج إنتاجه — لا على عطل. والمُنتِج الصحيح وظيفةُ
         # اعتمادٍ **بعد** انتهاء التشغيل (`workflow_run`)، وهي الشريحة التالية.
         # فالقاعدة مكتوبة ومُكذَّبة بأربع طفرات، ومفتاحُها في السياسة سطرٌ واحد.
-        require_execution = bool(policy.get("require_execution_outcome"))
+        require_execution = args.require_execution_outcome or bool(
+            policy.get("require_execution_outcome")
+        )
         if release_bound(manifest, policy, source_ref) and (clean or not require_execution):
             level = "L4"
         if execution_reason:

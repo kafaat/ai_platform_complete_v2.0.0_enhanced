@@ -664,16 +664,14 @@ def _outcome(**over) -> dict:
 
 
 def test_a_successful_run_is_execution_clean():
-    clean, reason = MOD.execution_clean({"execution_outcome": _outcome()}, _TESTED)
+    clean, reason = MOD.execution_clean(_outcome(), _TESTED)
 
     assert (clean, reason) == (True, "")
 
 
 def test_a_failed_run_is_refused_even_though_the_bundle_is_valid():
     """الحالة المقيسة حرفيّاً: توقيعٌ سليم، وخلاصةُ تشغيل `failure`."""
-    clean, reason = MOD.execution_clean(
-        {"execution_outcome": _outcome(run_conclusion="failure")}, _TESTED
-    )
+    clean, reason = MOD.execution_clean(_outcome(run_conclusion="failure"), _TESTED)
 
     assert (clean, reason) == (False, "EXECUTION_RUN_NOT_SUCCESSFUL")
 
@@ -684,8 +682,7 @@ def test_a_failed_job_inside_a_green_run_is_refused():
     وهذا درسٌ مُسجَّل في هذا المستودع باسمه: `JOB-STATUS-HID-A-FAILED-STEP-01`.
     """
     clean, reason = MOD.execution_clean(
-        {"execution_outcome": _outcome(job_conclusions={"Repository Tests": "failure"})},
-        _TESTED,
+        _outcome(job_conclusions={"Repository Tests": "failure"}), _TESTED
     )
 
     assert (clean, reason) == (False, "EXECUTION_JOB_NOT_SUCCESSFUL")
@@ -693,23 +690,21 @@ def test_a_failed_job_inside_a_green_run_is_refused():
 
 def test_an_outcome_for_another_commit_does_not_vouch_for_this_one():
     """خلاصةُ تشغيلٍ آخر — ولو ناجحاً — لا تشهد لهذه اللقطة."""
-    clean, reason = MOD.execution_clean({"execution_outcome": _outcome(head_sha="0" * 40)}, _TESTED)
+    clean, reason = MOD.execution_clean(_outcome(head_sha="0" * 40), _TESTED)
 
     assert (clean, reason) == (False, "EXECUTION_OUTCOME_FOREIGN_COMMIT")
 
 
 def test_a_manifest_without_an_execution_outcome_is_not_read_as_success():
     """الغياب ليس نجاحاً — بيانٌ لا يُعلِن خلاصته لا يُمنَح ضمانَ إصدار."""
-    clean, reason = MOD.execution_clean({}, _TESTED)
+    clean, reason = MOD.execution_clean(None, _TESTED)
 
     assert (clean, reason) == (False, "EXECUTION_OUTCOME_MISSING")
 
 
 def test_undeclared_jobs_are_not_read_as_all_green():
     """كتلةٌ بلا وظائف تُعلَن تعني أنّ الوظائف **لم تُقرأ** — لا أنّها نجحت كلّها."""
-    clean, reason = MOD.execution_clean(
-        {"execution_outcome": _outcome(job_conclusions={})}, _TESTED
-    )
+    clean, reason = MOD.execution_clean(_outcome(job_conclusions={}), _TESTED)
 
     assert (clean, reason) == (False, "EXECUTION_JOBS_UNDECLARED")
 

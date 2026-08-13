@@ -1,0 +1,126 @@
+# ATTESTED-IS-NOT-CERTIFIED-01 — الاعتماد خطوةٌ **بعد** التشغيل، بالضرورة لا بالتفضيل.
+# ============================================================================
+# الشهادة تقول بصدق «هذا الـworkflow وهذه اللقطة أنتجا هذه البايتات ووقّعا منشأها».
+# وهي **لا** تقول «هذه اللقطة اجتازت البوّابة». وبينهما حزمةٌ صحيحة تشفيريّاً بالكامل —
+# توقيع DSSE، وربطُ payloadHash بجسم Rekor، وإثبات Merkle، وهويّة Fulcio — خرجت من
+# تشغيلٍ خلاصتُه `failure` (31728316326: سقطت `Repository Tests`).
+#
+# **ولماذا وظيفةٌ منفصلة لا خطوة داخل CI:** وظيفةٌ تعمل الآن لا تعرف كيف انتهى تشغيلُها.
+# فالبيان المُولَّد داخل التشغيل لا يستطيع إعلان خلاصته بصدق، مهما اجتهد. وهذا يجعل
+# الاعتماد لاحقاً **بالضرورة** — وهو أيضاً ما يفصل `PR_EVIDENCE` عن
+# `MAIN_CANONICAL_EVIDENCE` بلا حاجةٍ إلى إثبات أنّ merge-ref مؤقّتاً «يعادل» main.
+#
+# **وما لا تفعله:** لا تحجب دمجاً. هي تُنتِج **حالةً ثانية مستقلّة** —
+# `certification_accepted` بجانب `provenance_verified` — قابلةً للتدقيق. وجعلُها فحصاً
+# إلزاميّاً قرارُ مالكٍ في إعدادات الفرع، لا شيءٌ يُفرَض من هنا.
+name: Certify Completed Run
+
+on:
+  workflow_run:
+    workflows: ["SAHOOL v9.1.0 CI"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  attestations: read
+  id-token: write
+
+jobs:
+  certify:
+    name: Certification (post-run)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with: {python-version: "3.12"}
+
+      # الوظيفة تجلب وتُجسّد؛ الحكم في `scripts/ci` — `scripts/ci/**` لا يستدعي GitHub
+      # في هذا المستودع، ويحرس ذلك عقدُ `test_local_preflight_contract`.
+      - name: Fetch the completed run and its jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${REPO}/actions/runs/${RUN_ID}" > run.json
+          # `--paginate` ليس تزيّداً: جردٌ مقطوع عند الصفحة الأولى يُخفي وظيفةً ساقطة
+          # في الصفحة الثانية، فيصير «كلّها نجحت» حكماً عن سؤالٍ لم يُطرَح كاملاً.
+          gh api --paginate "repos/${REPO}/actions/runs/${RUN_ID}/jobs?per_page=100" \
+            | jq -s '{jobs: (map(.jobs) | add)}' > jobs.json
+
+      - name: Derive the execution outcome
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python scripts/ci/run_outcome_guard.py \
+            --run-file run.json --jobs-file jobs.json \
+            --expect-repository "${REPO}" \
+            --expect-workflow-path '.github/workflows/ci.yml' \
+            --output execution_outcome.json
+          cat execution_outcome.json
+
+      # أدلّةُ Live-PG تُرفَع مصنوعاتٍ من التشغيل المشهود له. وغيابُها ليس فشلاً في
+      # هذه الوظيفة: تشغيلٌ لم يبلغ وظيفة الأدلّة لا شيء فيه ليُعتمَد — ويُقال ذلك
+      # صراحةً بدل أن يُقرأ صمتُه اعتماداً.
+      - name: Download the evidence bundle from that run
+        id: download
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          gh run download "${RUN_ID}" --name live-pg-evidence --dir evidence
+          ls -la evidence
+
+      - name: No evidence to certify
+        if: steps.download.outcome != 'success'
+        run: |
+          echo "لا حزمة أدلّة في هذا التشغيل ⇒ لا شيء يُعتمَد."
+          echo "وهذا ليس رفضاً للاعتماد بل غيابُ موضوعه — والفرق يُقال ولا يُترَك للصمت."
+
+      - name: Install the pinned GitHub attestation verifier
+        if: steps.download.outcome == 'success'
+        run: scripts/ci/install_pinned_gh_attestation_cli.sh
+
+      - name: Certification gate (provenance + successful execution)
+        if: steps.download.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd evidence
+          gh attestation trusted-root > live_pg_trusted_root.jsonl
+          # `--require-execution-outcome` هنا وحدها: هذا هو الموضع الوحيد الذي تُعرَف
+          # فيه خلاصةُ التشغيل. والاستدعاء داخل CI يبقى بلا الراية ويُسجّل الدَّين.
+          python ../scripts/ci/sot_provenance_guard.py \
+            --manifest live_pg_canonical_manifest.json \
+            --policy ../docs/architecture/sot_provenance_policy.json \
+            --bundle live_pg_evidence.attestation.json \
+            --trusted-root live_pg_trusted_root.jsonl \
+            --artifact-file live_pg_evidence.json \
+            --artifact-file live_pg_evidence.xml \
+            --artifact-file live_pg_role_closure.json \
+            --artifact-file live_pg_canonical_manifest.json \
+            --artifact-file live_pg_evidence.sha256 \
+            --artifact-file live_pg_evidence.attestation.json \
+            --artifact-file live_pg_trusted_root.jsonl \
+            --artifact-file live_pg_verification_record.json \
+            --execution-outcome ../execution_outcome.json \
+            --require-execution-outcome \
+            --required-assurance L4 \
+            --output ../certification_record.json
+          cat ../certification_record.json
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: certification-record
+          path: |
+            execution_outcome.json
+            certification_record.json
+          if-no-files-found: warn
+          retention-days: 90
