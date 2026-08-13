@@ -7184,6 +7184,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_gate01_frozen_path_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_gateway_operational_endpoints_contract.py",
     "kind": "tests"
   },

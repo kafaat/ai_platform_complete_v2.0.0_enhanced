@@ -1181,6 +1181,29 @@
           "why": "عدُّ ذِكرِ الاسم في شرحٍ اختباراً مُعطَّلاً — عطلٌ وقع فعلاً في أوّل صياغة (أربعة بدل اثنين). وعدٌّ يُعاقِب التوثيق يُدرِّب كاتبه على حذفه: رقمٌ خاطئ وتوثيقٌ أقلّ"
         }
       ]
+    },
+    "gate01_frozen_path_guard.py": {
+      "test": "tests_v9/test_gate01_frozen_path_guard.py",
+      "mutations": [
+        {
+          "expect": "test_touching_a_frozen_path_is_blocked",
+          "find": "    hits = sorted(p for p in changed if p in frozen)",
+          "replace": "    hits = []",
+          "why": "نزعُ الكشف نفسه ⇒ يمرّ مسٌّ لمسارٍ مجمَّد أخضر، وهو بالحرف الحادثة التي وقعت مرّتين وأُرجِعت رقعتُها بايتاً في المرّتين."
+        },
+        {
+          "expect": "test_any_state_that_is_not_open_fails_closed",
+          "find": "    if str(gate.get(\"state\", \"\")).strip().upper() == \"OPEN\":",
+          "replace": "    if str(gate.get(\"state\", \"\")).strip().upper() != \"CLOSED\":",
+          "why": "قلبُ الشرط إلى «كلّ ما ليس CLOSED مفتوح» يجعل حقلاً مشوَّهاً أو غائباً إذناً — والافتراضيّ يصير المرور لا الإغلاق، وهو أخطر من غياب الحارس لأنّ خضرته تُقرأ تصريحاً."
+        },
+        {
+          "expect": "test_an_empty_frozen_list_fails_closed",
+          "find": "    if not policy.get(\"frozen_paths\"):",
+          "replace": "    if False:",
+          "why": "قائمةٌ فارغة تجعل الحارس يمرّ على كلّ شيء دائماً — خضرةٌ عن سؤالٍ لم يُطرَح، ويُلغى الحارس بتفريغ حقلٍ واحد بدل حذف ملفّ يُلاحَظ."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
