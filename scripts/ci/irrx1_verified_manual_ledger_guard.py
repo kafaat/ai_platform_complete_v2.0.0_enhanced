@@ -25,7 +25,7 @@ required = {
 for rel, needles in required.items():
     p = ROOT / rel
     assert p.exists(), f"missing {rel}"
-    text = p.read_text()
+    text = p.read_text(encoding="utf-8")
     for needle in needles:
         assert needle in text, f"{rel} missing {needle}"
 print("IRR-X1.3 verified manual as-applied ledger guard: PASS")

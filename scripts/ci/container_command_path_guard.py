@@ -38,6 +38,16 @@ from pathlib import Path
 
 import yaml
 
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
+# و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
+# نجاحه (UnicodeEncodeError) ⇒ خروجٌ بـ1 يُقرَأ «الحارس يحجب» وهو قد مرّ. وحارسٌ
+# يُبلِغ فشلاً لأنّه عجز عن طباعة نجاحه أسوأ من حارسٍ صامت: الصامت يُرى غيابُه،
+# وهذا يُرى **ضدّ** ما قاس. القراءة محكومة بأساسٍ قائم؛ والمنسيّ كان الكتابة.
+# **عند التحميل لا داخل `main()`** — فبعض الحرّاس بلا `main` أصلاً، تطبع من جسدها.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parents[2]
 
 # مسار تنفيذٍ داخل الحاوية: نُقيّده بـ.py لأنّ الأصداف والثنائيّات تأتي من الصورة
@@ -48,7 +58,7 @@ _COPY = re.compile(r"^\s*(?:COPY|ADD)\s+(.*)$", re.I)
 
 
 def dockerignore_patterns(context: Path) -> list[str]:
-    """‏``.dockerignore`` يسكن **جذر السياق** لا جذر المستودع، كما يقرؤه الباني."""
+    """``.dockerignore`` يسكن **جذر السياق** لا جذر المستودع، كما يقرؤه الباني."""
     path = context / ".dockerignore"
     if not path.is_file():
         return []

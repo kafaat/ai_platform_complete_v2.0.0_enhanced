@@ -1,9 +1,15 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-backend = (ROOT / "services/sahool-platform/api/irrigation_engineering_workspace.py").read_text()
-frontend = (ROOT / "frontend/src/sections/ReservoirBoosterNetworkCalculator.tsx").read_text()
-client = (ROOT / "frontend/src/services/api/irrigationNetworkCalculator.ts").read_text()
+backend = (ROOT / "services/sahool-platform/api/irrigation_engineering_workspace.py").read_text(
+    encoding="utf-8"
+)
+frontend = (ROOT / "frontend/src/sections/ReservoirBoosterNetworkCalculator.tsx").read_text(
+    encoding="utf-8"
+)
+client = (ROOT / "frontend/src/services/api/irrigationNetworkCalculator.ts").read_text(
+    encoding="utf-8"
+)
 required_backend = [
     "class IrrigationMachineInput",
     "IrrigationSystemType.DRIP",

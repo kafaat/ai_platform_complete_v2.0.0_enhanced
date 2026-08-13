@@ -247,7 +247,7 @@ jobs:
       # يترك المالك يخمّن بين «Active غير محفوظة» و«هدفٍ لا يطابق main».
       # (`repos/{repo}/rulesets` يحتاج صلاحية إدارة؛ نتسامح مع تعذّرها ولا نحجب بها.)
       #
-      # ولا تحكم الصدفة على رمز HTTP: `curl` يُسجّل الحالة كما هي (‏`-w '%{http_code}'`)
+      # ولا تحكم الصدفة على رمز HTTP: `curl` يُسجّل الحالة كما هي (`-w '%{http_code}'`)
       # ويكتب الجسم دائماً، فتصل `401/403/404/429/5xx` إلى الحارس **بنداً في العقد** لا
       # إجهاضاً بـ`set -e`. حكمٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً.
       - name: Fetch the protection contract for main
@@ -302,8 +302,19 @@ jobs:
         env:
           REPO: ${{ github.repository }}
           TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
+          # GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: البند المشروط يحتاج معرفة
+          # ما مسّته الـPR. الاشتقاق هنا لا في الحارس — `scripts/ci/**` لا يستدعي
+          # GitHub ولا يقرأ حالته (عقد `test_local_preflight_contract`).
+          if [ -n "${BASE_REF}" ]; then
+            git fetch origin "${BASE_REF}" --depth=1 -q || true
+            git diff --name-only "origin/${BASE_REF}...HEAD" > changed.txt || : > changed.txt
+          else
+            : > changed.txt
+          fi
           python scripts/ci/branch_protection_contract_guard.py \
             --protection-file protection.json \
             --expect-repository "${REPO}" \
-            --expect-sha "${TESTED_SHA}"
+            --expect-sha "${TESTED_SHA}" \
+            --changed-files changed.txt

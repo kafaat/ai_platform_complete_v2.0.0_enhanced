@@ -1,6 +1,6 @@
-"""المسار اليدويّ `/v1/command` — قياسُ **الأثر** لا وقوعِ الاستشارة (M-02).
+"""مسارا الأثر الفيزيائيّ بلا قياسٍ سلوكيّ — الراوتر اليدويّ ومسار القواعد.
 
-المسار الوحيد الذي بقي بلا قياسٍ سلوكيّ. والتعويض له جناحُه (`test_compensation_
+المساران اللذان بقيا بلا قياسٍ سلوكيّ. والتعويض له جناحُه (`test_compensation_
 killswitch.py` — يُشغِّل `_compensate` حقيقيّاً ويقيس غياب الإرسال)، والمُصرِّح له
 جناحُه (`test_manual_command_killswitch_scope.py` — يقيس `_authorize_device_control`
 والقاعدة النقيّة). أمّا **الراوتر نفسه** فكان مقيساً بفحصٍ نصّيّ وحده، ووثيقتُه تُقرّ
@@ -17,6 +17,11 @@ killswitch.py` — يُشغِّل `_compensate` حقيقيّاً ويقيس غي
 فهذه الاختبارات تُشغّل `send_command` نفسها وتقيس: **ماذا وصل إلى MQTT، وبأيّ نطاقٍ
 سُئل المفتاح، وبأيّ ترتيب**. وهي شواهدُ طفراتٍ مُسجَّلة تحت `behavioural` في
 `guard_mutation_registry.json` — تُزرَع الأعطال أعلاه في المصدر ويجب أن تحمرّ بأسمائها.
+
+**ومسارُ القواعد (`evaluate_rules`) مثلُه وأخطر:** كان مقيساً بالحارس الساكن وحده —
+يُثبِت أنّ الاستشارة **تقع** ولا يقيس أنّ نتيجتها تمنع النشر. وهو المسار الذي يعمل
+**بلا إنسان**: قاعدةٌ آليّة تفتح صمّاماً على قراءة مستشعر، فخطؤه أخطر من خطأ اليدويّ
+لا أهون. أُضيف له هنا القياسات الثلاثة نفسها: النطاق · الحجب · وألّا يُحجَب المشروع.
 
 **حدّ صدق:** `aiomqtt` غير مثبَّت في جناح الاختبار فيُرقَّع بجذعٍ عند الاستيراد، والنشر
 نفسه مُرقَّع عمداً. فهذا **لا** يشهد بأنّ الوحدة تُستورَد في الإنتاج بتبعيّاتها، ولا
@@ -214,3 +219,103 @@ async def test_a_device_of_another_tenant_fails_closed_before_any_actuation(manu
 
     assert exc.value.status_code == 404
     assert manual.events == [], "وقع شيءٌ قبل إثبات ملكيّة الجهاز للمستأجِر"
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# مسار القواعد (`evaluate_rules`) — المسار الذي يُشغّل الصمّامات آليّاً
+# ══════════════════════════════════════════════════════════════════════════
+#
+# هذا المسار كان مقيساً بحارسٍ ساكن وحده: `actuation_killswitch_coverage_guard` يُثبِت
+# أنّ الاستشارة **تقع** هنا. ولا شيء كان يقيس أنّ نتيجتها تمنع النشر — وهو المسار الذي
+# يعمل **بلا إنسان**، فخطؤه أخطر من خطأ اليدويّ لا أهون.
+
+
+class _RulesConn(_Conn):
+    """اتّصالٌ صناعيّ يُعيد قاعدةً واحدة تُطلِق دائماً."""
+
+    def __init__(self, row: dict | None, rules: list[dict]) -> None:
+        super().__init__(row)
+        self._rules = rules
+
+    async def fetch(self, *_a, **_k):
+        return self._rules
+
+    async def fetchval(self, *_a, **_k):
+        return None
+
+
+class _RulesPool(_Pool):
+    def __init__(self, rules: list[dict]) -> None:
+        super().__init__(None)
+        self._rules = rules
+
+    def acquire(self):
+        rules = self._rules
+
+        class _Ctx:
+            async def __aenter__(self):
+                return _RulesConn(None, rules)
+
+            async def __aexit__(self, *_exc):
+                return False
+
+        return _Ctx()
+
+
+def _always_firing_rule() -> dict:
+    """قاعدةٌ بلا نافذة زمنيّة ولا تهدئة ولا سقف — تُطلِق على أيّ قيمة فوق العتبة."""
+    return {
+        "rule_id": "11111111-1111-1111-1111-111111111111",
+        "trigger_operator": ">",
+        "trigger_threshold": 10,
+        "trigger_duration_sec": 0,
+        "action_device": "valve-a",
+        "action_command": "open",
+        "action_payload": {},
+        "max_daily_runs": None,
+        "cooldown_sec": 0,
+        "last_triggered": None,
+        "today_run_count": 0,
+        "last_reset_date": None,
+        "time_window_start": None,
+        "time_window_end": None,
+        "days_of_week": None,
+    }
+
+
+@pytest.fixture
+def rules(actuator, monkeypatch) -> _Trace:
+    main, _router = actuator
+    trace = _Trace()
+    monkeypatch.setattr(main, "_pool", _RulesPool([_always_firing_rule()]))
+    monkeypatch.setattr(main, "send_mqtt_command", trace.mqtt)
+    monkeypatch.setattr(main, "log_command", trace.log)
+    monkeypatch.setattr(main, "is_actuation_halted", trace.killswitch)
+    monkeypatch.setattr(main, "ACTUATOR_IDEMPOTENCY_MODE", "local")
+    main._dedup_last_fired.clear()
+    trace.evaluate = main.evaluate_rules  # type: ignore[attr-defined]
+    return trace
+
+
+async def test_the_rules_path_consults_with_tenant_field_and_valve_scope(rules):
+    """نفس نطاق التعويض واليدويّ — بوّابات تختلف في النطاق تختلف في المعنى."""
+    await rules.evaluate("soil_moisture", 42.0, TENANT, "field-9")
+
+    assert rules.of("killswitch") == [("killswitch", TENANT, "field-9", "valve-a")]
+
+
+async def test_an_engaged_switch_stops_the_automated_valve(rules):
+    """المسار الذي يعمل بلا إنسان: مُوقَف ⇒ لا نشر، ويُسجَّل `blocked`."""
+    rules.halts[("field-9", "valve-a")] = (True, "إيقاف الحقل")
+
+    await rules.evaluate("soil_moisture", 42.0, TENANT, "field-9")
+
+    assert rules.of("mqtt") == [], "قاعدةٌ آليّة حرّكت صمّاماً والمفتاح مُشتبَك"
+    assert [e[3] for e in rules.of("log")] == ["blocked"]
+
+
+async def test_a_clear_switch_still_lets_the_rule_fire(rules):
+    """وإلّا استبدلنا عطلاً بعطل: أتمتةٌ لا تعمل عطلٌ أيضاً."""
+    await rules.evaluate("soil_moisture", 42.0, TENANT, "field-9")
+
+    assert [(e[1], e[2]) for e in rules.of("mqtt")] == [("valve-a", "open")]

@@ -1,8 +1,8 @@
 {
   "$comment": "ملفّات في scripts/ وtests/ وtests_v9/ تقرأ نصّاً أو تفكّ ترميز مخرَج عمليّة **بترميز اللغة الافتراضيّ** لا بـUTF-8 صريح. على Linux/CI الافتراضيّ UTF-8 فتمرّ؛ وعلى محطّة بترميز آخر (Windows cp1252، أو أيّ بيئة بلغة C) تنهار بـUnicodeDecodeError على أوّل بايت عربيّ. القائمة **تتقلّص ولا تنمو**: ملفّ جديد بقراءة بلا ترميز يُسقِط الاختبار، ومدخل يُحذف عند إصلاحه ولا يُضاف لتمرير CI.",
   "a_false_positive_the_external_report_caught": "أدرج الماسح الأوّل أربعة ملفّات دَيناً وهي نظيفة: قرأ وسيط الوضع من الموضع الثاني دائماً، وموضعه في `path.open(\"rb\")` هو **الأوّل** — فحُسِب كلّ فتح ثنائيّ على كائن مسار عيباً. وأدرج كذلك `read_text(path)` كاسم عارٍ وهي دالّة محلّيّة لا طريقة مسار. أمسك بها فحصٌ خارجيّ لا أنا: أساسٌ يُبالغ في الدَّين يُدرِّب قارئه على تجاهله. ١٨٨ ⇒ ١٨٤ ملفّاً، ٤٦٠ ⇒ ٤٥٤ موضعاً — تصحيح دقّة لا إصلاح شيفرة.",
-  "a_fourth_vector_the_environment_itself": "‏`os.environ[k] = v` يُرمّز بترميز **نظام الملفّات** — ASCII تحت لغة C — فقيمة عربيّة في متغيّر بيئة ترفع UnicodeEncodeError قبل أن تصل الشيفرة المفحوصة. وهذا **حدّ نظام تشغيل لا عيب شيفرة**، فلا يُدرَج في الأساس ولا يُصلَح بـ`encoding`؛ يُشترَط بقدرة المنصّة (`sys.getfilesystemencoding`) فتبقى التغطية حيث تُمكن وتُعلَن حيث لا تُمكن.",
-  "closed_by_proof_8": "ثمانية ملفّات أُثبِت انهيارها تحت لغة C وأُصلِحت، فخرجت من الأساس. الشرط لكلٍّ: فشل قبل الإصلاح ⇒ نجاح بعده تحت نفس اللغة — لا «أضفتُ encoding فليكن صحيحاً».",
+  "a_fourth_vector_the_environment_itself": "`os.environ[k] = v` يُرمّز بترميز **نظام الملفّات** — ASCII تحت لغة C — فقيمة عربيّة في متغيّر بيئة ترفع UnicodeEncodeError قبل أن تصل الشيفرة المفحوصة. وهذا **حدّ نظام تشغيل لا عيب شيفرة**، فلا يُدرَج في الأساس ولا يُصلَح بـ`encoding`؛ يُشترَط بقدرة المنصّة (`sys.getfilesystemencoding`) فتبقى التغطية حيث تُمكن وتُعلَن حيث لا تُمكن.",
+  "closed_by_proof_8": "واحدٌ وثلاثون ملفّاً أُثبِت انهيارها تحت لغة C وأُصلِحت، فخرجت من الأساس. الشرط لكلٍّ: فشل قبل الإصلاح ⇒ نجاح بعده تحت نفس اللغة — لا «أضفتُ encoding فليكن صحيحاً». **والدفعة الثانية (٢٢، 2026-08-13) كُشِفت بمسحٍ لم يكن قائماً:** إشعالُ **كلّ** حارسٍ في `scripts/ci/` عمليّةً فرعيّة تحت `LC_ALL=C PYTHONUTF8=0`. وكلّها حرّاس **بلا `main()`** — جسدُها يعمل عند التحميل — فكانت تنهار قبل أن تقيس شيئاً: حارسٌ يُبلِغ حجباً على شجرةٍ سليمة. المقيس: ٢٢/٢٢ انهارت بـUnicodeDecodeError قبل الإصلاح، و٢٢/٢٢ خرجت بـ0 بعده تحت نفس اللغة. **والثالث والعشرون درسٌ في ترتيب الأعطال:** `brain_commit_claim_guard` كان يموت في القراءة (`subprocess(text=True)` على رسائل التزام عربيّة — المتّجه ②)، فلمّا ثُبِّتت ظهر أنّه يموت في الكتابة أيضاً. عطلان في ملفٍّ واحد، والثاني **مستورٌ بالأوّل** — ولا يكشفه إلّا إعادةُ القياس بعد كلّ إصلاح.",
   "files": {
     "scripts/certification/evidence_lab.py": {
       "reads": 0,
@@ -36,10 +36,6 @@
       "reads": 2,
       "subprocess": 0
     },
-    "scripts/ci/brain_commit_claim_guard.py": {
-      "reads": 0,
-      "subprocess": 1
-    },
     "scripts/ci/brain_state_transition_guard.py": {
       "reads": 0,
       "subprocess": 2
@@ -59,10 +55,6 @@
     "scripts/ci/capability_regression_gate.py": {
       "reads": 2,
       "subprocess": 1
-    },
-    "scripts/ci/decision_lineage_v183_guard.py": {
-      "reads": 3,
-      "subprocess": 0
     },
     "scripts/ci/docker_build_matrix_verifier.py": {
       "reads": 0,
@@ -92,16 +84,8 @@
       "reads": 2,
       "subprocess": 0
     },
-    "scripts/ci/irrigation_capability_graph_m2_8_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
     "scripts/ci/irrigation_closed_loop_m5_guard.py": {
       "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/irrigation_closed_loop_runtime_guard.py": {
-      "reads": 3,
       "subprocess": 0
     },
     "scripts/ci/irrigation_commissioning_m2_10_guard.py": {
@@ -132,32 +116,8 @@
       "reads": 2,
       "subprocess": 0
     },
-    "scripts/ci/irrx1_6_manual_volume_guard.py": {
-      "reads": 4,
-      "subprocess": 0
-    },
-    "scripts/ci/irrx1_9_multi_system_calculator_guard.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
-    "scripts/ci/irrx1_authoritative_provenance_guard.py": {
-      "reads": 4,
-      "subprocess": 0
-    },
-    "scripts/ci/irrx1_commissioning_runtime_guard.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
     "scripts/ci/irrx1_manual_execution_guard.py": {
       "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/irrx1_vendor_neutral_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/irrx1_verified_manual_ledger_guard.py": {
-      "reads": 1,
       "subprocess": 0
     },
     "scripts/ci/learning_attribution_boundary_gate.py": {
@@ -252,68 +212,20 @@
       "reads": 0,
       "subprocess": 1
     },
-    "scripts/ci/scene_provenance_ui_guard.py": {
-      "reads": 4,
-      "subprocess": 0
-    },
     "scripts/ci/service_port_gate.py": {
       "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_full_chain_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_lab_projection_guard.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_lab_supersession_lineage_guard.py": {
-      "reads": 2,
       "subprocess": 0
     },
     "scripts/ci/soil_p1_products_guard.py": {
       "reads": 2,
       "subprocess": 0
     },
-    "scripts/ci/soil_p2_products_guard.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
     "scripts/ci/soil_p3_products_guard.py": {
       "reads": 3,
       "subprocess": 0
     },
-    "scripts/ci/soil_p4_closed_loop_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
     "scripts/ci/soil_p5_certification_guard.py": {
       "reads": 1,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_p6_runtime_certification_guard.py": {
-      "reads": 3,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_profile_contract_guard.py": {
-      "reads": 5,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_projection_observability_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_projection_reconciliation_guard.py": {
-      "reads": 4,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_runtime_certification_guard.py": {
-      "reads": 2,
-      "subprocess": 0
-    },
-    "scripts/ci/soil_supersession_current_pointer_guard.py": {
-      "reads": 2,
       "subprocess": 0
     },
     "scripts/ci/static_governance_closure.py": {
@@ -343,10 +255,6 @@
     "scripts/ci/verify_all_generated.py": {
       "reads": 0,
       "subprocess": 4
-    },
-    "scripts/ci/weather_hourly_etc_wx_i1_guard.py": {
-      "reads": 5,
-      "subprocess": 0
     },
     "scripts/ci/wx11_closed_loop_completion_gate.py": {
       "reads": 3,
@@ -726,5 +634,6 @@
   "measured_on": "249d94c1 (على 3b8352b5، 2026-08-01)",
   "three_vectors_not_one": "① قراءة مباشرة بلا `encoding`. ② `subprocess(..., text=True)` — الأب يفكّ بترميز اللغة. ③ **مخرَج الابن نفسه**: `encoding` على الأب لا يُملي على الابن بماذا يكتب، فرسالة تحوي عربيّة أو «—» تُسقِط الابن بـUnicodeEncodeError. يُغلَق بـ`PYTHONIOENCODING=utf-8` في بيئته. العلاج الذي وصفه التقرير (encoding على القراءة) يُغلق **٨ من ١٢** لا ١٢.",
   "two_vectors_not_one": "① قراءة مباشرة: `read_text()`/`open()` بلا `encoding`. ② فكّ ترميز مخرَج عمليّة: `subprocess.run(..., text=True)` يفكّ بترميز اللغة أيضاً — فاختبارٌ يُشغّل حارساً يطبع عربيّة ينهار في **الأب** لا في الابن. الثاني لا يظهر لأيّ فحص يبحث عن `open(` وحده.",
-  "what_this_baseline_does_not_claim": "المُدرَج هنا **لم يُثبَت أنّه ينهار**؛ أُثبِت انهيار ثمانية ملفّات فقط (أُصلِحت). البقيّة تقرأ ملفّات ASCII اليوم — وهذا حظّ لا تصميم: توثيق هذا المستودع عربيّ، فأوّل حرف عربيّ يدخل ملفّاً مقروءاً يحوّل المدخل إلى عطل. الأساس يمنع النموّ ولا يدّعي أنّ ما فيه سليم."
+  "what_this_baseline_does_not_claim": "المُدرَج هنا **لم يُثبَت أنّه ينهار**؛ أُثبِت انهيار ثمانية ملفّات فقط (أُصلِحت). البقيّة تقرأ ملفّات ASCII اليوم — وهذا حظّ لا تصميم: توثيق هذا المستودع عربيّ، فأوّل حرف عربيّ يدخل ملفّاً مقروءاً يحوّل المدخل إلى عطل. الأساس يمنع النموّ ولا يدّعي أنّ ما فيه سليم.",
+  "second_sweep_2026_08_13": "لماذا لم يرَ الماسحُ الساكن ما رآه هذا: هو يقرأ **الشيفرة** ويقول «هذا السطر قد ينهار»، وذاك يُشغّل **العمليّة** ويقول «هذا انهار». والأساس كان يُقرّ بالفرق صراحةً — «المُدرَج هنا لم يُثبَت أنّه ينهار» — فجاء الإشعال ليُحوّل ٢٢ من الظنّ إلى قياس. ويفرضه الآن `scripts/ci/guard_locale_survival_guard.py` على كلّ حارس، فلا يعود الأمر إلى مسحٍ يدويّ."
 }

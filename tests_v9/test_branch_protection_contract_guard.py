@@ -453,3 +453,103 @@ def test_the_measurement_of_no_network_would_catch_a_real_call():
         if token.type not in (tokenize.COMMENT, tokenize.STRING)
     )
     assert "httpx" not in executable.split()
+
+
+# ── البند المشروط: منشأ التفويض — GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01 ──
+#
+# طبقة AUTHORIZATION في GATE-01 تقرأ `approved_by: owner` من ملفٍّ **في نفس الـPR**
+# ولا تُثبِت منشأه: من يحتاج التفويض يستطيع إصداره. ومراجعةُ مالكي الكود هي ما تجعل
+# المنشأ هويّةً مستقلّة. والبند **مشروط بالمسّ** لا دائم — بندٌ دائم كان يحجب كلّ دمجٍ
+# في المستودع حتّى يُفعَّل إعدادٌ لا يملكه وكيل، وذلك ثمنٌ لا تُبرّره فجوةٌ نطاقُها ملفّان.
+
+ADJUDICATION = "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json"
+
+
+def _rules_with_code_owner(value) -> list:
+    rules = _rules(True)
+    rules[-1]["parameters"][MOD.CODE_OWNER_PARAMETER] = value
+    return rules
+
+
+def _run_changed(tmp_path: Path, document, changed: list[str]) -> int:
+    listing = tmp_path / "changed.txt"
+    listing.write_text("\n".join(changed), encoding="utf-8")
+    return MOD.main(
+        [
+            "--protection-file",
+            str(_protection(tmp_path, document)),
+            "--expect-repository",
+            REPO,
+            "--expect-sha",
+            SHA,
+            "--changed-files",
+            str(listing),
+        ]
+    )
+
+
+def test_touching_the_authorization_path_requires_code_owner_review(tmp_path):
+    """PR تُصدِر تفويضاً ومراجعةُ مالكي الكود غير مفروضة ⇒ حجب."""
+    assert _run_changed(tmp_path, _envelope(_rules(True)), [ADJUDICATION]) == 1
+
+
+def test_touching_the_authorization_path_passes_when_code_owners_are_required(tmp_path):
+    assert _run_changed(tmp_path, _envelope(_rules_with_code_owner(True)), [ADJUDICATION]) == 0
+
+
+def test_an_unrelated_pr_is_not_blocked_by_the_conditional_term(tmp_path):
+    """البند مشروط بالمسّ — وإلّا حجب كلّ دمجٍ في المستودع على إعدادٍ لا يملكه وكيل.
+
+    وهذا هو الفرق بين حمايةٍ متناسبة و«أساسٍ يُدرَّب قارئه على تعطيله».
+    """
+    assert _run_changed(tmp_path, _envelope(_rules(True)), ["README.md"]) == 0
+
+
+def test_a_missing_code_owner_key_is_not_read_as_enabled(tmp_path):
+    """الغياب مخالفةٌ لا سكوت — نفس قاعدة البند الدائم."""
+    assert _run_changed(tmp_path, _envelope(_rules(True)), [ADJUDICATION]) == 1
+
+
+def test_a_policy_change_alone_does_not_trigger_the_term(tmp_path):
+    """الشرط على مسار **نُسخ التفويض** لا على كلّ ما في `docs/architecture`.
+
+    وسياسةُ البوّابة نفسها يحرسها `claim_base_guard` ومسحُ المستوى الأعلى — فتوسيعُ
+    هذا الشرط إليها كان سيُضاعِف الحجب بلا قياسٍ يُبرّره.
+    """
+    assert MOD.touches_authorization(["docs/architecture/gate01_policy.json"]) is False
+    assert MOD.touches_authorization([ADJUDICATION]) is True
+
+
+def test_an_unreadable_changed_file_list_fails_closed(tmp_path):
+    """راية مُمرَّرة لملفٍّ غير موجود تعني أنّ الاشتقاق لم يعمل — لا أنّ شيئاً لم يُمَسّ."""
+    with pytest.raises(SystemExit):
+        MOD.main(
+            [
+                "--protection-file",
+                str(_protection(tmp_path, _ENABLED)),
+                "--expect-repository",
+                REPO,
+                "--expect-sha",
+                SHA,
+                "--changed-files",
+                str(tmp_path / "absent.txt"),
+            ]
+        )
+
+
+def test_codeowners_names_the_authorization_path() -> None:
+    """الملفّ خاملٌ بلا الإعداد — لكنّ غيابَه يجعل الإعداد بلا مالكٍ يُراجع.
+
+    فيُفحَص وجودُ السطر، **ولا يُقرأ تفعيلاً**: التفعيل يقيسه البند المشروط أعلاه على
+    القواعد النافذة فعلاً.
+    """
+    codeowners = (Path(__file__).resolve().parents[1] / ".github/CODEOWNERS").read_text(
+        encoding="utf-8"
+    )
+    owned = [
+        line
+        for line in codeowners.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+
+    assert any("gates/adjudications" in line and "@" in line for line in owned)

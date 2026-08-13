@@ -157,6 +157,13 @@ jobs:
         run: python scripts/ci/soil_p6_runtime_certification_guard.py
       - name: no unresolved merge-conflict markers (repo-wide)
         run: python scripts/ci/no_merge_conflict_markers_guard.py
+      # BIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01: bandit يمسك RLM في نطاق
+      # `services/ bots/ agents/` وحده، والمحارف مقيسة في ٩٣ ملفّاً عبر الشجرة —
+      # json وmd وyml وsql وtsx وps1. وهو يحجب RLM ولا يحجب LRM، فاستبدال أحدهما
+      # بالآخر كان يُمرِّر البوّابة **ويُبقي المحرف الخفيّ**. وهذا يعدّهما معاً،
+      # ويحجب **مطلقاً** على محارف قلب الاتّجاه (trojan source) بلا أساس ولا استثناء.
+      - name: no hidden bidi control characters (repo-wide)
+        run: python scripts/ci/bidi_control_char_guard.py
       # JSON-SCHEMAS-WITH-NO-VALIDATOR-01 — one validator for every *.schema.json in the
       # tree, discovered from git rather than listed. Placed in the central structural
       # job on purpose: a per-domain workflow would give remote_sensing, soil,
@@ -632,6 +639,16 @@ jobs:
       # حين يكبر عدد المُواصَفين تُنقَل إلى وظيفة مستقلّة.
       - name: guard-mutation guard (plant the defects)
         run: python scripts/ci/guard_mutation_guard.py --run
+      # GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: حارسٌ يحسب صحيحاً ثمّ
+      # يموت وهو يطبع نجاحه ⇒ rc=1 يُقرَأ حجباً وهو قد مرّ. أوّل إشعالٍ لكلّ حارسٍ تحت
+      # `LC_ALL=C` أعطى ٣٥ انهياراً في الكتابة و٢٣ في القراءة — وكلّها خضراء في CI،
+      # لأنّ عدّاء Linux افتراضيّه UTF-8. فالخضرة كانت شهادةً على لغة العدّاء.
+      #
+      # وموضعها هنا لا في *Lint & Format*: البوّابة **تُشغّل** كلّ حارس، فيلزمها
+      # تبعيّاته وإلّا مات بالاستيراد قبل أوّل طباعة — ومرورٌ كهذا ليس دليلاً. وهي
+      # تُعلِن عدد من لم يُقَس لهذا السبب بالضبط، فلا تُقرأ خضرتُها أوسع ممّا قاست.
+      - name: Every guard survives being run under a C locale
+        run: python scripts/ci/guard_locale_survival_guard.py
       # UNIT-SUITE-RUN-TWICE-01 (2026-08-05): كانت هنا خطوتان تُشغّلان **الجناح نفسه
       # مرّتين** — `pytest -v -m unit --cov=services --cov-report=…` ثمّ خطوة بوّابة
       # التغطية `pytest -m unit --cov=services --cov-fail-under=43 -q`. نفس العلامة،
@@ -1227,7 +1244,7 @@ jobs:
               -q -f "migrations/$f"
             applied=$((applied + 1))
           done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
-          echo "‏هجرات مُطبَّقة: $applied من $expected مُعلَنة"
+          echo "هجرات مُطبَّقة: $applied من $expected مُعلَنة"
           test "$applied" -eq "$expected" || {
             echo "::error::طُبِّق $applied من $expected — أُسقِط ملفّ صامتاً"; exit 1; }
       - name: Provision the restricted application role
@@ -1283,7 +1300,7 @@ jobs:
         #
         # **و`if: always()` ليس تساهلاً بل شرطُ وجود الدليل.** الخطوة تكتب
         # `live_pg_evidence.json` بحكمه `PASS`/`FAIL` **قبل** إعادة أيّ رمز خروج غير
-        # صفريّ (‏`--evidence`)، فلو عُلِّقت على نجاح ما قبلها لما وُجِدت الوثيقة إلّا
+        # صفريّ (`--evidence`)، فلو عُلِّقت على نجاح ما قبلها لما وُجِدت الوثيقة إلّا
         # يوم لا نحتاجها. والفشل يبقى فشلاً: رمز الخروج غير الصفريّ يُسقِط الوظيفة.
         if: always()
         env:

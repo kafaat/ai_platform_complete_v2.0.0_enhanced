@@ -11,7 +11,7 @@ required = [
 for rel in required:
     if not (root / rel).is_file():
         raise SystemExit(f"IRR-X1.1 guard: missing {rel}")
-text = (root / required[0]).read_text()
+text = (root / required[0]).read_text(encoding="utf-8")
 for token in [
     "No valid commissioning certificate" if False else "VALID_COMMISSIONING_CERTIFICATE_REQUIRED",
     "authorize_execution",
@@ -22,7 +22,7 @@ for token in [
 ]:
     if token not in text:
         raise SystemExit(f"IRR-X1.1 guard: missing invariant {token}")
-router = (root / required[1]).read_text()
+router = (root / required[1]).read_text(encoding="utf-8")
 for route in [
     "/commissioning/certificates",
     "/commissioning/systems/{system_id}/current",
@@ -30,7 +30,7 @@ for route in [
 ]:
     if route not in router:
         raise SystemExit(f"IRR-X1.1 guard: missing route {route}")
-sql = (root / required[3]).read_text()
+sql = (root / required[3]).read_text(encoding="utf-8")
 for token in [
     "ENABLE ROW LEVEL SECURITY",
     "FORCE ROW LEVEL SECURITY",

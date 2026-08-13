@@ -29,15 +29,15 @@ checks = {
     ],
 }
 for filename, needles in checks.items():
-    text = Path(filename).read_text()
+    text = Path(filename).read_text(encoding="utf-8")
     missing = [n for n in needles if n not in text]
     if missing:
         raise SystemExit(f"{filename}: missing {missing}")
-router = Path("services/sahool-platform/api/routers/soil_sampling.py").read_text()
+router = Path("services/sahool-platform/api/routers/soil_sampling.py").read_text(encoding="utf-8")
 for forbidden in ("_LAB_SAMPLES", "_SOIL_RESULTS", "_WATER_RESULTS"):
     if forbidden in router:
         raise SystemExit(f"process-local lab SoR forbidden: {forbidden}")
-manifest = Path("migrations/MANIFEST.txt").read_text()
+manifest = Path("migrations/MANIFEST.txt").read_text(encoding="utf-8")
 if "v156_durable_soil_lab_workflow.sql" not in manifest:
     raise SystemExit("v156 missing from migration manifest")
 print("soil_lab_projection_guard_ok")

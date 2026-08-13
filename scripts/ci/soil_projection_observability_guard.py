@@ -19,8 +19,10 @@ required = {
     "services/soil-service/projection_jobs.py": ["JOBS_CLAIMED", "JOBS_COMPLETED", "JOBS_FAILED"],
 }
 for path, needles in required.items():
-    text = Path(path).read_text()
+    text = Path(path).read_text(encoding="utf-8")
     for needle in needles:
         assert needle in text, f"{path}: missing {needle}"
-assert "v158_soil_projection_observability.sql" in Path("migrations/MANIFEST.txt").read_text()
+assert "v158_soil_projection_observability.sql" in Path("migrations/MANIFEST.txt").read_text(
+    encoding="utf-8"
+)
 print("soil_projection_observability_guard_ok")

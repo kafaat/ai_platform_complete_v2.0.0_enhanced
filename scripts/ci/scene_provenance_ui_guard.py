@@ -4,10 +4,14 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-component = (ROOT / "frontend/src/components/maphub/SceneProvenanceCard.tsx").read_text()
-workspace = (ROOT / "frontend/src/sections/FieldWorkspaceImageryPanel.tsx").read_text()
-maphub = (ROOT / "frontend/src/sections/MapHub.tsx").read_text()
-api = (ROOT / "frontend/src/services/api/fieldImagery.ts").read_text()
+component = (ROOT / "frontend/src/components/maphub/SceneProvenanceCard.tsx").read_text(
+    encoding="utf-8"
+)
+workspace = (ROOT / "frontend/src/sections/FieldWorkspaceImageryPanel.tsx").read_text(
+    encoding="utf-8"
+)
+maphub = (ROOT / "frontend/src/sections/MapHub.tsx").read_text(encoding="utf-8")
+api = (ROOT / "frontend/src/services/api/fieldImagery.ts").read_text(encoding="utf-8")
 
 for token in (
     "scene_id",

@@ -17,14 +17,14 @@
 **ثقبان أُغلِقا بعد أن أسقطا ملفّين حقيقيّين.** كلاهما من صنف واحد: الحارس يثبّت
 *تنفيذاً* حيث كانت *الخاصّيّة* مطلوبة.
 
-  ① **النطاق كان مسطّحاً.** ‏``git ls-files 'tests_v9/test_*.py'`` لا يرى
+  ① **النطاق كان مسطّحاً.** ``git ls-files 'tests_v9/test_*.py'`` لا يرى
      ``tests_v9/<دليل>/test_*.py``. فملفّا ``tests_v9/runtime_activation/`` — ثمانية
      اختبارات تؤكّد التركيبة القانونيّة ومسارات البوّابة — كانا ميّتين في **كلّ** وظيفة،
      و**غير قابلين للظهور في الأساس أصلاً**: الحارس المبنيّ لالتقاط هذا الصنف بالذات
      لا يستطيع تسميتهما. الآن التعداد بالخاصّيّة: كلّ متعقَّب تحت ``tests_v9`` اسمه
      ``test_*.py``، مهما عَمُق.
 
-  ② **والقياس كان نصّيّاً.** ‏``_MARKED`` القديم كان يطابق ``pytestmark`` **مجرّداً**،
+  ② **والقياس كان نصّيّاً.** ``_MARKED`` القديم كان يطابق ``pytestmark`` **مجرّداً**،
      فـ``pytestmark = pytest.mark.asyncio`` يُقرأ «موسوم» بينما ``asyncio`` ليس علامة
      انتقاء فيُستبعَد الملفّ من كلّ وظيفة — موسومٌ ظاهراً، ميّتٌ فعلاً. وكان يطابق داخل
      تعليق أو نصّ. والأدهى: ``registered_markers()`` موصوفةٌ بأنّها «مصدر الحقيقة
@@ -37,7 +37,7 @@
 ``test_the_guard_agrees_with_pytests_own_selection`` يقارن جواب الحارس بجمع pytest
 الحقيقيّ تحت ``-m``، فلا يبقى القياس الرخيص صادقاً بالادّعاء.
 
-يعمل بلا pytest (‏``ast`` من المكتبة القياسيّة) — نفس نمط ``platform_route_placement_guard``.
+يعمل بلا pytest (``ast`` من المكتبة القياسيّة) — نفس نمط ``platform_route_placement_guard``.
 
     python scripts/ci/test_marker_coverage_guard.py --check
 """
@@ -48,7 +48,18 @@ import argparse
 import ast
 import json
 import subprocess
+import sys
 from pathlib import Path
+
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: مخرَجُ هذا الحارس عربيّ،
+# و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان يحسب **صحيحاً** ثمّ يموت وهو يطبع
+# نجاحه (UnicodeEncodeError) ⇒ خروجٌ بـ1 يُقرَأ «الحارس يحجب» وهو قد مرّ. وحارسٌ
+# يُبلِغ فشلاً لأنّه عجز عن طباعة نجاحه أسوأ من حارسٍ صامت: الصامت يُرى غيابُه،
+# وهذا يُرى **ضدّ** ما قاس. القراءة محكومة بأساسٍ قائم؛ والمنسيّ كان الكتابة.
+# **عند التحميل لا داخل `main()`** — فبعض الحرّاس بلا `main` أصلاً، تطبع من جسدها.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
 BASELINE = ROOT / "docs" / "testing" / "unmarked_tests_baseline.json"
@@ -157,7 +168,7 @@ def check() -> int:
         problems.append(
             f"اختبار بلا علامة وخارج الأساس: {path} — أضف "
             f"`pytestmark = pytest.mark.<علامة>`؛ بلا علامة **مُسجَّلة في pytest.ini** "
-            f"لا يعمل في أيّ وظيفة CI (‏`pytest.mark.asyncio` وحدها لا تكفي)."
+            f"لا يعمل في أيّ وظيفة CI (`pytest.mark.asyncio` وحدها لا تكفي)."
         )
     for path in sorted(in_baseline - in_tree):
         problems.append(f"مدخل بائت في الأساس: {path} — وُسِم أو حُذِف. احذف المدخل (الأساس يتقلّص).")

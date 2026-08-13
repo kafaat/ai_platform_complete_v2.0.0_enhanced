@@ -25,11 +25,11 @@ req = {
     ],
 }
 for f, toks in req.items():
-    s = Path(f).read_text()
+    s = Path(f).read_text(encoding="utf-8")
     for x in toks:
         assert x in s, (f, x)
 # Repository ratchet: direct soil primitives are forbidden in newly governed decision entrypoints.
 for f in ["services/decision-service/main.py"]:
-    s = Path(f).read_text()
+    s = Path(f).read_text(encoding="utf-8")
     assert "DECISION_REQUIRE_SOIL_PROFILE" in s
 print("soil_p4_closed_loop_guard_ok")

@@ -13,7 +13,7 @@ missing = [str(p.relative_to(root)) for p in required if not p.exists()]
 if missing:
     print("IRR-X1 guard failed; missing:", *missing, sep="\n- ")
     sys.exit(1)
-text = required[0].read_text()
+text = required[0].read_text(encoding="utf-8")
 for token in (
     "IrrigationSystemSpecification",
     "capability_graph",

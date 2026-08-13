@@ -2,10 +2,14 @@
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-backend = (root / "services/sahool-platform/api/irrigation_manual_execution.py").read_text()
-api = (root / "frontend/src/services/api/irrigationManualOperations.ts").read_text()
-ui = (root / "frontend/src/sections/IrrigationManualOperationsPanel.tsx").read_text()
-tests = (root / "tests_v9/test_irrx1_2_manual_execution_lifecycle.py").read_text()
+backend = (root / "services/sahool-platform/api/irrigation_manual_execution.py").read_text(
+    encoding="utf-8"
+)
+api = (root / "frontend/src/services/api/irrigationManualOperations.ts").read_text(encoding="utf-8")
+ui = (root / "frontend/src/sections/IrrigationManualOperationsPanel.tsx").read_text(
+    encoding="utf-8"
+)
+tests = (root / "tests_v9/test_irrx1_2_manual_execution_lifecycle.py").read_text(encoding="utf-8")
 
 required = {
     "backend field": "manual_volume_m3: float | None",
