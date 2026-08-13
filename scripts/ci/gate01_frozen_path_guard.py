@@ -194,6 +194,52 @@ def evaluate(changed: list[str], policy: dict, adjudications: list[dict], blobs:
     )
 
 
+def stale_authorization_errors(
+    adjudications: list[dict], touched: set[str], blobs: dict[str, str]
+) -> list[str]:
+    """تفويضٌ `ISSUED` هبطت بايتاتُه بالفعل ⇒ استُهلِك ولم يُختَم.
+
+    **الفجوة المقيسة `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01`:** حقل `one_time`
+    يَعِد بأنّ التفويض المُستعمَل لا يُستعمَل ثانيةً، و`_authorization_errors` يفرض
+    `status == "ISSUED"` — لكن **لا شيء يُحوِّل `ISSUED` إلى `CONSUMED` بعد الدمج**.
+    فبقي تفويض `#837` صالحاً بعد هبوط رقعته، وشُغِّلت `evaluate()` عليه فأعطت PASS.
+
+    **ولماذا ليس «كلّ ISSUED بايتاتُه مطابقة» مخالفةً:** أثناء الـPR المأذونة نفسها
+    تكون البايتات مطابقةً للشجرة — فذلك هو الاستعمال المشروع. والمُميِّز أن يكون
+    الـdiff الحاليّ **لا يلمس** المسارات المأذونة: عندها التطابق يعني أنّها هبطت
+    سلفاً، لا أنّها تُستعمَل الآن.
+
+    **ولماذا لا يُسأل GitHub «أمدموجةٌ الـPR؟»:** لأنّ عقد هذا المستودع أنّ حالة
+    GitHub لا تدخل أداةً — تُقاس في الوظيفة ويُحكَم في الحارس. وهذا البديل يُشتقّ من
+    **الشجرة وحدها**، فيعمل محلّيّاً بلا شبكة ويلتقط الحالة نفسها.
+
+    **والحارس يبقى للقراءة فقط:** يكشف ولا يختم. الختم إجراءٌ منفصل بعد الدمج —
+    فحارسٌ يكتب أثناء CI يصير طرفاً في القرار الذي يحكم فيه.
+    """
+    errs: list[str] = []
+    for adj in adjudications:
+        if adj.get("status") != "ISSUED":
+            continue
+        allowed = adj.get("allowed_paths")
+        declared = adj.get("authorized_blobs")
+        if not isinstance(allowed, list) or not isinstance(declared, dict):
+            continue
+        if set(allowed) & touched:
+            continue  # يُستعمَل في هذا التغيير — استعمالٌ مشروع لا بقاءٌ بائت
+        if any(blobs.get(p) is None for p in allowed):
+            continue  # مسارٌ غائب ⇒ لم يهبط
+        if {p: blobs.get(p) for p in allowed} != declared:
+            continue  # الشجرة تخالف المأذون ⇒ لم يهبط بعد
+        ident = adj.get("adjudication_id", "<بلا معرّف>")
+        errs.append(
+            f"{ident}: تفويضٌ `ISSUED` وبايتاتُه المأذونة **هبطت بالفعل** في الشجرة "
+            f"(‏PR {adj.get('pr')}) — استُهلِك ولم يُختَم. اختمه `CONSUMED` مع "
+            "`merge_sha`، وإلّا بقي إذناً حيّاً يُعيد رقعةً سبق الإذن بها "
+            "(GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01)."
+        )
+    return errs
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="حارس GATE-01 — تفويضٌ مقيَّد يُستهلَك")
     parser.add_argument("--stdin", action="store_true", help="اقرأ المسارات المُغيَّرة من stdin")
@@ -211,6 +257,11 @@ def main(argv: list[str] | None = None) -> int:
     blobs = {p: blob_sha(p) for p in (policy.get("frozen_paths") or [])}
 
     errors, used = evaluate(changed, policy, adjudications, blobs)
+    # فحصُ دورة الحياة يجري **دائماً**، حتّى حين لا يُمَسّ مجمَّد: تفويضٌ بائت لا
+    # يُكتشَف بالمسّ بل بمرور الزمن عليه، فلو رُبِط بالمسّ لبقي صامتاً إلى أن
+    # يستعمله أحد — وهو الأوان الذي وُجِد ليسبقه.
+    frozen_touched = {p for p in changed if p in set(policy.get("frozen_paths") or [])}
+    errors = list(errors) + stale_authorization_errors(adjudications, frozen_touched, blobs)
     if errors:
         print("gate01_frozen_path_guard_failed")
         for e in errors:

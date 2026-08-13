@@ -534,6 +534,42 @@
           "find": "    if adj.get(\"schema\") != \"sahool.gate01_adjudication/v1\":",
           "replace": "    if False:",
           "why": "مخطَّطٌ مجهول يُقرأ إذناً ⇒ أيّ JSON في المجلَّد يصير تفويضاً."
+        },
+        {
+          "expect": "test_an_issued_authorization_whose_bytes_already_landed_is_flagged_as_spent",
+          "find": "        if {p: blobs.get(p) for p in allowed} != declared:",
+          "replace": "        if True:",
+          "why": "تعطيل رصد الهبوط يُعيد الفجوة نفسها: تفويضٌ استُهلِك ولم يُختَم يبقى `ISSUED` حيّاً بلا أن يُحمِرّ شيء (GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01)."
+        },
+        {
+          "expect": "test_an_authorization_in_flight_on_its_own_paths_is_not_flagged",
+          "find": "        if set(allowed) & touched:",
+          "replace": "        if False:",
+          "why": "نزعُ المُميِّز يجعل الفحص «كلّ تفويضٍ بايتاتُه مطابقة» — فيتّهم الرقعةَ المأذونة أثناء PR-ها بأنّها بائتة، وهي بالضرورة مطابقة حينها."
+        },
+        {
+          "expect": "test_an_authorization_whose_bytes_have_not_landed_is_not_flagged",
+          "find": "        if {p: blobs.get(p) for p in allowed} != declared:",
+          "replace": "        if not True:",
+          "why": "قَلبُ الشرط يجعل «الشجرة تخالف المأذون» تُقرأ هبوطاً — فيُتَّهم تفويضٌ لم تهبط رقعتُه بعد بأنّه مُستهلَك، والحارس الذي يتّهم الصحيح يُنزَع."
+        },
+        {
+          "expect": "test_an_authorization_over_a_path_absent_from_the_tree_is_not_flagged",
+          "find": "        if any(blobs.get(p) is None for p in allowed):",
+          "replace": "        if False:",
+          "why": "غيابُ الملفّ يُقرأ هبوطاً حين يُعلِن التفويض `null` — فيُتَّهم إذنٌ لم تهبط رقعتُه بأنّه مُستهلَك."
+        },
+        {
+          "expect": "test_a_sealed_authorization_is_not_flagged_again",
+          "find": "        if adj.get(\"status\") != \"ISSUED\":",
+          "replace": "        if False:",
+          "why": "المختوم يُطالَب بختمٍ تمّ ⇒ حمرةٌ دائمة لا تُرفَع بعملٍ صحيح، وهي أسرع طريق إلى تعطيل الحارس."
+        },
+        {
+          "expect": "test_the_lifecycle_check_is_wired_into_the_entry_point",
+          "find": "    errors = list(errors) + stale_authorization_errors(adjudications, frozen_touched, blobs)",
+          "replace": "    errors = list(errors)",
+          "why": "دالّةٌ صحيحة غير مُستدعاة من نقطة الدخول خضرةٌ عن سؤالٍ لم يُطرَح — كلّ اختبارات الوحدة تبقى خضراء وCI لا تفحص شيئاً."
         }
       ]
     },

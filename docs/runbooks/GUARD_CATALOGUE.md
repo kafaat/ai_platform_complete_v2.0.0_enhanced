@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **240**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **29**
-- إجماليّ الطفرات المُسجَّلة: **193**
+- إجماليّ الطفرات المُسجَّلة: **199**
 
 أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
@@ -232,6 +232,12 @@
 - تفويضٌ على أساسٍ غير المُجمَّد يمرّ ⇒ ينفصل الإذن عن الأدلّة التي بُني عليها. — يُسقِط `test_an_authorization_against_a_different_baseline_is_rejected`
 - إذنُ بوّابةٍ أخرى يفتح هذه ⇒ تتسرّب التفويضات بين البوّابات. — يُسقِط `test_an_authorization_for_another_gate_does_not_authorise_this_one`
 - مخطَّطٌ مجهول يُقرأ إذناً ⇒ أيّ JSON في المجلَّد يصير تفويضاً. — يُسقِط `test_a_malformed_authorization_fails_closed`
+- تعطيل رصد الهبوط يُعيد الفجوة نفسها: تفويضٌ استُهلِك ولم يُختَم يبقى `ISSUED` حيّاً بلا أن يُحمِرّ شيء (GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01). — يُسقِط `test_an_issued_authorization_whose_bytes_already_landed_is_flagged_as_spent`
+- نزعُ المُميِّز يجعل الفحص «كلّ تفويضٍ بايتاتُه مطابقة» — فيتّهم الرقعةَ المأذونة أثناء PR-ها بأنّها بائتة، وهي بالضرورة مطابقة حينها. — يُسقِط `test_an_authorization_in_flight_on_its_own_paths_is_not_flagged`
+- قَلبُ الشرط يجعل «الشجرة تخالف المأذون» تُقرأ هبوطاً — فيُتَّهم تفويضٌ لم تهبط رقعتُه بعد بأنّه مُستهلَك، والحارس الذي يتّهم الصحيح يُنزَع. — يُسقِط `test_an_authorization_whose_bytes_have_not_landed_is_not_flagged`
+- غيابُ الملفّ يُقرأ هبوطاً حين يُعلِن التفويض `null` — فيُتَّهم إذنٌ لم تهبط رقعتُه بأنّه مُستهلَك. — يُسقِط `test_an_authorization_over_a_path_absent_from_the_tree_is_not_flagged`
+- المختوم يُطالَب بختمٍ تمّ ⇒ حمرةٌ دائمة لا تُرفَع بعملٍ صحيح، وهي أسرع طريق إلى تعطيل الحارس. — يُسقِط `test_a_sealed_authorization_is_not_flagged_again`
+- دالّةٌ صحيحة غير مُستدعاة من نقطة الدخول خضرةٌ عن سؤالٍ لم يُطرَح — كلّ اختبارات الوحدة تبقى خضراء وCI لا تفحص شيئاً. — يُسقِط `test_the_lifecycle_check_is_wired_into_the_entry_point`
 
 ### `guard_mutation_guard.py`
 
