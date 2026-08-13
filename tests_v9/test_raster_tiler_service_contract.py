@@ -186,8 +186,17 @@ def test_loader_fails_closed_on_service_mismatch(runtime_identity_module, tmp_pa
         runtime_identity_module.load_build_identity(SERVICE_NAME, meta)
 
 
-def test_loader_fails_closed_on_invalid_git_sha(runtime_identity_module, tmp_path):
-    meta = _write_metadata(tmp_path / "bad_sha.json", git_sha="ABCDEF" * 7)
+def test_loader_fails_closed_on_uppercase_git_sha(runtime_identity_module, tmp_path):
+    # 40 hex chars but uppercase: isolates the lowercase-hex contract
+    # (_SHA_RE) without also failing on length.
+    meta = _write_metadata(tmp_path / "uppercase_sha.json", git_sha="A" * 40)
+    with pytest.raises(runtime_identity_module.BuildIdentityError):
+        runtime_identity_module.load_build_identity(SERVICE_NAME, meta)
+
+
+def test_loader_fails_closed_on_short_git_sha(runtime_identity_module, tmp_path):
+    # Lowercase hex but 39 chars: isolates the exact-length contract.
+    meta = _write_metadata(tmp_path / "short_sha.json", git_sha="a" * 39)
     with pytest.raises(runtime_identity_module.BuildIdentityError):
         runtime_identity_module.load_build_identity(SERVICE_NAME, meta)
 
