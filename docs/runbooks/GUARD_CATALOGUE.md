@@ -11,17 +11,17 @@
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
 - حرّاس تحجب في CI: **240**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **29**
-- إجماليّ الطفرات المُسجَّلة: **199**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **30**
+- إجماليّ الطفرات المُسجَّلة: **206**
 
-أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **210** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (29)
+## الحرّاس المُثبَتة بالتكذيب (30)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -56,6 +56,24 @@
 - جعلُ التقلّص إرشاديّاً ⇒ يعود ١٬٣٨٣٬٣٦٨ بايت إلى صفر بلا حجب، وهي الواقعة الأصليّة. والاختبار المُسمّى **اصطناعيّ عمداً**: اختبار الواقعة الحقيقيّة (test_the_guard_fails_on_the_truncation_that_created_it) يحتاج التاريخ الكامل ويُتخطّى في استنساخ CI الضحل — وطفرةٌ تُسمّي اختباراً مُتخطّى ليست تكذيباً بل صمتاً. — يُسقِط `test_a_merge_that_takes_the_empty_side_is_caught`
 - إسقاطُ فحص الغياب ⇒ شجرةٌ بلا سجلّات تُنتِج صفر أزواج وتطبع ok — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنف الفجوة نفسه داخل علاجها — يُسقِط `test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare`
 - تصليبُ القائمة ⇒ فهرس ثانٍ ينحرف عن `resolve_merge_conflicts`، وهو صنف «قائمتان تصفان الشيء نفسه» — يُسقِط `test_the_file_list_comes_from_the_existing_classifier`
+
+### `brain_commit_claim_guard.py`
+
+**يفرض:** يمنع رسالة التزام من ادّعاء تسجيل فجوة لم تُسجَّل.
+
+**يحجب في:** `no-report-only-change.yml` → `no-report-only-change`
+
+**الاختبار الشاهد:** `tests/architecture/test_brain_commit_claim_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- معرّف تفويضٍ يُطالَب بقسمٍ في سجلّ الفجوات ⇒ إمّا إدخالٌ كاذب (التفويض إذنُ مالكٍ لا عطلٌ مرصود) أو حذفُ المعرّف من الرسالة، أي كتمان أيّ تفويضٍ خُتِم. — يُسقِط `test_a_gate_adjudication_id_is_not_demanded_as_a_gap_section`
+- الصنف يصير استثناءً بدل تحقّق ⇒ معرّف تفويضٍ ملفَّق يمرّ، والذكر يعود ادّعاءً غير مفحوص — وهو العطل الأصليّ الذي بُني الحارس له. — يُسقِط `test_a_fabricated_adjudication_id_is_still_rejected`
+- استثناءٌ بالبادئة يبتلع كلّ فجوة تبدأ بـGATE (منها GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 نفسها) — نفس فخّ `startswith("CVE-")` الذي أسقطه تكذيبُ الاستشارات قبله. — يُسقِط `test_the_adjudication_class_did_not_swallow_real_gap_ids`
+- الفحص الأساسيّ يُفرَّغ: كلّ معرّف يُذكَر يُقرأ مسجَّلاً ⇒ يعود عطل #683 (رسالةٌ تُعلِن أربع فجوات وتصل اثنتان) بلا أن يُحمِرّ شيء. — يُسقِط `test_it_catches_the_real_historical_miss`
+- استثناء الاستشارات يبتلع كلّ معرّف ⇒ الحارس يمرّ على كلّ شيء صامتاً، وهو أخطر من سقوطه لأنّه يُقرأ خضرةً. — يُسقِط `test_the_advisory_exemption_did_not_swallow_real_gap_ids`
+- قصرُ القراءة على العناوين يُعيد الإيجابيّة الكاذبة المشحونة: ٢٢ فجوة مسجَّلة كصفوف تُعامَل كغير مسجَّلة، فتسقط PR تذكر ما هو مسجَّل سلفاً. — يُسقِط `test_table_row_ids_count_as_registered`
+- حدُّ الكلمة يقتطع المعرّف الملتصق بالعربيّة فيخترع وهميّاً (`E2E-UNDER-…`) ويُفوّت الحقيقيّ (`AUTH-E2E-…`) في آنٍ — عطبان متعاكسان من سببٍ واحد. — يُسقِط `test_an_id_glued_to_arabic_text_is_read_whole_not_from_its_middle`
 
 ### `brain_duplicate_gap_identity_guard.py`
 
@@ -540,7 +558,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (211)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (210)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -562,7 +580,6 @@
 | `assertion_presence_guard.py` | حارس «الخضرة الزائفة»: دالّة اختبار بلا تأكيد **وتُرجِع قيمة** لا يمكن أن تفشل. | `capability-registry` |
 | `auth_main_decomposition_guard.py` | Guard the auth-service main.py decomposition boundary. | `guard` |
 | `backfill_ui_sync_gate.py` | Static contract gate for historical imagery backfill UI/runtime synchronization. | `structural-lint` |
-| `brain_commit_claim_guard.py` | يمنع رسالة التزام من ادّعاء تسجيل فجوة لم تُسجَّل. | `no-report-only-change` |
 | `brain_deferral_registry_guard.py` | يمنع تسرّب التأجيلات من `hot.md` دون تسجيلها في `gaps/registry.md`. | `no-report-only-change` |
 | `build_service_dependency_bundle.py` | Build a deterministic direct-dependency bundle for audit/review. | `dependency-conflict-inventory` |
 | `calibration_dataset_boundary_gate.py` | — | `structural-lint` |

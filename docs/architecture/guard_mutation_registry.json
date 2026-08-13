@@ -1352,6 +1352,53 @@
           "why": "عدُّ ذِكرِ الاسم في شرحٍ اختباراً مُعطَّلاً — عطلٌ وقع فعلاً في أوّل صياغة (أربعة بدل اثنين). وعدٌّ يُعاقِب التوثيق يُدرِّب كاتبه على حذفه: رقمٌ خاطئ وتوثيقٌ أقلّ"
         }
       ]
+    },
+    "brain_commit_claim_guard.py": {
+      "test": "tests/architecture/test_brain_commit_claim_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_gate_adjudication_id_is_not_demanded_as_a_gap_section",
+          "find": "            if is_adjudication(gid):",
+          "replace": "            if False:",
+          "why": "معرّف تفويضٍ يُطالَب بقسمٍ في سجلّ الفجوات ⇒ إمّا إدخالٌ كاذب (التفويض إذنُ مالكٍ لا عطلٌ مرصود) أو حذفُ المعرّف من الرسالة، أي كتمان أيّ تفويضٍ خُتِم."
+        },
+        {
+          "expect": "test_a_fabricated_adjudication_id_is_still_rejected",
+          "find": "                if not adjudication_exists(gid):",
+          "replace": "                if False:",
+          "why": "الصنف يصير استثناءً بدل تحقّق ⇒ معرّف تفويضٍ ملفَّق يمرّ، والذكر يعود ادّعاءً غير مفحوص — وهو العطل الأصليّ الذي بُني الحارس له."
+        },
+        {
+          "expect": "test_the_adjudication_class_did_not_swallow_real_gap_ids",
+          "find": "_ADJUDICATION = re.compile(r\"^GATE[0-9]{2}-ADJ-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{3}$\")",
+          "replace": "_ADJUDICATION = re.compile(r\"^GATE\")",
+          "why": "استثناءٌ بالبادئة يبتلع كلّ فجوة تبدأ بـGATE (منها GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 نفسها) — نفس فخّ `startswith(\"CVE-\")` الذي أسقطه تكذيبُ الاستشارات قبله."
+        },
+        {
+          "expect": "test_it_catches_the_real_historical_miss",
+          "find": "            if gid not in known:",
+          "replace": "            if False:",
+          "why": "الفحص الأساسيّ يُفرَّغ: كلّ معرّف يُذكَر يُقرأ مسجَّلاً ⇒ يعود عطل #683 (رسالةٌ تُعلِن أربع فجوات وتصل اثنتان) بلا أن يُحمِرّ شيء."
+        },
+        {
+          "expect": "test_the_advisory_exemption_did_not_swallow_real_gap_ids",
+          "find": "    return bool(_ADVISORY.match(gid))",
+          "replace": "    return True",
+          "why": "استثناء الاستشارات يبتلع كلّ معرّف ⇒ الحارس يمرّ على كلّ شيء صامتاً، وهو أخطر من سقوطه لأنّه يُقرأ خضرةً."
+        },
+        {
+          "expect": "test_table_row_ids_count_as_registered",
+          "find": "        elif line.startswith(\"|\"):",
+          "replace": "        elif False:",
+          "why": "قصرُ القراءة على العناوين يُعيد الإيجابيّة الكاذبة المشحونة: ٢٢ فجوة مسجَّلة كصفوف تُعامَل كغير مسجَّلة، فتسقط PR تذكر ما هو مسجَّل سلفاً."
+        },
+        {
+          "expect": "test_an_id_glued_to_arabic_text_is_read_whole_not_from_its_middle",
+          "find": "_GAP_ID = re.compile(r\"(?<![-A-Za-z0-9_])[A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,}(?![-A-Za-z0-9_])\")",
+          "replace": "_GAP_ID = re.compile(r\"\\b[A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,}\\b\")",
+          "why": "حدُّ الكلمة يقتطع المعرّف الملتصق بالعربيّة فيخترع وهميّاً (`E2E-UNDER-…`) ويُفوّت الحقيقيّ (`AUTH-E2E-…`) في آنٍ — عطبان متعاكسان من سببٍ واحد."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
@@ -1363,7 +1410,6 @@
     "arch_test_ci_coverage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "assertion_presence_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "auth_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
-    "brain_commit_claim_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "brain_deferral_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "capability_core_consumption_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "capability_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
