@@ -30,7 +30,7 @@
 والثانية تُستهلَك.
 
 **والربط بالبايتات لا بالاسم:** `authorized_patch_sha256` يُحسَب على نصٍّ قانونيّ من
-‏`path\\0blob_sha` مرتّبةً. فالقرار «أوافق على هذه البايتات» لا «أوافق على PR رقم كذا»،
+`path\\0blob_sha` مرتّبةً. فالقرار «أوافق على هذه البايتات» لا «أوافق على PR رقم كذا»،
 وتغيُّر محرفٍ واحد في مسارٍ مسموح يُبطِل التفويض. وينجو من الدمج وإعادة الأساس ما دامت
 البايتات المأذونة نفسها.
 
@@ -104,7 +104,7 @@ def load_adjudications(directory: Path = ADJUDICATIONS) -> list[dict]:
 
 
 def _authorization_errors(
-    adj: dict, policy: dict, touched: set[str], blobs: dict[str, str]
+    adj: dict, policy: dict, touched: set[str], blobs: dict[str, str | None]
 ) -> list[str]:
     """أسبابُ رفض هذا التفويض لهذا المسّ. الفارغة تعني أنّه يُغطّيه بالكامل."""
     errs: list[str] = []
@@ -118,6 +118,18 @@ def _authorization_errors(
     status = adj.get("status")
     if status != "ISSUED":
         errs.append(f"{ident}: حالته {status!r} لا ISSUED — المُستهلَك والملغى لا يُعاد استعمالهما")
+
+    # `one_time: false` وضعٌ **غير منفَّذ** في هذا المستودع، فيُرفَض صراحةً بدل أن يُقرأ
+    # ترخيصاً بإعادة الاستعمال. لا شيء هنا يُنفِّذ تفويضاً مُعاد الاستعمال: لا عدّاد
+    # استعمالات ولا نطاقاً زمنيّاً ولا سقفاً — والصمت عنه كان سيجعل حقلاً إعلانيّاً
+    # **يفتح باباً**، وهو بعينه الشكل الذي أعاد `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01`.
+    # والفرق بين الغياب والصريح مقصود: الغياب = الافتراض (لمرّةٍ واحدة)، والتصريح بـfalse
+    # ادّعاءُ وضعٍ لا وجود له ⇒ فشلٌ مغلق.
+    if adj.get("one_time") is False:
+        errs.append(
+            f"{ident}: `one_time: false` — وضعٌ غير منفَّذ: لا تفويض مُعاد الاستعمال في "
+            "هذا المستودع. أصدِر تفويضاً لكلّ رقعة، أو نفِّذ الوضع بحدوده أوّلاً."
+        )
 
     baseline = adj.get("phase0_baseline_ref") or {}
     if baseline.get("must_match_policy") is not False:
@@ -165,7 +177,9 @@ def _authorization_errors(
     return errs
 
 
-def evaluate(changed: list[str], policy: dict, adjudications: list[dict], blobs: dict[str, str]):
+def evaluate(
+    changed: list[str], policy: dict, adjudications: list[dict], blobs: dict[str, str | None]
+):
     """يُرجِع (أخطاء، معرّف التفويض المُستعمَل أو None). فارغةٌ تعني PASS."""
     frozen = set(policy.get("frozen_paths") or [])
     touched = {p for p in changed if p in frozen}
@@ -195,7 +209,7 @@ def evaluate(changed: list[str], policy: dict, adjudications: list[dict], blobs:
 
 
 def stale_authorization_errors(
-    adjudications: list[dict], touched: set[str], blobs: dict[str, str]
+    adjudications: list[dict], touched: set[str], blobs: dict[str, str | None]
 ) -> list[str]:
     """تفويضٌ `ISSUED` هبطت بايتاتُه بالفعل ⇒ استُهلِك ولم يُختَم.
 
@@ -215,6 +229,11 @@ def stale_authorization_errors(
 
     **والحارس يبقى للقراءة فقط:** يكشف ولا يختم. الختم إجراءٌ منفصل بعد الدمج —
     فحارسٌ يكتب أثناء CI يصير طرفاً في القرار الذي يحكم فيه.
+
+    **ولا يُستثنى `one_time: false` هنا** رغم أنّ اسم الفجوة يذكر «لمرّةٍ واحدة»: هذا
+    الوضع **غير منفَّذ** أصلاً، و`_authorization_errors` يرفضه صراحةً. فاستثناؤه هنا
+    كان سيجعل حقلاً إعلانيّاً يُسكِت فحصَ دورة الحياة بلا أن يمنحه أحد ذلك — أي
+    بابَ تجاوزٍ ذاتيَّ الخدمة يُعيد الفجوة من حيث أُغلِقت.
     """
     errs: list[str] = []
     for adj in adjudications:
@@ -233,7 +252,7 @@ def stale_authorization_errors(
         ident = adj.get("adjudication_id", "<بلا معرّف>")
         errs.append(
             f"{ident}: تفويضٌ `ISSUED` وبايتاتُه المأذونة **هبطت بالفعل** في الشجرة "
-            f"(‏PR {adj.get('pr')}) — استُهلِك ولم يُختَم. اختمه `CONSUMED` مع "
+            f"[pr={adj.get('pr')}] — استُهلِك ولم يُختَم. اختمه `CONSUMED` مع "
             "`merge_sha`، وإلّا بقي إذناً حيّاً يُعيد رقعةً سبق الإذن بها "
             "(GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01)."
         )
@@ -260,7 +279,8 @@ def main(argv: list[str] | None = None) -> int:
     # فحصُ دورة الحياة يجري **دائماً**، حتّى حين لا يُمَسّ مجمَّد: تفويضٌ بائت لا
     # يُكتشَف بالمسّ بل بمرور الزمن عليه، فلو رُبِط بالمسّ لبقي صامتاً إلى أن
     # يستعمله أحد — وهو الأوان الذي وُجِد ليسبقه.
-    frozen_touched = {p for p in changed if p in set(policy.get("frozen_paths") or [])}
+    frozen = set(policy.get("frozen_paths") or [])
+    frozen_touched = {p for p in changed if p in frozen}
     errors = list(errors) + stale_authorization_errors(adjudications, frozen_touched, blobs)
     if errors:
         print("gate01_frozen_path_guard_failed")

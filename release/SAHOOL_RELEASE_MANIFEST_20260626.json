@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 58771517
+  "total_size_bytes": 58775483
 }

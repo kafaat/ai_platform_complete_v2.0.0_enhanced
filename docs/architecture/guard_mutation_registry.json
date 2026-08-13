@@ -570,6 +570,12 @@
           "find": "    errors = list(errors) + stale_authorization_errors(adjudications, frozen_touched, blobs)",
           "replace": "    errors = list(errors)",
           "why": "دالّةٌ صحيحة غير مُستدعاة من نقطة الدخول خضرةٌ عن سؤالٍ لم يُطرَح — كلّ اختبارات الوحدة تبقى خضراء وCI لا تفحص شيئاً."
+        },
+        {
+          "expect": "test_a_reusable_authorization_is_refused_as_an_unimplemented_mode",
+          "find": "    if adj.get(\"one_time\") is False:",
+          "replace": "    if False:",
+          "why": "`one_time: false` يُقرأ ترخيصاً بإعادة الاستعمال بدل وضعٍ غير منفَّذ ⇒ حقلٌ إعلانيّ يُسكِت فحص دورة الحياة بلا أن يمنحه أحد ذلك، فيُعيد GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 من حيث أُغلِقت."
         }
       ]
     },

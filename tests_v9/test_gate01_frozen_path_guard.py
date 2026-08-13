@@ -308,6 +308,22 @@ def test_a_sealed_authorization_is_not_flagged_again(status):
     assert guard.stale_authorization_errors([_adj(status=status)], set(), _BLOBS) == []
 
 
+def test_a_reusable_authorization_is_refused_as_an_unimplemented_mode():
+    """`one_time: false` وضعٌ غير منفَّذ ⇒ فشلٌ مغلق، لا قراءةٌ ترخيصاً بإعادة الاستعمال.
+
+    اقتُرِح في المراجعة أن يُستثنى التفويض المُعاد الاستعمال من فحص دورة الحياة. وقياسُ
+    الشجرة يقول إنّ الوضع **لا وجود له**: لا عدّاد استعمالات ولا نطاق زمنيّ ولا سقف،
+    ولم يقرأ الحقلَ سطرٌ واحد قبل هذه الرقعة. فاستثناؤه كان سيجعل حقلاً إعلانيّاً
+    يُسكِت الفحص بلا أن يمنحه أحد ذلك — بابَ تجاوزٍ ذاتيَّ الخدمة يُعيد الفجوة نفسها.
+    والغياب يبقى هو الافتراض (لمرّةٍ واحدة)، فلا تُكسَر التفويضات القائمة.
+    """
+    errors, used = _run([_FROZEN_A, _FROZEN_B], adjs=[_adj(one_time=False)])
+    assert used is None, "تفويضٌ بوضعٍ غير منفَّذ منح إذناً"
+    assert any("one_time" in e for e in errors), errors
+    # ويبقى مرصوداً في دورة الحياة أيضاً — لا يُسكِته الحقل.
+    assert guard.stale_authorization_errors([_adj(one_time=False)], set(), _BLOBS)
+
+
 def test_the_lifecycle_check_is_wired_into_the_entry_point(tmp_path, capsys):
     """الوصل يُقاس لا يُفترَض: دالّةٌ صحيحة غير مُستدعاة خضرةٌ عن سؤالٍ لم يُطرَح.
 
