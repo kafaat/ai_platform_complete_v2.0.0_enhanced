@@ -7052,6 +7052,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_env_compose_default_override_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_env_compose_drift_guard.py",
     "kind": "tests"
   },

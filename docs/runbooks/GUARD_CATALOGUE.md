@@ -12,7 +12,7 @@
 
 - حرّاس تحجب في CI: **239**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **28**
-- إجماليّ الطفرات المُسجَّلة: **183**
+- إجماليّ الطفرات المُسجَّلة: **179**
 
 أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
@@ -163,6 +163,20 @@
 - تعطيل الفحص كلّيّاً ⇒ الحارس يخضرّ على شجرة معطوبة — يُسقِط `test_a_missing_path_is_reported_with_the_service_that_executes_it`
 - صفر أزواج مفحوصة ⇒ «أخضر لأنّه لم ينظر» — الصفر الصامت نفسه — يُسقِط `test_it_actually_examines_something`
 - إسقاط نسخ ملفّ→ملفّ ⇒ ثلاث خدمات سليمة تُتَّهم (الإيجابيّة الكاذبة المقيسة) — يُسقِط `test_copy_semantics_are_applied_not_approximated`
+
+### `env_compose_default_override_guard.py`
+
+**يفرض:** حارس إبطال الافتراض الآمن: `.env.example` لا يجوز أن يهزم افتراضَ `compose` إلى `localhost`.
+
+**يحجب في:** `ci.yml` → `structural-lint`
+
+**الاختبار الشاهد:** `tests_v9/test_env_compose_default_override_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- نزعُ الكشف نفسه ⇒ يمرّ `.env.example` الذي يُبطِل افتراض compose أخضر — وهو بالحرف ما فصل أربعة عمّال عن NATS في البيئة الحيّة 2026-08-12. — يُسقِط `test_a_localhost_value_that_defeats_a_container_default_is_blocked`
+- نزعُ استثناء «compose نفسه يقصد المضيف» يُجرّم `CORS_ORIGINS` و`DOMAIN` — إيجابيّات كاذبة تُسقِط الحارس بلا تعطيله، لأنّ قارئ الأحمر يتعلّم تجاهله. — يُسقِط `test_a_localhost_default_in_compose_is_a_legitimate_purpose`
+- توسيعُ النطاق إلى قيمٍ ليست عناوين يجعل `localhost` في أيّ سلسلة مخالفةً — ضجيجٌ يُخفي المخالفة الحقيقيّة بين كاذبات. — يُسقِط `test_a_non_url_default_is_out_of_scope`
 
 ### `fake_connection_debt_guard.py`
 
@@ -447,22 +461,6 @@
 - السياسة تفترض إغلاقاً `exact` ولم يكن مفحوصاً: بيانٌ يعلن وضعاً آخر يمرّ فيصير «الإغلاق التامّ» ادّعاءً في وثيقةٍ لا يفرضه أحد — يُسقِط `test_a_malformed_closure_is_rejected_with_its_own_reason`
 - `set(...)` على غير قائمةٍ نصّيّة يرمي TypeError فيُبلَّغ VERIFIER_INTERNAL_ERROR — سببٌ يقول «عطبٌ في المُصادِق» بينما العطب في البيان، فيبحث المُصلِح في المكان الخطأ — يُسقِط `test_a_malformed_closure_is_rejected_with_its_own_reason`
 - حقلٌ متقاطعٌ مخالف لا يُقرأ في هذا الوضع، فبيانٌ يقول «الالتزام مطابق» ويحمل شجرةً مخالفة يمرّ متناقضاً داخليّاً — والمُصادِق لا يجوز أن يفترض أنّ البيان جاء من الأداة الرسميّة — يُسقِط `test_the_verifier_rejects_a_manifest_that_contradicts_itself`
-- نزعُ نطاق المرجع يُعيد الثغرة بعينها: دفعةٌ إلى فرع عملٍ غير محميّ تبلغ L5 بربطٍ سليمٍ تماماً — وهي الحادثة المقيسة على ffc29415. — يُسقِط `test_a_feature_branch_with_exact_commit_binding_is_not_release_bound`
-- سياسةٌ ناقصة تُقرَأ متساهلةً بدل أن تفشل مغلقةً — فحذفُ حقلٍ من السياسة يصير طريقاً صامتاً إلى L5. — يُسقِط `test_a_policy_without_a_release_ref_list_is_an_incomplete_contract_not_a_permissive_one`
-- وضعُ الدمج بلا قياس مرجع الإصدار الذي يسمّيه: يبقى بابٌ يبلغ L4 من أيّ مصدر بمجرّد إعلان binding_evidence. — يُسقِط `test_merge_to_release_is_measured_by_the_release_ref_it_names`
-
-### `tenant_guc_scope_guard.py`
-
-**يفرض:** حارس نطاق GUC المستأجِر — شجريّ لا ملفٌّ واحد. ``GUC-SCOPE-GUARD-SEES-ONE-FILE-01``.
-
-**يحجب في:** `ci.yml` → `structural-lint`
-
-**الاختبار الشاهد:** `tests_v9/test_tenant_guc_scope_guard.py`
-
-**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
-
-- نزعُ فحص الاحتواء داخل معاملة ⇒ كلّ موضع يُعَدّ سليماً، فيعود الحارس يقيس **وجود** set_config لا **نطاقه** — وهو العطل الأصليّ في `tenant_query_audit.py` الذي منح كلّ موضعٍ معيبٍ شهادة EXPLICIT. — يُسقِط `test_a_new_offender_outside_a_transaction_is_blocked`
-- نزعُ الترسية على وسائط الاستدعاء ⇒ يعود الكشف يقرأ نصّ الملفّ، فيلتقط **شرح الحارس نفسه** مخالفةً — وقع فعلاً في أوّل صيغة. ملفٌّ يصف عيباً ليس ملفّاً يرتكبه، والـAST وحدها تفرّق. — يُسقِط `test_prose_describing_the_defect_is_not_counted_as_committing_it`
 
 ### `test_marker_coverage_guard.py`
 

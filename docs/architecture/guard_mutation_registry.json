@@ -367,6 +367,29 @@
       ],
       "test": "tests_v9/test_container_command_path_guard.py"
     },
+    "env_compose_default_override_guard.py": {
+      "test": "tests_v9/test_env_compose_default_override_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_localhost_value_that_defeats_a_container_default_is_blocked",
+          "find": "        if not _LOOPBACK.search(env[var]):",
+          "replace": "        if True:",
+          "why": "نزعُ الكشف نفسه ⇒ يمرّ `.env.example` الذي يُبطِل افتراض compose أخضر — وهو بالحرف ما فصل أربعة عمّال عن NATS في البيئة الحيّة 2026-08-12."
+        },
+        {
+          "expect": "test_a_localhost_default_in_compose_is_a_legitimate_purpose",
+          "find": "        if _LOOPBACK.search(default):",
+          "replace": "        if False:",
+          "why": "نزعُ استثناء «compose نفسه يقصد المضيف» يُجرّم `CORS_ORIGINS` و`DOMAIN` — إيجابيّات كاذبة تُسقِط الحارس بلا تعطيله، لأنّ قارئ الأحمر يتعلّم تجاهله."
+        },
+        {
+          "expect": "test_a_non_url_default_is_out_of_scope",
+          "find": "        if \"://\" not in default:",
+          "replace": "        if False:",
+          "why": "توسيعُ النطاق إلى قيمٍ ليست عناوين يجعل `localhost` في أيّ سلسلة مخالفةً — ضجيجٌ يُخفي المخالفة الحقيقيّة بين كاذبات."
+        }
+      ]
+    },
     "fake_connection_debt_guard.py": {
       "mutations": [
         {
