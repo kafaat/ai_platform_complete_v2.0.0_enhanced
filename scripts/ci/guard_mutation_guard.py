@@ -253,7 +253,13 @@ def _outcome(code: int, out: str, expected: str) -> tuple[str, tuple[str, ...]]:
     if code == 0:
         return "unexpected_green", tuple()
     observed = tuple(failing_tests(out))
-    if expected not in out:
+    # **العضويّة في قائمة الساقطين، لا الوجود في المخرَج.** `expected in out` يمرّ على
+    # حالةٍ يظهر فيها الاسم المُتوقَّع في **نصٍّ آخر** — رسالة تأكيد، أو تتبُّع مكدّس،
+    # أو معامل `parametrize`، أو سطر تجميع — بينما الساقط اختبارٌ ثانٍ. عندها يُقرأ
+    # الحكم `expected_red` والقاعدة **غير محروسة**، وهو العطل نفسه الذي وُجِد `expect`
+    # ليمنعه: «سقط شيء ما» بدل «سقط المُسمّى». و`failing_tests` كانت موجودة وتستخرج
+    # `FAILED/ERROR` فعلاً — فالفجوة كانت في **مصدر القرار** لا في القدرة على القياس.
+    if expected not in observed:
         return "wrong_test", observed
     return "expected_red", observed
 
@@ -321,7 +327,7 @@ def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Pa
                     "\n    يحرس هذه القاعدة — أو الاختبار يقرأ مصنوعةً مُولَّدة سلفاً"
                     "\n    بدل أن يمرّ بالقاعدة نفسها."
                 )
-            elif m["expect"] not in out:
+            elif m["expect"] not in failing_tests(out):
                 repeats = _diagnose_repeat(src, original, m, spec["test"], root)
                 stable = len(set(repeats)) == 1
                 repeat_detail = " · ".join(

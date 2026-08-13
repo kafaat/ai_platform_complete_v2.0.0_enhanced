@@ -601,7 +601,7 @@
         },
         {
           "expect": "test_red_by_the_wrong_test_is_not_proof",
-          "find": "            elif m[\"expect\"] not in out:",
+          "find": "            elif m[\"expect\"] not in failing_tests(out):",
           "replace": "            elif False:",
           "why": "قبول «سقط شيء ما» بدل الاختبار المُسمّى ⇒ طفرة تكسر الاستيراد تُحسَب نجاحاً"
         },
@@ -664,6 +664,18 @@
           "find": "        return _run_mutations_in_place(registry, only, mirror / ci_relative, mirror)",
           "replace": "        return _run_mutations_in_place(registry, only, ci, mirror)",
           "why": "توجيه مصدر الطفرة إلى ci الأصليّ مع بقاء الاختبارات في المرآة ⇒ العزل اسميّ والشجرة القانونية تُمسّ"
+        },
+        {
+          "expect": "test_a_name_seen_only_in_the_message_is_not_a_fallen_test",
+          "find": "    if expected not in observed:",
+          "replace": "    if expected not in out:",
+          "why": "إعادة الحكم إلى البحث النصّيّ في كامل المخرَج: اسمٌ يظهر في رسالة تأكيد أو تتبُّع مكدّس أو معامل parametrize يُقرأ سقوطاً، فيُختَم `expected_red` والقاعدة غير محروسة — «سقط شيء ما» بصيغةٍ تختبئ خلف اسمٍ صحيح."
+        },
+        {
+          "expect": "test_the_run_path_decides_on_the_fallen_list_not_on_the_raw_output",
+          "find": "            elif m[\"expect\"] not in failing_tests(out):",
+          "replace": "            elif m[\"expect\"] not in out:",
+          "why": "مسار الحجب الفعليّ يحمل نسخةً ثانية من الحكم — فتصحيح `_outcome` وحده يترك القرار الحاجب على البحث النصّيّ: دالّةٌ صحيحة لا تحكم، وهي خضرةٌ عن سؤالٍ لم يُطرَح."
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
