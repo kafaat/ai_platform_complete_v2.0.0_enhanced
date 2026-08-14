@@ -74,6 +74,18 @@
           "why": "منعُ تشغيلٍ مشروع عطلٌ أيضاً: بوّابةٌ تحجب الكلّ تُرضي كلّ اختبار حجبٍ وتكسر الخدمة. فالجناح يقيس الاتّجاهين لا اتّجاه المنع وحده."
         }
       ]
+    },
+    ".github/workflows/certify-run.yml": {
+      "test": "tests_v9/test_run_outcome_guard.py",
+      "$why_a_workflow_belongs_here_ar": "مفاتيحُ هذا القسم مساراتُ ما **يعمل في الإنتاج**، والـworkflow منها: هي التي ترفع المصنوعة التي يقرأها المُدقِّق. والطفرة تُزرَع في الـYAML نفسه لا في حارسٍ يصفه.",
+      "mutations": [
+        {
+          "expect": "test_no_artifact_promises_a_certification_record_it_may_not_contain",
+          "find": "          name: certification-record\n          path: certification_record.json",
+          "replace": "          name: certification-record\n          path: |  # mutated: الاسم يَعِد بما قد لا يحويه\n            execution_outcome.json\n            certification_record.json",
+          "why": "مقيسٌ في تشغيل 31825902904: رُفِعت مصنوعةٌ اسمها `certification-record` وفيها ملفٌّ واحد هو `execution_outcome.json` — لأنّ التشغيل بلا حزمة أدلّة فلم يُنتَج سجلُّ اعتماد. فالاسم قال «هنا سجلّ اعتماد» والمحتوى لا يحمله. لا يخدع آليّةً ويخدع قارئاً يُنزّلها، وهو `CI-JOB-NAME-CLAIMS-MORE-THAN-IT-MEASURES-01` بعينه. وفصلُ المصنوعتين يجعل **وجودَ** `certification-record` نفسه إشارةً: لا سجلّ ⇒ لا مصنوعة تدّعيه."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

@@ -219,3 +219,51 @@ def test_the_changed_file_derivation_has_history_to_derive_from() -> None:
     assert 'git fetch origin "${BASE_REF}" --depth=1' not in body, (
         "جلبُ القاعدة بعمق ١ يُعيد رأساً منفصلاً عن التاريخ، فلا merge-base"
     )
+
+
+# ── اسمُ المصنوعة ادّعاء — كشفه أوّلُ تشغيلٍ حقيقيّ للاعتماد ──────────────────
+
+
+def _certify_upload_blocks() -> list[dict]:
+    """خطواتُ رفع المصنوعات في وظيفة الاعتماد، مقروءةً **كـYAML** لا كنصّ.
+
+    الفحص النصّيّ هنا كان سيقيس تهجئةً لا خاصّيّة، ويحمرّ على التعليق الذي يشرح
+    الإصلاح — `TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01`، وقد وقعتُ فيه مرّتين
+    في هذه السلسلة. فالبنية تُقرأ من المُحلِّل.
+    """
+    import yaml
+
+    doc = yaml.safe_load((ROOT / ".github/workflows/certify-run.yml").read_text(encoding="utf-8"))
+    steps = doc["jobs"]["certify"]["steps"]
+    return [s for s in steps if "upload-artifact" in str(s.get("uses", ""))]
+
+
+def test_no_artifact_promises_a_certification_record_it_may_not_contain() -> None:
+    """مصنوعةٌ اسمها `certification-record` تحمل خلاصةَ تشغيلٍ فقط تدّعي ما لا تحمل.
+
+    مقيسٌ في تشغيل 31825902904: رُفِعت باسم `certification-record` وفيها **ملفّ
+    واحد** هو `execution_outcome.json`، لأنّ التشغيل بلا حزمة أدلّة فلم يُنتَج
+    سجلُّ اعتماد. لا يخدع آليّةً، ويخدع قارئاً يُنزّلها — وهو
+    `CI-JOB-NAME-CLAIMS-MORE-THAN-IT-MEASURES-01` بعينه.
+    """
+    for step in _certify_upload_blocks():
+        with_ = step["with"]
+        paths = [p for p in str(with_["path"]).splitlines() if p.strip()]
+        if with_["name"] == "certification-record":
+            assert paths == ["certification_record.json"], (
+                "مصنوعةُ الاعتماد تحمل سجلَّ الاعتماد وحده — وإلّا وعد اسمُها بما لا تحويه"
+            )
+            assert "steps.download.outcome == 'success'" in str(step.get("if", "")), (
+                "تُرفَع حين وُجِد موضوعُ الاعتماد وحده، فيصير وجودُها نفسه إشارة"
+            )
+
+
+def test_an_empty_artifact_is_not_uploaded_under_a_promising_name() -> None:
+    """`if-no-files-found: warn` يجعل الغياب سطراً في السجلّ لا شيئاً يراه المُنزِّل."""
+    steps = _certify_upload_blocks()
+    assert len(steps) == 2, "المتوقَّع مصنوعتان: خلاصةُ التشغيل وسجلُّ الاعتماد"
+    assert {s["with"]["name"] for s in steps} == {"execution-outcome", "certification-record"}
+    for step in steps:
+        assert step["with"]["if-no-files-found"] == "error", (
+            "مصنوعةٌ فارغة باسمٍ يَعِد هي العطل نفسه، فلا تُحتمَل بتحذير"
+        )

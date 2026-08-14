@@ -122,12 +122,30 @@ jobs:
             --output ../certification_record.json
           cat ../certification_record.json
 
+      # **اسمُ المصنوعة ادّعاءٌ كسائر الادّعاءات هنا.** أوّل تشغيلٍ حقيقيّ
+      # (31825902904) رفع مصنوعةً اسمها `certification-record` تحمل ملفّاً واحداً هو
+      # `execution_outcome.json` — لأنّ التشغيل لم يحمل حزمة أدلّة فلم يُنتَج سجلُّ
+      # اعتماد. فالاسم قال «هنا سجلّ اعتماد» والمحتوى لا يحمله، و`if-no-files-found:
+      # warn` جعل الغياب تحذيراً في السجلّ لا شيئاً يظهر لمن يُنزّل الملفّ.
+      # الصنف مُسجَّل هنا باسمه: `CI-JOB-NAME-CLAIMS-MORE-THAN-IT-MEASURES-01` (#843).
+      #
+      # فصارت مصنوعتان، وكلٌّ تحمل ما يقوله اسمها فقط:
+      #   · `execution-outcome` — تُرفَع دائماً، فخلاصةُ التشغيل تُشتقّ دائماً.
+      #   · `certification-record` — تُرفَع **حين وُجِد موضوعُ الاعتماد وحده**،
+      #     فيصير **وجودُ المصنوعة نفسه** إشارةً: لا سجلّ ⇒ لا مصنوعة تدّعيه.
+      # و`error` في الحالين لا `warn`: مصنوعةٌ فارغة باسمٍ يَعِد هي العطل نفسه.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
+          name: execution-outcome
+          path: execution_outcome.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always() && steps.download.outcome == 'success'
+        with:
           name: certification-record
-          path: |
-            execution_outcome.json
-            certification_record.json
-          if-no-files-found: warn
+          path: certification_record.json
+          if-no-files-found: error
           retention-days: 90
