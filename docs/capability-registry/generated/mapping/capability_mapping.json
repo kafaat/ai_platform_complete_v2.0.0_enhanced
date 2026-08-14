@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5005,
+    "files_scanned": 5006,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
       "other": 1340,
-      "tests": 1632,
+      "tests": 1633,
       "web": 454
     },
     "unmapped_artifacts": 2035,
@@ -24316,6 +24316,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py",
+          "score": 17,
+          "signals": [
+            "path:rls",
+            "content:rls",
+            "content:tenant isolation"
+          ]
+        },
+        {
           "path": "tests_v9/test_rls_write_isolation_integration.py",
           "score": 17,
           "signals": [
@@ -25327,7 +25336,7 @@
         "events": 86,
         "web": 0,
         "mobile": 0,
-        "tests": 58,
+        "tests": 59,
         "governance": 0,
         "other_evidence": 71
       },
