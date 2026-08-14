@@ -5725,19 +5725,19 @@
           "score": 14
         },
         {
-          "value": "decision_sor_cutover_readiness_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:82",
+          "value": "decision_sor_cutover_readiness_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:88",
           "score": 13
         },
         {
-          "value": "decision_sor_final_certification_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:85",
+          "value": "decision_sor_final_certification_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:91",
           "score": 13
         },
         {
-          "value": "decision_sor_shadow_promotion_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:83",
+          "value": "decision_sor_shadow_promotion_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:89",
           "score": 13
         },
         {
-          "value": "decision_sor_staging_probe_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:84",
+          "value": "decision_sor_staging_probe_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:90",
           "score": 13
         },
         {
@@ -5745,11 +5745,11 @@
           "score": 13
         },
         {
-          "value": "field_workspace_production_closure_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:79",
+          "value": "field_workspace_production_closure_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:85",
           "score": 13
         },
         {
-          "value": "weather_service_real_contract_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:81",
+          "value": "weather_service_real_contract_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:87",
           "score": 13
         },
         {

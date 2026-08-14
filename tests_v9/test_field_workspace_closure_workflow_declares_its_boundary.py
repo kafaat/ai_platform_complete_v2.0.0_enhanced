@@ -49,9 +49,15 @@ def test_the_boundary_names_what_is_not_measured_not_only_what_is() -> None:
 
 
 def test_the_boundary_is_written_on_failure_too() -> None:
-    """حدٌّ يظهر عند النجاح وحده يُقرأ تهنئةً — وأوان الحاجة إليه الفشل."""
-    summary_step = _TEXT.split("Claim boundary", 1)[1]
-    assert "if: always()" in summary_step.split("run:", 1)[0], "الحدّ مشروطٌ بالنجاح"
+    """حدٌّ يظهر عند النجاح وحده يُقرأ تهنئةً — وأوان الحاجة إليه الفشل.
+
+    والتقسيم يسبقه تأكيدٌ على وجود المرساة: بدونه يرمي غيابُ الخطوة `IndexError`
+    فيُقرأ **خطأً في الاختبار** لا فشلاً في العقد — والقارئ يبحث في المكان الخطأ.
+    وهو نفس الصنف الذي يفرضه هذا المستودع على الحرّاس: الرسالة تُسمّي ما اختلّ.
+    """
+    _, marker, after = _TEXT.partition("Claim boundary")
+    assert marker, "خطوة حدّ الادّعاء غائبة أو أُعيدت تسميتها"
+    assert "if: always()" in after.partition("run:")[0], "الحدّ مشروطٌ بالنجاح"
 
 
 def test_the_job_declares_least_privilege_and_a_ceiling() -> None:
