@@ -5,9 +5,26 @@ on:
   push:
     branches: [main]
 
+# أقلّ امتياز: كلّ ما تفعله هذه الوظيفة قراءةُ الشجرة وتشغيل بوّابات ساكنة — لا
+# كتابة، ولا حِزَم، ولا نشر. والرمز الافتراضيّ أوسع من ذلك، والسعة التي لا تُستعمَل
+# تبقى سطحاً قائماً.
+permissions:
+  contents: read
+
+# دفعتان متتاليتان على نفس المرجع تُشغّلان جولتين؛ الأقدم تصير جواباً عن شجرةٍ لم
+# تعد قائمة. تُلغى **في الـPR وحدها**: على main يبقى لكلّ التزامٍ مدموج سجلٌّ خاصّ به،
+# وإلغاؤه يُفقِد الدليل عن التزامٍ هبط فعلاً.
+concurrency:
+  group: field-workspace-closure-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   field-workspace-closure:
     runs-on: ubuntu-24.04
+    # المقيس ~٧٠ ثانية؛ والسقف الافتراضيّ ٦ ساعات. وظيفةٌ معلَّقة بلا سقف تُستهلِك
+    # مُشغِّلاً وتُبقي الـPR «قيد التشغيل» بلا خبر — والانتظار الطويل يُقرأ عطلاً في
+    # الفحص لا في الشجرة.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -70,3 +87,36 @@ jobs:
             services/sahool-platform/tests/test_ui27_backend_facades_guard.py \
             services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py \
             services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py
+
+      # حدّ الادّعاء — يُكتَب في ملخّص الجولة نفسها لا في وثيقةٍ جانبيّة.
+      #
+      # اسم الوظيفة «Production Closure»، وأخضرُها يُقرأ «الإنتاج مُغلَق». والمقيس
+      # فعلاً **عقودٌ ساكنة**: تحقّق أنواع، وبناء واجهة، وميزانية حزمة، وبوّابات نصّيّة،
+      # واختبارات حرّاس. ولا بيئة حيّة في أيّ خطوة: لا قاعدة، ولا وسيط، ولا واجهة
+      # منشورة، ولا طلبٌ واحد إلى خدمةٍ تعمل. فالفارق بين «العقود متماسكة» و«النظام
+      # يعمل» ليس تفصيلاً — وهو الصنف المُسجَّل في هذا المستودع: **خضرةٌ عن سؤالٍ لم
+      # يُطرَح**.
+      #
+      # و`if: always()` مقصود: الحدّ يُكتَب مع الأحمر أيضاً. حدٌّ يظهر عند النجاح وحده
+      # يُقرأ تهنئةً، وهو أوان الحاجة إليه أقلّ من أوان الفشل.
+      - name: Claim boundary — what this green does and does not say
+        if: always()
+        run: |
+          {
+            echo "## Field Workspace Production Closure — CONTRACT_CLOSURE_ONLY"
+            echo
+            echo "**المقيس هنا (ساكن):**"
+            echo "- تحقّق أنواع عقد Field Workspace · بناء الواجهة للإنتاج · ميزانية الحزمة"
+            echo "- سجلّ الطبقات (\`layerRegistry\`) · بوّابات إغلاق بايثون الثلاث"
+            echo "- بوّابات Decision SoR الأربع (cutover · shadow · staging-probe · final)"
+            echo "- ١٢ اختبار حارس تحت \`services/sahool-platform/tests/\`"
+            echo
+            echo "**وما لا يُقاس هنا — والخضرة لا تقوله:**"
+            echo "- لا قاعدة بيانات حيّة، ولا PostGIS، ولا هجرة مُطبَّقة"
+            echo "- لا وسيط MQTT/NATS، ولا أثر فيزيائيّ، ولا تحقّق من نتيجة تشغيل"
+            echo "- لا واجهة منشورة، ولا طلب واحد إلى خدمةٍ تعمل"
+            echo "- لا شهادة إنتاج: \`runtime_verified\` و\`production_certified\` لا تتحرّكان بهذه الجولة"
+            echo
+            echo "**فالخضرة تعني:** العقود المُعدَّدة أعلاه متماسكة على هذه الشجرة."
+            echo "**ولا تعني:** أنّ النظام يعمل — ذلك يُقاس حيّاً، وهو خطوة منفصلة."
+          } >> "$GITHUB_STEP_SUMMARY"

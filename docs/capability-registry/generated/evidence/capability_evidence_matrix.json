@@ -576,7 +576,8 @@
       "evidence_score": 9,
       "integration_test_paths": [
         "services/sahool-platform/tests/test_field_boundary_contracts.py",
-        "tests_v9/test_canonical_field_geometry_contract.py"
+        "tests_v9/test_canonical_field_geometry_contract.py",
+        "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py"
       ],
       "learning_linked": false,
       "maturity_alignment": "aligned",
