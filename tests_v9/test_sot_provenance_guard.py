@@ -653,6 +653,9 @@ _TESTED = "bd99f085909d5a93de6656d9f82868e49adaff2d"
 
 def _outcome(**over) -> dict:
     base = {
+        # `schema` ليس زينةً في العيّنة: المُنتِج يُصدره، والمستهلك صار يفرضه — فعيّنةٌ
+        # بلا الحقل كانت ستقيس عقداً غير المشحون.
+        "schema": "sahool.execution-outcome/v1",
         "run_id": "31728316326",
         "run_attempt": 1,
         "head_sha": _TESTED,
@@ -686,6 +689,47 @@ def test_a_failed_job_inside_a_green_run_is_refused():
     )
 
     assert (clean, reason) == (False, "EXECUTION_JOB_NOT_SUCCESSFUL")
+
+
+# ── تعليقٌ مكتوم من مراجعة Copilot الثانية على #844، وأصاب ────────────────────
+
+
+def test_a_malformed_outcome_is_not_reported_as_a_failed_run():
+    """«تعذّر أن أقرأ» ليست «قرأتُ أنّ التشغيل فشل» — ورمزُ السبب هو سجلّ التدقيق.
+
+    وثيقةٌ ينقصها ``run_conclusion`` كانت تُبلَّغ ``EXECUTION_RUN_NOT_SUCCESSFUL``،
+    فيقرأ المُدقِّق أنّ تشغيلاً سقط بينما الواقع أنّ الدليل مشوَّه. وهو الصنف نفسه
+    الذي أغلقته هذه الـPR في `changed.txt`، هذه المرّة في شيفرتها هي.
+    """
+    document = _outcome()
+    document.pop("run_conclusion")
+
+    clean, reason = MOD.execution_clean(document, _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_OUTCOME_UNREADABLE")
+
+
+def test_a_document_from_another_producer_is_not_accepted_by_coincidence():
+    """بلا فحص العقد تمرّ أيّ حمولةٍ تصادف أن تحمل المفاتيح المفحوصة."""
+    clean, reason = MOD.execution_clean(_outcome(schema="something.else/v9"), _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_OUTCOME_UNREADABLE")
+
+
+def test_an_empty_job_inventory_stays_readable_and_keeps_its_own_verdict():
+    """الفراغُ ليس تشوّهاً: «لم تُقرأ» حكمٌ آخر غير «الوثيقة غير مقروءة»."""
+    clean, reason = MOD.execution_clean(_outcome(job_conclusions={}), _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_JOBS_UNDECLARED")
+
+
+def test_the_consumer_enforces_the_schema_the_producer_actually_emits():
+    """العقد مكرَّرٌ في ملفَّين مستقلَّين — فيُحرَس تطابقُهما بدل أن يبيتا متباعدَين."""
+    producer = (ROOT / "scripts/ci/run_outcome_guard.py").read_text(encoding="utf-8")
+
+    assert f'SCHEMA = "{MOD.EXECUTION_OUTCOME_SCHEMA}"' in producer, (
+        "المستهلك يفرض عقداً لا يُصدره المُنتِج ⇒ كلّ وثيقةٍ حقيقيّة تصير غير مقروءة"
+    )
 
 
 def test_an_outcome_for_another_commit_does_not_vouch_for_this_one():

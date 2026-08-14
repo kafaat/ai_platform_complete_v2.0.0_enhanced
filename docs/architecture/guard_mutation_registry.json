@@ -1371,6 +1371,12 @@
           "why": "وضعُ الدمج بلا قياس مرجع الإصدار الذي يسمّيه: يبقى بابٌ يبلغ L4 من أيّ مصدر بمجرّد إعلان binding_evidence."
         },
         {
+          "expect": "test_a_malformed_outcome_is_not_reported_as_a_failed_run",
+          "find": "    if outcome_unreadable(outcome):\n        return False, \"EXECUTION_OUTCOME_UNREADABLE\"",
+          "replace": "    if False:  # mutated: شكلُ الوثيقة لا يُفحَص\n        return False, \"EXECUTION_OUTCOME_UNREADABLE\"",
+          "why": "بلا هذا الفرع تُبلَّغ وثيقةٌ مشوَّهة `EXECUTION_RUN_NOT_SUCCESSFUL` — دعوى عن **التشغيل** («انتهى فاشلاً») مكانَ دعوى عن **الوثيقة** («تعذّر أن أقرأها»). ورموزُ الأسباب هنا سجلُّ التدقيق نفسه، فيقرأ قارئُه سقوطَ تشغيلٍ لم يسقط. وهو الصنف الذي أغلقته هذه الـPR في `changed.txt` — «تعذّر أن أعرف» يُكتَب بلغة «عرفتُ أنّه لا» — وقد وقع في شيفرتها هي، ورفعته مراجعةٌ آليّة. وبلاه أيضاً تمرّ أيّ حمولةٍ من أداةٍ أخرى تصادف أن تحمل المفاتيح المفحوصة، فيصير عقدُ المُنتِج غير مُلزِم."
+        },
+        {
           "expect": "test_a_failed_run_is_refused_even_though_the_bundle_is_valid",
           "find": "    if outcome.get(\"run_conclusion\") != \"success\":\n        return False, \"EXECUTION_RUN_NOT_SUCCESSFUL\"",
           "replace": "    if False:  # mutated: خلاصةُ التشغيل لا تُقرأ\n        return False, \"EXECUTION_RUN_NOT_SUCCESSFUL\"",

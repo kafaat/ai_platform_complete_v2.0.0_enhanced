@@ -263,6 +263,44 @@ def release_bound(manifest: dict, policy: dict, source_ref: str) -> bool:
     raise RuntimeError("RELEASE_BINDING_MISMATCH")
 
 
+# عقدُ وثيقة الخلاصة كما يُصدره `scripts/ci/run_outcome_guard.py`. مكرَّرٌ هنا لا
+# مستورَد: السكربتان مستقلّان ولا يستورد أحدهما الآخر — ويحرس التطابقَ اختبارُ عقدٍ
+# يقرأ الاثنين، فلا يبيت النصّان متباعدَين.
+EXECUTION_OUTCOME_SCHEMA = "sahool.execution-outcome/v1"
+
+
+def outcome_unreadable(outcome: object) -> bool:
+    """أهي وثيقةٌ **بالشكل المتعاقَد عليه**؟ — سؤالٌ سابقٌ على أيّ حكمٍ على التشغيل.
+
+    رفعته مراجعةٌ آليّة على #844 وأصابت، والعطل أطروحةُ هذه الـPR مطبَّقةً على
+    شيفرتها: وثيقةٌ مشوَّهة — ينقصها ``run_conclusion`` مثلاً — كانت تُبلَّغ
+    ``EXECUTION_RUN_NOT_SUCCESSFUL``، وتلك **دعوى عن التشغيل** («انتهى فاشلاً») لا
+    عن الوثيقة («تعذّر أن أقرأها»). والفرق ليس تجميلَ رسالة: رموزُ الأسباب هي سجلّ
+    التدقيق، فيقرأ قارئُه أنّ تشغيلاً سقط بينما الواقع أنّ الدليل مشوَّه أو مُنتَجٌ
+    بأداةٍ أخرى. وهو الصنف نفسه الذي أغلقته هذه الـPR في `changed.txt`: «تعذّر أن
+    أعرف» يُكتَب بلغة «عرفتُ أنّه لا».
+
+    والشقّ الثاني من الملاحظة مقيسٌ كذلك: بلا فحص ``schema`` تمرّ **أيّ** وثيقةٍ
+    تصادف أن تحمل المفاتيح المفحوصة — فيصير المُنتِج غير مُلزِم، وتُقبَل حمولةٌ من
+    أداةٍ لم تُكتَب لهذا العقد.
+
+    الفراغُ ليس تشوّهاً: ``job_conclusions`` قاموسٌ فارغ **مقروء**، وحكمُه
+    ``EXECUTION_JOBS_UNDECLARED`` — «لم تُقرأ» ليست «كلّها نجحت»، وذاك حكمٌ آخر.
+    """
+    if not isinstance(outcome, dict):
+        return True
+    if outcome.get("schema") != EXECUTION_OUTCOME_SCHEMA:
+        return True
+    if not isinstance(outcome.get("run_conclusion"), str):
+        return True
+    if not isinstance(outcome.get("head_sha"), str):
+        return True
+    jobs = outcome.get("job_conclusions")
+    if isinstance(jobs, dict) and any(not isinstance(v, str) for v in jobs.values()):
+        return True
+    return False
+
+
 def execution_clean(outcome: object, tested_commit: str) -> tuple[bool, str]:
     """أنتجَ هذا الدليلَ تشغيلٌ **نجح**؟ — ``(نظيف، سببُ الرفض)``.
 
@@ -294,6 +332,8 @@ def execution_clean(outcome: object, tested_commit: str) -> tuple[bool, str]:
     """
     if not isinstance(outcome, dict):
         return False, "EXECUTION_OUTCOME_MISSING"
+    if outcome_unreadable(outcome):
+        return False, "EXECUTION_OUTCOME_UNREADABLE"
     if outcome.get("run_conclusion") != "success":
         return False, "EXECUTION_RUN_NOT_SUCCESSFUL"
     jobs = outcome.get("job_conclusions")
