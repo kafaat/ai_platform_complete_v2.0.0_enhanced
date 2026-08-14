@@ -15,9 +15,11 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts_v9/run_migrations.sql
 
 ### ٢. اختبر العزل (⚠️ بمستخدم عادي لا superuser)
 ```bash
-psql "postgresql://sahool_user:PASS@host:5432/sahool" \
+psql "postgresql://sahool_user@host:5432/sahool" \
      -v ON_ERROR_STOP=1 -f scripts_v9/test_tenant_isolation.sql
 ```
+كلمة المرور **لا تُكتب في سطر الأوامر**: ضعها في `~/.pgpass` (صلاحية `0600`) أو في
+`PGPASSWORD` من مخزن أسرار. سطرُ الأوامر يُقرأ من `ps` ويُحفظ في تاريخ الصدفة.
 
 ## ⚠️ تحذير حرج: superuser يتجاوز RLS
 
