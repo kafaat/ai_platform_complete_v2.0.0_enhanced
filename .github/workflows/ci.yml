@@ -2,6 +2,17 @@ name: SAHOOL v9.1.0 CI
 
 on: [push, pull_request]
 
+# دفعةٌ فوق دفعةٍ على الـPR تُلغي الجولةَ البائتة — قياسُها لا يعني شيئاً بعد أن
+# تجاوزها الرأس. **وعلى main لا إلغاء**: لكلّ التزامٍ سجلُّه، لأنّ تشغيلات main هي
+# موضوعُ الاعتماد اللاحق (`certify-run` على `workflow_run: completed`) — جولةٌ
+# مُلغاة تعني التزاماً بلا خلاصةِ تنفيذٍ يُعتمَد عليها. وهو قرارُ #843 نفسه مُعمَّماً.
+concurrency:
+  group: >-
+    ${{ github.event_name == 'pull_request'
+        && format('ci-pr-{0}', github.event.pull_request.number)
+        || format('ci-{0}-{1}', github.ref, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   structural-lint:
     name: Repository Structural Lint
@@ -618,6 +629,10 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-24.04
+    # السقف الافتراضيّ ٦ ساعات، والمقيس اليوم ٤٠–٤٢ دقيقة (زرعُ ٢٤٧ طفرة × إقلاع
+    # pytest هو الحدّ الأطول). ٦٠ تُحوّل التعليقَ إلى احمرارٍ يُشخَّص بدل انتظارٍ صامت،
+    # وتترك هامشاً فوق أبطأ قياسٍ حقيقيّ. سقفٌ أضيق من الواقع يصنع فشلاً زائفاً.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -626,7 +641,10 @@ jobs:
           # وبلا التاريخ الكامل كان الحارس **يُتخطّى** فيُقرأ أخضرُه شهادةً على ما لم يُقَس.
           fetch-depth: 0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests_v9/requirements-test.txt
       - run: pip install -r tests_v9/requirements-test.txt
       # TESTS-UNMARKED-DESELECTED-01: ملفّ بلا علامة يستبعده `-m` في **كلّ** وظيفة،
       # فيبدو حيّاً محلّيّاً وهو ميت في البوّابة. الحارس يمنع وُلود خامد جديد؛ الأساس
@@ -701,7 +719,10 @@ jobs:
         # وهو بالضبط ما كانت `ARCH-TESTS-UNLISTED-IN-CI-01` تُخفيه.
         with: {fetch-depth: 0}
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests_v9/requirements-test.txt
       - run: pip install -r tests_v9/requirements-test.txt
       # ARCH-TESTS-UNLISTED-IN-CI-01: pytest.ini يحصر testpaths في tests_v9، فكان كلّ ما
       # تحت tests/ يُشغَّل بقائمة مسارات صريحة — وأيّ ملفّ جديد يقع خارجها صامتاً (٦٦ من
@@ -722,7 +743,12 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            tests_v9/requirements-test.txt
+            services/sahool-platform/api/requirements.txt
       # اختبارات منطق المنصّة (services/sahool-platform/tests) كانت خارج نطاق CI
       # كلّيّاً: pytest.ini يحصر testpaths في tests_v9، فلم تُجمَع هذه الاختبارات
       # (~١٢٨٢، منطق صرف بلا قاعدة/خدمات) ولم تُشغَّل قطّ رغم نجاحها. هذه الوظيفة
@@ -746,7 +772,10 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/weather-service/requirements.txt
       # اختبارات محرّك الطقس (services/weather-service/tests) كانت خارج نطاق CI:
       # الوظيفة الجذر «Unit Tests» تحصر testpaths في tests_v9، و«Platform Unit Tests»
       # تشغّل sahool-platform فقط — فلم تُجمَع اختبارات ET0/VPD/vapor_pressure الكنسيّة
@@ -767,7 +796,10 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests_v9/requirements-test.txt
       # مرآة سجلّ Docker Hub (Google mirror.gcr.io تعكس Hub كاملاً بما فيه postgis/postgis):
       # أوثق بكثير من Hub المباشر — تُنهي رفرفة «registry-1.docker.io: timeout» التي تُعطّل السحب.
       # تبقى الـ٦ محاولات أدناه خطّ دفاع ثانٍ. (إعادة إصلاح #538 الذي ضاع في إعادة كتابة main.)
@@ -896,7 +928,10 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/decision-service/requirements.txt
       - name: Configure Docker registry mirror (avoid Docker Hub flakes)
         run: |
           echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
@@ -1204,7 +1239,10 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests_v9/requirements-test.txt
       - name: Configure Docker registry mirror (avoid Docker Hub flakes)
         run: |
           echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
@@ -1471,7 +1509,13 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with: {python-version: "3.12"}
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements_real.txt
+            services/*/requirements.txt
+            services/sahool-platform/api/requirements.txt
       - run: pip install bandit pip-audit pytest python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
       # بوّابة أمان: تفشل على HIGH severity (تنفيذ كود/تشفير ضعيف/حقن) — صُحّحت إلى 0.
       - run: bandit -r services/ bots/ agents/ --severity-level high
