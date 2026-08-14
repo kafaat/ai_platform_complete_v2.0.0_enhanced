@@ -219,3 +219,115 @@ def test_the_changed_file_derivation_has_history_to_derive_from() -> None:
     assert 'git fetch origin "${BASE_REF}" --depth=1' not in body, (
         "جلبُ القاعدة بعمق ١ يُعيد رأساً منفصلاً عن التاريخ، فلا merge-base"
     )
+
+
+# ── اسمُ المصنوعة ادّعاء — كشفه أوّلُ تشغيلٍ حقيقيّ للاعتماد ──────────────────
+
+
+def _certify() -> dict:
+    """وظيفةُ الاعتماد مقروءةً **كـYAML** لا كنصّ.
+
+    الفحص النصّيّ هنا يقيس تهجئةً لا خاصّيّة، ويحمرّ على التعليق الذي يشرح
+    الإصلاح — `TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01`، وقد وقعتُ فيه مرّتين
+    في هذه السلسلة. فالبنية تُقرأ من المُحلِّل.
+    """
+    import yaml
+
+    doc = yaml.safe_load((ROOT / ".github/workflows/certify-run.yml").read_text(encoding="utf-8"))
+    return doc["jobs"]["certify"]
+
+
+def _uploads_by_name() -> dict[str, dict]:
+    """المصنوعات مفهرسةً باسمها — فالحكم على كلٍّ بعينها لا على «إحدى الخطوات».
+
+    الصياغة الأولى مرّت على القائمة وفحصت `certification-record` وحدها، فكانت
+    تسكت لو اختفت `execution-outcome` أو حملت ما ليس لها. رفعه المالك وأصاب.
+    """
+    steps = [s for s in _certify()["steps"] if "upload-artifact" in str(s.get("uses", ""))]
+    return {s["with"]["name"]: s for s in steps}
+
+
+def _paths(step: dict) -> list[str]:
+    return [line.strip() for line in str(step["with"]["path"]).splitlines() if line.strip()]
+
+
+def test_each_artifact_carries_exactly_what_its_name_says() -> None:
+    """مصنوعةٌ اسمها `certification-record` تحمل خلاصةَ تشغيلٍ فقط تدّعي ما لا تحمل.
+
+    مقيسٌ في تشغيل 31825902904: رُفِعت باسم `certification-record` وفيها **ملفّ
+    واحد** هو `execution_outcome.json`، لأنّ التشغيل بلا حزمة أدلّة فلم يُنتَج
+    سجلُّ اعتماد. لا يخدع آليّةً، ويخدع قارئاً يُنزّلها — وهو
+    `CI-JOB-NAME-CLAIMS-MORE-THAN-IT-MEASURES-01` بعينه.
+    """
+    uploads = _uploads_by_name()
+
+    assert set(uploads) == {"execution-outcome", "certification-record"}, (
+        "المتوقَّع مصنوعتان بالضبط: خلاصةُ التشغيل وسجلُّ الاعتماد"
+    )
+    assert _paths(uploads["execution-outcome"]) == ["execution_outcome.json"]
+    assert _paths(uploads["certification-record"]) == ["certification_record.json"], (
+        "مصنوعةُ الاعتماد تحمل سجلَّ الاعتماد وحده — وإلّا وعد اسمُها بما لا تحويه"
+    )
+
+
+def test_the_certification_artifact_is_uploaded_only_when_its_subject_exists() -> None:
+    """الشرط يُطابَق **حرفيّاً** لا بالاحتواء.
+
+    فحصُ الاحتواء يمرّ على `always() || steps.download.outcome == 'success'` —
+    تعبيرٌ يحمل النصّ ويعني نقيضه، فيعود الرفعُ غيرَ مشروط. رفعه المالك وأصاب،
+    وهو صنفُ «الحارس يقيس وقوع النصّ لا أثره» الذي بُنِيت له هذه السلسلة.
+    """
+    condition = " ".join(str(_uploads_by_name()["certification-record"]["if"]).split())
+
+    assert condition == "always() && steps.download.outcome == 'success'", (
+        f"شرطُ رفعٍ غير مطابق ⇒ قد يُرفَع بلا موضوعه: {condition!r}"
+    )
+
+
+def test_an_empty_artifact_is_not_uploaded_under_a_promising_name() -> None:
+    """`if-no-files-found: warn` يجعل الغياب سطراً في السجلّ لا شيئاً يراه المُنزِّل."""
+    for name, step in _uploads_by_name().items():
+        assert step["with"]["if-no-files-found"] == "error", (
+            f"{name}: مصنوعةٌ فارغة باسمٍ يَعِد هي العطل نفسه، فلا تُحتمَل بتحذير"
+        )
+
+
+def test_post_run_certification_executes_only_trusted_main_push_code() -> None:
+    """`pwn-request`: `ci.yml` تُطلَق على `pull_request`، وهذه تستنسخ رأسها وتُشغّله.
+
+    فتصير شيفرةُ مُساهِمٍ غريب تعمل في سياقٍ لاحقٍ مُمتاز. رفعه المالك وأصاب.
+    والشرط يفضّ التوتّر مع إعادة الإنتاج بلا تنازل: على `main` بعد `push` من
+    المستودع نفسه، **اللقطة المشهود لها هي الشيفرة الموثوقة**.
+    """
+    guard = " ".join(str(_certify().get("if", "")).split())
+
+    # **مطابقةٌ حرفيّة لا احتواء.** أوّل صياغةٍ فحصت وجودَ البنود الثلاثة، فمرّت على
+    # `true || <البنود>` — تعبيرٌ يحمل النصّ ويعني نقيضه، والطفرةُ المُسجَّلة لم
+    # تُحمِّرها فانكشفت. وهي بعينها العلّة التي رفعها المالك في شرط الرفع، فأعدتُ
+    # ارتكابها في الحارس الأمنيّ نفسه بعد سطورٍ من إصلاحها هناك.
+    assert guard == (
+        "github.event.workflow_run.event == 'push' && "
+        "github.event.workflow_run.head_branch == 'main' && "
+        "github.event.workflow_run.head_repository.full_name == github.repository"
+    ), f"حدُّ ثقةٍ غير مطابق ⇒ قد تعمل شيفرةٌ غير موثوقة بامتياز: {guard!r}"
+
+
+def test_post_run_verifier_has_no_oidc_minting_permission() -> None:
+    """صلاحيةٌ بلا مستهلك مُثبَت ليست احتياطاً بل سطحَ هجومٍ بلا مقابل.
+
+    **واختبارٌ مستقلّ عن سابقه بقصد.** كانت الدعويان في اختبارٍ واحد بطفرةٍ واحدة
+    تمسّ الشرط وحده — فبقي فحصُ `id-token` **بلا تكذيب**: إعادةُ الصلاحية كانت
+    تمرّ بلا طفرةٍ تُثبِت أنّ أحداً يلتقطها. فصلَهما عرضُ المالك، وأصاب.
+
+    والمقيس أنّها بلا مستهلك: الوظيفة **تتحقّق** من شهادةٍ قائمة ولا تُوقّع جديدة —
+    `gh attestation trusted-root` تجلب من TUF، و`verify` تُمرَّر جذراً مخصَّصاً.
+    """
+    import yaml
+
+    workflow = yaml.safe_load(
+        (ROOT / ".github/workflows/certify-run.yml").read_text(encoding="utf-8")
+    )
+
+    assert "id-token" not in (workflow.get("permissions") or {}), (
+        "OIDC في سياقٍ لاحقٍ يستنسخ شيفرةً خارجيّة هو أخطرُ ما يُمنَح بلا حاجة"
+    )

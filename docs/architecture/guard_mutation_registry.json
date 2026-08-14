@@ -74,6 +74,36 @@
           "why": "منعُ تشغيلٍ مشروع عطلٌ أيضاً: بوّابةٌ تحجب الكلّ تُرضي كلّ اختبار حجبٍ وتكسر الخدمة. فالجناح يقيس الاتّجاهين لا اتّجاه المنع وحده."
         }
       ]
+    },
+    ".github/workflows/certify-run.yml": {
+      "test": "tests_v9/test_run_outcome_guard.py",
+      "$why_a_workflow_belongs_here_ar": "مفاتيحُ هذا القسم مساراتُ ما **يعمل في الإنتاج**، والـworkflow منها: هي التي ترفع المصنوعة التي يقرأها المُدقِّق. والطفرة تُزرَع في الـYAML نفسه لا في حارسٍ يصفه.",
+      "mutations": [
+        {
+          "expect": "test_each_artifact_carries_exactly_what_its_name_says",
+          "find": "          name: certification-record\n          path: certification_record.json",
+          "replace": "          name: certification-record\n          path: |  # mutated: الاسم يَعِد بما قد لا يحويه\n            execution_outcome.json\n            certification_record.json",
+          "why": "مقيسٌ في تشغيل 31825902904: رُفِعت مصنوعةٌ اسمها `certification-record` وفيها ملفٌّ واحد هو `execution_outcome.json` — لأنّ التشغيل بلا حزمة أدلّة فلم يُنتَج سجلُّ اعتماد. فالاسم قال «هنا سجلّ اعتماد» والمحتوى لا يحمله. لا يخدع آليّةً ويخدع قارئاً يُنزّلها، وهو `CI-JOB-NAME-CLAIMS-MORE-THAN-IT-MEASURES-01` بعينه. وفصلُ المصنوعتين يجعل **وجودَ** `certification-record` نفسه إشارةً: لا سجلّ ⇒ لا مصنوعة تدّعيه."
+        },
+        {
+          "expect": "test_an_empty_artifact_is_not_uploaded_under_a_promising_name",
+          "find": "          path: certification_record.json\n          if-no-files-found: error",
+          "replace": "          path: certification_record.json\n          if-no-files-found: warn  # mutated: الغياب يُحتمَل بتحذير",
+          "why": "رفعه المالك وأصاب: الادّعاء «الفرعان مُثبَتان بالتكذيب» كان وصفيّاً لا آليّاً — الطفرة المُسجَّلة غطّت المحتوى ولم تغطّ `if-no-files-found`. و`warn` يُعيد العطل بصيغته الأصليّة: مصنوعةٌ فارغة تُرفَع باسمٍ يَعِد، والغيابُ سطرٌ في سجلٍّ لا يقرأه مَن يُنزّل الملفّ."
+        },
+        {
+          "expect": "test_post_run_certification_executes_only_trusted_main_push_code",
+          "find": "    if: >-\n      github.event.workflow_run.event == 'push' &&",
+          "replace": "    if: >-\n      true ||  # mutated: نُزِع حدُّ الثقة\n      github.event.workflow_run.event == 'push' &&",
+          "why": "`pwn-request`. `ci.yml` تُطلَق على `[push, pull_request]`، فتشغيلٌ من رأس PR خارجيّ يُكمِل فيوقظ وظيفة الاعتماد؛ وهي تستنسخ `workflow_run.head_sha` — رأسَ الـPR — ثمّ تُشغّل `scripts/ci/*.py` من تلك اللقطة. فبلا هذا الشرط تعمل شيفرةُ مُساهِمٍ غريب في سياقٍ لاحقٍ مُمتاز. وسبب وجود `ref` أصلاً إعادةُ الإنتاج (#844)، والشرط يجمع المطلبَين: على main بعد push من المستودع نفسه، اللقطةُ المشهود لها هي الشيفرة الموثوقة."
+        },
+        {
+          "expect": "test_post_run_verifier_has_no_oidc_minting_permission",
+          "find": "permissions:\n  actions: read\n  contents: read\n  attestations: read",
+          "replace": "permissions:\n  actions: read\n  contents: read\n  attestations: read\n  id-token: write  # mutated: أُعيدت صلاحيةٌ بلا مستهلك",
+          "why": "عرضُ المالك فصلَ الدعويَين وأصاب: كانتا في اختبارٍ واحد بطفرةٍ تمسّ الشرط وحده، فبقي فحصُ `id-token` **بلا تكذيب** — إعادةُ الصلاحية تمرّ بلا طفرةٍ تُثبِت أنّ أحداً يلتقطها. و`id-token: write` في سياقٍ لاحقٍ يستنسخ `workflow_run.head_sha` هو أخطرُ ما يُمنَح بلا حاجة، والوظيفة **تتحقّق** من شهادةٍ قائمة ولا تُوقّع جديدة."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

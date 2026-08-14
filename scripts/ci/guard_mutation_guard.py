@@ -360,6 +360,17 @@ def _run_mutations_in_place(registry: dict, only: str | None, ci: Path, root: Pa
     failures: list[str] = []
     plantable = [(name, ci / name, spec) for name, spec in sorted(registry["mutated"].items())]
     plantable += behavioural_specs(registry, root)
+    # **مرشِّحٌ لا يُطابِق شيئاً كان يطبع `ok`.** المطابقة بالاسم **كاملاً**، ومفاتيح
+    # القسم السلوكيّ مساراتٌ (`.github/workflows/certify-run.yml`) لا أسماءَ مختصرة —
+    # فـ`--only certify-run` كان يزرع **صفر** طفرة ويخرج ناجحاً. ووقع ذلك عليّ مرّتين
+    # في جلسةٍ واحدة: قرأتُ أخضرَه إثباتاً بينما لم يُقَس شيء. وهو الصنف نفسه الذي
+    # يلاحقه هذا الحارس، في أداته هو. فصار «لم أجد ما أزرعه» فشلاً يُسمّي البدائل.
+    if only and not any(name == only for name, _, _ in plantable):
+        return [
+            f"--only {only!r} لا يُطابِق أيّ مواصفة ⇒ صفر طفرة مزروعة. "
+            "المطابقة بالاسم كاملاً، ومفاتيحُ القسم السلوكيّ مسارات. "
+            f"المتاح: {', '.join(sorted(n for n, _, _ in plantable))}"
+        ]
     for name, src, spec in plantable:
         if only and name != only:
             continue
