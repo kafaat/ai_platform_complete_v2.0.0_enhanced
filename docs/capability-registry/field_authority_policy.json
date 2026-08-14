@@ -1,0 +1,92 @@
+{
+  "schema": "sahool.capability-field-authority/v1",
+  "schema_version": "1.0.0",
+  "purpose": "Assign authority per capability field without creating a third capability value source of truth.",
+  "sources": {
+    "canonical_capability_definition": "docs/capability-registry/capability_index.yaml + docs/capability-registry/domains/*.yaml",
+    "legacy_registry_projection": "capabilities/registry/capabilities.json",
+    "repository_traceability_projection": "scripts/ci/capability_linker.py",
+    "repository_runtime_instrumentation": "scripts/ci/capability_runtime_evidence.py",
+    "runtime_verification": "scripts/ci/runtime_verification_apply.py + runtime-verification/apply-ledger/*.json",
+    "certification": "explicit certification decision; never repository instrumentation"
+  },
+  "field_authority": {
+    "id": {
+      "authority": "canonical_capability_definition",
+      "legacy_role": "compatibility_projection"
+    },
+    "domain": {
+      "authority": "canonical_capability_definition",
+      "legacy_role": "compatibility_projection"
+    },
+    "dependencies": {
+      "authority": "canonical_capability_definition",
+      "legacy_role": "compatibility_projection",
+      "legacy_writer": "repository_traceability_projection"
+    },
+    "maturity": {
+      "authority": "canonical_capability_definition",
+      "enum": [0, 1, 2, 3, 4, 5],
+      "legacy_role": "compatibility_projection"
+    },
+    "evidence_level": {
+      "authority": "canonical_capability_definition",
+      "enum": [0, 1, 2, 3, 4, 5],
+      "legacy_role": "compatibility_projection"
+    },
+    "owner": {
+      "authority": "canonical_capability_definition",
+      "legacy_role": "compatibility_projection",
+      "legacy_writer": "repository_traceability_projection"
+    },
+    "services": {
+      "authority": "repository_traceability_projection"
+    },
+    "apis": {
+      "authority": "repository_traceability_projection"
+    },
+    "tests": {
+      "authority": "repository_traceability_projection"
+    },
+    "ui_consumers": {
+      "authority": "repository_traceability_projection"
+    },
+    "mobile_consumers": {
+      "authority": "repository_traceability_projection"
+    },
+    "runtime.metrics": {
+      "authority": "repository_runtime_instrumentation"
+    },
+    "runtime.traces": {
+      "authority": "repository_runtime_instrumentation"
+    },
+    "runtime.audit_events": {
+      "authority": "repository_runtime_instrumentation"
+    },
+    "runtime.repository_receipts": {
+      "authority": "repository_runtime_instrumentation"
+    },
+    "runtime.verification_receipts": {
+      "authority": "runtime_verification",
+      "append_only": true,
+      "receipt_type": "attested-runtime-verification"
+    },
+    "runtime_verified": {
+      "authority": "runtime_verification",
+      "promotion": "false_to_true_only_by_governed_apply"
+    },
+    "production_certified": {
+      "authority": "certification",
+      "automatic_promotion": false
+    },
+    "status": {
+      "authority": "legacy_registry_projection",
+      "reconciliation": "excluded_until_structured_normalization"
+    }
+  },
+  "reconciliation": {
+    "compare_raw": ["id", "domain", "dependencies", "maturity", "evidence_level", "owner"],
+    "exclude_raw": ["title", "apis", "tests", "runtime", "evidence", "rationale", "status"],
+    "no_third_value_registry": true
+  }
+}

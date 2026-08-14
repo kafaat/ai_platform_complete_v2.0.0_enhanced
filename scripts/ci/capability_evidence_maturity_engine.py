@@ -21,6 +21,8 @@ REGISTRY = ROOT / "docs/capability-registry/generated/capability_registry.json"
 MAPPING = ROOT / "docs/capability-registry/generated/mapping/capability_mapping.json"
 RUNTIME_CSV = ROOT / "capabilities/generated/capability_runtime_evidence.csv"
 CERT_CSV = ROOT / "capabilities/generated/capability_certification_matrix.csv"
+RUNTIME_AUTHORITY = ROOT / "runtime-verification/generated/runtime_certification_summary.json"
+FIELD_AUTHORITY_POLICY = ROOT / "docs/capability-registry/field_authority_policy.json"
 OUT = ROOT / "docs/capability-registry/generated/evidence"
 
 FILES = (
@@ -49,6 +51,23 @@ def load_csv(path: Path, key: str = "id") -> dict[str, dict[str, str]]:
 
 def truthy(value: Any) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def runtime_authority_by_id() -> dict[str, dict[str, Any]]:
+    policy = load_json(FIELD_AUTHORITY_POLICY)
+    fields = policy.get("field_authority", {})
+    if policy.get("schema") != "sahool.capability-field-authority/v1":
+        raise ValueError("capability field authority policy schema mismatch")
+    if fields.get("runtime_verified", {}).get("authority") != "runtime_verification":
+        raise ValueError("runtime_verified authority must be runtime_verification")
+    summary = load_json(RUNTIME_AUTHORITY)
+    rows = summary.get("capabilities")
+    if not isinstance(rows, list):
+        raise ValueError("runtime authority summary has no capabilities list")
+    result = {str(row.get("id")): row for row in rows if isinstance(row, dict) and row.get("id")}
+    if len(result) != len(rows):
+        raise ValueError("runtime authority summary has duplicate or missing capability IDs")
+    return result
 
 
 def classify_tests(items: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
@@ -99,8 +118,11 @@ def build() -> dict[str, bytes]:
     mapping = load_json(MAPPING)
     runtime = load_csv(RUNTIME_CSV)
     cert = load_csv(CERT_CSV)
+    authority = runtime_authority_by_id()
     map_by_id = {c["capability_id"]: c for c in mapping["capabilities"]}
     ids = {c["id"] for c in registry["capabilities"]}
+    if set(authority) != ids:
+        raise ValueError("runtime authority/registry identity mismatch")
     records = []
 
     for cap in sorted(registry["capabilities"], key=lambda x: x["id"]):
@@ -111,9 +133,10 @@ def build() -> dict[str, bytes]:
         unit, integration = classify_tests(m.get("tests", []))
         rt = runtime.get(cid, {})
         ce = cert.get(cid, {})
-        runtime_verified = truthy(ce.get("runtime_proof", False)) and truthy(
-            ce.get("eligible_for_certification", False)
-        )
+        # Runtime truth comes from the normalized authority result: governed promotion claim
+        # + verified services + append-only attested application receipt. A raw registry boolean
+        # or generic certification-readiness flag is not sufficient.
+        runtime_verified = authority[cid].get("runtime_authority_verified") is True
         production = truthy(ce.get("certified", False)) and truthy(
             rt.get("production_certified", False)
         )

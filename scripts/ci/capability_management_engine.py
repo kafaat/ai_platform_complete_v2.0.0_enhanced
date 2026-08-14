@@ -12,6 +12,7 @@ import csv
 import hashlib
 import json
 import sys
+import tempfile
 from collections import Counter, defaultdict, deque
 from pathlib import Path
 from typing import Any
@@ -316,9 +317,9 @@ def generate_payload(reg, mapping, evidence, parity, investment):
     return matrix, graph, dashboard
 
 
-def write_all(matrix, graph, dashboard):
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "capability_management_matrix.json").write_text(
+def write_all(matrix, graph, dashboard, out: Path = OUT):
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "capability_management_matrix.json").write_text(
         json.dumps(
             {"schema_version": SCHEMA_VERSION, "capabilities": matrix}, indent=2, ensure_ascii=False
         )
@@ -344,12 +345,12 @@ def write_all(matrix, graph, dashboard):
         "priority",
         "business_value",
     ]
-    with (OUT / "capability_management_matrix.csv").open("w", encoding="utf-8", newline="") as f:
+    with (out / "capability_management_matrix.csv").open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         for r in matrix:
             w.writerow({k: r[k] for k in fields})
-    (OUT / "capability_knowledge_graph.json").write_text(
+    (out / "capability_knowledge_graph.json").write_text(
         json.dumps(graph, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     dot = ["digraph capabilities {", "  rankdir=LR;", "  node [shape=box];"]
@@ -358,8 +359,8 @@ def write_all(matrix, graph, dashboard):
     for e in graph["edges"]:
         dot.append(f'  "{e["from"]}" -> "{e["to"]}" [label="{e["type"]}"];')
     dot.append("}")
-    (OUT / "capability_knowledge_graph.dot").write_text("\n".join(dot) + "\n", encoding="utf-8")
-    (OUT / "coverage_dashboard.json").write_text(
+    (out / "capability_knowledge_graph.dot").write_text("\n".join(dot) + "\n", encoding="utf-8")
+    (out / "coverage_dashboard.json").write_text(
         json.dumps(dashboard, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     heat = [
@@ -372,7 +373,7 @@ def write_all(matrix, graph, dashboard):
         heat.append(
             f"| {d['domain']} | {d['mapped']}/{d['capabilities']} | {d['average_maturity']:.2f} | {d['average_evidence']:.2f} | {d['runtime_verified']} | {d['production_certified']} |"
         )
-    (OUT / "CAPABILITY_HEAT_MAP.md").write_text("\n".join(heat) + "\n", encoding="utf-8")
+    (out / "CAPABILITY_HEAT_MAP.md").write_text("\n".join(heat) + "\n", encoding="utf-8")
     manifest = {
         "schema_version": SCHEMA_VERSION,
         "inputs": {
@@ -381,12 +382,28 @@ def write_all(matrix, graph, dashboard):
         },
         "outputs": {},
     }
-    for p in sorted(OUT.iterdir()):
+    for p in sorted(out.iterdir()):
         if p.name != "management_manifest.json" and p.is_file():
             manifest["outputs"][p.name] = sha(p)
-    (OUT / "management_manifest.json").write_text(
+    (out / "management_manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+
+
+def generated_drift(matrix, graph, dashboard, committed: Path | None = None) -> list[str]:
+    """Compare every generated management artifact, including CSV/DOT/report/manifest."""
+    if committed is None:
+        committed = OUT
+    with tempfile.TemporaryDirectory(prefix="sahool-capability-management-check-") as tmp:
+        candidate = Path(tmp)
+        write_all(matrix, graph, dashboard, candidate)
+        names = sorted(p.name for p in candidate.iterdir() if p.is_file())
+        return [
+            name
+            for name in names
+            if not (committed / name).exists()
+            or (committed / name).read_bytes() != (candidate / name).read_bytes()
+        ]
 
 
 def main(argv=None):
@@ -401,22 +418,14 @@ def main(argv=None):
         return 1
     matrix, graph, dashboard = generate_payload(*objs)
     if args.check:
-        expected = {
-            "capability_management_matrix.json": {
-                "schema_version": SCHEMA_VERSION,
-                "capabilities": matrix,
-            },
-            "capability_knowledge_graph.json": graph,
-            "coverage_dashboard.json": dashboard,
-        }
-        for name, obj in expected.items():
-            p = OUT / name
-            if not p.exists() or load_json(p) != obj:
-                print(f"capability management drift: {name}; run --generate", file=sys.stderr)
-                return 1
-        manifest = OUT / "management_manifest.json"
-        if not manifest.exists():
-            print("missing management manifest", file=sys.stderr)
+        drifting = generated_drift(matrix, graph, dashboard)
+        if drifting:
+            print(
+                "capability management generated-artifact drift: "
+                + ", ".join(drifting)
+                + "; run --generate",
+                file=sys.stderr,
+            )
             return 1
     if args.generate or not args.check:
         write_all(matrix, graph, dashboard)

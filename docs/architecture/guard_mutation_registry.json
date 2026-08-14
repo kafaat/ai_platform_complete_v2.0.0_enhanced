@@ -104,6 +104,84 @@
           "why": "عرضُ المالك فصلَ الدعويَين وأصاب: كانتا في اختبارٍ واحد بطفرةٍ تمسّ الشرط وحده، فبقي فحصُ `id-token` **بلا تكذيب** — إعادةُ الصلاحية تمرّ بلا طفرةٍ تُثبِت أنّ أحداً يلتقطها. و`id-token: write` في سياقٍ لاحقٍ يستنسخ `workflow_run.head_sha` هو أخطرُ ما يُمنَح بلا حاجة، والوظيفة **تتحقّق** من شهادةٍ قائمة ولا تُوقّع جديدة."
         }
       ]
+    },
+    "scripts/ci/capability_runtime_evidence.py": {
+      "test": "tests/architecture/test_capability_truth_preconditions.py",
+      "$gap_ar": "CAPABILITY-RUNTIME-RECEIPT-WRITER-CONFLICT-01 + field authority binding",
+      "mutations": [
+        {
+          "expect": "test_instrumentation_refresh_preserves_attested_runtime_receipt_and_foreign_authority_fields",
+          "find": "        runtime[\"receipts\"] = repository_receipts + authoritative_receipts",
+          "replace": "        runtime[\"receipts\"] = repository_receipts  # mutated: authoritative receipts erased",
+          "why": "إسقاط الجزء السلطوي يعيد العطل المقيس: إعادة اشتقاق instrumentation تمسح attested-runtime-verification مع بقاء runtime_verified claim."
+        },
+        {
+          "expect": "test_instrumentation_writer_is_bound_to_field_authority_policy",
+          "find": "    load_authority_policy()\n    result = json.loads(json.dumps(data))",
+          "replace": "    pass  # mutated: field-authority policy ignored\n    result = json.loads(json.dumps(data))",
+          "why": "سياسة ملكية حقول غير مستدعاة من الكاتب تعود وثيقة لا إنفاذاً، فيمكن للكاتب أن يستعيد حقلاً لا يملكه دون أن يحمر شيء."
+        }
+      ]
+    },
+    "scripts/ci/runtime_certification_gate.py": {
+      "test": "tests/architecture/test_capability_truth_preconditions.py",
+      "$gap_ar": "CAPABILITY-RUNTIME-PROMOTION-INVISIBLE-TO-EVIDENCE-01 — normalized runtime authority",
+      "mutations": [
+        {
+          "expect": "test_runtime_authority_requires_claim_services_and_governed_application_receipt",
+          "find": "    return runtime_claim and required_verified and bool(receipts) and not receipt_errors",
+          "replace": "    return runtime_claim and required_verified  # mutated: governed receipt ignored",
+          "why": "الادعاء + خدمات verified دون سجل تطبيق append-only لا يثبت promotion محكومة؛ حذف receipt يعيد الثقة في claim بلا منشأ."
+        }
+      ]
+    },
+    "scripts/ci/capability_evidence_maturity_engine.py": {
+      "test": "tests/architecture/test_capability_truth_preconditions.py",
+      "$gap_ar": "CAPABILITY-RUNTIME-PROMOTION-INVISIBLE-TO-EVIDENCE-01 — consumer binding",
+      "mutations": [
+        {
+          "expect": "test_evidence_maturity_uses_normalized_runtime_authority_not_readiness_booleans",
+          "find": "        runtime_verified = authority[cid].get(\"runtime_authority_verified\") is True",
+          "replace": "        runtime_verified = truthy(ce.get(\"runtime_proof\", False)) and truthy(ce.get(\"eligible_for_certification\", False))  # mutated: old readiness path",
+          "why": "إرجاع المسار القديم يجعل readiness booleans تمنح runtime truth ويتجاهل نتيجة السلطة المطبعة، وهو الانفصال المقيس قبل A′-0."
+        }
+      ]
+    },
+    "scripts/ci/capability_mapping_engine.py": {
+      "test": "tests/architecture/test_capability_truth_preconditions.py",
+      "$gap_ar": "CAPABILITY-MAPPING-COMPANION-ARTIFACT-CHECK-INCOMPLETE-01",
+      "mutations": [
+        {
+          "expect": "test_mapping_check_covers_csv_report_queues_and_manifest",
+          "find": "def check_outputs(data: dict) -> bool:\n    names = (\n        \"capability_mapping.json\",\n        \"capability_mapping.csv\",\n        \"unmapped_artifacts.json\",",
+          "replace": "def check_outputs(data: dict) -> bool:\n    names = (\n        \"capability_mapping.json\",\n        \"unmapped_artifacts.json\",  # mutated: CSV removed from closure",
+          "why": "إسقاط CSV من قائمة closure يعيد false green المقيس: إفساد الرفيق يمر بينما JSON الرئيسية سليمة."
+        }
+      ]
+    },
+    "scripts/ci/capability_management_engine.py": {
+      "test": "tests/architecture/test_capability_truth_preconditions.py",
+      "$gap_ar": "CAPABILITY-MANAGEMENT-MANIFEST-CHECK-INCOMPLETE-01",
+      "mutations": [
+        {
+          "expect": "test_management_check_covers_companion_files_and_manifest",
+          "find": "        names = sorted(p.name for p in candidate.iterdir() if p.is_file())",
+          "replace": "        names = sorted(p.name for p in candidate.iterdir() if p.is_file() and p.name != \"management_manifest.json\")  # mutated: manifest ignored",
+          "why": "الـmanifest البائت كان يمر أخضر لأن check يسأل عن وجوده فقط؛ إسقاطه من closure يعيد العطل نفسه."
+        }
+      ]
+    },
+    "scripts/ci/verify_all_generated.py": {
+      "test": "tests/architecture/test_capability_truth_preconditions.py",
+      "$gap_ar": "CAPABILITY-RUNTIME-AUTHORITY-GENERATION-ORDER-01",
+      "mutations": [
+        {
+          "expect": "test_generated_pipeline_orders_runtime_authority_before_evidence_maturity",
+          "find": "    \"runtime_certification_gate.py\": -1,",
+          "replace": "    \"runtime_certification_gate.py\": 0,  # mutated: lexical order runs evidence consumer first",
+          "why": "Evidence maturity يستهلك runtime_certification_summary؛ إعادة المنتج إلى tier الافتراضي تجعل capability_evidence_maturity_engine يسبقه أبجدياً في fix pass."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

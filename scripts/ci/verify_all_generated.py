@@ -320,6 +320,9 @@ _LATE = ("static_governance_closure.py",)
 # منها** لأنّ `man` < `map` و`pa` و`re`. فتشغيله في طبقة صفر كان سيقرأ مدخلات بائتة
 # ويحتاج دورةً ثانية دائماً — أي «يستقرّ» بمصادفة الدورات لا بترتيب صحيح.
 _ORDER_TIER = {
+    # Evidence maturity consumes the normalized runtime authority summary. Generate the
+    # authority producer before the capability evidence consumer in every fix pass.
+    "runtime_certification_gate.py": -1,
     "capability_management_engine.py": 1,
     "platform_route_governance_attestation.py": 1,
     "platform_route_release_binding.py": 2,
