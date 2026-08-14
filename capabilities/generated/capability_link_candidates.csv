@@ -716,6 +716,7 @@ FM-003,test,tests_v9/test_field_state_recompute_provenance_v57_5.py,3,applied
 FM-003,test,tests_v9/test_field_state_unification.py,3,applied
 FM-003,test,tests_v9/test_field_sustainability.py,3,applied
 FM-003,test,tests_v9/test_field_terrain_foundation_v31_2.py,3,applied
+FM-003,test,tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py,5,applied
 FM-003,test,tests_v9/test_fields_geometry_integrity_v39_5.py,3,applied
 FM-003,test,tests_v9/test_fields_merge_split_atomic.py,3,applied
 FM-003,test,tests_v9/test_fields_put_and_mfa_api_contract_20260626.py,3,applied
@@ -973,6 +974,7 @@ GIS-001,test,tests_v9/test_field_boundary_ai_v59.py,3,applied
 GIS-001,test,tests_v9/test_field_boundary_backends_v59_5.py,3,applied
 GIS-001,test,tests_v9/test_field_geometry_history_append_only_v39_5.py,3,applied
 GIS-001,test,tests_v9/test_field_geometry_save_guard_20260703.py,3,applied
+GIS-001,test,tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py,3,applied
 GIS-001,test,tests_v9/test_fields_geometry_integrity_v39_5.py,3,applied
 GIS-001,test,tests_v9/test_gis_multipolygon_geometry_versioning.py,3,applied
 GIS-001,test,tests_v9/test_physical_effect_boundary_guard.py,3,applied
@@ -1133,6 +1135,7 @@ IRR-007,test,tests_v9/test_firmware_valve_safety.py,3,applied
 IRR-007,test,tests_v9/test_helm_migration_command_valid_20260705.py,3,applied
 IRR-007,test,tests_v9/test_manual_command_killswitch_scope.py,3,applied
 IRR-007,test,tests_v9/test_portfolio_command_shape.py,3,applied
+IRR-007,test,tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py,3,applied
 IRR-008,service,services/decision-service/main.py,10,applied
 IRR-008,service,services/sahool-platform/api/main.py,10,applied
 IRR-009,api,GET /api/v1/crop-cards/variety/{variety_id}/salinity-suitability @ services/sahool-platform/api/routers/crop_cards.py:83,3,applied
@@ -1706,6 +1709,7 @@ SEC-001,test,tests_v9/test_compose_rls_bypass_guard.py,3,applied
 SEC-001,test,tests_v9/test_fii_rls_write_fail_closed_postgres.py,3,applied
 SEC-001,test,tests_v9/test_notification_tenant_isolation.py,3,applied
 SEC-001,test,tests_v9/test_rls_fk_isolated_tables.py,3,applied
+SEC-001,test,tests_v9/test_rls_instructions_do_not_teach_a_command_line_password.py,3,applied
 SEC-001,test,tests_v9/test_rls_isolation.py,3,applied
 SEC-001,test,tests_v9/test_rls_isolation_negative.py,3,applied
 SEC-001,test,tests_v9/test_rls_role_hardening_v66.py,3,applied

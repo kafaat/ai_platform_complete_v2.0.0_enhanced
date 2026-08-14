@@ -59,9 +59,13 @@ def collect():
     if not db_url:
         lines.append("- ⚠️ DATABASE_URL/RLS_TEST_URL غير مضبوط. للقياس الحقيقي:")
         lines.append("  ```")
-        lines.append("  export RLS_TEST_URL='postgresql://sahool_user:PASS@localhost/sahool'")
+        lines.append("  export RLS_TEST_URL='postgresql://sahool_user@localhost/sahool'")
         lines.append('  psql "$RLS_TEST_URL" -f scripts_v9/test_tenant_isolation.sql')
         lines.append("  ```")
+        lines.append(
+            "- 🔑 كلمة المرور **لا تُكتب في سطر الأوامر**: `~/.pgpass` (صلاحية `0600`) "
+            "أو `PGPASSWORD` من مخزن أسرار — سطرُ الأوامر يُقرأ من `ps` ويُحفظ في التاريخ."
+        )
         lines.append(
             "- ⚠️ **حرج**: شغّل كـnon-superuser (sahool_user)، وإلّا RLS يُتجاوَز "
             "ويعطي نجاحاً زائفاً (silent success — أخطر فشل)."

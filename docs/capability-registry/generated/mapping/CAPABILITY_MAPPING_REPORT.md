@@ -12,7 +12,7 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **5014**
+- Files scanned: **5016**
 - Ambiguous artifacts queued: **405**
 - Unmapped artifacts queued: **2039**
 
@@ -32,7 +32,7 @@
 | DEC-010 | decision | 4 | 89 | 42 | 7 | 0 | 0 | 5 | 5 |
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 24 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 14 | 2 | 25 | 7 |
-| FM-003 | farm_management | 13 | 56 | 5 | 54 | 2 | 2 | 11 | 7 |
+| FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 12 | 7 |
 | FM-004 | farm_management | 30 | 82 | 84 | 54 | 12 | 1 | 34 | 7 |
 | FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 5 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 5 | 5 |
 | SAT-009 | satellite | 12 | 68 | 0 | 12 | 1 | 0 | 22 | 5 |
-| SEC-001 | security | 14 | 36 | 100 | 86 | 0 | 0 | 58 | 5 |
+| SEC-001 | security | 14 | 36 | 100 | 86 | 0 | 0 | 59 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 7 | 21 | 23 | 4 | 5 | 4 | 16 | 7 |
