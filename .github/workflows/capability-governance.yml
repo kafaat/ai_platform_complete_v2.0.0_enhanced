@@ -222,7 +222,12 @@ jobs:
     permissions:
       contents: read
     steps:
+      # `fetch-depth: 0` لأنّ البند المشروط يشتقّ ما مسّته الـPR بـ`merge-base`،
+      # واستنساخٌ بعمق ١ لا يملك سلفاً مشتركاً فيموت الاشتقاق `no merge base`.
+      # وهذا قِيس على هذه الـPR نفسها بعد جعل الاشتقاق يفشل مغلقاً — تفصيلُه أدناه.
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
@@ -303,6 +308,7 @@ jobs:
           REPO: ${{ github.repository }}
           TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BASE_REF: ${{ github.base_ref }}
+          PUSH_BEFORE: ${{ github.event.before }}
         run: |
           set -euo pipefail
           # GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: البند المشروط يحتاج معرفة
@@ -314,12 +320,23 @@ jobs:
           # الاشتقاق يكتب قائمةً **فارغة**، فيقرأ الحارس «لم تُمَسّ التفويضات»
           # ويُطفَأ البند الحاجب صامتاً. وقائمةٌ فارغة عن فشلٍ تُقرأ كقائمةٍ فارغة
           # عن براءة، ولا شيء يفرّق بينهما — وهو بعينه الصنف الذي تطارده هذه الـPR.
-          if [ -z "${BASE_REF}" ]; then
-            echo "✗ لا BASE_REF — تعذّر اشتقاق ما مسّته الـPR، ولا يُقرأ ذلك «لم تُمَسّ»." >&2
+          #
+          # **وأوّل تشغيلٍ صادق كذّب الاشتقاق نفسه** (94753838446):
+          # `fatal: origin/main...HEAD: no merge base` — الاستنساخ بعمق ١ والجلب
+          # بـ`--depth=1` لا يلتقيان في سلف. أي أنّ `changed.txt` كانت **فارغة في
+          # كلّ تشغيلٍ سابق**، والبند المشروط لم يُقيَّم مرّةً واحدة منذ كُتِب. فسقط
+          # الشحّ في العمق (`fetch-depth: 0` أعلاه) وسقط `--depth=1` هنا.
+          if [ -n "${BASE_REF}" ]; then
+            git fetch origin "${BASE_REF}" -q
+            git diff --name-only "origin/${BASE_REF}...HEAD" > changed.txt
+          elif [ -n "${PUSH_BEFORE:-}" ] && git cat-file -e "${PUSH_BEFORE}^{commit}" 2>/dev/null; then
+            # على `push` لا PR ولا `base_ref`؛ والمقيس عندئذٍ ما أضافته الدفعة نفسها.
+            git diff --name-only "${PUSH_BEFORE}" "${GITHUB_SHA}" > changed.txt
+          else
+            echo "✗ تعذّر اشتقاق ما مسّه هذا الحدث — ولا يُقرأ التعذّر «لم يُمَسّ»." >&2
             exit 1
           fi
-          git fetch origin "${BASE_REF}" --depth=1 -q
-          git diff --name-only "origin/${BASE_REF}...HEAD" > changed.txt
+          echo "— المسارات المشتقّة: $(wc -l < changed.txt) —"
           python scripts/ci/branch_protection_contract_guard.py \
             --protection-file protection.json \
             --expect-repository "${REPO}" \

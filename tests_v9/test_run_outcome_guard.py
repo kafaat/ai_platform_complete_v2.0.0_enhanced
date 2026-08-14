@@ -195,3 +195,27 @@ def test_the_changed_file_derivation_fails_closed() -> None:
         "اشتقاقٌ يفشل مفتوحاً يُطفئ الشرط المشروط بدل أن يحجب"
     )
     assert "changed.txt" in executable and "set -euo pipefail" in executable
+
+
+def test_the_changed_file_derivation_has_history_to_derive_from() -> None:
+    """وفشلٌ مغلقٌ فوق اشتقاقٍ لا يستطيع أن ينجح هو حجبٌ دائم، لا إنفاذ.
+
+    أوّل تشغيلٍ صادق (94753838446) ردّ `fatal: origin/main...HEAD: no merge base`:
+    استنساخٌ بعمق ١ وجلبٌ بـ`--depth=1` لا يلتقيان في سلف. ومعناه أنّ `changed.txt`
+    كانت **فارغة في كلّ تشغيلٍ سابق** — البند المشروط لم يُقيَّم مرّةً منذ كُتِب،
+    وأخفى ذلك `|| : > changed.txt`. فالعمق شرطُ صحّةٍ لا تحسين أداء.
+    """
+    governance = (ROOT / ".github/workflows/capability-governance.yml").read_text(encoding="utf-8")
+    executable = "\n".join(
+        line for line in governance.splitlines() if not line.lstrip().startswith("#")
+    )
+    job = executable.split("branch-protection-contract:", 1)
+    assert len(job) == 2, "الوظيفة المعنيّة غير موجودة بهذا الاسم — أُعيدت تسميتُها؟"
+    body = job[1]
+
+    assert "fetch-depth: 0" in body.split("- name:", 1)[0], (
+        "استنساخٌ ضحل ⇒ لا سلف مشترك ⇒ `no merge base` ⇒ حجبٌ دائم بلا قياس"
+    )
+    assert 'git fetch origin "${BASE_REF}" --depth=1' not in body, (
+        "جلبُ القاعدة بعمق ١ يُعيد رأساً منفصلاً عن التاريخ، فلا merge-base"
+    )
