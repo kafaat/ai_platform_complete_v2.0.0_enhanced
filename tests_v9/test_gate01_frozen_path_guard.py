@@ -237,17 +237,117 @@ def test_the_real_reverted_patch_would_still_be_caught_without_its_authorization
     assert used is None and errors
 
 
-def test_the_live_tree_is_permitted_only_by_an_exact_authorization():
-    """والشجرة الحاليّة تمرّ **بتفويضها** لا بغيابه — الفرق يُقاس لا يُفترَض."""
+def test_the_live_authorization_is_spent_and_no_longer_grants():
+    """بعد الختم: تفويضُ الشجرة **لا يمنح**، ومسُّ المسارين يُحجَب.
+
+    **وهذا التأكيد كان مقلوباً قبل الختم:** كان يشترط أن يمنح التفويضُ `PASS` على
+    المسارين، فيُثبِّت الحالة المعطوبة — أي أنّ الاختبار كان يحرس بقاء الإذن حيّاً
+    بعد استعماله. وهي الفجوة `GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01` بعينها،
+    مكتوبةً في اختبارٍ لا في شيفرة.
+
+    والصحيح بعد هبوط الرقعة: لا شيء يُمَسّ، فلا إذن يُطلَب؛ ومن أراد إعادة مسِّهما
+    يحتاج تفويضاً **جديداً**.
+    """
     policy = guard.load_policy(_POLICY)
     blobs = {p: guard.blob_sha(p) for p in policy["frozen_paths"]}
     adjs = guard.load_adjudications(_ADJ_DIR)
-    errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, adjs, blobs)
-    assert errors == [], errors
-    assert used == "GATE01-ADJ-2026-08-13-001"
 
-    stripped = [copy.deepcopy(a) for a in adjs]
-    for a in stripped:
-        a["status"] = "CONSUMED"
-    errors2, used2 = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, stripped, blobs)
-    assert used2 is None and errors2, "تفويضٌ مُستهلَك مرّ — الاستعمال مرّةً واحدة غير مفروض"
+    errors, used = guard.evaluate([_FROZEN_A, _FROZEN_B], policy, adjs, blobs)
+    assert used is None, f"تفويضٌ مُستهلَك ما زال يمنح: {used}"
+    assert errors, "مسُّ مسارٍ مجمَّد مرّ بلا إذنٍ صالح"
+    assert any("CONSUMED" in e for e in errors), errors
+
+    # ولا شيء بائتٌ في الشجرة: كلّ تفويضٍ هبطت بايتاتُه صار مختوماً.
+    assert guard.stale_authorization_errors(adjs, set(), blobs) == []
+
+
+# ── دورة حياة التفويض (GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01) ──────────────
+#
+# الوعد `one_time` كان مكتوباً في التفويض ومفروضاً عند **الاستعمال** (`status ==
+# "ISSUED"`) — ولا شيء يُنهي الحالة بعد الدمج. فبقي تفويض #837 صالحاً بعد هبوط
+# رقعته، وأعطت `evaluate()` عليه PASS حيّاً. هذه الحالات تقيس المُميِّز نفسه:
+# «بايتاتُه في الشجرة **و** الـdiff الحاليّ لا يلمس مساراته» ⇒ استُهلِك ولم يُختَم.
+def test_an_issued_authorization_whose_bytes_already_landed_is_flagged_as_spent():
+    """الفجوة بعينها: إذنٌ حيٌّ لرقعةٍ هبطت — يُرصَد بلا أن يُسأل GitHub."""
+    errs = guard.stale_authorization_errors([_adj()], set(), _BLOBS)
+    assert len(errs) == 1, errs
+    assert "GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01" in errs[0]
+    assert "ADJ-TEST-001" in errs[0]
+
+
+def test_an_authorization_in_flight_on_its_own_paths_is_not_flagged():
+    """المُميِّز ليس تطابق البايتات وحده — وإلّا اتُّهِمت الرقعة المأذونة نفسها.
+
+    أثناء الـPR المأذونة تكون بايتات الشجرة مطابقةً للمأذون بالضرورة؛ لو كُتِب
+    الفحص على التطابق وحده لَحَجَب الاستعمالَ المشروع الذي وُجِد ليُتيحه.
+    """
+    assert guard.stale_authorization_errors([_adj()], {_FROZEN_A}, _BLOBS) == []
+
+
+def test_an_authorization_whose_bytes_have_not_landed_is_not_flagged():
+    """رقعةٌ لم تهبط بعد ⇒ الإذن ما زال أمامه عمله، لا خلفه."""
+    tree = dict(_BLOBS, **{_FROZEN_A: "9" * 40})
+    assert guard.stale_authorization_errors([_adj()], set(), tree) == []
+
+
+def test_an_authorization_over_a_path_absent_from_the_tree_is_not_flagged():
+    """الغياب ليس هبوطاً — و`None == None` وحدها كانت ستقرأه هبوطاً.
+
+    الشكل المُقاس هو الوحيد الذي يُمرِّر مقارنة القواميس بلا بايتاتٍ حقيقيّة:
+    تفويضٌ يُعلن `null` لمسارٍ غائبٍ من الشجرة (`blob_sha` تُرجِع `None` للغائب،
+    كما لمسارات `not_yet_in_tree` في السياسة الحيّة). فحصُ الغياب يسبق المقارنة
+    فيقطع هذا الطريق؛ ولولاه لَاتُّهِم تفويضٌ لم تهبط رقعتُه بأنّه بائت.
+    """
+    adj = _adj(authorized_blobs={_FROZEN_A: None})
+    assert guard.stale_authorization_errors([adj], set(), {_FROZEN_A: None}) == []
+
+
+@pytest.mark.parametrize("status", ["CONSUMED", "REVOKED"])
+def test_a_sealed_authorization_is_not_flagged_again(status):
+    """الختم يُنهي الشكوى — وإلّا صار الحارس يطالب بختمٍ تمّ، فيُحمِرّ إلى الأبد."""
+    assert guard.stale_authorization_errors([_adj(status=status)], set(), _BLOBS) == []
+
+
+def test_a_reusable_authorization_is_refused_as_an_unimplemented_mode():
+    """`one_time: false` وضعٌ غير منفَّذ ⇒ فشلٌ مغلق، لا قراءةٌ ترخيصاً بإعادة الاستعمال.
+
+    اقتُرِح في المراجعة أن يُستثنى التفويض المُعاد الاستعمال من فحص دورة الحياة. وقياسُ
+    الشجرة يقول إنّ الوضع **لا وجود له**: لا عدّاد استعمالات ولا نطاق زمنيّ ولا سقف،
+    ولم يقرأ الحقلَ سطرٌ واحد قبل هذه الرقعة. فاستثناؤه كان سيجعل حقلاً إعلانيّاً
+    يُسكِت الفحص بلا أن يمنحه أحد ذلك — بابَ تجاوزٍ ذاتيَّ الخدمة يُعيد الفجوة نفسها.
+    والغياب يبقى هو الافتراض (لمرّةٍ واحدة)، فلا تُكسَر التفويضات القائمة.
+    """
+    errors, used = _run([_FROZEN_A, _FROZEN_B], adjs=[_adj(one_time=False)])
+    assert used is None, "تفويضٌ بوضعٍ غير منفَّذ منح إذناً"
+    assert any("one_time" in e for e in errors), errors
+    # ويبقى مرصوداً في دورة الحياة أيضاً — لا يُسكِته الحقل.
+    assert guard.stale_authorization_errors([_adj(one_time=False)], set(), _BLOBS)
+
+
+def test_the_lifecycle_check_is_wired_into_the_entry_point(tmp_path, capsys):
+    """الوصل يُقاس لا يُفترَض: دالّةٌ صحيحة غير مُستدعاة خضرةٌ عن سؤالٍ لم يُطرَح.
+
+    تُبنى سياسةٌ ومجلَّد تفويضاتٍ مؤقّتان على **ملفّات حقيقيّة** في الشجرة (لأنّ
+    `main` يشتقّ البايتات من git لا من المعطيات)، ثمّ تُشغَّل `main` بلا مسارات
+    مُغيَّرة أصلاً — فلو كان الفحص مربوطاً بالمسّ أو غير مربوط لَخرجت صفراً.
+    """
+    real = ["scripts/ci/gate01_frozen_path_guard.py", "pytest.ini"]
+    blobs = {p: guard.blob_sha(p) for p in real}
+    policy = {
+        "schema": "sahool.gate01_policy/v2",
+        "gate": {"id": "GATE-01", "gap_id": "GAP-X", "state": "CLOSED"},
+        "phase0_baseline": {"commit_sha": "b" * 40},
+        "frozen_paths": real,
+    }
+    ppath = tmp_path / "policy.json"
+    ppath.write_text(json.dumps(policy), encoding="utf-8")
+    adir = tmp_path / "adjudications"
+    adir.mkdir()
+    (adir / "a.json").write_text(
+        json.dumps(_adj(authorized_blobs=blobs, allowed_paths=real)), encoding="utf-8"
+    )
+
+    rc = guard.main(["--policy", str(ppath), "--adjudications", str(adir)])
+    out = capsys.readouterr().out
+    assert rc == 1, out
+    assert "GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01" in out

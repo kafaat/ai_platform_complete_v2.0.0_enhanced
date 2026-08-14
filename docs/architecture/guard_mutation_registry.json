@@ -534,6 +534,48 @@
           "find": "    if adj.get(\"schema\") != \"sahool.gate01_adjudication/v1\":",
           "replace": "    if False:",
           "why": "مخطَّطٌ مجهول يُقرأ إذناً ⇒ أيّ JSON في المجلَّد يصير تفويضاً."
+        },
+        {
+          "expect": "test_an_issued_authorization_whose_bytes_already_landed_is_flagged_as_spent",
+          "find": "        if {p: blobs.get(p) for p in allowed} != declared:",
+          "replace": "        if True:",
+          "why": "تعطيل رصد الهبوط يُعيد الفجوة نفسها: تفويضٌ استُهلِك ولم يُختَم يبقى `ISSUED` حيّاً بلا أن يُحمِرّ شيء (GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01)."
+        },
+        {
+          "expect": "test_an_authorization_in_flight_on_its_own_paths_is_not_flagged",
+          "find": "        if set(allowed) & touched:",
+          "replace": "        if False:",
+          "why": "نزعُ المُميِّز يجعل الفحص «كلّ تفويضٍ بايتاتُه مطابقة» — فيتّهم الرقعةَ المأذونة أثناء PR-ها بأنّها بائتة، وهي بالضرورة مطابقة حينها."
+        },
+        {
+          "expect": "test_an_authorization_whose_bytes_have_not_landed_is_not_flagged",
+          "find": "        if {p: blobs.get(p) for p in allowed} != declared:",
+          "replace": "        if not True:",
+          "why": "قَلبُ الشرط يجعل «الشجرة تخالف المأذون» تُقرأ هبوطاً — فيُتَّهم تفويضٌ لم تهبط رقعتُه بعد بأنّه مُستهلَك، والحارس الذي يتّهم الصحيح يُنزَع."
+        },
+        {
+          "expect": "test_an_authorization_over_a_path_absent_from_the_tree_is_not_flagged",
+          "find": "        if any(blobs.get(p) is None for p in allowed):",
+          "replace": "        if False:",
+          "why": "غيابُ الملفّ يُقرأ هبوطاً حين يُعلِن التفويض `null` — فيُتَّهم إذنٌ لم تهبط رقعتُه بأنّه مُستهلَك."
+        },
+        {
+          "expect": "test_a_sealed_authorization_is_not_flagged_again",
+          "find": "        if adj.get(\"status\") != \"ISSUED\":",
+          "replace": "        if False:",
+          "why": "المختوم يُطالَب بختمٍ تمّ ⇒ حمرةٌ دائمة لا تُرفَع بعملٍ صحيح، وهي أسرع طريق إلى تعطيل الحارس."
+        },
+        {
+          "expect": "test_the_lifecycle_check_is_wired_into_the_entry_point",
+          "find": "    errors = list(errors) + stale_authorization_errors(adjudications, frozen_touched, blobs)",
+          "replace": "    errors = list(errors)",
+          "why": "دالّةٌ صحيحة غير مُستدعاة من نقطة الدخول خضرةٌ عن سؤالٍ لم يُطرَح — كلّ اختبارات الوحدة تبقى خضراء وCI لا تفحص شيئاً."
+        },
+        {
+          "expect": "test_a_reusable_authorization_is_refused_as_an_unimplemented_mode",
+          "find": "    if adj.get(\"one_time\") is False:",
+          "replace": "    if False:",
+          "why": "`one_time: false` يُقرأ ترخيصاً بإعادة الاستعمال بدل وضعٍ غير منفَّذ ⇒ حقلٌ إعلانيّ يُسكِت فحص دورة الحياة بلا أن يمنحه أحد ذلك، فيُعيد GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 من حيث أُغلِقت."
         }
       ]
     },
@@ -559,7 +601,7 @@
         },
         {
           "expect": "test_red_by_the_wrong_test_is_not_proof",
-          "find": "            elif m[\"expect\"] not in out:",
+          "find": "            elif m[\"expect\"] not in failing_tests(out):",
           "replace": "            elif False:",
           "why": "قبول «سقط شيء ما» بدل الاختبار المُسمّى ⇒ طفرة تكسر الاستيراد تُحسَب نجاحاً"
         },
@@ -622,6 +664,18 @@
           "find": "        return _run_mutations_in_place(registry, only, mirror / ci_relative, mirror)",
           "replace": "        return _run_mutations_in_place(registry, only, ci, mirror)",
           "why": "توجيه مصدر الطفرة إلى ci الأصليّ مع بقاء الاختبارات في المرآة ⇒ العزل اسميّ والشجرة القانونية تُمسّ"
+        },
+        {
+          "expect": "test_a_name_seen_only_in_the_message_is_not_a_fallen_test",
+          "find": "    if expected not in observed:",
+          "replace": "    if expected not in out:",
+          "why": "إعادة الحكم إلى البحث النصّيّ في كامل المخرَج: اسمٌ يظهر في رسالة تأكيد أو تتبُّع مكدّس أو معامل parametrize يُقرأ سقوطاً، فيُختَم `expected_red` والقاعدة غير محروسة — «سقط شيء ما» بصيغةٍ تختبئ خلف اسمٍ صحيح."
+        },
+        {
+          "expect": "test_the_run_path_decides_on_the_fallen_list_not_on_the_raw_output",
+          "find": "            elif m[\"expect\"] not in failing_tests(out):",
+          "replace": "            elif m[\"expect\"] not in out:",
+          "why": "مسار الحجب الفعليّ يحمل نسخةً ثانية من الحكم — فتصحيح `_outcome` وحده يترك القرار الحاجب على البحث النصّيّ: دالّةٌ صحيحة لا تحكم، وهي خضرةٌ عن سؤالٍ لم يُطرَح."
         }
       ],
       "test": "tests_v9/test_guard_mutation_guard.py"
@@ -1316,6 +1370,53 @@
           "why": "عدُّ ذِكرِ الاسم في شرحٍ اختباراً مُعطَّلاً — عطلٌ وقع فعلاً في أوّل صياغة (أربعة بدل اثنين). وعدٌّ يُعاقِب التوثيق يُدرِّب كاتبه على حذفه: رقمٌ خاطئ وتوثيقٌ أقلّ"
         }
       ]
+    },
+    "brain_commit_claim_guard.py": {
+      "test": "tests/architecture/test_brain_commit_claim_guard.py",
+      "mutations": [
+        {
+          "expect": "test_a_gate_adjudication_id_is_not_demanded_as_a_gap_section",
+          "find": "            if is_adjudication(gid):",
+          "replace": "            if False:",
+          "why": "معرّف تفويضٍ يُطالَب بقسمٍ في سجلّ الفجوات ⇒ إمّا إدخالٌ كاذب (التفويض إذنُ مالكٍ لا عطلٌ مرصود) أو حذفُ المعرّف من الرسالة، أي كتمان أيّ تفويضٍ خُتِم."
+        },
+        {
+          "expect": "test_a_fabricated_adjudication_id_is_still_rejected",
+          "find": "                if not adjudication_exists(gid):",
+          "replace": "                if False:",
+          "why": "الصنف يصير استثناءً بدل تحقّق ⇒ معرّف تفويضٍ ملفَّق يمرّ، والذكر يعود ادّعاءً غير مفحوص — وهو العطل الأصليّ الذي بُني الحارس له."
+        },
+        {
+          "expect": "test_the_adjudication_class_did_not_swallow_real_gap_ids",
+          "find": "_ADJUDICATION = re.compile(r\"^GATE[0-9]{2}-ADJ-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{3}$\")",
+          "replace": "_ADJUDICATION = re.compile(r\"^GATE\")",
+          "why": "استثناءٌ بالبادئة يبتلع كلّ فجوة تبدأ بـGATE (منها GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 نفسها) — نفس فخّ `startswith(\"CVE-\")` الذي أسقطه تكذيبُ الاستشارات قبله."
+        },
+        {
+          "expect": "test_it_catches_the_real_historical_miss",
+          "find": "            if gid not in known:",
+          "replace": "            if False:",
+          "why": "الفحص الأساسيّ يُفرَّغ: كلّ معرّف يُذكَر يُقرأ مسجَّلاً ⇒ يعود عطل #683 (رسالةٌ تُعلِن أربع فجوات وتصل اثنتان) بلا أن يُحمِرّ شيء."
+        },
+        {
+          "expect": "test_the_advisory_exemption_did_not_swallow_real_gap_ids",
+          "find": "    return bool(_ADVISORY.match(gid))",
+          "replace": "    return True",
+          "why": "استثناء الاستشارات يبتلع كلّ معرّف ⇒ الحارس يمرّ على كلّ شيء صامتاً، وهو أخطر من سقوطه لأنّه يُقرأ خضرةً."
+        },
+        {
+          "expect": "test_table_row_ids_count_as_registered",
+          "find": "        elif line.startswith(\"|\"):",
+          "replace": "        elif False:",
+          "why": "قصرُ القراءة على العناوين يُعيد الإيجابيّة الكاذبة المشحونة: ٢٢ فجوة مسجَّلة كصفوف تُعامَل كغير مسجَّلة، فتسقط PR تذكر ما هو مسجَّل سلفاً."
+        },
+        {
+          "expect": "test_an_id_glued_to_arabic_text_is_read_whole_not_from_its_middle",
+          "find": "_GAP_ID = re.compile(r\"(?<![-A-Za-z0-9_])[A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,}(?![-A-Za-z0-9_])\")",
+          "replace": "_GAP_ID = re.compile(r\"\\b[A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,}\\b\")",
+          "why": "حدُّ الكلمة يقتطع المعرّف الملتصق بالعربيّة فيخترع وهميّاً (`E2E-UNDER-…`) ويُفوّت الحقيقيّ (`AUTH-E2E-…`) في آنٍ — عطبان متعاكسان من سببٍ واحد."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",
@@ -1327,7 +1428,6 @@
     "arch_test_ci_coverage_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "assertion_presence_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "auth_main_decomposition_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
-    "brain_commit_claim_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "brain_deferral_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "capability_core_consumption_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "capability_registry_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
@@ -1437,7 +1537,7 @@
     "weather_engine_formula_guard.py": "سابق للآليّة — لم تُقَس تغطيته",
     "weather_hourly_etc_wx_i1_guard.py": "سابق للآليّة — لم تُقَس تغطيته"
   },
-  "unmutated_debt_ceiling": 115,
+  "unmutated_debt_ceiling": 114,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
   "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
 }
