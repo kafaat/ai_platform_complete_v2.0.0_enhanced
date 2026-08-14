@@ -3391,7 +3391,7 @@ def _dispatch_outcome_status(send_success: bool) -> str:
 
 دالّةٌ تُترجم **إقرار الوسيط** (نجاح `publish` بـ`qos=1` إلى MQTT) إلى الكلمة
 `executed`. و`send_mqtt_command` لا تنتظر إقراراً من الجهاز إطلاقاً: تُعيد `True` فور
-نجاح النشر (`actuator_runtime.py:604-611`). فالكلمة تدّعي **أثراً فيزيائيّاً** عن قياسٍ
+نجاح النشر (`services/actuator-service/actuator_runtime.py:604-611`). فالكلمة تدّعي **أثراً فيزيائيّاً** عن قياسٍ
 لا يبلغ إلّا الوسيط — وشرحُ الدالّة نفسه يقول «نُشِر≠نُفِّذ»، أي **تُقرّ بالفارق ثمّ
 تطمسه في القيمة المُعادة**.
 
@@ -3399,10 +3399,10 @@ def _dispatch_outcome_status(send_success: bool) -> str:
 يُبلِّغ إقرار النقل تنفيذاً. **القياس ردّ ذلك:** المسار الحيّ **صادق**:
 
 ```
-actuator_runtime.py:368   receipt_status = "accepted" if sent else "failed"
-actuator_runtime.py:378   "published": bool(sent),
-actuator_runtime.py:379   "note": "published != physically executed — outcome verification is a separate step"
-routers/commands.py:66    "sent": success
+services/actuator-service/actuator_runtime.py:368   receipt_status = "accepted" if sent else "failed"
+services/actuator-service/actuator_runtime.py:378   "published": bool(sent),
+services/actuator-service/actuator_runtime.py:379   "note": "published != physically executed — outcome verification is a separate step"
+services/actuator-service/routers/commands.py:66    "sent": success
 ```
 
 `accepted` · `published` · `sent` — ثلاثتها تصف النقل ولا تدّعي أكثر منه، ومعها ملاحظة

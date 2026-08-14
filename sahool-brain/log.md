@@ -5896,10 +5896,11 @@ pytest (`expected in out`) بدل قائمة الساقطين، و`failing_tests
 سجّلتُ في مراجعةٍ سابقة `TRANSPORT-ACK-MISLABELED-AS-EXECUTED-01` بصيغة «المسار الحيّ
 يُبلِّغ إقرار النقل تنفيذاً». **القياس ردّ الصيغة:** المسار الحيّ صادق —
 `receipt_status = "accepted"` و`"published": bool(sent)` وملاحظة صريحة
-«published != physically executed»، و`routers/commands.py` يقول `"sent"`. ثلاث كلمات
+«published != physically executed»، و`services/actuator-service/routers/commands.py` يقول `"sent"`. ثلاث كلمات
 تصف النقل ولا تدّعي أكثر منه.
 
-**وبقي عيبٌ حقيقيّ أضيق:** `_dispatch_outcome_status` (`actuator_runtime.py:144-146`)
+**وبقي عيبٌ حقيقيّ أضيق:** `_dispatch_outcome_status`
+(`services/actuator-service/actuator_runtime.py:144-146`)
 تُترجم نجاح النشر إلى الكلمة `executed`، وشرحُها يقول «نُشِر≠نُفِّذ» — تُقرّ بالفارق
 ثمّ تطمسه في القيمة المُعادة. **ولا مستدعي لها في الإنتاج**؛ الوحيد الذي يُبقيها حيّةً
 اختبارُها، وهو يُثبِّت التسمية بدل أن يكذّبها. فهي **سلاحٌ مُعبَّأ** لا عطلٌ عامل:
