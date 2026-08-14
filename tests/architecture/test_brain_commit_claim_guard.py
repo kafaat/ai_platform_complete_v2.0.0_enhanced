@@ -171,3 +171,61 @@ def test_the_boundary_fix_did_not_break_ordinary_extraction():
         assert all(not m.startswith(("E2E-", "ROUTES-")) for m in mod._GAP_ID.findall(text))
     # والفشل التاريخيّ ما زال يُلتقَط بعد تغيير الحدّ.
     assert _run("4eded7a", "121ab09").returncode == 1
+
+
+# ── صنف ثالث: معرّفات تفويض البوّابات ────────────────────────────────────────
+def _module():
+    """تحميل الحارس وحدةً — الاختبارات السابقة تُكرّره سطراً سطراً، وهذا يجمعه."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("g", GUARD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_a_gate_adjudication_id_is_not_demanded_as_a_gap_section(capsys):
+    """تسجيلُ تفويضٍ في سجلّ الفجوات **كذب**: إذنُ مالكٍ لا عطلٌ مرصود.
+
+    أسقط الحارسُ التزامَ ختمِ `GATE01-ADJ-2026-08-13-001` بـ`CONSUMED` مطالباً
+    بقسمٍ في `gaps/registry.md`. وحالة التفويض `ISSUED`/`CONSUMED` لا `open`/`fixed`،
+    فالمطلوب كان إدخالاً كاذباً — أو حذفَ المعرّف، وهو كتمانُ **أيّ تفويضٍ خُتِم**.
+    """
+    mod = _module()
+    body = "خُتِم GATE01-ADJ-2026-08-13-001 بـCONSUMED بعد الدمج."
+    mod.commit_messages = lambda base, head: [("abc1234", body)]
+    assert mod.check("x", "y") == 0, capsys.readouterr().out
+
+
+def test_a_fabricated_adjudication_id_is_still_rejected(capsys):
+    """ولا يُستثنى الصنف كالاستشارة بل **يُتحقَّق منه**: مِلفُّه في هذه الشجرة.
+
+    مبدأ الحارس أنّ الذكر ادّعاء. الاستشارة تُستثنى اضطراراً — مصدرها خارج الشجرة؛
+    أمّا التفويض فيُقاس وجوده، وهو أقوى من الاستثناء لا أضعف منه.
+    """
+    mod = _module()
+    mod.commit_messages = lambda base, head: [("abc1234", "بموجب GATE01-ADJ-2099-01-01-999")]
+    assert mod.check("x", "y") == 1
+    out = capsys.readouterr().out
+    assert "GATE01-ADJ-2099-01-01-999" in out
+    assert "adjudications" in out, "الرسالة لا تدلّ على السجلّ الصحيح"
+
+
+def test_the_adjudication_class_did_not_swallow_real_gap_ids():
+    """التكذيب: الشكل كامل لا بادئة — ومعرّفُ فجوةٍ يبدأ بـ`GATE` ما زال يُطالَب بالتسجيل."""
+    mod = _module()
+    for gid in (
+        "GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01",
+        "GATE01-STATE-MODEL-POORER-THAN-ITS-DECISIONS-01",
+        "GATE01-ADJ-SOMETHING",
+        "GATE1-ADJ-2026-08-13-001",
+    ):
+        assert not mod.is_adjudication(gid), f"{gid} عُومِل تفويضاً خطأً"
+    assert mod.is_adjudication("GATE01-ADJ-2026-08-13-001")
+
+
+def test_the_live_adjudication_is_verified_against_its_own_file(tmp_path):
+    """الوجود يُقاس في المجلَّد لا يُفترَض — والمجلَّد الفارغ لا يُصدِّق شيئاً."""
+    mod = _module()
+    assert mod.adjudication_exists("GATE01-ADJ-2026-08-13-001")
+    assert not mod.adjudication_exists("GATE01-ADJ-2026-08-13-001", tmp_path)

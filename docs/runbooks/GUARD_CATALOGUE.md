@@ -11,8 +11,8 @@
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
 - حرّاس تحجب في CI: **243**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **32**
-- إجماليّ الطفرات المُسجَّلة: **217**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **33**
+- إجماليّ الطفرات المُسجَّلة: **233**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **9** على 2 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -20,14 +20,14 @@
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **210** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (32)
+## الحرّاس المُثبَتة بالتكذيب (33)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -78,6 +78,24 @@
 - إسقاطُ فحص الغياب ⇒ شجرةٌ بلا سجلّات تُنتِج صفر أزواج وتطبع ok — «لا شيء للمقارنة» يُقرأ نجاحاً، وهو صنف الفجوة نفسه داخل علاجها — يُسقِط `test_a_missing_journal_at_head_blocks_even_with_nothing_to_compare`
 - تصليبُ القائمة ⇒ فهرس ثانٍ ينحرف عن `resolve_merge_conflicts`، وهو صنف «قائمتان تصفان الشيء نفسه» — يُسقِط `test_the_file_list_comes_from_the_existing_classifier`
 
+### `brain_commit_claim_guard.py`
+
+**يفرض:** يمنع رسالة التزام من ادّعاء تسجيل فجوة لم تُسجَّل.
+
+**يحجب في:** `no-report-only-change.yml` → `no-report-only-change`
+
+**الاختبار الشاهد:** `tests/architecture/test_brain_commit_claim_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- معرّف تفويضٍ يُطالَب بقسمٍ في سجلّ الفجوات ⇒ إمّا إدخالٌ كاذب (التفويض إذنُ مالكٍ لا عطلٌ مرصود) أو حذفُ المعرّف من الرسالة، أي كتمان أيّ تفويضٍ خُتِم. — يُسقِط `test_a_gate_adjudication_id_is_not_demanded_as_a_gap_section`
+- الصنف يصير استثناءً بدل تحقّق ⇒ معرّف تفويضٍ ملفَّق يمرّ، والذكر يعود ادّعاءً غير مفحوص — وهو العطل الأصليّ الذي بُني الحارس له. — يُسقِط `test_a_fabricated_adjudication_id_is_still_rejected`
+- استثناءٌ بالبادئة يبتلع كلّ فجوة تبدأ بـGATE (منها GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 نفسها) — نفس فخّ `startswith("CVE-")` الذي أسقطه تكذيبُ الاستشارات قبله. — يُسقِط `test_the_adjudication_class_did_not_swallow_real_gap_ids`
+- الفحص الأساسيّ يُفرَّغ: كلّ معرّف يُذكَر يُقرأ مسجَّلاً ⇒ يعود عطل #683 (رسالةٌ تُعلِن أربع فجوات وتصل اثنتان) بلا أن يُحمِرّ شيء. — يُسقِط `test_it_catches_the_real_historical_miss`
+- استثناء الاستشارات يبتلع كلّ معرّف ⇒ الحارس يمرّ على كلّ شيء صامتاً، وهو أخطر من سقوطه لأنّه يُقرأ خضرةً. — يُسقِط `test_the_advisory_exemption_did_not_swallow_real_gap_ids`
+- قصرُ القراءة على العناوين يُعيد الإيجابيّة الكاذبة المشحونة: ٢٢ فجوة مسجَّلة كصفوف تُعامَل كغير مسجَّلة، فتسقط PR تذكر ما هو مسجَّل سلفاً. — يُسقِط `test_table_row_ids_count_as_registered`
+- حدُّ الكلمة يقتطع المعرّف الملتصق بالعربيّة فيخترع وهميّاً (`E2E-UNDER-…`) ويُفوّت الحقيقيّ (`AUTH-E2E-…`) في آنٍ — عطبان متعاكسان من سببٍ واحد. — يُسقِط `test_an_id_glued_to_arabic_text_is_read_whole_not_from_its_middle`
+
 ### `brain_duplicate_gap_identity_guard.py`
 
 **يفرض:** يمسك الفشل الصامت الذي يتركه دمج `union` — `DETERMINISTIC-GENERATION-AND-MERGE-SAFETY-01`.
@@ -123,11 +141,11 @@
 - استجابةُ خطأٍ من GitHub أو جسمٌ غريب في موضع الظرف لا يُقرأ دليلاً؛ قبولُه يجعل كلّ فحوص المصدر تقرأ حقولاً غائبة `None` — استجابةٌ لا تُفهَم فشلٌ لا قبول — يُسقِط `test_a_scalar_json_document_is_rejected`
 - قبولُ مصفوفة القواعد العارية «للتوافق الخلفيّ» يُعيد فتح الباب الذي وُجِد الظرف لأجله: دليلٌ بلا مصدر يمرّ من فرعٍ آخر أو من تشغيلٍ سابق بلا أثر — يُسقِط `test_a_bare_rule_array_is_rejected_as_evidence_without_a_source`
 - ظرفٌ لا يُعرَف شكلُه يُقرأ دليلاً ⇒ حقولٌ غائبة تُقرأ `None` وتمرّ فحوصُها بصمت. ونسخةٌ أحدث قد تنقل معنى حقلٍ قائم — فالتوافق يُقرَّر بترقية الحارس — يُسقِط `test_an_unknown_envelope_schema_is_rejected`
-- `401/403/404/429/5xx` تُنتِج جسماً صالح البنية لا قواعد؛ إهمالُ الرمز يحوّل «لم يُقرأ» إلى «صفر قاعدة» ثمّ إلى رسالةٍ صحيحة عن سببٍ خاطئ. وهو الحقل الذي يفصل عطلَ الشبكة عن عطل الإعداد — يُسقِط `test_a_non_200_response_fails_closed`
+- ‏`401/403/404/429/5xx` تُنتِج جسماً صالح البنية لا قواعد؛ إهمالُ الرمز يحوّل «لم يُقرأ» إلى «صفر قاعدة» ثمّ إلى رسالةٍ صحيحة عن سببٍ خاطئ. وهو الحقل الذي يفصل عطلَ الشبكة عن عطل الإعداد — يُسقِط `test_a_non_200_response_fails_closed`
 - مقارنةٌ نصّيّة تقبل `"200"` القادمة من `jq` بلا `--argjson`. طفرةٌ مستقلّة عن سابقتها: تلك تحرس **وجود** الفحص وهذه تحرس **نوع** القيمة — يُسقِط `test_a_success_status_as_text_is_not_read_as_success`
 - دليلٌ عن مستودعٍ آخر — ولو كان قفلُه مُفعَّلاً — يُخضِر الحارس عن سؤالٍ ليس هو السؤال — يُسقِط `test_evidence_from_another_repository_is_rejected`
 - فروع العمل في هذا المستودع تحمل حمايةً؛ فقراءةُ قواعد أحدها بدل `main` تُنتِج خضرةً كاملةً بينما الفرع الافتراضيّ مكشوف — وهي الحالة التي وقعت فعلاً في تشغيل 31411680450 — يُسقِط `test_evidence_for_another_branch_is_rejected`
-- `repository`/`branch` إعلانٌ يكتبه المُشغِّل، والنقطة المُستدعاة هي ما قِيس. إهمالُها يجعل خطأ تحريرٍ في مسار الوظيفة (تغيير الفرع وحده) يمرّ كاملاً بإعلانٍ صحيح — يُسقِط `test_a_declared_branch_cannot_launder_a_different_endpoint`
+- ‏`repository`/`branch` إعلانٌ يكتبه المُشغِّل، والنقطة المُستدعاة هي ما قِيس. إهمالُها يجعل خطأ تحريرٍ في مسار الوظيفة (تغيير الفرع وحده) يمرّ كاملاً بإعلانٍ صحيح — يُسقِط `test_a_declared_branch_cannot_launder_a_different_endpoint`
 - مصنوعٌ مُعاد استعماله بين تشغيلين يُنتِج خضرةً عن حالةٍ انقضت — الصنف نفسه الذي أضاع ثلاث جولات حين قُرِئ سجلٌّ بختمٍ زمنيّ قديم بوصفه نتيجةً جديدة — يُسقِط `test_evidence_from_an_older_commit_is_rejected`
 - حقلٌ فارغ أو بحالة أحرفٍ كبيرة لا يربط الدليل بشيء؛ وقبولُه يجعل مطابقة الـSHA التالية تقارن نصّين لا بصمتين — يُسقِط `test_a_matching_but_malformed_commit_sha_is_still_rejected`
 - خطوة الجلب تُجسّد `null` حين يتعذّر تحليل الجسم (خنقٌ يُعيد HTML)، فقبولُه يُنتِج انهياراً في التكرار أو «صفر قاعدة» — رسالةٌ صحيحة عن سببٍ خاطئ — يُسقِط `test_a_non_array_rules_field_fails_closed`
@@ -256,6 +274,13 @@
 - تفويضٌ على أساسٍ غير المُجمَّد يمرّ ⇒ ينفصل الإذن عن الأدلّة التي بُني عليها. — يُسقِط `test_an_authorization_against_a_different_baseline_is_rejected`
 - إذنُ بوّابةٍ أخرى يفتح هذه ⇒ تتسرّب التفويضات بين البوّابات. — يُسقِط `test_an_authorization_for_another_gate_does_not_authorise_this_one`
 - مخطَّطٌ مجهول يُقرأ إذناً ⇒ أيّ JSON في المجلَّد يصير تفويضاً. — يُسقِط `test_a_malformed_authorization_fails_closed`
+- تعطيل رصد الهبوط يُعيد الفجوة نفسها: تفويضٌ استُهلِك ولم يُختَم يبقى `ISSUED` حيّاً بلا أن يُحمِرّ شيء (GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01). — يُسقِط `test_an_issued_authorization_whose_bytes_already_landed_is_flagged_as_spent`
+- نزعُ المُميِّز يجعل الفحص «كلّ تفويضٍ بايتاتُه مطابقة» — فيتّهم الرقعةَ المأذونة أثناء PR-ها بأنّها بائتة، وهي بالضرورة مطابقة حينها. — يُسقِط `test_an_authorization_in_flight_on_its_own_paths_is_not_flagged`
+- قَلبُ الشرط يجعل «الشجرة تخالف المأذون» تُقرأ هبوطاً — فيُتَّهم تفويضٌ لم تهبط رقعتُه بعد بأنّه مُستهلَك، والحارس الذي يتّهم الصحيح يُنزَع. — يُسقِط `test_an_authorization_whose_bytes_have_not_landed_is_not_flagged`
+- غيابُ الملفّ يُقرأ هبوطاً حين يُعلِن التفويض `null` — فيُتَّهم إذنٌ لم تهبط رقعتُه بأنّه مُستهلَك. — يُسقِط `test_an_authorization_over_a_path_absent_from_the_tree_is_not_flagged`
+- المختوم يُطالَب بختمٍ تمّ ⇒ حمرةٌ دائمة لا تُرفَع بعملٍ صحيح، وهي أسرع طريق إلى تعطيل الحارس. — يُسقِط `test_a_sealed_authorization_is_not_flagged_again`
+- دالّةٌ صحيحة غير مُستدعاة من نقطة الدخول خضرةٌ عن سؤالٍ لم يُطرَح — كلّ اختبارات الوحدة تبقى خضراء وCI لا تفحص شيئاً. — يُسقِط `test_the_lifecycle_check_is_wired_into_the_entry_point`
+- `one_time: false` يُقرأ ترخيصاً بإعادة الاستعمال بدل وضعٍ غير منفَّذ ⇒ حقلٌ إعلانيّ يُسكِت فحص دورة الحياة بلا أن يمنحه أحد ذلك، فيُعيد GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01 من حيث أُغلِقت. — يُسقِط `test_a_reusable_authorization_is_refused_as_an_unimplemented_mode`
 
 ### `guard_locale_survival_guard.py`
 
@@ -296,6 +321,8 @@
 - إسقاط برهان الاستعادة ⇒ تسرّبٌ بين طفرتين يظهر «عشوائيّةً» لا عطلاً — يُسقِط `test_a_restore_that_did_not_restore_is_reported`
 - تعطيل العزل الافتراضيّ على ROOT ⇒ تشغيل CLI يعود إلى زرع الطفرات داخل checkout القانونيّ — يُسقِط `test_real_root_defaults_to_an_isolated_workspace`
 - توجيه مصدر الطفرة إلى ci الأصليّ مع بقاء الاختبارات في المرآة ⇒ العزل اسميّ والشجرة القانونية تُمسّ — يُسقِط `test_isolated_runner_never_plants_in_the_legal_checkout`
+- إعادة الحكم إلى البحث النصّيّ في كامل المخرَج: اسمٌ يظهر في رسالة تأكيد أو تتبُّع مكدّس أو معامل parametrize يُقرأ سقوطاً، فيُختَم `expected_red` والقاعدة غير محروسة — «سقط شيء ما» بصيغةٍ تختبئ خلف اسمٍ صحيح. — يُسقِط `test_a_name_seen_only_in_the_message_is_not_a_fallen_test`
+- مسار الحجب الفعليّ يحمل نسخةً ثانية من الحكم — فتصحيح `_outcome` وحده يترك القرار الحاجب على البحث النصّيّ: دالّةٌ صحيحة لا تحكم، وهي خضرةٌ عن سؤالٍ لم يُطرَح. — يُسقِط `test_the_run_path_decides_on_the_fallen_list_not_on_the_raw_output`
 - إهمالُ القسم السلوكيّ يُفرِّغه بلا أن يُحمِّر شيئاً — لا فحصاً ثابتاً ولا زرعاً — والسجلّ يبقى يقول «مقيس». وهذا صنفُ العطل الذي وُجِدت الآليّة كلّها لأجله: صمتٌ يُقرأ خضرةً. — يُسقِط `test_the_real_behavioural_section_is_not_empty`
 - لا جردَ للمصادر يُمسِك الشبح كما يُمسِكه `ghost` للحرّاس، فتخطّي المفقود صامتاً يُسقِط المواصفة بلا أثر — نقلُ ملفٍّ أو إعادةُ تسميته تُطفِئ القياس والبوّابة خضراء. — يُسقِط `test_a_behavioural_spec_for_a_missing_source_is_blocked`
 - فحصٌ ثابت بلا زرع يُثبِت **وجود** المواصفة لا **صحّتها**: سلسلةٌ موجودة و`expect` قائم، ولا أحد يعرف أنّ الاختبار يحمرّ فعلاً. وهو الفرق نفسه بين «له اختبار» و«مُثبَت بالتكذيب». — يُسقِط `test_a_behavioural_mutation_is_actually_planted_in_its_source`
@@ -396,7 +423,7 @@
 - ترك الاستيراد النسبيّ بلا حلّ ⇒ from .canonical_water import … لا يُنتِج حافّة، فتبدو canonical_water/canonical_boundary ميتتين وهما مستهلَكتان — يُسقِط `test_relative_imports_resolve_against_the_importing_package`
 - جعل كلّ وحدة قابلة للوصول ابتداءً ⇒ التصنيف يفقد قدرته على قول (ميت)، وهو الغرض الوحيد للحارس — يُسقِط `test_a_module_nothing_executes_is_terminal`
 - المُشغِّل المُنفَّذ بمسار يُعَدّ قناةً لا جذراً ⇒ نقطة الدخول نفسها تُصنَّف «ميتة» بينما compose يشغّلها — يُسقِط `test_a_path_launched_worker_inside_the_platform_is_a_root_itself`
-- /app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01 — يُسقِط `test_the_container_path_maps_to_the_service_root_not_the_repository_root`
+- ‏/app يُقرأ جذرَ المستودع لا جذرَ الخدمة — الافتراض الذي أنتج CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01 — يُسقِط `test_the_container_path_maps_to_the_service_root_not_the_repository_root`
 
 ### `probe_leak_guard.py`
 
@@ -597,7 +624,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (211)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (210)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -619,7 +646,6 @@
 | `assertion_presence_guard.py` | حارس «الخضرة الزائفة»: دالّة اختبار بلا تأكيد **وتُرجِع قيمة** لا يمكن أن تفشل. | `capability-registry` |
 | `auth_main_decomposition_guard.py` | Guard the auth-service main.py decomposition boundary. | `guard` |
 | `backfill_ui_sync_gate.py` | Static contract gate for historical imagery backfill UI/runtime synchronization. | `structural-lint` |
-| `brain_commit_claim_guard.py` | يمنع رسالة التزام من ادّعاء تسجيل فجوة لم تُسجَّل. | `no-report-only-change` |
 | `brain_deferral_registry_guard.py` | يمنع تسرّب التأجيلات من `hot.md` دون تسجيلها في `gaps/registry.md`. | `no-report-only-change` |
 | `build_service_dependency_bundle.py` | Build a deterministic direct-dependency bundle for audit/review. | `dependency-conflict-inventory` |
 | `calibration_dataset_boundary_gate.py` | — | `structural-lint` |

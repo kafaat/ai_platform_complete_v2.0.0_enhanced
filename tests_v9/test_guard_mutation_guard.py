@@ -380,6 +380,82 @@ def test_the_wrong_test_branch_names_what_actually_failed(tmp_path: Path) -> Non
     assert named == ["test_clean_input_passes · test_negative_is_rejected"], named
 
 
+def test_a_name_seen_only_in_the_message_is_not_a_fallen_test() -> None:
+    """**العضويّة في قائمة الساقطين، لا الوجود في المخرَج.**
+
+    كان الحكم `expected in out` — بحثاً نصّيّاً في **كامل** مخرَج pytest. والاسم
+    المُتوقَّع يظهر في نصٍّ ليس سطر سقوط: رسالة تأكيد، تتبُّع مكدّس، معامل
+    `parametrize`، سطر تجميع. عندها يُقرأ الحكم `expected_red` والقاعدة **غير
+    محروسة** — وهو العطل نفسه الذي وُجِد `expect` ليمنعه: «سقط شيء ما» بدل «سقط
+    المُسمّى»، بصيغةٍ أخبث لأنّها تُخفيه خلف اسمٍ صحيح.
+
+    و`failing_tests` كانت موجودة وتستخرج `FAILED/ERROR` فعلاً — فالفجوة كانت في
+    **مصدر القرار** لا في القدرة على القياس.
+    """
+    out = (
+        "=========================== short test summary info ===========================\n"
+        "FAILED tests_v9/test_x.py::test_beta - AssertionError: توقّعتُ test_alpha مسجَّلاً\n"
+        "========================= 1 failed, 1 passed in 0.10s =========================\n"
+    )
+    assert "test_alpha" in out, "المعطى نفسه يجب أن يحوي الاسم نصّاً وإلّا لم يُميِّز شيئاً"
+    kind, observed = gmg._outcome(1, out, "test_alpha")
+    assert kind == "wrong_test", f"اسمٌ في رسالةٍ قُرِئ سقوطاً: {kind}"
+    assert observed == ("test_beta",)
+    # والحالة المقابلة تبقى صحيحة: المُسمّى ساقطٌ فعلاً ⇒ أحمر متوقَّع.
+    assert gmg._outcome(1, out, "test_beta")[0] == "expected_red"
+
+
+_ORACLE_GUARD_SRC = """
+def check(values):
+    return [v for v in values if v < 0]
+"""
+
+# `test_beta` يسقط تحت الطفرة برسالةٍ تحوي اسم `test_alpha` نصّاً — و`test_alpha`
+# سليمٌ يمرّ. فالمواصفة تُسمّي `test_alpha` وهو **لم يسقط**: الحكم الصحيح
+# `wrong_test`، والحكم النصّيّ القديم كان يقرأ الاسم في الرسالة فيقول ✓.
+_ORACLE_TEST_SRC = """
+import importlib.util
+from pathlib import Path
+
+_spec = importlib.util.spec_from_file_location(
+    "fake_guard", Path(__file__).resolve().parents[1] / "scripts" / "ci" / "fake_guard.py"
+)
+fake_guard = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(fake_guard)
+
+
+def test_alpha():
+    assert fake_guard.check([]) == []
+
+
+def test_beta():
+    assert fake_guard.check([-1]) == [-1], "قاعدة test_alpha لم تُطبَّق"
+"""
+
+
+def test_the_run_path_decides_on_the_fallen_list_not_on_the_raw_output(tmp_path: Path) -> None:
+    """والوصل يُقاس أيضاً: تصحيح `_outcome` وحده لا يُصحِّح المسار الرئيسيّ.
+
+    `run_mutations` كان يقرّر بـ`m["expect"] not in out` — نسخةٌ ثانية من الحكم
+    نفسه. فلو صُحِّح `_outcome` وحده لبقي **مسار الحجب الفعليّ** على البحث النصّيّ،
+    وهي «خضرةٌ عن سؤالٍ لم يُطرَح» في أنقى صورها: الدالّة الصحيحة لا تحكم.
+    """
+    ci = _fake_repo(tmp_path, guard_src=_ORACLE_GUARD_SRC, test_src=_ORACLE_TEST_SRC)
+    reg = _reg(mutated=_spec("if v < 0", "if v < -99", "test_alpha"))
+    failures = gmg.run_mutations(reg, ci=ci, root=tmp_path)
+
+    assert any("حمرّ بغير الاختبار المُتوقَّع" in f for f in failures), (
+        f"سقوطُ اختبارٍ آخر مرّ ✓ لأنّ اسم المُتوقَّع ظهر في رسالته: {failures}"
+    )
+    named = [
+        line.split("الساقط فعلاً:", 1)[1].strip()
+        for f in failures
+        for line in f.splitlines()
+        if "الساقط فعلاً:" in line
+    ]
+    assert named == ["test_beta"], named
+
+
 def test_failing_tests_separates_a_named_failure_from_a_silent_runner() -> None:
     """قائمة فارغة **خبرٌ بذاته**: تفصل «سقط اختبار آخر» عن «لم يُسمِّ المُشغِّل شيئاً»."""
     out = (

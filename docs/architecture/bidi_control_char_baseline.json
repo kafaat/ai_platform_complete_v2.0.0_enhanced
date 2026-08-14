@@ -2,7 +2,7 @@
   "$comment": "أساسٌ مُعلَن لـBIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01 — **علاماتٌ وخفايا فقط** (RLM·LRM·ALM·ZWNJ·ZWSP·ZWJ·BOM). لا تقلب ترتيب الرموز، وأكثرها استعمالٌ مشروع لضبط اتّجاه محرفٍ محايد في نصّ عربيّ — لكنّها خفيّة، فتُحكَم بعددٍ **يتقلّص ولا ينمو**. أمّا محارف قلب الاتّجاه (override/isolate) فمحظورة مطلقاً ولا أساس لها: هي هجوم trojan source بعينه، والمقيس اليوم صفر.",
   "$why_not_a_ban_ar": "الحظر الشامل كان سيُكذَّب أوّل مرّة: ٣٥٠ محرفاً في ٩٣ ملفّاً، أكثرها كتبتُه بنفسي لضبط اتّجاه قوسٍ في شرحٍ عربيّ. وأساسٌ يُكذَّب فوراً يُدرَّب قارئه على تعطيله — وهو أسوأ من غيابه.",
   "$measured_by_ar": "python scripts/ci/bidi_control_char_guard.py --generate",
-  "measured_on": "29fddaf6510e282e05421f7ab1bb04a685065332",
+  "measured_on": "616547997640c4fc9c5e0e5b1205615c50146313",
   "gap": "BIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01",
   "overrides_present": {},
   "marks_per_file": {
@@ -13,14 +13,16 @@
     "config/setup_pip_mirror.ps1": 1,
     "docs/WEB_MOBILE_PARITY.md": 4,
     "docs/architecture/gate01_policy.json": 4,
-    "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json": 3,
+    "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json": 4,
     "docs/architecture/generated_sweep_unmapped_generators.json": 2,
+    "docs/architecture/guard_mutation_registry.json": 3,
     "docs/audits/DECISION_SOURCES_COMPLETENESS.md": 1,
     "docs/audits/RIV_DURABLE_PRODUCT_IDENTITY_AND_LEASES_REPORT_20260712.md": 1,
     "docs/capability-registry/benchmark/source/legacy/build_integrate_partner_matrix_precanonical.csv": 1,
     "docs/capability-registry/benchmark/source/legacy/competitive_benchmark_matrix_v3_precanonical.csv": 1,
     "docs/capability-registry/benchmark/source/legacy/competitor_official_evidence_precanonical.csv": 1,
     "docs/design/redesign_concept.html": 2,
+    "docs/runbooks/GUARD_CATALOGUE.md": 3,
     "docs/runbooks/V208_SEASONS_SIM_RUN_LINEAGE_OPENING_RUNBOOK.md": 5,
     "docs/testing/tests_tree_baseline.json": 1,
     "docs/testing/unmarked_tests_baseline.json": 13,
@@ -41,14 +43,12 @@
     "migrations/v63_events_seq_deterministic_order.sql": 1,
     "nginx/nginx.v9.conf": 2,
     "run_all.ps1": 1,
-    "sahool-brain/decisions/ledger.md": 5,
-    "sahool-brain/gaps/registry.md": 70,
-    "sahool-brain/hot.md": 9,
-    "sahool-brain/log.md": 39,
+    "sahool-brain/decisions/ledger.md": 7,
+    "sahool-brain/gaps/registry.md": 72,
+    "sahool-brain/hot.md": 10,
+    "sahool-brain/log.md": 43,
     "scripts/ci/capability_mapping_engine.py": 1,
-    "scripts/ci/gate01_frozen_path_guard.py": 1,
     "scripts/ci/live_pg_evidence_guard.py": 10,
-    "scripts/ci/sot_provenance_guard.py": 3,
     "scripts/ci/tenant_guc_scope_guard.py": 1,
     "scripts/release/build_release_bundle.py": 1,
     "scripts_v9/run_all.ps1": 1,
@@ -70,7 +70,6 @@
     "tests_v9/test_crs_service_shared.py": 1,
     "tests_v9/test_fake_connection_debt_guard.py": 1,
     "tests_v9/test_field_forms_sync_binding_p02.py": 2,
-    "tests_v9/test_gate01_frozen_path_guard.py": 1,
     "tests_v9/test_guard_mutation_guard.py": 1,
     "tests_v9/test_live_pg_evidence_guard.py": 5,
     "tests_v9/test_live_pg_fake_connection_debt.py": 4,
@@ -87,7 +86,8 @@
     "tests_v9/test_v208_runbook_role_matches_role_model.py": 1
   },
   "totals": {
-    "files": 79,
-    "marks": 317
-  }
+    "files": 78,
+    "marks": 328
+  },
+  "$why_this_grew_2026_08_14_ar": "317 ⇒ 328 على 78 ملفّاً (كانت 79). والنموّ **ليس تأليفاً جديداً** بل وصولَ محتوى قائم عبر دمج `main` بعد #840: مداخل الدماغ التي كتبتها جلسةٌ أخرى تحمل علامات RLM في نصّها العربيّ. والفرق يُقال ولا يُطوى — الراتشِت وُضِع ليمنع **إدخال** علامةٍ جديدة، لا ليمنع دمج فرعٍ سبق أن كُتِب. ولم يُمَسّ نصُّ مؤلّفٍ آخر لتخفيض العدد: تحريرُ سجلٍّ لأجل رقمٍ في أساس أسوأ من الرقم. والمحكُّ الحاجب باقٍ كما هو: **قلبُ الاتّجاه صفرٌ ويبقى صفراً**، وأيّ علامةٍ أُضيفها أنا بعد هذا الختم تُحجَب."
 }
