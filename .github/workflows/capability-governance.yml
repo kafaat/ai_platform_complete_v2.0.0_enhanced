@@ -304,15 +304,22 @@ jobs:
           TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BASE_REF: ${{ github.base_ref }}
         run: |
+          set -euo pipefail
           # GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01: البند المشروط يحتاج معرفة
           # ما مسّته الـPR. الاشتقاق هنا لا في الحارس — `scripts/ci/**` لا يستدعي
           # GitHub ولا يقرأ حالته (عقد `test_local_preflight_contract`).
-          if [ -n "${BASE_REF}" ]; then
-            git fetch origin "${BASE_REF}" --depth=1 -q || true
-            git diff --name-only "origin/${BASE_REF}...HEAD" > changed.txt || : > changed.txt
-          else
-            : > changed.txt
+          #
+          # **ويفشل مغلقاً، ورفعته مراجعةٌ آليّة أصابت:** الصيغة الأولى كانت
+          # `git diff … > changed.txt || : > changed.txt` — فأيّ تعذّر في الجلب أو
+          # الاشتقاق يكتب قائمةً **فارغة**، فيقرأ الحارس «لم تُمَسّ التفويضات»
+          # ويُطفَأ البند الحاجب صامتاً. وقائمةٌ فارغة عن فشلٍ تُقرأ كقائمةٍ فارغة
+          # عن براءة، ولا شيء يفرّق بينهما — وهو بعينه الصنف الذي تطارده هذه الـPR.
+          if [ -z "${BASE_REF}" ]; then
+            echo "✗ لا BASE_REF — تعذّر اشتقاق ما مسّته الـPR، ولا يُقرأ ذلك «لم تُمَسّ»." >&2
+            exit 1
           fi
+          git fetch origin "${BASE_REF}" --depth=1 -q
+          git diff --name-only "origin/${BASE_REF}...HEAD" > changed.txt
           python scripts/ci/branch_protection_contract_guard.py \
             --protection-file protection.json \
             --expect-repository "${REPO}" \

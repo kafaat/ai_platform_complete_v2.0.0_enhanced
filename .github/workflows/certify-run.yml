@@ -31,7 +31,14 @@ jobs:
     name: Certification (post-run)
     runs-on: ubuntu-24.04
     steps:
+      # **الشيفرة التي تحكم هي شيفرة التشغيل المشهود له، لا رأسُ الفرع الافتراضيّ.**
+      # رفعته مراجعةٌ آليّة وأصابت: `workflow_run` يستنسخ افتراضيّاً HEAD الفرع
+      # الافتراضيّ، فتُقاس مصنوعاتُ تشغيلٍ بـ`run_outcome_guard` و`sot_provenance_guard`
+      # من **إصدارٍ آخر** — فيُكسَر إعادةُ الإنتاج، ويصير الاعتماد حكماً بشيفرةٍ غير
+      # التي أنتجت الدليل. وهو حرفيّاً الصنف الذي بُنِيت هذه الوظيفة لتغلقه.
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
 

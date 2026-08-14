@@ -157,3 +157,41 @@ def test_the_shipped_probe_is_reachable_from_the_certification_workflow() -> Non
 
     assert "scripts/ci/run_outcome_guard.py" in certify
     assert json.loads('{"ok": true}')["ok"] is True
+
+
+# ── عطلان رفعتهما مراجعةٌ آليّة على #844، وكلاهما أصاب ────────────────────────
+
+
+def test_the_certification_job_checks_out_the_attested_commit() -> None:
+    """الشيفرة التي تحكم هي شيفرة التشغيل المشهود له، لا رأسَ الفرع الافتراضيّ.
+
+    `workflow_run` يستنسخ افتراضيّاً HEAD الفرع الافتراضيّ. فبلا `ref` صريح تُقاس
+    مصنوعاتُ تشغيلٍ بحارسٍ من **إصدارٍ آخر** — يُكسَر إعادةُ الإنتاج، ويصير الاعتماد
+    حكماً بشيفرةٍ غير التي أنتجت الدليل. وهو الصنف الذي بُنِيت الوظيفة لتغلقه.
+    """
+    certify = (ROOT / ".github/workflows/certify-run.yml").read_text(encoding="utf-8")
+
+    assert "github.event.workflow_run.head_sha" in certify, (
+        "استنساخٌ بلا ref يجعل الاعتماد يقيس شيفرةً غير شيفرة التشغيل المشهود له"
+    )
+
+
+def test_the_changed_file_derivation_fails_closed() -> None:
+    """قائمةٌ فارغة عن **فشل** تُقرأ كقائمةٍ فارغة عن **براءة** — ولا شيء يفرّق.
+
+    الصيغة الأولى كانت `git diff … || : > changed.txt`، فأيّ تعذّرٍ في الجلب يُطفئ
+    البند الحاجب على مسار التفويضات صامتاً. والبندُ وُضِع ليحجب فعلاً حسّاساً، فيجب
+    أن يفشل مغلقاً.
+    """
+    governance = (ROOT / ".github/workflows/capability-governance.yml").read_text(encoding="utf-8")
+    # **السطور المُنفَّذة وحدها.** أوّل صياغةٍ لهذا التأكيد مسحت الملفّ كلّه فأحمرّها
+    # **التعليقُ الذي يشرح الإصلاح** — نصٌّ يصف العطل ليس نصّاً يرتكبه، وهو الصنف
+    # المُسجَّل هنا باسم `TEXT-GUARD-ANCHORED-IN-THE-WRONG-FILE-01`. وقعتُ فيه الآن.
+    executable = "\n".join(
+        line for line in governance.splitlines() if not line.lstrip().startswith("#")
+    )
+
+    assert "|| : > changed.txt" not in executable, (
+        "اشتقاقٌ يفشل مفتوحاً يُطفئ الشرط المشروط بدل أن يحجب"
+    )
+    assert "changed.txt" in executable and "set -euo pipefail" in executable
