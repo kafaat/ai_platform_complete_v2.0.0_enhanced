@@ -3,6 +3,8 @@
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/sahool-platform"))
 
 
@@ -64,6 +66,12 @@ def test_nutrient_4r():
 
 
 def test_zones():
+    # `scikit-learn` ليس في `tests_v9/requirements-test.txt` — أي أنّه **غير مثبَّت في
+    # وظيفة Unit Tests**، وقِيس ذلك لا افتُرِض. وتخطٍّ **مرئيّ** في التقرير أصدق من
+    # استبعادٍ صامت للملفّ كلّه (وهو ما كان يحدث بلا علامة)، ومن إضافة تبعيّة ثقيلة
+    # لأجل اختبار واحد. والنمط بيتيّ: ثلاثة ملفّات في هذا المجلَّد تستعمل
+    # `importorskip` لـ`fastapi` للسبب نفسه.
+    pytest.importorskip("sklearn", reason="zones_kmeans تحتاج scikit-learn (خارج تبعيّات وحدة CI)")
     from api.zones_kmeans import ZoneCell, delineate_zones
 
     r = []
