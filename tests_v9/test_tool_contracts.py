@@ -27,6 +27,8 @@ from tool_contracts import (
     bootstrap_default_tools,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def registry():
@@ -45,7 +47,12 @@ class TestToolRegistry:
         tools = registry.list_tools()
         assert "weather.forecast" in tools
         assert "actuator.pump.start" in tools
-        assert "ndvi.compute" in tools
+        # `ndvi.compute` لم يعد موجوداً: المُسجَّل `ndvi.read_observation`
+        # (`services/supervisor-agent/tool_contracts.py:521`). والاسمان ليسا مترادفين —
+        # «compute» يدّعي حساباً و«read_observation» يدّعي قراءةَ رصد، وهو الأصدق بما
+        # تفعله الأداة. بقي التأكيد على الاسم القديم سنةً لأنّ الملفّ **بلا علامة**،
+        # فلم يُنتقَ في أيّ وظيفة ولم يُنفَّذ مرّةً واحدة.
+        assert "ndvi.read_observation" in tools
 
     def test_classification_by_side_effect(self, registry):
         actuators = registry.list_by_side_effect(SideEffectClass.ACTUATOR)

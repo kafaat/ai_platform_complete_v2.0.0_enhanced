@@ -700,7 +700,7 @@ def test_a_mutation_may_name_its_own_test_file(tmp_path: Path) -> None:
     assert gmg.run_mutations(reg, ci=ci, root=tmp_path) == []
 
 
-def test_a_filter_that_matches_nothing_is_not_reported_as_success(tmp_path) -> None:
+def test_a_filter_that_matches_nothing_is_not_reported_as_success(tmp_path: Path) -> None:
     """مرشِّحٌ يزرع صفر طفرة كان يخرج ناجحاً — أخضرُ عن سؤالٍ لم يُطرَح.
 
     المطابقة بالاسم كاملاً، ومفاتيحُ القسم السلوكيّ **مسارات**، فـ

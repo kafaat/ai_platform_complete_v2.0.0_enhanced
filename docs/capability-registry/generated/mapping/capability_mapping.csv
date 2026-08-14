@@ -38,7 +38,7 @@ IRR-010,irrigation,Leaching and drainage safety,False,0,0,0,0,0,0,0,0,0
 OPS-001,operations,Task management,False,0,0,0,0,0,0,0,0,0
 OPS-002,operations,Work orders,True,6,3,7,6,1,1,0,4,0
 OPS-003,operations,Scouting,True,7,9,7,7,45,22,1,19,0
-OPS-004,operations,Field forms,True,6,3,12,14,10,0,12,21,1
+OPS-004,operations,Field forms,True,6,3,12,14,9,0,12,21,1
 OPS-005,operations,Offline mobile,True,6,2,2,9,6,1,0,1,0
 OPS-006,operations,Equipment registry,False,0,0,0,0,0,0,0,0,0
 OPS-007,operations,Maintenance,True,3,0,0,3,1,0,0,2,0
@@ -71,7 +71,7 @@ SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
 SOIL-004,soil,pH EC SOM nutrients,True,4,1,0,7,3,0,0,1,0
 SOIL-005,soil,Soil water properties,True,3,5,0,0,2,0,0,2,0
 WX-001,weather,Current weather,False,0,0,0,0,0,0,0,0,0
-WX-002,weather,Weather forecast,True,6,22,51,8,56,9,0,21,0
+WX-002,weather,Weather forecast,True,6,22,51,8,55,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
 WX-004,weather,ET0,True,5,59,53,0,81,19,0,57,0
 WX-005,weather,VPD,True,5,8,29,0,6,2,0,6,0
