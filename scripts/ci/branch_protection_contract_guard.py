@@ -101,6 +101,18 @@ CONTRACT_RULE_TYPE = "pull_request"
 #: الموصوف حرفيّاً في عقد `live_pg_schema_contract`. الفجوة المفتوحة واحدة، فالمفروض واحد.
 CONTRACT_PARAMETER = "required_review_thread_resolution"
 
+#: البند **المشروط** — يُفرَض حين تمسّ الـPR مسارَ التفويضات وحدها.
+#: `GATE01-AUTHORIZATION-ORIGIN-UNENFORCED-01`: طبقة AUTHORIZATION في GATE-01 تقرأ
+#: `approved_by: owner` من ملفٍّ **في نفس الـPR**، فمن يحتاج التفويض يستطيع إصداره.
+#: والفرق عن البند أعلاه أنّ هذا **مشروط بالمسّ** لا دائم: بندٌ دائم يحجب كلّ دمجٍ في
+#: المستودع حتّى يُفعَّل إعدادٌ لا يملكه وكيل، وذلك ثمنٌ لا تُبرّره فجوةٌ نطاقُها ملفّان.
+#: فالحجب يقع **على الفعل الذي يحتاج الحماية**: إصدارُ تفويضٍ لا يمرّ إلّا ومراجعةُ
+#: مالكي الكود مفروضة فعليّاً على الفرع.
+CODE_OWNER_PARAMETER = "require_code_owner_review"
+
+#: المسار المحميّ — وهو نفسه ما يقرؤه `gate01_frozen_path_guard` تفويضاً.
+AUTHORIZATION_PATH = "docs/architecture/gates/adjudications/"
+
 #: نصّ العلاج — يُطبَع مع الفشل لأنّ من يقرأ الأحمر يجب أن يعرف أين يذهب.
 REMEDY = (
     "العلاج في إعدادات GitHub لا في هذا المستودع:\n"
@@ -108,7 +120,13 @@ REMEDY = (
     "            → Require conversation resolution before merging\n"
     "  (أو Branch protection rules الكلاسيكيّة — كلتاهما تظهران في القواعد النافذة)\n"
     "  وتأكّد أنّ Enforcement status = Active: قاعدةٌ Disabled تُعرَض مضبوطةً ولا تفرض شيئاً.\n"
-    "  ولا يُغني عنه انضباطٌ يدويّ: خيطٌ يُفتَح بين القراءة والدمج لا يراه من قرأ قبله."
+    "  ولا يُغني عنه انضباطٌ يدويّ: خيطٌ يُفتَح بين القراءة والدمج لا يراه من قرأ قبله.\n"
+    "\n"
+    "وإن كان الفشل على البند المشروط (مسّ مسار التفويضات):\n"
+    "  Rulesets → قاعدة على main → Require review from Code Owners\n"
+    "  و`.github/CODEOWNERS` يُسمّي مالك `docs/architecture/gates/adjudications/**`.\n"
+    "  الملفّ وحده **خامل**: بلا الإعداد يبقى مظهرَ حمايةٍ بلا حماية — ولذلك يُقاس\n"
+    "  الإعدادُ نفسه هنا، ولا يُقرأ وجودُ الملفّ تفعيلاً."
 )
 
 
@@ -212,6 +230,33 @@ def evidence_violations(envelope: dict, *, expect_repository: str, expect_sha: s
     return found
 
 
+def touches_authorization(changed: list[str]) -> bool:
+    """هل تمسّ هذه الـPR مسارَ التفويضات؟ — الشرط الذي يُشغّل البند المشروط."""
+    return any(name.startswith(AUTHORIZATION_PATH) for name in changed)
+
+
+def code_owner_violations(rules: list) -> list[str]:
+    """مخالفاتُ البند المشروط — تُقرأ فقط حين مُسّ مسارُ التفويضات.
+
+    نفس منطق البند الدائم: **الاتّحاد لا التقاطع** (تكفي قاعدةٌ واحدة تُفعّله)، و**الغياب
+    مخالفة لا سكوت** — قاعدةٌ بلا الشرط تعني أنّه لم يُرَ.
+    """
+    pr_rules = [r for r in rules if isinstance(r, dict) and r.get("type") == CONTRACT_RULE_TYPE]
+    observed = [
+        rule.get("parameters", {}).get(CODE_OWNER_PARAMETER)
+        for rule in pr_rules
+        if isinstance(rule.get("parameters"), dict)
+    ]
+    if any(value is True for value in observed):
+        return []
+    return [
+        f"هذه الـPR تمسّ `{AUTHORIZATION_PATH}` و`{CODE_OWNER_PARAMETER}` = "
+        f"{observed!r} — فالتفويض يُصدره من يحتاجه. طبقةُ AUTHORIZATION تقرأ "
+        "`approved_by: owner` من ملفٍّ في نفس الـPR ولا تُثبِت منشأه؛ ومراجعةُ مالكي "
+        "الكود هي ما يجعل المنشأ **هويّةً مستقلّة** لا حقلاً نصّيّاً."
+    ]
+
+
 def violations(rules: list) -> list[str]:
     """المخالفات — والغياب مخالفةٌ لا سكوت.
 
@@ -277,7 +322,28 @@ def main(argv: list[str] | None = None) -> int:
         required=True,
         help="الالتزام المُختبَر — دليلٌ من SHA آخر يُرفَض",
     )
+    parser.add_argument(
+        "--changed-files",
+        type=Path,
+        help=(
+            "ملفٌّ يحمل المسارات المُغيَّرة (سطرٌ لكلٍّ). حين تمسّ "
+            f"`{AUTHORIZATION_PATH}` يُفرَض `{CODE_OWNER_PARAMETER}` أيضاً."
+        ),
+    )
     args = parser.parse_args(argv)
+
+    changed: list[str] = []
+    if args.changed_files:
+        # الغياب فشلٌ لا تخطٍّ: راية مُمرَّرة لملفٍّ غير موجود تعني أنّ خطوة الاشتقاق
+        # لم تعمل، وقراءةُ ذلك «لم تُمَسّ التفويضات» تُطفِئ البند بصمت.
+        try:
+            text = args.changed_files.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise SystemExit(
+                f"✗ تعذّرت قراءة {args.changed_files}: {exc} — قائمةُ المسارات لم تُشتقّ، "
+                "و«لم تُقرأ» ليست «لم تُمَسّ»."
+            ) from None
+        changed = [line.strip() for line in text.splitlines() if line.strip()]
 
     envelope = _load(args.protection_file)
     problems = evidence_violations(
@@ -289,6 +355,8 @@ def main(argv: list[str] | None = None) -> int:
     rules = envelope.get("rules")
     if not problems:
         problems = violations(rules)
+        if touches_authorization(changed):
+            problems += code_owner_violations(rules)
 
     if problems:
         print("branch_protection_contract_guard: FAIL")

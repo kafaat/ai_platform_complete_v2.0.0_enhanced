@@ -11,7 +11,7 @@ required = [
 ]
 missing = [x for x in required if not (ROOT / x).exists()]
 assert not missing, f"missing P2 soil files: {missing}"
-sql = (ROOT / "migrations/v162_soil_p2_spatial_products.sql").read_text()
+sql = (ROOT / "migrations/v162_soil_p2_spatial_products.sql").read_text(encoding="utf-8")
 for t in [
     "soil_bare_composites",
     "soil_terrain_products",
@@ -19,7 +19,7 @@ for t in [
     "soil_salinity_products",
 ]:
     assert t in sql and "FORCE ROW LEVEL SECURITY" in sql and "WITH CHECK" in sql
-code = (ROOT / "services/soil-service/p2_products.py").read_text()
+code = (ROOT / "services/soil-service/p2_products.py").read_text(encoding="utf-8")
 for token in [
     "no_eligible_bare_soil_scenes",
     "spatial_block",
@@ -27,7 +27,7 @@ for token in [
     "engineering drainage design requires surveyed elevations",
 ]:
     assert token in code
-router = (ROOT / "services/soil-service/routers/p2_products.py").read_text()
+router = (ROOT / "services/soil-service/routers/p2_products.py").read_text(encoding="utf-8")
 for path in [
     "bare-soil-composite",
     "terrain-derivatives",

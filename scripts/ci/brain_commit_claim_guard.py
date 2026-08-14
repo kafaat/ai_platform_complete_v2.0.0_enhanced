@@ -20,7 +20,14 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
+import sys
 from pathlib import Path
+
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: كان يموت في القراءة، فلمّا
+# ثُبِّتت ظهر أنّه يموت في الكتابة — عطلان في ملفٍّ واحد، والثاني كان مستوراً بالأوّل.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "sahool-brain" / "gaps" / "registry.md"
@@ -115,6 +122,11 @@ def commit_messages(base: str, head: str) -> list[tuple[str, str]]:
         cwd=ROOT,
         capture_output=True,
         text=True,
+        # المتّجه ② من `TEXT-DECODED-WITH-THE-MACHINES-LOCALE-01`: `text=True` وحدها
+        # تفكّ بترميز **اللغة**، ورسائل الالتزام هنا عربيّة — فتحت `LC_ALL=C` ينهار
+        # الأب قبل أن يقرأ ادّعاءً واحداً. وهذا آخر ما بقي من الصنف في `scripts/ci/`
+        # بعد مسحٍ أشعل الحرّاس الـ١٤٦ عمليّاتٍ فرعيّة تحت تلك اللغة.
+        encoding="utf-8",
         check=True,
     ).stdout
     result: list[tuple[str, str]] = []

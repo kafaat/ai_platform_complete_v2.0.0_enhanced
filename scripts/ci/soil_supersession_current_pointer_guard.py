@@ -18,11 +18,10 @@ checks = {
     ],
 }
 for name, needles in checks.items():
-    text = Path(name).read_text()
+    text = Path(name).read_text(encoding="utf-8")
     for needle in needles:
         assert needle in text, f"{name}: missing {needle}"
-assert (
-    "v159_soil_observation_supersession_current_pointer.sql"
-    in Path("migrations/MANIFEST.txt").read_text()
-)
+assert "v159_soil_observation_supersession_current_pointer.sql" in Path(
+    "migrations/MANIFEST.txt"
+).read_text(encoding="utf-8")
 print("soil_supersession_current_pointer_guard_ok")

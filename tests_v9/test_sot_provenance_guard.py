@@ -634,3 +634,154 @@ def test_the_shipped_policy_declares_its_release_refs():
         (ROOT / "docs" / "architecture" / "sot_provenance_policy.json").read_text(encoding="utf-8")
     )
     assert shipped["release_refs"] == ["refs/heads/main"]
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# ATTESTED-IS-NOT-CERTIFIED-01 — الشهادة الصحيحة لحالةٍ فاشلة
+# ══════════════════════════════════════════════════════════════════════════
+#
+# كشفها المالك بتحقّقٍ مستقلّ من حزمة Sigstore: التوقيع DSSE صالح، و`payloadHash`
+# يربط الحمولة بجسم Rekor، وإثبات Merkle يُعيد بناء الجذر مطابقاً، وهويّة Fulcio
+# متماسكة — **والتشغيل الذي أنتج الحزمة خلاصتُه `failure`**.
+#
+# فالحزمة تقول بصدق «هذا الـworkflow وهذه اللقطة أنتجا هذه البايتات ووقّعا منشأها».
+# وهي **لا** تقول «هذه اللقطة اجتازت البوّابة». والخلط بينهما يجعل طبقة الشهادات
+# شكليّة: كلّ ما يلزم لبلوغ L5 عندئذٍ أن تُنتَج مصنوعتان تقولان PASS في تشغيلٍ فاشل.
+
+_TESTED = "bd99f085909d5a93de6656d9f82868e49adaff2d"
+
+
+def _outcome(**over) -> dict:
+    base = {
+        # `schema` ليس زينةً في العيّنة: المُنتِج يُصدره، والمستهلك صار يفرضه — فعيّنةٌ
+        # بلا الحقل كانت ستقيس عقداً غير المشحون.
+        "schema": "sahool.execution-outcome/v1",
+        "run_id": "31728316326",
+        "run_attempt": 1,
+        "head_sha": _TESTED,
+        "run_conclusion": "success",
+        "job_conclusions": {"Unit Tests": "success", "Repository Tests": "success"},
+    }
+    base.update(over)
+    return base
+
+
+def test_a_successful_run_is_execution_clean():
+    clean, reason = MOD.execution_clean(_outcome(), _TESTED)
+
+    assert (clean, reason) == (True, "")
+
+
+def test_a_failed_run_is_refused_even_though_the_bundle_is_valid():
+    """الحالة المقيسة حرفيّاً: توقيعٌ سليم، وخلاصةُ تشغيل `failure`."""
+    clean, reason = MOD.execution_clean(_outcome(run_conclusion="failure"), _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_RUN_NOT_SUCCESSFUL")
+
+
+def test_a_failed_job_inside_a_green_run_is_refused():
+    """`Repository Tests` سقطت والتشغيل مُعلَن ناجحاً — الخلاصة المجمَّعة ليست دليلاً.
+
+    وهذا درسٌ مُسجَّل في هذا المستودع باسمه: `JOB-STATUS-HID-A-FAILED-STEP-01`.
+    """
+    clean, reason = MOD.execution_clean(
+        _outcome(job_conclusions={"Repository Tests": "failure"}), _TESTED
+    )
+
+    assert (clean, reason) == (False, "EXECUTION_JOB_NOT_SUCCESSFUL")
+
+
+# ── تعليقٌ مكتوم من مراجعة Copilot الثانية على #844، وأصاب ────────────────────
+
+
+def test_a_malformed_outcome_is_not_reported_as_a_failed_run():
+    """«تعذّر أن أقرأ» ليست «قرأتُ أنّ التشغيل فشل» — ورمزُ السبب هو سجلّ التدقيق.
+
+    وثيقةٌ ينقصها ``run_conclusion`` كانت تُبلَّغ ``EXECUTION_RUN_NOT_SUCCESSFUL``،
+    فيقرأ المُدقِّق أنّ تشغيلاً سقط بينما الواقع أنّ الدليل مشوَّه. وهو الصنف نفسه
+    الذي أغلقته هذه الـPR في `changed.txt`، هذه المرّة في شيفرتها هي.
+    """
+    document = _outcome()
+    document.pop("run_conclusion")
+
+    clean, reason = MOD.execution_clean(document, _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_OUTCOME_UNREADABLE")
+
+
+def test_a_document_from_another_producer_is_not_accepted_by_coincidence():
+    """بلا فحص العقد تمرّ أيّ حمولةٍ تصادف أن تحمل المفاتيح المفحوصة."""
+    clean, reason = MOD.execution_clean(_outcome(schema="something.else/v9"), _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_OUTCOME_UNREADABLE")
+
+
+def test_an_empty_job_inventory_stays_readable_and_keeps_its_own_verdict():
+    """الفراغُ ليس تشوّهاً: «لم تُقرأ» حكمٌ آخر غير «الوثيقة غير مقروءة»."""
+    clean, reason = MOD.execution_clean(_outcome(job_conclusions={}), _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_JOBS_UNDECLARED")
+
+
+def test_the_consumer_enforces_the_schema_the_producer_actually_emits():
+    """العقد مكرَّرٌ في ملفَّين مستقلَّين — فيُحرَس تطابقُهما بدل أن يبيتا متباعدَين."""
+    producer = (ROOT / "scripts/ci/run_outcome_guard.py").read_text(encoding="utf-8")
+
+    assert f'SCHEMA = "{MOD.EXECUTION_OUTCOME_SCHEMA}"' in producer, (
+        "المستهلك يفرض عقداً لا يُصدره المُنتِج ⇒ كلّ وثيقةٍ حقيقيّة تصير غير مقروءة"
+    )
+
+
+def test_an_outcome_for_another_commit_does_not_vouch_for_this_one():
+    """خلاصةُ تشغيلٍ آخر — ولو ناجحاً — لا تشهد لهذه اللقطة."""
+    clean, reason = MOD.execution_clean(_outcome(head_sha="0" * 40), _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_OUTCOME_FOREIGN_COMMIT")
+
+
+def test_a_manifest_without_an_execution_outcome_is_not_read_as_success():
+    """الغياب ليس نجاحاً — بيانٌ لا يُعلِن خلاصته لا يُمنَح ضمانَ إصدار."""
+    clean, reason = MOD.execution_clean(None, _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_OUTCOME_MISSING")
+
+
+def test_undeclared_jobs_are_not_read_as_all_green():
+    """كتلةٌ بلا وظائف تُعلَن تعني أنّ الوظائف **لم تُقرأ** — لا أنّها نجحت كلّها."""
+    clean, reason = MOD.execution_clean(_outcome(job_conclusions={}), _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_JOBS_UNDECLARED")
+
+
+def test_the_refusal_reason_survives_into_a_verified_record():
+    """الحكم قد يكون VERIFIED عند L3 لأنّ الارتقاء رُفِض — والسببُ هو الخبر كلّه.
+
+    وتفريغُ `reason_codes` على مسار النجاح كان يجعل الرفض صامتاً: سجلٌّ يقول
+    «تُحقِّق» ولا يقول «ولم يُعتمَد، ولهذا السبب».
+    """
+    source = (ROOT / "scripts/ci/sot_provenance_guard.py").read_text(encoding="utf-8")
+
+    assert '"reason_codes": record["reason_codes"]' in source
+
+
+def test_the_shipped_policy_declares_the_execution_outcome_switch_with_its_reason():
+    """مفتاحٌ معطَّل بلا سببٍ مكتوب رخصةٌ مفتوحة؛ وبسببٍ مقيس هو دَينٌ مُعلَن.
+
+    والسبب هنا ليس تفضيلاً: خلاصةُ التشغيل لا تُعرَف من داخله، فالبيان المُولَّد في CI
+    لا يستطيع إعلانها بصدق. وفرضُ الشرط اليوم يُحمِّر `main` على غياب شيءٍ لا يملك
+    المُنتِج إنتاجه — لا على عطل.
+    """
+    shipped = json.loads(
+        (ROOT / "docs" / "architecture" / "sot_provenance_policy.json").read_text(encoding="utf-8")
+    )
+
+    assert shipped["require_execution_outcome"] is False
+    assert "workflow_run" in shipped["$why_execution_outcome_is_declared_off_ar"]
+
+
+def test_a_missing_outcome_is_recorded_even_while_unenforced():
+    """الدَّين يُكتَب في السجلّ لا يُطوى: L5 بلا خلاصةٍ مُعلَنة ليس اعتماداً كاملاً."""
+    source = (ROOT / "scripts/ci/sot_provenance_guard.py").read_text(encoding="utf-8")
+
+    assert '"EXECUTION_OUTCOME_NOT_ENFORCED"' in source
+    assert 'record["reason_codes"].append(execution_reason)' in source

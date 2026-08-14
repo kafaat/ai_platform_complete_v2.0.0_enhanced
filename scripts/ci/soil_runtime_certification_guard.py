@@ -5,9 +5,9 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
 test = root / "tests_v9/test_soil_runtime_certification_integration.py"
-ci = (root / ".github/workflows/ci.yml").read_text()
+ci = (root / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 assert test.exists(), "real PostgreSQL soil certification test missing"
-src = test.read_text()
+src = test.read_text(encoding="utf-8")
 for token in (
     "pytest.mark.integration",
     "FORCE RLS",

@@ -26,6 +26,14 @@ REASONS = {
     "POLICY_MISMATCH",
     "TOOLCHAIN_MISMATCH",
     "VERIFIER_INTERNAL_ERROR",
+    # ATTESTED-IS-NOT-CERTIFIED-01 — أسبابُ الاعتماد، لا أسبابُ المنشأ.
+    "EXECUTION_OUTCOME_MISSING",
+    "EXECUTION_OUTCOME_UNREADABLE",
+    "EXECUTION_OUTCOME_FOREIGN_COMMIT",
+    "EXECUTION_RUN_NOT_SUCCESSFUL",
+    "EXECUTION_JOBS_UNDECLARED",
+    "EXECUTION_JOB_NOT_SUCCESSFUL",
+    "EXECUTION_OUTCOME_NOT_ENFORCED",
 }
 
 
@@ -204,9 +212,9 @@ def release_bound(manifest: dict, policy: dict, source_ref: str) -> bool:
 
     الضمان دالّةٌ في **من أين** جاء الدليل، لا في اتّساق بصماته وحده. وكان هذا
     الفحص يقيس تطابق الالتزام/الشجرة ولا يسأل عن المرجع إطلاقاً، فبلغت دفعةٌ إلى
-    فرع عملٍ غير محميّ المستوى **L5**: ‏`push` + `exact_commit` + أدلّة حيّة ناجحة
+    فرع عملٍ غير محميّ المستوى **L5**: `push` + `exact_commit` + أدلّة حيّة ناجحة
     ⇒ L5، على `refs/heads/claude/…`. مقيسٌ بالحادثة لا مُفترَضاً:
-    ‏`attestation/40374289` على `ffc29415` (‏`UNPROTECTED-BRANCH-CAN-ATTAIN-L5-01`).
+    `attestation/40374289` على `ffc29415` (`UNPROTECTED-BRANCH-CAN-ATTAIN-L5-01`).
 
     والقائمة تُقرأ من **السياسة المُصدَّرة** لا من YAML: شرطٌ في `ci.yml` وحده
     يحرس مساراً واحداً، ويستطيع أيّ workflow آخر تمرير `exact_commit` من فرعٍ غير
@@ -253,6 +261,89 @@ def release_bound(manifest: dict, policy: dict, source_ref: str) -> bool:
             and binding.get("binding_evidence")
         )
     raise RuntimeError("RELEASE_BINDING_MISMATCH")
+
+
+# عقدُ وثيقة الخلاصة كما يُصدره `scripts/ci/run_outcome_guard.py`. مكرَّرٌ هنا لا
+# مستورَد: السكربتان مستقلّان ولا يستورد أحدهما الآخر — ويحرس التطابقَ اختبارُ عقدٍ
+# يقرأ الاثنين، فلا يبيت النصّان متباعدَين.
+EXECUTION_OUTCOME_SCHEMA = "sahool.execution-outcome/v1"
+
+
+def outcome_unreadable(outcome: object) -> bool:
+    """أهي وثيقةٌ **بالشكل المتعاقَد عليه**؟ — سؤالٌ سابقٌ على أيّ حكمٍ على التشغيل.
+
+    رفعته مراجعةٌ آليّة على #844 وأصابت، والعطل أطروحةُ هذه الـPR مطبَّقةً على
+    شيفرتها: وثيقةٌ مشوَّهة — ينقصها ``run_conclusion`` مثلاً — كانت تُبلَّغ
+    ``EXECUTION_RUN_NOT_SUCCESSFUL``، وتلك **دعوى عن التشغيل** («انتهى فاشلاً») لا
+    عن الوثيقة («تعذّر أن أقرأها»). والفرق ليس تجميلَ رسالة: رموزُ الأسباب هي سجلّ
+    التدقيق، فيقرأ قارئُه أنّ تشغيلاً سقط بينما الواقع أنّ الدليل مشوَّه أو مُنتَجٌ
+    بأداةٍ أخرى. وهو الصنف نفسه الذي أغلقته هذه الـPR في `changed.txt`: «تعذّر أن
+    أعرف» يُكتَب بلغة «عرفتُ أنّه لا».
+
+    والشقّ الثاني من الملاحظة مقيسٌ كذلك: بلا فحص ``schema`` تمرّ **أيّ** وثيقةٍ
+    تصادف أن تحمل المفاتيح المفحوصة — فيصير المُنتِج غير مُلزِم، وتُقبَل حمولةٌ من
+    أداةٍ لم تُكتَب لهذا العقد.
+
+    الفراغُ ليس تشوّهاً: ``job_conclusions`` قاموسٌ فارغ **مقروء**، وحكمُه
+    ``EXECUTION_JOBS_UNDECLARED`` — «لم تُقرأ» ليست «كلّها نجحت»، وذاك حكمٌ آخر.
+    """
+    if not isinstance(outcome, dict):
+        return True
+    if outcome.get("schema") != EXECUTION_OUTCOME_SCHEMA:
+        return True
+    if not isinstance(outcome.get("run_conclusion"), str):
+        return True
+    if not isinstance(outcome.get("head_sha"), str):
+        return True
+    jobs = outcome.get("job_conclusions")
+    if isinstance(jobs, dict) and any(not isinstance(v, str) for v in jobs.values()):
+        return True
+    return False
+
+
+def execution_clean(outcome: object, tested_commit: str) -> tuple[bool, str]:
+    """أنتجَ هذا الدليلَ تشغيلٌ **نجح**؟ — ``(نظيف، سببُ الرفض)``.
+
+    **ولماذا وثيقةٌ منفصلة لا حقلٌ في البيان — تصحيحٌ لصياغتي الأولى:**
+    ``live_pg_canonical_manifest.json`` **من الموضوعات الموقَّعة الأربعة**، فبصمتُه
+    داخل الشهادة. وإضافةُ ``execution_outcome`` إليه بعد التشغيل تُغيّر تلك البصمة
+    فتكسر التحقّق — أي أنّ التصميم الأوّل كان **غير قابل للتنفيذ** لا مجرّد أضعف.
+    فالخلاصة تُقرأ من واجهة GitHub بعد اكتمال التشغيل وتُسلَّم ملفّاً مستقلّاً،
+    ويبقى الرابطُ بينهما **الالتزامَ المُختبَر** لا مجاورةً في ملفّ.
+
+    `ATTESTED-IS-NOT-CERTIFIED-01`. الشهادةُ تقول بصدق «GitHub Actions بهذا الـworkflow
+    وهذه اللقطة أنتج هذه المصنوعات ووقّع منشأها». وهذا **لا** يقول إنّ اللقطة اجتازت
+    البوّابة: تشغيلٌ تفشل فيه وظيفةُ اختبارات يُنتِج مصنوعاتٍ سليمة ويوقّعها، وتخرج
+    الحزمة صحيحة تشفيريّاً بالكامل — توقيعٌ صالح، وربطُ payload بـRekor، وإثبات Merkle،
+    وهويّة Fulcio متماسكة. فالتحقّق التشفيريّ يُثبِت **من قال ماذا وعن أيّ بايتات**؛
+    وسياسةُ المشروع وحدها تقرّر هل ذلك كافٍ للاعتماد.
+
+    **والحدّ الذي كان مفتوحاً هنا مقيس:** ``evidence_passes`` يقرأ حكمَي مصنوعتَي
+    Live-PG ولا يقرأ **خلاصة التشغيل**. ولا شيء في ``scripts/`` كان يقرؤها (مقيس
+    بمسحٍ على الشجرة كلّها: صفر موضع). فدليلٌ من تشغيلٍ خلاصتُه ``failure`` كان يبلغ
+    L4/L5 ما دامت مصنوعتاه تقولان ``PASS`` — وهو بعينه «attested ⇒ certified»، أي
+    خلطُ **دليل المنشأ** بـ**دليل الاعتماد**.
+
+    **وغيابُ الكتلة لا يُقرأ نجاحاً:** بيانٌ لا يُعلِن خلاصة تشغيله لا يُمنَح ضمانَ
+    إصدار — يبقى عند L3 ويُسمّى السببُ في السجلّ. و«لم يُقَس» ليس «مرّ».
+
+    **والربط بالالتزام شرطٌ لا زينة:** خلاصةُ تشغيلٍ آخر — ولو ناجحاً — لا تشهد لهذه
+    اللقطة. فيُطابَق ``head_sha`` بالالتزام المُختبَر.
+    """
+    if not isinstance(outcome, dict):
+        return False, "EXECUTION_OUTCOME_MISSING"
+    if outcome_unreadable(outcome):
+        return False, "EXECUTION_OUTCOME_UNREADABLE"
+    if outcome.get("run_conclusion") != "success":
+        return False, "EXECUTION_RUN_NOT_SUCCESSFUL"
+    jobs = outcome.get("job_conclusions")
+    if not isinstance(jobs, dict) or not jobs:
+        return False, "EXECUTION_JOBS_UNDECLARED"
+    if any(value != "success" for value in jobs.values()):
+        return False, "EXECUTION_JOB_NOT_SUCCESSFUL"
+    if outcome.get("head_sha") != tested_commit:
+        return False, "EXECUTION_OUTCOME_FOREIGN_COMMIT"
+    return True, ""
 
 
 def evidence_passes() -> bool:
@@ -303,6 +394,21 @@ def main(argv=None) -> int:
     ap.add_argument("--trusted-root", required=True)
     ap.add_argument("--artifact-file", action="append", required=True)
     ap.add_argument("--required-assurance", choices=list(LEVELS), default="L3")
+    ap.add_argument(
+        "--execution-outcome",
+        help=(
+            "وثيقةُ خلاصة التشغيل (run_conclusion · job_conclusions · head_sha). "
+            "تُقرأ من واجهة GitHub **بعد** اكتمال التشغيل — لا تُولَّد من داخله."
+        ),
+    )
+    ap.add_argument(
+        "--require-execution-outcome",
+        action="store_true",
+        help=(
+            "افرِض خلاصةَ تشغيلٍ ناجحة لبلوغ L4/L5. تستعمله وظيفةُ الاعتماد بعد "
+            "انتهاء التشغيل؛ والاستدعاءُ **داخل** التشغيل لا يستطيعها فيُسجّل الدَّين."
+        ),
+    )
     ap.add_argument("--output", required=True)
     ap.add_argument("--gh-bin")
     args = ap.parse_args(argv)
@@ -340,8 +446,36 @@ def main(argv=None) -> int:
             for s in subjects
         ]
         level = "L3"
-        if release_bound(manifest, policy, source_ref):
+        # ATTESTED-IS-NOT-CERTIFIED-01: الارتقاء إلى L4 يشترط **شرطين مستقلّين**:
+        # مرجعاً معتمداً (من أين)، وتشغيلاً ناجحاً أنتج الدليل (بأيّ حال). وسقوطُ
+        # الثاني ليس فساداً في الحزمة — هو رفضُ **اعتماد** لدليل منشأٍ صحيح.
+        # الخلاصة تُقرأ من ملفّها المستقلّ. وغيابُ الملفّ المُمرَّر ليس «لم يُطلَب»:
+        # رايةٌ تشير إلى ملفٍّ لا يُقرأ تعني أنّ الجلب لم يعمل، وقراءةُ ذلك سلامةً
+        # هي بعينها «لم يُقَس ⇒ مرّ».
+        outcome: object = None
+        if args.execution_outcome:
+            try:
+                outcome = load_json(Path(args.execution_outcome))
+            except (OSError, ValueError, json.JSONDecodeError):
+                raise RuntimeError("EXECUTION_OUTCOME_UNREADABLE") from None
+        clean, execution_reason = execution_clean(outcome, tested["commit_sha"])
+        # **ولماذا الشرط مربوطٌ بالسياسة لا مفروضاً اليوم:** خلاصةُ التشغيل لا تُعرَف
+        # **من داخله** — وظيفةٌ تعمل الآن لا تستطيع أن تقول كيف انتهى تشغيلُها. فالبيان
+        # المُولَّد داخل التشغيل لا يستطيع إعلانها بصدق، وفرضُها اليوم كان يُحمِّر `main`
+        # على غياب شيءٍ لا يملك المُنتِج إنتاجه — لا على عطل. والمُنتِج الصحيح وظيفةُ
+        # اعتمادٍ **بعد** انتهاء التشغيل (`workflow_run`)، وهي الشريحة التالية.
+        # فالقاعدة مكتوبة ومُكذَّبة بأربع طفرات، ومفتاحُها في السياسة سطرٌ واحد.
+        require_execution = args.require_execution_outcome or bool(
+            policy.get("require_execution_outcome")
+        )
+        if release_bound(manifest, policy, source_ref) and (clean or not require_execution):
             level = "L4"
+        if execution_reason:
+            # يُسجَّل **دائماً**، فارضاً كان أو غير فارض: سجلٌّ يقول L5 ولا يقول
+            # «وخلاصةُ التشغيل لم تُعلَن» يُقرَأ اعتماداً وهو ليس منه.
+            record["reason_codes"].append(execution_reason)
+            if not require_execution:
+                record["reason_codes"].append("EXECUTION_OUTCOME_NOT_ENFORCED")
         if level == "L4" and evidence_passes():
             level = "L5"
         if LEVELS[level] < LEVELS[args.required_assurance]:
@@ -349,7 +483,10 @@ def main(argv=None) -> int:
         record.update(
             {
                 "verdict": "VERIFIED",
-                "reason_codes": [],
+                # **لا تُمسَح الأسباب هنا.** الحكم قد يكون `VERIFIED` عند L3 لأنّ
+                # الارتقاء رُفِض — والسببُ هو الخبر كلّه. وتفريغُها كان يجعل الرفض
+                # صامتاً: سجلٌّ يقول «تُحقِّق» ولا يقول «ولم يُعتمَد، ولهذا السبب».
+                "reason_codes": record["reason_codes"],
                 "assurance_level": level,
                 "manifest_sha256": sha256(manifest_path),
                 "policy_sha256": sha256(policy_path),

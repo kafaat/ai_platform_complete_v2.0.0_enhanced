@@ -29,7 +29,7 @@ WX-006,GDD,weather,weather-service,active,3,3,behavioral_test_linked_runtime_unv
 WX-007,Frost and heat risk,weather,weather-service,active,3,3,runtime_or_workflow_unverified,low,False,WX-002
 WX-008,Operation windows,weather,weather-service,active,3,3,runtime_or_workflow_unverified,medium,False,WX-002
 WX-009,Disease weather models,weather,weather-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,WX-002
-WX-010,Weather provenance and quality,weather,weather-service,active,3,3,behavioral_test_linked_runtime_unverified,medium,False,
+WX-010,Weather provenance and quality,weather,weather-service,active,3,3,repository_runtime_instrumentation_linked_production_unverified,medium,False,
 SOIL-001,Soil profile,soil,soil-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,
 SOIL-002,Soil sampling,soil,soil-service,active,3,3,behavioral_test_linked_runtime_unverified,high,False,FM-003
 SOIL-003,Laboratory results,soil,soil-service,active,3,3,runtime_or_workflow_unverified,medium,False,SOIL-002

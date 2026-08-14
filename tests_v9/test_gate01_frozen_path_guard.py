@@ -351,3 +351,35 @@ def test_the_lifecycle_check_is_wired_into_the_entry_point(tmp_path, capsys):
     out = capsys.readouterr().out
     assert rc == 1, out
     assert "GATE01-ONE-SHOT-LIFECYCLE-INCOMPLETE-01" in out
+
+
+# ── صدقُ السجلّ نفسه، لا سلوك البوّابة ──────────────────────────────────────
+#
+# الاختبارات أعلاه تسأل «هل تمنح البوّابة؟». وهذان يسألان سؤالاً آخر لا يغني عنه:
+# **هل السجلّ الذي بقي يصف ما جرى فعلاً؟** فتفويضٌ مُستهلَك يبقى مصنوعةً حوكميّة
+# تُراجَع بعد شهور، وسجلٌّ يقول `CONSUMED` بلا SHA دمج — أو ببايتاتٍ لا تطابق ما في
+# الشجرة — أثرٌ لا يُراجَع.
+
+
+def test_every_consumed_authorization_names_the_merge_that_consumed_it():
+    """`CONSUMED` بلا `merge_sha` ادّعاءُ استهلاكٍ لا سجلّه — ولا يُقبَل."""
+    for adj in guard.load_adjudications(_ADJ_DIR):
+        if adj.get("status") != "CONSUMED":
+            continue
+        merge_sha = (adj.get("consumption") or {}).get("merge_sha")
+        assert isinstance(merge_sha, str) and len(merge_sha) == 40, (
+            f"{adj['adjudication_id']}: مُستهلَك بلا SHA دمجٍ كامل"
+        )
+
+
+def test_a_consumed_record_still_describes_what_actually_landed():
+    """السجلّ يبقى قابلاً للفحص بعد الاستهلاك — وإلّا صار أثراً لا يُراجَع.
+
+    البايتات المأذونة هي بايتات الشجرة بعد الدمج؛ فانحرافُها يعني أنّ ما دخل ليس
+    ما أُذِن به، وذلك يُكشَف هنا لا في مراجعةٍ بشريّة.
+    """
+    for adj in guard.load_adjudications(_ADJ_DIR):
+        for path, declared in adj["authorized_blobs"].items():
+            assert guard.blob_sha(path) == declared, (
+                f"{adj['adjudication_id']}/{path}: ما دخل يخالف ما أُذِن به"
+            )

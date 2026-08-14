@@ -13,9 +13,11 @@ checks = {
     ],
 }
 for filename, needles in checks.items():
-    text = Path(filename).read_text()
+    text = Path(filename).read_text(encoding="utf-8")
     for needle in needles:
         assert needle in text, f"{filename}: missing {needle}"
 for filename in ("docker-compose.v9.yml", "docker-compose.fixed.yml"):
-    assert "DECISION_REQUIRE_SOIL_EVIDENCE_GATE" in Path(filename).read_text(), filename
+    assert "DECISION_REQUIRE_SOIL_EVIDENCE_GATE" in Path(filename).read_text(encoding="utf-8"), (
+        filename
+    )
 print("soil_full_chain_guard_ok")

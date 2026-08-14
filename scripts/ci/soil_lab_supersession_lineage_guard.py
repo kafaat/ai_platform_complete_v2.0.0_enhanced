@@ -20,8 +20,10 @@ checks = {
     ],
 }
 for name, tokens in checks.items():
-    text = Path(name).read_text()
+    text = Path(name).read_text(encoding="utf-8")
     missing = [token for token in tokens if token not in text]
     assert not missing, f"{name}: missing {missing}"
-assert "v160_soil_lab_publication_lineage.sql" in Path("migrations/MANIFEST.txt").read_text()
+assert "v160_soil_lab_publication_lineage.sql" in Path("migrations/MANIFEST.txt").read_text(
+    encoding="utf-8"
+)
 print("soil_lab_supersession_lineage_guard_ok")

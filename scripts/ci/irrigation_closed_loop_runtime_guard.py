@@ -4,9 +4,15 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-service = (ROOT / "services/sahool-platform/api/irrigation_closed_loop_runtime.py").read_text()
-migration = (ROOT / "migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql").read_text()
-router = (ROOT / "services/sahool-platform/api/routers/irrigation_mpc.py").read_text()
+service = (ROOT / "services/sahool-platform/api/irrigation_closed_loop_runtime.py").read_text(
+    encoding="utf-8"
+)
+migration = (ROOT / "migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql").read_text(
+    encoding="utf-8"
+)
+router = (ROOT / "services/sahool-platform/api/routers/irrigation_mpc.py").read_text(
+    encoding="utf-8"
+)
 for token in (
     "build_canonical_as_applied_irrigation_truth",
     "as_applied_truth_to_water_ledger_event",

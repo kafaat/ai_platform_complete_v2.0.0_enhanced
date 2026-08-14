@@ -13,11 +13,11 @@ missing = [name for name, path in checks.items() if not path.exists()]
 if missing:
     raise SystemExit("WX-I1 guard failed; missing: " + ", ".join(missing))
 
-hourly = checks["hourly product"].read_text()
-provider = checks["provider fetch"].read_text()
-route = checks["weather route"].read_text()
-client = checks["platform client"].read_text()
-consumer = checks["runtime consumer"].read_text()
+hourly = checks["hourly product"].read_text(encoding="utf-8")
+provider = checks["provider fetch"].read_text(encoding="utf-8")
+route = checks["weather route"].read_text(encoding="utf-8")
+client = checks["platform client"].read_text(encoding="utf-8")
+consumer = checks["runtime consumer"].read_text(encoding="utf-8")
 
 required = [
     ("provider-native ET0 variable", "et0_fao_evapotranspiration" in provider),

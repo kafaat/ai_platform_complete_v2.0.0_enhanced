@@ -200,6 +200,13 @@ fi
 # ── ٢) حارسا تعارض الدمج — لا يغني أحدهما عن الآخر ────────────────────────
 require_file scripts/ci/no_merge_conflict_markers_guard.py "٢ب) no_merge_conflict_markers" && run "٢ب) no_merge_conflict_markers" python3 scripts/ci/no_merge_conflict_markers_guard.py
 
+# ── ٢ج) محارف الاتّجاه الخفيّة — في الملفّ **الافتراضيّ** عمداً ─────────────
+# BIDI-CONTROL-CHAR-PASSED-THE-DEFAULT-PREFLIGHT-01: محرف RLM في docstring عربيّ أسقط
+# *Security Scan* بـB613، على رأسٍ أُعلِن أخضر — وفاتَ لأنّ bandit في `--full` وحده
+# والدفعُ كان على الافتراضيّ. الحادثة كلّها «اختيارُ ملفٍّ أرخص ثمّ قراءةُ أخضره
+# أخضرَ CI»، فموضعُ العلاج هو الملفّ الأرخص نفسه. Python صرف، أقلّ من ثانيتين.
+require_file scripts/ci/bidi_control_char_guard.py "٢ج) bidi_control_char" && run "٢ج) bidi_control_char" python3 scripts/ci/bidi_control_char_guard.py
+
 # ── ٣) أساس الادّعاءات وحارس الطفرات ──────────────────────────────────────
 require_file scripts/ci/claim_base_guard.py "٣أ) claim_base_guard" && run "٣أ) claim_base_guard"        python3 scripts/ci/claim_base_guard.py
 run "٣ب) guard_mutation (ساكن)"   python3 scripts/ci/guard_mutation_guard.py
@@ -275,6 +282,10 @@ if [ "$TIER" = full ]; then
   # يُبقي الخطوة صادقة. (مقيس: الاختبار يمرّ بلا المتغيّر ويسقط معه.)
   run "١٠) pytest -m unit تحت لغة C" \
     env -u PYTHONIOENCODING LC_ALL=C PYTHONUTF8=0 python3 -m pytest -q -m unit
+  # §١٠ أعلاه تُشعِل **الاختبارات** تحت لغة C، ولا تُشعِل الحرّاس أنفسهم — والفرق
+  # قِيس ولم يُقدَّر: أوّل إشعالٍ لكلّ حارسٍ في `scripts/ci` أعطى ٣٥ انهياراً في
+  # الكتابة و٢٣ في القراءة، وكلّها كانت خضراء لأنّ عدّاء Linux افتراضيّه UTF-8.
+  run "١٠ب) كلّ حارسٍ يُشعَل تحت لغة C" python3 scripts/ci/guard_locale_survival_guard.py
 fi
 
 # ── ١١) القدرات المتأثّرة — لا جدول مُصلَّب ────────────────────────────────

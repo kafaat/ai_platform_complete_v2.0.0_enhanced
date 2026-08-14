@@ -74,6 +74,16 @@ def load_registry() -> dict[str, dict]:
     return data.get("mutated", {})
 
 
+def load_behavioural() -> dict[str, dict]:
+    """المواصفات السلوكيّة — مفاتيحها **مسارات مصادر إنتاج** لا أسماء حرّاس.
+
+    تُعَدّ هنا لأنّ هذا الجرد يزعم أنّه يقول «ما نعرفه عن حرّاسنا»، وقسمٌ مقيس لا
+    يظهر فيه يجعل الرقم أصغر من الواقع بصمت — وهو نفس عطل «سكوتٌ يُقرأ خضرةً».
+    """
+    data = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    return {k: v for k, v in data.get("behavioural", {}).items() if not k.startswith("$")}
+
+
 def render() -> str:
     invocations = discover_invocations()
     registry = load_registry()
@@ -93,6 +103,8 @@ def render() -> str:
     blocking = sorted(invocations)
     total_mutations = sum(len(s["mutations"]) for s in registry.values())
     spec_names = {Path(g).name for g in blocking} & set(registry)
+    behavioural = load_behavioural()
+    behavioural_mutations = sum(len(s["mutations"]) for s in behavioural.values())
 
     lines += [
         "## ما يقوله هذا الجرد قبل أيّ تفصيل",
@@ -100,6 +112,13 @@ def render() -> str:
         f"- حرّاس تحجب في CI: **{len(blocking)}**",
         f"- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **{len(spec_names)}**",
         f"- إجماليّ الطفرات المُسجَّلة: **{total_mutations}**",
+        f"- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **{behavioural_mutations}** "
+        f"على {len(behavioural)} مصدراً",
+        "",
+        "والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —",
+        "أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل",
+        "نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ",
+        "ويجب أن يحمرّ اختبارُ **أثرها**.",
         "",
         f"أي أنّ **{len(blocking) - len(spec_names)}** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه",
         "يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار",

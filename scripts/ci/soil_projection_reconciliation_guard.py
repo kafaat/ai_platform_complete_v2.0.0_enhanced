@@ -13,7 +13,9 @@ for rel in required:
     if not (ROOT / rel).is_file():
         errors.append(f"missing {rel}")
 
-migration = (ROOT / required[0]).read_text() if (ROOT / required[0]).is_file() else ""
+migration = (
+    (ROOT / required[0]).read_text(encoding="utf-8") if (ROOT / required[0]).is_file() else ""
+)
 for token in (
     "soil_profile_projection_jobs",
     "soil_reconciliation_checkpoints",
@@ -24,11 +26,11 @@ for token in (
     if token not in migration:
         errors.append(f"v157 missing {token}")
 
-store = (ROOT / "services/soil-service/soil_store.py").read_text()
+store = (ROOT / "services/soil-service/soil_store.py").read_text(encoding="utf-8")
 if "projection_jobs.enqueue" not in store:
     errors.append("canonical observation persistence does not enqueue projection")
 
-field_context = (ROOT / "services/sahool-platform/api/field_context.py").read_text()
+field_context = (ROOT / "services/sahool-platform/api/field_context.py").read_text(encoding="utf-8")
 moisture_body = field_context.split("async def _latest_soil_moisture", 1)[-1].split(
     "async def _field_season_context", 1
 )[0]
@@ -37,7 +39,7 @@ if "FROM device_telemetry" in moisture_body:
 if "FROM soil_observations" not in moisture_body:
     errors.append("platform soil moisture is not sourced from soil_observations")
 
-manifest = (ROOT / "migrations/MANIFEST.txt").read_text()
+manifest = (ROOT / "migrations/MANIFEST.txt").read_text(encoding="utf-8")
 if "v157_soil_projection_jobs_reconciliation.sql" not in manifest:
     errors.append("v157 absent from migration manifest")
 

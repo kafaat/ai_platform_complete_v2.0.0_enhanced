@@ -14,10 +14,10 @@ for label, path in checks.items():
     if not path.exists():
         raise SystemExit(f"IRR-X1.5 guard: missing {label}: {path}")
 
-migration = checks["migration"].read_text()
-router = checks["manual router"].read_text()
-bff = checks["decision BFF"].read_text()
-sor = checks["decision SoR"].read_text()
+migration = checks["migration"].read_text(encoding="utf-8")
+router = checks["manual router"].read_text(encoding="utf-8")
+bff = checks["decision BFF"].read_text(encoding="utf-8")
+sor = checks["decision SoR"].read_text(encoding="utf-8")
 required = [
     (migration, "irrigation_manual_execution_sources"),
     (migration, "IRRX1_AUTHORITATIVE_PROVENANCE_REQUIRED"),

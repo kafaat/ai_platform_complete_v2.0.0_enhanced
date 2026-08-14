@@ -22,7 +22,7 @@ REQUIRED = {
     ],
 }
 for file_name, tokens in REQUIRED.items():
-    text = (ROOT / file_name).read_text()
+    text = (ROOT / file_name).read_text(encoding="utf-8")
     for token in tokens:
         assert token in text, (file_name, token)
 print("irrigation capability graph M2.8 guard: PASS")

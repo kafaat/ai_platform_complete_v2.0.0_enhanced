@@ -6576,6 +6576,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_actuation_killswitch_behaviour.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_actuation_killswitch_coverage_guard.py",
     "kind": "tests"
   },
@@ -6729,6 +6733,10 @@
   },
   {
     "path": "tests_v9/test_backfill_worker_schema_drift_visibility_v31_2.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_bidi_control_char_guard.py",
     "kind": "tests"
   },
   {
@@ -7221,6 +7229,10 @@
   },
   {
     "path": "tests_v9/test_guard_catalogue.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_guard_locale_survival_guard.py",
     "kind": "tests"
   },
   {
@@ -7773,6 +7785,10 @@
   },
   {
     "path": "tests_v9/test_route_residual_classification_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_run_outcome_guard.py",
     "kind": "tests"
   },
   {
