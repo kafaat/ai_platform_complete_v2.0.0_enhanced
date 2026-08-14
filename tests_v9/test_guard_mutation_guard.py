@@ -698,3 +698,19 @@ def test_a_mutation_may_name_its_own_test_file(tmp_path: Path) -> None:
     # `check` تشتكي أيضاً من الحارس الصناعيّ بلا مواصفة — والمقيس هنا القسم السلوكيّ.
     assert [f for f in gmg.check(reg, ci, tmp_path) if "fake_effect" in f] == []
     assert gmg.run_mutations(reg, ci=ci, root=tmp_path) == []
+
+
+def test_a_filter_that_matches_nothing_is_not_reported_as_success(tmp_path) -> None:
+    """مرشِّحٌ يزرع صفر طفرة كان يخرج ناجحاً — أخضرُ عن سؤالٍ لم يُطرَح.
+
+    المطابقة بالاسم كاملاً، ومفاتيحُ القسم السلوكيّ **مسارات**، فـ
+    `--only certify-run` كان يتخطّى `.github/workflows/certify-run.yml` كلّه ثمّ
+    يطبع `ok`. ووقع ذلك عليّ مرّتين في جلسةٍ واحدة: قرأتُ أخضرَه إثباتاً وهو لم
+    يقِس شيئاً — وهو الصنف الذي بُنِي هذا الحارس ليلاحقه، في أداته هو.
+    """
+    registry = {"mutated": {}, "behavioural": {}, "unmutated_debt": {}}
+
+    failures = gmg.run_mutations(registry, "اسمٌ-لا-يُطابِق-شيئاً", ci=tmp_path, root=tmp_path)
+
+    assert failures, "صفرُ طفرةٍ مزروعة يجب أن يُبلَّغ فشلاً لا نجاحاً"
+    assert "صفر طفرة" in failures[0]
