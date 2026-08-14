@@ -1514,8 +1514,24 @@ jobs:
           cache: pip
           cache-dependency-path: |
             requirements_real.txt
-            services/*/requirements.txt
+            services/actuator-service/requirements.txt
+            services/agriai-engine/requirements.txt
+            services/auth/requirements.txt
+            services/edge-inference/requirements.txt
+            services/guardrails-engine/requirements.txt
+            services/indicators-service/requirements.txt
+            services/local-ai-rag/requirements.txt
+            services/mcp_servers/requirements.txt
+            services/odoo-bridge/requirements.txt
+            services/qdrant-seed/requirements.txt
+            services/raster-service/requirements.txt
             services/sahool-platform/api/requirements.txt
+            services/soil-service/requirements.txt
+            services/supervisor-agent/requirements.txt
+            services/tts-service/requirements.txt
+            services/vegetation-analysis-service/requirements.txt
+            services/video-processor/requirements.txt
+            services/weather-service/requirements.txt
       - run: pip install bandit pip-audit pytest python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
       # بوّابة أمان: تفشل على HIGH severity (تنفيذ كود/تشفير ضعيف/حقن) — صُحّحت إلى 0.
       - run: bandit -r services/ bots/ agents/ --severity-level high

@@ -85,8 +85,10 @@ def test_pip_caches_are_bound_to_each_jobs_actual_dependency_file() -> None:
     )
     for job_name, path in cached.items():
         assert path.strip(), f"{job_name}: cache بلا cache-dependency-path يلتقط غير المقصود"
-        assert "**" not in path, (
-            f"{job_name}: النمط الكونيّ يُبطل المفتاح على أيّ ملفّ في الشجرة — اربط بالفعليّ"
+        # رفعته مراجعةٌ آليّة وقِيس: `services/*/requirements.txt` طابق ٢٩ ملفّاً
+        # والبوّابة تستهلك ١٩ — فأيّ نجمةٍ التقاطٌ بالعرَض لا بالقياس، لا `**` وحدها.
+        assert "*" not in path, (
+            f"{job_name}: نمطٌ نجميّ يُبطل المفتاح على ملفّاتٍ خارج ما تستهلكه الوظيفة"
         )
     assert set(uncached) == {"platform-structure-inspector", "lint"}, (
         f"وظائف بلا كاش خارج المقيس: {sorted(uncached)}"
