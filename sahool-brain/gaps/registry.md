@@ -3669,7 +3669,7 @@ services/actuator-service/routers/commands.py:66    "sent": success
 ## API-PACKAGE-NAME-COLLIDES-ACROSS-SERVICES-01 — `open` (مقيس 2026-08-14)
 
 **المصدر:** خدمتان تُصدِّران حزمةً عليا اسمها `api`. و`tests_v9/test_roadmap_phase23.py`
-يُدخِل مسارات خدماتٍ إلى `sys.path` (`:98` · `:237` · `:1311` · `:1972` …)، فيصير
+يُدخِل مسارات خدماتٍ إلى `sys.path` (`:97` · `:236` · `:1310` · `:1971` …)، فيصير
 `api.connectors.openmeteo` في `sys.modules` **نسخةَ weather-service** بدل نسخة
 sahool-platform. ومن يستورد أوّلاً يفرض تفسيره على الجلسة كلّها.
 
