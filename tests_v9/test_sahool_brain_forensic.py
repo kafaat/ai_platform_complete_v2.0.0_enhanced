@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = ROOT / "services" / "sahool-platform"
 if str(PLATFORM) not in sys.path:
@@ -23,6 +25,8 @@ from core.agronomic_state_engine import SignalInput, compose_field_state  # noqa
 from core.canonical_schemas import UserRole, UserSchema  # noqa: E402
 from core.recommendation_bridge import full_delivery_pipeline  # noqa: E402
 from core.recommendation_engine import RecommendationStatus, generate_recommendation  # noqa: E402
+
+pytestmark = pytest.mark.unit
 
 
 def test_brain_arbitration_salinity_overrides_green_ndvi() -> None:
@@ -64,6 +68,11 @@ def test_water_stress_escalation_requires_physics_and_spectral_observation() -> 
     assert physics_only["spectral_stress_detected"] is None
     assert physics_only["escalation_eligible"] is False
 
+    # التاريخان **شرطٌ في التأكيد الطيفيّ**، لا زينة: سياسة التوافق الزمنيّ
+    # (`canonical_water_stress.py:133-138`، قرار مالك) لا تدمج NDMI وMSI إلّا من نافذة
+    # اكتساب متوافقة — وغيابُ أحد التاريخين يُقرأ **فشلاً مغلقاً** لا «متوفّر». فبقاء
+    # هذه الحالة بلا تاريخين كان يجعلها تطلب تصعيداً على دمجٍ زمنيّ غير متحقَّق.
+    # والسياسة هبطت **بعد** هذا الاختبار، ولم يُحمِرّ لأنّ الملفّ بلا علامة فلم يُنفَّذ.
     full_gate = canonical_water_stress(
         {
             "depletion_mm": 86.0,
@@ -72,6 +81,8 @@ def test_water_stress_escalation_requires_physics_and_spectral_observation() -> 
             "depletion_confidence": 0.93,
             "ndmi": -0.08,
             "msi": 2.15,
+            "ndmi_date": "2026-08-10",
+            "msi_date": "2026-08-10",
         }
     )
     assert full_gate is not None
