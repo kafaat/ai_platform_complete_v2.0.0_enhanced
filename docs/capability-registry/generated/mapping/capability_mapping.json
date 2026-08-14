@@ -15,14 +15,14 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5006,
+    "files_scanned": 5007,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 59,
       "mobile": 51,
       "other": 1340,
-      "tests": 1633,
+      "tests": 1634,
       "web": 454
     },
     "unmapped_artifacts": 2035,
@@ -5725,6 +5725,34 @@
           "score": 14
         },
         {
+          "value": "decision_sor_cutover_readiness_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:82",
+          "score": 13
+        },
+        {
+          "value": "decision_sor_final_certification_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:85",
+          "score": 13
+        },
+        {
+          "value": "decision_sor_shadow_promotion_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:83",
+          "score": 13
+        },
+        {
+          "value": "decision_sor_staging_probe_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:84",
+          "score": 13
+        },
+        {
+          "value": "field-workspace-production-closure.yml @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:32",
+          "score": 13
+        },
+        {
+          "value": "field_workspace_production_closure_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:79",
+          "score": 13
+        },
+        {
+          "value": "weather_service_real_contract_gate.py @ tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py:81",
+          "score": 13
+        },
+        {
           "value": "fieldOperating.ts @ services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py:44",
           "score": 12
         },
@@ -5839,6 +5867,14 @@
           "signals": [
             "path:field geometry",
             "content:field geometry"
+          ]
+        },
+        {
+          "path": "tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py",
+          "score": 13,
+          "signals": [
+            "path:field workspace",
+            "content:field workspace"
           ]
         },
         {
@@ -6000,10 +6036,10 @@
         "backend": 13,
         "routes": 56,
         "database": 5,
-        "events": 54,
+        "events": 61,
         "web": 2,
         "mobile": 2,
-        "tests": 11,
+        "tests": 12,
         "governance": 1,
         "other_evidence": 11
       },

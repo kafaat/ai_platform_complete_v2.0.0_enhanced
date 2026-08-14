@@ -715,6 +715,7 @@ FM-003,test,tests_v9/test_field_state_recompute_provenance_v57_5.py,3,applied
 FM-003,test,tests_v9/test_field_state_unification.py,3,applied
 FM-003,test,tests_v9/test_field_sustainability.py,3,applied
 FM-003,test,tests_v9/test_field_terrain_foundation_v31_2.py,3,applied
+FM-003,test,tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py,5,applied
 FM-003,test,tests_v9/test_fields_geometry_integrity_v39_5.py,3,applied
 FM-003,test,tests_v9/test_fields_merge_split_atomic.py,3,applied
 FM-003,test,tests_v9/test_fields_put_and_mfa_api_contract_20260626.py,3,applied
@@ -972,6 +973,7 @@ GIS-001,test,tests_v9/test_field_boundary_ai_v59.py,3,applied
 GIS-001,test,tests_v9/test_field_boundary_backends_v59_5.py,3,applied
 GIS-001,test,tests_v9/test_field_geometry_history_append_only_v39_5.py,3,applied
 GIS-001,test,tests_v9/test_field_geometry_save_guard_20260703.py,3,applied
+GIS-001,test,tests_v9/test_field_workspace_closure_workflow_declares_its_boundary.py,3,applied
 GIS-001,test,tests_v9/test_fields_geometry_integrity_v39_5.py,3,applied
 GIS-001,test,tests_v9/test_gis_multipolygon_geometry_versioning.py,3,applied
 GIS-001,test,tests_v9/test_physical_effect_boundary_guard.py,3,applied

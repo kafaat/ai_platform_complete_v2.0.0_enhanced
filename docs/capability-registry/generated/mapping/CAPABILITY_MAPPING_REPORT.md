@@ -12,7 +12,7 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **5006**
+- Files scanned: **5007**
 - Ambiguous artifacts queued: **405**
 - Unmapped artifacts queued: **2035**
 
@@ -32,7 +32,7 @@
 | DEC-010 | decision | 4 | 89 | 42 | 7 | 0 | 0 | 5 | 5 |
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 24 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 14 | 2 | 25 | 7 |
-| FM-003 | farm_management | 13 | 56 | 5 | 54 | 2 | 2 | 11 | 7 |
+| FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 12 | 7 |
 | FM-004 | farm_management | 30 | 82 | 84 | 54 | 12 | 1 | 34 | 7 |
 | FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 5 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
