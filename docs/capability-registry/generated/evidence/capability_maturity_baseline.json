@@ -8,12 +8,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-001",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Decision evidence"
     },
@@ -26,12 +32,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-002",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Decision candidate"
     },
@@ -42,12 +54,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-003",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Human approval"
     },
@@ -60,12 +78,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-004",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Execution request"
     },
@@ -78,12 +102,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-005",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Dispatch authorization"
     },
@@ -96,12 +126,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-006",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Execution receipt"
     },
@@ -114,12 +150,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-007",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Outcome recording"
     },
@@ -131,12 +173,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-008",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Learning attribution"
     },
@@ -147,12 +195,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-009",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Model calibration"
     },
@@ -165,12 +219,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "DEC-010",
       "declared_maturity": 3,
       "domain": "decision",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Model lifecycle and activation"
     },
@@ -182,12 +242,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "FM-001",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Tenant and organization management"
     },
@@ -200,12 +266,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "FM-002",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Farm registry"
     },
@@ -218,12 +290,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "FM-003",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Field registry and boundaries"
     },
@@ -236,12 +314,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "FM-004",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Season lifecycle"
     },
@@ -253,12 +337,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "FM-005",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Crop and cultivar catalog"
     },
@@ -269,12 +359,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "FM-006",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Farm economics"
     },
@@ -286,12 +382,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "FM-007",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Inventory and procurement"
     },
@@ -304,12 +406,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "FM-008",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "ERP integration"
     },
@@ -320,12 +428,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "GIS-001",
       "declared_maturity": 3,
       "domain": "gis",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Field geometry validation"
     },
@@ -337,12 +451,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "GIS-002",
       "declared_maturity": 3,
       "domain": "gis",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Map layers"
     },
@@ -355,12 +475,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "GIS-003",
       "declared_maturity": 3,
       "domain": "gis",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Terrain and DEM"
     },
@@ -372,12 +498,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "GIS-004",
       "declared_maturity": 3,
       "domain": "gis",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Spatial analytics"
     },
@@ -388,12 +520,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "INT-001",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Public API and SDK"
     },
@@ -405,12 +543,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "INT-002",
       "declared_maturity": 3,
       "domain": "farm_management",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Event bus integration"
     },
@@ -422,12 +566,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "INT-003",
       "declared_maturity": 3,
       "domain": "irrigation",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "IoT and sensors"
     },
@@ -439,12 +589,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "INT-004",
       "declared_maturity": 3,
       "domain": "precision",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "External machinery integrations"
     },
@@ -455,12 +611,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-001",
       "declared_maturity": 3,
       "domain": "irrigation",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Water source registry"
     },
@@ -471,12 +633,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-002",
       "declared_maturity": 3,
       "domain": "irrigation",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Water quality samples"
     },
@@ -487,12 +655,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-003",
       "declared_maturity": 0,
       "domain": "irrigation",
       "maturity_alignment": "evidence_above_declared",
       "maturity_delta": 1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Field water-source binding"
     },
@@ -505,12 +679,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-004",
       "declared_maturity": 3,
       "domain": "irrigation",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Water balance"
     },
@@ -522,12 +702,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-005",
       "declared_maturity": 3,
       "domain": "irrigation",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Irrigation recommendation"
     },
@@ -539,12 +725,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-006",
       "declared_maturity": 3,
       "domain": "irrigation",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Irrigation scheduling"
     },
@@ -555,12 +747,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-007",
       "declared_maturity": 3,
       "domain": "irrigation",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Pump and valve control"
     },
@@ -571,12 +769,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-008",
       "declared_maturity": 3,
       "domain": "irrigation",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Execution verification"
     },
@@ -589,12 +793,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-009",
       "declared_maturity": 2,
       "domain": "irrigation",
       "maturity_alignment": "evidence_above_declared",
       "maturity_delta": 1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Water suitability multi-hazard"
     },
@@ -605,12 +815,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "IRR-010",
       "declared_maturity": 2,
       "domain": "irrigation",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Leaching and drainage safety"
     },
@@ -621,12 +837,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "OPS-001",
       "declared_maturity": 3,
       "domain": "operations",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Task management"
     },
@@ -638,12 +860,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "OPS-002",
       "declared_maturity": 3,
       "domain": "operations",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Work orders"
     },
@@ -656,12 +884,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "OPS-003",
       "declared_maturity": 3,
       "domain": "operations",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Scouting"
     },
@@ -674,12 +908,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "OPS-004",
       "declared_maturity": 3,
       "domain": "operations",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Field forms"
     },
@@ -691,12 +931,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "OPS-005",
       "declared_maturity": 3,
       "domain": "operations",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Offline mobile"
     },
@@ -707,12 +953,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "OPS-006",
       "declared_maturity": 3,
       "domain": "operations",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Equipment registry"
     },
@@ -724,12 +976,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "OPS-007",
       "declared_maturity": 3,
       "domain": "operations",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Maintenance"
     },
@@ -738,12 +996,18 @@
       "assessment_reasons": [
         "documentation_only"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "OPS-008",
       "declared_maturity": 3,
       "domain": "operations",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Workforce and worker identity"
     },
@@ -755,12 +1019,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "PA-001",
       "declared_maturity": 3,
       "domain": "precision",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Management zones"
     },
@@ -771,12 +1041,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "PA-002",
       "declared_maturity": 3,
       "domain": "precision",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Variable rate prescription"
     },
@@ -788,12 +1064,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "PA-003",
       "declared_maturity": 0,
       "domain": "precision",
       "maturity_alignment": "evidence_above_declared",
       "maturity_delta": 2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Yield map ingestion"
     },
@@ -804,12 +1086,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "PA-004",
       "declared_maturity": 2,
       "domain": "precision",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "As-applied data"
     },
@@ -820,12 +1108,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "PA-005",
       "declared_maturity": 1,
       "domain": "precision",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Machine telemetry"
     },
@@ -838,12 +1132,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-001",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Satellite scene search"
     },
@@ -855,12 +1155,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-002",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "True color imagery"
     },
@@ -873,12 +1179,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-003",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "NDVI"
     },
@@ -890,12 +1202,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-004",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "NDMI"
     },
@@ -908,12 +1226,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-005",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Cloud screening"
     },
@@ -926,12 +1250,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-006",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Historical imagery timeline"
     },
@@ -943,12 +1273,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-007",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Change detection"
     },
@@ -960,12 +1296,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-008",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Stress zones"
     },
@@ -978,12 +1320,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SAT-009",
       "declared_maturity": 3,
       "domain": "satellite",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "COG persistence and tiling"
     },
@@ -996,12 +1344,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SEC-001",
       "declared_maturity": 3,
       "domain": "security",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Tenant RLS"
     },
@@ -1012,12 +1366,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SEC-002",
       "declared_maturity": 3,
       "domain": "security",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Signed tenant assertion"
     },
@@ -1028,12 +1388,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SEC-003",
       "declared_maturity": 3,
       "domain": "security",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Worker identity binding"
     },
@@ -1046,12 +1412,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SEC-004",
       "declared_maturity": 3,
       "domain": "security",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "MFA"
     },
@@ -1063,12 +1435,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SEC-005",
       "declared_maturity": 3,
       "domain": "security",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Audit logging"
     },
@@ -1081,12 +1459,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SEC-006",
       "declared_maturity": 3,
       "domain": "security",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Service token guard"
     },
@@ -1097,12 +1481,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SEC-007",
       "declared_maturity": 3,
       "domain": "security",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Decision SoR DB ownership"
     },
@@ -1113,12 +1503,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SEC-008",
       "declared_maturity": 3,
       "domain": "security",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Secrets and production fail-closed"
     },
@@ -1131,12 +1527,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SOIL-001",
       "declared_maturity": 3,
       "domain": "soil",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Soil profile"
     },
@@ -1148,12 +1550,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SOIL-002",
       "declared_maturity": 3,
       "domain": "soil",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Soil sampling"
     },
@@ -1164,12 +1572,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SOIL-003",
       "declared_maturity": 3,
       "domain": "soil",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Laboratory results"
     },
@@ -1181,12 +1595,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SOIL-004",
       "declared_maturity": 3,
       "domain": "soil",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "pH EC SOM nutrients"
     },
@@ -1197,12 +1617,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "SOIL-005",
       "declared_maturity": 3,
       "domain": "soil",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Soil water properties"
     },
@@ -1213,12 +1639,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-001",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Current weather"
     },
@@ -1231,12 +1663,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-002",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Weather forecast"
     },
@@ -1249,12 +1687,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-003",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Weather history"
     },
@@ -1267,12 +1711,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-004",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "ET0"
     },
@@ -1284,12 +1734,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-005",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "VPD"
     },
@@ -1302,12 +1758,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-006",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "aligned",
       "maturity_delta": 0,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "GDD"
     },
@@ -1318,12 +1780,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-007",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Frost and heat risk"
     },
@@ -1335,12 +1803,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-008",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Operation windows"
     },
@@ -1352,12 +1826,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-009",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -1,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Disease weather models"
     },
@@ -1368,12 +1848,18 @@
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
+      "blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "production_certification_requires_explicit_decision",
+        "runtime_authority_unverified"
+      ],
       "capability_id": "WX-010",
       "declared_maturity": 3,
       "domain": "weather",
       "maturity_alignment": "declared_above_evidence",
       "maturity_delta": -2,
       "production_certified": false,
+      "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Weather provenance and quality"
     }
@@ -1387,6 +1873,7 @@
     "declared_above_evidence": 50,
     "evidence_above_declared": 3,
     "production_certified": 0,
+    "promotion_preconditions_satisfied": 0,
     "runtime_verified": 0
   }
 }

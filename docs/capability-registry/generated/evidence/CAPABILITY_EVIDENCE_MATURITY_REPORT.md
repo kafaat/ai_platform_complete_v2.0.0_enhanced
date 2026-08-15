@@ -33,3 +33,5 @@
 - Level 5 requires production certification plus a learning-loop link.
 - Repository instrumentation is recorded separately and is not runtime proof.
 - Canonical registry maturity is never changed automatically.
+- A declared evidence level of 5 is necessary but never sufficient for promotion:
+  a bound execution outcome and subject/SHA binding must both be satisfied.

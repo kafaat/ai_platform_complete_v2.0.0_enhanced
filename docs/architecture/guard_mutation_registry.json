@@ -132,6 +132,18 @@
           "find": "    return runtime_claim and required_verified and bool(receipts) and not receipt_errors",
           "replace": "    return runtime_claim and required_verified  # mutated: governed receipt ignored",
           "why": "الادعاء + خدمات verified دون سجل تطبيق append-only لا يثبت promotion محكومة؛ حذف receipt يعيد الثقة في claim بلا منشأ."
+        },
+        {
+          "expect": "test_a_receipt_without_execution_outcome_never_satisfies_promotion",
+          "find": "        \"execution_outcome_satisfied\": bool(receipts) and all(outcome_ok),",
+          "replace": "        \"execution_outcome_satisfied\": bool(receipts),  # mutated: a receipt's presence read as a bound outcome",
+          "why": "وجود الإيصال يُقرأ مخرَجاً تنفيذيّاً مستوفى، فيعود «attested receipt وحده يكفي» — وهو بعينه ما تفتحه A′-1 لإغلاقه: الترقية بلا مخرَج مقيس."
+        },
+        {
+          "expect": "test_an_unbound_target_sha_breaks_subject_binding_even_with_an_outcome",
+          "find": "        bound = bool(SHA40.fullmatch(target)) and ledger.get(\"applied_to_head\") == target",
+          "replace": "        bound = bool(SHA40.fullmatch(target))  # mutated: applied-head equality dropped from subject binding",
+          "why": "شكل SHA يكفي والرباط الفعليّ بين ما اختُبر وما طُبِّق يسقط — دفترٌ طُبِّق على رأسٍ غير المُختبَر يمرّ مربوطاً."
         }
       ]
     },
@@ -141,9 +153,15 @@
       "mutations": [
         {
           "expect": "test_evidence_maturity_uses_normalized_runtime_authority_not_readiness_booleans",
-          "find": "        runtime_verified = authority[cid].get(\"runtime_authority_verified\") is True",
+          "find": "        runtime_verified = authority_row.get(\"runtime_authority_verified\") is True",
           "replace": "        runtime_verified = truthy(ce.get(\"runtime_proof\", False)) and truthy(ce.get(\"eligible_for_certification\", False))  # mutated: old readiness path",
           "why": "إرجاع المسار القديم يجعل readiness booleans تمنح runtime truth ويتجاهل نتيجة السلطة المطبعة، وهو الانفصال المقيس قبل A′-0."
+        },
+        {
+          "expect": "test_evidence_maturity_binds_promotion_to_preconditions_not_authority_alone",
+          "find": "            \"runtime\": promotion_preconditions_satisfied,",
+          "replace": "            \"runtime\": runtime_verified,  # mutated: authority verdict alone promotes the maturity axis",
+          "why": "محور النضج يعود إلى حكم السلطة وحده، فتَعبر قدرةٌ إلى L4 بإيصالٍ بلا مخرَج تنفيذيّ ولا رباط subject/SHA — القاعدة «L5 وحده لا يكفي» تُنزَع من موضع إنفاذها الاستهلاكيّ."
         }
       ]
     },
@@ -180,6 +198,18 @@
           "find": "    \"runtime_certification_gate.py\": -1,",
           "replace": "    \"runtime_certification_gate.py\": 0,  # mutated: lexical order runs evidence consumer first",
           "why": "Evidence maturity يستهلك runtime_certification_summary؛ إعادة المنتج إلى tier الافتراضي تجعل capability_evidence_maturity_engine يسبقه أبجدياً في fix pass."
+        }
+      ]
+    },
+    "scripts/ci/capability_certification_gate.py": {
+      "test": "tests/architecture/test_capability_truth_preconditions.py",
+      "$gap_ar": "CAPABILITY-CERTIFICATION-L5-ALONE-SUFFICIENT-01 — أهليّة الشهادة",
+      "mutations": [
+        {
+          "expect": "test_certification_eligibility_requires_outcome_and_binding_beyond_l5",
+          "find": "        and execution_outcome\n        and subject_sha_binding\n    )",
+          "replace": "    )  # mutated: promotion preconditions dropped from eligibility",
+          "why": "الأهليّة تعود إلى «تسع بوّابات + L5» — وهو التعريف القديم الذي جعل L5 كافياً وحده؛ القدرة المستوفية شكليّاً تُعلَن مؤهَّلة بلا مخرَج تنفيذيّ ولا رباط."
         }
       ]
     }

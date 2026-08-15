@@ -2,889 +2,1466 @@
   "capabilities": [
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "FM-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/auth/main.py",
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "FM-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "FM-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "FM-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "FM-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
-      "services": []
+      "services": [],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "FM-006",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
-      "services": []
+      "services": [],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "FM-007",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
-      "services": []
+      "services": [],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "FM-008",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/odoo-bridge/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "GIS-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "GIS-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "GIS-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "GIS-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py",
         "services/vegetation-analysis-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py",
         "services/vegetation-analysis-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-006",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-007",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-008",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/vegetation-analysis-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SAT-009",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/raster-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-006",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-007",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-008",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-009",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "WX-010",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/weather-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SOIL-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/soil-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SOIL-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/soil-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SOIL-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/soil-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SOIL-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/soil-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SOIL-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/soil-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-006",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-007",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/actuator-service/main.py",
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-008",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py",
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-009",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "IRR-010",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "PA-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/vegetation-analysis-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "PA-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/vegetation-analysis-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "PA-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
-      "services": []
+      "services": [],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "PA-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
-      "services": []
+      "services": [],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "PA-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
-      "services": []
+      "services": [],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "OPS-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "OPS-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "OPS-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "OPS-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "OPS-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
-      "services": []
+      "services": [],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "OPS-006",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "OPS-007",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "OPS-008",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/auth/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-006",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-007",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-008",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-009",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "DEC-010",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SEC-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SEC-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/field-management-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SEC-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/auth/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SEC-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/auth/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SEC-005",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/auth/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SEC-006",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/auth/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SEC-007",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/decision-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "SEC-008",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/auth/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "INT-001",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "INT-002",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/sahool-platform/api/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "INT-003",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
       "services": [
         "services/actuator-service/main.py"
-      ]
+      ],
+      "subject_sha_binding_satisfied": false
     },
     {
       "all_services_runtime_verified": false,
+      "execution_outcome_satisfied": false,
       "governed_runtime_receipt_count": 0,
       "id": "INT-004",
       "production_certified_claim": false,
+      "promotion_blocking_reasons": [
+        "no_governed_runtime_receipt",
+        "runtime_authority_unverified"
+      ],
+      "promotion_preconditions_satisfied": false,
       "runtime_authority_verified": false,
       "runtime_verified_claim": false,
-      "services": []
+      "services": [],
+      "subject_sha_binding_satisfied": false
     }
   ],
   "capability_claim_violations": [],
   "fail_closed": true,
   "gate_passed": true,
   "production_certified_services": [],
+  "promotion_precondition_policy": {
+    "execution_outcome_schema": "sahool.execution-outcome/v1",
+    "l5_alone_sufficient": false,
+    "required": [
+      "runtime_authority_verified",
+      "execution_outcome",
+      "subject_sha_binding"
+    ]
+  },
+  "promotion_preconditions_satisfied_capabilities": [],
   "runtime_authority_verified_capabilities": [],
   "runtime_verified_services": [],
   "service_claim_violations": []
