@@ -16,15 +16,15 @@
     },
     {
       "field": "apis",
-      "reason": "excluded_until_structured_normalization"
+      "reason": "excluded_projection_owned_by_traceability_engine"
     },
     {
       "field": "tests",
-      "reason": "excluded_until_structured_normalization"
+      "reason": "excluded_projection_owned_by_traceability_engine"
     },
     {
       "field": "runtime",
-      "reason": "excluded_until_structured_normalization"
+      "reason": "excluded_composite_owned_by_runtime_instrumentation_and_verification"
     },
     {
       "field": "evidence",

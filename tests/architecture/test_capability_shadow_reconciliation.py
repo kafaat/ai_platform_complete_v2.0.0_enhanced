@@ -23,6 +23,10 @@ def _policy(compare=None, exclude=None, third=False) -> dict:
     return {
         "schema": "sahool.capability-field-authority/v1",
         "field_authority": {
+            "id": {
+                "authority": "canonical_capability_definition",
+                "legacy_role": "compatibility_projection",
+            },
             "maturity": {
                 "authority": "canonical_capability_definition",
                 "legacy_role": "compatibility_projection",
@@ -31,6 +35,7 @@ def _policy(compare=None, exclude=None, third=False) -> dict:
                 "authority": "legacy_registry_projection",
                 "reconciliation": "excluded_until_structured_normalization",
             },
+            "title": {"reconciliation": "excluded_until_structured_normalization"},
         },
         "reconciliation": {
             "compare_raw": ["id", "maturity"] if compare is None else compare,
@@ -47,7 +52,9 @@ def _fixture(tmp_path: Path, monkeypatch, canonical_caps, legacy_caps, policy=No
     policy_path = tmp_path / "policy.json"
     canonical.write_text(json.dumps({"capabilities": canonical_caps}), encoding="utf-8")
     legacy.write_text(json.dumps({"capabilities": legacy_caps}), encoding="utf-8")
-    policy_path.write_text(json.dumps(policy or _policy()), encoding="utf-8")
+    policy_path.write_text(
+        json.dumps(policy if policy is not None else _policy()), encoding="utf-8"
+    )
     monkeypatch.setattr(mod, "ROOT", tmp_path)
     monkeypatch.setattr(mod, "CANONICAL", canonical)
     monkeypatch.setattr(mod, "LEGACY", legacy)
@@ -119,9 +126,7 @@ def test_an_excluded_field_is_never_compared_even_when_it_differs(
     assert excluded["status"] == "excluded_until_structured_normalization"
 
 
-def test_a_capability_missing_from_either_side_is_an_identity_finding(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_a_canonical_only_capability_is_an_identity_finding(tmp_path: Path, monkeypatch) -> None:
     mod = _fixture(
         tmp_path,
         monkeypatch,
@@ -132,6 +137,58 @@ def test_a_capability_missing_from_either_side_is_an_identity_finding(
     assert [f["finding_id"] for f in report["findings"]] == ["X-002:identity"]
     assert report["findings"][0]["canonical"] == "present"
     assert report["findings"][0]["legacy"] == "absent"
+
+
+def test_a_legacy_only_capability_is_an_identity_finding(tmp_path: Path, monkeypatch) -> None:
+    mod = _fixture(
+        tmp_path,
+        monkeypatch,
+        [{"id": "X-001", "maturity": 2}],
+        [{"id": "X-001", "maturity": 2}, {"id": "X-003", "maturity": 1}],
+    )
+    report = json.loads(mod.build()["shadow_reconciliation_report.json"])
+    assert [f["finding_id"] for f in report["findings"]] == ["X-003:identity"]
+    assert report["findings"][0]["canonical"] == "absent"
+    assert report["findings"][0]["legacy"] == "present"
+
+
+def test_a_policy_with_duplicate_fields_is_refused(tmp_path: Path, monkeypatch) -> None:
+    mod = _fixture(
+        tmp_path,
+        monkeypatch,
+        [],
+        [],
+        policy=_policy(compare=["id", "maturity", "maturity"]),
+    )
+    with pytest.raises(ValueError, match="duplicate fields"):
+        mod.build()
+    mod = _fixture(
+        tmp_path,
+        monkeypatch,
+        [],
+        [],
+        policy=_policy(exclude=["status", "status"]),
+    )
+    with pytest.raises(ValueError, match="duplicate fields"):
+        mod.build()
+
+
+def test_a_compared_field_without_declared_authority_is_refused(
+    tmp_path: Path, monkeypatch
+) -> None:
+    policy = _policy(compare=["id", "maturity", "owner"])
+    assert "owner" not in policy["field_authority"]
+    mod = _fixture(tmp_path, monkeypatch, [], [], policy=policy)
+    with pytest.raises(ValueError, match="lacks a declared authority"):
+        mod.build()
+
+
+def test_an_excluded_field_without_explicit_reason_is_refused(tmp_path: Path, monkeypatch) -> None:
+    policy = _policy(exclude=["status", "title"])
+    policy["field_authority"]["title"] = {}
+    mod = _fixture(tmp_path, monkeypatch, [], [], policy=policy)
+    with pytest.raises(ValueError, match="explicit reconciliation reason"):
+        mod.build()
 
 
 def test_the_report_witnesses_both_sides_and_never_nominates_a_resolution(

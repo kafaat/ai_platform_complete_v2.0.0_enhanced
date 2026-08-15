@@ -158,3 +158,21 @@ def test_generated_and_release_artifacts_are_not_repository_evidence() -> None:
     assert not any("/generated/" in f"/{path}/" for path in paths)
     assert not any(path.startswith("release/") for path in paths)
     assert not any(".generated." in Path(path).name.lower() for path in paths)
+
+
+def test_meta_governance_witness_files_are_not_capability_evidence() -> None:
+    """A witness must not affect what it witnesses.
+
+    Measured on PR #850: one mutation description in the guard mutation registry naming a
+    capability ID re-attributed ~40 event signals between two capabilities. Governance
+    registries and runbooks quote capability IDs by construction, so they are excluded
+    from evidence scanning as a class — not file by file.
+    """
+    spec = __import__("importlib.util").util.spec_from_file_location("capability_mapping", SCRIPT)
+    assert spec and spec.loader
+    module = __import__("importlib.util").util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    paths = {path.relative_to(ROOT).as_posix() for path in module.iter_files()}
+    assert not any(path.startswith("docs/architecture/") for path in paths)
+    assert not any(path.startswith("docs/runbooks/") for path in paths)
+    assert "docs/architecture/guard_mutation_registry.json" not in paths

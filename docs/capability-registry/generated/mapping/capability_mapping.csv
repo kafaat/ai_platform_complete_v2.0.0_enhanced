@@ -2,7 +2,7 @@ capability_id,domain,title,mapped,coverage_dimensions,backend,routes,database,ev
 DEC-001,decision,Decision evidence,True,2,0,0,0,3,0,0,2,0
 DEC-002,decision,Decision candidate,True,3,1,0,0,2,0,0,4,0
 DEC-003,decision,Human approval,True,1,2,0,0,0,0,0,0,0
-DEC-004,decision,Execution request,True,5,9,20,26,30,0,0,15,1
+DEC-004,decision,Execution request,True,5,9,20,24,30,0,0,15,1
 DEC-005,decision,Dispatch authorization,True,5,5,86,5,3,0,0,3,0
 DEC-006,decision,Execution receipt,True,3,2,0,0,8,0,0,3,0
 DEC-007,decision,Outcome recording,True,6,3,6,4,3,1,0,2,0
@@ -12,19 +12,19 @@ DEC-010,decision,Model lifecycle and activation,True,5,4,89,42,7,0,0,5,0
 FM-001,farm_management,Tenant and organization management,True,6,15,2,20,4,1,0,24,0
 FM-002,farm_management,Farm registry,True,7,34,44,98,22,14,2,25,0
 FM-003,farm_management,Field registry and boundaries,True,7,13,56,5,61,2,2,12,1
-FM-004,farm_management,Season lifecycle,True,7,30,82,84,54,12,1,34,0
+FM-004,farm_management,Season lifecycle,True,7,30,82,82,54,12,1,34,0
 FM-005,farm_management,Crop and cultivar catalog,True,5,6,0,0,7,3,1,5,0
 FM-006,farm_management,Farm economics,True,4,2,3,0,0,2,0,1,0
-FM-007,farm_management,Inventory and procurement,True,7,8,24,10,1,1,1,5,3
+FM-007,farm_management,Inventory and procurement,True,7,8,24,8,1,1,1,5,3
 FM-008,farm_management,ERP integration,True,5,10,24,5,1,0,0,7,0
 GIS-001,gis,Field geometry validation,True,2,0,0,1,0,1,0,0,0
 GIS-002,gis,Map layers,True,4,2,3,0,0,2,0,2,0
 GIS-003,gis,Terrain and DEM,True,6,22,100,10,51,12,0,36,0
 GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
-INT-002,farm_management,Event bus integration,True,5,6,15,2,66,0,0,8,0
+INT-002,farm_management,Event bus integration,True,5,6,15,2,65,0,0,8,0
 INT-003,irrigation,IoT and sensors,True,1,0,0,0,0,0,0,1,0
-INT-004,precision,External machinery integrations,True,5,4,9,8,53,0,0,3,0
+INT-004,precision,External machinery integrations,True,5,4,9,8,11,0,0,3,0
 IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
 IRR-002,irrigation,Water quality samples,True,4,2,6,8,1,0,0,0,0
 IRR-003,irrigation,Field water-source binding,True,3,1,0,4,0,0,0,1,0
@@ -50,7 +50,7 @@ PA-004,precision,As-applied data,True,4,1,0,18,2,0,0,1,0
 PA-005,precision,Machine telemetry,True,1,1,0,0,0,0,0,0,0
 SAT-001,satellite,Satellite scene search,True,6,36,65,3,32,5,0,42,0
 SAT-002,satellite,True color imagery,True,4,1,1,0,1,0,0,3,0
-SAT-003,satellite,NDVI,True,7,100,83,44,100,49,6,100,0
+SAT-003,satellite,NDVI,True,7,100,83,42,100,49,6,100,0
 SAT-004,satellite,NDMI,True,6,20,10,5,14,7,0,21,0
 SAT-005,satellite,Cloud screening,True,4,8,24,0,1,0,0,9,0
 SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
@@ -65,7 +65,7 @@ SEC-005,security,Audit logging,True,2,0,0,4,0,0,0,1,0
 SEC-006,security,Service token guard,True,4,2,7,0,1,0,0,8,0
 SEC-007,security,Decision SoR DB ownership,True,4,2,0,7,47,0,0,9,0
 SEC-008,security,Secrets and production fail-closed,True,2,0,0,0,1,0,0,6,0
-SOIL-001,soil,Soil profile,True,6,13,91,14,36,1,0,16,1
+SOIL-001,soil,Soil profile,True,6,13,91,14,35,1,0,16,1
 SOIL-002,soil,Soil sampling,True,6,14,35,9,6,5,0,11,0
 SOIL-003,soil,Laboratory results,True,2,1,0,15,0,0,0,0,0
 SOIL-004,soil,pH EC SOM nutrients,True,4,1,0,7,3,0,0,1,0
@@ -75,7 +75,7 @@ WX-002,weather,Weather forecast,True,6,22,51,8,55,9,0,21,0
 WX-003,weather,Weather history,True,4,4,6,4,0,0,0,4,0
 WX-004,weather,ET0,True,5,59,53,0,81,19,0,57,0
 WX-005,weather,VPD,True,5,8,29,0,6,2,0,6,0
-WX-006,weather,GDD,True,6,84,26,35,26,16,0,44,0
+WX-006,weather,GDD,True,6,84,26,33,26,16,0,44,0
 WX-007,weather,Frost and heat risk,True,1,1,0,0,0,0,0,0,0
 WX-008,weather,Operation windows,True,4,2,6,0,1,0,0,2,0
 WX-009,weather,Disease weather models,True,4,2,29,0,0,2,0,1,0

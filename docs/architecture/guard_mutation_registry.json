@@ -166,14 +166,14 @@
       ]
     },
     "scripts/ci/capability_mapping_engine.py": {
-      "test": "tests/architecture/test_capability_truth_preconditions.py",
-      "$gap_ar": "CAPABILITY-MAPPING-COMPANION-ARTIFACT-CHECK-INCOMPLETE-01",
+      "test": "tests/architecture/test_capability_mapping_engine.py",
+      "$gap_ar": "MAPPING-WITNESS-FEEDBACK-CONTAMINATION-01 — الشاهد يغيّر المشهود",
       "mutations": [
         {
-          "expect": "test_mapping_check_covers_csv_report_queues_and_manifest",
-          "find": "def check_outputs(data: dict) -> bool:\n    names = (\n        \"capability_mapping.json\",\n        \"capability_mapping.csv\",\n        \"unmapped_artifacts.json\",",
-          "replace": "def check_outputs(data: dict) -> bool:\n    names = (\n        \"capability_mapping.json\",\n        \"unmapped_artifacts.json\",  # mutated: CSV removed from closure",
-          "why": "إسقاط CSV من قائمة closure يعيد false green المقيس: إفساد الرفيق يمر بينما JSON الرئيسية سليمة."
+          "expect": "test_meta_governance_witness_files_are_not_capability_evidence",
+          "find": "        if (\n            len(rel.parts) >= 2\n            and rel.parts[0] == \"docs\"\n            and rel.parts[1]\n            in {\n                \"architecture\",\n                \"runbooks\",\n            }\n        ):\n            continue",
+          "replace": "        # mutated: witness files scanned as capability evidence",
+          "why": "نزعُ عزل الحوكمة الوصفيّة يعيد العطل المقيس على #850 حرفيّاً: نصُّ طفرةٍ يسمّي هويّة قدرة نقل ~40 إشارة أحداث من قدرة أمنيّة إليها — الشاهد يعدّل ما يشهده والخريطة تتلوّن بنصوص الحوكمة."
         }
       ]
     },
@@ -230,10 +230,16 @@
           "why": "القيمتان تُقرآن ثمّ يُطبَع صفر نتائج — شاهدٌ يرى ولا يشهد؛ التقرير الظلّيّ يصير ورقة خضراء دائمة ولا أحد يعلم أنّ INT-004 منحرفة على ثلاثة حقول."
         },
         {
-          "expect": "test_a_capability_missing_from_either_side_is_an_identity_finding",
+          "expect": "test_a_canonical_only_capability_is_an_identity_finding",
           "find": "    for cid in sorted(set(canonical) - set(legacy)):",
           "replace": "    for cid in []:  # mutated: canonical-only capabilities invisible",
           "why": "قدرةٌ في القانونيّ غائبة عن الإسقاط القديم تختفي من التقرير — انقسام الهويّة أخطر انحراف تُبنى المطابقة لكشفه، ويُبتلَع صامتاً."
+        },
+        {
+          "expect": "test_a_legacy_only_capability_is_an_identity_finding",
+          "find": "    for cid in sorted(set(legacy) - set(canonical)):",
+          "replace": "    for cid in []:  # mutated: legacy-only capabilities invisible",
+          "why": "الاتّجاه الثاني لانقسام الهويّة: قدرةٌ في الإسقاط القديم غائبة عن القانونيّ تختفي من الشاهد — والمراجعة أثبتت أنّ التغطية السابقة كانت تسمّي «either side» وتقيس اتّجاهاً واحداً."
         }
       ]
     }

@@ -307,6 +307,22 @@ def iter_files() -> Iterable[Path]:
         # subtree is already excluded below; this covers the hand-authored config beside it.)
         if len(rel.parts) >= 2 and rel.parts[0] == "docs" and rel.parts[1] == "capability-registry":
             continue
+        # Meta-governance registries and runbooks (mutation registry, consumption registry,
+        # decision records, guard catalogue) quote capability IDs and event tokens by
+        # construction — they are the witness layer documenting the system. Crediting them as
+        # implementation evidence lets governance prose move capability scores: measured on
+        # PR #850, one mutation description naming a capability ID re-attributed ~40 event
+        # signals between capabilities. A witness must not affect what it witnesses.
+        if (
+            len(rel.parts) >= 2
+            and rel.parts[0] == "docs"
+            and rel.parts[1]
+            in {
+                "architecture",
+                "runbooks",
+            }
+        ):
+            continue
         # Generated inventories, release metadata and capability outputs are derived artifacts,
         # not independent implementation evidence. Scanning them creates self-referential
         # mapping → maturity → benchmark/release cycles and inflates routes/events from SBOMs.

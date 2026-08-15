@@ -48,12 +48,29 @@ def comparison_plan() -> tuple[list[str], list[str], dict[str, Any]]:
         raise ValueError("policy compare_raw missing or empty")
     if not isinstance(exclude, list):
         raise ValueError("policy exclude_raw missing")
+    duplicates = sorted(
+        {f for f in compare if compare.count(f) > 1} | {f for f in exclude if exclude.count(f) > 1}
+    )
+    if duplicates:
+        # A duplicated field would emit two findings sharing one finding_id,
+        # breaking the stable-identity contract the ratchet phase anchors on.
+        raise ValueError(f"policy declares duplicate fields: {duplicates}")
     overlap = sorted(set(compare) & set(exclude))
     if overlap:
         raise ValueError(f"policy compares and excludes the same fields: {overlap}")
     if reconciliation.get("no_third_value_registry") is not True:
         raise ValueError("policy must forbid a third value registry")
-    return list(compare), list(exclude), policy.get("field_authority", {})
+    authority = policy.get("field_authority", {})
+    # The authority policy gives the comparison its meaning: a field compared without a
+    # declared authority and legacy role is a raw diff, not a governed reconciliation.
+    for field in compare:
+        spec = authority.get(field)
+        if not isinstance(spec, dict) or not spec.get("authority") or not spec.get("legacy_role"):
+            raise ValueError(f"compared field lacks a declared authority/legacy_role: {field}")
+    for field in exclude:
+        if not (authority.get(field) or {}).get("reconciliation"):
+            raise ValueError(f"excluded field lacks an explicit reconciliation reason: {field}")
+    return list(compare), list(exclude), authority
 
 
 def _by_id(registry: dict[str, Any], label: str) -> dict[str, dict[str, Any]]:
@@ -97,7 +114,7 @@ def build() -> dict[str, bytes]:
             canonical_value = canonical[cid].get(field)
             legacy_value = legacy[cid].get(field)
             if canonical_value != legacy_value:
-                spec = authority.get(field, {})
+                spec = authority[field]
                 findings.append(
                     {
                         "finding_id": f"{cid}:{field}",
@@ -106,21 +123,13 @@ def build() -> dict[str, bytes]:
                         "field": field,
                         "canonical": canonical_value,
                         "legacy": legacy_value,
-                        "authority": spec.get("authority", "undeclared"),
-                        "legacy_role": spec.get("legacy_role", "undeclared"),
+                        "authority": spec["authority"],
+                        "legacy_role": spec["legacy_role"],
                     }
                 )
     findings.sort(key=lambda f: f["finding_id"])
 
-    excluded = [
-        {
-            "field": field,
-            "reason": authority.get(field, {}).get(
-                "reconciliation", "excluded_until_structured_normalization"
-            ),
-        }
-        for field in exclude
-    ]
+    excluded = [{"field": field, "reason": authority[field]["reconciliation"]} for field in exclude]
     report = {
         "schema": SCHEMA,
         "mode": "shadow-report-only",
@@ -174,12 +183,17 @@ def build() -> dict[str, bytes]:
                 f"| {f.get('authority', '—')} |"
             )
         lines.append("")
-    return {
+    outputs = {
         "shadow_reconciliation_report.json": (
             json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
         ).encode(),
         "SHADOW_RECONCILIATION_REPORT.md": ("\n".join(lines)).encode(),
     }
+    if set(outputs) != set(FILES):
+        # FILES is the single name registry write()/check() trust; a divergent build
+        # would silently produce artifacts the staleness gate never inspects.
+        raise ValueError("build outputs diverge from the FILES contract")
+    return outputs
 
 
 def write(outputs: dict[str, bytes]) -> None:
