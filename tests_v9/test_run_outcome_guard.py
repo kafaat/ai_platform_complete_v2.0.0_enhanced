@@ -331,3 +331,23 @@ def test_post_run_verifier_has_no_oidc_minting_permission() -> None:
     assert "id-token" not in (workflow.get("permissions") or {}), (
         "OIDC في سياقٍ لاحقٍ يستنسخ شيفرةً خارجيّة هو أخطرُ ما يُمنَح بلا حاجة"
     )
+
+
+# ── عقود P0: الجرد يُرفَض مكرَّراً، والوثيقة تحمل مستودعها ────────────────────
+
+
+def test_a_duplicate_job_name_is_refused_as_inventory_corruption() -> None:
+    """قاموسٌ يبتلع الاسم المكرَّر صامتاً يجعل «كلّ مطلوبةٍ حاضرة مرّةً واحدة»
+    غير قابلٍ للقياس أصلاً — فيُرفَض الجرد كلُّه لا آخرُ قيمةٍ فيه."""
+    with pytest.raises(SystemExit, match="مكرَّر"):
+        _build(
+            _run(conclusion="success"),
+            _jobs(("Unit Tests", "success"), ("Unit Tests", "failure")),
+        )
+
+
+def test_the_outcome_document_names_its_repository() -> None:
+    """إغلاقُ هويّة التشغيل يطابق الـtuple الكاملة — وحقلٌ غائب يطابق فراغاً بفراغ."""
+    outcome = _build(_run(conclusion="success"), _jobs(("Unit Tests", "success")))
+
+    assert outcome["repository"] == REPO

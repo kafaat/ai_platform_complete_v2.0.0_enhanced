@@ -34,6 +34,15 @@ REASONS = {
     "EXECUTION_JOBS_UNDECLARED",
     "EXECUTION_JOB_NOT_SUCCESSFUL",
     "EXECUTION_OUTCOME_NOT_ENFORCED",
+    # عقد الوظائف المطلوبة: required ⊆ observed، وكلّ مطلوبةٍ حاضرة ناجحة.
+    "REQUIRED_JOBS_CONTRACT_INVALID",
+    "EXECUTION_REQUIRED_JOB_MISSING",
+    "EXECUTION_REQUIRED_JOB_NOT_SUCCESSFUL",
+    # إغلاق هويّة التشغيل على الـtuple الكاملة بين هويّة الدليل وخلاصة التشغيل.
+    "PRODUCER_IDENTITY_MISSING",
+    "RUN_IDENTITY_MISMATCH",
+    # عقد المصنوعة: exactly-one باسمٍ مشتقٍّ من head_sha مع artifact_id + digest.
+    "ARTIFACT_CONTRACT_INVALID",
 }
 
 
@@ -267,6 +276,109 @@ def release_bound(manifest: dict, policy: dict, source_ref: str) -> bool:
 # مستورَد: السكربتان مستقلّان ولا يستورد أحدهما الآخر — ويحرس التطابقَ اختبارُ عقدٍ
 # يقرأ الاثنين، فلا يبيت النصّان متباعدَين.
 EXECUTION_OUTCOME_SCHEMA = "sahool.execution-outcome/v1"
+REQUIRED_JOBS_SCHEMA = "sahool.execution-required-jobs/v1"
+ARTIFACT_CONTRACT_SCHEMA = "sahool.certify-artifact-contract/v1"
+
+
+def load_required_jobs_contract(path: Path) -> dict:
+    """عقد الوظائف المطلوبة — ملفٌّ versioned يُتحقَّق شكلُه قبل أن يُقاس به.
+
+    عقدٌ لا يُقرأ أو مكرَّرُ الأسماء أو متداخلُ القائمتين ليس عقداً أضعف — هو
+    غيابُ عقد، والفشل مغلق: ``REQUIRED_JOBS_CONTRACT_INVALID`` لا حكمٌ جزئيّ.
+    """
+    try:
+        contract = load_json(path)
+    except (OSError, ValueError, json.JSONDecodeError):
+        raise RuntimeError("REQUIRED_JOBS_CONTRACT_INVALID") from None
+    if contract.get("schema") != REQUIRED_JOBS_SCHEMA:
+        raise RuntimeError("REQUIRED_JOBS_CONTRACT_INVALID")
+    require_nonempty_str(contract, "workflow_path", "REQUIRED_JOBS_CONTRACT_INVALID")
+    required = contract.get("required_jobs")
+    tolerated = contract.get("tolerated_jobs")
+    for names in (required, tolerated):
+        if not isinstance(names, list) or any(not isinstance(x, str) or not x for x in names):
+            raise RuntimeError("REQUIRED_JOBS_CONTRACT_INVALID")
+        if len(names) != len(set(names)):
+            raise RuntimeError("REQUIRED_JOBS_CONTRACT_INVALID")
+    if not required:
+        # قائمةُ مطلوبٍ فارغة تجعل `required ⊆ observed` صادقاً عن كلّ تشغيل —
+        # عقدٌ يرضى بكلّ شيء ليس عقداً.
+        raise RuntimeError("REQUIRED_JOBS_CONTRACT_INVALID")
+    if set(required) & set(tolerated):
+        # وظيفةٌ مطلوبةٌ ومُتسامَحٌ معها في آنٍ تناقضٌ داخليّ: المطلوب يُشترَط نجاحُه.
+        raise RuntimeError("REQUIRED_JOBS_CONTRACT_INVALID")
+    return contract
+
+
+def required_jobs_clean(outcome: dict, contract: dict) -> list[str]:
+    """``required ⊆ observed`` وكلّ مطلوبةٍ ناجحة — والحضورُ «مرّةً واحدة» يفرضه
+    المُنتِج برفض الأسماء المكرَّرة في الجرد قبل أن تبتلعها مفاتيحُ القاموس."""
+    if contract.get("workflow_path") != outcome.get("workflow_path"):
+        # عقدٌ عن workflow آخر لا يشهد لهذا التشغيل — ولا يُقرأ «لا قيد».
+        return ["REQUIRED_JOBS_CONTRACT_INVALID"]
+    jobs = outcome.get("job_conclusions")
+    jobs = jobs if isinstance(jobs, dict) else {}
+    reasons: set[str] = set()
+    for name in contract["required_jobs"]:
+        if name not in jobs:
+            reasons.add("EXECUTION_REQUIRED_JOB_MISSING")
+        elif jobs[name] != "success":
+            reasons.add("EXECUTION_REQUIRED_JOB_NOT_SUCCESSFUL")
+    return sorted(reasons)
+
+
+def run_identity_clean(outcome: dict, manifest: dict, policy: dict) -> list[str]:
+    """إغلاق هويّة التشغيل على الـtuple الكاملة — لا على SHA وحده.
+
+    الدليل يحمل هويّة مُنتِجه **داخل الموضوع الموقَّع** (``producer_identity`` في
+    البيان)، وخلاصةُ التشغيل تُقرأ من الواجهة بعد الاكتمال. والإغلاق يطابق:
+    repository · workflow_path · run_id · run_attempt · head_sha · source_ref ·
+    event بين الاثنين. فخلاصةُ تشغيلٍ آخر — ولو على الالتزام نفسه (إعادةُ تشغيل،
+    محاولةٌ ثانية) — لا تشهد لهذا الدليل.
+    """
+    producer = manifest.get("producer_identity")
+    if not isinstance(producer, dict):
+        return ["PRODUCER_IDENTITY_MISSING"]
+    tested = manifest.get("tested_identity")
+    tested = tested if isinstance(tested, dict) else {}
+    source = manifest.get("source_identity")
+    source = source if isinstance(source, dict) else {}
+    # `run_attempt` يصل من البيئة نصّاً ومن الواجهة عدداً — فيُطبَّع الطرفان نصّاً
+    # قبل المطابقة، والغائب يصير "None" فلا يطابق شيئاً حقيقيّاً: فشلٌ مغلق.
+    closures = (
+        str(producer.get("repository")) == str(policy.get("repository")),
+        str(outcome.get("repository")) == str(policy.get("repository")),
+        str(producer.get("workflow_path")) == str(outcome.get("workflow_path")),
+        str(producer.get("run_id")) == str(outcome.get("run_id")),
+        str(producer.get("run_attempt")) == str(outcome.get("run_attempt")),
+        str(producer.get("event")) == str(outcome.get("event")),
+        str(outcome.get("head_sha")) == str(tested.get("commit_sha")),
+        str(source.get("ref")) == f"refs/heads/{outcome.get('head_branch')}",
+    )
+    return [] if all(closures) else ["RUN_IDENTITY_MISMATCH"]
+
+
+def load_artifact_provenance(path: Path, tested_commit: str) -> dict:
+    """سجلُّ عقد المصنوعة كما أنتجه ``certify_artifact_contract.py`` — يُتحقَّق أنّه
+    عن **هذه** اللقطة وبحالة ``present`` قبل أن يُضمَّن في سجلّ الاعتماد."""
+    try:
+        doc = load_json(path)
+    except (OSError, ValueError, json.JSONDecodeError):
+        raise RuntimeError("ARTIFACT_CONTRACT_INVALID") from None
+    if doc.get("schema") != ARTIFACT_CONTRACT_SCHEMA:
+        raise RuntimeError("ARTIFACT_CONTRACT_INVALID")
+    if doc.get("status") != "present" or doc.get("head_sha") != tested_commit:
+        raise RuntimeError("ARTIFACT_CONTRACT_INVALID")
+    artifacts = doc.get("artifacts")
+    if not isinstance(artifacts, dict) or set(artifacts) != {"evidence", "attestation"}:
+        raise RuntimeError("ARTIFACT_CONTRACT_INVALID")
+    for entry in artifacts.values():
+        entry = require_mapping(entry, "ARTIFACT_CONTRACT_INVALID")
+        if not isinstance(entry.get("artifact_id"), int):
+            raise RuntimeError("ARTIFACT_CONTRACT_INVALID")
+        require_nonempty_str(entry, "name", "ARTIFACT_CONTRACT_INVALID")
+        require_nonempty_str(entry, "digest", "ARTIFACT_CONTRACT_INVALID")
+    return doc
 
 
 def outcome_unreadable(outcome: object) -> bool:
@@ -301,7 +413,9 @@ def outcome_unreadable(outcome: object) -> bool:
     return False
 
 
-def execution_clean(outcome: object, tested_commit: str) -> tuple[bool, str]:
+def execution_clean(
+    outcome: object, tested_commit: str, tolerated: frozenset[str] = frozenset()
+) -> tuple[bool, str]:
     """أنتجَ هذا الدليلَ تشغيلٌ **نجح**؟ — ``(نظيف، سببُ الرفض)``.
 
     **ولماذا وثيقةٌ منفصلة لا حقلٌ في البيان — تصحيحٌ لصياغتي الأولى:**
@@ -339,7 +453,10 @@ def execution_clean(outcome: object, tested_commit: str) -> tuple[bool, str]:
     jobs = outcome.get("job_conclusions")
     if not isinstance(jobs, dict) or not jobs:
         return False, "EXECUTION_JOBS_UNDECLARED"
-    if any(value != "success" for value in jobs.values()):
+    # `tolerated` من عقد الوظائف المطلوبة versioned لا من ثابتٍ مدفون: وظيفةٌ
+    # مُسمّاة فيه لا يُدان التشغيل بعدم نجاحها — والقائمة المشحونة فارغة، فالحقل
+    # يُقرأ فارغاً بوضوح بدل استثناءٍ صامت أوّلَ ما يُزعِج.
+    if any(value != "success" for name, value in jobs.items() if name not in tolerated):
         return False, "EXECUTION_JOB_NOT_SUCCESSFUL"
     if outcome.get("head_sha") != tested_commit:
         return False, "EXECUTION_OUTCOME_FOREIGN_COMMIT"
@@ -409,6 +526,20 @@ def main(argv=None) -> int:
             "انتهاء التشغيل؛ والاستدعاءُ **داخل** التشغيل لا يستطيعها فيُسجّل الدَّين."
         ),
     )
+    ap.add_argument(
+        "--required-jobs-contract",
+        help=(
+            "ملفُّ عقد الوظائف المطلوبة versioned (required ⊆ observed، وكلّ مطلوبةٍ "
+            "حاضرة مرّةً واحدة ناجحة). يُمرَّر في وظيفة الاعتماد حيث تُعرَف الوظائف."
+        ),
+    )
+    ap.add_argument(
+        "--artifact-provenance",
+        help=(
+            "سجلُّ عقد المصنوعة (exactly-one باسمٍ مشتقٍّ من head_sha، مع artifact_id "
+            "وdigest). يُتحقَّق أنّه عن اللقطة المشهود لها ثمّ يُضمَّن في سجلّ الاعتماد."
+        ),
+    )
     ap.add_argument("--output", required=True)
     ap.add_argument("--gh-bin")
     args = ap.parse_args(argv)
@@ -458,7 +589,27 @@ def main(argv=None) -> int:
                 outcome = load_json(Path(args.execution_outcome))
             except (OSError, ValueError, json.JSONDecodeError):
                 raise RuntimeError("EXECUTION_OUTCOME_UNREADABLE") from None
-        clean, execution_reason = execution_clean(outcome, tested["commit_sha"])
+        jobs_contract = None
+        if args.required_jobs_contract:
+            jobs_contract = load_required_jobs_contract(Path(args.required_jobs_contract))
+        tolerated = frozenset(jobs_contract["tolerated_jobs"]) if jobs_contract else frozenset()
+        _, execution_reason = execution_clean(outcome, tested["commit_sha"], tolerated)
+        # أسبابُ منع الارتقاء تُجمَع كلُّها لا أوّلُها: سجلٌّ يسمّي سبباً واحداً
+        # من ثلاثة يجعل القارئ يُصلِحه ويظنّ الطريق خَلَت.
+        promotion_reasons: list[str] = []
+        if execution_reason:
+            promotion_reasons.append(execution_reason)
+        if isinstance(outcome, dict) and not outcome_unreadable(outcome):
+            if jobs_contract is not None:
+                promotion_reasons += required_jobs_clean(outcome, jobs_contract)
+            # إغلاق الهويّة يُقاس متى وُجِدت خلاصةٌ مقروءة — عقد الوظائف اختياريٌّ
+            # بالراية، أمّا الهويّة فمن الوثيقتين نفسيهما فلا تُعطَّل براية.
+            promotion_reasons += run_identity_clean(outcome, manifest, policy)
+        artifact_provenance = None
+        if args.artifact_provenance:
+            artifact_provenance = load_artifact_provenance(
+                Path(args.artifact_provenance), tested["commit_sha"]
+            )
         # **ولماذا الشرط مربوطٌ بالسياسة لا مفروضاً اليوم:** خلاصةُ التشغيل لا تُعرَف
         # **من داخله** — وظيفةٌ تعمل الآن لا تستطيع أن تقول كيف انتهى تشغيلُها. فالبيان
         # المُولَّد داخل التشغيل لا يستطيع إعلانها بصدق، وفرضُها اليوم كان يُحمِّر `main`
@@ -468,12 +619,14 @@ def main(argv=None) -> int:
         require_execution = args.require_execution_outcome or bool(
             policy.get("require_execution_outcome")
         )
-        if release_bound(manifest, policy, source_ref) and (clean or not require_execution):
+        if release_bound(manifest, policy, source_ref) and (
+            not promotion_reasons or not require_execution
+        ):
             level = "L4"
-        if execution_reason:
-            # يُسجَّل **دائماً**، فارضاً كان أو غير فارض: سجلٌّ يقول L5 ولا يقول
+        if promotion_reasons:
+            # تُسجَّل **دائماً**، فارضاً كان أو غير فارض: سجلٌّ يقول L5 ولا يقول
             # «وخلاصةُ التشغيل لم تُعلَن» يُقرَأ اعتماداً وهو ليس منه.
-            record["reason_codes"].append(execution_reason)
+            record["reason_codes"].extend(promotion_reasons)
             if not require_execution:
                 record["reason_codes"].append("EXECUTION_OUTCOME_NOT_ENFORCED")
         if level == "L4" and evidence_passes():
@@ -500,6 +653,15 @@ def main(argv=None) -> int:
                 "tested_identity": tested,
                 "release_binding": manifest["release_binding"],
                 "verified_subjects": verified,
+                # هويّة المُنتِج وعقدا المصنوعة والوظائف يُكتَبون في السجلّ نفسه:
+                # `null` يقول بصدق «لم يُمرَّر» — وغيابُ الحقل كان سيقول لا شيء.
+                "producer_identity": manifest.get("producer_identity"),
+                "artifact_provenance": artifact_provenance,
+                "required_jobs_contract_sha256": (
+                    sha256(Path(args.required_jobs_contract))
+                    if args.required_jobs_contract
+                    else None
+                ),
             }
         )
     except RuntimeError as e:

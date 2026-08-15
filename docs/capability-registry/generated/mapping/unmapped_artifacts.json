@@ -6832,6 +6832,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_certify_artifact_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_pipeline_settings.py",
     "kind": "tests"
   },

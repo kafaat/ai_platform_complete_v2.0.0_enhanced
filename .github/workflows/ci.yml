@@ -1379,7 +1379,11 @@ jobs:
           else
             binding_args=(--binding-mode exact_commit --accepted-commit-sha "$tested_commit" --accepted-tree-sha "$tested_tree")
           fi
-          python scripts/ci/sot_evidence_manifest.py             --output live_pg_canonical_manifest.json             --file live_pg_evidence.json             --file live_pg_evidence.xml             --file live_pg_role_closure.json             --tested-commit "$tested_commit" --tested-tree "$tested_tree"             --source-ref "${GITHUB_REF}" "${binding_args[@]}"
+          # هويّة المُنتِج تُشتقّ من البيئة لا تُكتَب بيد: مسار الـworkflow يُقتَطع من
+          # `GITHUB_WORKFLOW_REF` (owner/repo/<path>@<ref>) فيتبع إعادة التسمية بصدق.
+          workflow_path="${GITHUB_WORKFLOW_REF#"${GITHUB_REPOSITORY}"/}"
+          workflow_path="${workflow_path%@*}"
+          python scripts/ci/sot_evidence_manifest.py             --output live_pg_canonical_manifest.json             --file live_pg_evidence.json             --file live_pg_evidence.xml             --file live_pg_role_closure.json             --tested-commit "$tested_commit" --tested-tree "$tested_tree"             --source-ref "${GITHUB_REF}"             --producer-repository "${GITHUB_REPOSITORY}"             --producer-workflow-path "${workflow_path}"             --producer-run-id "${GITHUB_RUN_ID}"             --producer-run-attempt "${GITHUB_RUN_ATTEMPT}"             --producer-event "${GITHUB_EVENT_NAME}" "${binding_args[@]}"
           sha256sum live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json             live_pg_canonical_manifest.json > live_pg_evidence.sha256
           cat live_pg_evidence.sha256
       # **محاولتان لا واحدة — والسبب مقيس لا مُفترَض.** أوّل تشغيل فعليّ لهذه الخطوة

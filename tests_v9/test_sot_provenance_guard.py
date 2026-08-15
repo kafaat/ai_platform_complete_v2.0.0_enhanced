@@ -468,6 +468,18 @@ def _builder_argv(tmp_path, subject, **extra):
         _T,
         "--source-ref",
         "refs/heads/main",
+        # هويّة المُنتِج إلزاميّة منذ إغلاق هويّة التشغيل — العيّنة تحمل هويّةً سليمة
+        # كي تبقى كلُّ حالةٍ حمراء حمراء **لسببها المُعلَن** لا لغياب الهويّة.
+        "--producer-repository",
+        "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "--producer-workflow-path",
+        ".github/workflows/ci.yml",
+        "--producer-run-id",
+        "31895353683",
+        "--producer-run-attempt",
+        "1",
+        "--producer-event",
+        "push",
     ]
     for key, value in extra.items():
         argv += [f"--{key.replace('_', '-')}", value]
@@ -784,4 +796,346 @@ def test_a_missing_outcome_is_recorded_even_while_unenforced():
     source = (ROOT / "scripts/ci/sot_provenance_guard.py").read_text(encoding="utf-8")
 
     assert '"EXECUTION_OUTCOME_NOT_ENFORCED"' in source
-    assert 'record["reason_codes"].append(execution_reason)' in source
+    assert 'record["reason_codes"].extend(promotion_reasons)' in source
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# عقود P0 لوظيفة الاعتماد: هويّة المُنتِج · الوظائف المطلوبة · إغلاق الهويّة
+# ══════════════════════════════════════════════════════════════════════════
+#
+# العطل المؤسِّس مقيس: `ci.yml` ترفع `live-pg-evidence-<sha>` وكانت وظيفة الاعتماد
+# تُنزِّل الاسم الثابت `live-pg-evidence` — فيفشل التنزيل في كلّ تشغيل ويُقرأ
+# «لا دليل»، فلا يُنتَج سجلُّ اعتمادٍ قطّ. وهذه العقود تُغلِق الصنف من أطرافه
+# الثلاثة: المصنوعة تُسمّى وتُسجَّل هويّتها، والوظائف المطلوبة تُقاس ضدّ ملفٍّ
+# versioned، وهويّة التشغيل تُغلَق على الـtuple الكاملة لا على SHA وحده.
+
+_RUN_ID = "31895353683"
+
+
+def _producer(**over) -> dict:
+    base = {
+        "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "workflow_path": ".github/workflows/ci.yml",
+        "run_id": _RUN_ID,
+        "run_attempt": "1",
+        "event": "push",
+    }
+    base.update(over)
+    return base
+
+
+def _identity_manifest(**over) -> dict:
+    base = {
+        "tested_identity": {"commit_sha": _TESTED, "tree_sha": "e" * 40},
+        "source_identity": {"ref": "refs/heads/main"},
+        "producer_identity": _producer(),
+    }
+    base.update(over)
+    return base
+
+
+def _closure_outcome(**over) -> dict:
+    base = _outcome(
+        repository="kafaat/ai_platform_complete_v2.0.0_enhanced",
+        workflow_path=".github/workflows/ci.yml",
+        run_id=_RUN_ID,
+        run_attempt=1,
+        event="push",
+        head_branch="main",
+    )
+    base.update(over)
+    return base
+
+
+def test_a_matching_full_tuple_closes_the_run_identity():
+    """البند الموجب: `run_attempt` نصٌّ في البيان وعددٌ في الواجهة — والتطبيع يقفلهما."""
+    assert MOD.run_identity_clean(_closure_outcome(), _identity_manifest(), _policy()) == []
+
+
+@pytest.mark.parametrize(
+    ("outcome_over", "producer_over"),
+    [
+        pytest.param({"run_id": "999"}, {}, id="another-run-id"),
+        pytest.param({"run_attempt": 2}, {}, id="another-attempt"),
+        pytest.param({"event": "workflow_dispatch"}, {}, id="another-event"),
+        pytest.param({"head_branch": "release"}, {}, id="another-branch"),
+        pytest.param({"workflow_path": ".github/workflows/other.yml"}, {}, id="another-workflow"),
+        pytest.param({"repository": "someone/else"}, {}, id="outcome-foreign-repo"),
+        pytest.param({}, {"repository": "someone/else"}, id="producer-foreign-repo"),
+    ],
+)
+def test_any_broken_tuple_member_breaks_the_closure(outcome_over, producer_over):
+    """خلاصةُ تشغيلٍ آخر — ولو على الالتزام نفسه (محاولةٌ ثانية) — لا تشهد لهذا الدليل."""
+    manifest = _identity_manifest(producer_identity=_producer(**producer_over))
+
+    verdict = MOD.run_identity_clean(_closure_outcome(**outcome_over), manifest, _policy())
+
+    assert verdict == ["RUN_IDENTITY_MISMATCH"]
+
+
+def test_a_manifest_without_a_producer_identity_cannot_close():
+    """بيانٌ قديم بلا هويّة مُنتِج لا يُقفَل صامتاً — يُسمّى الغياب باسمه."""
+    manifest = _identity_manifest()
+    manifest.pop("producer_identity")
+
+    assert MOD.run_identity_clean(_closure_outcome(), manifest, _policy()) == [
+        "PRODUCER_IDENTITY_MISSING"
+    ]
+
+
+def test_a_missing_outcome_repository_fails_the_closure_not_matches_nothing():
+    """حقلٌ غائب يُطبَّع "None" فلا يطابق مستودعاً حقيقيّاً — فشلٌ مغلق لا تخطٍّ."""
+    outcome = _closure_outcome()
+    outcome.pop("repository")
+
+    assert MOD.run_identity_clean(outcome, _identity_manifest(), _policy()) == [
+        "RUN_IDENTITY_MISMATCH"
+    ]
+
+
+# ── عقد الوظائف المطلوبة: required ⊆ observed، وكلّ مطلوبةٍ ناجحة ─────────────
+
+
+def _jobs_contract(**over) -> dict:
+    base = {
+        "schema": "sahool.execution-required-jobs/v1",
+        "version": 1,
+        "workflow_path": ".github/workflows/ci.yml",
+        "required_jobs": ["Live PG Proofs (fake-connection debt)", "Unit Tests"],
+        "tolerated_jobs": [],
+    }
+    base.update(over)
+    return base
+
+
+def _contract_file(tmp_path, doc) -> pathlib.Path:
+    p = tmp_path / "required_jobs.json"
+    p.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+    return p
+
+
+def test_a_valid_required_jobs_contract_loads(tmp_path):
+    contract = MOD.load_required_jobs_contract(_contract_file(tmp_path, _jobs_contract()))
+
+    assert contract["required_jobs"] == ["Live PG Proofs (fake-connection debt)", "Unit Tests"]
+
+
+@pytest.mark.parametrize(
+    "doc",
+    [
+        pytest.param(_jobs_contract(schema="something.else/v9"), id="foreign-schema"),
+        pytest.param(_jobs_contract(required_jobs=[]), id="empty-required-accepts-everything"),
+        pytest.param(_jobs_contract(required_jobs=["A", "A"]), id="duplicate-required"),
+        pytest.param(
+            _jobs_contract(required_jobs=["A"], tolerated_jobs=["A"]),
+            id="required-and-tolerated-contradiction",
+        ),
+        pytest.param(_jobs_contract(workflow_path=""), id="empty-workflow-path"),
+        pytest.param(_jobs_contract(tolerated_jobs="not-a-list"), id="tolerated-not-a-list"),
+    ],
+)
+def test_a_malformed_required_jobs_contract_is_refused_not_weakened(tmp_path, doc):
+    """عقدٌ فاسد غيابُ عقدٍ لا عقدٌ أضعف — والفشل مغلقٌ باسمه."""
+    with pytest.raises(RuntimeError, match="REQUIRED_JOBS_CONTRACT_INVALID"):
+        MOD.load_required_jobs_contract(_contract_file(tmp_path, doc))
+
+
+def test_an_unreadable_required_jobs_contract_is_refused(tmp_path):
+    p = tmp_path / "broken.json"
+    p.write_text("{not json", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="REQUIRED_JOBS_CONTRACT_INVALID"):
+        MOD.load_required_jobs_contract(p)
+
+
+def test_required_jobs_present_and_green_are_clean():
+    outcome = _closure_outcome(
+        job_conclusions={
+            "Live PG Proofs (fake-connection debt)": "success",
+            "Unit Tests": "success",
+            "Extra": "success",
+        }
+    )
+
+    assert MOD.required_jobs_clean(outcome, _jobs_contract()) == []
+
+
+def test_a_required_job_absent_from_the_inventory_is_named_missing():
+    """الثغرة التي لا يراها «كلّ الوظائف نجحت»: وظيفةٌ حُذِفت أو أُعيدت تسميتُها
+    تخرج من الجرد فيبقى التشغيل ناجحاً وقد فُقِد قياسُها."""
+    outcome = _closure_outcome(job_conclusions={"Unit Tests": "success"})
+
+    assert MOD.required_jobs_clean(outcome, _jobs_contract()) == ["EXECUTION_REQUIRED_JOB_MISSING"]
+
+
+def test_a_required_job_that_failed_is_named_not_successful():
+    outcome = _closure_outcome(
+        job_conclusions={
+            "Live PG Proofs (fake-connection debt)": "failure",
+            "Unit Tests": "success",
+        }
+    )
+
+    assert MOD.required_jobs_clean(outcome, _jobs_contract()) == [
+        "EXECUTION_REQUIRED_JOB_NOT_SUCCESSFUL"
+    ]
+
+
+def test_a_contract_about_another_workflow_does_not_vouch_for_this_run():
+    """عقدٌ عن workflow آخر لا يُقرأ «لا قيد» — يُرفَض باسمه."""
+    outcome = _closure_outcome(workflow_path=".github/workflows/other.yml")
+
+    assert MOD.required_jobs_clean(outcome, _jobs_contract()) == ["REQUIRED_JOBS_CONTRACT_INVALID"]
+
+
+def test_a_tolerated_job_is_genuinely_tolerated_and_only_when_named():
+    """الحقل يفعل ما يقوله: وظيفةٌ مُسمّاة لا تُدان — وغيرُ المُسمّاة تحجب كما كانت."""
+    outcome = _outcome(job_conclusions={"Unit Tests": "success", "Flaky": "failure"})
+
+    unnamed = MOD.execution_clean(outcome, _TESTED)
+    named = MOD.execution_clean(outcome, _TESTED, tolerated=frozenset({"Flaky"}))
+
+    assert unnamed == (False, "EXECUTION_JOB_NOT_SUCCESSFUL")
+    assert named == (True, "")
+
+
+def test_the_shipped_required_jobs_contract_is_valid_and_names_the_evidence_producer():
+    """الملفّ المشحون يجتاز مُحمِّله ويطلب منتِجَ الأدلّة الحيّة بالاسم المقيس."""
+    shipped = ROOT / "docs" / "architecture" / "execution_required_jobs_contract.json"
+
+    contract = MOD.load_required_jobs_contract(shipped)
+
+    assert contract["workflow_path"] == ".github/workflows/ci.yml"
+    assert "Live PG Proofs (fake-connection debt)" in contract["required_jobs"]
+    assert "Unit Tests" in contract["required_jobs"]
+    assert contract["tolerated_jobs"] == []
+
+
+# ── سجلّ عقد المصنوعة: يُتحقَّق أنّه عن هذه اللقطة قبل أن يُضمَّن ─────────────
+
+
+def _artifact_doc(**over) -> dict:
+    base = {
+        "schema": "sahool.certify-artifact-contract/v1",
+        "head_sha": _TESTED,
+        "status": "present",
+        "artifacts": {
+            "evidence": {
+                "name": f"live-pg-evidence-{_TESTED}",
+                "artifact_id": 40374289,
+                "digest": "sha256:" + "a" * 64,
+                "size_in_bytes": 12345,
+            },
+            "attestation": {
+                "name": f"live-pg-evidence-attestation-{_TESTED}",
+                "artifact_id": 40374290,
+                "digest": "sha256:" + "b" * 64,
+                "size_in_bytes": 6789,
+            },
+        },
+    }
+    base.update(over)
+    return base
+
+
+def test_a_valid_artifact_provenance_for_this_head_is_accepted(tmp_path):
+    p = tmp_path / "artifact_contract.json"
+    p.write_text(json.dumps(_artifact_doc()), encoding="utf-8")
+
+    doc = MOD.load_artifact_provenance(p, _TESTED)
+
+    assert doc["artifacts"]["evidence"]["artifact_id"] == 40374289
+
+
+@pytest.mark.parametrize(
+    "doc",
+    [
+        pytest.param(_artifact_doc(status="absent", artifacts=None), id="absent-is-not-a-subject"),
+        pytest.param(_artifact_doc(head_sha="0" * 40), id="another-heads-artifacts"),
+        pytest.param(_artifact_doc(schema="something.else/v9"), id="foreign-schema"),
+    ],
+)
+def test_an_artifact_provenance_that_is_not_this_subject_is_refused(tmp_path, doc):
+    p = tmp_path / "artifact_contract.json"
+    p.write_text(json.dumps(doc), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="ARTIFACT_CONTRACT_INVALID"):
+        MOD.load_artifact_provenance(p, _TESTED)
+
+
+def test_an_artifact_entry_without_an_identity_is_refused(tmp_path):
+    """بلا artifact_id/digest لا يستطيع مدقّقٌ لاحق تسمية البايتات المحكوم عليها."""
+    doc = _artifact_doc()
+    del doc["artifacts"]["evidence"]["digest"]
+    p = tmp_path / "artifact_contract.json"
+    p.write_text(json.dumps(doc), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="ARTIFACT_CONTRACT_INVALID"):
+        MOD.load_artifact_provenance(p, _TESTED)
+
+
+# ── الأداة المُنتِجة تحمل هويّتها، والـworkflow يشحنها من البيئة ──────────────
+
+
+def test_the_builder_embeds_the_producer_identity_it_was_given(tmp_path):
+    subject = tmp_path / "s.txt"
+    subject.write_bytes(b"x")
+    argv = _builder_argv(tmp_path, subject, binding_mode="exact_commit", accepted_commit_sha=_C)
+
+    assert BUILDER.main(argv) == 0
+    manifest = json.loads((tmp_path / "m.json").read_text(encoding="utf-8"))
+    assert manifest["producer_identity"] == {
+        "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+        "workflow_path": ".github/workflows/ci.yml",
+        "run_id": "31895353683",
+        "run_attempt": "1",
+        "event": "push",
+    }
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        pytest.param({"producer_run_id": "unset"}, id="unset-run-id"),
+        pytest.param({"producer_run_attempt": ""}, id="empty-attempt"),
+        pytest.param({"producer_repository": "no-slash"}, id="repo-without-owner"),
+        pytest.param({"producer_event": ""}, id="empty-event"),
+    ],
+)
+def test_the_builder_refuses_to_sign_an_empty_or_malformed_identity(tmp_path, extra):
+    """`GITHUB_RUN_ID` غير مضبوطة تصل "unset" — وتوقيعُ هويّةٍ فارغة يجعل الإغلاق
+    اللاحق يطابق فراغاً بفراغ."""
+    subject = tmp_path / "s.txt"
+    subject.write_bytes(b"x")
+    argv = _builder_argv(
+        tmp_path, subject, binding_mode="exact_commit", accepted_commit_sha=_C, **extra
+    )
+    with pytest.raises(SystemExit) as err:
+        BUILDER.main(argv)
+    assert "PRODUCER_IDENTITY_INVALID" in str(err.value)
+
+
+def test_the_certification_gate_wires_all_three_contracts():
+    """الأسلحة الثلاثة مشحونة في وظيفة الاعتماد: عقد المصنوعة، عقد الوظائف، والفرض."""
+    certify = (ROOT / ".github/workflows/certify-run.yml").read_text(encoding="utf-8")
+    executable = "\n".join(
+        line for line in certify.splitlines() if not line.lstrip().startswith("#")
+    )
+
+    assert "scripts/ci/certify_artifact_contract.py" in executable
+    assert "--required-jobs-contract" in executable
+    assert "--artifact-provenance" in executable
+    assert "gh run download" not in executable, (
+        "التنزيل بمعرّف المصنوعة المُسجَّل في العقد — لا بإعادة بحثٍ بالاسم"
+    )
+
+
+def test_the_ci_manifest_step_ships_the_producer_identity_from_the_environment():
+    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    executable = "\n".join(line for line in ci.splitlines() if not line.lstrip().startswith("#"))
+
+    for flag in (
+        "--producer-repository",
+        "--producer-workflow-path",
+        "--producer-run-id",
+        "--producer-run-attempt",
+        "--producer-event",
+    ):
+        assert flag in executable, f"هويّة المُنتِج ناقصة في خطوة البيان: {flag}"
