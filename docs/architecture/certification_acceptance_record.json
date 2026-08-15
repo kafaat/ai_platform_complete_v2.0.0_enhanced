@@ -1,0 +1,29 @@
+{
+  "schema": "sahool.certification-acceptance/v1",
+  "version": 1,
+  "accepted": {
+    "head_sha": "2d8fdb3f2e34b5ecd8cc9cafda4df4d0309fc1a3",
+    "tree_sha": "d7138dff67b1a6a8523be872c3a60c1f4fa10bc6",
+    "verdict": "VERIFIED",
+    "assurance_level": "L5",
+    "reason_codes": [],
+    "producer_run_id": "31905594023",
+    "producer_run_attempt": "1",
+    "certify_run_id": "31907504319",
+    "certification_record_artifact": {
+      "artifact_id": 9252747952,
+      "digest": "sha256:1005c4e6fae9969b21f94e1dccf877558d344ec562707e782cf5dced4d1b9e5e",
+      "size_in_bytes": 1555
+    },
+    "execution_outcome_artifact": {
+      "artifact_id": 9252747720,
+      "digest": "sha256:6cddbf7d63df8720704ce0676ecf961162ab1020a66e59f689a6097779813a3f",
+      "size_in_bytes": 833
+    },
+    "manifest_sha256": "893c386421ab66d940dccc0b25a2a315195ff8c183fb4baa6bed912e2f6d92e8",
+    "recorded_at": "2026-08-15T20:44:37Z"
+  },
+  "$why_ar": "مؤشّرٌ لا برهان: يشير إلى أوّل سجلّ اعتمادٍ حيّ أنتجته وظيفة ما بعد التشغيل (Certify Completed Run، التشغيل 31907504319) عن جولة main 31905594023 على اللقطة 2d8fdb3f — بحكم VERIFIED عند L5 وصفر أسباب منع. البرهانُ هو المصنوعة المسمّاة بهويّتها (artifact_id + digest) لا هذا الملفّ، ولا مُدقِّق ثانٍ هنا: من أراد الحكم أعاد قراءة السجلّ نفسه. والقبولُ قرارٌ عن لقطةٍ بعينها لا رخصةٌ جارية — لقطةٌ أحدث تحتاج سجلَّها وقبولَها.",
+  "$honesty_limit_ar": "لا يمنح production_certified ولا يرقّي نضجاً ولا يُدخِل أهليّة: حقلُ عرضٍ صادق في طبقة الحقيقة يقول «آخر سجلّ اعتمادٍ مقبول هو هذا». احتفاظُ GitHub بالمصنوعات 90 يوماً: انقضاؤه لا يُبطِل القبولَ المدوَّن لكنّه يُنهي قابليّة إعادة التنزيل — والبصمات هنا تبقى مرجعَ التطابق.",
+  "adjudicated_on": "2026-08-15"
+}

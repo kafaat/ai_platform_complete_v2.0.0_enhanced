@@ -16,9 +16,13 @@ OUT = ROOT / "runtime-verification/generated/runtime_certification_summary.json"
 REPORT = ROOT / "runtime-verification/generated/RUNTIME_CERTIFICATION_GATE.md"
 APPLY_LEDGER_DIR = ROOT / "runtime-verification/apply-ledger"
 FIELD_AUTHORITY_POLICY = ROOT / "docs/capability-registry/field_authority_policy.json"
+CERTIFICATION_ACCEPTANCE = ROOT / "docs/architecture/certification_acceptance_record.json"
+ACCEPTANCE_SCHEMA = "sahool.certification-acceptance/v1"
 AUTH_RECEIPT_TYPE = "attested-runtime-verification"
 EXECUTION_OUTCOME_SCHEMA = "sahool.execution-outcome/v1"
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
+HEX64 = re.compile(r"^[0-9a-f]{64}$")
+DIGEST64 = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
 def canonical(value: Any) -> str:
@@ -44,6 +48,51 @@ def load_authority_policy() -> dict[str, Any]:
     if promotion.get("execution_outcome_schema") != EXECUTION_OUTCOME_SCHEMA:
         raise ValueError("promotion policy execution outcome schema mismatch")
     return policy
+
+
+def load_certification_acceptance(path: Path = CERTIFICATION_ACCEPTANCE) -> dict[str, Any] | None:
+    """مرجعُ سجلّ الاعتماد المقبول — **مؤشّرٌ لا برهان، ولا مُدقِّق ثانٍ**.
+
+    يشير إلى سجلّ اعتمادٍ أنتجته وظيفة ما بعد التشغيل (certify-run) بهويّته
+    الكاملة (artifact_id + digest + run ids)، ولا يُعيد التحقّق منه: من أراد
+    الحكم أعاد قراءة السجلّ نفسه. غيابُ الملفّ غيابُ قبولٍ يُقرأ ``None``
+    صراحةً؛ وفسادُه أو نقصُ هويّته يكسر بصوت — ابتلاعُه كان يصنع قبولاً كاذباً
+    من ملفٍّ لا يُقرأ. ولا يمنح هذا المرجعُ ترقيةً ولا أهليّةً ولا
+    ``production_certified``: حقلُ عرضٍ صادق في طبقة الحقيقة لا حكم.
+    """
+    if not path.exists():
+        return None
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    if doc.get("schema") != ACCEPTANCE_SCHEMA:
+        raise ValueError("certification acceptance schema mismatch")
+    accepted = doc.get("accepted")
+    if not isinstance(accepted, dict):
+        raise ValueError("certification acceptance missing accepted block")
+    # الهويّة **كاملةً** تُتحقَّق ثم تُحمَل كما هي — لا subset يَعِد باسمها:
+    # مراجعةٌ آليّة أصابت في أنّ محمّلاً يُسقِط حقولاً موجودة يجعل الملخّص لا
+    # يحمل «المرجع كما هو»، ويسمح لملفٍّ ناقص الهويّة بالمرور رغم وعد الكسر بصوت.
+    for key in ("verdict", "assurance_level", "producer_run_id", "certify_run_id", "recorded_at"):
+        value = accepted.get(key)
+        if not isinstance(value, str) or not value:
+            raise ValueError(f"certification acceptance field invalid: {key}")
+    for key in ("head_sha", "tree_sha"):
+        if not SHA40.fullmatch(str(accepted.get(key) or "")):
+            raise ValueError(f"certification acceptance {key} malformed")
+    if not str(accepted.get("producer_run_attempt") or "").isdigit():
+        raise ValueError("certification acceptance producer_run_attempt malformed")
+    if not HEX64.fullmatch(str(accepted.get("manifest_sha256") or "")):
+        raise ValueError("certification acceptance manifest_sha256 malformed")
+    if not isinstance(accepted.get("reason_codes"), list):
+        raise ValueError("certification acceptance reason_codes malformed")
+    # البصمات بصيغة المستودع الصارمة (`sha256:` + 64 hex) لا «غير فارغة» —
+    # بصمةٌ مُضلِّلة الشكل مرجعٌ لا يقود إلى شيء.
+    for role in ("certification_record_artifact", "execution_outcome_artifact"):
+        artifact = accepted.get(role)
+        if not isinstance(artifact, dict) or not isinstance(artifact.get("artifact_id"), int):
+            raise ValueError(f"certification acceptance {role} identity invalid")
+        if not DIGEST64.fullmatch(str(artifact.get("digest") or "")):
+            raise ValueError(f"certification acceptance {role} digest malformed")
+    return dict(accepted)
 
 
 def governed_receipts(cap: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
@@ -218,6 +267,10 @@ def build() -> tuple[dict[str, Any], str]:
         "promotion_preconditions_satisfied_capabilities": sorted(
             c["id"] for c in capabilities if c["promotion_preconditions_satisfied"]
         ),
+        # مرجعُ ضمان الإصدار: يُحمَل كما هو ولا يدخل في أيّ حكمٍ أعلاه — لا في
+        # `gate_passed` ولا في المخالفات ولا في شروط الترقية. `null` يقول بصدق
+        # «لا قبول مدوَّناً» بدل أن يقوله غيابُ الحقل صمتاً.
+        "certification_acceptance": load_certification_acceptance(),
     }
     lines = [
         "# SAHOOL Runtime Certification Gate",
@@ -231,6 +284,14 @@ def build() -> tuple[dict[str, Any], str]:
         f"- Capability claim violations: **{len(capability_claim_violations)}**",
         f"- Promotion preconditions satisfied: **{len(summary['promotion_preconditions_satisfied_capabilities'])}** (L5 alone is never sufficient — execution outcome and subject/SHA binding are required)",
         f"- Gate passed: **{str(summary['gate_passed']).lower()}**",
+        (
+            "- Release assurance reference: **"
+            + (
+                f"{summary['certification_acceptance']['verdict']} @ {summary['certification_acceptance']['assurance_level']} for {summary['certification_acceptance']['head_sha'][:12]}**"
+                if summary["certification_acceptance"]
+                else "none recorded** (pointer, never a judgement)"
+            )
+        ),
         "",
     ]
     return summary, "\n".join(lines)

@@ -6320,3 +6320,22 @@ REQUEST_CHANGES بثمان نقاط، نُفّذت كلّها بالقياس:
   السلسلة والحزمة أخيراً).
 - **ما بعد الدمج:** إثباتُ أنّ `certification-record` يُنتَج فعلاً ويربط
   artifact/run/outcome نفسها إلى L4 fail-closed — يُقاس على أوّل جولة main.
+
+
+## 2026-08-15 (م) — الإثبات الحيّ: certification-record وُلد بحكم VERIFIED/L5
+
+سلسلة المالك أُغلقت حلقةً حلقةً على main `2d8fdb3f` بلا قفزة استدلالية:
+جولة `31905594023` 15/15 success ⇒ المُنتِج رفع الثلاثيّة بأسماء مشتقّة
+exactly-one ⇒ certify-run `31907504319`: العقد present بالمعرّفين
+9252248138/9252248290 ⇒ تنزيل بالمعرّف ⇒ تحقّق تشفيريّ 4/4 ⇒ إغلاق الهويّة
+على الـtuple (run_id 31905594023 · attempt 1 · push · ci.yml · repo · sha ·
+main) ⇒ عقد الوظائف (بصمته 28076fe7…) ⇒ `VERIFIED` عند `L5` بصفر أسباب.
+- المصنوعتان: certification-record (9252747952، 1555B، sha256:1005c4e6…)
+  وexecution-outcome (9252747720، 833B، sha256:6cddbf7d…).
+- تقاطعٌ مستقلّ: `manifest_sha256` في السجلّ == subject البيان في attestation
+  الذي فكّه المالك بنفسه (893c3864…).
+- عيّنة التمييز الحيّة: حزمة الفرع `31905615527` على الالتزام نفسه — subjects
+  مختلفة (producer_identity في البايتات الموقَّعة) وسقف L3 بالمرجع؛ صنّفها
+  المالك VALID BRANCH-ORIGIN / NOT THE RELEASE-CERTIFICATION SUBJECT.
+- ترقيات المالك المسجَّلة: mutation-testing إلى PASS كامل؛ الطبقة A PASS؛
+  والطبقة B الآن **live-proven**. production_certified يبقى false بقراره.

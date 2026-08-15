@@ -29,6 +29,7 @@
   "decided": [
     "SERVICE_REGISTRY_HARDENING_CONTRACT.json",
     "capability_core_consumption_registry.json",
+    "certification_acceptance_record.json",
     "claim_base_registry.json",
     "decision_outcome_learning_bridge_allowlist.json",
     "deferred_import_declaration_contract.json",

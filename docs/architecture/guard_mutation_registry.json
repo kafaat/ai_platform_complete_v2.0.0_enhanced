@@ -43,6 +43,13 @@
           "find": "        and execution_outcome\n        and subject_sha_binding\n    )",
           "replace": "    )  # mutated: promotion preconditions dropped from eligibility",
           "why": "الأهليّة تعود إلى «تسع بوّابات + L5» — وهو التعريف القديم الذي جعل L5 كافياً وحده؛ القدرة المستوفية شكليّاً تُعلَن مؤهَّلة بلا مخرَج تنفيذيّ ولا رباط."
+        },
+        {
+          "expect": "test_the_capability_certification_gate_surfaces_the_same_reference_without_granting",
+          "find": "        \"release_assurance_reference\": load_release_assurance_reference(),",
+          "replace": "        \"release_assurance_reference\": None,  # mutated: المستهلك الثاني أعمى",
+          "why": "بوّابة الاعتماد هي قارئ المرجع الطبيعيّ الثاني؛ إسقاطُه منها يترك مستهلكي مصفوفة الاعتماد بلا خيطٍ إلى الدليل الحيّ — والعرض الصادق نصفُ العقد.",
+          "test": "tests/architecture/test_runtime_certification_gate.py"
         }
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
@@ -169,6 +176,27 @@
           "find": "        bound = bool(SHA40.fullmatch(target)) and ledger.get(\"applied_to_head\") == target",
           "replace": "        bound = bool(SHA40.fullmatch(target))  # mutated: applied-head equality dropped from subject binding",
           "why": "شكل SHA يكفي والرباط الفعليّ بين ما اختُبر وما طُبِّق يسقط — دفترٌ طُبِّق على رأسٍ غير المُختبَر يمرّ مربوطاً."
+        },
+        {
+          "expect": "test_a_corrupt_acceptance_file_breaks_loudly_not_swallowed",
+          "find": "    if doc.get(\"schema\") != ACCEPTANCE_SCHEMA:\n        raise ValueError(\"certification acceptance schema mismatch\")",
+          "replace": "    if False:  # mutated: أيّ ملفٍّ يمرّ قبولاً\n        raise ValueError(\"certification acceptance schema mismatch\")",
+          "why": "مؤشّر القبول يدخل ملخّصَ السلطة الذي يقرؤه مستهلكون لاحقون؛ ابتلاعُ عقدٍ غريب الشكل يجعل «آخر سجلّ اعتماد مقبول» يُروى من ملفٍّ لم يُكتَب لهذا العقد — قبولٌ كاذبٌ هادئ.",
+          "test": "tests/architecture/test_runtime_certification_gate.py"
+        },
+        {
+          "expect": "test_the_summary_carries_the_acceptance_and_never_judges_with_it",
+          "find": "        \"certification_acceptance\": load_certification_acceptance(),",
+          "replace": "        \"certification_acceptance\": None,  # mutated: المرجع لا يُحمَل",
+          "why": "الاستهلاك هو الشريحة كلّها: ملخّصٌ لا يحمل المرجع يعيد سجلَّ الاعتماد إلى العزلة التي بُني ليخرج منها — مصنوعةٌ تُنتَج ولا يقرؤها أحد.",
+          "test": "tests/architecture/test_runtime_certification_gate.py"
+        },
+        {
+          "expect": "test_a_malformed_digest_is_refused_not_carried_as_a_misleading_reference",
+          "find": "        if not DIGEST64.fullmatch(str(artifact.get(\"digest\") or \"\")):\n            raise ValueError(f\"certification acceptance {role} digest malformed\")",
+          "replace": "        if False:  # mutated: بصمةٌ بأيّ شكلٍ تُحمَل مرجعاً\n            raise ValueError(f\"certification acceptance {role} digest malformed\")",
+          "why": "المرجع يقود مدقّقاً لاحقاً إلى بايتات بعينها؛ بصمةٌ مُضلِّلة الشكل تدخل ملخّصَ السلطة تجعل «أعد قراءة السجلّ نفسه» طريقاً إلى لا شيء — والصرامة هنا صيغة المستودع الواحدة لا اجتهاداً محلّيّاً.",
+          "test": "tests/architecture/test_runtime_certification_gate.py"
         }
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
