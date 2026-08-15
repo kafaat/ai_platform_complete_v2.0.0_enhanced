@@ -217,7 +217,15 @@ def check(outputs: dict[str, bytes]) -> list[str]:
             errors.append(f"stale:{name}")
     expected = {name: hashlib.sha256(data).hexdigest() for name, data in sorted(outputs.items())}
     mp = OUT / "reconciliation_manifest.json"
-    if not mp.exists() or load_json(mp) != expected:
+    try:
+        manifest = load_json(mp)
+    except (OSError, json.JSONDecodeError):
+        # A missing, unreadable or syntactically broken manifest is not a crash case:
+        # this check asks "does the committed artifact equal a fresh build?", and a
+        # corrupt manifest answers "no" — stale, with --generate as the stated remedy.
+        # (Different from swallowing a corrupt INPUT, which would fabricate a green.)
+        manifest = None
+    if manifest != expected:
         errors.append("stale:reconciliation_manifest.json")
     return errors
 

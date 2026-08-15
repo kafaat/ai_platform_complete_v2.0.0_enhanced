@@ -226,3 +226,20 @@ def test_findings_never_fail_the_run_but_a_stale_report_does(tmp_path: Path, mon
     )
     stale = mod.check(mod.build())
     assert any(e.startswith("stale:") for e in stale)
+
+
+def test_a_corrupt_manifest_is_reported_stale_not_a_crash(tmp_path: Path, monkeypatch) -> None:
+    mod = _fixture(
+        tmp_path,
+        monkeypatch,
+        [{"id": "X-001", "maturity": 2}],
+        [{"id": "X-001", "maturity": 2}],
+    )
+    outputs = mod.build()
+    mod.write(outputs)
+    assert mod.check(outputs) == []
+    (tmp_path / "reconciliation" / "reconciliation_manifest.json").write_text(
+        '{"truncated', encoding="utf-8"
+    )
+    stale = mod.check(outputs)
+    assert "stale:reconciliation_manifest.json" in stale
