@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Shadow reconciliation between the canonical registry and the legacy projection.
 
-Report-only by design: a finding never blocks anything. The only thing that blocks
-is staleness — the committed report must equal a regeneration from current inputs.
+Known findings are report-only by design. New drift or a stale debt baseline blocks,
+as does report staleness; current legacy debt itself does not fail the run.
 The comparison plan (which fields compare raw, which are excluded and why) comes
 from the field authority policy, never from this script: the report is a witness
 of disagreement, not a third value source.
@@ -21,6 +21,10 @@ ROOT = Path(__file__).resolve().parents[2]
 CANONICAL = ROOT / "docs/capability-registry/generated/capability_registry.json"
 LEGACY = ROOT / "capabilities/registry/capabilities.json"
 FIELD_AUTHORITY_POLICY = ROOT / "docs/capability-registry/field_authority_policy.json"
+EVIDENCE_MATURITY = (
+    ROOT / "docs/capability-registry/generated/evidence/capability_maturity_baseline.json"
+)
+RATCHET_BASELINE = ROOT / "docs/capability-registry/reconciliation_drift_baseline.json"
 OUT = ROOT / "docs/capability-registry/generated/reconciliation"
 SCHEMA = "sahool.capability-shadow-reconciliation/v1"
 
@@ -83,6 +87,87 @@ def _by_id(registry: dict[str, Any], label: str) -> dict[str, dict[str, Any]]:
     return result
 
 
+def _evidence_maturity_findings() -> list[dict[str, Any]]:
+    doc = load_json(EVIDENCE_MATURITY)
+    rows = doc.get("capabilities")
+    if not isinstance(rows, list):
+        raise ValueError("evidence maturity baseline has no capabilities list")
+    findings = []
+    for row in rows:
+        if not isinstance(row, dict) or not row.get("capability_id"):
+            raise ValueError("evidence maturity baseline has malformed capability row")
+        alignment = row.get("maturity_alignment")
+        if alignment == "aligned":
+            continue
+        if alignment not in {"declared_above_evidence", "evidence_above_declared"}:
+            raise ValueError(f"unknown maturity alignment: {alignment}")
+        cid = str(row["capability_id"])
+        findings.append(
+            {
+                "finding_id": f"{cid}:{alignment}",
+                "ratchet_identity": f"{cid}:{alignment}:evidence-maturity",
+                "kind": alignment,
+                "capability_id": cid,
+                "declared_maturity": row.get("declared_maturity"),
+                "assessed_maturity": row.get("assessed_maturity"),
+            }
+        )
+    return sorted(findings, key=lambda f: f["ratchet_identity"])
+
+
+def _ratchet_baseline() -> dict[str, set[str]]:
+    doc = load_json(RATCHET_BASELINE)
+    if doc.get("schema") != "sahool.capability-drift-ratchet-baseline/v1":
+        raise ValueError("reconciliation drift baseline schema mismatch")
+    classes = doc.get("classes")
+    if not isinstance(classes, dict):
+        raise ValueError("reconciliation drift baseline has no classes")
+    expected = {"registry_reconciliation", "evidence_maturity"}
+    if set(classes) != expected:
+        raise ValueError("reconciliation drift baseline class set mismatch")
+    out: dict[str, set[str]] = {}
+    for name in sorted(expected):
+        identities = classes[name].get("identities") if isinstance(classes[name], dict) else None
+        if not isinstance(identities, list) or any(
+            not isinstance(x, str) or not x for x in identities
+        ):
+            raise ValueError(f"invalid baseline identities for {name}")
+        if len(identities) != len(set(identities)):
+            raise ValueError(f"duplicate baseline identities for {name}")
+        out[name] = set(identities)
+    return out
+
+
+def _ratchet_state(
+    registry_findings: list[dict[str, Any]], evidence_findings: list[dict[str, Any]]
+) -> dict[str, Any]:
+    observed = {
+        "registry_reconciliation": {
+            f"{f['capability_id']}:{f.get('field', 'identity')}:registry-reconciliation"
+            for f in registry_findings
+        },
+        "evidence_maturity": {f["ratchet_identity"] for f in evidence_findings},
+    }
+    baseline = _ratchet_baseline()
+    classes = {}
+    for name in sorted(observed):
+        new = sorted(observed[name] - baseline[name])
+        stale = sorted(baseline[name] - observed[name])
+        classes[name] = {
+            "observed_count": len(observed[name]),
+            "baseline_count": len(baseline[name]),
+            "new": new,
+            "stale": stale,
+        }
+    blocked = any(v["new"] or v["stale"] for v in classes.values())
+    return {
+        "mode": "identity-exact-ratchet",
+        "baseline_source": str(RATCHET_BASELINE.relative_to(ROOT)),
+        "decision": "BLOCK" if blocked else "PASS",
+        "classes": classes,
+    }
+
+
 def build() -> dict[str, bytes]:
     compare, exclude, authority = comparison_plan()
     canonical = _by_id(load_json(CANONICAL), "canonical")
@@ -93,6 +178,7 @@ def build() -> dict[str, bytes]:
         findings.append(
             {
                 "finding_id": f"{cid}:identity",
+                "ratchet_identity": f"{cid}:identity:registry-reconciliation",
                 "kind": "identity",
                 "capability_id": cid,
                 "canonical": "present",
@@ -103,6 +189,7 @@ def build() -> dict[str, bytes]:
         findings.append(
             {
                 "finding_id": f"{cid}:identity",
+                "ratchet_identity": f"{cid}:identity:registry-reconciliation",
                 "kind": "identity",
                 "capability_id": cid,
                 "canonical": "absent",
@@ -118,6 +205,7 @@ def build() -> dict[str, bytes]:
                 findings.append(
                     {
                         "finding_id": f"{cid}:{field}",
+                        "ratchet_identity": f"{cid}:{field}:registry-reconciliation",
                         "kind": "field_drift",
                         "capability_id": cid,
                         "field": field,
@@ -130,6 +218,8 @@ def build() -> dict[str, bytes]:
     findings.sort(key=lambda f: f["finding_id"])
 
     excluded = [{"field": field, "reason": authority[field]["reconciliation"]} for field in exclude]
+    evidence_findings = _evidence_maturity_findings()
+    ratchet = _ratchet_state(findings, evidence_findings)
     report = {
         "schema": SCHEMA,
         "mode": "shadow-report-only",
@@ -148,6 +238,8 @@ def build() -> dict[str, bytes]:
             "findings_total": len(findings),
         },
         "findings": findings,
+        "evidence_maturity_findings": evidence_findings,
+        "ratchet": ratchet,
         "$honesty_ar": (
             "التقرير يشهد الاختلاف ولا يُحكِّم: السلطة لكلّ حقل تقولها السياسة، "
             "ولا قيمة ثالثة تُنشأ هنا. ظلّيّ بالتصميم — النتيجة لا تحجب، "
@@ -168,6 +260,8 @@ def build() -> dict[str, bytes]:
         f" · field drift {report['summary']['field_drift_findings']})",
         f"- Fields compared raw: {', '.join(compare)}",
         f"- Fields excluded (no raw normalization yet): {', '.join(exclude)}",
+        f"- Evidence-maturity debt identities: **{len(evidence_findings)}**",
+        f"- Identity ratchet: **{ratchet['decision']}**",
         "",
     ]
     if findings:
@@ -227,6 +321,10 @@ def check(outputs: dict[str, bytes]) -> list[str]:
         manifest = None
     if manifest != expected:
         errors.append("stale:reconciliation_manifest.json")
+    report = json.loads(outputs["shadow_reconciliation_report.json"])
+    for name, state in report["ratchet"]["classes"].items():
+        errors.extend(f"new-drift:{name}:{x}" for x in state["new"])
+        errors.extend(f"stale-baseline:{name}:{x}" for x in state["stale"])
     return errors
 
 
@@ -262,7 +360,7 @@ def main() -> int:
         return 1
     print(
         "shadow_reconciliation_ok "
-        f"findings={summary['findings_total']} mode=shadow-report-only (findings never block)"
+        f"findings={summary['findings_total']} mode=shadow-report-only ratchet=PASS"
     )
     return 0
 

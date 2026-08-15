@@ -52,13 +52,63 @@ def _fixture(tmp_path: Path, monkeypatch, canonical_caps, legacy_caps, policy=No
     policy_path = tmp_path / "policy.json"
     canonical.write_text(json.dumps({"capabilities": canonical_caps}), encoding="utf-8")
     legacy.write_text(json.dumps({"capabilities": legacy_caps}), encoding="utf-8")
-    policy_path.write_text(
-        json.dumps(policy if policy is not None else _policy()), encoding="utf-8"
+    selected_policy = policy if policy is not None else _policy()
+    policy_path.write_text(json.dumps(selected_policy), encoding="utf-8")
+    evidence_path = tmp_path / "maturity.json"
+    all_ids = sorted(
+        {
+            str(x.get("id"))
+            for x in canonical_caps + legacy_caps
+            if isinstance(x, dict) and x.get("id")
+        }
+    )
+    evidence_path.write_text(
+        json.dumps(
+            {
+                "capabilities": [
+                    {
+                        "capability_id": cid,
+                        "declared_maturity": 0,
+                        "assessed_maturity": 0,
+                        "maturity_alignment": "aligned",
+                    }
+                    for cid in all_ids
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    compare = (selected_policy.get("reconciliation") or {}).get("compare_raw", [])
+    canonical_by = {x["id"]: x for x in canonical_caps if isinstance(x, dict) and x.get("id")}
+    legacy_by = {x["id"]: x for x in legacy_caps if isinstance(x, dict) and x.get("id")}
+    registry_identities = []
+    for cid in sorted(set(canonical_by) - set(legacy_by)):
+        registry_identities.append(f"{cid}:identity:registry-reconciliation")
+    for cid in sorted(set(legacy_by) - set(canonical_by)):
+        registry_identities.append(f"{cid}:identity:registry-reconciliation")
+    for cid in sorted(set(canonical_by) & set(legacy_by)):
+        for field in compare:
+            if canonical_by[cid].get(field) != legacy_by[cid].get(field):
+                registry_identities.append(f"{cid}:{field}:registry-reconciliation")
+    baseline_path = tmp_path / "ratchet-baseline.json"
+    baseline_path.write_text(
+        json.dumps(
+            {
+                "schema": "sahool.capability-drift-ratchet-baseline/v1",
+                "classes": {
+                    "registry_reconciliation": {"identities": registry_identities},
+                    "evidence_maturity": {"identities": []},
+                },
+            }
+        ),
+        encoding="utf-8",
     )
     monkeypatch.setattr(mod, "ROOT", tmp_path)
     monkeypatch.setattr(mod, "CANONICAL", canonical)
     monkeypatch.setattr(mod, "LEGACY", legacy)
     monkeypatch.setattr(mod, "FIELD_AUTHORITY_POLICY", policy_path)
+    monkeypatch.setattr(mod, "EVIDENCE_MATURITY", evidence_path)
+    monkeypatch.setattr(mod, "RATCHET_BASELINE", baseline_path)
     monkeypatch.setattr(mod, "OUT", tmp_path / "reconciliation")
     return mod
 
@@ -226,6 +276,78 @@ def test_findings_never_fail_the_run_but_a_stale_report_does(tmp_path: Path, mon
     )
     stale = mod.check(mod.build())
     assert any(e.startswith("stale:") for e in stale)
+
+
+def test_new_registry_drift_is_blocked_by_identity_ratchet(tmp_path: Path, monkeypatch) -> None:
+    mod = _fixture(
+        tmp_path,
+        monkeypatch,
+        [{"id": "X-001", "maturity": 3}],
+        [{"id": "X-001", "maturity": 1}],
+    )
+    baseline = json.loads(mod.RATCHET_BASELINE.read_text(encoding="utf-8"))
+    baseline["classes"]["registry_reconciliation"]["identities"] = []
+    mod.RATCHET_BASELINE.write_text(json.dumps(baseline), encoding="utf-8")
+    outputs = mod.build()
+    mod.write(outputs)
+    assert "new-drift:registry_reconciliation:X-001:maturity:registry-reconciliation" in mod.check(
+        outputs
+    )
+
+
+def test_resolved_drift_requires_lowering_the_stale_baseline(tmp_path: Path, monkeypatch) -> None:
+    mod = _fixture(
+        tmp_path,
+        monkeypatch,
+        [{"id": "X-001", "maturity": 3}],
+        [{"id": "X-001", "maturity": 3}],
+    )
+    baseline = json.loads(mod.RATCHET_BASELINE.read_text(encoding="utf-8"))
+    baseline["classes"]["registry_reconciliation"]["identities"] = [
+        "X-001:maturity:registry-reconciliation"
+    ]
+    mod.RATCHET_BASELINE.write_text(json.dumps(baseline), encoding="utf-8")
+    outputs = mod.build()
+    mod.write(outputs)
+    assert (
+        "stale-baseline:registry_reconciliation:X-001:maturity:registry-reconciliation"
+        in mod.check(outputs)
+    )
+
+
+def test_evidence_maturity_and_registry_drift_are_separate_ratchet_classes(
+    tmp_path: Path, monkeypatch
+) -> None:
+    mod = _fixture(
+        tmp_path,
+        monkeypatch,
+        [{"id": "X-001", "maturity": 3}],
+        [{"id": "X-001", "maturity": 1}],
+    )
+    mod.EVIDENCE_MATURITY.write_text(
+        json.dumps(
+            {
+                "capabilities": [
+                    {
+                        "capability_id": "X-001",
+                        "declared_maturity": 3,
+                        "assessed_maturity": 2,
+                        "maturity_alignment": "declared_above_evidence",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    baseline = json.loads(mod.RATCHET_BASELINE.read_text(encoding="utf-8"))
+    baseline["classes"]["evidence_maturity"]["identities"] = [
+        "X-001:declared_above_evidence:evidence-maturity"
+    ]
+    mod.RATCHET_BASELINE.write_text(json.dumps(baseline), encoding="utf-8")
+    report = json.loads(mod.build()["shadow_reconciliation_report.json"])
+    assert report["ratchet"]["decision"] == "PASS"
+    assert report["ratchet"]["classes"]["registry_reconciliation"]["observed_count"] == 1
+    assert report["ratchet"]["classes"]["evidence_maturity"]["observed_count"] == 1
 
 
 def test_a_corrupt_manifest_is_reported_stale_not_a_crash(tmp_path: Path, monkeypatch) -> None:
