@@ -12,9 +12,9 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **4929**
-- Ambiguous artifacts queued: **392**
-- Unmapped artifacts queued: **2039**
+- Files scanned: **5014**
+- Ambiguous artifacts queued: **402**
+- Unmapped artifacts queued: **2040**
 
 ## Capability coverage
 
@@ -33,7 +33,7 @@
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 24 | 6 |
 | FM-002 | farm_management | 34 | 44 | 98 | 22 | 14 | 2 | 25 | 7 |
 | FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 12 | 7 |
-| FM-004 | farm_management | 30 | 82 | 82 | 54 | 12 | 1 | 34 | 7 |
+| FM-004 | farm_management | 30 | 82 | 84 | 54 | 12 | 1 | 34 | 7 |
 | FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 5 | 5 |
 | FM-006 | farm_management | 2 | 3 | 0 | 0 | 2 | 0 | 1 | 4 |
 | FM-007 | farm_management | 8 | 24 | 8 | 1 | 1 | 1 | 5 | 7 |
@@ -43,7 +43,7 @@
 | GIS-003 | gis | 22 | 100 | 10 | 51 | 12 | 0 | 36 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| INT-002 | farm_management | 6 | 15 | 2 | 65 | 0 | 0 | 8 | 5 |
+| INT-002 | farm_management | 6 | 15 | 2 | 66 | 0 | 0 | 8 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | INT-004 | precision | 4 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
@@ -86,7 +86,7 @@
 | SEC-006 | security | 2 | 7 | 0 | 1 | 0 | 0 | 8 | 4 |
 | SEC-007 | security | 2 | 0 | 7 | 47 | 0 | 0 | 9 | 4 |
 | SEC-008 | security | 0 | 0 | 0 | 1 | 0 | 0 | 6 | 2 |
-| SOIL-001 | soil | 13 | 91 | 14 | 35 | 1 | 0 | 16 | 6 |
+| SOIL-001 | soil | 13 | 91 | 14 | 36 | 1 | 0 | 16 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 6 | 5 | 0 | 11 | 6 |
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |

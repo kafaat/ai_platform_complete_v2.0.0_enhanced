@@ -816,6 +816,275 @@
     ]
   },
   {
+    "path": "docs/architecture/FII_RLS_INCREMENT_1A_INVENTORY.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-001",
+        "score": 14,
+        "signals": [
+          "path:rls",
+          "content:rls"
+        ]
+      },
+      {
+        "capability_id": "FM-007",
+        "score": 13,
+        "signals": [
+          "path:inventory",
+          "content:inventory"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/GIS_CLOUD_NATIVE_BEST_PRACTICES_PHASE4.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-001",
+        "score": 9,
+        "signals": [
+          "content:sentinel",
+          "content:stac"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 8,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/PLATFORM_EXTRACTION_MAP.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SOIL-002",
+        "score": 16,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      },
+      {
+        "capability_id": "PA-001",
+        "score": 16,
+        "signals": [
+          "content:Management zones",
+          "content:management zone",
+          "content:productivity zone"
+        ]
+      },
+      {
+        "capability_id": "FM-003",
+        "score": 13,
+        "signals": [
+          "content:field boundary",
+          "content:field geometry",
+          "content:field workspace"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/RASTER_BOUNDARY_CONTRACT.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 12,
+        "signals": [
+          "content:contour",
+          "content:hillshade",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "SAT-001",
+        "score": 10,
+        "signals": [
+          "content:cdse",
+          "content:sentinel",
+          "content:stac"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/RASTER_FACADE_CLEANUP_CONTRACT.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 11,
+        "signals": [
+          "content:cog",
+          "content:raster tile",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "GIS-003",
+        "score": 9,
+        "signals": [
+          "content:dem",
+          "content:terrain"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/db_ownership.yml",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-004",
+        "score": 15,
+        "signals": [
+          "content:MFA",
+          "content:mfa",
+          "content:recovery code"
+        ]
+      },
+      {
+        "capability_id": "DEC-010",
+        "score": 15,
+        "signals": [
+          "content:model activation",
+          "content:model promotion",
+          "content:model rollback"
+        ]
+      },
+      {
+        "capability_id": "OPS-004",
+        "score": 12,
+        "signals": [
+          "content:Field forms",
+          "content:field form"
+        ]
+      },
+      {
+        "capability_id": "FM-008",
+        "score": 12,
+        "signals": [
+          "content:erp bridge",
+          "content:odoo bridge"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/platform_extraction_map.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "WX-003",
+        "score": 18,
+        "signals": [
+          "content:Weather history",
+          "content:historical weather",
+          "content:weather history"
+        ]
+      },
+      {
+        "capability_id": "WX-002",
+        "score": 18,
+        "signals": [
+          "content:Weather forecast",
+          "content:forecast",
+          "content:weather forecast"
+        ]
+      },
+      {
+        "capability_id": "SOIL-002",
+        "score": 18,
+        "signals": [
+          "content:Soil sampling",
+          "content:sampling plan",
+          "content:soil sampling"
+        ]
+      },
+      {
+        "capability_id": "PA-001",
+        "score": 18,
+        "signals": [
+          "content:Management zones",
+          "content:management zone",
+          "content:productivity zone"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/raster_boundary_allowlist.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 9,
+        "signals": [
+          "content:cog",
+          "content:raster tile",
+          "content:tilejson"
+        ]
+      },
+      {
+        "capability_id": "FM-003",
+        "score": 9,
+        "signals": [
+          "content:field geometry",
+          "content:field workspace"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/architecture/raster_service_route_migration_plan.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 12,
+        "signals": [
+          "content:dem",
+          "content:slope",
+          "content:terrain"
+        ]
+      },
+      {
+        "capability_id": "SAT-009",
+        "score": 9,
+        "signals": [
+          "content:cog",
+          "content:tilejson"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md",
     "kind": "other",
     "candidates": [
@@ -1404,6 +1673,29 @@
           "content:cdse",
           "content:sentinel",
           "content:stac"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "docs/runbooks/DECISION_SERVICE_SOR_CUTOVER_RUNBOOK.md",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "SEC-007",
+        "score": 11,
+        "signals": [
+          "content:decision sor",
+          "content:system of record"
+        ]
+      },
+      {
+        "capability_id": "SEC-001",
+        "score": 11,
+        "signals": [
+          "content:Tenant RLS",
+          "content:rls",
+          "content:tenant isolation"
         ]
       }
     ]

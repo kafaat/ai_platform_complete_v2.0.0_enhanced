@@ -160,19 +160,39 @@ def test_generated_and_release_artifacts_are_not_repository_evidence() -> None:
     assert not any(".generated." in Path(path).name.lower() for path in paths)
 
 
-def test_meta_governance_witness_files_are_not_capability_evidence() -> None:
-    """A witness must not affect what it witnesses.
-
-    Measured on PR #850: one mutation description in the guard mutation registry naming a
-    capability ID re-attributed ~40 event signals between two capabilities. Governance
-    registries and runbooks quote capability IDs by construction, so they are excluded
-    from evidence scanning as a class — not file by file.
-    """
+def _iter_scanned_paths() -> set[str]:
     spec = __import__("importlib.util").util.spec_from_file_location("capability_mapping", SCRIPT)
     assert spec and spec.loader
     module = __import__("importlib.util").util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    paths = {path.relative_to(ROOT).as_posix() for path in module.iter_files()}
-    assert not any(path.startswith("docs/architecture/") for path in paths)
-    assert not any(path.startswith("docs/runbooks/") for path in paths)
+    return {path.relative_to(ROOT).as_posix() for path in module.iter_files()}
+
+
+def test_meta_governance_witness_files_are_not_capability_evidence() -> None:
+    """A witness must not affect what it witnesses.
+
+    Measured on PR #850: one mutation description in the guard mutation registry naming a
+    capability ID re-attributed ~40 event signals between two capabilities. The named
+    witnesses (mutation/test registries, governance inventories, catalogue artifacts)
+    are denied by name — never by subtree.
+    """
+    paths = _iter_scanned_paths()
     assert "docs/architecture/guard_mutation_registry.json" not in paths
+    assert "docs/architecture/capability_core_consumption_registry.json" not in paths
+    assert "docs/architecture/source_text_assertion_inventory.json" not in paths
+    assert "docs/runbooks/GUARD_CATALOGUE.md" not in paths
+
+
+def test_legitimate_architecture_evidence_remains_discoverable() -> None:
+    """The witness fix must not undercount: a subtree ban was rejected in review.
+
+    Hand-authored contracts, topology inventories and operational runbooks in the same
+    directories are real evidence — each measured as contributing legitimate capability
+    signals at the pre-slice baseline (schema contract → SOIL-001, topology → INT-002,
+    run-lineage runbook → FM-004).
+    """
+    paths = _iter_scanned_paths()
+    assert "docs/architecture/live_pg_schema_contract.json" in paths
+    assert "docs/architecture/jetstream_topology_inventory.md" in paths
+    assert any(path.startswith("docs/architecture/") for path in paths)
+    assert any(path.startswith("docs/runbooks/") for path in paths)

@@ -4,6 +4,10 @@
     "kind": "tests"
   },
   {
+    "path": "docs/architecture/test_impact_policy.json",
+    "kind": "tests"
+  },
+  {
     "path": "docs/audits/TEST_SUITE_INSTRUCTIONS.md",
     "kind": "tests"
   },

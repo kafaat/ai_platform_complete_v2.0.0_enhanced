@@ -63,6 +63,26 @@ SKIP_PARTS = {
     "sahool-brain",
 }
 
+# Meta-governance witnesses: files whose PURPOSE is documenting/adjudicating the capability
+# system itself — mutation/test registries, generated governance inventories, and catalogue
+# artifacts that quote capability IDs and event tokens by construction. Measured on PR #850:
+# one mutation description in the mutation registry re-attributed ~40 event signals between
+# two capabilities. A witness must not affect what it witnesses.
+#
+# Denied by NAME, never by subtree: hand-authored architecture contracts (ownership, boundary,
+# schema, wiring), topology inventories and operational runbooks in the same directories are
+# legitimate evidence and stay discoverable — a subtree ban traded contamination for
+# undercounting (5017 → 4929 scanned files) and was rejected in review.
+META_GOVERNANCE_FILES = {
+    "docs/architecture/guard_mutation_registry.json",
+    "docs/architecture/capability_core_consumption_registry.json",
+    "docs/architecture/source_text_assertion_inventory.json",
+    "docs/runbooks/GUARD_CATALOGUE.md",
+}
+# Extension point for whole witness classes (e.g. a future registries/ subdir). Empty today:
+# every measured witness is an individual file, and breadth must be argued per entry.
+META_GOVERNANCE_PREFIXES: tuple[str, ...] = ()
+
 # High-signal synonyms. Generic words are deliberately absent.
 ALIASES: dict[str, tuple[str, ...]] = {
     "FM-001": ("tenant", "organization", "multi tenancy"),
@@ -307,21 +327,10 @@ def iter_files() -> Iterable[Path]:
         # subtree is already excluded below; this covers the hand-authored config beside it.)
         if len(rel.parts) >= 2 and rel.parts[0] == "docs" and rel.parts[1] == "capability-registry":
             continue
-        # Meta-governance registries and runbooks (mutation registry, consumption registry,
-        # decision records, guard catalogue) quote capability IDs and event tokens by
-        # construction — they are the witness layer documenting the system. Crediting them as
-        # implementation evidence lets governance prose move capability scores: measured on
-        # PR #850, one mutation description naming a capability ID re-attributed ~40 event
-        # signals between capabilities. A witness must not affect what it witnesses.
-        if (
-            len(rel.parts) >= 2
-            and rel.parts[0] == "docs"
-            and rel.parts[1]
-            in {
-                "architecture",
-                "runbooks",
-            }
-        ):
+        # Named meta-governance witnesses only — see META_GOVERNANCE_FILES for the rationale
+        # and the review that rejected the wider subtree ban.
+        rel_posix = rel.as_posix()
+        if rel_posix in META_GOVERNANCE_FILES or rel_posix.startswith(META_GOVERNANCE_PREFIXES):
             continue
         # Generated inventories, release metadata and capability outputs are derived artifacts,
         # not independent implementation evidence. Scanning them creates self-referential
