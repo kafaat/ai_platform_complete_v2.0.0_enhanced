@@ -1449,6 +1449,15 @@
     }
   ],
   "capability_claim_violations": [],
+  "certification_acceptance": {
+    "assurance_level": "L5",
+    "certification_record_artifact_id": 9252747952,
+    "certification_record_digest": "sha256:1005c4e6fae9969b21f94e1dccf877558d344ec562707e782cf5dced4d1b9e5e",
+    "certify_run_id": "31907504319",
+    "head_sha": "2d8fdb3f2e34b5ecd8cc9cafda4df4d0309fc1a3",
+    "producer_run_id": "31905594023",
+    "verdict": "VERIFIED"
+  },
   "fail_closed": true,
   "gate_passed": true,
   "production_certified_services": [],

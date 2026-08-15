@@ -9,3 +9,4 @@
 - Capability claim violations: **0**
 - Promotion preconditions satisfied: **0** (L5 alone is never sufficient — execution outcome and subject/SHA binding are required)
 - Gate passed: **true**
+- Release assurance reference: **VERIFIED @ L5 for 2d8fdb3f2e34**

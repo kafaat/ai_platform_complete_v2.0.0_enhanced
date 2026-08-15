@@ -26,6 +26,20 @@ REQUIRED = (
 )
 
 
+def load_release_assurance_reference() -> dict | None:
+    """مرجعُ ضمان الإصدار من ملخّص السلطة التشغيليّة — يُحمَل ولا يُحكَم به.
+
+    مؤشّرٌ إلى سجلّ الاعتماد الحيّ المقبول (كما دوّنه المُنتِج في ملخّصه)، لا
+    يدخل في أهليّة الاعتماد ولا يرقّي شيئاً: الأهليّة تبقى على بوّاباتها التسع
+    + المستوى الخامس + المخرَج التنفيذيّ + رباط subject/SHA كما هي.
+    """
+    if not RUNTIME_AUTHORITY.exists():
+        return None
+    summary = json.loads(RUNTIME_AUTHORITY.read_text(encoding="utf-8"))
+    reference = summary.get("certification_acceptance")
+    return reference if isinstance(reference, dict) else None
+
+
 def load_promotion_preconditions() -> dict[str, dict]:
     """Per-capability promotion preconditions from the runtime authority summary.
 
@@ -97,6 +111,8 @@ def main() -> int:
         w.writerows(rows)
     summary = {
         "capabilities_total": len(rows),
+        # مؤشّرٌ لا حكم: لا يمسّ eligible/certified ولا أيّ بوّابة أدناه.
+        "release_assurance_reference": load_release_assurance_reference(),
         "eligible_for_certification": sum(r["eligible_for_certification"] for r in rows),
         "certified": sum(r["certified"] for r in rows),
         "incorrect_certifications": [
