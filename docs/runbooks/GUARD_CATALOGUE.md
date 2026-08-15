@@ -10,17 +10,17 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **243**
+- حرّاس تحجب في CI: **244**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **33**
 - إجماليّ الطفرات المُسجَّلة: **234**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **24** على 10 مصدراً
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **28** على 11 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **210** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -625,7 +625,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (210)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (211)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -661,6 +661,7 @@
 | `capability_release_history.py` | Generate deterministic capability history from committed static baselines. | `capability-registry` |
 | `capability_roadmap_linker.py` | Validate and generate the curated roadmap-to-capability linkage. | `capability-registry` |
 | `capability_runtime_evidence.py` | Extract conservative runtime observability evidence for SAHOOL capabilities. | `capability-registry` |
+| `capability_shadow_reconciliation.py` | Shadow reconciliation between the canonical registry and the legacy projection. | `capability-registry` |
 | `compose_env_contract_gate.py` | Fail-closed contract gate for docker-compose ↔ .env compatibility. | `structural-lint` |
 | `compose_runtime_target_resolver.py` | Resolve runtime probe targets to internal Docker Compose service URLs. | `capability-registry` |
 | `consumer_contract_gate.py` | WS-E — CI consumer-contract gate. | `structural-lint` |

@@ -85,6 +85,10 @@ jobs:
         run: python scripts/ci/capability_runtime_evidence.py --check
       - name: Validate canonical Capability Registry v1
         run: python scripts/ci/capability_registry_v1.py --check
+      # ظلّيّ بالتصميم: النتائج لا تحجب — بياتُ التقرير وحده يحجب. خطّة المقارنة
+      # بياناتُ سياسة سلطة الحقول (compare_raw/exclude_raw)، لا قرار السكربت.
+      - name: Validate shadow reconciliation report freshness (findings never block)
+        run: python scripts/ci/capability_shadow_reconciliation.py --check
       - name: Validate forensic capability mapping drift
         run: python scripts/ci/capability_mapping_engine.py --check
       - name: Validate capability evidence and maturity baseline
@@ -157,6 +161,7 @@ jobs:
             tests/architecture/test_capability_release_history.py \
             tests/architecture/test_capability_management_engine.py \
             tests/architecture/test_capability_truth_preconditions.py \
+            tests/architecture/test_capability_shadow_reconciliation.py \
             tests/architecture/test_capability_regression_gate.py \
             tests/architecture/test_pr_capability_impact_gate.py \
             tests/architecture/test_path3_run_attestation.py \

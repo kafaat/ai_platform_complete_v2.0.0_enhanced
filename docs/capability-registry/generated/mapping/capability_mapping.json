@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5017,
+    "files_scanned": 5014,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1344,
+      "other": 1341,
       "tests": 1639,
       "web": 454
     },
     "unmapped_artifacts": 2040,
-    "ambiguous_artifacts": 404
+    "ambiguous_artifacts": 402
   },
   "capabilities": [
     {
@@ -526,14 +526,6 @@
             "content:Execution request",
             "content:execution request"
           ]
-        },
-        {
-          "value": "decision_execution_outcomes @ docs/architecture/source_text_assertion_inventory.json:16",
-          "score": 8
-        },
-        {
-          "value": "irrigation_water_allocations @ docs/architecture/source_text_assertion_inventory.json:86",
-          "score": 8
         }
       ],
       "events": [
@@ -876,14 +868,6 @@
           ]
         },
         {
-          "path": "docs/architecture/source_text_assertion_inventory.json",
-          "score": 8,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        },
-        {
           "path": "docs/audits/ACTUATOR_DEVICE_SAFETY_CERTIFICATION_CONTINUATION_20260712.md",
           "score": 8,
           "signals": [
@@ -907,13 +891,13 @@
       "evidence_counts": {
         "backend": 9,
         "routes": 20,
-        "database": 26,
+        "database": 24,
         "events": 30,
         "web": 0,
         "mobile": 0,
         "tests": 15,
         "governance": 1,
-        "other_evidence": 12
+        "other_evidence": 11
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -2312,15 +2296,6 @@
           ]
         },
         {
-          "path": "docs/runbooks/GUARD_CATALOGUE.md",
-          "score": 9,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution",
-            "content:outcome attribution"
-          ]
-        },
-        {
           "path": "REMOTE_SENSING_RS10_IMPLEMENTATION_REPORT_20260715.md",
           "score": 8,
           "signals": [
@@ -2350,7 +2325,7 @@
         "mobile": 0,
         "tests": 1,
         "governance": 1,
-        "other_evidence": 6
+        "other_evidence": 5
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -8311,14 +8286,6 @@
         {
           "value": "workflow_transitions @ migrations/v9_odoo_bridge.sql:17",
           "score": 16
-        },
-        {
-          "value": "decision_execution_outcomes @ docs/architecture/source_text_assertion_inventory.json:16",
-          "score": 8
-        },
-        {
-          "value": "irrigation_water_allocations @ docs/architecture/source_text_assertion_inventory.json:86",
-          "score": 8
         }
       ],
       "events": [
@@ -8509,13 +8476,6 @@
           ]
         },
         {
-          "path": "docs/architecture/source_text_assertion_inventory.json",
-          "score": 8,
-          "signals": [
-            "path:inventory"
-          ]
-        },
-        {
           "path": "docs/openapi/ROUTE_INVENTORY.json",
           "score": 8,
           "signals": [
@@ -8530,13 +8490,13 @@
       "evidence_counts": {
         "backend": 8,
         "routes": 24,
-        "database": 10,
+        "database": 8,
         "events": 1,
         "web": 1,
         "mobile": 1,
         "tests": 5,
         "governance": 3,
-        "other_evidence": 13
+        "other_evidence": 12
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -11686,10 +11646,6 @@
           "score": 20
         },
         {
-          "value": "canonical_field_state.v1 @ docs/architecture/capability_core_consumption_registry.json:19",
-          "score": 20
-        },
-        {
           "value": "canonical_soil_state.v1 @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:64",
           "score": 20
         },
@@ -11703,10 +11659,6 @@
         },
         {
           "value": "core.canonical_field_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:84",
-          "score": 20
-        },
-        {
-          "value": "sahool.capability-core-consumption.v1 @ docs/architecture/capability_core_consumption_registry.json:2",
           "score": 20
         }
       ],
@@ -11739,13 +11691,6 @@
       "governance": [],
       "other_evidence": [
         {
-          "path": "docs/architecture/capability_core_consumption_registry.json",
-          "score": 20,
-          "signals": [
-            "explicit_id"
-          ]
-        },
-        {
           "path": "docs/implementation/FULL_CAPABILITY_PLAN_EXECUTION_20260728.md",
           "score": 20,
           "signals": [
@@ -11775,12 +11720,12 @@
         "backend": 4,
         "routes": 9,
         "database": 8,
-        "events": 13,
+        "events": 11,
         "web": 0,
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 4
+        "other_evidence": 3
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -12170,11 +12115,11 @@
       ],
       "events": [
         {
-          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:84",
+          "value": "decision_lineage_graph.py @ scripts/ci/verify_all_generated.py:85",
           "score": 20
         },
         {
-          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:83",
+          "value": "execution_dependency_audit.py @ scripts/ci/verify_all_generated.py:84",
           "score": 20
         },
         {
@@ -18594,10 +18539,6 @@
           "score": 10
         },
         {
-          "value": "decision_execution_outcomes @ docs/architecture/source_text_assertion_inventory.json:16",
-          "score": 10
-        },
-        {
           "value": "farmer_knowledge @ services/sahool-platform/storage/lite_store.py:88",
           "score": 10
         },
@@ -18607,10 +18548,6 @@
         },
         {
           "value": "irrigation_configs @ services/sahool-platform/storage/lite_store.py:136",
-          "score": 10
-        },
-        {
-          "value": "irrigation_water_allocations @ docs/architecture/source_text_assertion_inventory.json:86",
           "score": 10
         },
         {
@@ -20805,14 +20742,6 @@
           ]
         },
         {
-          "path": "docs/architecture/source_text_assertion_inventory.json",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
           "path": "docs/audits/CORE_DECISION_MD_REVIEW.md",
           "score": 10,
           "signals": [
@@ -21044,13 +20973,13 @@
       "evidence_counts": {
         "backend": 100,
         "routes": 83,
-        "database": 44,
+        "database": 42,
         "events": 100,
         "web": 49,
         "mobile": 6,
         "tests": 100,
         "governance": 0,
-        "other_evidence": 85
+        "other_evidence": 84
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -24043,19 +23972,7 @@
           "score": 10
         },
         {
-          "value": "decision_lineage_v183_guard.py @ docs/architecture/guard_mutation_registry.json:1815",
-          "score": 9
-        },
-        {
           "value": "field.created @ docs/audits/OPERATIONAL_CONTRACTS.md:115",
-          "score": 9
-        },
-        {
-          "value": "irrigation_as_applied_m2_11_guard.py @ docs/architecture/guard_mutation_registry.json:1829",
-          "score": 9
-        },
-        {
-          "value": "irrigation_capability_graph_m2_8_guard.py @ docs/architecture/guard_mutation_registry.json:1830",
           "score": 9
         },
         {
@@ -24063,151 +23980,11 @@
           "score": 9
         },
         {
-          "value": "irrigation_closed_loop_m5_guard.py @ docs/architecture/guard_mutation_registry.json:1831",
-          "score": 9
-        },
-        {
-          "value": "irrigation_closed_loop_runtime_guard.py @ docs/architecture/guard_mutation_registry.json:1832",
-          "score": 9
-        },
-        {
-          "value": "irrigation_commissioning_m2_10_guard.py @ docs/architecture/guard_mutation_registry.json:1833",
-          "score": 9
-        },
-        {
-          "value": "irrigation_controller_edge_m2_9_guard.py @ docs/architecture/guard_mutation_registry.json:1834",
-          "score": 9
-        },
-        {
-          "value": "irrigation_convergence_guard.py @ docs/architecture/guard_mutation_registry.json:1835",
-          "score": 9
-        },
-        {
           "value": "irrigation_convergence_mapping.yml @ scripts/ci/irrigation_convergence_guard.py:33",
           "score": 9
         },
         {
-          "value": "irrigation_energy_m2_7_guard.py @ docs/architecture/guard_mutation_registry.json:1836",
-          "score": 9
-        },
-        {
-          "value": "irrigation_engineering_m2_1_guard.py @ docs/architecture/guard_mutation_registry.json:1837",
-          "score": 9
-        },
-        {
-          "value": "irrigation_hourly_mpc_m3_guard.py @ docs/architecture/guard_mutation_registry.json:1838",
-          "score": 9
-        },
-        {
-          "value": "irrigation_hydraulic_m2_4_guard.py @ docs/architecture/guard_mutation_registry.json:1839",
-          "score": 9
-        },
-        {
-          "value": "irrigation_machine_m2_5_guard.py @ docs/architecture/guard_mutation_registry.json:1840",
-          "score": 9
-        },
-        {
-          "value": "irrigation_rls_canonical_guard.py @ docs/architecture/guard_mutation_registry.json:1841",
-          "score": 9
-        },
-        {
-          "value": "irrigation_root_zone_m2_2_guard.py @ docs/architecture/guard_mutation_registry.json:1842",
-          "score": 9
-        },
-        {
-          "value": "irrigation_runtime_orchestrator_guard.py @ docs/architecture/guard_mutation_registry.json:1843",
-          "score": 9
-        },
-        {
-          "value": "irrigation_sprinkler_m2_6_guard.py @ docs/architecture/guard_mutation_registry.json:1844",
-          "score": 9
-        },
-        {
-          "value": "irrigation_vri_m4_guard.py @ docs/architecture/guard_mutation_registry.json:1845",
-          "score": 9
-        },
-        {
-          "value": "irrigation_well_digital_twin_m2_3_guard.py @ docs/architecture/guard_mutation_registry.json:1846",
-          "score": 9
-        },
-        {
-          "value": "irrx1_manual_execution_guard.py @ docs/architecture/guard_mutation_registry.json:1854",
-          "score": 9
-        },
-        {
-          "value": "nginx_weather_edge_path_guard.py @ docs/architecture/guard_mutation_registry.json:1862",
-          "score": 9
-        },
-        {
-          "value": "raw_weather_processing_contract_guard.py @ docs/architecture/guard_mutation_registry.json:1882",
-          "score": 9
-        },
-        {
-          "value": "sahool.guard-mutation-registry.v1 @ docs/architecture/guard_mutation_registry.json:1800",
-          "score": 9
-        },
-        {
           "value": "soil-observation.v1 @ tests_v9/test_soil_runtime_certification_integration.py:81",
-          "score": 9
-        },
-        {
-          "value": "soil_canonical_store_guard.py @ docs/architecture/guard_mutation_registry.json:1895",
-          "score": 9
-        },
-        {
-          "value": "soil_full_chain_guard.py @ docs/architecture/guard_mutation_registry.json:1896",
-          "score": 9
-        },
-        {
-          "value": "soil_lab_projection_guard.py @ docs/architecture/guard_mutation_registry.json:1897",
-          "score": 9
-        },
-        {
-          "value": "soil_lab_supersession_lineage_guard.py @ docs/architecture/guard_mutation_registry.json:1898",
-          "score": 9
-        },
-        {
-          "value": "soil_p1_products_guard.py @ docs/architecture/guard_mutation_registry.json:1899",
-          "score": 9
-        },
-        {
-          "value": "soil_p2_products_guard.py @ docs/architecture/guard_mutation_registry.json:1900",
-          "score": 9
-        },
-        {
-          "value": "soil_p3_products_guard.py @ docs/architecture/guard_mutation_registry.json:1901",
-          "score": 9
-        },
-        {
-          "value": "soil_p4_closed_loop_guard.py @ docs/architecture/guard_mutation_registry.json:1902",
-          "score": 9
-        },
-        {
-          "value": "soil_p5_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1903",
-          "score": 9
-        },
-        {
-          "value": "soil_p6_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1904",
-          "score": 9
-        },
-        {
-          "value": "soil_profile_contract_guard.py @ docs/architecture/guard_mutation_registry.json:1905",
-          "score": 9
-        },
-        {
-          "value": "soil_projection_observability_guard.py @ docs/architecture/guard_mutation_registry.json:1906",
-          "score": 9
-        },
-        {
-          "value": "soil_projection_reconciliation_guard.py @ docs/architecture/guard_mutation_registry.json:1907",
-          "score": 9
-        },
-        {
-          "value": "soil_runtime_certification_guard.py @ docs/architecture/guard_mutation_registry.json:1908",
-          "score": 9
-        },
-        {
-          "value": "soil_supersession_current_pointer_guard.py @ docs/architecture/guard_mutation_registry.json:1909",
           "score": 9
         },
         {
@@ -24216,14 +23993,6 @@
         },
         {
           "value": "v196_irrigation_target_binding.sql @ tests/irrigation/test_irrigation_v196_target_binding.py:8",
-          "score": 9
-        },
-        {
-          "value": "weather_engine_formula_guard.py @ docs/architecture/guard_mutation_registry.json:1915",
-          "score": 9
-        },
-        {
-          "value": "weather_hourly_etc_wx_i1_guard.py @ docs/architecture/guard_mutation_registry.json:1916",
           "score": 9
         },
         {
@@ -25140,14 +24909,6 @@
           ]
         },
         {
-          "path": "docs/architecture/guard_mutation_registry.json",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
           "path": "docs/audits/CODE_REVIEW_REPORT.md",
           "score": 9,
           "signals": [
@@ -25193,14 +24954,6 @@
           "signals": [
             "content:rls",
             "content:tenant isolation"
-          ]
-        },
-        {
-          "path": "docs/runbooks/GUARD_CATALOGUE.md",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:row level security"
           ]
         },
         {
@@ -25365,12 +25118,12 @@
         "backend": 14,
         "routes": 36,
         "database": 100,
-        "events": 86,
+        "events": 46,
         "web": 0,
         "mobile": 0,
         "tests": 59,
         "governance": 0,
-        "other_evidence": 71
+        "other_evidence": 69
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -26838,14 +26591,6 @@
             "content:decision sor",
             "content:system of record"
           ]
-        },
-        {
-          "path": "docs/runbooks/GUARD_CATALOGUE.md",
-          "score": 9,
-          "signals": [
-            "content:decision sor",
-            "content:system of record"
-          ]
         }
       ],
       "ambiguous": [],
@@ -26861,7 +26606,7 @@
         "mobile": 0,
         "tests": 9,
         "governance": 0,
-        "other_evidence": 9
+        "other_evidence": 8
       },
       "coverage_dimensions": 4,
       "mapped": true
@@ -27897,14 +27642,6 @@
           ]
         },
         {
-          "path": "docs/runbooks/GUARD_CATALOGUE.md",
-          "score": 8,
-          "signals": [
-            "content:Soil profile",
-            "content:soil profile"
-          ]
-        },
-        {
           "path": "scripts/ci/soil_supersession_current_pointer_guard.py",
           "score": 8,
           "signals": [
@@ -27934,7 +27671,7 @@
         "mobile": 0,
         "tests": 16,
         "governance": 1,
-        "other_evidence": 15
+        "other_evidence": 14
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -33442,14 +33179,6 @@
         {
           "value": "seasons @ migrations/v39_season_simulation.sql:19",
           "score": 12
-        },
-        {
-          "value": "decision_execution_outcomes @ docs/architecture/source_text_assertion_inventory.json:16",
-          "score": 10
-        },
-        {
-          "value": "irrigation_water_allocations @ docs/architecture/source_text_assertion_inventory.json:86",
-          "score": 10
         }
       ],
       "events": [
@@ -34178,14 +33907,6 @@
           ]
         },
         {
-          "path": "docs/architecture/source_text_assertion_inventory.json",
-          "score": 10,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
           "path": "runtime-verification/functional_probes/weather-service.json",
           "score": 10,
           "signals": [
@@ -34241,13 +33962,13 @@
       "evidence_counts": {
         "backend": 84,
         "routes": 26,
-        "database": 35,
+        "database": 33,
         "events": 26,
         "web": 16,
         "mobile": 0,
         "tests": 44,
         "governance": 0,
-        "other_evidence": 21
+        "other_evidence": 20
       },
       "coverage_dimensions": 6,
       "mapped": true
@@ -43923,43 +43644,6 @@
       ]
     },
     {
-      "path": "docs/architecture/source_text_assertion_inventory.json",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "WX-006",
-          "score": 10,
-          "signals": [
-            "content:GDD",
-            "content:gdd"
-          ]
-        },
-        {
-          "capability_id": "SAT-003",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "capability_id": "FM-007",
-          "score": 8,
-          "signals": [
-            "path:inventory"
-          ]
-        },
-        {
-          "capability_id": "DEC-004",
-          "score": 8,
-          "signals": [
-            "content:Execution request",
-            "content:execution request"
-          ]
-        }
-      ]
-    },
-    {
       "path": "docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md",
       "kind": "other",
       "candidates": [
@@ -44571,45 +44255,6 @@
             "content:Tenant RLS",
             "content:rls",
             "content:tenant isolation"
-          ]
-        }
-      ]
-    },
-    {
-      "path": "docs/runbooks/GUARD_CATALOGUE.md",
-      "kind": "other",
-      "candidates": [
-        {
-          "capability_id": "SEC-007",
-          "score": 9,
-          "signals": [
-            "content:decision sor",
-            "content:system of record"
-          ]
-        },
-        {
-          "capability_id": "SEC-001",
-          "score": 9,
-          "signals": [
-            "content:rls",
-            "content:row level security"
-          ]
-        },
-        {
-          "capability_id": "DEC-008",
-          "score": 9,
-          "signals": [
-            "content:Learning attribution",
-            "content:learning attribution",
-            "content:outcome attribution"
-          ]
-        },
-        {
-          "capability_id": "SOIL-001",
-          "score": 8,
-          "signals": [
-            "content:Soil profile",
-            "content:soil profile"
           ]
         }
       ]

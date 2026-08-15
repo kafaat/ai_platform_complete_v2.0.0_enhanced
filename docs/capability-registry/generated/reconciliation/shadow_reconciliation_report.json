@@ -1,0 +1,87 @@
+{
+  "$honesty_ar": "التقرير يشهد الاختلاف ولا يُحكِّم: السلطة لكلّ حقل تقولها السياسة، ولا قيمة ثالثة تُنشأ هنا. ظلّيّ بالتصميم — النتيجة لا تحجب، وبياتُ التقرير وحده هو ما يحجب.",
+  "canonical_source": "docs/capability-registry/generated/capability_registry.json",
+  "fields_compared_raw": [
+    "id",
+    "domain",
+    "dependencies",
+    "maturity",
+    "evidence_level",
+    "owner"
+  ],
+  "fields_excluded": [
+    {
+      "field": "title",
+      "reason": "excluded_until_structured_normalization"
+    },
+    {
+      "field": "apis",
+      "reason": "excluded_projection_owned_by_traceability_engine"
+    },
+    {
+      "field": "tests",
+      "reason": "excluded_projection_owned_by_traceability_engine"
+    },
+    {
+      "field": "runtime",
+      "reason": "excluded_composite_owned_by_runtime_instrumentation_and_verification"
+    },
+    {
+      "field": "evidence",
+      "reason": "excluded_until_structured_normalization"
+    },
+    {
+      "field": "rationale",
+      "reason": "excluded_until_structured_normalization"
+    },
+    {
+      "field": "status",
+      "reason": "excluded_until_structured_normalization"
+    }
+  ],
+  "findings": [
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 3,
+      "capability_id": "INT-004",
+      "field": "evidence_level",
+      "finding_id": "INT-004:evidence_level",
+      "kind": "field_drift",
+      "legacy": 1,
+      "legacy_role": "compatibility_projection"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": 3,
+      "capability_id": "INT-004",
+      "field": "maturity",
+      "finding_id": "INT-004:maturity",
+      "kind": "field_drift",
+      "legacy": 1,
+      "legacy_role": "compatibility_projection"
+    },
+    {
+      "authority": "canonical_capability_definition",
+      "canonical": "sahool-platform",
+      "capability_id": "INT-004",
+      "field": "owner",
+      "finding_id": "INT-004:owner",
+      "kind": "field_drift",
+      "legacy": "UNASSIGNED",
+      "legacy_role": "compatibility_projection"
+    }
+  ],
+  "legacy_source": "capabilities/registry/capabilities.json",
+  "mode": "shadow-report-only",
+  "no_third_value_registry": true,
+  "policy_source": "docs/capability-registry/field_authority_policy.json",
+  "schema": "sahool.capability-shadow-reconciliation/v1",
+  "summary": {
+    "capabilities_canonical": 81,
+    "capabilities_legacy": 81,
+    "capabilities_shared": 81,
+    "field_drift_findings": 3,
+    "findings_total": 3,
+    "identity_findings": 0
+  }
+}

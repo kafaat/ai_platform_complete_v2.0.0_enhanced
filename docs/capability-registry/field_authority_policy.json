@@ -26,12 +26,26 @@
     },
     "maturity": {
       "authority": "canonical_capability_definition",
-      "enum": [0, 1, 2, 3, 4, 5],
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
       "legacy_role": "compatibility_projection"
     },
     "evidence_level": {
       "authority": "canonical_capability_definition",
-      "enum": [0, 1, 2, 3, 4, 5],
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
       "legacy_role": "compatibility_projection"
     },
     "owner": {
@@ -43,10 +57,12 @@
       "authority": "repository_traceability_projection"
     },
     "apis": {
-      "authority": "repository_traceability_projection"
+      "authority": "repository_traceability_projection",
+      "reconciliation": "excluded_projection_owned_by_traceability_engine"
     },
     "tests": {
-      "authority": "repository_traceability_projection"
+      "authority": "repository_traceability_projection",
+      "reconciliation": "excluded_projection_owned_by_traceability_engine"
     },
     "ui_consumers": {
       "authority": "repository_traceability_projection"
@@ -82,11 +98,38 @@
     "status": {
       "authority": "legacy_registry_projection",
       "reconciliation": "excluded_until_structured_normalization"
+    },
+    "title": {
+      "reconciliation": "excluded_until_structured_normalization"
+    },
+    "runtime": {
+      "reconciliation": "excluded_composite_owned_by_runtime_instrumentation_and_verification"
+    },
+    "evidence": {
+      "reconciliation": "excluded_until_structured_normalization"
+    },
+    "rationale": {
+      "reconciliation": "excluded_until_structured_normalization"
     }
   },
   "reconciliation": {
-    "compare_raw": ["id", "domain", "dependencies", "maturity", "evidence_level", "owner"],
-    "exclude_raw": ["title", "apis", "tests", "runtime", "evidence", "rationale", "status"],
+    "compare_raw": [
+      "id",
+      "domain",
+      "dependencies",
+      "maturity",
+      "evidence_level",
+      "owner"
+    ],
+    "exclude_raw": [
+      "title",
+      "apis",
+      "tests",
+      "runtime",
+      "evidence",
+      "rationale",
+      "status"
+    ],
     "no_third_value_registry": true
   },
   "promotion_preconditions": {
