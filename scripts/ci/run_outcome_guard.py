@@ -71,6 +71,11 @@ def job_conclusions(jobs_document: object) -> dict[str, str]:
         name = job.get("name")
         if not isinstance(name, str) or name in TOLERATED_JOBS:
             continue
+        # اسمٌ مكرَّر في الجرد فسادُ جردٍ لا حالةَ وظيفة: قاموسٌ يبتلعه صامتاً يجعل
+        # «كلّ وظيفةٍ مطلوبة حاضرة مرّةً واحدة» غير قابلٍ للقياس أصلاً — فيُرفَض
+        # الجرد كلُّه (تداخُل ترقيمٍ في الجلب أو خلطُ محاولات، وكلاهما ليس قياساً).
+        if name in out:
+            raise SystemExit(f"✗ اسمُ وظيفةٍ مكرَّر في الجرد: {name!r} — جردٌ فاسد لا يُقرأ.")
         # وظيفةٌ لم تكتمل تُسجَّل بحالتها لا بخلاصةٍ فارغة: `None` تُقرأ لاحقاً
         # «ليست success» فتحجب — وهو الاتّجاه الصحيح للفشل المغلق.
         out[name] = job.get("conclusion") or f"<{job.get('status', 'unknown')}>"
@@ -104,6 +109,9 @@ def build(
 
     return {
         "schema": SCHEMA,
+        # المستودع يُكتَب في الوثيقة لا يُفترَض من سياقها: إغلاقُ هويّة التشغيل لاحقاً
+        # يطابق الـtuple الكاملة، وحقلٌ غائب يطابق فراغاً بفراغ.
+        "repository": repository,
         "run_id": str(run.get("id")),
         "run_attempt": run.get("run_attempt"),
         "head_sha": run.get("head_sha"),

@@ -35,6 +35,17 @@ def build(args: argparse.Namespace) -> dict:
         "closure": {"mode": "exact", "transport_exclusions": list(TRANSPORT)},
         "tested_identity": {"commit_sha": args.tested_commit, "tree_sha": args.tested_tree},
         "source_identity": {"ref": args.source_ref},
+        # هويّةُ التشغيل المُنتِج تُكتَب **في الموضوع الموقَّع نفسه**: الشهادة تشهد
+        # للبايتات، والبايتات تحمل مَن أنتجها (run_id · run_attempt · الحدث · مسار
+        # الـworkflow). فيستطيع المُعتمِد لاحقاً إغلاق الهويّة على الـtuple الكاملة
+        # بين هذا البيان وخلاصة التشغيل المقروءة من الواجهة — لا على SHA وحده.
+        "producer_identity": {
+            "repository": args.producer_repository,
+            "workflow_path": args.producer_workflow_path,
+            "run_id": args.producer_run_id,
+            "run_attempt": args.producer_run_attempt,
+            "event": args.producer_event,
+        },
         "release_binding": {
             "mode": args.binding_mode,
             "accepted_commit_sha": args.accepted_commit_sha,
@@ -67,9 +78,24 @@ def main(argv=None) -> int:
     )
     ap.add_argument("--accepted-commit-sha")
     ap.add_argument("--accepted-tree-sha")
+    # هويّة المُنتِج إلزاميّة لا اختياريّة: بيانٌ بلا مُنتِجٍ مُسمّى لا يقبل إغلاقَ
+    # هويّة التشغيل لاحقاً، وجعلُها اختياريّة يعيد فتح الثغرة التي تُغلَق هنا.
+    ap.add_argument("--producer-repository", required=True)
+    ap.add_argument("--producer-workflow-path", required=True)
+    ap.add_argument("--producer-run-id", required=True)
+    ap.add_argument("--producer-run-attempt", required=True)
+    ap.add_argument("--producer-event", required=True)
     args = ap.parse_args(argv)
     if len(args.tested_commit) != 40 or len(args.tested_tree) != 40:
         raise SystemExit("SOURCE_IDENTITY_MISMATCH: commit/tree must be full SHA")
+    # قيمُ البيئة تُقاس قبل أن تُوقَّع: `GITHUB_RUN_ID` غير مضبوطة تصل "unset" أو
+    # فارغة، وتوقيعُ هويّةٍ فارغة يجعل الإغلاق اللاحق يطابق فراغاً بفراغ.
+    if not args.producer_run_id.isdigit() or not args.producer_run_attempt.isdigit():
+        raise SystemExit("PRODUCER_IDENTITY_INVALID: run_id/run_attempt must be numeric")
+    if "/" not in args.producer_repository:
+        raise SystemExit("PRODUCER_IDENTITY_INVALID: repository must be owner/name")
+    if not args.producer_workflow_path or not args.producer_event:
+        raise SystemExit("PRODUCER_IDENTITY_INVALID: workflow_path/event must be non-empty")
     # **الحقلُ غير المستعمَل في وضعٍ ما ليس حرّاً.** الفحص القديم كان يتأكّد من
     # الحقل الذي يقرؤه الحارس وحده، فيُنتِج بياناً **متناقضاً داخليّاً**: يقول
     # «الالتزام مطابق» ويحمل شجرةً مخالفة، ويمرّ لأنّ أحداً لا يقرؤها. والبيان

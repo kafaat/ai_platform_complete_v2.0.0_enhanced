@@ -32,6 +32,7 @@
     "claim_base_registry.json",
     "decision_outcome_learning_bridge_allowlist.json",
     "deferred_import_declaration_contract.json",
+    "execution_required_jobs_contract.json",
     "expected_control_flow_exceptions.json",
     "gate01_policy.json",
     "guard_mutation_registry.json",

@@ -94,24 +94,54 @@ jobs:
             --output execution_outcome.json
           cat execution_outcome.json
 
-      # أدلّةُ Live-PG تُرفَع مصنوعاتٍ من التشغيل المشهود له. وغيابُها ليس فشلاً في
-      # هذه الوظيفة: تشغيلٌ لم يبلغ وظيفة الأدلّة لا شيء فيه ليُعتمَد — ويُقال ذلك
-      # صراحةً بدل أن يُقرأ صمتُه اعتماداً.
-      - name: Download the evidence bundle from that run
-        id: download
-        continue-on-error: true
+      # **العطل الذي أغلقته هذه الخطوات مقيس:** `ci.yml` ترفع الدليل باسم
+      # `live-pg-evidence-<sha>` وكانت هذه الوظيفة تُنزِّل الاسم الثابت
+      # `live-pg-evidence` — فيفشل التنزيل في **كلّ** تشغيل، ويُقرأ الفشلُ «لا دليل»،
+      # فلا يُنتَج سجلُّ اعتمادٍ قطّ. غيابٌ بنيويٌّ ارتدى ثوبَ غيابٍ مشروع، وكشفه
+      # المالك بالقياس. فالاسم الآن **يُشتقّ من `head_sha` المشهود له** ويُفرَض
+      # exactly-one وتُسجَّل هويّةُ كلّ مصنوعة (artifact_id + digest) — والحكم في
+      # `scripts/ci` لأنّ منطقاً مدفوناً في `run: |` لا يُقاس إلّا بتشغيل الوظيفة.
+      - name: Enforce the artifact contract for the attested head
+        id: artifact_contract
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
-          gh run download "${RUN_ID}" --name live-pg-evidence --dir evidence
+          # `--paginate` كما في جرد الوظائف: جردٌ مقطوع يُخفي مصنوعةً مكرَّرة في
+          # الصفحة الثانية، فيصير «exactly-one» حكماً عن سؤالٍ لم يُطرَح كاملاً.
+          gh api --paginate "repos/${REPO}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
+            | jq -s '{artifacts: (map(.artifacts) | add)}' > artifacts.json
+          python scripts/ci/certify_artifact_contract.py \
+            --artifacts-file artifacts.json --head-sha "${HEAD_SHA}" \
+            --output artifact_contract.json
+          echo "status=$(jq -r .status artifact_contract.json)" >> "$GITHUB_OUTPUT"
+
+      # التنزيل **بمعرّف المصنوعة المُسجَّل في العقد** لا بإعادة بحثٍ بالاسم: بين
+      # الجرد والتنزيل لا يُعاد فتحُ باب الالتباس الذي أُغلِق للتوّ. وبلا
+      # `continue-on-error`: العقد قال «حاضرة»، ففشلُ الجلب عطلٌ يُحمِّر لا غياب.
+      - name: Download the evidence bundle by its recorded artifact ids
+        id: download
+        if: steps.artifact_contract.outputs.status == 'present'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          for role in evidence attestation; do
+            artifact_id="$(jq -r --arg r "$role" '.artifacts[$r].artifact_id' artifact_contract.json)"
+            gh api "repos/${REPO}/actions/artifacts/${artifact_id}/zip" > "${role}.zip"
+            unzip -o "${role}.zip" -d evidence
+          done
           ls -la evidence
 
       - name: No evidence to certify
         if: steps.download.outcome != 'success'
         run: |
-          echo "لا حزمة أدلّة في هذا التشغيل ⇒ لا شيء يُعتمَد."
+          echo "لا حزمة أدلّة لهذه اللقطة ⇒ لا شيء يُعتمَد (الحكم في artifact_contract.json)."
           echo "وهذا ليس رفضاً للاعتماد بل غيابُ موضوعه — والفرق يُقال ولا يُترَك للصمت."
 
       - name: Install the pinned GitHub attestation verifier
@@ -143,6 +173,8 @@ jobs:
             --artifact-file live_pg_verification_record.json \
             --execution-outcome ../execution_outcome.json \
             --require-execution-outcome \
+            --required-jobs-contract ../docs/architecture/execution_required_jobs_contract.json \
+            --artifact-provenance ../artifact_contract.json \
             --required-assurance L4 \
             --output ../certification_record.json
           cat ../certification_record.json

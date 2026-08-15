@@ -254,6 +254,48 @@
         }
       ],
       "test": "tests_v9/test_actuation_killswitch_behaviour.py"
+    },
+    "scripts/ci/certify_artifact_contract.py": {
+      "mutations": [
+        {
+          "expect": "test_duplicate_evidence_artifacts_are_refused_not_disambiguated",
+          "find": "        if len(found) > 1:\n            problems.append(f\"AMBIGUOUS_ARTIFACT:{role}:{len(found)}\")",
+          "replace": "        if False:  # mutated: التكرار يُفَضّ باختيار الأوّل\n            problems.append(f\"AMBIGUOUS_ARTIFACT:{role}:{len(found)}\")",
+          "why": "exactly-one هو العقد: مصنوعتان بالاسم المشتقّ نفسه التباسُ هويّة، واختيارُ الأولى صامتاً يجعل «أيّ بايتات حُكِم عليها» سؤالاً بلا جوابٍ مقيس."
+        },
+        {
+          "expect": "test_a_matching_name_from_a_foreign_head_is_refused",
+          "find": "            if isinstance(run, dict) and run.get(\"head_sha\") not in (None, head_sha):",
+          "replace": "            if False:  # mutated: الاسم يكفي والهويّة لا تُقاس\n",
+          "why": "الاسم ادّعاء: مصنوعةٌ باسمٍ مطابق من تشغيلٍ عن لقطةٍ أخرى كانت ستُنزَّل ويُحكَم عليها بوصفها دليلَ هذه اللقطة — وهو عكسُ ما وُجِد الاشتقاق لأجله."
+        },
+        {
+          "expect": "test_evidence_without_its_attestation_is_a_violation_not_an_absence",
+          "find": "    if matches[\"evidence\"] and not matches[\"attestation\"]:",
+          "replace": "    if False:  # mutated: دليلٌ بلا إثبات منشأ يمرّ غياباً\n",
+          "why": "خطوةُ التوقيع في `ci.yml` حاجزةٌ بمحاولتين على main، فغيابُ مصنوعتها مع حضور الدليل تشغيلٌ مكسور — وقراءتُه «غياباً مشروعاً» تُطفئ الإنذار الوحيد عنه."
+        }
+      ],
+      "test": "tests_v9/test_certify_artifact_contract.py",
+      "$why_ar": "أداةُ حكمٍ لا حارس بالاسم (لا تطابق `*_guard.py`) لكنّها تقرّر ما يُنزَّل ويُحكَم عليه في وظيفة الاعتماد — فطفراتُها هنا كي لا تعيش خارج القياس."
+    },
+    "scripts/ci/sot_evidence_manifest.py": {
+      "mutations": [
+        {
+          "expect": "test_the_builder_refuses_to_sign_an_empty_or_malformed_identity",
+          "find": "    if not args.producer_run_id.isdigit() or not args.producer_run_attempt.isdigit():\n        raise SystemExit(\"PRODUCER_IDENTITY_INVALID: run_id/run_attempt must be numeric\")",
+          "replace": "    if False:  # mutated: هويّةٌ فارغة تُوقَّع\n        raise SystemExit(\"PRODUCER_IDENTITY_INVALID: run_id/run_attempt must be numeric\")",
+          "why": "`GITHUB_RUN_ID` غير مضبوطة تصل \"unset\" — وتوقيعُ هويّةٍ فارغة داخل الموضوع الموقَّع يجعل إغلاق الهويّة اللاحق يطابق فراغاً بفراغ ويخضرّ."
+        },
+        {
+          "expect": "test_the_builder_embeds_the_producer_identity_it_was_given",
+          "find": "        \"producer_identity\": {\n            \"repository\": args.producer_repository,",
+          "replace": "        \"producer_identity\": {\n            \"repository\": \"kafaat/ai_platform_complete_v2.0.0_enhanced\",  # mutated: هويّةٌ مكتوبة بيدٍ لا من البيئة\n            \"$_\": args.producer_repository and None,",
+          "why": "هويّةُ المُنتِج تُشتقّ من البيئة وقتَ الإنتاج لا تُكتَب ثابتاً: ثابتٌ يصدق اليوم يكذب أوّلَ fork أو إعادة تسمية — والبيان الموقَّع لا يُصحَّح بأثرٍ رجعيّ."
+        }
+      ],
+      "test": "tests_v9/test_sot_provenance_guard.py",
+      "$why_ar": "أداةُ إنتاج البيان الموقَّع — ليست حارساً بالاسم لكنّ ما تكتبه يدخل الموضوع الموقَّع نفسه، فطفراتُها تقيس أنّ هويّة المُنتِج لا تُوقَّع فارغةً ولا مكتوبةً بيد."
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -1464,6 +1506,18 @@
           "find": "        out[name] = job.get(\"conclusion\") or f\"<{job.get('status', 'unknown')}>\"",
           "replace": "        out[name] = job.get(\"conclusion\") or \"success\"  # mutated: الفراغ يُقرأ نجاحاً",
           "why": "وظيفةٌ لم تكتمل خلاصتُها `null`، وقراءتُها نجاحاً تُحوِّل «لم تنتهِ» إلى «نجحت» — وهو أخطر أشكال الفشل المفتوح: يُبلِغ اعتماداً عن عملٍ لم يقع."
+        },
+        {
+          "expect": "test_a_duplicate_job_name_is_refused_as_inventory_corruption",
+          "find": "        if name in out:\n            raise SystemExit(f\"✗ اسمُ وظيفةٍ مكرَّر في الجرد: {name!r} — جردٌ فاسد لا يُقرأ.\")",
+          "replace": "        if False:  # mutated: الاسم المكرَّر يبتلعه القاموس صامتاً\n            raise SystemExit(f\"✗ اسمُ وظيفةٍ مكرَّر في الجرد: {name!r} — جردٌ فاسد لا يُقرأ.\")",
+          "why": "قاموسٌ يبتلع الاسم المكرَّر يجعل «كلّ مطلوبةٍ حاضرة مرّةً واحدة» غير قابلٍ للقياس: آخرُ قيمةٍ تفوز صامتةً، وقد تكون success فوق failure — فيُعتمَد على جردٍ فاسد."
+        },
+        {
+          "expect": "test_the_outcome_document_names_its_repository",
+          "find": "        \"repository\": repository,",
+          "replace": "        \"repository\": None,  # mutated: الوثيقة لا تُسمّي مستودعها",
+          "why": "إغلاق هويّة التشغيل يطابق الـtuple الكاملة ومنها المستودع؛ وثيقةٌ بلا مستودعٍ مُسمّى تجعل طرفَ المطابقة فراغاً — والإغلاق على فراغٍ ليس إغلاقاً."
         }
       ],
       "test": "tests_v9/test_run_outcome_guard.py"
@@ -1709,15 +1763,45 @@
         },
         {
           "expect": "test_a_failed_job_inside_a_green_run_is_refused",
-          "find": "    if any(value != \"success\" for value in jobs.values()):\n        return False, \"EXECUTION_JOB_NOT_SUCCESSFUL\"",
+          "find": "    if any(value != \"success\" for name, value in jobs.items() if name not in tolerated):\n        return False, \"EXECUTION_JOB_NOT_SUCCESSFUL\"",
           "replace": "    if False:  # mutated: الوظائف لا تُفحَص إفراديّاً\n        return False, \"EXECUTION_JOB_NOT_SUCCESSFUL\"",
           "why": "الخلاصة المجمَّعة ليست دليلاً — درسٌ مُسجَّل في هذا المستودع باسمه `JOB-STATUS-HID-A-FAILED-STEP-01`. ووظيفةٌ ساقطة داخل تشغيلٍ يُعلَن ناجحاً هي بالضبط ما وقع في run 31728316326 (`Repository Tests`)."
         },
         {
           "expect": "test_a_missing_outcome_is_recorded_even_while_unenforced",
-          "find": "            record[\"reason_codes\"].append(execution_reason)\n            if not require_execution:\n                record[\"reason_codes\"].append(\"EXECUTION_OUTCOME_NOT_ENFORCED\")",
+          "find": "            record[\"reason_codes\"].extend(promotion_reasons)\n            if not require_execution:\n                record[\"reason_codes\"].append(\"EXECUTION_OUTCOME_NOT_ENFORCED\")",
           "replace": "            pass  # mutated: الدَّين لا يُكتَب في السجلّ",
           "why": "شرطٌ معطَّل **وصامت** رخصةٌ مفتوحة: سجلٌّ يقول L5 ولا يقول «وخلاصةُ التشغيل لم تُعلَن» يُقرَأ اعتماداً كاملاً وهو ليس منه. وكتابةُ الدَّين هي ما يفصل «مؤجَّل بسببٍ مقيس» عن «متروك»."
+        },
+        {
+          "expect": "test_a_required_job_absent_from_the_inventory_is_named_missing",
+          "find": "    for name in contract[\"required_jobs\"]:\n        if name not in jobs:",
+          "replace": "    for name in []:  # mutated: عقد الوظائف المطلوبة لا يُقاس\n        if name not in jobs:",
+          "why": "الثغرة التي لا يراها «كلّ الوظائف نجحت»: حذفُ وظيفةٍ أو إعادةُ تسميتها يُخرِجها من الجرد فيبقى التشغيل ناجحاً وقد فُقِد قياسُها. حلقةٌ على فراغ تجعل `required ⊆ observed` صادقاً خواءً عن كلّ تشغيل."
+        },
+        {
+          "expect": "test_any_broken_tuple_member_breaks_the_closure",
+          "find": "    return [] if all(closures) else [\"RUN_IDENTITY_MISMATCH\"]",
+          "replace": "    return []  # mutated: الهويّة تُقفَل دائماً مهما اختلّت",
+          "why": "إغلاق الهويّة على الـtuple الكاملة هو ما يمنع خلاصةَ تشغيلٍ آخر — محاولةً ثانية أو workflow آخر على الالتزام نفسه — من أن تشهد لهذا الدليل. إقفالٌ دائم يُعيد الاعتماد إلى مطابقة SHA وحده."
+        },
+        {
+          "expect": "test_a_manifest_without_a_producer_identity_cannot_close",
+          "find": "    if not isinstance(producer, dict):\n        return [\"PRODUCER_IDENTITY_MISSING\"]",
+          "replace": "    if not isinstance(producer, dict):\n        return []  # mutated: بيانٌ بلا مُنتِجٍ مُسمّى يُقفَل صامتاً",
+          "why": "بيانٌ قديم — أو مُنتَجٌ بأداةٍ لا تُسمّي مُنتِجها — كان سيمرّ من الإغلاق بلا أن يُغلَق شيء: «لم يُقَس» يُقرأ «مرّ»، وهو الصنف الذي بُنِيت هذه السلسلة كلُّها لمنعه."
+        },
+        {
+          "expect": "test_an_artifact_provenance_that_is_not_this_subject_is_refused",
+          "find": "    if doc.get(\"status\") != \"present\" or doc.get(\"head_sha\") != tested_commit:\n        raise RuntimeError(\"ARTIFACT_CONTRACT_INVALID\")",
+          "replace": "    if False:  # mutated: سجلُّ مصنوعات لقطةٍ أخرى يُضمَّن في سجلّ الاعتماد\n        raise RuntimeError(\"ARTIFACT_CONTRACT_INVALID\")",
+          "why": "سجلُّ عقد المصنوعة يدخل سجلَّ الاعتماد كما هو — فإن لم يُطابَق موضوعُه (هذه اللقطة، حالة present) صار سجلُّ اعتمادٍ يحمل هويّات مصنوعاتٍ عن شيءٍ آخر، والقارئ يثق بالمجاورة."
+        },
+        {
+          "expect": "test_a_non_dict_job_inventory_is_a_malformed_document_not_undeclared_jobs",
+          "find": "    jobs = outcome.get(\"job_conclusions\")\n    if not isinstance(jobs, dict):\n        return True",
+          "replace": "    jobs = outcome.get(\"job_conclusions\")\n    if False:  # mutated: الجرد المشوَّه يُقرأ «لم تُعلَن»\n        return True",
+          "why": "رفعته مراجعة آليّة على #852 وأصابت: جردٌ غير قاموسيّ كان يُبلَّغ EXECUTION_JOBS_UNDECLARED — دعوى عن الوظائف مكان دعوى عن الوثيقة — ويدخل عقدَ الوظائف المطلوبة بوصفه فراغاً. ورموز الأسباب هي سجلّ التدقيق."
         }
       ],
       "test": "tests_v9/test_sot_provenance_guard.py"

@@ -10,17 +10,17 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **244**
+- حرّاس تحجب في CI: **245**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **33**
-- إجماليّ الطفرات المُسجَّلة: **234**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **30** على 11 مصدراً
+- إجماليّ الطفرات المُسجَّلة: **241**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **35** على 13 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **211** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **212** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -481,6 +481,8 @@
 - جردٌ فارغ يجعل شرط «كلّ الوظائف ناجحة» صادقاً خواءً (`any` على فراغ = False)، فيمرّ **كلّ** تشغيل. وهو صنف «حارسٌ يُحقّقه لا شيء» بعينه. — يُسقِط `test_an_empty_job_inventory_is_refused`
 - workflow آخر في نفس المستودع يُنتِج خلاصةً **صادقة عن شيء غير المقصود** — وهو نفس صنف «نتيجةٌ صحيحة عن سؤالٍ لم يُطرَح» الذي أسقط أوّل صياغة لحارس حماية الفرع. — يُسقِط `test_a_run_of_another_workflow_is_refused`
 - وظيفةٌ لم تكتمل خلاصتُها `null`، وقراءتُها نجاحاً تُحوِّل «لم تنتهِ» إلى «نجحت» — وهو أخطر أشكال الفشل المفتوح: يُبلِغ اعتماداً عن عملٍ لم يقع. — يُسقِط `test_an_incomplete_job_is_recorded_by_its_status_not_as_blank`
+- قاموسٌ يبتلع الاسم المكرَّر يجعل «كلّ مطلوبةٍ حاضرة مرّةً واحدة» غير قابلٍ للقياس: آخرُ قيمةٍ تفوز صامتةً، وقد تكون success فوق failure — فيُعتمَد على جردٍ فاسد. — يُسقِط `test_a_duplicate_job_name_is_refused_as_inventory_corruption`
+- إغلاق هويّة التشغيل يطابق الـtuple الكاملة ومنها المستودع؛ وثيقةٌ بلا مستودعٍ مُسمّى تجعل طرفَ المطابقة فراغاً — والإغلاق على فراغٍ ليس إغلاقاً. — يُسقِط `test_the_outcome_document_names_its_repository`
 
 ### `schema_validation_guard.py`
 
@@ -562,6 +564,11 @@
 - بلا الربط بالالتزام تصلح خلاصةُ **أيّ** تشغيلٍ ناجح شهادةً لأيّ لقطة — وهو نفس صنف «دليلٌ من SHA سابق» الذي يمنعه ظرفُ دليل حماية الفرع. — يُسقِط `test_an_outcome_for_another_commit_does_not_vouch_for_this_one`
 - الخلاصة المجمَّعة ليست دليلاً — درسٌ مُسجَّل في هذا المستودع باسمه `JOB-STATUS-HID-A-FAILED-STEP-01`. ووظيفةٌ ساقطة داخل تشغيلٍ يُعلَن ناجحاً هي بالضبط ما وقع في run 31728316326 (`Repository Tests`). — يُسقِط `test_a_failed_job_inside_a_green_run_is_refused`
 - شرطٌ معطَّل **وصامت** رخصةٌ مفتوحة: سجلٌّ يقول L5 ولا يقول «وخلاصةُ التشغيل لم تُعلَن» يُقرَأ اعتماداً كاملاً وهو ليس منه. وكتابةُ الدَّين هي ما يفصل «مؤجَّل بسببٍ مقيس» عن «متروك». — يُسقِط `test_a_missing_outcome_is_recorded_even_while_unenforced`
+- الثغرة التي لا يراها «كلّ الوظائف نجحت»: حذفُ وظيفةٍ أو إعادةُ تسميتها يُخرِجها من الجرد فيبقى التشغيل ناجحاً وقد فُقِد قياسُها. حلقةٌ على فراغ تجعل `required ⊆ observed` صادقاً خواءً عن كلّ تشغيل. — يُسقِط `test_a_required_job_absent_from_the_inventory_is_named_missing`
+- إغلاق الهويّة على الـtuple الكاملة هو ما يمنع خلاصةَ تشغيلٍ آخر — محاولةً ثانية أو workflow آخر على الالتزام نفسه — من أن تشهد لهذا الدليل. إقفالٌ دائم يُعيد الاعتماد إلى مطابقة SHA وحده. — يُسقِط `test_any_broken_tuple_member_breaks_the_closure`
+- بيانٌ قديم — أو مُنتَجٌ بأداةٍ لا تُسمّي مُنتِجها — كان سيمرّ من الإغلاق بلا أن يُغلَق شيء: «لم يُقَس» يُقرأ «مرّ»، وهو الصنف الذي بُنِيت هذه السلسلة كلُّها لمنعه. — يُسقِط `test_a_manifest_without_a_producer_identity_cannot_close`
+- سجلُّ عقد المصنوعة يدخل سجلَّ الاعتماد كما هو — فإن لم يُطابَق موضوعُه (هذه اللقطة، حالة present) صار سجلُّ اعتمادٍ يحمل هويّات مصنوعاتٍ عن شيءٍ آخر، والقارئ يثق بالمجاورة. — يُسقِط `test_an_artifact_provenance_that_is_not_this_subject_is_refused`
+- رفعته مراجعة آليّة على #852 وأصابت: جردٌ غير قاموسيّ كان يُبلَّغ EXECUTION_JOBS_UNDECLARED — دعوى عن الوظائف مكان دعوى عن الوثيقة — ويدخل عقدَ الوظائف المطلوبة بوصفه فراغاً. ورموز الأسباب هي سجلّ التدقيق. — يُسقِط `test_a_non_dict_job_inventory_is_a_malformed_document_not_undeclared_jobs`
 
 ### `tenant_guc_scope_guard.py`
 
@@ -625,7 +632,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (211)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (212)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -662,6 +669,7 @@
 | `capability_roadmap_linker.py` | Validate and generate the curated roadmap-to-capability linkage. | `capability-registry` |
 | `capability_runtime_evidence.py` | Extract conservative runtime observability evidence for SAHOOL capabilities. | `capability-registry` |
 | `capability_shadow_reconciliation.py` | Shadow reconciliation between the canonical registry and the legacy projection. | `capability-registry` |
+| `certify_artifact_contract.py` | عقدُ مصنوعة الاعتماد: اسمٌ مشتقٌّ من ``head_sha``، وexactly-one، وهويّةٌ تُسجَّل. | `certify` |
 | `compose_env_contract_gate.py` | Fail-closed contract gate for docker-compose ↔ .env compatibility. | `structural-lint` |
 | `compose_runtime_target_resolver.py` | Resolve runtime probe targets to internal Docker Compose service URLs. | `capability-registry` |
 | `consumer_contract_gate.py` | WS-E — CI consumer-contract gate. | `structural-lint` |

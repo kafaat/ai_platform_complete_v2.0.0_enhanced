@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5014,
+    "files_scanned": 5017,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1341,
-      "tests": 1639,
+      "other": 1343,
+      "tests": 1640,
       "web": 454
     },
-    "unmapped_artifacts": 2040,
+    "unmapped_artifacts": 2041,
     "ambiguous_artifacts": 402
   },
   "capabilities": [
@@ -41226,6 +41226,10 @@
     },
     {
       "path": "tests_v9/test_certification_regression_fixes.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_certify_artifact_contract.py",
       "kind": "tests"
     },
     {

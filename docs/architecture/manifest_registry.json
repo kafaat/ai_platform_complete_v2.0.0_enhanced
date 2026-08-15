@@ -14,6 +14,10 @@
       "kind": "legacy_adjudicated"
     },
     {
+      "path": "docs/architecture/execution_required_jobs_contract.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/expected_control_flow_exceptions.json",
       "kind": "legacy_adjudicated"
     },
