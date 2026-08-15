@@ -1796,6 +1796,12 @@
           "find": "    if doc.get(\"status\") != \"present\" or doc.get(\"head_sha\") != tested_commit:\n        raise RuntimeError(\"ARTIFACT_CONTRACT_INVALID\")",
           "replace": "    if False:  # mutated: سجلُّ مصنوعات لقطةٍ أخرى يُضمَّن في سجلّ الاعتماد\n        raise RuntimeError(\"ARTIFACT_CONTRACT_INVALID\")",
           "why": "سجلُّ عقد المصنوعة يدخل سجلَّ الاعتماد كما هو — فإن لم يُطابَق موضوعُه (هذه اللقطة، حالة present) صار سجلُّ اعتمادٍ يحمل هويّات مصنوعاتٍ عن شيءٍ آخر، والقارئ يثق بالمجاورة."
+        },
+        {
+          "expect": "test_a_non_dict_job_inventory_is_a_malformed_document_not_undeclared_jobs",
+          "find": "    jobs = outcome.get(\"job_conclusions\")\n    if not isinstance(jobs, dict):\n        return True",
+          "replace": "    jobs = outcome.get(\"job_conclusions\")\n    if False:  # mutated: الجرد المشوَّه يُقرأ «لم تُعلَن»\n        return True",
+          "why": "رفعته مراجعة آليّة على #852 وأصابت: جردٌ غير قاموسيّ كان يُبلَّغ EXECUTION_JOBS_UNDECLARED — دعوى عن الوظائف مكان دعوى عن الوثيقة — ويدخل عقدَ الوظائف المطلوبة بوصفه فراغاً. ورموز الأسباب هي سجلّ التدقيق."
         }
       ],
       "test": "tests_v9/test_sot_provenance_guard.py"

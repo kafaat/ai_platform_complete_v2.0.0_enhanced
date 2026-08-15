@@ -407,8 +407,14 @@ def outcome_unreadable(outcome: object) -> bool:
         return True
     if not isinstance(outcome.get("head_sha"), str):
         return True
+    # جردٌ غائب أو غير قاموسيّ **تشوّهُ وثيقة** لا حكمَ وظائف: قبولُه هنا كان
+    # يُبلِّغه لاحقاً `EXECUTION_JOBS_UNDECLARED` — «تعذّر أن أقرأ» بلغة «قرأتُ
+    # أنّها لم تُعلَن» — ويُدخِل وثيقةً مشوَّهة إلى عقد الوظائف المطلوبة.
+    # القاموس الفارغ يبقى مقروءاً وحكمُه لنفسه (رفعته مراجعة آليّة وأصابت).
     jobs = outcome.get("job_conclusions")
-    if isinstance(jobs, dict) and any(not isinstance(v, str) for v in jobs.values()):
+    if not isinstance(jobs, dict):
+        return True
+    if any(not isinstance(v, str) for v in jobs.values()):
         return True
     return False
 

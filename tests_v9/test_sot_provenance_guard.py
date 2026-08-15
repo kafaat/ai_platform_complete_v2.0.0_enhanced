@@ -1139,3 +1139,28 @@ def test_the_ci_manifest_step_ships_the_producer_identity_from_the_environment()
         "--producer-event",
     ):
         assert flag in executable, f"هويّة المُنتِج ناقصة في خطوة البيان: {flag}"
+
+
+def test_a_non_dict_job_inventory_is_a_malformed_document_not_undeclared_jobs():
+    """رفعته مراجعة آليّة على #852 وأصابت: «تعذّر أن أقرأ» لا يُكتَب بلغة
+    «قرأتُ أنّ الوظائف لم تُعلَن» — ورموز الأسباب هي سجلّ التدقيق."""
+    clean, reason = MOD.execution_clean(_outcome(job_conclusions="garbage"), _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_OUTCOME_UNREADABLE")
+
+
+def test_an_absent_job_inventory_is_also_a_malformed_document():
+    """المُنتِج يُصدر `job_conclusions` دائماً — فغيابُه تشوّهٌ لا فراغ."""
+    document = _outcome()
+    document.pop("job_conclusions")
+
+    clean, reason = MOD.execution_clean(document, _TESTED)
+
+    assert (clean, reason) == (False, "EXECUTION_OUTCOME_UNREADABLE")
+
+
+def test_a_malformed_inventory_never_reaches_the_required_jobs_contract():
+    """الملاحظة المكتومة من المراجعة نفسها: وثيقةٌ جردُها غير قاموسيّ يجب أن
+    تسقط في `outcome_unreadable` قبل أن يُسأل عنها عقدُ الوظائف المطلوبة."""
+    assert MOD.outcome_unreadable(_outcome(job_conclusions="garbage")) is True
+    assert MOD.outcome_unreadable(_outcome(job_conclusions={})) is False
