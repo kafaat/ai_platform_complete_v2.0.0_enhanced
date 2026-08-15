@@ -12,7 +12,7 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **5017**
+- Files scanned: **5018**
 - Ambiguous artifacts queued: **404**
 - Unmapped artifacts queued: **2040**
 
@@ -45,7 +45,7 @@
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 6 | 15 | 2 | 66 | 0 | 0 | 8 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| INT-004 | precision | 4 | 9 | 8 | 13 | 0 | 0 | 3 | 5 |
+| INT-004 | precision | 4 | 9 | 8 | 53 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 0 | 4 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 1 | 3 |
@@ -78,7 +78,7 @@
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 5 | 5 |
 | SAT-009 | satellite | 12 | 68 | 0 | 12 | 1 | 0 | 22 | 5 |
-| SEC-001 | security | 14 | 36 | 100 | 86 | 0 | 0 | 59 | 5 |
+| SEC-001 | security | 14 | 36 | 100 | 46 | 0 | 0 | 59 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 7 | 21 | 23 | 4 | 5 | 4 | 16 | 7 |

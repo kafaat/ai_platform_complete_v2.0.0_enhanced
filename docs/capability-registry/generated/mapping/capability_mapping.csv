@@ -24,7 +24,7 @@ GIS-004,gis,Spatial analytics,True,3,1,0,1,0,0,0,1,0
 INT-001,farm_management,Public API and SDK,False,0,0,0,0,0,0,0,0,0
 INT-002,farm_management,Event bus integration,True,5,6,15,2,66,0,0,8,0
 INT-003,irrigation,IoT and sensors,True,1,0,0,0,0,0,0,1,0
-INT-004,precision,External machinery integrations,True,5,4,9,8,13,0,0,3,0
+INT-004,precision,External machinery integrations,True,5,4,9,8,53,0,0,3,0
 IRR-001,irrigation,Water source registry,True,2,0,0,8,0,0,0,1,0
 IRR-002,irrigation,Water quality samples,True,4,2,6,8,1,0,0,0,0
 IRR-003,irrigation,Field water-source binding,True,3,1,0,4,0,0,0,1,0
@@ -57,7 +57,7 @@ SAT-006,satellite,Historical imagery timeline,True,3,1,0,0,1,0,0,3,0
 SAT-007,satellite,Change detection,True,3,2,1,0,0,0,0,3,0
 SAT-008,satellite,Stress zones,True,5,3,1,7,4,0,0,5,0
 SAT-009,satellite,COG persistence and tiling,True,5,12,68,0,12,1,0,22,0
-SEC-001,security,Tenant RLS,True,5,14,36,100,86,0,0,59,0
+SEC-001,security,Tenant RLS,True,5,14,36,100,46,0,0,59,0
 SEC-002,security,Signed tenant assertion,True,1,0,0,0,0,0,0,1,0
 SEC-003,security,Worker identity binding,True,2,1,0,0,0,0,0,1,0
 SEC-004,security,MFA,True,7,7,21,23,4,5,4,16,0

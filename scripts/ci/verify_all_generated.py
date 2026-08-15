@@ -77,6 +77,7 @@ _GENERATE_FLAG = {
     "generate_service_inventory.py": "--write-registry",
     "capability_mapping_engine.py": "--generate",
     "capability_evidence_maturity_engine.py": "--generate",
+    "capability_shadow_reconciliation.py": "--generate",
     "capability_parity_investment_engine.py": "--generate",
     "capability_release_history.py": "--generate",
     "capability_runtime_evidence.py": "--apply",
