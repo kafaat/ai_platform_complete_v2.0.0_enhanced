@@ -5,5 +5,6 @@
 - Runtime verified services: **0**
 - Production certified services: **0**
 - Service claim violations: **0**
+- Capability authority-verified: **0**
 - Capability claim violations: **0**
 - Gate passed: **true**

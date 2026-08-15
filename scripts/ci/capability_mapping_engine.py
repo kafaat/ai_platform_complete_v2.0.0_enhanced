@@ -23,6 +23,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path
@@ -589,12 +590,12 @@ def build() -> dict:
     }
 
 
-def write_outputs(data: dict) -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "capability_mapping.json").write_text(
+def write_outputs(data: dict, out: Path = OUT) -> None:
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "capability_mapping.json").write_text(
         json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    with (OUT / "capability_mapping.csv").open("w", newline="", encoding="utf-8") as f:
+    with (out / "capability_mapping.csv").open("w", newline="", encoding="utf-8") as f:
         fields = [
             "capability_id",
             "domain",
@@ -623,11 +624,11 @@ def write_outputs(data: dict) -> None:
                     **{k: len(c[k]) for k in fields[5:]},
                 }
             )
-    (OUT / "unmapped_artifacts.json").write_text(
+    (out / "unmapped_artifacts.json").write_text(
         json.dumps(data["unmapped_artifacts"], indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    (OUT / "ambiguous_artifacts.json").write_text(
+    (out / "ambiguous_artifacts.json").write_text(
         json.dumps(data["ambiguous_artifacts"], indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
@@ -660,7 +661,7 @@ def write_outputs(data: dict) -> None:
         lines.append(
             f"| {c['capability_id']} | {c['domain']} | {len(c['backend'])} | {len(c['routes'])} | {len(c['database'])} | {len(c['events'])} | {len(c['web'])} | {len(c['mobile'])} | {len(c['tests'])} | {c['coverage_dimensions']} |"
         )
-    (OUT / "CAPABILITY_MAPPING_REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out / "CAPABILITY_MAPPING_REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     manifest = {}
     for name in (
         "capability_mapping.json",
@@ -669,33 +670,36 @@ def write_outputs(data: dict) -> None:
         "ambiguous_artifacts.json",
         "CAPABILITY_MAPPING_REPORT.md",
     ):
-        manifest[name] = hashlib.sha256((OUT / name).read_bytes()).hexdigest()
-    (OUT / "mapping_manifest.json").write_text(
+        manifest[name] = hashlib.sha256((out / name).read_bytes()).hexdigest()
+    (out / "mapping_manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
 
 
 def check_outputs(data: dict) -> bool:
-    target = OUT / "capability_mapping.json"
-    if not target.exists():
-        return False
-    committed = json.loads(target.read_text(encoding="utf-8"))
-    if committed == data:
+    names = (
+        "capability_mapping.json",
+        "capability_mapping.csv",
+        "unmapped_artifacts.json",
+        "ambiguous_artifacts.json",
+        "CAPABILITY_MAPPING_REPORT.md",
+        "mapping_manifest.json",
+    )
+    with tempfile.TemporaryDirectory(prefix="sahool-capability-mapping-check-") as tmp:
+        candidate = Path(tmp)
+        write_outputs(data, candidate)
+        drifting = [
+            name
+            for name in names
+            if not (OUT / name).exists()
+            or (OUT / name).read_bytes() != (candidate / name).read_bytes()
+        ]
+    if not drifting:
         return True
-    # Emit a concise, targeted diff so drift is diagnosable in CI rather than opaque.
-    if committed.get("summary") != data.get("summary"):
-        print(
-            f"summary drift: committed={committed.get('summary')} fresh={data.get('summary')}",
-            file=sys.stderr,
-        )
-    for field in ("unmapped_artifacts", "ambiguous_artifacts"):
-        if committed.get(field) != data.get(field):
-            ca = {x["path"] for x in committed.get(field, [])}
-            da = {x["path"] for x in data.get(field, [])}
-            print(
-                f"{field} drift: only-committed={sorted(ca - da)[:5]} only-fresh={sorted(da - ca)[:5]}",
-                file=sys.stderr,
-            )
+    print(
+        "capability mapping generated-artifact drift: " + ", ".join(drifting),
+        file=sys.stderr,
+    )
     return False
 
 

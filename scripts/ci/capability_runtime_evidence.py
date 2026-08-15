@@ -17,6 +17,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "capabilities/registry/capabilities.json"
 GENERATED = ROOT / "capabilities/generated"
+FIELD_AUTHORITY_POLICY = ROOT / "docs/capability-registry/field_authority_policy.json"
+AUTH_RECEIPT_TYPE = "attested-runtime-verification"
 
 METRIC_PATTERNS = [
     re.compile(r"(?:Counter|Gauge|Histogram|Summary)\s*\(\s*[rubf]*[\"']([^\"']+)[\"']"),
@@ -36,6 +38,51 @@ AUDIT_PATTERNS = [
 
 def load() -> dict:
     return json.loads(REGISTRY.read_text(encoding="utf-8"))
+
+
+def load_authority_policy() -> dict:
+    policy = json.loads(FIELD_AUTHORITY_POLICY.read_text(encoding="utf-8"))
+    if policy.get("schema") != "sahool.capability-field-authority/v1":
+        raise ValueError("capability field authority policy schema mismatch")
+    expected = {
+        "runtime.metrics": "repository_runtime_instrumentation",
+        "runtime.traces": "repository_runtime_instrumentation",
+        "runtime.audit_events": "repository_runtime_instrumentation",
+        "runtime.repository_receipts": "repository_runtime_instrumentation",
+        "runtime.verification_receipts": "runtime_verification",
+        "runtime_verified": "runtime_verification",
+        "production_certified": "certification",
+    }
+    fields = policy.get("field_authority", {})
+    for field, authority in expected.items():
+        if fields.get(field, {}).get("authority") != authority:
+            raise ValueError(f"field authority mismatch for {field}")
+    if fields["runtime.verification_receipts"].get("receipt_type") != AUTH_RECEIPT_TYPE:
+        raise ValueError("runtime verification receipt type mismatch")
+    if fields["runtime.verification_receipts"].get("append_only") is not True:
+        raise ValueError("runtime verification receipts must be append-only")
+    return policy
+
+
+def governed_verification_receipts(cap: dict) -> list[dict]:
+    """Preserve receipts owned by runtime verification; instrumentation may not rewrite them."""
+    preserved: list[dict] = []
+    for receipt in cap.get("runtime", {}).get("receipts", []) or []:
+        if not isinstance(receipt, dict):
+            continue
+        if receipt.get("type") != AUTH_RECEIPT_TYPE:
+            raise ValueError(
+                f"{cap.get('id')}: unknown structured runtime receipt type {receipt.get('type')!r}"
+            )
+        preserved.append(json.loads(json.dumps(receipt)))
+    return sorted(
+        preserved,
+        key=lambda r: (
+            str(r.get("application_id", "")),
+            str(r.get("candidate_id", "")),
+            str(r.get("target_sha", "")),
+        ),
+    )
 
 
 def source_files(cap: dict) -> list[Path]:
@@ -93,22 +140,28 @@ def receipt_evidence(cap: dict) -> list[str]:
 
 
 def derive(data: dict) -> dict:
+    # Binding this writer to the field-authority policy makes the ownership split executable,
+    # not documentary. Repository instrumentation owns its derived pointers only; governed
+    # verification receipts/runtime_verified and certification remain outside this writer.
+    load_authority_policy()
     result = json.loads(json.dumps(data))
     for cap in result["capabilities"]:
+        authoritative_receipts = governed_verification_receipts(cap)
         runtime = {"metrics": [], "traces": [], "receipts": [], "audit_events": []}
         for path in source_files(cap):
             extracted = extract_from_file(path)
             for key in ("metrics", "traces", "audit_events"):
                 runtime[key].extend(extracted[key])
-        runtime["receipts"].extend(receipt_evidence(cap))
-        for key in runtime:
-            runtime[key] = sorted(dict.fromkeys(runtime[key]))[:25]
+        repository_receipts = sorted(set(receipt_evidence(cap)))[:25]
+        for key in ("metrics", "traces", "audit_events"):
+            runtime[key] = sorted(set(runtime[key]))[:25]
+        # Keep the compatibility shape while preserving authority by value type. Static
+        # repository pointers are regenerated; attested dictionaries are append-only inputs
+        # owned by runtime_verification_apply and survive every instrumentation refresh.
+        runtime["receipts"] = repository_receipts + authoritative_receipts
         cap["runtime"] = runtime
-        present = sum(bool(runtime[k]) for k in runtime)
-        if present:
-            cap["status"] = "repository_runtime_instrumentation_linked_production_unverified"
-        # Never raise maturity/evidence level automatically: code instrumentation is not live proof.
-        cap["production_certified"] = False
+        # Deliberately do not write status, runtime_verified, maturity, evidence_level, or
+        # production_certified here. This tool derives repository instrumentation only.
     return result
 
 
