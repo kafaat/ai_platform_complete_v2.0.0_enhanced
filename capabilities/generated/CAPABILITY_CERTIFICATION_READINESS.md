@@ -1,6 +1,7 @@
 # Capability Certification Readiness
 
-Certification requires all nine gates plus maturity/evidence level 5.
+Certification requires all nine gates plus maturity/evidence level 5,
+plus a bound execution outcome and subject/SHA binding — level 5 alone is never sufficient.
 
 | Capability | Passed | Readiness | Eligible | Certified |
 |---|---:|---:|---|---|
@@ -56,6 +57,7 @@ Certification requires all nine gates plus maturity/evidence level 5.
 | WX-005 | 3/9 | 33.3% | false | false |
 | WX-006 | 3/9 | 33.3% | false | false |
 | WX-009 | 3/9 | 33.3% | false | false |
+| WX-010 | 3/9 | 33.3% | false | false |
 | FM-005 | 2/9 | 22.2% | false | false |
 | FM-006 | 2/9 | 22.2% | false | false |
 | FM-007 | 2/9 | 22.2% | false | false |
@@ -67,6 +69,7 @@ Certification requires all nine gates plus maturity/evidence level 5.
 | IRR-010 | 2/9 | 22.2% | false | false |
 | OPS-005 | 2/9 | 22.2% | false | false |
 | OPS-007 | 2/9 | 22.2% | false | false |
+| PA-003 | 2/9 | 22.2% | false | false |
 | PA-005 | 2/9 | 22.2% | false | false |
 | SAT-002 | 2/9 | 22.2% | false | false |
 | SEC-001 | 2/9 | 22.2% | false | false |
@@ -78,10 +81,8 @@ Certification requires all nine gates plus maturity/evidence level 5.
 | WX-002 | 2/9 | 22.2% | false | false |
 | WX-003 | 2/9 | 22.2% | false | false |
 | WX-008 | 2/9 | 22.2% | false | false |
-| WX-010 | 2/9 | 22.2% | false | false |
 | IRR-008 | 1/9 | 11.1% | false | false |
 | PA-004 | 1/9 | 11.1% | false | false |
 | SAT-004 | 1/9 | 11.1% | false | false |
 | WX-007 | 1/9 | 11.1% | false | false |
 | INT-004 | 0/9 | 0.0% | false | false |
-| PA-003 | 0/9 | 0.0% | false | false |

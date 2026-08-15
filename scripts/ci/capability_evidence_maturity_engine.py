@@ -37,6 +37,23 @@ FILES = (
 INTEGRATION_TOKENS = ("integration", "e2e", "contract", "workflow", "acceptance", "smoke")
 UNIT_TOKENS = ("test_", "/tests/", "_test.")
 
+# Additive evidence-record typing: every axis names the artifact its verdict is read from,
+# so a record is auditable back to its source instead of being a bare boolean.
+EVIDENCE_SOURCES = {
+    "documentation": "docs/capability-registry/generated/capability_registry.json",
+    "backend": "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "api": "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "database": "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "events": "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "web": "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "mobile": "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "unit_tests": "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "integration_tests": "docs/capability-registry/generated/mapping/capability_mapping.json",
+    "runtime_instrumentation": "capabilities/generated/capability_runtime_evidence.csv",
+    "runtime": "runtime-verification/generated/runtime_certification_summary.json",
+    "production": "capabilities/generated/capability_certification_matrix.csv",
+}
+
 
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -136,7 +153,19 @@ def build() -> dict[str, bytes]:
         # Runtime truth comes from the normalized authority result: governed promotion claim
         # + verified services + append-only attested application receipt. A raw registry boolean
         # or generic certification-readiness flag is not sufficient.
-        runtime_verified = authority[cid].get("runtime_authority_verified") is True
+        authority_row = authority[cid]
+        runtime_verified = authority_row.get("runtime_authority_verified") is True
+        # Promotion preconditions are stricter than the authority verdict alone: a declared
+        # L5 or an attested receipt without a bound execution outcome never promotes.
+        execution_outcome_satisfied = authority_row.get("execution_outcome_satisfied") is True
+        subject_sha_binding_satisfied = authority_row.get("subject_sha_binding_satisfied") is True
+        promotion_preconditions_satisfied = (
+            authority_row.get("promotion_preconditions_satisfied") is True
+        )
+        if promotion_preconditions_satisfied and not (
+            runtime_verified and execution_outcome_satisfied and subject_sha_binding_satisfied
+        ):
+            raise ValueError(f"{cid}: promotion preconditions inconsistent with components")
         production = truthy(ce.get("certified", False)) and truthy(
             rt.get("production_certified", False)
         )
@@ -163,12 +192,52 @@ def build() -> dict[str, bytes]:
                 int(rt.get(k, 0) or 0) > 0
                 for k in ("metrics", "traces", "receipts", "audit_events", "runtime_surfaces")
             ),
-            "runtime": runtime_verified,
+            "runtime": promotion_preconditions_satisfied,
             "production": production,
         }
         level, reasons = assessed_maturity(evidence, decision_linked, learning_linked)
         declared = int(cap.get("maturity", 0))
         delta = level - declared
+        declared_evidence_level = int(cap.get("evidence_level", 0))
+        evidence_records = [
+            {"type": axis, "source": EVIDENCE_SOURCES[axis], "present": bool(evidence[axis])}
+            for axis in sorted(evidence)
+        ]
+        assurance_records = [
+            {
+                "type": "governed_runtime_promotion",
+                "authority": "runtime_verification",
+                "governed_receipt_count": int(
+                    authority_row.get("governed_runtime_receipt_count") or 0
+                ),
+                "runtime_authority_verified": runtime_verified,
+                "execution_outcome_satisfied": execution_outcome_satisfied,
+                "subject_sha_binding_satisfied": subject_sha_binding_satisfied,
+                "promotion_preconditions_satisfied": promotion_preconditions_satisfied,
+            }
+        ]
+        blocking_reasons = set(authority_row.get("promotion_blocking_reasons") or [])
+        if "promotion_blocking_reasons" not in authority_row and not (
+            promotion_preconditions_satisfied
+        ):
+            blocking_reasons.add("promotion_preconditions_unavailable")
+        if declared_evidence_level == 5 and not promotion_preconditions_satisfied:
+            blocking_reasons.add("evidence_level_5_declared_without_execution_outcome_binding")
+        if not production:
+            blocking_reasons.add("production_certification_requires_explicit_decision")
+        runtime_claim = authority_row.get("runtime_verified_claim") is True
+        field_validation = {
+            "maturity": "in_enum" if 0 <= declared <= 5 else "out_of_enum",
+            "evidence_level": "in_enum" if 0 <= declared_evidence_level <= 5 else "out_of_enum",
+            "runtime_verified": "claim_exceeds_authority"
+            if runtime_claim and not runtime_verified
+            else "consistent_with_authority",
+            "production_certified": "false_as_required"
+            if not bool(cap.get("production_certified", False))
+            else (
+                "explicit_certification_present" if production else "claim_without_certification"
+            ),
+        }
         records.append(
             {
                 "capability_id": cid,
@@ -192,6 +261,12 @@ def build() -> dict[str, bytes]:
                 "runtime_verified": runtime_verified,
                 "production_certified": production,
                 "automatic_registry_update": False,
+                "declared_evidence_level": declared_evidence_level,
+                "evidence_records": evidence_records,
+                "assurance_records": assurance_records,
+                "blocking_reasons": sorted(blocking_reasons),
+                "field_validation": field_validation,
+                "promotion_preconditions_satisfied": promotion_preconditions_satisfied,
             }
         )
 
@@ -201,6 +276,13 @@ def build() -> dict[str, bytes]:
         raise ValueError("level 4 requires runtime verification")
     if any(r["assessed_maturity"] == 5 and not r["production_certified"] for r in records):
         raise ValueError("level 5 requires production certification")
+    if any(
+        r["assessed_maturity"] >= 4 and not r["promotion_preconditions_satisfied"] for r in records
+    ):
+        raise ValueError(
+            "level 4 requires satisfied promotion preconditions"
+            " (execution outcome + subject/SHA binding), not L5 or a receipt alone"
+        )
 
     by_domain: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for r in records:
@@ -236,6 +318,12 @@ def build() -> dict[str, bytes]:
             "automatic_registry_update": False,
             "runtime_required_for_level_4": True,
             "production_required_for_level_5": True,
+            "l5_alone_sufficient_for_promotion": False,
+            "promotion_preconditions": [
+                "runtime_authority_verified",
+                "execution_outcome",
+                "subject_sha_binding",
+            ],
         },
         "summary": {
             "capability_count": len(records),
@@ -248,6 +336,9 @@ def build() -> dict[str, bytes]:
             ),
             "runtime_verified": sum(r["runtime_verified"] for r in records),
             "production_certified": sum(r["production_certified"] for r in records),
+            "promotion_preconditions_satisfied": sum(
+                r["promotion_preconditions_satisfied"] for r in records
+            ),
             "average_assessed_maturity": round(
                 sum(r["assessed_maturity"] for r in records) / len(records), 2
             ),
@@ -272,6 +363,8 @@ def build() -> dict[str, bytes]:
                     "assessment_reasons",
                     "runtime_verified",
                     "production_certified",
+                    "promotion_preconditions_satisfied",
+                    "blocking_reasons",
                 )
             }
             for r in records
@@ -406,6 +499,8 @@ def build() -> dict[str, bytes]:
         "- Level 5 requires production certification plus a learning-loop link.",
         "- Repository instrumentation is recorded separately and is not runtime proof.",
         "- Canonical registry maturity is never changed automatically.",
+        "- A declared evidence level of 5 is necessary but never sufficient for promotion:",
+        "  a bound execution outcome and subject/SHA binding must both be satisfied.",
         "",
     ]
     outputs["CAPABILITY_EVIDENCE_MATURITY_REPORT.md"] = ("\n".join(lines)).encode()

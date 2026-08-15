@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,8 @@ REPORT = ROOT / "runtime-verification/generated/RUNTIME_CERTIFICATION_GATE.md"
 APPLY_LEDGER_DIR = ROOT / "runtime-verification/apply-ledger"
 FIELD_AUTHORITY_POLICY = ROOT / "docs/capability-registry/field_authority_policy.json"
 AUTH_RECEIPT_TYPE = "attested-runtime-verification"
+EXECUTION_OUTCOME_SCHEMA = "sahool.execution-outcome/v1"
+SHA40 = re.compile(r"^[0-9a-f]{40}$")
 
 
 def canonical(value: Any) -> str:
@@ -35,6 +38,11 @@ def load_authority_policy() -> dict[str, Any]:
         raise ValueError("runtime verification receipt type mismatch")
     if fields.get("production_certified", {}).get("authority") != "certification":
         raise ValueError("production_certified authority mismatch")
+    promotion = policy.get("promotion_preconditions", {})
+    if promotion.get("l5_alone_sufficient") is not False:
+        raise ValueError("promotion policy must declare l5_alone_sufficient false")
+    if promotion.get("execution_outcome_schema") != EXECUTION_OUTCOME_SCHEMA:
+        raise ValueError("promotion policy execution outcome schema mismatch")
     return policy
 
 
@@ -73,6 +81,49 @@ def governed_receipts(cap: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
             continue
         valid.append(receipt)
     return valid, errors
+
+
+def receipt_assurance(receipts: list[dict[str, Any]]) -> dict[str, Any]:
+    """Additive promotion preconditions: an attested receipt alone is never promotion truth.
+
+    Every verdict fails closed — no governed receipt, an unreadable application ledger,
+    a missing or foreign-subject execution outcome, and an unbound target SHA all read
+    as unsatisfied, each with a named blocking reason.
+    """
+    outcome_ok: list[bool] = []
+    binding_ok: list[bool] = []
+    reasons: set[str] = set()
+    for receipt in receipts:
+        app_id = str(receipt.get("application_id", ""))
+        try:
+            ledger = json.loads((APPLY_LEDGER_DIR / f"{app_id}.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            reasons.add("application_ledger_unreadable")
+            outcome_ok.append(False)
+            binding_ok.append(False)
+            continue
+        target = str(ledger.get("target_sha") or "")
+        bound = bool(SHA40.fullmatch(target)) and ledger.get("applied_to_head") == target
+        if not bound:
+            reasons.add("subject_sha_binding_unproven")
+        binding_ok.append(bound)
+        outcome = ledger.get("execution_outcome")
+        outcome_bound = (
+            isinstance(outcome, dict)
+            and outcome.get("schema") == EXECUTION_OUTCOME_SCHEMA
+            and outcome.get("conclusion") == "success"
+            and outcome.get("subject_sha") == target
+        )
+        if not outcome_bound:
+            reasons.add("execution_outcome_missing_or_unbound")
+        outcome_ok.append(outcome_bound)
+    if not receipts:
+        reasons.add("no_governed_runtime_receipt")
+    return {
+        "execution_outcome_satisfied": bool(receipts) and all(outcome_ok),
+        "subject_sha_binding_satisfied": bool(receipts) and all(binding_ok),
+        "blocking_reasons": sorted(reasons),
+    }
 
 
 def runtime_authority_verified(
@@ -120,6 +171,15 @@ def build() -> tuple[dict[str, Any], str]:
             capability_claim_violations.append(
                 f"{cap['id']}:production_claim_requires_explicit_external_decision"
             )
+        assurance = receipt_assurance(receipts)
+        preconditions_satisfied = (
+            authority_verified
+            and assurance["execution_outcome_satisfied"]
+            and assurance["subject_sha_binding_satisfied"]
+        )
+        blocking = set(assurance["blocking_reasons"])
+        if not authority_verified:
+            blocking.add("runtime_authority_unverified")
         capabilities.append(
             {
                 "id": cap["id"],
@@ -129,6 +189,10 @@ def build() -> tuple[dict[str, Any], str]:
                 "governed_runtime_receipt_count": len(receipts),
                 "runtime_authority_verified": authority_verified,
                 "production_certified_claim": production_claim,
+                "execution_outcome_satisfied": assurance["execution_outcome_satisfied"],
+                "subject_sha_binding_satisfied": assurance["subject_sha_binding_satisfied"],
+                "promotion_preconditions_satisfied": preconditions_satisfied,
+                "promotion_blocking_reasons": sorted(blocking),
             }
         )
     summary = {
@@ -142,6 +206,18 @@ def build() -> tuple[dict[str, Any], str]:
         "capability_claim_violations": sorted(capability_claim_violations),
         "capabilities": capabilities,
         "gate_passed": not service_claim_violations and not capability_claim_violations,
+        "promotion_precondition_policy": {
+            "l5_alone_sufficient": False,
+            "execution_outcome_schema": EXECUTION_OUTCOME_SCHEMA,
+            "required": [
+                "runtime_authority_verified",
+                "execution_outcome",
+                "subject_sha_binding",
+            ],
+        },
+        "promotion_preconditions_satisfied_capabilities": sorted(
+            c["id"] for c in capabilities if c["promotion_preconditions_satisfied"]
+        ),
     }
     lines = [
         "# SAHOOL Runtime Certification Gate",
@@ -153,6 +229,7 @@ def build() -> tuple[dict[str, Any], str]:
         f"- Service claim violations: **{len(service_claim_violations)}**",
         f"- Capability authority-verified: **{len(summary['runtime_authority_verified_capabilities'])}**",
         f"- Capability claim violations: **{len(capability_claim_violations)}**",
+        f"- Promotion preconditions satisfied: **{len(summary['promotion_preconditions_satisfied_capabilities'])}** (L5 alone is never sufficient — execution outcome and subject/SHA binding are required)",
         f"- Gate passed: **{str(summary['gate_passed']).lower()}**",
         "",
     ]

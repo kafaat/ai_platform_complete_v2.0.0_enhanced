@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "capabilities/registry/capabilities.json"
+RUNTIME_AUTHORITY = ROOT / "runtime-verification/generated/runtime_certification_summary.json"
 OUT = ROOT / "capabilities/generated"
 
 REQUIRED = (
@@ -25,7 +26,22 @@ REQUIRED = (
 )
 
 
-def evaluate(cap: dict) -> dict:
+def load_promotion_preconditions() -> dict[str, dict]:
+    """Per-capability promotion preconditions from the runtime authority summary.
+
+    Fail closed: a missing summary or a capability absent from it reads as unsatisfied,
+    so eligibility can never outrun the authority producer.
+    """
+    if not RUNTIME_AUTHORITY.exists():
+        return {}
+    summary = json.loads(RUNTIME_AUTHORITY.read_text(encoding="utf-8"))
+    rows = summary.get("capabilities")
+    if not isinstance(rows, list):
+        return {}
+    return {str(r.get("id")): r for r in rows if isinstance(r, dict) and r.get("id")}
+
+
+def evaluate(cap: dict, preconditions: dict[str, dict]) -> dict:
     runtime = cap["runtime"]
     production_evidence = [e for e in cap.get("evidence", []) if e.get("type") == "production"]
     runtime_evidence = [e for e in cap.get("evidence", []) if e.get("type") == "runtime"]
@@ -41,7 +57,18 @@ def evaluate(cap: dict) -> dict:
         "production_proof": bool(production_evidence),
     }
     passed = sum(gates.values())
-    eligible = all(gates.values()) and cap["maturity"] == 5 and cap["evidence_level"] == 5
+    authority_row = preconditions.get(cap["id"], {})
+    execution_outcome = authority_row.get("execution_outcome_satisfied") is True
+    subject_sha_binding = authority_row.get("subject_sha_binding_satisfied") is True
+    # An L5 declaration is necessary but never sufficient: certification eligibility
+    # additionally requires a bound execution outcome and subject/SHA binding.
+    eligible = (
+        all(gates.values())
+        and cap["maturity"] == 5
+        and cap["evidence_level"] == 5
+        and execution_outcome
+        and subject_sha_binding
+    )
     return {
         "id": cap["id"],
         "title": cap["title"],
@@ -49,6 +76,8 @@ def evaluate(cap: dict) -> dict:
         "gates_passed": passed,
         "gates_total": len(gates),
         "readiness_percent": round(100 * passed / len(gates), 1),
+        "execution_outcome": execution_outcome,
+        "subject_sha_binding": subject_sha_binding,
         "eligible_for_certification": eligible,
         "certified": cap["production_certified"],
     }
@@ -59,7 +88,8 @@ def main() -> int:
     ap.add_argument("--strict", action="store_true")
     args = ap.parse_args()
     data = json.loads(REGISTRY.read_text(encoding="utf-8"))
-    rows = [evaluate(c) for c in data["capabilities"]]
+    preconditions = load_promotion_preconditions()
+    rows = [evaluate(c, preconditions) for c in data["capabilities"]]
     OUT.mkdir(parents=True, exist_ok=True)
     with (OUT / "capability_certification_matrix.csv").open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
@@ -83,7 +113,8 @@ def main() -> int:
     lines = [
         "# Capability Certification Readiness",
         "",
-        "Certification requires all nine gates plus maturity/evidence level 5.",
+        "Certification requires all nine gates plus maturity/evidence level 5,",
+        "plus a bound execution outcome and subject/SHA binding — level 5 alone is never sufficient.",
         "",
         "| Capability | Passed | Readiness | Eligible | Certified |",
         "|---|---:|---:|---|---|",

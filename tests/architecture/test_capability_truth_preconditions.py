@@ -287,3 +287,268 @@ def test_generated_pipeline_orders_runtime_authority_before_evidence_maturity() 
     runtime = ("scripts/ci/runtime_certification_gate.py", ["--check"])
     evidence = ("scripts/ci/capability_evidence_maturity_engine.py", ["--check"])
     assert mod._sort_key(runtime) < mod._sort_key(evidence)
+
+
+# ── A′-1: additive evidence schema — L5 alone is never sufficient for promotion ──
+
+
+def test_promotion_policy_declares_l5_alone_insufficient() -> None:
+    policy = json.loads(
+        (ROOT / "docs/capability-registry/field_authority_policy.json").read_text(encoding="utf-8")
+    )
+    promotion = policy["promotion_preconditions"]
+    assert promotion["l5_alone_sufficient"] is False
+    assert promotion["execution_outcome_schema"] == "sahool.execution-outcome/v1"
+    assert "execution_outcome" in promotion["runtime_verified"]
+    assert "subject_sha_binding" in promotion["runtime_verified"]
+    assert "evidence_level_5_necessary_not_sufficient" in promotion["production_certified"]
+
+
+def _ledger_for(receipt: dict, **extra) -> dict:
+    return {
+        "application_id": receipt["application_id"],
+        "candidate_id": receipt["candidate_id"],
+        "approval_run_id": receipt["approval_run_id"],
+        "target_sha": receipt["target_sha"],
+        "environment_id": receipt["environment_id"],
+        "capabilities": ["X-001"],
+        **extra,
+    }
+
+
+def test_a_receipt_without_execution_outcome_never_satisfies_promotion(
+    tmp_path: Path, monkeypatch
+) -> None:
+    mod = load_script("runtime_certification_gate.py")
+    monkeypatch.setattr(mod, "APPLY_LEDGER_DIR", tmp_path)
+    receipt = _attested_receipt()
+    ledger = _ledger_for(receipt, applied_to_head=receipt["target_sha"])
+    (tmp_path / f"{receipt['application_id']}.json").write_text(
+        json.dumps(ledger), encoding="utf-8"
+    )
+    verdict = mod.receipt_assurance([receipt])
+    assert verdict["execution_outcome_satisfied"] is False
+    assert verdict["subject_sha_binding_satisfied"] is True
+    assert "execution_outcome_missing_or_unbound" in verdict["blocking_reasons"]
+    empty = mod.receipt_assurance([])
+    assert empty["execution_outcome_satisfied"] is False
+    assert empty["subject_sha_binding_satisfied"] is False
+    assert empty["blocking_reasons"] == ["no_governed_runtime_receipt"]
+
+
+def test_an_execution_outcome_bound_to_a_foreign_subject_is_refused(
+    tmp_path: Path, monkeypatch
+) -> None:
+    mod = load_script("runtime_certification_gate.py")
+    monkeypatch.setattr(mod, "APPLY_LEDGER_DIR", tmp_path)
+    receipt = _attested_receipt()
+    outcome = {
+        "schema": "sahool.execution-outcome/v1",
+        "conclusion": "success",
+        "subject_sha": "f" * 40,
+    }
+    ledger = _ledger_for(receipt, applied_to_head=receipt["target_sha"], execution_outcome=outcome)
+    (tmp_path / f"{receipt['application_id']}.json").write_text(
+        json.dumps(ledger), encoding="utf-8"
+    )
+    verdict = mod.receipt_assurance([receipt])
+    assert verdict["execution_outcome_satisfied"] is False
+    assert "execution_outcome_missing_or_unbound" in verdict["blocking_reasons"]
+
+    outcome["subject_sha"] = receipt["target_sha"]
+    (tmp_path / f"{receipt['application_id']}.json").write_text(
+        json.dumps(ledger), encoding="utf-8"
+    )
+    verdict = mod.receipt_assurance([receipt])
+    assert verdict["execution_outcome_satisfied"] is True
+    assert verdict["subject_sha_binding_satisfied"] is True
+    assert verdict["blocking_reasons"] == []
+
+
+def test_an_unbound_target_sha_breaks_subject_binding_even_with_an_outcome(
+    tmp_path: Path, monkeypatch
+) -> None:
+    mod = load_script("runtime_certification_gate.py")
+    monkeypatch.setattr(mod, "APPLY_LEDGER_DIR", tmp_path)
+    receipt = _attested_receipt()
+    outcome = {
+        "schema": "sahool.execution-outcome/v1",
+        "conclusion": "success",
+        "subject_sha": receipt["target_sha"],
+    }
+    ledger = _ledger_for(receipt, applied_to_head="e" * 40, execution_outcome=outcome)
+    (tmp_path / f"{receipt['application_id']}.json").write_text(
+        json.dumps(ledger), encoding="utf-8"
+    )
+    verdict = mod.receipt_assurance([receipt])
+    assert verdict["subject_sha_binding_satisfied"] is False
+    assert "subject_sha_binding_unproven" in verdict["blocking_reasons"]
+
+
+def _maturity_fixture(tmp_path: Path, monkeypatch, authority_row: dict) -> object:
+    mod = load_script("capability_evidence_maturity_engine.py")
+    registry = tmp_path / "registry.json"
+    mapping = tmp_path / "mapping.json"
+    runtime_csv = tmp_path / "runtime.csv"
+    cert_csv = tmp_path / "cert.csv"
+    authority = tmp_path / "authority.json"
+    registry.write_text(
+        json.dumps(
+            {
+                "capabilities": [
+                    {
+                        "id": "X-001",
+                        "title": {"en": "X"},
+                        "domain": "x",
+                        "dependencies": [],
+                        "maturity": 0,
+                        "evidence_level": 5,
+                        "business_goal": "x",
+                        "apis": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    mapping.write_text(
+        json.dumps(
+            {
+                "capabilities": [
+                    {
+                        "capability_id": "X-001",
+                        "tests": [],
+                        "backend": [],
+                        "routes": [],
+                        "database": [],
+                        "events": [],
+                        "web": [],
+                        "mobile": [],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    runtime_csv.write_text(
+        "id,metrics,traces,receipts,audit_events,runtime_surfaces,production_certified\n"
+        "X-001,0,0,0,0,0,false\n",
+        encoding="utf-8",
+    )
+    cert_csv.write_text(
+        "id,runtime_proof,eligible_for_certification,certified\nX-001,true,true,false\n",
+        encoding="utf-8",
+    )
+    authority.write_text(
+        json.dumps({"capabilities": [dict(authority_row, id="X-001")]}), encoding="utf-8"
+    )
+    monkeypatch.setattr(mod, "ROOT", tmp_path)
+    monkeypatch.setattr(mod, "REGISTRY", registry)
+    monkeypatch.setattr(mod, "MAPPING", mapping)
+    monkeypatch.setattr(mod, "RUNTIME_CSV", runtime_csv)
+    monkeypatch.setattr(mod, "CERT_CSV", cert_csv)
+    monkeypatch.setattr(mod, "RUNTIME_AUTHORITY", authority)
+    return mod
+
+
+def test_evidence_maturity_binds_promotion_to_preconditions_not_authority_alone(
+    tmp_path: Path, monkeypatch
+) -> None:
+    mod = _maturity_fixture(
+        tmp_path,
+        monkeypatch,
+        {
+            "runtime_authority_verified": True,
+            "execution_outcome_satisfied": False,
+            "subject_sha_binding_satisfied": True,
+            "promotion_preconditions_satisfied": False,
+            "promotion_blocking_reasons": ["execution_outcome_missing_or_unbound"],
+        },
+    )
+    record = json.loads(mod.build()["capability_evidence_matrix.json"])["capabilities"][0]
+    assert record["runtime_verified"] is True
+    assert record["evidence"]["runtime"] is False
+    assert record["promotion_preconditions_satisfied"] is False
+    assert "execution_outcome_missing_or_unbound" in record["blocking_reasons"]
+    assert (
+        "evidence_level_5_declared_without_execution_outcome_binding" in record["blocking_reasons"]
+    )
+
+
+def test_evidence_maturity_fails_closed_on_an_authority_row_without_precondition_fields(
+    tmp_path: Path, monkeypatch
+) -> None:
+    mod = _maturity_fixture(tmp_path, monkeypatch, {"runtime_authority_verified": True})
+    record = json.loads(mod.build()["capability_evidence_matrix.json"])["capabilities"][0]
+    assert record["evidence"]["runtime"] is False
+    assert record["promotion_preconditions_satisfied"] is False
+    assert "promotion_preconditions_unavailable" in record["blocking_reasons"]
+
+
+def test_additive_records_preserve_all_prior_fields_and_type_their_sources(
+    tmp_path: Path, monkeypatch
+) -> None:
+    mod = _maturity_fixture(tmp_path, monkeypatch, {"runtime_authority_verified": False})
+    record = json.loads(mod.build()["capability_evidence_matrix.json"])["capabilities"][0]
+    prior_fields = {
+        "capability_id",
+        "title",
+        "domain",
+        "declared_maturity",
+        "assessed_maturity",
+        "maturity_delta",
+        "maturity_alignment",
+        "evidence",
+        "evidence_score",
+        "unit_test_paths",
+        "integration_test_paths",
+        "decision_linked",
+        "learning_linked",
+        "assessment_reasons",
+        "runtime_verified",
+        "production_certified",
+        "automatic_registry_update",
+    }
+    assert prior_fields <= set(record)
+    assert {r["type"] for r in record["evidence_records"]} == set(record["evidence"])
+    assert all(r["source"] for r in record["evidence_records"])
+    assurance = record["assurance_records"][0]
+    assert assurance["authority"] == "runtime_verification"
+    assert assurance["promotion_preconditions_satisfied"] is False
+    assert record["field_validation"]["evidence_level"] == "in_enum"
+    assert record["field_validation"]["production_certified"] == "false_as_required"
+
+
+def test_certification_eligibility_requires_outcome_and_binding_beyond_l5() -> None:
+    mod = load_script("capability_certification_gate.py")
+    cap = {
+        "id": "X-001",
+        "title": "X",
+        "services": ["s"],
+        "apis": ["a"],
+        "tests": ["t"],
+        "maturity": 5,
+        "evidence_level": 5,
+        "production_certified": False,
+        "runtime": {
+            "metrics": ["m"],
+            "traces": ["t"],
+            "receipts": ["r"],
+            "audit_events": ["a"],
+        },
+        "evidence": [{"type": "runtime"}, {"type": "production"}],
+    }
+    without = mod.evaluate(cap, {})
+    assert without["gates_passed"] == without["gates_total"]
+    assert without["execution_outcome"] is False
+    assert without["eligible_for_certification"] is False
+    with_preconditions = mod.evaluate(
+        cap,
+        {
+            "X-001": {
+                "execution_outcome_satisfied": True,
+                "subject_sha_binding_satisfied": True,
+            }
+        },
+    )
+    assert with_preconditions["eligible_for_certification"] is True

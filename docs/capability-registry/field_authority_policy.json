@@ -88,5 +88,20 @@
     "compare_raw": ["id", "domain", "dependencies", "maturity", "evidence_level", "owner"],
     "exclude_raw": ["title", "apis", "tests", "runtime", "evidence", "rationale", "status"],
     "no_third_value_registry": true
+  },
+  "promotion_preconditions": {
+    "l5_alone_sufficient": false,
+    "execution_outcome_schema": "sahool.execution-outcome/v1",
+    "runtime_verified": [
+      "governed_apply_receipt",
+      "execution_outcome",
+      "subject_sha_binding"
+    ],
+    "production_certified": [
+      "evidence_level_5_necessary_not_sufficient",
+      "execution_outcome",
+      "subject_sha_binding",
+      "explicit_certification_decision"
+    ]
   }
 }
