@@ -7,6 +7,8 @@
 - Findings: **3** (identity 0 · field drift 3)
 - Fields compared raw: id, domain, dependencies, maturity, evidence_level, owner
 - Fields excluded (no raw normalization yet): title, apis, tests, runtime, evidence, rationale, status
+- Evidence-maturity debt identities: **53**
+- Identity ratchet: **PASS**
 
 | Finding | Kind | Field | Canonical | Legacy | Authority |
 |---|---|---|---|---|---|

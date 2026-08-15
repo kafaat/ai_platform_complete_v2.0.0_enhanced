@@ -1,0 +1,77 @@
+{
+  "classes": {
+    "evidence_maturity": {
+      "identities": [
+        "DEC-001:declared_above_evidence:evidence-maturity",
+        "DEC-003:declared_above_evidence:evidence-maturity",
+        "DEC-008:declared_above_evidence:evidence-maturity",
+        "DEC-009:declared_above_evidence:evidence-maturity",
+        "FM-001:declared_above_evidence:evidence-maturity",
+        "FM-005:declared_above_evidence:evidence-maturity",
+        "FM-006:declared_above_evidence:evidence-maturity",
+        "FM-007:declared_above_evidence:evidence-maturity",
+        "GIS-001:declared_above_evidence:evidence-maturity",
+        "GIS-002:declared_above_evidence:evidence-maturity",
+        "GIS-004:declared_above_evidence:evidence-maturity",
+        "INT-001:declared_above_evidence:evidence-maturity",
+        "INT-002:declared_above_evidence:evidence-maturity",
+        "INT-003:declared_above_evidence:evidence-maturity",
+        "INT-004:declared_above_evidence:evidence-maturity",
+        "IRR-001:declared_above_evidence:evidence-maturity",
+        "IRR-002:declared_above_evidence:evidence-maturity",
+        "IRR-003:evidence_above_declared:evidence-maturity",
+        "IRR-005:declared_above_evidence:evidence-maturity",
+        "IRR-006:declared_above_evidence:evidence-maturity",
+        "IRR-007:declared_above_evidence:evidence-maturity",
+        "IRR-008:declared_above_evidence:evidence-maturity",
+        "IRR-009:evidence_above_declared:evidence-maturity",
+        "IRR-010:declared_above_evidence:evidence-maturity",
+        "OPS-001:declared_above_evidence:evidence-maturity",
+        "OPS-002:declared_above_evidence:evidence-maturity",
+        "OPS-005:declared_above_evidence:evidence-maturity",
+        "OPS-006:declared_above_evidence:evidence-maturity",
+        "OPS-007:declared_above_evidence:evidence-maturity",
+        "OPS-008:declared_above_evidence:evidence-maturity",
+        "PA-001:declared_above_evidence:evidence-maturity",
+        "PA-002:declared_above_evidence:evidence-maturity",
+        "PA-003:evidence_above_declared:evidence-maturity",
+        "PA-004:declared_above_evidence:evidence-maturity",
+        "SAT-002:declared_above_evidence:evidence-maturity",
+        "SAT-004:declared_above_evidence:evidence-maturity",
+        "SAT-007:declared_above_evidence:evidence-maturity",
+        "SAT-008:declared_above_evidence:evidence-maturity",
+        "SEC-002:declared_above_evidence:evidence-maturity",
+        "SEC-003:declared_above_evidence:evidence-maturity",
+        "SEC-005:declared_above_evidence:evidence-maturity",
+        "SEC-007:declared_above_evidence:evidence-maturity",
+        "SEC-008:declared_above_evidence:evidence-maturity",
+        "SOIL-002:declared_above_evidence:evidence-maturity",
+        "SOIL-003:declared_above_evidence:evidence-maturity",
+        "SOIL-004:declared_above_evidence:evidence-maturity",
+        "SOIL-005:declared_above_evidence:evidence-maturity",
+        "WX-001:declared_above_evidence:evidence-maturity",
+        "WX-005:declared_above_evidence:evidence-maturity",
+        "WX-007:declared_above_evidence:evidence-maturity",
+        "WX-008:declared_above_evidence:evidence-maturity",
+        "WX-009:declared_above_evidence:evidence-maturity",
+        "WX-010:declared_above_evidence:evidence-maturity"
+      ]
+    },
+    "registry_reconciliation": {
+      "identities": [
+        "INT-004:evidence_level:registry-reconciliation",
+        "INT-004:maturity:registry-reconciliation",
+        "INT-004:owner:registry-reconciliation"
+      ]
+    }
+  },
+  "invariants": {
+    "baseline_never_promotes_capability_values": true,
+    "classes_are_not_interchangeable": true,
+    "new_drift_blocks": true,
+    "stale_baseline_blocks": true
+  },
+  "purpose": "Known legacy drift identities only. New drift and stale baseline entries block; this file is not a capability value source of truth.",
+  "schema": "sahool.capability-drift-ratchet-baseline/v1",
+  "schema_version": "1.0.0"
+}
