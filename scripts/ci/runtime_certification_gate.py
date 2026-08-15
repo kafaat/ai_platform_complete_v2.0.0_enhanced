@@ -21,6 +21,8 @@ ACCEPTANCE_SCHEMA = "sahool.certification-acceptance/v1"
 AUTH_RECEIPT_TYPE = "attested-runtime-verification"
 EXECUTION_OUTCOME_SCHEMA = "sahool.execution-outcome/v1"
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
+HEX64 = re.compile(r"^[0-9a-f]{64}$")
+DIGEST64 = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
 def canonical(value: Any) -> str:
@@ -66,30 +68,31 @@ def load_certification_acceptance(path: Path = CERTIFICATION_ACCEPTANCE) -> dict
     accepted = doc.get("accepted")
     if not isinstance(accepted, dict):
         raise ValueError("certification acceptance missing accepted block")
-    for key in ("verdict", "assurance_level", "producer_run_id", "certify_run_id"):
+    # الهويّة **كاملةً** تُتحقَّق ثم تُحمَل كما هي — لا subset يَعِد باسمها:
+    # مراجعةٌ آليّة أصابت في أنّ محمّلاً يُسقِط حقولاً موجودة يجعل الملخّص لا
+    # يحمل «المرجع كما هو»، ويسمح لملفٍّ ناقص الهويّة بالمرور رغم وعد الكسر بصوت.
+    for key in ("verdict", "assurance_level", "producer_run_id", "certify_run_id", "recorded_at"):
         value = accepted.get(key)
         if not isinstance(value, str) or not value:
             raise ValueError(f"certification acceptance field invalid: {key}")
-    head = str(accepted.get("head_sha") or "")
-    if not SHA40.fullmatch(head):
-        raise ValueError("certification acceptance head_sha malformed")
-    record_artifact = accepted.get("certification_record_artifact")
-    if not isinstance(record_artifact, dict) or not isinstance(
-        record_artifact.get("artifact_id"), int
-    ):
-        raise ValueError("certification acceptance artifact identity invalid")
-    digest = record_artifact.get("digest")
-    if not isinstance(digest, str) or not digest:
-        raise ValueError("certification acceptance artifact digest missing")
-    return {
-        "head_sha": head,
-        "verdict": accepted["verdict"],
-        "assurance_level": accepted["assurance_level"],
-        "producer_run_id": accepted["producer_run_id"],
-        "certify_run_id": accepted["certify_run_id"],
-        "certification_record_artifact_id": record_artifact["artifact_id"],
-        "certification_record_digest": digest,
-    }
+    for key in ("head_sha", "tree_sha"):
+        if not SHA40.fullmatch(str(accepted.get(key) or "")):
+            raise ValueError(f"certification acceptance {key} malformed")
+    if not str(accepted.get("producer_run_attempt") or "").isdigit():
+        raise ValueError("certification acceptance producer_run_attempt malformed")
+    if not HEX64.fullmatch(str(accepted.get("manifest_sha256") or "")):
+        raise ValueError("certification acceptance manifest_sha256 malformed")
+    if not isinstance(accepted.get("reason_codes"), list):
+        raise ValueError("certification acceptance reason_codes malformed")
+    # البصمات بصيغة المستودع الصارمة (`sha256:` + 64 hex) لا «غير فارغة» —
+    # بصمةٌ مُضلِّلة الشكل مرجعٌ لا يقود إلى شيء.
+    for role in ("certification_record_artifact", "execution_outcome_artifact"):
+        artifact = accepted.get(role)
+        if not isinstance(artifact, dict) or not isinstance(artifact.get("artifact_id"), int):
+            raise ValueError(f"certification acceptance {role} identity invalid")
+        if not DIGEST64.fullmatch(str(artifact.get("digest") or "")):
+            raise ValueError(f"certification acceptance {role} digest malformed")
+    return dict(accepted)
 
 
 def governed_receipts(cap: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:

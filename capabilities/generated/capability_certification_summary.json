@@ -2,11 +2,24 @@
   "capabilities_total": 81,
   "release_assurance_reference": {
     "assurance_level": "L5",
-    "certification_record_artifact_id": 9252747952,
-    "certification_record_digest": "sha256:1005c4e6fae9969b21f94e1dccf877558d344ec562707e782cf5dced4d1b9e5e",
+    "certification_record_artifact": {
+      "artifact_id": 9252747952,
+      "digest": "sha256:1005c4e6fae9969b21f94e1dccf877558d344ec562707e782cf5dced4d1b9e5e",
+      "size_in_bytes": 1555
+    },
     "certify_run_id": "31907504319",
+    "execution_outcome_artifact": {
+      "artifact_id": 9252747720,
+      "digest": "sha256:6cddbf7d63df8720704ce0676ecf961162ab1020a66e59f689a6097779813a3f",
+      "size_in_bytes": 833
+    },
     "head_sha": "2d8fdb3f2e34b5ecd8cc9cafda4df4d0309fc1a3",
+    "manifest_sha256": "893c386421ab66d940dccc0b25a2a315195ff8c183fb4baa6bed912e2f6d92e8",
+    "producer_run_attempt": "1",
     "producer_run_id": "31905594023",
+    "reason_codes": [],
+    "recorded_at": "2026-08-15T20:44:37Z",
+    "tree_sha": "d7138dff67b1a6a8523be872c3a60c1f4fa10bc6",
     "verdict": "VERIFIED"
   },
   "eligible_for_certification": 0,
