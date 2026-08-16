@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -160,16 +161,23 @@ def test_a_permissive_or_nested_policy_is_refused(tmp_path):
         raise AssertionError("nested canonical field must be refused")
 
 
+def _assignment_pattern(field: str) -> re.Pattern[str]:
+    """إسنادٌ إلى ``cap[<field>]`` بأيّ تنويع تنسيق: اقتباس مفرد أو مزدوج،
+    فراغات حرّة، إسناد بسيط أو مركَّب — مراجعةٌ آليّة أصابت في أنّ المطابقة
+    الحرفيّة تُتجاوَز بتنويع تنسيقٍ بريء الشكل."""
+    return re.compile(r"cap\s*\[\s*['\"]" + re.escape(field) + r"['\"]\s*\]\s*[-+*/|&^%]?=(?!=)")
+
+
 def test_the_linker_no_longer_writes_canonical_owned_fields():
     """قفل A′-4b: الرابط فقد سلطة كتابة `dependencies` و`owner` — عودةُ أيّ
-    سطر كتابةٍ لهما تُحمِّر هذا الاختبار قبل أن تصل CI."""
+    سطر كتابةٍ لهما بأيّ صياغة تُحمِّر هذا الاختبار قبل أن تصل CI."""
     source = (ROOT / "scripts/ci/capability_linker.py").read_text(encoding="utf-8")
     executable = "\n".join(
         line for line in source.splitlines() if not line.lstrip().startswith("#")
     )
 
-    assert 'cap["owner"] =' not in executable
-    assert 'cap["dependencies"] =' not in executable
+    assert not _assignment_pattern("owner").search(executable)
+    assert not _assignment_pattern("dependencies").search(executable)
     # والحقول التي يملكها بحقّ باقية له:
-    assert 'cap["services"] =' in executable
-    assert 'cap["apis"] =' in executable
+    assert _assignment_pattern("services").search(executable)
+    assert _assignment_pattern("apis").search(executable)
