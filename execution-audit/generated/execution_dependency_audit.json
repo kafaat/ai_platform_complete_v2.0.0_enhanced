@@ -106936,188 +106936,167 @@
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "post",
-      "line": 762
+      "line": 766
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "warning",
-      "line": 764
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cdse_client.py",
-      "source": "search_scenes",
-      "target": "_safe_log_payload",
       "line": 768
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
+      "target": "_safe_log_payload",
+      "line": 772
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cdse_client.py",
+      "source": "search_scenes",
       "target": "_minimal_fallback",
-      "line": 770
+      "line": 774
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "post",
-      "line": 771
+      "line": 775
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "warning",
-      "line": 773
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cdse_client.py",
-      "source": "search_scenes",
-      "target": "_safe_log_payload",
       "line": 777
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
+      "target": "_safe_log_payload",
+      "line": 781
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cdse_client.py",
+      "source": "search_scenes",
       "target": "json",
-      "line": 780
+      "line": 785
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "get",
-      "line": 781
+      "line": 786
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "list",
-      "line": 781
+      "line": 786
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "get",
-      "line": 787
+      "line": 792
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "get",
-      "line": 787
+      "line": 792
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "dict",
-      "line": 789
+      "line": 794
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "post",
-      "line": 791
+      "line": 796
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "warning",
-      "line": 795
+      "line": 800
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "json",
-      "line": 801
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cdse_client.py",
-      "source": "search_scenes",
-      "target": "extend",
-      "line": 802
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cdse_client.py",
-      "source": "search_scenes",
-      "target": "get",
-      "line": 802
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cdse_client.py",
-      "source": "search_scenes",
-      "target": "list",
-      "line": 802
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cdse_client.py",
-      "source": "search_scenes",
-      "target": "get",
-      "line": 803
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cdse_client.py",
-      "source": "search_scenes",
-      "target": "get",
-      "line": 803
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/cdse_client.py",
-      "source": "search_scenes",
-      "target": "warning",
       "line": 806
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
-      "target": "len",
-      "line": 809
+      "target": "extend",
+      "line": 807
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
-      "target": "_apply_cloud_filter",
-      "line": 812
+      "target": "get",
+      "line": 807
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cdse_client.py",
+      "source": "search_scenes",
+      "target": "list",
+      "line": 807
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cdse_client.py",
+      "source": "search_scenes",
+      "target": "get",
+      "line": 808
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cdse_client.py",
+      "source": "search_scenes",
+      "target": "get",
+      "line": 808
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "warning",
-      "line": 814
+      "line": 811
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "len",
-      "line": 816
+      "line": 814
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
-      "target": "_summarize_cloud_diagnostics",
+      "target": "_apply_cloud_filter",
       "line": 817
     },
     {
@@ -107125,42 +107104,63 @@
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "warning",
+      "line": 819
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cdse_client.py",
+      "source": "search_scenes",
+      "target": "len",
+      "line": 821
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cdse_client.py",
+      "source": "search_scenes",
+      "target": "_summarize_cloud_diagnostics",
       "line": 822
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
+      "target": "warning",
+      "line": 827
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/cdse_client.py",
+      "source": "search_scenes",
       "target": "min",
-      "line": 828
+      "line": 833
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "warning",
-      "line": 829
+      "line": 834
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "sleep",
-      "line": 836
+      "line": 841
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "search_scenes",
       "target": "warning",
-      "line": 840
+      "line": 845
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/cdse_client.py",
       "source": "get_client",
       "target": "CdseClient",
-      "line": 857
+      "line": 862
     },
     {
       "owner": "raster-service",

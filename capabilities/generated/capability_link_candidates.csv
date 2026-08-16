@@ -1346,6 +1346,8 @@ SAT-001,test,tests_v9/test_cdse_and_storage_failclosed_v29_8.py,3,applied
 SAT-001,test,tests_v9/test_cdse_catalog_hardening_20260626.py,3,applied
 SAT-001,test,tests_v9/test_cdse_cloud_filter_policy.py,3,applied
 SAT-001,test,tests_v9/test_cdse_evalscript.py,3,applied
+SAT-001,test,tests_v9/test_cdse_latest_scene_day_binding.py,5,applied
+SAT-001,test,tests_v9/test_cdse_latest_selection_semantics.py,3,applied
 SAT-001,test,tests_v9/test_cdse_latest_window_singleflight_guard.py,3,applied
 SAT-001,test,tests_v9/test_cdse_process_throttle_retry_guard.py,3,applied
 SAT-001,test,tests_v9/test_deferred_satellite_integration_v30_4.py,3,applied
