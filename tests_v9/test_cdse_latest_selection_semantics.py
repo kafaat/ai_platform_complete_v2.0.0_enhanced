@@ -332,8 +332,14 @@ def test_the_persisted_path_consumes_the_same_policy() -> None:
 def test_the_catalog_client_no_longer_claims_a_sort_it_does_not_do() -> None:
     """التعليق الذي يصف سلوكاً غير موجود هو صنف «ادّعاء بلا شاهد» — وقد بُنِي عليه."""
     src = (RASTER / "cdse_client.py").read_text(encoding="utf-8")
-    assert "Client-side date sorting is applied below" not in src
-    assert "Client-side cloud/date sorting still" not in src
+    assert "Client-side date sorting is applied below" not in src, (
+        "فرزٌ زبونيّ بعد الربط يعيد خلط «الأحدث» بـ«الأفضل» الذي فصلته هذه الشريحة — "
+        "الاختيار سلطة select_scene وحدها، وأيّ إعادة فرزٍ لاحقة تلغي إيصالها"
+    )
+    assert "Client-side cloud/date sorting still" not in src, (
+        "بقايا الفرز الزبونيّ القديم ممنوعة عمداً: كانت تقدّم «أفضل ما في الصفحة الأولى» "
+        "بوصفه أحدث المقبول — المسار الآن على المنتقي المركزيّ بإيصاله"
+    )
 
 
 # ── ٥) الاستجواب من الأحدث إلى الأقدم ──────────────────────────────────────────
