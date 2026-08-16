@@ -560,3 +560,25 @@ def test_the_management_engine_is_wired_not_merely_declared():
     assert "scripts/ci/capability_management_engine.py" not in baseline, (
         "مُسجَّل في _GENERATE_FLAG وباقٍ في أساس غير المُوصَّلين — المصدران يتناقضان"
     )
+
+
+def test_regenerate_orchestrator_delegates_to_the_fixed_point_engine() -> None:
+    """عقد fixed-point (قِيس 2026-08-16، ثلاث جولات CI ضائعة): السكربت الصدفيّ
+    كان ثلاث خطوات واسمُه يعِد بالكلّ — فمن استعمله حصل على خضرةٍ عن سؤالٍ
+    ناقص، وrelease أُعيد بناؤها بعد توليد الخريطة فبقيت الخريطة بائتة.
+    العقد: تفويضٌ كامل لمحرّك الثبات (--fix) ثم فحصٌ نهائيّ بعمليّة نظيفة
+    **بعد** آخر بناءٍ للحزمة (--check ثم validate_release_package)."""
+    src = (ROOT / "scripts/ci/regenerate_all_generated.sh").read_text(encoding="utf-8")
+
+    # المُستجوَب هو المُنفَّذ لا المشروح: ترويسة السكربت تحمل الأوامر نصّاً شرحاً،
+    # فمرساةٌ على النصّ الكامل تمرّ والسطرُ المنفَّذ محذوف (قِيس بزرع
+    # «true # fix dropped» — بقي الاختبار أخضر حتى صار الاستجواب أسطراً غير معلَّقة).
+    code = "\n".join(
+        line for line in src.splitlines() if line.strip() and not line.lstrip().startswith("#")
+    )
+    fix_at = code.index("python3 scripts/ci/verify_all_generated.py --fix")
+    check_at = code.index("python3 scripts/ci/verify_all_generated.py --check")
+    validate_at = code.index("python3 scripts/release/validate_release_package.py")
+    assert fix_at < check_at < validate_at, (
+        "ترتيب العقد مكسور: التوليد حتى الثبات، ثم الفحص النظيف، ثم تحقّق الحزمة"
+    )

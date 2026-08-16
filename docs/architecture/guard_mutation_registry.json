@@ -140,6 +140,12 @@
           "find": "        rel_posix = rel.as_posix()\n        if rel_posix in META_GOVERNANCE_FILES or rel_posix.startswith(META_GOVERNANCE_PREFIXES):\n            continue",
           "replace": "        rel_posix = rel.as_posix()  # mutated: witness files scanned as capability evidence",
           "why": "نزعُ عزل الحوكمة الوصفيّة يعيد العطل المقيس على #850 حرفيّاً: نصُّ طفرةٍ يسمّي هويّة قدرة نقل ~40 إشارة أحداث من قدرة أمنيّة إليها — الشاهد يعدّل ما يشهده والخريطة تتلوّن بنصوص الحوكمة."
+        },
+        {
+          "expect": "test_evidence_cap_truncation_is_declared_not_silent",
+          "find": "        full = dedup(rec[k], \"value\")\n        rec[k] = full[:100]\n        if len(full) > 100:\n            truncated[k] = len(full) - 100",
+          "replace": "        rec[k] = dedup(rec[k], \"value\")[:100]",
+          "why": "عودة القصّ الصامت عند سقف المئة: قِيس أنّ SEC-001.database كان يُسقط 743 شاهداً وSAT-003.tests يُسقط 69 بلا أثر — وإضافةُ اختبارٍ أخرجت شاهدَ اختبارٍ قائماً من مصنوعة حوكمة دون أن يعلم أحد"
         }
       ],
       "test": "tests/architecture/test_capability_mapping_engine.py"
@@ -245,6 +251,24 @@
         }
       ],
       "test": "tests_v9/test_certify_artifact_contract.py"
+    },
+    "scripts/ci/regenerate_all_generated.sh": {
+      "$why_ar": "منسّق نقطة الثبات الوحيد — نكوصه إلى سلسلة جزئيّة يعيد صنف الجولات الثلاث الضائعة (خضرة عن سؤال ناقص).",
+      "mutations": [
+        {
+          "expect": "test_regenerate_orchestrator_delegates_to_the_fixed_point_engine",
+          "find": "python3 scripts/ci/verify_all_generated.py --check",
+          "replace": "true # check dropped",
+          "why": "إسقاط الفحص النهائيّ بعد آخر بناءٍ للحزمة يعيد بالضبط حالة «release تغيّرت والخريطة لم تُفحَص بعدها» — الصنف الذي كلّف ثلاث جولات CI في يوم واحد"
+        },
+        {
+          "expect": "test_regenerate_orchestrator_delegates_to_the_fixed_point_engine",
+          "find": "python3 scripts/ci/verify_all_generated.py --fix",
+          "replace": "true # fix dropped",
+          "why": "مراجعة Copilot على #860 قاست أنّ مرساة الاختبار كانت تطابق ترويسة الشرح لا السطر المنفَّذ — زرع هذا الإسقاط بقي أخضر قبل إصلاح الاستجواب (أسطر غير معلَّقة حصراً) ويُحمِرّ بعده"
+        }
+      ],
+      "test": "tests/architecture/test_verify_all_generated.py"
     },
     "scripts/ci/runtime_certification_gate.py": {
       "$gap_ar": "CAPABILITY-RUNTIME-PROMOTION-INVISIBLE-TO-EVIDENCE-01 — normalized runtime authority",

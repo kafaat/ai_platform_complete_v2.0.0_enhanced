@@ -10683,6 +10683,9 @@
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
+      "evidence_truncated": {
+        "routes": 19
+      },
       "evidence_counts": {
         "backend": 22,
         "routes": 100,
@@ -20996,6 +20999,11 @@
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
+      "evidence_truncated": {
+        "backend": 25,
+        "events": 36,
+        "tests": 69
+      },
       "evidence_counts": {
         "backend": 100,
         "routes": 83,
@@ -25140,6 +25148,9 @@
       "static_evidence_only": true,
       "runtime_verified": false,
       "production_certified": false,
+      "evidence_truncated": {
+        "database": 743
+      },
       "evidence_counts": {
         "backend": 14,
         "routes": 36,
