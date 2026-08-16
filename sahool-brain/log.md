@@ -6351,3 +6351,11 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 فبقيت خضراء على العطل المزروع — أمسكها guard_mutation_guard وأُعيدت على
 بناءٍ طازج. التالي بقرار المالك: A′-4b تقارب الكتّاب (capability_linker
 يكفّ عن كتابة dependencies/owner المملوكَين canonical).
+
+## 2026-08-16 (ب) — A′-4b: تقارب الكتّاب (#855 → 900fa02a)
+
+- **الشريحة:** إسقاط سلطة كتابة الرابط على `dependencies`/`owner` (`scripts/ci/capability_linker.py`) + المُسقِط المحكوم `scripts/ci/capability_projection_sync.py` (--check بوّابة في `capability-governance.yml`، --generate الكاتب الوحيد المخوَّل) + 6 اختبارات (`tests/architecture/test_capability_projection_sync.py`) + 3 طفرات مُكذَّبة بالزرع.
+- **الشاهد (مقيس حيّاً):** DRIFT على INT-004:{maturity,evidence_level,owner} → إسقاط آليّ → اختفاء من المرصود → stale-baseline block على الثلاث بالضبط → خفض الأساس 3→0 (`docs/capability-registry/reconciliation_drift_baseline.json`) → findings=0/PASS. تسلسل المالك النصّيّ وقع حرفاً حرفاً («دليل أنّ A′-4 حقيقية لا تجميلية»).
+- **مراجعة Copilot حُسمت بالقياس:** المطابقة الحرفيّة في قفل الرابط مثقوبة التنسيق — أُصلحت نمطاً (`8a9ed08b`) وزُرعت 4 تنويعات فحمَّرت 4/4. الردّ منشور والخيط محلول.
+- **إغلاق A′-4a الحيّ:** certify-run 31938023180 على `21179b7f` → certification-record 9261208131 (`sha256:02b74ccf…`) · VERIFIED · reason_codes [] · producer 31936354366/1.
+- **المصدر:** #855، main `900fa02a`، الفرع أُعيد تأسيسه منه.
