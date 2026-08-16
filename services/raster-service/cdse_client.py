@@ -759,6 +759,10 @@ class CdseClient:
         attempt = 0
         while True:
             try:
+                # الـpayload الفعّال: الأصليّ، أو fallback إن نجح بعد رفض الأصليّ —
+                # وترقيمُ الصفحات يُبنى منه لا من الأصليّ المرفوض (مراجعة #859:
+                # صفحةٌ تالية بالـpayload المرفوض تفشل فيتوقّف الجمع عند الأولى).
+                effective_payload = payload
                 resp = httpx.post(url, json=payload, headers=headers, timeout=30.0)
                 if resp.status_code >= 400:
                     logger.warning(
@@ -777,6 +781,7 @@ class CdseClient:
                             _safe_log_payload(fallback),
                         )
                         return []
+                    effective_payload = fallback
                 data = resp.json()
                 features = list(data.get("features") or [])
                 # ترقيم الصفحات (STAC ``context.next``). كان مفقوداً تماماً، فكان
@@ -786,7 +791,7 @@ class CdseClient:
                 pages = 1
                 token = (data.get("context") or {}).get("next")
                 while token and pages < _CATALOG_MAX_PAGES:
-                    page_payload = dict(payload)
+                    page_payload = dict(effective_payload)
                     page_payload["next"] = token
                     page_resp = httpx.post(url, json=page_payload, headers=headers, timeout=30.0)
                     if page_resp.status_code >= 400:

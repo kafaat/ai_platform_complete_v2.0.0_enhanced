@@ -141,8 +141,8 @@ def test_the_receipt_carries_identity_not_just_a_date() -> None:
 
 
 class _PagedResponse:
-    def __init__(self, payload: dict):
-        self.status_code = 200
+    def __init__(self, payload: dict, status_code: int = 200):
+        self.status_code = status_code
         self._payload = payload
         self.text = ""
 
@@ -446,3 +446,38 @@ async def test_the_live_path_walks_back_when_recent_windows_are_empty(monkeypatc
     )
     assert len(client.windows) > 1, "لم ينزل إلى نافذة أقدم"
     assert client.process_calls[0]["time_from"].startswith(old_day)
+
+
+def test_pagination_after_fallback_uses_the_accepted_payload(monkeypatch) -> None:
+    """مراجعة #859 أصابت: إن رُفض الـpayload الكامل ونجح ``_minimal_fallback``،
+    فطلبُ الصفحة التالية يجب أن يُبنى من الـpayload **المقبول** — لا من الأصليّ
+    المرفوض الذي سيُرفَض ثانيةً فيتوقّف الجمع عند الصفحة الأولى بنقصٍ مُعلَنٍ
+    كان يمكن تفاديه."""
+    pages = {
+        2: {"features": [_feature("fb-page1", "2020-03-04", 5.0)], "context": {"next": "tok-2"}},
+        3: {"features": [_feature("fb-page2", "2020-11-21", 5.0)], "context": {}},
+    }
+    seen: list[dict] = []
+
+    def _post(url, json=None, headers=None, timeout=None):  # noqa: A002
+        seen.append(dict(json or {}))
+        if len(seen) == 1:
+            return _PagedResponse({}, status_code=400)
+        return _PagedResponse(pages[len(seen)])
+
+    import httpx
+
+    monkeypatch.setattr(httpx, "post", _post)
+    client = cdse_client.CdseClient()
+    monkeypatch.setattr(client, "token", lambda: "t")
+
+    scenes = client.search_scenes(
+        bbox=[44.10, 15.30, 44.12, 15.32],
+        time_from="2020-01-01T00:00:00Z",
+        time_to="2021-01-01T23:59:59Z",
+    )
+    assert {s.get("id") for s in scenes} == {"fb-page1", "fb-page2"}
+    fallback_payload = seen[1]
+    expected_page2 = dict(fallback_payload)
+    expected_page2["next"] = "tok-2"
+    assert seen[2] == expected_page2, "الصفحة التالية لم تُبْنَ من الـpayload المقبول"
