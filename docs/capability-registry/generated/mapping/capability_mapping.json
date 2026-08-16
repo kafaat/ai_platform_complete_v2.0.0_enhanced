@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5024,
+    "files_scanned": 5026,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 60,
       "mobile": 51,
       "other": 1350,
-      "tests": 1640,
+      "tests": 1642,
       "web": 454
     },
     "unmapped_artifacts": 2041,
-    "ambiguous_artifacts": 402
+    "ambiguous_artifacts": 403
   },
   "capabilities": [
     {
@@ -15784,22 +15784,22 @@
       "title": "Satellite scene search",
       "backend": [
         {
+          "path": "services/raster-service/cdse_client.py",
+          "score": 26,
+          "signals": [
+            "path:cdse",
+            "content:cdse",
+            "content:sentinel",
+            "content:stac"
+          ]
+        },
+        {
           "path": "services/raster-service/stac_search.py",
           "score": 26,
           "signals": [
             "content:cdse",
             "content:sentinel",
             "path:stac",
-            "content:stac"
-          ]
-        },
-        {
-          "path": "services/raster-service/cdse_client.py",
-          "score": 25,
-          "signals": [
-            "path:cdse",
-            "content:cdse",
-            "content:sentinel",
             "content:stac"
           ]
         },
@@ -16023,6 +16023,15 @@
           "signals": [
             "content:cdse",
             "content:stac"
+          ]
+        },
+        {
+          "path": "services/raster-service/scene_policy.py",
+          "score": 10,
+          "signals": [
+            "content:cdse",
+            "content:satellite scene",
+            "content:sentinel"
           ]
         },
         {
@@ -16374,7 +16383,7 @@
       "events": [
         {
           "value": "sahool.cdse @ services/raster-service/cdse_client.py:27",
-          "score": 25
+          "score": 26
         },
         {
           "value": "fields.py @ tests_v9/test_historical_search_cdse_v30_8.py:122",
@@ -16630,6 +16639,15 @@
           ]
         },
         {
+          "path": "tests_v9/test_cdse_latest_scene_day_binding.py",
+          "score": 17,
+          "signals": [
+            "path:cdse",
+            "content:cdse",
+            "content:stac"
+          ]
+        },
+        {
           "path": "tests_v9/test_cdse_latest_window_singleflight_guard.py",
           "score": 17,
           "signals": [
@@ -16740,6 +16758,14 @@
         },
         {
           "path": "tests_v9/test_cdse_evalscript.py",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "path": "tests_v9/test_cdse_latest_selection_semantics.py",
           "score": 14,
           "signals": [
             "path:cdse",
@@ -17173,13 +17199,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 36,
+        "backend": 37,
         "routes": 65,
         "database": 3,
         "events": 32,
         "web": 5,
         "mobile": 0,
-        "tests": 42,
+        "tests": 44,
         "governance": 0,
         "other_evidence": 32
       },
@@ -20209,6 +20235,14 @@
           ]
         },
         {
+          "path": "tests_v9/test_cdse_latest_selection_semantics.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "tests_v9/test_confidence_failures.py",
           "score": 12,
           "signals": [
@@ -20266,14 +20300,6 @@
         },
         {
           "path": "tests_v9/test_field_state_gateway.py",
-          "score": 12,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "tests_v9/test_field_state_unification.py",
           "score": 12,
           "signals": [
             "content:NDVI",
@@ -21584,7 +21610,7 @@
         },
         {
           "path": "services/raster-service/scene_policy.py",
-          "score": 11,
+          "score": 12,
           "signals": [
             "content:aoi cloud",
             "content:scene cloud"
@@ -47573,6 +47599,14 @@
       "kind": "backend",
       "candidates": [
         {
+          "capability_id": "SAT-005",
+          "score": 12,
+          "signals": [
+            "content:aoi cloud",
+            "content:scene cloud"
+          ]
+        },
+        {
           "capability_id": "SAT-003",
           "score": 12,
           "signals": [
@@ -47581,11 +47615,12 @@
           ]
         },
         {
-          "capability_id": "SAT-005",
-          "score": 11,
+          "capability_id": "SAT-001",
+          "score": 10,
           "signals": [
-            "content:aoi cloud",
-            "content:scene cloud"
+            "content:cdse",
+            "content:satellite scene",
+            "content:sentinel"
           ]
         }
       ]
@@ -51711,6 +51746,28 @@
     },
     {
       "path": "tests_v9/test_cdse_evalscript.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "SAT-001",
+          "score": 14,
+          "signals": [
+            "path:cdse",
+            "content:cdse"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_cdse_latest_selection_semantics.py",
       "kind": "tests",
       "candidates": [
         {
