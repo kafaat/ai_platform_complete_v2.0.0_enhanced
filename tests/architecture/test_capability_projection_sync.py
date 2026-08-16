@@ -182,3 +182,34 @@ def test_the_linker_no_longer_writes_canonical_owned_fields():
     # والحقول التي يملكها بحقّ باقية له:
     assert _assignment_pattern("services").search(executable)
     assert _assignment_pattern("apis").search(executable)
+
+
+def test_meta_governance_tests_are_never_lexical_evidence():
+    """اختبار حوكمة CI اسمه يحمل كلمة نطاق بالبناء (change في حارس report-only)
+    لا يدخل جردَ الرابط أصلاً فلا يصير دليلاً معجميّاً لقدرة نطاق — قِيس: كان
+    مربوطاً بـSAT-007 «كشف التغيّر» لمجرّد الكلمة فحجبت بوّابةُ الأثر إعلاناً
+    صادقاً في PR #857. **يمرّ بالقاعدة نفسها (discover_files) لا بمصنوعتها.**"""
+    import importlib.util as ilu
+
+    spec = ilu.spec_from_file_location(
+        "capability_linker_under_test", ROOT / "scripts/ci/capability_linker.py"
+    )
+    assert spec is not None and spec.loader is not None
+    linker = ilu.module_from_spec(spec)
+    spec.loader.exec_module(linker)
+
+    discovered = linker.discover_files()
+    offenders = [f for f in discovered if f.startswith("tests_v9/test_no_report_only_change_guard")]
+    assert offenders == [], f"meta-governance witness entered the linker census: {offenders}"
+
+    # والمصنوعتان (الإسقاط والقانونيّ) نظيفتان — طبقة ثانية:
+    for rel in (
+        "capabilities/registry/capabilities.json",
+        "docs/capability-registry/generated/capability_registry.json",
+    ):
+        caps = json.loads((ROOT / rel).read_text(encoding="utf-8"))["capabilities"]
+        for cap in caps:
+            for tpath in cap.get("tests", []):
+                assert not tpath.startswith("tests_v9/test_no_report_only_change_guard"), (
+                    f"{rel}: {cap['id']} links a meta-governance CI test: {tpath}"
+                )

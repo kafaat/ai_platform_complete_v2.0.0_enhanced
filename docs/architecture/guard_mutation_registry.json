@@ -110,6 +110,12 @@
           "find": "            # A′-4b: سلطة كتابة `owner` أُسقطت كذلك — الاشتقاق من الخدمات كان",
           "replace": "            cap[\"owner\"] = \"PLATFORM\"  # mutated: عادت سلطة كتابةٍ أُسقطت",
           "why": "أصل ازدواج الكتابة الذي أغلقته A′-4b: كاتبٌ يشتقّ حقلاً canonical-owned من شكل المستودع فيُبيته ضدّ مالكه. عودةُ سطرٍ واحد تعيد الازدواج كلّه."
+        },
+        {
+          "expect": "test_meta_governance_tests_are_never_lexical_evidence",
+          "find": "        rel_posix = rel.as_posix()\n        if rel_posix.startswith(META_GOVERNANCE_PREFIXES):\n            continue\n        results.append(rel_posix)",
+          "replace": "        results.append(rel.as_posix())",
+          "why": "نزع استثناء شهود الحوكمة يعيد التلوّث المعجميّ المقيس: حارس report-only «change» يعود دليلاً لقدرة كشف التغيّر SAT-007 فتحجب بوّابة الأثر إعلاناتٍ صادقة (قِيس على PR #857)"
         }
       ],
       "test": "tests/architecture/test_capability_projection_sync.py"
