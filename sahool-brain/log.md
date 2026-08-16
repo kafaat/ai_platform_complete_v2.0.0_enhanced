@@ -6339,3 +6339,15 @@ main) ⇒ عقد الوظائف (بصمته 28076fe7…) ⇒ `VERIFIED` عند `
   المالك VALID BRANCH-ORIGIN / NOT THE RELEASE-CERTIFICATION SUBJECT.
 - ترقيات المالك المسجَّلة: mutation-testing إلى PASS كامل؛ الطبقة A PASS؛
   والطبقة B الآن **live-proven**. production_certified يبقى false بقراره.
+
+
+## 2026-08-16 (أ) — A′-4a: هجرة القارئَين الأوّلَين إلى سلطة الحقول
+
+#854 → main `21179b7f`. العرض المركّب في الذاكرة (لا SoT ثالث — يتحقّق من
+no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، ratchet=PASS،
+أربع طفرات بالزرع، الثوابت 81/82/0..5/صفر ترقية. سقطة pf31 الوحيدة حارسٌ
+نصّيّ التقط `in memory` في docstring بوصفه ماركر MVP — أُعيدت الصياغة.
+درسٌ جديد مُسجَّل: أوّل صياغة اختبارَي الحمل قرأت المصنوعة المولَّدة سلفاً
+فبقيت خضراء على العطل المزروع — أمسكها guard_mutation_guard وأُعيدت على
+بناءٍ طازج. التالي بقرار المالك: A′-4b تقارب الكتّاب (capability_linker
+يكفّ عن كتابة dependencies/owner المملوكَين canonical).
