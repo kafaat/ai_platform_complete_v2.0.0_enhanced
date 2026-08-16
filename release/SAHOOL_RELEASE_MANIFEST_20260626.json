@@ -2,7 +2,7 @@
   "checksums_file": "release/FILE_CHECKSUMS.sha256",
   "components": {
     "component_file_counts": {
-      "frontend": 651,
+      "frontend": 653,
       "grafana": 5,
       "migrations": 234,
       "mobile": 68,
@@ -133,5 +133,5 @@
     "bash scripts/chaos/run_chaos_tests.sh",
     "bash scripts/recovery/recovery_smoke.sh"
   ],
-  "total_size_bytes": 59638376
+  "total_size_bytes": 59582732
 }

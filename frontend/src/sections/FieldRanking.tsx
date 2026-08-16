@@ -14,7 +14,7 @@ import { useAllFieldsNdvi } from '../hooks/useApi';
 import { isRealData, hasDemoData } from '../lib/realData';
 import DemoBadge from '../components/DemoBadge';
 import {
-  T, Card, Pill, Badge, SectionLabel, StatGrid, ProgressBar, FieldCabin, ndviColor,
+  T, T_DARK, Card, Pill, Badge, SectionLabel, StatGrid, ProgressBar, FieldCabin, ndviColor,
 } from '../components/ds';
 
 // شكل سجلّ الحقل من /v1/all_fields (vegetation-service):
@@ -48,6 +48,9 @@ const fmtNdvi = (v: number) => v.toFixed(2);
 
 export default function FieldRanking() {
   const q = useAllFieldsNdvi();
+  // أسطح/نصوص داكنة (الصفحة داكنة دائماً — FieldCabin tone="dark")؛
+  // ألوان التمييز (gold/ndvi/حالات) ثابتة من T في النغمتين.
+  const t = T_DARK;
 
   const ranked = useMemo<RankedField[]>(() => {
     const data = q.data as { fields?: RawField[] } | undefined;
@@ -96,6 +99,7 @@ export default function FieldRanking() {
 
   return (
     <FieldCabin
+      tone="dark"
       eyebrow="ترتيب الحقول"
       title="مقارنة الحقول"
       subtitle="ترتيب الحقول حسب NDVI — الأفضل والأدنى أداءً"
@@ -127,11 +131,25 @@ export default function FieldRanking() {
         </SectionLabel>
 
         {q.isLoading ? (
-          <div style={{ color: T.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل ترتيب الحقول…</div>
+          <div style={{ color: t.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل ترتيب الحقول…</div>
         ) : q.isError ? (
-          <div style={{ color: T.danger, fontSize: 12, padding: '8px 0' }}>تعذّر تحميل بيانات الحقول.</div>
+          <div className="flex flex-col items-center" style={{ gap: 8, padding: '12px 0' }}>
+            <span style={{ color: T.danger, fontSize: 12, textAlign: 'center' }}>
+              تعذّر جلب بيانات NDVI — تحقّق من خدمة الغطاء النباتيّ/البوّابة.
+            </span>
+            <button
+              type="button"
+              onClick={() => q.refetch()}
+              style={{
+                background: T.gold, color: '#fff', border: 'none', borderRadius: 10,
+                padding: '6px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              إعادة المحاولة
+            </button>
+          </div>
         ) : !summary ? (
-          <div style={{ color: T.muted, fontSize: 13, padding: '6px 0' }}>لا بيانات NDVI صالحة لأيّ حقل.</div>
+          <div style={{ color: t.muted, fontSize: 13, padding: '6px 0' }}>لا بيانات NDVI صالحة لأيّ حقل.</div>
         ) : (
           <StatGrid
             cols={4}
@@ -139,7 +157,7 @@ export default function FieldRanking() {
               {
                 label: 'عدد الحقول',
                 value: summary.count,
-                icon: <Layers style={{ width: 16, height: 16, color: T.brownSoft }} />,
+                icon: <Layers style={{ width: 16, height: 16, color: t.brownSoft }} />,
               },
               {
                 label: 'متوسّط NDVI',
@@ -168,7 +186,7 @@ export default function FieldRanking() {
       <Card pad={14}>
         <SectionLabel
           action={
-            <span style={{ color: T.muted, fontSize: 11 }} className="inline-flex items-center gap-1">
+            <span style={{ color: t.muted, fontSize: 11 }} className="inline-flex items-center gap-1">
               <TrendingUp style={{ width: 12, height: 12 }} /> الأفضل ← الأدنى
             </span>
           }
@@ -177,11 +195,13 @@ export default function FieldRanking() {
         </SectionLabel>
 
         {q.isLoading ? (
-          <div style={{ color: T.muted, fontSize: 12, padding: '8px 0' }}>—</div>
+          <div style={{ color: t.muted, fontSize: 12, padding: '8px 0' }}>—</div>
         ) : q.isError ? (
-          <div style={{ color: T.danger, fontSize: 12, padding: '8px 0' }}>تعذّر تحميل الترتيب.</div>
+          <div style={{ color: T.danger, fontSize: 12, padding: '8px 0' }}>
+            تعذّر جلب بيانات NDVI — تحقّق من خدمة الغطاء النباتيّ/البوّابة.
+          </div>
         ) : ranked.length === 0 ? (
-          <div style={{ color: T.muted, fontSize: 13, padding: '6px 0' }}>لا بيانات</div>
+          <div style={{ color: t.muted, fontSize: 13, padding: '6px 0' }}>لا بيانات</div>
         ) : (
           <div>
             {ranked.map((f, i) => {
@@ -191,21 +211,21 @@ export default function FieldRanking() {
               return (
                 <div
                   key={f.id || i}
-                  style={{ padding: '10px 0', borderBottom: `1px solid ${T.line}` }}
+                  style={{ padding: '10px 0', borderBottom: `1px solid ${t.line}` }}
                 >
                   <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
                     <span
                       style={{
-                        width: 22, height: 22, borderRadius: 999, background: T.card2,
-                        color: T.muted, fontSize: 11, fontWeight: 800, flexShrink: 0,
+                        width: 22, height: 22, borderRadius: 999, background: t.card2,
+                        color: t.muted, fontSize: 11, fontWeight: 800, flexShrink: 0,
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >
                       {i + 1}
                     </span>
-                    <span style={{ color: T.ink, fontSize: 13, fontWeight: 700, flex: 1 }}>
+                    <span style={{ color: t.ink, fontSize: 13, fontWeight: 700, flex: 1 }}>
                       {f.name}
-                      {f.crop && <span style={{ color: T.faint, fontSize: 11, fontWeight: 500, marginInlineStart: 6 }}>{f.crop}</span>}
+                      {f.crop && <span style={{ color: t.faint, fontSize: 11, fontWeight: 500, marginInlineStart: 6 }}>{f.crop}</span>}
                     </span>
                     {isTop && (
                       <Pill tone="ok" icon={<Trophy style={{ width: 11, height: 11 }} />}>الأفضل</Pill>

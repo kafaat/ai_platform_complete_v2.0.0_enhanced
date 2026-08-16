@@ -11,8 +11,8 @@
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
 - حرّاس تحجب في CI: **250**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **37**
-- إجماليّ الطفرات المُسجَّلة: **253**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **38**
+- إجماليّ الطفرات المُسجَّلة: **255**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **47** على 16 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -20,14 +20,14 @@
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **213** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **212** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (37)
+## الحرّاس المُثبَتة بالتكذيب (38)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -465,6 +465,19 @@
 - اسم الدور يأتي من الراية/البيئة؛ نزع تهريب الاقتباس يكسر الاستعلام أو يغير الصف المقروء بدلاً من قياس الدور المطلوب — يُسقِط `test_role_name_reaches_both_catalogue_queries_escaped`
 - إعادة التشخيص الخام إلى JSON المرفوع قد تسرب المضيف والمنفذ والمستخدم وكلمة المرور؛ المصنوعة تحمل أسباباً ثابتة فقط — يُسقِط `test_raw_psql_diagnostic_never_enters_uploaded_evidence`
 
+### `no_report_only_change_guard.py`
+
+**يفرض:** Guard against report-only certification/progress changes in CI.
+
+**يحجب في:** `no-report-only-change.yml` → `no-report-only-change`
+
+**الاختبار الشاهد:** `tests_v9/test_no_report_only_change_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- إسقاط frontend/ من التصنيف يعيد العطل المقيس على #857 حرفيّاً: إصلاح UI حقيقيّ + مصنوعات مولَّدة يُحجَب «report-only» — رسالة الحارس تدعو لـcode والتنفيذ لا يعترف بكوده — يُسقِط `test_frontend_code_with_generated_report_is_substantive`
+- نزع قاعدة الحجب نفسها ⇒ تقارير مولَّدة وحدها تعبر كتغيير مشروع — الحارس أخضر إلى الأبد وهو يحرس لا شيء — يُسقِط `test_report_only_change_is_blocked`
+
 ### `platform_module_reachability_guard.py`
 
 **يفرض:** Classify platform modules by the executable root that can actually reach them.
@@ -688,7 +701,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (213)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (212)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -819,7 +832,6 @@
 | `nginx_weather_edge_path_guard.py` | Static smoke guard for Nginx weather/edge exposure paths. | `nginx-weather-edge-paths` |
 | `no_leakage_certification_gate.py` | Phase C gate: the no-leakage certification surface must stay intact. | `structural-lint` |
 | `no_merge_conflict_markers_guard.py` | حارس CI: يمنع تسرّب علامات تعارض دمج git إلى أيّ ملفّ مُتتبَّع. | `structural-lint` |
-| `no_report_only_change_guard.py` | Guard against report-only certification/progress changes in CI. | `no-report-only-change` |
 | `p1_main_decomposition_guard.py` | Guard P1 main.py decomposition for platform, odoo-bridge, and vegetation. | `p1-main-decomposition` |
 | `p2_main_decomposition_guard.py` | Guard P2 main.py decomposition for actuator, SAM2, and weather services. | `p2-main-decomposition` |
 | `path3_runtime_activation.py` | Activate a compose stack and collect fail-closed runtime evidence for PATH-3. | `runtime-producer` |
