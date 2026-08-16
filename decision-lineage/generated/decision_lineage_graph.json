@@ -571,7 +571,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 467,
+      "evidence_count": 468,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -695,6 +695,7 @@
         "services/raster-service/raster_stac_runtime.py",
         "services/raster-service/routers/imagery.py",
         "services/raster-service/routers/imagery_search.py",
+        "services/raster-service/scene_policy.py",
         "services/raster-service/stac_search.py",
         "services/raster-service/terrain_source_registry.py",
         "services/sahool-platform/api/agronomic_consistency.py",
@@ -2265,7 +2266,7 @@
         "services/sahool-platform/core/evidence_graph.py"
       ],
       "source_evidence_count": 531,
-      "target_evidence_count": 467,
+      "target_evidence_count": 468,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2365,7 +2366,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 467,
+      "source_evidence_count": 468,
       "target_evidence_count": 159,
       "static_supported": true,
       "runtime_verified": false
@@ -2617,5 +2618,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "9b09a58bf110c3fc93a6463cdbc8c188b526bde69761d9c76d1cb2bf27361324"
+  "content_sha256": "b4473b6b0c99cc18d8eff1e8e06374ae0e4ce207e36ebf4390b303d5e76882a4"
 }
