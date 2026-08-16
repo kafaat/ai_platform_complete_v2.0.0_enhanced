@@ -436,6 +436,37 @@ def score_blob(
     return score, hits
 
 
+EVIDENCE_DIMENSIONS = (
+    "backend",
+    "routes",
+    "database",
+    "events",
+    "web",
+    "mobile",
+    "tests",
+    "governance",
+    "other_evidence",
+)
+
+
+def cap_evidence_dimensions(rec: dict, dedup) -> None:
+    """سقف كلّ بُعدٍ مئة، والقصّ **مُعلَنٌ لا صامت**.
+
+    قِيس (CAPABILITY-EVIDENCE-LISTS-TRUNCATE-SILENTLY-01): إضافة ملفَّي اختبار
+    أخرجت شاهدَ اختبارٍ قائماً من مصفوفة SAT-003 بلا أثر — وبعد الإعلان ظهر أنّ
+    SEC-001.database كان يُسقط 743 شاهداً صامتاً. الترتيب حتميّ (score ثم المسار،
+    من dedup) فالباقي مستقرّ، وevidence_truncated يسمّي عدد المحذوف لكلّ بُعدٍ
+    قُصّ. السقف نفسه لا يُرفَع هنا (قرار baseline مستقلّ)."""
+    truncated: dict[str, int] = {}
+    for k in EVIDENCE_DIMENSIONS:
+        full = dedup(rec[k], "value")
+        rec[k] = full[:100]
+        if len(full) > 100:
+            truncated[k] = len(full) - 100
+    if truncated:
+        rec["evidence_truncated"] = truncated
+
+
 def build() -> dict:
     caps = load_registry()
     by_id = {c["id"]: c for c in caps}
@@ -535,32 +566,8 @@ def build() -> dict:
     mapped = 0
     fully = 0
     for rec in maps.values():
-        for k in (
-            "backend",
-            "routes",
-            "database",
-            "events",
-            "web",
-            "mobile",
-            "tests",
-            "governance",
-            "other_evidence",
-        ):
-            rec[k] = dedup(rec[k], "value")[:100]
-        rec["evidence_counts"] = {
-            k: len(rec[k])
-            for k in (
-                "backend",
-                "routes",
-                "database",
-                "events",
-                "web",
-                "mobile",
-                "tests",
-                "governance",
-                "other_evidence",
-            )
-        }
+        cap_evidence_dimensions(rec, dedup)
+        rec["evidence_counts"] = {k: len(rec[k]) for k in EVIDENCE_DIMENSIONS}
         # HONESTY INVARIANT (raw scanner): ``mapped`` is decided by the SPECIFIC
         # implementation dimensions ONLY. ``governance`` and ``other_evidence`` are
         # catch-all buckets — bare capability-ID mentions in narrative/self-reference

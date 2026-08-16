@@ -1,26 +1,28 @@
 #!/usr/bin/env bash
-# Regenerate every committed generated artifact after a structural change (routes / services /
-# modules / dependencies), IN ORDER, so you don't chase CI drift one gate at a time.
+# نقطة الثبات القانونيّة الواحدة — لا سلسلة يدويّة تُطارَد مولِّداً مولِّداً.
 #
-# Rule (see sahool-brain/log.md): any change touching routes/services/deps ⇒ run this before push.
+# التاريخ المقيس (2026-08-16، ثلاث جولات CI ضائعة): هذا السكربت كان ثلاث خطوات
+# فقط (جرد الخدمات + جرد المسارات + الحزمة) بينما اسمه يعِد بـ«كلّ المصنوعات
+# المولَّدة» — فمن استعمله حصل على خضرةٍ عن سؤالٍ ناقص، وسلالة القرار وأقرانها
+# (71 خطوة تكتشفها المكنسة من الـworkflows) بقيت خارج مداه، وrelease أعيد
+# بناؤها بعد توليد الخريطة فبقيت الخريطة بائتة.
 #
-# Order matters: the inventories + route-mount inventory are inputs to the release bundle's
-# checksums, so the bundle is rebuilt LAST. Run from the repo root.
+# العقد الآن: التفويض الكامل لمحرّك الثبات الحقيقيّ —
+#   verify_all_generated.py --fix   : يرفض شجرةً فيها ملفّات غير مُفهرَسة
+#                                     (git add قبل التوليد **إنفاذاً** لا وصيّة)،
+#                                     يولّد كلّ الخطوات المكتشفة بترتيب الطبقات،
+#                                     يبني الحزمة آخِر كلّ دورة، ويكرّر حتى الثبات.
+#   ثم فحصٌ نهائيّ بعمليّة نظيفة    : الخضرة تُقاس بعد آخر بناءٍ للحزمة، لا قبله —
+#                                     «release تغيّرت ولم تُعَد الخريطة بعدها» تُرفَض
+#                                     هنا بالبناء لأنّ الفحص يلي البناء دائماً.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-echo "==> service inventory + SERVICE_REGISTRY.md"
-python scripts/ci/generate_service_inventory.py --write-registry
+echo "==> نقطة الثبات: توليدٌ حتى الاستقرار (release آخر كلّ دورة)"
+python3 scripts/ci/verify_all_generated.py --fix
 
-echo "==> route-mount inventory"
-python scripts/ci/route_mount_contract_guard.py
-
-echo "==> release bundle (SBOM + FILE_CHECKSUMS + manifest) — last, it checksums the tree"
-python3 scripts/release/build_release_bundle.py --root .
-
-echo "==> verify: everything is now self-consistent"
-python scripts/ci/generate_service_inventory.py --check
-python scripts/ci/route_mount_contract_guard.py --check
+echo "==> الفحص النهائيّ بعمليّة نظيفة — بعد آخر بناء للحزمة"
+python3 scripts/ci/verify_all_generated.py --check
 python3 scripts/release/validate_release_package.py
 
-echo "OK — all generated artifacts regenerated and consistent."
+echo "OK — نقطة ثبات مقيسة: كلّ خطوات المكنسة خضراء بعد آخر بناءٍ للحزمة."
