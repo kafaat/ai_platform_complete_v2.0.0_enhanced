@@ -10,13 +10,18 @@ import sys
 from collections import Counter, defaultdict, deque
 from pathlib import Path
 
+try:
+    from capability_authority_view import load_authoritative_capabilities
+except ModuleNotFoundError:  # pragma: no cover
+    from scripts.ci.capability_authority_view import load_authoritative_capabilities
+
 ROOT = Path(__file__).resolve().parents[2]
-REGISTRY = ROOT / "capabilities/registry/capabilities.json"
 GENERATED = ROOT / "capabilities/generated"
 
 
 def load_registry() -> dict:
-    return json.loads(REGISTRY.read_text(encoding="utf-8"))
+    """Compatibility-shaped view resolved field-by-field from declared authorities."""
+    return {"schema_version": "1.0.0", "capabilities": load_authoritative_capabilities(ROOT)}
 
 
 def _file_exists(pointer: str) -> bool:

@@ -83,7 +83,8 @@ def test_the_shipped_projection_is_converged_zero_drift():
     identities, synced, fields = module.drift()
 
     assert identities == []
-    assert len(fields) == 6
+    assert len(fields) == 7
+    assert "lifecycle" in fields
     assert len(synced["capabilities"]) == 81
 
 

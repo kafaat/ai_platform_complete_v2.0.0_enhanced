@@ -1,0 +1,17 @@
+{
+  "schema": "sahool.capability-legacy-access/v1",
+  "purpose": "A′-4c allowlist: direct access to the compatibility registry is exceptional and role-classified; new consumers must use capability_authority_view.",
+  "default": "deny",
+  "entries": {
+    "scripts/ci/capability_authority_completeness_guard.py": "projection_guard",
+    "scripts/ci/capability_authority_view.py": "authority_view_assembler",
+    "scripts/ci/capability_compatibility_roundtrip_guard.py": "projection_guard",
+    "scripts/ci/capability_linker.py": "repository_traceability_writer",
+    "scripts/ci/capability_projection_sync.py": "canonical_projection_writer",
+    "scripts/ci/capability_runtime_evidence.py": "repository_runtime_writer",
+    "scripts/ci/capability_shadow_reconciliation.py": "reconciliation_guard",
+    "scripts/ci/runtime_certification_gate.py": "certification_authority_consumer",
+    "scripts/ci/runtime_identity_bridge.py": "runtime_authority_consumer",
+    "scripts/ci/runtime_verification_apply.py": "runtime_verification_writer"
+  }
+}

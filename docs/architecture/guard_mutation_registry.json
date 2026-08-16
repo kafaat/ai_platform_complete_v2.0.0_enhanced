@@ -35,6 +35,36 @@
       ],
       "test": "tests_v9/test_run_outcome_guard.py"
     },
+    "scripts/ci/capability_authority_view.py": {
+      "$gap_ar": "CAPABILITY-CONSUMER-AUTHORITY-MIGRATION-01 — المستهلك يقرأ الحقول من مالكها لا من إسقاط واحد",
+      "mutations": [
+        {
+          "expect": "test_canonical_definition_fields_win_while_mutable_runtime_fields_survive",
+          "find": "            row[field] = copy.deepcopy(canonical_row[field])",
+          "replace": "            pass  # mutated: canonical authority ignored; legacy drift wins",
+          "why": "إذا توقف الدمج عن استبدال حقول التعريف بقيم Registry v1 عاد المستهلك فعلياً إلى السجل القديم، فتُقرأ القيم البائتة رغم وجود سياسة سلطة الحقول."
+        },
+        {
+          "expect": "test_identity_disagreement_fails_closed_instead_of_joining_by_intersection",
+          "find": "    if canonical_ids != legacy_ids:",
+          "replace": "    if False and canonical_ids != legacy_ids:  # mutated: identity split ignored",
+          "why": "ضم سجلين مختلفي الهوية بالـintersection يخفي قدرة كاملة بدل أن يجعل reconciliation يحسمها."
+        },
+        {
+          "expect": "test_missing_canonical_authoritative_field_fails_closed",
+          "find": "            if field not in canonical_row:",
+          "replace": "            if False and field not in canonical_row:  # mutated: missing authority tolerated",
+          "why": "الحقل الذي تعلن السياسة أن canonical definition يملكه لا يجوز أن يسقط بصمت إلى legacy عند غيابه."
+        },
+        {
+          "expect": "test_a_nested_canonical_field_demands_an_explicit_merger",
+          "find": "            if \".\" in field:",
+          "replace": "            if False:  # mutated: الحقل المنقوط يُكتَب مفتاحاً حرفيّاً",
+          "why": "حقلٌ متداخل يُمنَح للتعريف القانونيّ ويُدمَج بمفتاحٍ مسطّح يكتب اسماً منقوطاً لا يقرؤه أيّ مستهلك — فيبدو الحقل مهاجراً وقيمتُه الحقيقيّة باقية legacy بلا إعلان."
+        }
+      ],
+      "test": "tests/architecture/test_capability_consumer_migration.py"
+    },
     "scripts/ci/capability_certification_gate.py": {
       "$gap_ar": "CAPABILITY-CERTIFICATION-L5-ALONE-SUFFICIENT-01 — أهليّة الشهادة",
       "mutations": [
@@ -48,8 +78,8 @@
           "expect": "test_the_capability_certification_gate_surfaces_the_same_reference_without_granting",
           "find": "        \"release_assurance_reference\": load_release_assurance_reference(),",
           "replace": "        \"release_assurance_reference\": None,  # mutated: المستهلك الثاني أعمى",
-          "why": "بوّابة الاعتماد هي قارئ المرجع الطبيعيّ الثاني؛ إسقاطُه منها يترك مستهلكي مصفوفة الاعتماد بلا خيطٍ إلى الدليل الحيّ — والعرض الصادق نصفُ العقد.",
-          "test": "tests/architecture/test_runtime_certification_gate.py"
+          "test": "tests/architecture/test_runtime_certification_gate.py",
+          "why": "بوّابة الاعتماد هي قارئ المرجع الطبيعيّ الثاني؛ إسقاطُه منها يترك مستهلكي مصفوفة الاعتماد بلا خيطٍ إلى الدليل الحيّ — والعرض الصادق نصفُ العقد."
         }
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
@@ -71,6 +101,18 @@
         }
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
+    },
+    "scripts/ci/capability_linker.py": {
+      "$why_ar": "الرابط فقد سلطة كتابة الحقول canonical-owned في A′-4b — والطفرة تقيس أنّ عودتها لا تمرّ.",
+      "mutations": [
+        {
+          "expect": "test_the_linker_no_longer_writes_canonical_owned_fields",
+          "find": "            # A′-4b: سلطة كتابة `owner` أُسقطت كذلك — الاشتقاق من الخدمات كان",
+          "replace": "            cap[\"owner\"] = \"PLATFORM\"  # mutated: عادت سلطة كتابةٍ أُسقطت",
+          "why": "أصل ازدواج الكتابة الذي أغلقته A′-4b: كاتبٌ يشتقّ حقلاً canonical-owned من شكل المستودع فيُبيته ضدّ مالكه. عودةُ سطرٍ واحد تعيد الازدواج كلّه."
+        }
+      ],
+      "test": "tests/architecture/test_capability_projection_sync.py"
     },
     "scripts/ci/capability_management_engine.py": {
       "$gap_ar": "CAPABILITY-MANAGEMENT-MANIFEST-CHECK-INCOMPLETE-01",
@@ -95,6 +137,24 @@
         }
       ],
       "test": "tests/architecture/test_capability_mapping_engine.py"
+    },
+    "scripts/ci/capability_projection_sync.py": {
+      "$why_ar": "الكاتب الوحيد المخوَّل للحقول canonical-owned في الإسقاط التوافقيّ — A′-4b. طفراته تقيس أنّ الاشتقاق آليّ من القانونيّ (لا تحرير يدويّ) وأنّ الانحراف لا يمرّ صامتاً.",
+      "mutations": [
+        {
+          "expect": "test_projection_follows_the_canonical_value_not_the_other_way",
+          "find": "            if target.get(field) != source[field]:",
+          "replace": "            if False:  # mutated: الانحراف لا يُرى والإسقاط لا يُزامَن",
+          "why": "تعطيل كشف الانحراف يجعل --check يخضرّ على إسقاطٍ بائت و--generate لا يُسقط شيئاً — فيعود الحقل canonical في الإسقاط يتيماً يكتبه من شاء."
+        },
+        {
+          "expect": "test_identity_disagreement_fails_closed",
+          "find": "    if set(canonical) != set(legacy):",
+          "replace": "    if False:  # mutated: هويّةٌ مختلفة تُضمّ صامتة",
+          "why": "ضمّ سجلَّين مختلفَي الهويّة بالتقاطع يُخفي قدرةً كاملة بدل أن يجعل reconciliation يحسمها — القاعدة نفسها المقفلة في العرض تُقفَل في المُسقِط."
+        }
+      ],
+      "test": "tests/architecture/test_capability_projection_sync.py"
     },
     "scripts/ci/capability_runtime_evidence.py": {
       "$gap_ar": "CAPABILITY-RUNTIME-RECEIPT-WRITER-CONFLICT-01 + field authority binding",
@@ -156,6 +216,30 @@
       ],
       "test": "tests/architecture/test_capability_shadow_reconciliation.py"
     },
+    "scripts/ci/certify_artifact_contract.py": {
+      "$why_ar": "أداةُ حكمٍ لا حارس بالاسم (لا تطابق `*_guard.py`) لكنّها تقرّر ما يُنزَّل ويُحكَم عليه في وظيفة الاعتماد — فطفراتُها هنا كي لا تعيش خارج القياس.",
+      "mutations": [
+        {
+          "expect": "test_duplicate_evidence_artifacts_are_refused_not_disambiguated",
+          "find": "        if len(found) > 1:\n            problems.append(f\"AMBIGUOUS_ARTIFACT:{role}:{len(found)}\")",
+          "replace": "        if False:  # mutated: التكرار يُفَضّ باختيار الأوّل\n            problems.append(f\"AMBIGUOUS_ARTIFACT:{role}:{len(found)}\")",
+          "why": "exactly-one هو العقد: مصنوعتان بالاسم المشتقّ نفسه التباسُ هويّة، واختيارُ الأولى صامتاً يجعل «أيّ بايتات حُكِم عليها» سؤالاً بلا جوابٍ مقيس."
+        },
+        {
+          "expect": "test_a_matching_name_from_a_foreign_head_is_refused",
+          "find": "            if isinstance(run, dict) and run.get(\"head_sha\") not in (None, head_sha):",
+          "replace": "            if False:  # mutated: الاسم يكفي والهويّة لا تُقاس\n",
+          "why": "الاسم ادّعاء: مصنوعةٌ باسمٍ مطابق من تشغيلٍ عن لقطةٍ أخرى كانت ستُنزَّل ويُحكَم عليها بوصفها دليلَ هذه اللقطة — وهو عكسُ ما وُجِد الاشتقاق لأجله."
+        },
+        {
+          "expect": "test_evidence_without_its_attestation_is_a_violation_not_an_absence",
+          "find": "    if matches[\"evidence\"] and not matches[\"attestation\"]:",
+          "replace": "    if False:  # mutated: دليلٌ بلا إثبات منشأ يمرّ غياباً\n",
+          "why": "خطوةُ التوقيع في `ci.yml` حاجزةٌ بمحاولتين على main، فغيابُ مصنوعتها مع حضور الدليل تشغيلٌ مكسور — وقراءتُه «غياباً مشروعاً» تُطفئ الإنذار الوحيد عنه."
+        }
+      ],
+      "test": "tests_v9/test_certify_artifact_contract.py"
+    },
     "scripts/ci/runtime_certification_gate.py": {
       "$gap_ar": "CAPABILITY-RUNTIME-PROMOTION-INVISIBLE-TO-EVIDENCE-01 — normalized runtime authority",
       "mutations": [
@@ -181,25 +265,43 @@
           "expect": "test_a_corrupt_acceptance_file_breaks_loudly_not_swallowed",
           "find": "    if doc.get(\"schema\") != ACCEPTANCE_SCHEMA:\n        raise ValueError(\"certification acceptance schema mismatch\")",
           "replace": "    if False:  # mutated: أيّ ملفٍّ يمرّ قبولاً\n        raise ValueError(\"certification acceptance schema mismatch\")",
-          "why": "مؤشّر القبول يدخل ملخّصَ السلطة الذي يقرؤه مستهلكون لاحقون؛ ابتلاعُ عقدٍ غريب الشكل يجعل «آخر سجلّ اعتماد مقبول» يُروى من ملفٍّ لم يُكتَب لهذا العقد — قبولٌ كاذبٌ هادئ.",
-          "test": "tests/architecture/test_runtime_certification_gate.py"
+          "test": "tests/architecture/test_runtime_certification_gate.py",
+          "why": "مؤشّر القبول يدخل ملخّصَ السلطة الذي يقرؤه مستهلكون لاحقون؛ ابتلاعُ عقدٍ غريب الشكل يجعل «آخر سجلّ اعتماد مقبول» يُروى من ملفٍّ لم يُكتَب لهذا العقد — قبولٌ كاذبٌ هادئ."
         },
         {
           "expect": "test_the_summary_carries_the_acceptance_and_never_judges_with_it",
           "find": "        \"certification_acceptance\": load_certification_acceptance(),",
           "replace": "        \"certification_acceptance\": None,  # mutated: المرجع لا يُحمَل",
-          "why": "الاستهلاك هو الشريحة كلّها: ملخّصٌ لا يحمل المرجع يعيد سجلَّ الاعتماد إلى العزلة التي بُني ليخرج منها — مصنوعةٌ تُنتَج ولا يقرؤها أحد.",
-          "test": "tests/architecture/test_runtime_certification_gate.py"
+          "test": "tests/architecture/test_runtime_certification_gate.py",
+          "why": "الاستهلاك هو الشريحة كلّها: ملخّصٌ لا يحمل المرجع يعيد سجلَّ الاعتماد إلى العزلة التي بُني ليخرج منها — مصنوعةٌ تُنتَج ولا يقرؤها أحد."
         },
         {
           "expect": "test_a_malformed_digest_is_refused_not_carried_as_a_misleading_reference",
           "find": "        if not DIGEST64.fullmatch(str(artifact.get(\"digest\") or \"\")):\n            raise ValueError(f\"certification acceptance {role} digest malformed\")",
           "replace": "        if False:  # mutated: بصمةٌ بأيّ شكلٍ تُحمَل مرجعاً\n            raise ValueError(f\"certification acceptance {role} digest malformed\")",
-          "why": "المرجع يقود مدقّقاً لاحقاً إلى بايتات بعينها؛ بصمةٌ مُضلِّلة الشكل تدخل ملخّصَ السلطة تجعل «أعد قراءة السجلّ نفسه» طريقاً إلى لا شيء — والصرامة هنا صيغة المستودع الواحدة لا اجتهاداً محلّيّاً.",
-          "test": "tests/architecture/test_runtime_certification_gate.py"
+          "test": "tests/architecture/test_runtime_certification_gate.py",
+          "why": "المرجع يقود مدقّقاً لاحقاً إلى بايتات بعينها؛ بصمةٌ مُضلِّلة الشكل تدخل ملخّصَ السلطة تجعل «أعد قراءة السجلّ نفسه» طريقاً إلى لا شيء — والصرامة هنا صيغة المستودع الواحدة لا اجتهاداً محلّيّاً."
         }
       ],
       "test": "tests/architecture/test_capability_truth_preconditions.py"
+    },
+    "scripts/ci/sot_evidence_manifest.py": {
+      "$why_ar": "أداةُ إنتاج البيان الموقَّع — ليست حارساً بالاسم لكنّ ما تكتبه يدخل الموضوع الموقَّع نفسه، فطفراتُها تقيس أنّ هويّة المُنتِج لا تُوقَّع فارغةً ولا مكتوبةً بيد.",
+      "mutations": [
+        {
+          "expect": "test_the_builder_refuses_to_sign_an_empty_or_malformed_identity",
+          "find": "    if not args.producer_run_id.isdigit() or not args.producer_run_attempt.isdigit():\n        raise SystemExit(\"PRODUCER_IDENTITY_INVALID: run_id/run_attempt must be numeric\")",
+          "replace": "    if False:  # mutated: هويّةٌ فارغة تُوقَّع\n        raise SystemExit(\"PRODUCER_IDENTITY_INVALID: run_id/run_attempt must be numeric\")",
+          "why": "`GITHUB_RUN_ID` غير مضبوطة تصل \"unset\" — وتوقيعُ هويّةٍ فارغة داخل الموضوع الموقَّع يجعل إغلاق الهويّة اللاحق يطابق فراغاً بفراغ ويخضرّ."
+        },
+        {
+          "expect": "test_the_builder_embeds_the_producer_identity_it_was_given",
+          "find": "        \"producer_identity\": {\n            \"repository\": args.producer_repository,",
+          "replace": "        \"producer_identity\": {\n            \"repository\": \"kafaat/ai_platform_complete_v2.0.0_enhanced\",  # mutated: هويّةٌ مكتوبة بيدٍ لا من البيئة\n            \"$_\": args.producer_repository and None,",
+          "why": "هويّةُ المُنتِج تُشتقّ من البيئة وقتَ الإنتاج لا تُكتَب ثابتاً: ثابتٌ يصدق اليوم يكذب أوّلَ fork أو إعادة تسمية — والبيان الموقَّع لا يُصحَّح بأثرٍ رجعيّ."
+        }
+      ],
+      "test": "tests_v9/test_sot_provenance_guard.py"
     },
     "scripts/ci/verify_all_generated.py": {
       "$gap_ar": "CAPABILITY-RUNTIME-AUTHORITY-GENERATION-ORDER-01",
@@ -282,108 +384,6 @@
         }
       ],
       "test": "tests_v9/test_actuation_killswitch_behaviour.py"
-    },
-    "scripts/ci/certify_artifact_contract.py": {
-      "mutations": [
-        {
-          "expect": "test_duplicate_evidence_artifacts_are_refused_not_disambiguated",
-          "find": "        if len(found) > 1:\n            problems.append(f\"AMBIGUOUS_ARTIFACT:{role}:{len(found)}\")",
-          "replace": "        if False:  # mutated: التكرار يُفَضّ باختيار الأوّل\n            problems.append(f\"AMBIGUOUS_ARTIFACT:{role}:{len(found)}\")",
-          "why": "exactly-one هو العقد: مصنوعتان بالاسم المشتقّ نفسه التباسُ هويّة، واختيارُ الأولى صامتاً يجعل «أيّ بايتات حُكِم عليها» سؤالاً بلا جوابٍ مقيس."
-        },
-        {
-          "expect": "test_a_matching_name_from_a_foreign_head_is_refused",
-          "find": "            if isinstance(run, dict) and run.get(\"head_sha\") not in (None, head_sha):",
-          "replace": "            if False:  # mutated: الاسم يكفي والهويّة لا تُقاس\n",
-          "why": "الاسم ادّعاء: مصنوعةٌ باسمٍ مطابق من تشغيلٍ عن لقطةٍ أخرى كانت ستُنزَّل ويُحكَم عليها بوصفها دليلَ هذه اللقطة — وهو عكسُ ما وُجِد الاشتقاق لأجله."
-        },
-        {
-          "expect": "test_evidence_without_its_attestation_is_a_violation_not_an_absence",
-          "find": "    if matches[\"evidence\"] and not matches[\"attestation\"]:",
-          "replace": "    if False:  # mutated: دليلٌ بلا إثبات منشأ يمرّ غياباً\n",
-          "why": "خطوةُ التوقيع في `ci.yml` حاجزةٌ بمحاولتين على main، فغيابُ مصنوعتها مع حضور الدليل تشغيلٌ مكسور — وقراءتُه «غياباً مشروعاً» تُطفئ الإنذار الوحيد عنه."
-        }
-      ],
-      "test": "tests_v9/test_certify_artifact_contract.py",
-      "$why_ar": "أداةُ حكمٍ لا حارس بالاسم (لا تطابق `*_guard.py`) لكنّها تقرّر ما يُنزَّل ويُحكَم عليه في وظيفة الاعتماد — فطفراتُها هنا كي لا تعيش خارج القياس."
-    },
-    "scripts/ci/sot_evidence_manifest.py": {
-      "mutations": [
-        {
-          "expect": "test_the_builder_refuses_to_sign_an_empty_or_malformed_identity",
-          "find": "    if not args.producer_run_id.isdigit() or not args.producer_run_attempt.isdigit():\n        raise SystemExit(\"PRODUCER_IDENTITY_INVALID: run_id/run_attempt must be numeric\")",
-          "replace": "    if False:  # mutated: هويّةٌ فارغة تُوقَّع\n        raise SystemExit(\"PRODUCER_IDENTITY_INVALID: run_id/run_attempt must be numeric\")",
-          "why": "`GITHUB_RUN_ID` غير مضبوطة تصل \"unset\" — وتوقيعُ هويّةٍ فارغة داخل الموضوع الموقَّع يجعل إغلاق الهويّة اللاحق يطابق فراغاً بفراغ ويخضرّ."
-        },
-        {
-          "expect": "test_the_builder_embeds_the_producer_identity_it_was_given",
-          "find": "        \"producer_identity\": {\n            \"repository\": args.producer_repository,",
-          "replace": "        \"producer_identity\": {\n            \"repository\": \"kafaat/ai_platform_complete_v2.0.0_enhanced\",  # mutated: هويّةٌ مكتوبة بيدٍ لا من البيئة\n            \"$_\": args.producer_repository and None,",
-          "why": "هويّةُ المُنتِج تُشتقّ من البيئة وقتَ الإنتاج لا تُكتَب ثابتاً: ثابتٌ يصدق اليوم يكذب أوّلَ fork أو إعادة تسمية — والبيان الموقَّع لا يُصحَّح بأثرٍ رجعيّ."
-        }
-      ],
-      "test": "tests_v9/test_sot_provenance_guard.py",
-      "$why_ar": "أداةُ إنتاج البيان الموقَّع — ليست حارساً بالاسم لكنّ ما تكتبه يدخل الموضوع الموقَّع نفسه، فطفراتُها تقيس أنّ هويّة المُنتِج لا تُوقَّع فارغةً ولا مكتوبةً بيد."
-    },
-    "scripts/ci/capability_authority_view.py": {
-      "$gap_ar": "CAPABILITY-CONSUMER-AUTHORITY-MIGRATION-01 — المستهلك يقرأ الحقول من مالكها لا من إسقاط واحد",
-      "mutations": [
-        {
-          "expect": "test_canonical_definition_fields_win_while_mutable_runtime_fields_survive",
-          "find": "            row[field] = copy.deepcopy(canonical_row[field])",
-          "replace": "            pass  # mutated: canonical authority ignored; legacy drift wins",
-          "why": "إذا توقف الدمج عن استبدال حقول التعريف بقيم Registry v1 عاد المستهلك فعلياً إلى السجل القديم، فتُقرأ القيم البائتة رغم وجود سياسة سلطة الحقول."
-        },
-        {
-          "expect": "test_identity_disagreement_fails_closed_instead_of_joining_by_intersection",
-          "find": "    if canonical_ids != legacy_ids:",
-          "replace": "    if False and canonical_ids != legacy_ids:  # mutated: identity split ignored",
-          "why": "ضم سجلين مختلفي الهوية بالـintersection يخفي قدرة كاملة بدل أن يجعل reconciliation يحسمها."
-        },
-        {
-          "expect": "test_missing_canonical_authoritative_field_fails_closed",
-          "find": "            if field not in canonical_row:",
-          "replace": "            if False and field not in canonical_row:  # mutated: missing authority tolerated",
-          "why": "الحقل الذي تعلن السياسة أن canonical definition يملكه لا يجوز أن يسقط بصمت إلى legacy عند غيابه."
-        },
-        {
-          "expect": "test_a_nested_canonical_field_demands_an_explicit_merger",
-          "find": "            if \".\" in field:",
-          "replace": "            if False:  # mutated: الحقل المنقوط يُكتَب مفتاحاً حرفيّاً",
-          "why": "حقلٌ متداخل يُمنَح للتعريف القانونيّ ويُدمَج بمفتاحٍ مسطّح يكتب اسماً منقوطاً لا يقرؤه أيّ مستهلك — فيبدو الحقل مهاجراً وقيمتُه الحقيقيّة باقية legacy بلا إعلان."
-        }
-      ],
-      "test": "tests/architecture/test_capability_consumer_migration.py"
-    },
-    "scripts/ci/capability_projection_sync.py": {
-      "$why_ar": "الكاتب الوحيد المخوَّل للحقول canonical-owned في الإسقاط التوافقيّ — A′-4b. طفراته تقيس أنّ الاشتقاق آليّ من القانونيّ (لا تحرير يدويّ) وأنّ الانحراف لا يمرّ صامتاً.",
-      "mutations": [
-        {
-          "expect": "test_projection_follows_the_canonical_value_not_the_other_way",
-          "find": "            if target.get(field) != source[field]:",
-          "replace": "            if False:  # mutated: الانحراف لا يُرى والإسقاط لا يُزامَن",
-          "why": "تعطيل كشف الانحراف يجعل --check يخضرّ على إسقاطٍ بائت و--generate لا يُسقط شيئاً — فيعود الحقل canonical في الإسقاط يتيماً يكتبه من شاء."
-        },
-        {
-          "expect": "test_identity_disagreement_fails_closed",
-          "find": "    if set(canonical) != set(legacy):",
-          "replace": "    if False:  # mutated: هويّةٌ مختلفة تُضمّ صامتة",
-          "why": "ضمّ سجلَّين مختلفَي الهويّة بالتقاطع يُخفي قدرةً كاملة بدل أن يجعل reconciliation يحسمها — القاعدة نفسها المقفلة في العرض تُقفَل في المُسقِط."
-        }
-      ],
-      "test": "tests/architecture/test_capability_projection_sync.py"
-    },
-    "scripts/ci/capability_linker.py": {
-      "$why_ar": "الرابط فقد سلطة كتابة الحقول canonical-owned في A′-4b — والطفرة تقيس أنّ عودتها لا تمرّ.",
-      "mutations": [
-        {
-          "expect": "test_the_linker_no_longer_writes_canonical_owned_fields",
-          "find": "            # A′-4b: سلطة كتابة `owner` أُسقطت كذلك — الاشتقاق من الخدمات كان",
-          "replace": "            cap[\"owner\"] = \"PLATFORM\"  # mutated: عادت سلطة كتابةٍ أُسقطت",
-          "why": "أصل ازدواج الكتابة الذي أغلقته A′-4b: كاتبٌ يشتقّ حقلاً canonical-owned من شكل المستودع فيُبيته ضدّ مالكه. عودةُ سطرٍ واحد تعيد الازدواج كلّه."
-        }
-      ],
-      "test": "tests/architecture/test_capability_projection_sync.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -763,6 +763,86 @@
         }
       ],
       "test": "tests_v9/test_canonical_consumer_bypass_guard.py"
+    },
+    "capability_authority_completeness_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_unclassified_legacy_field_fails",
+          "find": "        if not isinstance(spec, dict):\n            findings.append(f\"{field}:unclassified\")\n            continue",
+          "replace": "        if not isinstance(spec, dict):\n            continue",
+          "why": "حقلٌ توافقيّ بلا سلطة مصنَّفة يعبر صامتاً ⇒ وعدُ «كلّ حقل له مالك معلَن» يصير فارغاً — وهذا هو العطل التأسيسيّ الذي بُني الحارس ليمسكه (7 من 20 حقلاً كانت بلا تصنيف قبل A′-4c)"
+        },
+        {
+          "expect": "test_unknown_authority_fails",
+          "find": "        if authority not in ALLOWED_AUTHORITIES:",
+          "replace": "        if False:",
+          "why": "سلطةٌ مخترَعة (سجلّ ثالث بالتسمية) تعبر كتصنيفٍ صحيح ⇒ يعود no_third_value_registry حبراً على ورق من باب الأسماء لا القيم"
+        },
+        {
+          "expect": "test_canonical_field_cannot_reauthorize_legacy_writer",
+          "find": "            and spec.get(\"legacy_writer\")",
+          "replace": "            and False",
+          "why": "إعلان legacy_writer بائت على حقلٍ canonical يعيد ترخيص ازدواج الكتابة الذي أغلقته A′-4b — نصُّ السياسة نفسه يصير بابَ الردّة"
+        }
+      ],
+      "test": "tests/architecture/test_capability_authority_completeness_guard.py"
+    },
+    "capability_compatibility_roundtrip_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_a_planted_projection_drift_is_reported",
+          "find": "    if drift:\n        findings.extend(\"projection_drift:\" + x for x in drift)",
+          "replace": "    if False:\n        findings.extend(\"projection_drift:\" + x for x in drift)",
+          "why": "انحرافُ الإسقاط لا يُبلَّغ من بوّابة الإغلاق المركّبة ⇒ «متقارب» تشهد به بوّابة عمياء عن أوّل شروطه"
+        },
+        {
+          "expect": "test_a_foreign_field_touched_by_projection_is_reported",
+          "find": "            if field not in canonical and b[cid].get(field) != a[cid].get(field):",
+          "replace": "            if False:",
+          "why": "مزامنة الإسقاط تمسّ حقلاً أجنبيّاً (مملوكاً لكاتبٍ آخر) بلا بلاغ ⇒ حدُّ «لا يمسّ إلا ما تملكه السلطة القانونيّة» بلا شاهد مستقلّ عن المُسقِط نفسه"
+        },
+        {
+          "expect": "test_a_failing_subcheck_is_reported",
+          "find": "        if p.returncode:",
+          "replace": "        if False:",
+          "why": "فحصٌ فرعيّ أحمر (رابط/تشغيل/إسقاط/مطابقة) يُبتلَع ⇒ round-trip أخضر فوق سلسلةٍ مكسورة — رمزُ الخروج يُقرأ ولا يُحكَم به"
+        }
+      ],
+      "test": "tests/architecture/test_capability_compatibility_roundtrip_guard.py"
+    },
+    "capability_legacy_access_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_new_direct_consumer_fails_closed",
+          "find": "    for p in sorted(actual - allowed):",
+          "replace": "    for p in []:",
+          "why": "مستهلكٌ مباشر جديد للسجلّ القديم يعبر بلا تصنيف ⇒ deny-by-default يصير allow-by-default والهجرة إلى عرض السلطة تتوقّف بصمت"
+        },
+        {
+          "expect": "test_stale_allowance_is_rejected",
+          "find": "    for p in sorted(allowed - actual):",
+          "replace": "    for p in []:",
+          "why": "رخصةٌ بائتة لملفٍّ زال وصولُه تبقى ⇒ القائمة تتضخّم برخصٍ ميّتة يرثها ملفٌّ جديد بالاسم نفسه دون قرار"
+        }
+      ],
+      "test": "tests/architecture/test_capability_legacy_access_guard.py"
+    },
+    "capability_writer_authority_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_linker_reacquiring_canonical_owner_is_blocked",
+          "find": "    for f in sorted(canonical & linker):",
+          "replace": "    for f in []:",
+          "why": "عودةُ سطر كتابة canonical في الرابط تعبر ⇒ قفل A′-4b النصّيّ يفقد نسخته المصدريّة AST — وهي النسخة التي لا يخدعها تنويع التنسيق أصلاً"
+        },
+        {
+          "expect": "test_runtime_apply_cannot_write_production_certified",
+          "find": "    if \"production_certified\" in runtime:",
+          "replace": "    if False:",
+          "why": "كاتب التشغيل يكتب production_certified ⇒ قرارُ الإطلاق الخارجيّ للمالك يُشتَقّ آليّاً من التحقّق — الخلط الذي حرّمه العقد نصّاً («لا يُشتقّ من L5»)"
+        }
+      ],
+      "test": "tests/architecture/test_capability_writer_authority_guard.py"
     },
     "claim_base_guard.py": {
       "mutations": [
