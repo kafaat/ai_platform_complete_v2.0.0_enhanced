@@ -1,4 +1,14 @@
 id,title,service,api,test,metrics,traces,receipts,audit_events,runtime_proof,production_proof,gates_passed,gates_total,readiness_percent,execution_outcome,subject_sha_binding,eligible_for_certification,certified
+DEC-001,Decision evidence,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
+DEC-002,Decision candidate,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+DEC-003,Human approval,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
+DEC-004,Execution request,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
+DEC-005,Dispatch authorization,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
+DEC-006,Execution receipt,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
+DEC-007,Outcome recording,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
+DEC-008,Learning attribution,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
+DEC-009,Model calibration,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+DEC-010,Model lifecycle and activation,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
 FM-001,Tenant and organization management,True,True,True,True,False,False,False,False,False,4,9,44.4,False,False,False,False
 FM-002,Farm registry,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 FM-003,Field registry and boundaries,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
@@ -11,30 +21,10 @@ GIS-001,Field geometry validation,True,True,True,False,False,True,False,False,Fa
 GIS-002,Map layers,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 GIS-003,Terrain and DEM,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 GIS-004,Spatial analytics,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SAT-001,Satellite scene search,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SAT-002,True color imagery,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-SAT-003,NDVI,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SAT-004,NDMI,True,False,False,False,False,False,False,False,False,1,9,11.1,False,False,False,False
-SAT-005,Cloud screening,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SAT-006,Historical imagery timeline,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SAT-007,Change detection,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SAT-008,Stress zones,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SAT-009,COG persistence and tiling,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-WX-001,Current weather,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-WX-002,Weather forecast,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-WX-003,Weather history,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-WX-004,ET0,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-WX-005,VPD,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-WX-006,GDD,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-WX-007,Frost and heat risk,True,False,False,False,False,False,False,False,False,1,9,11.1,False,False,False,False
-WX-008,Operation windows,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-WX-009,Disease weather models,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-WX-010,Weather provenance and quality,True,False,True,False,False,True,False,False,False,3,9,33.3,False,False,False,False
-SOIL-001,Soil profile,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SOIL-002,Soil sampling,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SOIL-003,Laboratory results,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-SOIL-004,pH EC SOM nutrients,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-SOIL-005,Soil water properties,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+INT-001,Public API and SDK,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+INT-002,Event bus integration,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+INT-003,IoT and sensors,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+INT-004,External machinery integrations,False,False,False,False,False,False,False,False,False,0,9,0.0,False,False,False,False
 IRR-001,Water source registry,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 IRR-002,Water quality samples,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 IRR-003,Field water-source binding,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
@@ -45,11 +35,6 @@ IRR-007,Pump and valve control,True,True,True,False,False,True,False,False,False
 IRR-008,Execution verification,True,False,False,False,False,False,False,False,False,1,9,11.1,False,False,False,False
 IRR-009,Water suitability multi-hazard,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 IRR-010,Leaching and drainage safety,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-PA-001,Management zones,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-PA-002,Variable rate prescription,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-PA-003,Yield map ingestion,False,True,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-PA-004,As-applied data,False,False,True,False,False,False,False,False,False,1,9,11.1,False,False,False,False
-PA-005,Machine telemetry,False,True,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 OPS-001,Task management,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 OPS-002,Work orders,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 OPS-003,Scouting,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
@@ -58,16 +43,20 @@ OPS-005,Offline mobile,False,True,True,False,False,False,False,False,False,2,9,2
 OPS-006,Equipment registry,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 OPS-007,Maintenance,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 OPS-008,Workforce and worker identity,True,False,True,True,False,False,False,False,False,3,9,33.3,False,False,False,False
-DEC-001,Decision evidence,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
-DEC-002,Decision candidate,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-DEC-003,Human approval,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
-DEC-004,Execution request,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
-DEC-005,Dispatch authorization,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
-DEC-006,Execution receipt,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
-DEC-007,Outcome recording,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
-DEC-008,Learning attribution,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
-DEC-009,Model calibration,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-DEC-010,Model lifecycle and activation,True,True,True,False,False,True,False,False,False,4,9,44.4,False,False,False,False
+PA-001,Management zones,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+PA-002,Variable rate prescription,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+PA-003,Yield map ingestion,False,True,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+PA-004,As-applied data,False,False,True,False,False,False,False,False,False,1,9,11.1,False,False,False,False
+PA-005,Machine telemetry,False,True,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+SAT-001,Satellite scene search,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SAT-002,True color imagery,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+SAT-003,NDVI,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SAT-004,NDMI,True,False,False,False,False,False,False,False,False,1,9,11.1,False,False,False,False
+SAT-005,Cloud screening,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SAT-006,Historical imagery timeline,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SAT-007,Change detection,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SAT-008,Stress zones,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SAT-009,COG persistence and tiling,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
 SEC-001,Tenant RLS,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 SEC-002,Signed tenant assertion,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 SEC-003,Worker identity binding,True,False,True,True,False,False,False,False,False,3,9,33.3,False,False,False,False
@@ -76,7 +65,18 @@ SEC-005,Audit logging,True,True,True,True,False,False,False,False,False,4,9,44.4
 SEC-006,Service token guard,True,False,True,True,False,False,False,False,False,3,9,33.3,False,False,False,False
 SEC-007,Decision SoR DB ownership,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
 SEC-008,Secrets and production fail-closed,True,False,True,True,False,False,False,False,False,3,9,33.3,False,False,False,False
-INT-001,Public API and SDK,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-INT-002,Event bus integration,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
-INT-003,IoT and sensors,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
-INT-004,External machinery integrations,False,False,False,False,False,False,False,False,False,0,9,0.0,False,False,False,False
+SOIL-001,Soil profile,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SOIL-002,Soil sampling,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SOIL-003,Laboratory results,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+SOIL-004,pH EC SOM nutrients,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+SOIL-005,Soil water properties,True,False,True,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+WX-001,Current weather,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+WX-002,Weather forecast,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+WX-003,Weather history,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+WX-004,ET0,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+WX-005,VPD,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+WX-006,GDD,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+WX-007,Frost and heat risk,True,False,False,False,False,False,False,False,False,1,9,11.1,False,False,False,False
+WX-008,Operation windows,True,True,False,False,False,False,False,False,False,2,9,22.2,False,False,False,False
+WX-009,Disease weather models,True,True,True,False,False,False,False,False,False,3,9,33.3,False,False,False,False
+WX-010,Weather provenance and quality,True,False,True,False,False,True,False,False,False,3,9,33.3,False,False,False,False

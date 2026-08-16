@@ -324,6 +324,36 @@
       ],
       "test": "tests_v9/test_sot_provenance_guard.py",
       "$why_ar": "أداةُ إنتاج البيان الموقَّع — ليست حارساً بالاسم لكنّ ما تكتبه يدخل الموضوع الموقَّع نفسه، فطفراتُها تقيس أنّ هويّة المُنتِج لا تُوقَّع فارغةً ولا مكتوبةً بيد."
+    },
+    "scripts/ci/capability_authority_view.py": {
+      "$gap_ar": "CAPABILITY-CONSUMER-AUTHORITY-MIGRATION-01 — المستهلك يقرأ الحقول من مالكها لا من إسقاط واحد",
+      "mutations": [
+        {
+          "expect": "test_canonical_definition_fields_win_while_mutable_runtime_fields_survive",
+          "find": "            row[field] = copy.deepcopy(canonical_row[field])",
+          "replace": "            pass  # mutated: canonical authority ignored; legacy drift wins",
+          "why": "إذا توقف الدمج عن استبدال حقول التعريف بقيم Registry v1 عاد المستهلك فعلياً إلى السجل القديم، فتُقرأ القيم البائتة رغم وجود سياسة سلطة الحقول."
+        },
+        {
+          "expect": "test_identity_disagreement_fails_closed_instead_of_joining_by_intersection",
+          "find": "    if canonical_ids != legacy_ids:",
+          "replace": "    if False and canonical_ids != legacy_ids:  # mutated: identity split ignored",
+          "why": "ضم سجلين مختلفي الهوية بالـintersection يخفي قدرة كاملة بدل أن يجعل reconciliation يحسمها."
+        },
+        {
+          "expect": "test_missing_canonical_authoritative_field_fails_closed",
+          "find": "            if field not in canonical_row:",
+          "replace": "            if False and field not in canonical_row:  # mutated: missing authority tolerated",
+          "why": "الحقل الذي تعلن السياسة أن canonical definition يملكه لا يجوز أن يسقط بصمت إلى legacy عند غيابه."
+        },
+        {
+          "expect": "test_a_nested_canonical_field_demands_an_explicit_merger",
+          "find": "            if \".\" in field:",
+          "replace": "            if False:  # mutated: الحقل المنقوط يُكتَب مفتاحاً حرفيّاً",
+          "why": "حقلٌ متداخل يُمنَح للتعريف القانونيّ ويُدمَج بمفتاحٍ مسطّح يكتب اسماً منقوطاً لا يقرؤه أيّ مستهلك — فيبدو الحقل مهاجراً وقيمتُه الحقيقيّة باقية legacy بلا إعلان."
+        }
+      ],
+      "test": "tests/architecture/test_capability_consumer_migration.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",

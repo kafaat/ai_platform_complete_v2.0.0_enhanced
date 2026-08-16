@@ -8,8 +8,12 @@ import csv
 import json
 from pathlib import Path
 
+try:
+    from capability_authority_view import load_authoritative_capabilities
+except ModuleNotFoundError:
+    from scripts.ci.capability_authority_view import load_authoritative_capabilities
+
 ROOT = Path(__file__).resolve().parents[2]
-REGISTRY = ROOT / "capabilities/registry/capabilities.json"
 RUNTIME_AUTHORITY = ROOT / "runtime-verification/generated/runtime_certification_summary.json"
 OUT = ROOT / "capabilities/generated"
 
@@ -101,9 +105,9 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--strict", action="store_true")
     args = ap.parse_args()
-    data = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    capabilities = load_authoritative_capabilities(ROOT)
     preconditions = load_promotion_preconditions()
-    rows = [evaluate(c, preconditions) for c in data["capabilities"]]
+    rows = [evaluate(c, preconditions) for c in capabilities]
     OUT.mkdir(parents=True, exist_ok=True)
     with (OUT / "capability_certification_matrix.csv").open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))

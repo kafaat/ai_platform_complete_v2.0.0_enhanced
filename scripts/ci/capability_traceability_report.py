@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate capability traceability and gap reports from the canonical registry."""
+"""Generate traceability reports from the field-authority-resolved capability view."""
 
 from __future__ import annotations
 
@@ -8,14 +8,17 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
+try:
+    from capability_authority_view import load_authoritative_capabilities
+except ModuleNotFoundError:
+    from scripts.ci.capability_authority_view import load_authoritative_capabilities
+
 ROOT = Path(__file__).resolve().parents[2]
-REGISTRY = ROOT / "capabilities/registry/capabilities.json"
 OUT = ROOT / "capabilities/generated"
 
 
 def main() -> int:
-    data = json.loads(REGISTRY.read_text(encoding="utf-8"))
-    caps = data["capabilities"]
+    caps = load_authoritative_capabilities(ROOT)
     rows = []
     domain = defaultdict(
         lambda: Counter(total=0, service=0, api=0, test=0, ui=0, mobile=0, owner=0)
@@ -84,7 +87,7 @@ def main() -> int:
     md = [
         "# SAHOOL Capability Traceability Report",
         "",
-        "Generated from the canonical capability registry. Links are repository evidence, not runtime certification.",
+        "Generated from the field-authority-resolved capability view. Canonical definition fields come from Registry v1; repository links remain projections and are not runtime certification.",
         "",
         "## Coverage",
         "",
