@@ -10,17 +10,17 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **245**
+- حرّاس تحجب في CI: **246**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **33**
 - إجماليّ الطفرات المُسجَّلة: **241**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **43** على 14 مصدراً
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **46** على 16 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **212** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **213** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -632,7 +632,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (212)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (213)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -663,6 +663,7 @@
 | `capability_management_engine.py` | Generate the unified SAHOOL Capability Management Layer. | `capability-registry` |
 | `capability_mapping_engine.py` | Build a deterministic repository-to-capability evidence map for SAHOOL. | `capability-registry` |
 | `capability_parity_investment_engine.py` | Generate fail-closed capability parity and investment artifacts. | `capability-registry` |
+| `capability_projection_sync.py` | يجعل الإسقاط التوافقيّ صادقاً: الحقول canonical-owned تُكتَب من مالكها وحده. | `capability-registry` |
 | `capability_registry_guard.py` | Validate the canonical SAHOOL capability registry and generate governance outputs. | `capability-registry` |
 | `capability_registry_v1.py` | — | `capability-registry` |
 | `capability_release_history.py` | Generate deterministic capability history from committed static baselines. | `capability-registry` |

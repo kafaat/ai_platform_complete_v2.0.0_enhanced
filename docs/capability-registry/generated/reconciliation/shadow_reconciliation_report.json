@@ -465,41 +465,7 @@
       "reason": "excluded_until_structured_normalization"
     }
   ],
-  "findings": [
-    {
-      "authority": "canonical_capability_definition",
-      "canonical": 3,
-      "capability_id": "INT-004",
-      "field": "evidence_level",
-      "finding_id": "INT-004:evidence_level",
-      "kind": "field_drift",
-      "legacy": 1,
-      "legacy_role": "compatibility_projection",
-      "ratchet_identity": "INT-004:evidence_level:registry-reconciliation"
-    },
-    {
-      "authority": "canonical_capability_definition",
-      "canonical": 3,
-      "capability_id": "INT-004",
-      "field": "maturity",
-      "finding_id": "INT-004:maturity",
-      "kind": "field_drift",
-      "legacy": 1,
-      "legacy_role": "compatibility_projection",
-      "ratchet_identity": "INT-004:maturity:registry-reconciliation"
-    },
-    {
-      "authority": "canonical_capability_definition",
-      "canonical": "sahool-platform",
-      "capability_id": "INT-004",
-      "field": "owner",
-      "finding_id": "INT-004:owner",
-      "kind": "field_drift",
-      "legacy": "UNASSIGNED",
-      "legacy_role": "compatibility_projection",
-      "ratchet_identity": "INT-004:owner:registry-reconciliation"
-    }
-  ],
+  "findings": [],
   "legacy_source": "capabilities/registry/capabilities.json",
   "mode": "shadow-report-only",
   "no_third_value_registry": true,
@@ -514,9 +480,9 @@
         "stale": []
       },
       "registry_reconciliation": {
-        "baseline_count": 3,
+        "baseline_count": 0,
         "new": [],
-        "observed_count": 3,
+        "observed_count": 0,
         "stale": []
       }
     },
@@ -528,8 +494,8 @@
     "capabilities_canonical": 81,
     "capabilities_legacy": 81,
     "capabilities_shared": 81,
-    "field_drift_findings": 3,
-    "findings_total": 3,
+    "field_drift_findings": 0,
+    "findings_total": 0,
     "identity_findings": 0
   }
 }
