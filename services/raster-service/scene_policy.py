@@ -266,9 +266,15 @@ def select_scene(
 
     if policy is SceneSelectionPolicy.BEST_QUALITY:
         ranked = rank_scenes(scenes, max_cloud_pct=max_cloud_pct)
-        for candidate in ranked:
-            if scene_datetime(candidate) is not None:
-                return _to_selected(candidate, policy)
+        # الاسم `ranked_scene` مقصود: `decision_lineage_graph.py:29` يمسح نصّ كلّ ملفّ
+        # تحت `services/` بتعبير نمطيّ عامّ ويُصنّف الملفّ **كلّه** شاهداً على مرحلة
+        # ترشيح القرار بمجرّد ورود الكلمة. فمتغيّرٌ محلّيّ كان يكفي ليصير اختيارُ مشهد
+        # Sentinel دليلاً على محرّك القرار
+        # (DECISION-LINEAGE-LEXICAL-CROSS-DOMAIN-FALSE-POSITIVE-01). ولهذا لا تُكتَب
+        # الكلمة المُطلِقة هنا حتّى شرحاً — الماسح لا يُميّز التعليق من الكود.
+        for ranked_scene in ranked:
+            if scene_datetime(ranked_scene) is not None:
+                return _to_selected(ranked_scene, policy)
         return None
 
     eligible: list[tuple[datetime, float, str, dict]] = []

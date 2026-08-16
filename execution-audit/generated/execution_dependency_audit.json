@@ -135090,392 +135090,392 @@
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
       "target": "scene_datetime",
-      "line": 270
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_scene",
-      "target": "_to_selected",
-      "line": 271
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_scene",
-      "target": "scene_datetime",
       "line": 276
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
+      "target": "_to_selected",
+      "line": 277
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_scene",
+      "target": "scene_datetime",
+      "line": 282
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_scene",
       "target": "scene_cloud_pct",
-      "line": 280
+      "line": 286
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
       "target": "float",
-      "line": 281
+      "line": 287
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
       "target": "scene_to_dict",
-      "line": 283
+      "line": 289
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
       "target": "_scene_identity",
-      "line": 286
+      "line": 292
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
       "target": "append",
-      "line": 286
+      "line": 292
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
       "target": "sort",
-      "line": 290
+      "line": 296
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
       "target": "timestamp",
-      "line": 290
+      "line": 296
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_scene",
       "target": "_to_selected",
-      "line": 291
+      "line": 297
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "_to_selected",
       "target": "scene_datetime",
-      "line": 295
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "_to_selected",
-      "target": "scene_cloud_pct",
-      "line": 298
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "_to_selected",
-      "target": "scene_to_dict",
-      "line": 299
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "_to_selected",
-      "target": "get",
-      "line": 300
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "_to_selected",
-      "target": "get",
       "line": 301
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "_to_selected",
-      "target": "get",
-      "line": 303
+      "target": "scene_cloud_pct",
+      "line": 304
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "_to_selected",
+      "target": "scene_to_dict",
+      "line": 305
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "_to_selected",
       "target": "get",
-      "line": 303
+      "line": 306
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "_to_selected",
+      "target": "get",
+      "line": 307
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "_to_selected",
+      "target": "get",
+      "line": 309
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "_to_selected",
+      "target": "get",
+      "line": 309
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "_to_selected",
       "target": "isoformat",
-      "line": 307
+      "line": 313
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "_to_selected",
       "target": "replace",
-      "line": 307
+      "line": 313
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "_to_selected",
       "target": "SelectedScene",
-      "line": 308
+      "line": 314
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "_to_selected",
       "target": "_scene_identity",
-      "line": 309
+      "line": 315
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "lower",
-      "line": 327
+      "line": 333
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "str",
-      "line": 327
+      "line": 333
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "bool",
-      "line": 328
+      "line": 334
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "float",
-      "line": 329
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "float",
-      "line": 331
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "min",
-      "line": 331
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "rank_scenes",
       "line": 335
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
+      "target": "float",
+      "line": 337
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "min",
+      "line": 337
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "rank_scenes",
+      "line": 341
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
       "target": "scene_cloud_pct",
-      "line": 339
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "scene_clear_pct",
-      "line": 342
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "round",
-      "line": 343
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "scene_quality_label",
-      "line": 344
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "append",
       "line": 345
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
-      "target": "scene_datetime",
+      "target": "scene_clear_pct",
+      "line": 348
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "round",
+      "line": 349
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "scene_quality_label",
       "line": 350
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
-      "target": "any",
+      "target": "append",
       "line": 351
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
-      "target": "abs",
-      "line": 352
+      "target": "scene_datetime",
+      "line": 356
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
-      "target": "total_seconds",
-      "line": 352
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "append",
-      "line": 355
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "append",
+      "target": "any",
       "line": 357
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
-      "target": "int",
+      "target": "abs",
       "line": 358
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
-      "target": "len",
+      "target": "total_seconds",
       "line": 358
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "max",
-      "line": 358
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "int",
-      "line": 361
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "len",
-      "line": 361
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "max",
-      "line": 361
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "scene_day_key",
-      "line": 362
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/scene_policy.py",
-      "source": "select_backfill_scenes_by_policy",
-      "target": "scene_day_key",
-      "line": 364
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "append",
-      "line": 367
+      "line": 361
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
-      "target": "add",
-      "line": 368
+      "target": "append",
+      "line": 363
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "int",
-      "line": 369
+      "line": 364
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "len",
-      "line": 369
+      "line": 364
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "max",
-      "line": 369
+      "line": 364
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "int",
+      "line": 367
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "len",
+      "line": 367
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "max",
+      "line": 367
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "scene_day_key",
+      "line": 368
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "scene_day_key",
+      "line": 370
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "append",
+      "line": 373
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "add",
+      "line": 374
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "int",
+      "line": 375
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "len",
+      "line": 375
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/scene_policy.py",
+      "source": "select_backfill_scenes_by_policy",
+      "target": "max",
+      "line": 375
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "replace",
-      "line": 372
+      "line": 378
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "scene_datetime",
-      "line": 372
+      "line": 378
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/scene_policy.py",
       "source": "select_backfill_scenes_by_policy",
       "target": "sorted",
-      "line": 372
+      "line": 378
     },
     {
       "owner": "raster-service",

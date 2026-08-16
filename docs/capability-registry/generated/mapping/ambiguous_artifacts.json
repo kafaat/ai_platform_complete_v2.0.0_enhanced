@@ -5027,7 +5027,7 @@
       },
       {
         "capability_id": "SAT-001",
-        "score": 10,
+        "score": 11,
         "signals": [
           "content:cdse",
           "content:satellite scene",

@@ -16010,6 +16010,15 @@
           ]
         },
         {
+          "path": "services/raster-service/scene_policy.py",
+          "score": 11,
+          "signals": [
+            "content:cdse",
+            "content:satellite scene",
+            "content:sentinel"
+          ]
+        },
+        {
           "path": "services/raster-service/cloud_native_catalog.py",
           "score": 10,
           "signals": [
@@ -16023,15 +16032,6 @@
           "signals": [
             "content:cdse",
             "content:stac"
-          ]
-        },
-        {
-          "path": "services/raster-service/scene_policy.py",
-          "score": 10,
-          "signals": [
-            "content:cdse",
-            "content:satellite scene",
-            "content:sentinel"
           ]
         },
         {
@@ -47624,7 +47624,7 @@
         },
         {
           "capability_id": "SAT-001",
-          "score": 10,
+          "score": 11,
           "signals": [
             "content:cdse",
             "content:satellite scene",
