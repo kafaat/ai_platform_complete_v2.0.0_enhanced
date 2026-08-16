@@ -213,6 +213,14 @@
         },
         "competitive": {
           "type": "object"
+        },
+        "evidence_truncated": {
+          "type": "object",
+          "description": "عدد الشواهد المحذوفة لكلّ بُعدٍ قُصّ عند سقفه في capability_linker. يُكتب فقط حين يقع قصّ فعليّ. غيابه يعني «لم يُقصّ شيء» لا «لا نعلم» — فالسجلّ يُعلن نقصانه بدل أن يبدو كاملاً.",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          }
         }
       },
       "additionalProperties": false

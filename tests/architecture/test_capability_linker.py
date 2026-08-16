@@ -238,3 +238,63 @@ def test_the_committed_candidates_csv_is_in_canonical_order():
         "capability_link_candidates.csv غير مفروز بمحتواه — أُعيد توليده بترتيب "
         "مورَّث من نظام الملفّات، فسيقول `--check` «انحراف» على عدّاء آخر."
     )
+
+
+def test_registry_evidence_truncation_is_declared_not_silent() -> None:
+    """CAPABILITY-EVIDENCE-LISTS-TRUNCATE-SILENTLY-01 — شقّ **سجلّ الحقيقة**.
+
+    #860 أعلن الاقتطاع في الخريطة وترك الرابط. والرابط أشدّ لأنّه يكتب
+    ``capabilities/registry/capabilities.json`` نفسه، وقصُّه **أبجديّ** — فبقاء
+    الشاهد كان تقرّره صدفةُ اسم الملفّ. المقيس وقتَ الاكتشاف: **٤٩٤** شاهداً
+    محذوفاً صامتاً عبر ثمانِ قدرات (FM-003 وحدها ٢٠٠ واجهة و٩٦ اختباراً).
+
+    يُقاس هنا على السجلّ المشحون: كلّ بُعدٍ **بالغٍ سقفَه** يجب أن يحمل إعلاناً
+    باسمه وعدده، وكلّ إعلانٍ يجب أن يقابله بُعدٌ عند سقفه فعلاً (لا إعلان كاذب).
+    """
+    caps = json.loads(
+        (ROOT / "capabilities/registry/capabilities.json").read_text(encoding="utf-8")
+    )
+    rows = caps["capabilities"] if isinstance(caps, dict) else caps
+    limits = {
+        "services": 8,
+        "apis": 40,
+        "tests": 25,
+        "ui_consumers": 20,
+        "mobile_consumers": 20,
+    }
+
+    at_cap_without_declaration: list[str] = []
+    declared_without_cap: list[str] = []
+    for row in rows:
+        cid = row.get("id")
+        declared = row.get("evidence_truncated") or {}
+        for dim, limit in limits.items():
+            n = len(row.get(dim) or [])
+            if n >= limit and dim not in declared:
+                at_cap_without_declaration.append(f"{cid}.{dim} ({n}/{limit})")
+            if dim in declared and n < limit:
+                declared_without_cap.append(f"{cid}.{dim} ({n}/{limit})")
+        for dim, dropped in declared.items():
+            assert int(dropped) >= 1, f"{cid}.{dim}: إعلانُ قصٍّ بصفرٍ محذوف"
+
+    assert not at_cap_without_declaration, (
+        "أبعادٌ بلغت سقفها في سجلّ الحقيقة بلا إعلان قصّ — عاد الاقتطاع الصامت: "
+        f"{at_cap_without_declaration}"
+    )
+    assert not declared_without_cap, (
+        f"إعلانُ قصٍّ لبُعدٍ لم يبلغ سقفه — إعلانٌ كاذب: {declared_without_cap}"
+    )
+
+
+def test_the_declaration_field_is_allowed_by_the_registry_schema() -> None:
+    """حقلٌ يكتبه الرابط ويرفضه المخطَّط = بوّابةٌ حمراء لا صدقٌ مُعلَن.
+
+    المخطَّط ``additionalProperties: false`` على القدرة، فالإعلان لا يعيش بلا
+    تصريحٍ فيه — وهذا الاختبار يربط الكاتب بالعقد بدل تركهما ينحرفان.
+    """
+    schema = json.loads(
+        (ROOT / "capabilities/schema/capability-registry.schema.json").read_text(encoding="utf-8")
+    )
+    props = schema["$defs"]["capability"]["properties"]
+    assert "evidence_truncated" in props, "الرابط يكتب حقلاً لا يُصرّح به المخطَّط"
+    assert props["evidence_truncated"]["additionalProperties"]["type"] == "integer"
