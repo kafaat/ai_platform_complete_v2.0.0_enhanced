@@ -19,9 +19,16 @@ import cdse_singleflight
 import db_persist as _db
 import layer_lookup
 import raster_date_geo
+import scene_policy
 from raster_security_context import REQ_TENANT
 
 LATEST_WINDOW_DAYS = int(os.getenv("CDSE_LATEST_WINDOW_DAYS", "365"))
+
+# سقف الغيوم الذي يُسأل به المزوّد. كان مكتوباً حرفيّاً عند نداء ``process_index``
+# وحده؛ ورُفِع ثابتاً لأنّ البحث في الكتالوج والمعالجة **يجب أن يتّفقا**: لو بحثنا
+# بسقف أوسع من سقف المعالجة لربطنا النافذة بيوم مشهدٍ سترفضه المعالجة، فنعود بفراغ
+# حيث كانت الصورة تُعرَض قبل الربط.
+MAX_CLOUD_PCT = 40.0
 
 logger = logging.getLogger("raster-service")
 
@@ -129,6 +136,56 @@ async def normalize_cdse_request(
     }
 
 
+def window_spans_multiple_days(date_from: str, date_to: str) -> bool:
+    """هل تمتدّ النافذة على أكثر من يوم تقويميّ واحد بـUTC؟
+
+    هذا **مُميِّز مشتقّ من النافذة نفسها** لا راية جديدة تُمرَّر: التاريخ الصريح يُبنى
+    أصلاً كنافذة يومٍ واحد (``build_tile_context``)، و«latest» وحدها تمتدّ إلى
+    ``LATEST_WINDOW_DAYS``. فاشتقاقه هنا يُبقي توقيع ``ensure_field_cog`` كما هو،
+    ويظلّ صادقاً لو تغيّر مصدر النافذة لاحقاً — لأنّ الشرط الحقيقيّ للربط هو الامتداد،
+    لا كون الطلب مُسمّى «latest».
+    """
+    return str(date_from)[:10] != str(date_to)[:10]
+
+
+def bind_scene_day_window(
+    scenes: list[dict] | None,
+    date_from: str,
+    date_to: str,
+    *,
+    max_cloud_pct: float = MAX_CLOUD_PCT,
+) -> tuple[str, str, str | None]:
+    """يضيّق نافذة بحثٍ ممتدّة إلى **يوم المشهد الحقيقيّ** الأعلى ترتيباً.
+
+    العلّة المقيسة: ``process_index`` يُرسَل إليه ``mosaickingOrder=leastCC``
+    (``cdse_client.py``)، فنافذة ٣٦٥ يوماً تُرجِع **أقلّ المشاهد غيوماً في سنة** لا
+    الأحدث — ويُخزَّن الناتج تحت مفتاح ``today`` بلا شاهدٍ على تاريخه. فـ«latest» في
+    الخريطة الحيّة قد لا تكون بكسلات «latest» في الشريط الزمنيّ، وهو تناقض بين مسارين
+    في الخدمة نفسها.
+
+    مسار الإدامة (``raster_cdse_processing``) حلّ هذا سلفاً بالنمط عينه — بحثٌ في
+    الكتالوج ثمّ ``rank_scenes`` ثمّ تضييق إلى يوم المشهد. هذه الدالّة **نقيّة**: تأخذ
+    المشاهد مُعطاةً فتُقاس بلا شبكة، والنداء الشبكيّ يبقى في المُستدعي.
+
+    **تفشل مفتوحةً عمداً:** بلا مشاهد أو بلا تاريخ صالح تُعيد النافذة كما جاءت. الربط
+    تحسينُ صدقٍ لا شرطُ صلاحيّة؛ وإرجاع ``None`` كان سيُحوّل تعذّر الربط إلى بلاطة
+    مفقودة حيث كانت الصورة تُعرَض.
+    """
+    if not scenes:
+        return date_from, date_to, None
+    ranked = scene_policy.rank_scenes(scenes, max_cloud_pct=max_cloud_pct)
+    best = ranked[0] if ranked else None
+    if not best:
+        return date_from, date_to, None
+    # ``properties`` قد تكون حاضرةً بقيمة ``None``؛ فـ``get("properties", {})`` وحدها
+    # تُمرّر ``None`` ثمّ تنفجر على ``.get`` التالية.
+    capture = best.get("datetime") or (best.get("properties") or {}).get("datetime")
+    window = raster_date_geo.day_window(capture)
+    if window is None:
+        return date_from, date_to, None
+    return window[0], window[1], str(capture)
+
+
 async def ensure_field_cog(
     field_id: str,
     internal: str,
@@ -184,6 +241,49 @@ async def ensure_field_cog(
                     internal,
                 )
                 return None
+            # ربط النافذة الممتدّة بيوم المشهد الحقيقيّ **بعد** فحص الكاش وحده: قبله
+            # كان نداءً شبكيّاً إضافيّاً على كلّ إصابة كاش. وهنا يقع مرّةً لكلّ ملء.
+            if window_spans_multiple_days(date_from, date_to):
+                try:
+                    scenes = await asyncio.get_event_loop().run_in_executor(
+                        None,
+                        lambda: client.search_scenes(
+                            bbox=list(field_bbox),
+                            time_from=date_from,
+                            time_to=date_to,
+                            max_cloud_pct=MAX_CLOUD_PCT,
+                            limit=10,
+                            geometry=field_geom,
+                        ),
+                    )
+                except Exception as e:  # noqa: BLE001
+                    scenes = None
+                    logger.warning(
+                        "CDSE scene date binding skipped (%s/%s): %s — نافذة الاسترجاع كما هي",
+                        field_id,
+                        internal,
+                        type(e).__name__,
+                    )
+                date_from, date_to, capture_datetime = bind_scene_day_window(
+                    scenes, date_from, date_to
+                )
+                if capture_datetime:
+                    # الشاهد يُسجَّل: «latest» قد تكون مشهداً عمره أشهر، وبلا هذا السطر
+                    # لا أثر في أيّ مكان يقول أيّ يوم عُرِض فعلاً.
+                    logger.info(
+                        "CDSE latest bound to acquisition day (%s/%s): %s",
+                        field_id,
+                        internal,
+                        capture_datetime,
+                    )
+                else:
+                    logger.info(
+                        "CDSE latest unbound (%s/%s): لا مشهد مُرتَّب — leastCC على %s..%s",
+                        field_id,
+                        internal,
+                        date_from,
+                        date_to,
+                    )
             geotiff_bytes = await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: client.process_index(
@@ -192,7 +292,7 @@ async def ensure_field_cog(
                     time_from=date_from,
                     time_to=date_to,
                     geometry=field_geom,
-                    max_cloud_pct=40.0,
+                    max_cloud_pct=MAX_CLOUD_PCT,
                 ),
             )
             tf = tempfile.NamedTemporaryFile(

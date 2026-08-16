@@ -13,6 +13,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import raster_date_geo
 import scene_policy
 
 
@@ -33,13 +34,7 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
     dt_to = datetime.now(UTC)
     dt_from = dt_to - timedelta(days=max(int(req.lookback_days), 1))
 
-    def _day_window(value: str | None) -> tuple[str, str] | None:
-        if not value:
-            return None
-        day = str(value)[:10]
-        if len(day) != 10:
-            return None
-        return f"{day}T00:00:00Z", f"{day}T23:59:59Z"
+    _day_window = raster_date_geo.day_window
 
     explicit_from = req.date_from or req.date_to
     explicit_to = req.date_to or req.date_from

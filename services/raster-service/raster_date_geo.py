@@ -20,6 +20,25 @@ def parse_ymd(value: str, field_name: str) -> datetime:
         raise HTTPException(400, f"{field_name} يجب أن يكون YYYY-MM-DD") from e
 
 
+def day_window(value: str | None) -> tuple[str, str] | None:
+    """يُحوّل تاريخ/طابع اكتساب إلى نافذة **اليوم الكامل** بـUTC، أو ``None`` إن تعذّر.
+
+    كانت هذه الدالّة مُغلَقاً داخل ``raster_cdse_processing.process_cdse_indices``،
+    فبقيت سلطتها حبيسة مسار الإدامة بينما يحتاجها مسار البلاطة الحيّة للربط نفسه.
+    نسخُها كان سيُنشئ سلطةً ثانية على معنى «اليوم» تنحرف عن الأولى بصمت؛ فرُفِعت إلى
+    وحدة التواريخ المشتركة ويستهلكها المساران من موضع واحد.
+
+    ``00:00 → 23:59:59`` لا ``00:00 → 00:00``: النافذة صفريّة الطول تُسبّب ٤٠٠ أو
+    نتيجة فارغة من CDSE (مُوثَّق في مُستدعي هذه الدالّة الأصليّ).
+    """
+    if not value:
+        return None
+    day = str(value)[:10]
+    if len(day) != 10:
+        return None
+    return f"{day}T00:00:00Z", f"{day}T23:59:59Z"
+
+
 def _preset_value(value: Any) -> str:
     return str(getattr(value, "value", value))
 

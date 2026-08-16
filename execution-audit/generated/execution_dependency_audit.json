@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1848,
     "route_handlers": 1049,
-    "call_edges": 73120,
+    "call_edges": 73136,
     "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -114846,27 +114846,13 @@
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "get",
-      "line": 28
+      "line": 29
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "isoformat",
-      "line": 30
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "now",
-      "line": 30
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "set",
       "line": 31
     },
     {
@@ -114874,83 +114860,76 @@
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "now",
-      "line": 33
+      "line": 31
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "set",
+      "line": 32
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "now",
+      "line": 34
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "int",
-      "line": 34
+      "line": 35
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "max",
-      "line": 34
+      "line": 35
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "timedelta",
-      "line": 34
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "_day_window",
-      "target": "str",
-      "line": 39
+      "line": 35
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "str",
-      "line": 39
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "_day_window",
-      "target": "len",
-      "line": 40
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "len",
-      "line": 40
+      "line": 45
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "str",
-      "line": 50
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "str",
-      "line": 51
+      "line": 46
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "len",
-      "line": 52
+      "line": 47
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "len",
+      "line": 47
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "_to_rfc3339",
       "line": 52
     },
     {
@@ -114958,55 +114937,55 @@
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "_to_rfc3339",
-      "line": 57
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "_to_rfc3339",
-      "line": 58
+      "line": 53
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "str",
-      "line": 60
+      "line": 55
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "strftime",
-      "line": 66
+      "line": 61
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "strftime",
-      "line": 67
+      "line": 62
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "get_client",
-      "line": 71
+      "line": 66
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "search_scenes",
-      "line": 74
+      "line": 69
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "rank_scenes",
+      "line": 78
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "get",
       "line": 83
     },
     {
@@ -115014,147 +114993,175 @@
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "get",
-      "line": 88
+      "line": 83
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "get",
-      "line": 88
+      "line": 83
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "get",
-      "line": 88
+      "line": 86
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "get",
-      "line": 91
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "get",
-      "line": 91
+      "line": 86
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "str",
-      "line": 91
+      "line": 86
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "_day_window",
-      "line": 93
+      "line": 88
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "warning",
-      "line": 97
+      "line": 92
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "supported_indices",
-      "line": 99
+      "line": 94
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "len",
-      "line": 105
+      "line": 100
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "max",
-      "line": 105
+      "line": 100
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "enumerate",
-      "line": 106
+      "line": 101
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "process_index",
-      "line": 111
+      "line": 106
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "join",
-      "line": 122
+      "line": 117
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "uuid4",
-      "line": 122
+      "line": 117
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "open",
-      "line": 123
+      "line": 118
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "write",
-      "line": 124
+      "line": 119
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "ProcessRequest",
-      "line": 125
+      "line": 120
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "IndicatorKind",
-      "line": 129
+      "line": 124
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "BandMapping",
-      "line": 131
+      "line": 126
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "_run_processing",
-      "line": 141
+      "line": 136
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "get",
+      "line": 137
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "get",
+      "line": 138
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "get",
+      "line": 139
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "get",
+      "line": 140
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "bool",
+      "line": 142
     },
     {
       "owner": "raster-service",
@@ -115168,55 +115175,41 @@
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "get",
-      "line": 143
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "get",
       "line": 144
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
-      "target": "get",
-      "line": 145
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "bool",
-      "line": 147
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "get",
-      "line": 147
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "get",
-      "line": 149
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
       "target": "str",
-      "line": 155
+      "line": 150
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "warning",
+      "line": 151
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "int",
+      "line": 152
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "set",
+      "line": 153
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "type",
       "line": 156
     },
     {
@@ -115237,252 +115230,210 @@
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
-      "target": "type",
+      "target": "isoformat",
       "line": 161
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
-      "target": "int",
-      "line": 162
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "set",
-      "line": 163
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "isoformat",
-      "line": 166
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
       "target": "now",
-      "line": 166
+      "line": 161
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "sum",
-      "line": 171
+      "line": 166
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "values",
-      "line": 171
+      "line": 166
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "set",
-      "line": 174
+      "line": 169
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_processing.py",
       "source": "run_cdse_processing",
       "target": "info",
+      "line": 170
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "len",
+      "line": 173
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_processing.py",
+      "source": "run_cdse_processing",
+      "target": "len",
       "line": 175
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "len",
-      "line": 178
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_processing.py",
-      "source": "run_cdse_processing",
-      "target": "len",
-      "line": 180
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "_unlink_best_effort",
       "target": "unlink",
-      "line": 42
+      "line": 49
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "_unlink_best_effort",
       "target": "debug",
-      "line": 44
+      "line": 51
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "_unlink_best_effort",
       "target": "type",
-      "line": 48
+      "line": 55
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "split",
-      "line": 57
+      "line": 64
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "strip",
-      "line": 58
+      "line": 65
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "split",
-      "line": 61
+      "line": 68
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "append",
-      "line": 62
+      "line": 69
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "float",
-      "line": 62
+      "line": 69
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "float",
-      "line": 62
+      "line": 69
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "len",
-      "line": 63
+      "line": 70
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "parse_poly",
       "target": "append",
-      "line": 66
+      "line": 73
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "is_configured",
-      "line": 85
+      "line": 92
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "enforce_enabled",
-      "line": 89
+      "line": 96
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "resolve_active_source",
-      "line": 90
+      "line": 97
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "get",
-      "line": 93
+      "line": 100
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "is_truecolor",
-      "line": 94
+      "line": 101
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "now",
-      "line": 98
+      "line": 105
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "strftime",
-      "line": 99
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "strftime",
-      "line": 101
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "timedelta",
-      "line": 101
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "parse_poly",
       "line": 106
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
-      "target": "fetch_field_geometry",
+      "target": "strftime",
       "line": 108
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
-      "target": "float",
+      "target": "timedelta",
+      "line": 108
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "parse_poly",
       "line": 113
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
-      "target": "float",
-      "line": 114
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "normalize_cdse_request",
-      "target": "float",
+      "target": "fetch_field_geometry",
       "line": 115
     },
     {
@@ -115490,357 +115441,504 @@
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "float",
-      "line": 116
+      "line": 120
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "float",
+      "line": 121
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "float",
+      "line": 122
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "normalize_cdse_request",
+      "target": "float",
+      "line": 123
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "bbox_from_geom",
-      "line": 119
+      "line": 126
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "normalize_cdse_request",
       "target": "bool",
-      "line": 128
+      "line": 135
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "get",
-      "line": 145
+      "source": "window_spans_multiple_days",
+      "target": "str",
+      "line": 148
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "hexdigest",
-      "line": 149
+      "source": "window_spans_multiple_days",
+      "target": "str",
+      "line": 148
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "sha1",
-      "line": 149
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "dumps",
-      "line": 150
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "encode",
-      "line": 150
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "get",
-      "line": 158
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "get",
-      "line": 158
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "exists",
-      "line": 159
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "monotonic",
-      "line": 159
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "exists",
-      "line": 159
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "monotonic",
-      "line": 159
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 163
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_cache_hit",
-      "line": 164
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_key_lock",
-      "line": 167
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 170
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_cache_hit",
-      "line": 171
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "get",
-      "line": 174
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "exists",
-      "line": 175
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_unlink_best_effort",
+      "source": "bind_scene_day_window",
+      "target": "rank_scenes",
       "line": 176
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "pop",
-      "line": 177
+      "source": "bind_scene_day_window",
+      "target": "get",
+      "line": 182
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "bind_scene_day_window",
+      "target": "get",
+      "line": 182
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "bind_scene_day_window",
+      "target": "get",
+      "line": 182
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "bind_scene_day_window",
+      "target": "day_window",
+      "line": 183
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "bind_scene_day_window",
+      "target": "str",
+      "line": 186
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "get_client",
-      "line": 179
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 181
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "get_event_loop",
-      "line": 187
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "run_in_executor",
-      "line": 187
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "process_index",
-      "line": 189
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "list",
-      "line": 191
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "NamedTemporaryFile",
-      "line": 198
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "write",
-      "line": 201
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "close",
+      "target": "get",
       "line": 202
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "is_truecolor",
-      "line": 208
+      "target": "hexdigest",
+      "line": 206
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "apply_polygon_mask_rgba",
-      "line": 209
+      "target": "sha1",
+      "line": 206
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "apply_polygon_mask",
-      "line": 211
+      "target": "dumps",
+      "line": 207
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 213
+      "target": "encode",
+      "line": 207
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "get",
+      "line": 215
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "type",
-      "line": 217
+      "target": "get",
+      "line": 215
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "exists",
+      "line": 216
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "monotonic",
+      "line": 216
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "unlink",
-      "line": 226
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "debug",
-      "line": 228
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "type",
-      "line": 231
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "raster_has_observable_content",
-      "line": 242
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 244
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "type",
-      "line": 248
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "info",
-      "line": 252
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_unlink_best_effort",
-      "line": 258
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 260
+      "target": "exists",
+      "line": 216
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "monotonic",
-      "line": 261
+      "line": 216
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "cdse_prune_key_locks_locked",
-      "line": 262
+      "target": "cdse_lock",
+      "line": 220
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_cache_hit",
+      "line": 221
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_key_lock",
+      "line": 224
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_lock",
+      "line": 227
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_cache_hit",
+      "line": 228
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get",
+      "line": 231
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "exists",
+      "line": 232
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_unlink_best_effort",
+      "line": 233
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "pop",
+      "line": 234
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get_client",
+      "line": 236
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "warning",
+      "line": 238
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "window_spans_multiple_days",
+      "line": 246
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get_event_loop",
+      "line": 248
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "run_in_executor",
+      "line": 248
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "search_scenes",
+      "line": 250
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "list",
+      "line": 251
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 261
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
       "line": 265
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "bind_scene_day_window",
+      "line": 267
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "info",
+      "line": 273
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "info",
+      "line": 280
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get_event_loop",
+      "line": 287
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "run_in_executor",
+      "line": 287
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "process_index",
+      "line": 289
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "list",
+      "line": 291
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "NamedTemporaryFile",
+      "line": 298
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "write",
+      "line": 301
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "close",
+      "line": 302
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "is_truecolor",
+      "line": 308
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "apply_polygon_mask_rgba",
+      "line": 309
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "apply_polygon_mask",
+      "line": 311
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 313
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 317
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "unlink",
+      "line": 326
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "debug",
+      "line": 328
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 331
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "raster_has_observable_content",
+      "line": 342
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 344
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 348
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "info",
+      "line": 352
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_unlink_best_effort",
+      "line": 358
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_lock",
+      "line": 360
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "monotonic",
+      "line": 361
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_prune_key_locks_locked",
+      "line": 362
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 365
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "tilejson_availability",
       "target": "get",
-      "line": 278
+      "line": 378
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "tilejson_availability",
       "target": "is_truecolor",
-      "line": 279
+      "line": 379
     },
     {
       "owner": "raster-service",
@@ -116314,352 +116412,366 @@
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
+      "source": "day_window",
+      "target": "str",
+      "line": 36
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "day_window",
+      "target": "len",
+      "line": 37
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
       "source": "_preset_value",
       "target": "getattr",
-      "line": 24
+      "line": 43
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "_preset_value",
       "target": "str",
-      "line": 24
+      "line": 43
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "now",
-      "line": 28
+      "line": 47
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "parse_ymd",
-      "line": 28
+      "line": 47
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "parse_ymd",
-      "line": 30
+      "line": 49
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "max",
-      "line": 31
+      "line": 50
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "get",
-      "line": 33
+      "line": 52
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "timedelta",
-      "line": 34
+      "line": 53
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "HTTPException",
-      "line": 36
+      "line": 55
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "_preset_value",
-      "line": 37
+      "line": 56
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "backfill_date_range",
       "target": "HTTPException",
-      "line": 38
+      "line": 57
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "isinstance",
-      "line": 49
+      "line": 68
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "walk",
       "target": "isinstance",
-      "line": 49
+      "line": 68
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "len",
-      "line": 50
+      "line": 69
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "walk",
       "target": "len",
-      "line": 50
+      "line": 69
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "all",
-      "line": 51
+      "line": 70
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "isinstance",
-      "line": 51
+      "line": 70
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "walk",
       "target": "all",
-      "line": 51
+      "line": 70
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "walk",
       "target": "isinstance",
-      "line": 51
+      "line": 70
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "float",
-      "line": 53
+      "line": 72
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "float",
-      "line": 53
+      "line": 72
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "walk",
       "target": "float",
-      "line": 53
+      "line": 72
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "walk",
       "target": "float",
-      "line": 53
+      "line": 72
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "append",
-      "line": 54
+      "line": 73
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "walk",
       "target": "append",
-      "line": 54
+      "line": 73
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "isinstance",
-      "line": 56
+      "line": 75
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "walk",
       "target": "isinstance",
-      "line": 56
+      "line": 75
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "walk",
-      "line": 58
+      "line": 77
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "get",
-      "line": 60
+      "line": 79
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geojson",
       "target": "walk",
-      "line": 60
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geojson",
-      "target": "max",
-      "line": 65
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geojson",
-      "target": "max",
-      "line": 65
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geojson",
-      "target": "min",
-      "line": 65
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geojson",
-      "target": "min",
-      "line": 65
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "month_windows",
-      "target": "datetime",
-      "line": 70
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "month_windows",
-      "target": "datetime",
-      "line": 72
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "month_windows",
-      "target": "max",
-      "line": 78
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "month_windows",
-      "target": "min",
       "line": 79
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geojson",
+      "target": "max",
+      "line": 84
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geojson",
+      "target": "max",
+      "line": 84
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geojson",
+      "target": "min",
+      "line": 84
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geojson",
+      "target": "min",
+      "line": 84
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "month_windows",
+      "target": "datetime",
+      "line": 89
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "month_windows",
+      "target": "datetime",
+      "line": 91
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "month_windows",
+      "target": "max",
+      "line": 97
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "month_windows",
+      "target": "min",
+      "line": 98
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "month_windows",
       "target": "timedelta",
-      "line": 79
+      "line": 98
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "month_windows",
       "target": "append",
-      "line": 81
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geom",
-      "target": "get",
-      "line": 91
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geom",
-      "target": "get",
-      "line": 93
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geom",
-      "target": "get",
-      "line": 94
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geom",
-      "target": "get",
-      "line": 97
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geom",
-      "target": "get",
-      "line": 99
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_date_geo.py",
-      "source": "bbox_from_geom",
-      "target": "extend",
       "line": 100
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geom",
-      "target": "max",
-      "line": 105
+      "target": "get",
+      "line": 110
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geom",
+      "target": "get",
+      "line": 112
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geom",
+      "target": "get",
+      "line": 113
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geom",
+      "target": "get",
+      "line": 116
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geom",
+      "target": "get",
+      "line": 118
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geom",
+      "target": "extend",
+      "line": 119
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geom",
       "target": "max",
-      "line": 105
+      "line": 124
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_date_geo.py",
+      "source": "bbox_from_geom",
+      "target": "max",
+      "line": 124
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geom",
       "target": "min",
-      "line": 105
+      "line": 124
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_date_geo.py",
       "source": "bbox_from_geom",
       "target": "min",
-      "line": 105
+      "line": 124
     },
     {
       "owner": "raster-service",
