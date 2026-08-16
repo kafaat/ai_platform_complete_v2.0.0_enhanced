@@ -101,6 +101,14 @@ jobs:
         run: python scripts/ci/capability_linker.py --check
       - name: Canonical-owned fields are projected, never hand-written (A'-4b)
         run: python scripts/ci/capability_projection_sync.py --check
+      - name: Every compatibility field has an explicit authority (A'-4c)
+        run: python scripts/ci/capability_authority_completeness_guard.py
+      - name: Writers only touch fields their authority owns (A'-4c)
+        run: python scripts/ci/capability_writer_authority_guard.py
+      - name: Direct legacy-registry access is deny-by-default (A'-4c)
+        run: python scripts/ci/capability_legacy_access_guard.py
+      - name: Compatibility projection round-trips without foreign-field damage (A'-4c)
+        run: python scripts/ci/capability_compatibility_roundtrip_guard.py
       - name: Validate capability release history
         run: python scripts/ci/capability_release_history.py --check
       - name: Validate unified capability management layer
@@ -166,6 +174,10 @@ jobs:
             tests/architecture/test_capability_shadow_reconciliation.py \
             tests/architecture/test_capability_consumer_migration.py \
             tests/architecture/test_capability_projection_sync.py \
+            tests/architecture/test_capability_authority_completeness_guard.py \
+            tests/architecture/test_capability_writer_authority_guard.py \
+            tests/architecture/test_capability_legacy_access_guard.py \
+            tests/architecture/test_capability_compatibility_roundtrip_guard.py \
             tests/architecture/test_capability_regression_gate.py \
             tests/architecture/test_pr_capability_impact_gate.py \
             tests/architecture/test_path3_run_attestation.py \

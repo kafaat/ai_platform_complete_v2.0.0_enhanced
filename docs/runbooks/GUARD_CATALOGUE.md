@@ -10,9 +10,9 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **246**
-- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **33**
-- إجماليّ الطفرات المُسجَّلة: **241**
+- حرّاس تحجب في CI: **250**
+- منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **37**
+- إجماليّ الطفرات المُسجَّلة: **253**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **46** على 16 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -27,7 +27,7 @@
 
 ---
 
-## الحرّاس المُثبَتة بالتكذيب (33)
+## الحرّاس المُثبَتة بالتكذيب (37)
 
 لكلٍّ منها عطلٌ يُزرَع في مصدرها فعليّاً (`guard_mutation_guard --run`) واختبارٌ
 **مُسمّى** يجب أن يحمرّ عندها. حمرةٌ باختبار آخر ليست دليلاً.
@@ -171,6 +171,62 @@
 - نزعُ فحص المُنتِج ⇒ إعادةُ تسمية الحقل تترك السجلّ يصف عقداً زال، والحارس يقيس مقابل اسمٍ لا وجود له فيمرّ كلّ شيء. — يُسقِط `test_a_producer_that_lost_the_field_is_blocked`
 - قبولُ مدخلٍ بلا مدخلات خام محظورة ⇒ قيدٌ يُعلَن ولا يمنع شيئاً؛ ويصير التقاطع فارغاً دائماً فيمرّ الارتداد نفسه من بابٍ آخر. — يُسقِط `test_an_entry_without_forbidden_inputs_is_blocked`
 - قبولُ أيّ مخطَّط ⇒ الحارس يفحص وثيقةً ليست وثيقتَه ويُبلِغ عنها خضرة؛ ووثيقةٌ بمفاتيح فارغة تُقرأ «لا قيود». — يُسقِط `test_a_wrong_schema_fails_closed`
+
+### `capability_authority_completeness_guard.py`
+
+**يفرض:** A′-4c — fail closed when a compatibility field has no explicit authority/disposition.
+
+**يحجب في:** `capability-governance.yml` → `capability-registry`
+
+**الاختبار الشاهد:** `tests/architecture/test_capability_authority_completeness_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- حقلٌ توافقيّ بلا سلطة مصنَّفة يعبر صامتاً ⇒ وعدُ «كلّ حقل له مالك معلَن» يصير فارغاً — وهذا هو العطل التأسيسيّ الذي بُني الحارس ليمسكه (7 من 20 حقلاً كانت بلا تصنيف قبل A′-4c) — يُسقِط `test_unclassified_legacy_field_fails`
+- سلطةٌ مخترَعة (سجلّ ثالث بالتسمية) تعبر كتصنيفٍ صحيح ⇒ يعود no_third_value_registry حبراً على ورق من باب الأسماء لا القيم — يُسقِط `test_unknown_authority_fails`
+- إعلان legacy_writer بائت على حقلٍ canonical يعيد ترخيص ازدواج الكتابة الذي أغلقته A′-4b — نصُّ السياسة نفسه يصير بابَ الردّة — يُسقِط `test_canonical_field_cannot_reauthorize_legacy_writer`
+
+### `capability_compatibility_roundtrip_guard.py`
+
+**يفرض:** A′-4c — compatibility projection convergence and non-authority preservation gate.
+
+**يحجب في:** `capability-governance.yml` → `capability-registry`
+
+**الاختبار الشاهد:** `tests/architecture/test_capability_compatibility_roundtrip_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- انحرافُ الإسقاط لا يُبلَّغ من بوّابة الإغلاق المركّبة ⇒ «متقارب» تشهد به بوّابة عمياء عن أوّل شروطه — يُسقِط `test_a_planted_projection_drift_is_reported`
+- مزامنة الإسقاط تمسّ حقلاً أجنبيّاً (مملوكاً لكاتبٍ آخر) بلا بلاغ ⇒ حدُّ «لا يمسّ إلا ما تملكه السلطة القانونيّة» بلا شاهد مستقلّ عن المُسقِط نفسه — يُسقِط `test_a_foreign_field_touched_by_projection_is_reported`
+- فحصٌ فرعيّ أحمر (رابط/تشغيل/إسقاط/مطابقة) يُبتلَع ⇒ round-trip أخضر فوق سلسلةٍ مكسورة — رمزُ الخروج يُقرأ ولا يُحكَم به — يُسقِط `test_a_failing_subcheck_is_reported`
+
+### `capability_legacy_access_guard.py`
+
+**يفرض:** A′-4c — deny unclassified direct consumers of capabilities/registry/capabilities.json.
+
+**يحجب في:** `capability-governance.yml` → `capability-registry`
+
+**الاختبار الشاهد:** `tests/architecture/test_capability_legacy_access_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- مستهلكٌ مباشر جديد للسجلّ القديم يعبر بلا تصنيف ⇒ deny-by-default يصير allow-by-default والهجرة إلى عرض السلطة تتوقّف بصمت — يُسقِط `test_new_direct_consumer_fails_closed`
+- رخصةٌ بائتة لملفٍّ زال وصولُه تبقى ⇒ القائمة تتضخّم برخصٍ ميّتة يرثها ملفٌّ جديد بالاسم نفسه دون قرار — يُسقِط `test_stale_allowance_is_rejected`
+- سياسةٌ مشوّهة تنفجر AttributeError صاخباً بدل بلاغٍ مسمّى — الأثر أحمر لكنّ رسالته لا تقود مصلحاً (رفعته مراجعة آليّة وأصابت) — يُسقِط `test_a_malformed_policy_is_a_named_finding_not_a_stack_trace`
+
+### `capability_writer_authority_guard.py`
+
+**يفرض:** A′-4c — source-level ratchet for writers of the legacy compatibility projection.
+
+**يحجب في:** `capability-governance.yml` → `capability-registry`
+
+**الاختبار الشاهد:** `tests/architecture/test_capability_writer_authority_guard.py`
+
+**ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
+
+- عودةُ سطر كتابة canonical في الرابط تعبر ⇒ قفل A′-4b النصّيّ يفقد نسخته المصدريّة AST — وهي النسخة التي لا يخدعها تنويع التنسيق أصلاً — يُسقِط `test_linker_reacquiring_canonical_owner_is_blocked`
+- كاتب التشغيل يكتب production_certified ⇒ قرارُ الإطلاق الخارجيّ للمالك يُشتَقّ آليّاً من التحقّق — الخلط الذي حرّمه العقد نصّاً («لا يُشتقّ من L5») — يُسقِط `test_runtime_apply_cannot_write_production_certified`
+- فهرسة policy["field_authority"] على شكلٍ مشوّه ترمي KeyError/TypeError بلا اسم مخالفة — التحقّق من الشكل قبل القاعدة يجعل الفشل قابلاً للإصلاح من رسالته — يُسقِط `test_a_malformed_policy_is_a_named_finding_not_a_stack_trace`
 
 ### `claim_base_guard.py`
 

@@ -6351,3 +6351,17 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
 فبقيت خضراء على العطل المزروع — أمسكها guard_mutation_guard وأُعيدت على
 بناءٍ طازج. التالي بقرار المالك: A′-4b تقارب الكتّاب (capability_linker
 يكفّ عن كتابة dependencies/owner المملوكَين canonical).
+
+## 2026-08-16 (ب) — A′-4b: تقارب الكتّاب (#855 → 900fa02a)
+
+- **الشريحة:** إسقاط سلطة كتابة الرابط على `dependencies`/`owner` (`scripts/ci/capability_linker.py`) + المُسقِط المحكوم `scripts/ci/capability_projection_sync.py` (--check بوّابة في `capability-governance.yml`، --generate الكاتب الوحيد المخوَّل) + 6 اختبارات (`tests/architecture/test_capability_projection_sync.py`) + 3 طفرات مُكذَّبة بالزرع.
+- **الشاهد (مقيس حيّاً):** DRIFT على INT-004:{maturity,evidence_level,owner} → إسقاط آليّ → اختفاء من المرصود → stale-baseline block على الثلاث بالضبط → خفض الأساس 3→0 (`docs/capability-registry/reconciliation_drift_baseline.json`) → findings=0/PASS. تسلسل المالك النصّيّ وقع حرفاً حرفاً («دليل أنّ A′-4 حقيقية لا تجميلية»).
+- **مراجعة Copilot حُسمت بالقياس:** المطابقة الحرفيّة في قفل الرابط مثقوبة التنسيق — أُصلحت نمطاً (`8a9ed08b`) وزُرعت 4 تنويعات فحمَّرت 4/4. الردّ منشور والخيط محلول.
+- **إغلاق A′-4a الحيّ:** certify-run 31938023180 على `21179b7f` → certification-record 9261208131 (`sha256:02b74ccf…`) · VERIFIED · reason_codes [] · producer 31936354366/1.
+- **المصدر:** #855، main `900fa02a`، الفرع أُعيد تأسيسه منه.
+
+## 2026-08-16 (ج) — A′-4c مدفوعة: #856 على d2d23d5e (قيد الجولة)
+
+- حزمة المالك `SAHOOL_A_PRIME_4C_CONTINUATION` (قاعدة 8a9ed08b، بصمات 16/16) طُبّقت + ضرائب التسجيل: 10 طفرات مُكذَّبة 10/10، 3 اختبارات مسار فشل لبوّابة round-trip، أسلاك capability-governance، إصلاح ترميز (4 ملفّات) أمسكه `test_text_encoding_locale` محلّيّاً.
+- درسٌ تشغيليّ جديد: أداة إنشاء الـPR أسقطت `bodyFile` صامتةً ⇒ بوّابة الأثر حجبت على إعلانٍ مفقود (fail-closed أصاب). العلاج بدرس #852: تصحيح المتن ثم دفعة تُطلق synchronize — التقط المتن الجديد.
+- حزمة الدلتا `SAHOOL_A4C_S1A_S2_S3_EXPAND` مستخرَجة ومقاسة: طبقة A′-4c فيها مطابقة دلاليّاً للمدفوع (الشجرة superset بإصلاح الترميز)؛ بقيّتها شريحة ARCH-S1a/S2/S3 تُفتَح بعد دمج #856 — S3 يبقى expand-shadow غير سلطويّ بعوائقه الأربعة، لا cutover ولا S4.

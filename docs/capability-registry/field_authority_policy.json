@@ -21,8 +21,7 @@
     },
     "dependencies": {
       "authority": "canonical_capability_definition",
-      "legacy_role": "compatibility_projection",
-      "legacy_writer": "repository_traceability_projection"
+      "legacy_role": "compatibility_projection"
     },
     "maturity": {
       "authority": "canonical_capability_definition",
@@ -50,8 +49,7 @@
     },
     "owner": {
       "authority": "canonical_capability_definition",
-      "legacy_role": "compatibility_projection",
-      "legacy_writer": "repository_traceability_projection"
+      "legacy_role": "compatibility_projection"
     },
     "services": {
       "authority": "repository_traceability_projection"
@@ -97,19 +95,58 @@
     },
     "status": {
       "authority": "legacy_registry_projection",
-      "reconciliation": "excluded_until_structured_normalization"
+      "reconciliation": "excluded_until_structured_normalization",
+      "semantic": "legacy_compatibility_status",
+      "disposition": "temporary_legacy_authority_until_structured_normalization"
     },
     "title": {
+      "authority": "legacy_registry_projection",
+      "semantic": "compatibility_localized_title",
+      "canonical_reference": "canonical_capability_definition",
+      "disposition": "temporary_compatibility_shape_until_structured_normalization",
       "reconciliation": "excluded_until_structured_normalization"
     },
     "runtime": {
-      "reconciliation": "excluded_composite_owned_by_runtime_instrumentation_and_verification"
+      "reconciliation": "excluded_composite_owned_by_runtime_instrumentation_and_verification",
+      "authority": "composite_runtime_authorities",
+      "disposition": "explicit_composite_container",
+      "components": [
+        "repository_runtime_instrumentation",
+        "runtime_verification"
+      ]
     },
     "evidence": {
-      "reconciliation": "excluded_until_structured_normalization"
+      "reconciliation": "excluded_until_structured_normalization",
+      "authority": "composite_evidence_authorities",
+      "disposition": "explicit_composite_container",
+      "components": [
+        "canonical_definition_evidence",
+        "repository_traceability_evidence",
+        "runtime_verification_evidence",
+        "certification_evidence"
+      ]
     },
     "rationale": {
-      "reconciliation": "excluded_until_structured_normalization"
+      "authority": "repository_traceability_projection",
+      "semantic": "repository_traceability_rationale",
+      "reconciliation": "excluded_projection_owned_by_traceability_engine"
+    },
+    "lifecycle": {
+      "authority": "canonical_capability_definition",
+      "legacy_role": "compatibility_projection"
+    },
+    "confidence": {
+      "authority": "repository_traceability_projection",
+      "semantic": "repository_traceability_confidence",
+      "canonical_copy_role": "non_authoritative_metadata",
+      "reconciliation": "excluded_projection_owned_by_traceability_engine"
+    },
+    "competitive": {
+      "authority": "legacy_registry_projection",
+      "semantic": "compatibility_competitive_assessment",
+      "canonical_role": "none",
+      "disposition": "keep_outside_canonical_capability_definition",
+      "reconciliation": "excluded_compatibility_assessment_outside_canonical_definition"
     }
   },
   "reconciliation": {
@@ -119,7 +156,8 @@
       "dependencies",
       "maturity",
       "evidence_level",
-      "owner"
+      "owner",
+      "lifecycle"
     ],
     "exclude_raw": [
       "title",
@@ -128,7 +166,9 @@
       "runtime",
       "evidence",
       "rationale",
-      "status"
+      "status",
+      "confidence",
+      "competitive"
     ],
     "no_third_value_registry": true
   },

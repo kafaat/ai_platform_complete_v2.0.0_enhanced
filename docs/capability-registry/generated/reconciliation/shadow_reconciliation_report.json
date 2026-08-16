@@ -433,7 +433,8 @@
     "dependencies",
     "maturity",
     "evidence_level",
-    "owner"
+    "owner",
+    "lifecycle"
   ],
   "fields_excluded": [
     {
@@ -458,11 +459,19 @@
     },
     {
       "field": "rationale",
-      "reason": "excluded_until_structured_normalization"
+      "reason": "excluded_projection_owned_by_traceability_engine"
     },
     {
       "field": "status",
       "reason": "excluded_until_structured_normalization"
+    },
+    {
+      "field": "confidence",
+      "reason": "excluded_projection_owned_by_traceability_engine"
+    },
+    {
+      "field": "competitive",
+      "reason": "excluded_compatibility_assessment_outside_canonical_definition"
     }
   ],
   "findings": [],

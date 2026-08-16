@@ -3,21 +3,20 @@
   "capabilities_total": 81,
   "maturity_distribution": {
     "0": 2,
-    "1": 2,
+    "1": 1,
     "2": 3,
-    "3": 74
+    "3": 75
   },
   "evidence_distribution": {
     "0": 2,
-    "1": 2,
+    "1": 1,
     "2": 3,
-    "3": 74
+    "3": 75
   },
   "unassigned_owners": [
     "FM-005",
     "FM-006",
     "FM-007",
-    "INT-004",
     "OPS-005",
     "PA-003",
     "PA-004",
