@@ -337,6 +337,15 @@ def read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(f))
 
 
+# Meta-governance tests are CI-governance witnesses: their filenames contain
+# domain words by construction (e.g. "change" in the report-only CHANGE guard)
+# and must never become lexical evidence for a domain capability — measured:
+# test_no_report_only_change_guard.py was linked to SAT-007 "Change detection"
+# purely on the word "change". A narrow witness-file prefix list, not a broad
+# tests/ subtree ban.
+META_GOVERNANCE_PREFIXES = ("tests_v9/test_no_report_only_change_guard",)
+
+
 def discover_files() -> list[str]:
     results: list[str] = []
     for p in ROOT.rglob("*"):
@@ -345,7 +354,10 @@ def discover_files() -> list[str]:
         rel = p.relative_to(ROOT)
         if any(part in EXCLUDED_DIRS for part in rel.parts):
             continue
-        results.append(rel.as_posix())
+        rel_posix = rel.as_posix()
+        if rel_posix.startswith(META_GOVERNANCE_PREFIXES):
+            continue
+        results.append(rel_posix)
     results.sort()
     return results
 

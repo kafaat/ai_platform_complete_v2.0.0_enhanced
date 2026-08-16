@@ -1692,8 +1692,7 @@
       "tests": [
         "services/raster-service/test_change_detection_grid.py",
         "tests_v9/test_change_detection.py",
-        "tests_v9/test_field_change_summary.py",
-        "tests_v9/test_no_report_only_change_guard.py"
+        "tests_v9/test_field_change_summary.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1711,7 +1710,7 @@
           "path": "shared/field_change_summary.py"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=4, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=5, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

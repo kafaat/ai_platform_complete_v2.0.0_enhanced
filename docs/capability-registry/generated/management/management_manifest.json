@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "inputs": {
-    "docs/capability-registry/generated/capability_registry.json": "6bcb108eca9b0d57db16564e85165016926990954d57b583fc71d6c7a29e2c70",
+    "docs/capability-registry/generated/capability_registry.json": "77e54ac680a3f75b7637c73436ab4ca82491bf7e3a655d916bc6785235e34e04",
     "docs/capability-registry/generated/mapping/capability_mapping.json": "f122ff1b13871ee93ab1227d80517535e7f073069dd6f181d5306aeddc5cbd7f",
     "docs/capability-registry/generated/evidence/capability_evidence_matrix.json": "7f3a02a0388db0740ffa3cd8c453a073731e175ecf0d44e2ff2fc2bdeda5389d",
     "docs/capability-registry/generated/benchmark/capability_parity_matrix.json": "d60b0b19d6f0a2775d76c51f88ce0b4413f2237ab888d5c4c8d512f0d6bc23d3",

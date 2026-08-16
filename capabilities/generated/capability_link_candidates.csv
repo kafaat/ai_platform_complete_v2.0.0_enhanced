@@ -1463,7 +1463,6 @@ SAT-007,service,services/raster-service/main.py,10,applied
 SAT-007,test,services/raster-service/test_change_detection_grid.py,7,applied
 SAT-007,test,tests_v9/test_change_detection.py,7,applied
 SAT-007,test,tests_v9/test_field_change_summary.py,3,applied
-SAT-007,test,tests_v9/test_no_report_only_change_guard.py,3,applied
 SAT-008,api,GET /api/v1/fields/{field_id}/water-stress-spectral @ services/sahool-platform/api/routers/fields.py:3958,2,applied
 SAT-008,api,GET /api/v1/fields/{field_id}/weather/crop-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:104,2,applied
 SAT-008,api,GET /api/v1/fields/{field_id}/weather/thermal-stress @ services/sahool-platform/api/routers/field_workspace_weather.py:69,2,applied
