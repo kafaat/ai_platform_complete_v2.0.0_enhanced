@@ -29,6 +29,7 @@ export const T = {
   line:       '#E8DFD2', // خطّ فاصل شعريّ
   ink:        '#2C1A0E', // نصّ رئيسيّ
   muted:      '#8A7B6B', // نصّ ثانويّ
+  subtitle:   '#D8C7B3', // سطر وصفيّ تحت عنوان الكابينة (أفتح من muted على الكريميّ)
   faint:      '#B8AB9A', // نصّ خافت (تلميحات)
 
   // — حالات —
@@ -84,6 +85,7 @@ export const T_DARK: Tokens = {
   ink:        DARK_INK,
   brownSoft:  DARK_BROWN_SOFT,
   muted:      DARK_MUTED,
+  subtitle:   DARK_MUTED, // السطر الوصفيّ = النصّ الثانويّ في الداكن
   faint:      DARK_FAINT,
   // — خلفيّات الحالات الباهتة (داكنة) —
   okBg:       DARK_OK_BG,

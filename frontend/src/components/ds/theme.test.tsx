@@ -79,3 +79,35 @@ describe('FieldCabin — النغمة تُورَّث للأحفاد ولا تُ�
     expect(screen.getByTestId('cabin-default').textContent).toBe('light');
   });
 });
+
+describe('FieldCabin subtitle — من سلطة الرموز لا من hex مبثوث', () => {
+  it('السطر الوصفيّ يقرأ t.subtitle في النغمتين', () => {
+    render(
+      <FieldCabin eyebrow="e" title="t" subtitle="SUB-L">
+        <span />
+      </FieldCabin>,
+    );
+    expect(screen.getByText('SUB-L')).toHaveStyle({ color: T.subtitle });
+    render(
+      <FieldCabin eyebrow="e" title="t" subtitle="SUB-D" tone="dark">
+        <span />
+      </FieldCabin>,
+    );
+    expect(screen.getByText('SUB-D')).toHaveStyle({ color: T_DARK.subtitle });
+  });
+
+  it('تغيير T_DARK.subtitle ينعكس على الكابينة (لا قيمة مثبَّتة داخل المكوّن)', () => {
+    const original = T_DARK.subtitle;
+    try {
+      (T_DARK as { subtitle: string }).subtitle = 'rgb(1, 2, 3)';
+      render(
+        <FieldCabin eyebrow="e" title="t" subtitle="SUB-X" tone="dark">
+          <span />
+        </FieldCabin>,
+      );
+      expect(screen.getByText('SUB-X')).toHaveStyle({ color: 'rgb(1, 2, 3)' });
+    } finally {
+      (T_DARK as { subtitle: string }).subtitle = original;
+    }
+  });
+});

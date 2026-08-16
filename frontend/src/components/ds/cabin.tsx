@@ -65,7 +65,7 @@ function FieldCabinInner({
             {headerRight}
           </div>
           {subtitle != null && (
-            <div style={{ fontSize: 11, color: dark ? '#94a3b8' : '#D8C7B3', marginTop: 6 }}>{subtitle}</div>
+            <div style={{ fontSize: 11, color: t.subtitle, marginTop: 6 }}>{subtitle}</div>
           )}
         </div>
 

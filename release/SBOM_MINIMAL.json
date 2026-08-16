@@ -845,7 +845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3580add91b06bef42295872b6f8ae6ce1aa238c8091658581b81f35348579d30"
+          "content": "0ee6ea295f046143021dfa0632aab23965aee3dd6b90ba0f26dfc7abdb8efeb4"
         }
       ],
       "name": "frontend/src/components/ds/cabin.tsx",
@@ -965,7 +965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ac6ec48951bf773303e2954e24225346a6eb016335d0f07d5b7819ecf918b94"
+          "content": "4dee4a3dc189f191b0357778c65879f359bd60ae7a25709043d65953e9cd9832"
         }
       ],
       "name": "frontend/src/components/ds/theme.test.tsx",
@@ -985,7 +985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e47831b35fdbcf0ce8225be088ee79bcd0dacc9c214538e22d071ca3ba823f3f"
+          "content": "5a3d64ac1d2b75537e8e66cbb7c11a284a22ce9f5b6155955cfb72fd0fed4a0c"
         }
       ],
       "name": "frontend/src/components/ds/tokens.ts",
