@@ -162,6 +162,7 @@ jobs:
             tests/architecture/test_capability_management_engine.py \
             tests/architecture/test_capability_truth_preconditions.py \
             tests/architecture/test_capability_shadow_reconciliation.py \
+            tests/architecture/test_capability_consumer_migration.py \
             tests/architecture/test_capability_regression_gate.py \
             tests/architecture/test_pr_capability_impact_gate.py \
             tests/architecture/test_path3_run_attestation.py \

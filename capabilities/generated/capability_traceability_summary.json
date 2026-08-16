@@ -1,29 +1,26 @@
 {
   "capabilities_total": 81,
   "linked_to_service": 73,
-  "linked_to_api": 62,
-  "linked_to_test": 67,
-  "linked_to_ui": 5,
+  "linked_to_api": 63,
+  "linked_to_test": 68,
+  "linked_to_ui": 6,
   "linked_to_mobile": 12,
-  "assigned_owner": 73,
+  "assigned_owner": 74,
   "fully_traceable": 3,
-  "zero_traceability": [
-    "INT-004",
-    "PA-003"
-  ],
+  "zero_traceability": [],
   "domain_coverage": {
     "decision": {
       "total": 10,
       "service": 10,
       "api": 10,
       "test": 10,
-      "ui": 0,
+      "ui": 1,
       "mobile": 0,
       "owner": 10,
       "service_pct": 100.0,
       "api_pct": 100.0,
       "test_pct": 100.0,
-      "ui_pct": 0.0,
+      "ui_pct": 10.0,
       "mobile_pct": 0.0,
       "owner_pct": 100.0
     },
@@ -90,17 +87,17 @@
     "precision": {
       "total": 6,
       "service": 2,
-      "api": 3,
-      "test": 4,
+      "api": 4,
+      "test": 5,
       "ui": 0,
       "mobile": 0,
-      "owner": 2,
+      "owner": 3,
       "service_pct": 33.3,
-      "api_pct": 50.0,
-      "test_pct": 66.7,
+      "api_pct": 66.7,
+      "test_pct": 83.3,
       "ui_pct": 0.0,
       "mobile_pct": 0.0,
-      "owner_pct": 33.3
+      "owner_pct": 50.0
     },
     "satellite": {
       "total": 9,
