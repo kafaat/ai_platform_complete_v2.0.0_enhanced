@@ -64,6 +64,7 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
         scene_id = "cdse:latest"
 
     client = cdse_client.get_client()
+    mosaicking_order = cdse_client.MOSAIC_LEAST_CLOUD
     if not (explicit_from or explicit_to):
         try:
             scenes = client.search_scenes(
@@ -74,20 +75,22 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
                 limit=10,
                 geometry=req.geometry,
             )
-            ranked = (
-                scene_policy.rank_scenes(scenes, max_cloud_pct=req.max_cloud_pct) if scenes else []
+            # المنتقي المركزيّ نفسه الذي يستهلكه المسار الحيّ. كان هنا
+            # `rank_scenes(...)[0]` — أي «أفضل جودة» تُسمّى تاريخ الاكتساب الأحدث،
+            # وأوزانُها تجعل الأقدم الأنظف يهزم الأحدث. وإصلاح المسار الحيّ وحده كان
+            # سيُعيد التناقض من الجهة الأخرى، لأنّ الشريط الزمنيّ يُغذّى من هنا.
+            selected = scene_policy.select_scene(
+                scenes,
+                policy=scene_policy.SceneSelectionPolicy.LATEST_ACCEPTABLE,
+                max_cloud_pct=req.max_cloud_pct,
             )
-            best = ranked[0] if ranked else None
-            if best:
-                capture_datetime = (
-                    best.get("datetime") or best.get("properties", {}).get("datetime") or time_to
-                )
-                scene_id = (
-                    best.get("item_id") or best.get("id") or f"cdse:{str(capture_datetime)[:10]}"
-                )
-                daywin = _day_window(capture_datetime)
+            if selected is not None:
+                capture_datetime = selected.acquisition_datetime
+                scene_id = selected.scene_id or f"cdse:{selected.acquisition_day}"
+                daywin = _day_window(selected.acquisition_day)
                 if daywin:
                     time_from, time_to = daywin
+                    mosaicking_order = cdse_client.MOSAIC_MOST_RECENT
         except Exception as e:  # noqa: BLE001
             ctx.logger.warning("CDSE scene date binding skipped; using lookback window: %s", e)
 
@@ -110,6 +113,10 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
                 time_to=time_to,
                 geometry=req.geometry,
                 max_cloud_pct=req.max_cloud_pct,
+                # يوافق العقد الذي اختار المشهد: `mostRecent` حين رُبِط يومُ اكتساب
+                # فعليّاً، و`leastCC` حين بقينا على نافذة الاسترجاع (تاريخ صريح أو
+                # تعذّر الاختيار) — فلا تتكلّم آخرُ خطوة دلالةً غير التي اختارت.
+                mosaicking_order=mosaicking_order,
             )
             if not tiff:
                 failed[ind] = "empty_response"

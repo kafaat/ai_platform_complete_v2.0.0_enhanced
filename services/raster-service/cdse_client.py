@@ -98,6 +98,28 @@ _TOKEN_URL = os.getenv(
 _BASE_URL = os.getenv("SH_BASE_URL", "https://sh.dataspace.copernicus.eu")
 _COLLECTION = "sentinel-2-l2a"
 
+# سقفٌ صريح لعدد صفحات الكتالوج المُتتبَّعة. سقفٌ لا لانهاية: مزوّدٌ يُعيد ``next``
+# بلا نهاية يجب أن يتوقّف عندنا لا أن يستنزف الطلب. وتجاوزُه **يُعلَن في السجلّ**
+# بدل أن يُقرأ الاقتطاع تغطيةً كاملة.
+_CATALOG_MAX_PAGES = 10
+
+# ترتيبا الفسيفساء بالاسم الرسميّ. ثابتان مُسمّيان لا نصّ حرّ: النصّ الحرّ يجعل
+# خطأً إملائيّاً يُقبَل بصمت ويُغيّر الدلالة دون أن يُحمِرّ شيء.
+MOSAIC_LEAST_CLOUD = "leastCC"
+MOSAIC_MOST_RECENT = "mostRecent"
+_MOSAIC_ORDERS = frozenset({MOSAIC_LEAST_CLOUD, MOSAIC_MOST_RECENT})
+
+
+def _validated_mosaicking_order(value: str) -> str:
+    """يرفض ترتيباً غير معروف بدل تمريره إلى المزوّد.
+
+    fail-closed مقصود: قيمةٌ مجهولة تُمرَّر قد يتجاهلها المزوّد فيعود إلى افتراضِه —
+    فنحصل على دلالةٍ غير التي طلبناها **بلا أيّ إشارة**، وهو عين العطل المُصلَح هنا.
+    """
+    if value not in _MOSAIC_ORDERS:
+        raise ValueError(f"mosaickingOrder غير معروف: {value!r} (المتاح: {sorted(_MOSAIC_ORDERS)})")
+    return value
+
 
 def _env_float(name: str, default: float, *, minimum: float | None = None) -> float:
     try:
@@ -518,11 +540,19 @@ class CdseClient:
         time_to: str,
         geometry: dict | None = None,
         max_cloud_pct: float = 40.0,
+        mosaicking_order: str = MOSAIC_LEAST_CLOUD,
     ) -> bytes:
         """يطلب من Process API حساب ``index`` للفترة، ويُرجِع GeoTIFF (بايتات).
 
         المؤشّر يُحسَب خادميّاً (evalscript) فيُعاد نطاقاً واحداً FLOAT32. ``geometry``
-        (Polygon EPSG:4326) يقصّ على الحقل؛ ``mosaickingOrder=leastCC`` يختار الأقلّ غيوماً.
+        (Polygon EPSG:4326) يقصّ على الحقل.
+
+        ``mosaicking_order`` يجب أن **يوافق عقد المُستدعي**: ``MOSAIC_MOST_RECENT`` لمسار
+        «أحدث اكتساب» و``MOSAIC_LEAST_CLOUD`` لمسار «أفضل جودة». الافتراضيّ يبقى
+        ``leastCC`` حفاظاً على سلوك المستدعين القدامى، **وهو ليس دلالة الحداثة**:
+        اختيارُ الأقلّ غيوماً على بيانات بلاطةٍ واسعة، لا الأحدث زمنيّاً
+        (IMAGERY-LATEST-SELECTION-SEMANTICS-02).
+
         يرفع عند فشل الشبكة/التصديق (يلتقطه المنسّق → fallback إلى Element84).
         """
         import httpx
@@ -547,7 +577,7 @@ class CdseClient:
                         "dataFilter": {
                             "timeRange": {"from": time_from, "to": time_to},
                             "maxCloudCoverage": _clamp_cloud_pct(max_cloud_pct),
-                            "mosaickingOrder": "leastCC",
+                            "mosaickingOrder": _validated_mosaicking_order(mosaicking_order),
                         },
                     }
                 ],
@@ -694,7 +724,11 @@ class CdseClient:
                 "exclude": ["assets"],
             },
             # sortby removed: CDSE catalog rejects it with 400 ("problematic key 'sortby'").
-            # Client-side date sorting is applied below after features are received.
+            # NOTE: this file does NOT sort. Two comments here used to claim a
+            # "client-side date sorting applied below" that never existed in the code,
+            # and callers were built on that claim (IMAGERY-LATEST-SELECTION-SEMANTICS-02).
+            # Ordering is the caller's job now, via scene_policy.select_scene(policy=...),
+            # which is deterministic and does not depend on undocumented provider order.
         }
         geom = _geometry_object(geometry)
         if geom:
@@ -710,9 +744,9 @@ class CdseClient:
         url = f"{self._base_url}/api/v1/catalog/1.0.0/search"
 
         def _minimal_fallback(base: dict) -> dict:
-            # Keep only stable STAC fields. Client-side cloud/date sorting still
-            # happens below, so removing optional filter syntax does not return
-            # unsafe data to callers.
+            # Keep only stable STAC fields. The defensive client-side CLOUD filter below
+            # still runs, so dropping optional filter syntax does not return unsafe data.
+            # (It does not sort — see the note on the payload above.)
             keys = ("collections", "datetime", "limit", "bbox", "intersects")
             return {k: base[k] for k in keys if k in base}
 
@@ -745,6 +779,35 @@ class CdseClient:
                         return []
                 data = resp.json()
                 features = list(data.get("features") or [])
+                # ترقيم الصفحات (STAC ``context.next``). كان مفقوداً تماماً، فكان
+                # الجواب «أوّل صفحة صادف أن أعادها المزوّد» — ومع نافذة استرجاع
+                # واسعة يصير ادّعاء «الأحدث»/«الأفضل» عليها غير قابل للإثبات
+                # (IMAGERY-LATEST-SELECTION-SEMANTICS-02).
+                pages = 1
+                token = (data.get("context") or {}).get("next")
+                while token and pages < _CATALOG_MAX_PAGES:
+                    page_payload = dict(payload)
+                    page_payload["next"] = token
+                    page_resp = httpx.post(url, json=page_payload, headers=headers, timeout=30.0)
+                    if page_resp.status_code >= 400:
+                        # صفحةٌ تالية فاشلة ⇒ نُكمل بما جُمِع ونُعلِن النقص، ولا نُسقِط
+                        # الصفحة الأولى: جوابٌ ناقص مُعلَن خيرٌ من صفر صامت.
+                        logger.warning(
+                            "CDSE catalog page %s failed: status=%s — نتيجة ناقصة",
+                            pages + 1,
+                            page_resp.status_code,
+                        )
+                        break
+                    page_data = page_resp.json()
+                    features.extend(list(page_data.get("features") or []))
+                    token = (page_data.get("context") or {}).get("next")
+                    pages += 1
+                if token:
+                    logger.warning(
+                        "CDSE catalog truncated at %s pages (%s scenes) — بقيت صفحات",
+                        pages,
+                        len(features),
+                    )
                 # Defensive client-side cloud filter in case fallback removed the provider filter.
                 filtered, diagnostics = _apply_cloud_filter(features, cloud)
                 if diagnostics:

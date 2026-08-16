@@ -7,7 +7,9 @@ module. ``main.py`` re-exports the public helpers for backwards compatibility.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
+from enum import Enum
 from typing import Any
 
 
@@ -176,6 +178,140 @@ def rank_scenes(
         ranked.append(d)
     return sorted(
         ranked, key=lambda it: (-float(it.get("quality_score", 0)), it.get("datetime") or "")
+    )
+
+
+class SceneSelectionPolicy(str, Enum):
+    """السلطتان المفصولتان. كانتا واحدةً، وذلك كان الجذر.
+
+    ``LATEST_ACCEPTABLE`` — **أحدث اكتساب زمنيّاً** من المجتازين لشروط الأهليّة.
+    ``BEST_QUALITY``      — **أعلى درجة** بـ``scene_quality_score``.
+
+    ليستا ترتيبين لسؤال واحد بل جوابا سؤالين مختلفين، وخلطُهما هو
+    ``IMAGERY-LATEST-SELECTION-SEMANTICS-02``: أوزان ``rank_scenes`` (٠٫٥٠ سحاب مقابل
+    ٠٫٢٠ حداثة) تجعل **الأقدم الأنظف يهزم الأحدث** — سلوكٌ صحيح لـ«أفضل جودة»، وخاطئ
+    لـ«الأحدث». فلا تُنفَّذ الأولى بـ``rank_scenes`` مهما حُسِّنت أوزانها.
+    """
+
+    LATEST_ACCEPTABLE = "latest_acceptable"
+    BEST_QUALITY = "best_quality"
+
+
+SELECTION_POLICY_VERSION = "1"
+
+
+@dataclass(frozen=True)
+class SelectedScene:
+    """هويّة المشهد المختار — لا ``tuple`` تفقد المنشأ.
+
+    الصيغة الأولى في ``…-BINDING-01`` كانت ``(date_from, date_to, capture)``، فكان
+    ``scene_id`` و``cloud_pct`` ومصدرُهما يضيع عند الحدّ. وما لا يُحمَل لا يُخزَّن ولا
+    يُنشَر في ترويسة ولا يُقارَن بالشريط الزمنيّ.
+    """
+
+    scene_id: str | None
+    acquisition_datetime: str
+    acquisition_day: str
+    cloud_pct: float | None
+    cloud_source: str
+    policy: str
+    policy_version: str = SELECTION_POLICY_VERSION
+
+    def as_receipt(self) -> dict:
+        """إيصال الاختيار — الشكل الوحيد الذي يعبر إلى الكاش والترويسات والسجلّ."""
+        return {
+            "selection_policy": self.policy,
+            "policy_version": self.policy_version,
+            "scene_id": self.scene_id,
+            "acquisition_datetime": self.acquisition_datetime,
+            "acquisition_day": self.acquisition_day,
+            "cloud_pct": self.cloud_pct,
+            "cloud_source": self.cloud_source,
+            "source": "cdse",
+        }
+
+
+def _scene_identity(scene: dict | Any) -> str | None:
+    d = scene_to_dict(scene)
+    props = d.get("properties") or {}
+    for key in ("item_id", "id", "scene_id"):
+        if d.get(key):
+            return str(d[key])
+    if props.get("productIdentifier"):
+        return str(props["productIdentifier"])
+    return None
+
+
+def select_scene(
+    scenes: list[dict | Any] | None,
+    *,
+    policy: SceneSelectionPolicy,
+    max_cloud_pct: float = 40.0,
+) -> SelectedScene | None:
+    """المنتقي المركزيّ الوحيد. يستهلكه المسار الحيّ ومسار الإدامة معاً.
+
+    فصلُ المسارين على منتقيَين كان سيُعيد التناقض من الجهة الأخرى: مسارٌ حيّ «أحدث»
+    ومسارٌ مُدام «أعلى جودة» يختلفان في اليوم المختار، والشريط الزمنيّ يُغذّى من
+    الثاني — وهو التناقض عينه الذي أغلقته ``…-BINDING-01`` في اتّجاه واحد.
+
+    **الأهليّة تتبع سياسة المنصّة القائمة لا سياسةً ثانية:** ``_apply_cloud_filter``
+    في ``cdse_client`` يقبل المشهد **مجهولَ الغيوم** بقرار مالك موثَّق («غياب ≠ صفر»
+    مع رصدٍ صريح). فيقبله هذا المنتقي أيضاً ويُعلِن ``cloud_source="unknown"`` في
+    الإيصال بدل أن يُنشئ سلطة أهليّة ثانية تنحرف عنها بصمت.
+
+    ``None`` حين لا مشهد مؤهَّلاً — والمُستدعي يقرّر ماذا يفعل بالغياب.
+    """
+    if not scenes:
+        return None
+
+    if policy is SceneSelectionPolicy.BEST_QUALITY:
+        ranked = rank_scenes(scenes, max_cloud_pct=max_cloud_pct)
+        for candidate in ranked:
+            if scene_datetime(candidate) is not None:
+                return _to_selected(candidate, policy)
+        return None
+
+    eligible: list[tuple[datetime, float, str, dict]] = []
+    for scene in scenes:
+        dt = scene_datetime(scene)
+        if dt is None:
+            # تاريخ اكتساب غير صالح ⇒ لا يفوز أبداً. «الأحدث» بلا زمنٍ موثوق لا معنى له.
+            continue
+        cloud = scene_cloud_pct(scene)
+        if cloud is not None and cloud > float(max_cloud_pct):
+            continue
+        d = scene_to_dict(scene)
+        # كسرُ التعادل حتميّ ومُعلَن: الأنظف أوّلاً، ثمّ المعرّف نصّيّاً. بدونه يقرّر
+        # ترتيبُ المزوّد — وهو غير موثَّق ولا مضمون الثبات بين طلبين.
+        eligible.append((dt, cloud if cloud is not None else 101.0, _scene_identity(d) or "", d))
+
+    if not eligible:
+        return None
+    eligible.sort(key=lambda it: (-it[0].timestamp(), it[1], it[2]))
+    return _to_selected(eligible[0][3], policy)
+
+
+def _to_selected(scene: dict | Any, policy: SceneSelectionPolicy) -> SelectedScene | None:
+    dt = scene_datetime(scene)
+    if dt is None:
+        return None
+    cloud = scene_cloud_pct(scene)
+    d = scene_to_dict(scene)
+    props = d.get("properties") or {}
+    if d.get("aoi_cloud_pct") is not None:
+        cloud_source = "aoi_cloud_pct"
+    elif d.get("cloud_cover_pct") is not None or props.get("eo:cloud_cover") is not None:
+        cloud_source = "scene_cloud_pct"
+    else:
+        cloud_source = "unknown"
+    iso = dt.isoformat().replace("+00:00", "Z")
+    return SelectedScene(
+        scene_id=_scene_identity(d),
+        acquisition_datetime=iso,
+        acquisition_day=iso[:10],
+        cloud_pct=cloud,
+        cloud_source=cloud_source,
+        policy=policy.value,
     )
 
 

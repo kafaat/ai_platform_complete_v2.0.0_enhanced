@@ -108,23 +108,29 @@ def test_the_latest_window_spans_multiple_days() -> None:
     assert runtime.window_spans_multiple_days(_WIDE_FROM, _WIDE_TO)
 
 
-def test_binding_narrows_a_wide_window_to_the_ranked_scene_day() -> None:
-    """الضمانة المركزيّة: نافذة السنتين تنكمش إلى يوم المشهد الأعلى ترتيباً."""
-    date_from, date_to, capture = runtime.bind_scene_day_window(
+def test_binding_narrows_a_wide_window_to_the_selected_scene_day() -> None:
+    """الضمانة المركزيّة: نافذة السنتين تنكمش إلى يوم المشهد المختار."""
+    date_from, date_to, selected = runtime.bind_scene_day_window(
         [_CLOUDY, _CLEAN], _WIDE_FROM, _WIDE_TO
     )
     assert (date_from, date_to) == ("2020-11-21T00:00:00Z", "2020-11-21T23:59:59Z")
-    assert capture == "2020-11-21T07:30:00Z"
+    assert selected is not None
+    assert selected.acquisition_datetime == "2020-11-21T07:30:00Z"
+    assert selected.acquisition_day == "2020-11-21"
 
 
-def test_binding_obeys_the_scene_policy_not_the_list_order() -> None:
-    """المشهد الأوسخ أوّلاً في القائمة — ومع ذلك يفوز الأنظف.
+def test_binding_obeys_the_policy_not_the_list_order() -> None:
+    """المشهد الخاسر أوّلاً في القائمة — ومع ذلك لا يفوز بموضعه.
 
-    لو قرأ الربط ``scenes[0]`` بدل ``rank_scenes`` لمرّ كلّ اختبارٍ آخر هنا، لأنّ
-    الترتيب مصادفةً يضع الفائز أوّلاً في بقيّتها.
+    لو قرأ الربط ``scenes[0]`` لمرّ كلّ اختبارٍ آخر هنا، لأنّ الترتيب مصادفةً يضع
+    الفائز أوّلاً في بقيّتها.
+
+    **حدّ مقيس:** هذه الحالة لا تُميّز بين «الأحدث» و«أفضل جودة» — فـ``_CLEAN`` هنا
+    هو الأحدث **والأنظف** معاً، فتتّفق السياستان عليه. التمييز بينهما يقع في
+    ``test_cdse_latest_selection_semantics.py`` على مُدخَل يفترقان عليه فعلاً.
     """
-    _from, _to, capture = runtime.bind_scene_day_window([_CLOUDY, _CLEAN], _WIDE_FROM, _WIDE_TO)
-    assert capture is not None and capture.startswith("2020-11-21")
+    _from, _to, selected = runtime.bind_scene_day_window([_CLOUDY, _CLEAN], _WIDE_FROM, _WIDE_TO)
+    assert selected is not None and selected.acquisition_day == "2020-11-21"
 
 
 def test_binding_fails_open_when_no_scene_is_returned() -> None:
@@ -145,8 +151,9 @@ def test_binding_fails_open_on_an_unusable_acquisition_datetime() -> None:
 def test_binding_reads_the_acquisition_datetime_from_properties_when_absent_at_top_level() -> None:
     """المشهد بلا ``datetime`` عُلويّ — والتاريخ في ``properties`` كما تُعيده بعض ردود STAC."""
     scene = {"id": "x", "properties": {"datetime": "2020-11-21T07:30:00Z"}}
-    _from, _to, capture = runtime.bind_scene_day_window([scene], _WIDE_FROM, _WIDE_TO)
-    assert capture == "2020-11-21T07:30:00Z"
+    _from, _to, selected = runtime.bind_scene_day_window([scene], _WIDE_FROM, _WIDE_TO)
+    assert selected is not None
+    assert selected.acquisition_datetime == "2020-11-21T07:30:00Z"
 
 
 def test_binding_survives_properties_present_but_null() -> None:
