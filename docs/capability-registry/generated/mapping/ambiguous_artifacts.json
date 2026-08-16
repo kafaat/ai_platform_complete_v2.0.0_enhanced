@@ -5010,6 +5010,14 @@
     "kind": "backend",
     "candidates": [
       {
+        "capability_id": "SAT-005",
+        "score": 12,
+        "signals": [
+          "content:aoi cloud",
+          "content:scene cloud"
+        ]
+      },
+      {
         "capability_id": "SAT-003",
         "score": 12,
         "signals": [
@@ -5018,11 +5026,12 @@
         ]
       },
       {
-        "capability_id": "SAT-005",
+        "capability_id": "SAT-001",
         "score": 11,
         "signals": [
-          "content:aoi cloud",
-          "content:scene cloud"
+          "content:cdse",
+          "content:satellite scene",
+          "content:sentinel"
         ]
       }
     ]
@@ -9148,6 +9157,28 @@
   },
   {
     "path": "tests_v9/test_cdse_evalscript.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "SAT-001",
+        "score": 14,
+        "signals": [
+          "path:cdse",
+          "content:cdse"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_cdse_latest_selection_semantics.py",
     "kind": "tests",
     "candidates": [
       {

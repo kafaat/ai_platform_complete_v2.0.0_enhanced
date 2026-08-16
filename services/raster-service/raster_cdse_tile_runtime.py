@@ -19,9 +19,16 @@ import cdse_singleflight
 import db_persist as _db
 import layer_lookup
 import raster_date_geo
+import scene_policy
 from raster_security_context import REQ_TENANT
 
 LATEST_WINDOW_DAYS = int(os.getenv("CDSE_LATEST_WINDOW_DAYS", "365"))
+
+# سقف الغيوم الذي يُسأل به المزوّد. كان مكتوباً حرفيّاً عند نداء ``process_index``
+# وحده؛ ورُفِع ثابتاً لأنّ البحث في الكتالوج والمعالجة **يجب أن يتّفقا**: لو بحثنا
+# بسقف أوسع من سقف المعالجة لربطنا النافذة بيوم مشهدٍ سترفضه المعالجة، فنعود بفراغ
+# حيث كانت الصورة تُعرَض قبل الربط.
+MAX_CLOUD_PCT = 40.0
 
 logger = logging.getLogger("raster-service")
 
@@ -129,6 +136,96 @@ async def normalize_cdse_request(
     }
 
 
+def window_spans_multiple_days(date_from: str, date_to: str) -> bool:
+    """هل تمتدّ النافذة على أكثر من يوم تقويميّ واحد بـUTC؟
+
+    هذا **مُميِّز مشتقّ من النافذة نفسها** لا راية جديدة تُمرَّر: التاريخ الصريح يُبنى
+    أصلاً كنافذة يومٍ واحد (``build_tile_context``)، و«latest» وحدها تمتدّ إلى
+    ``LATEST_WINDOW_DAYS``. فاشتقاقه هنا يُبقي توقيع ``ensure_field_cog`` كما هو،
+    ويظلّ صادقاً لو تغيّر مصدر النافذة لاحقاً — لأنّ الشرط الحقيقيّ للربط هو الامتداد،
+    لا كون الطلب مُسمّى «latest».
+    """
+    return str(date_from)[:10] != str(date_to)[:10]
+
+
+LATEST_PROBE_STEP_DAYS = int(os.getenv("CDSE_LATEST_PROBE_STEP_DAYS", "30"))
+
+
+def backward_probe_windows(
+    date_from: str, date_to: str, *, step_days: int = LATEST_PROBE_STEP_DAYS
+) -> list[tuple[str, str]]:
+    """يُقسّم نافذة الاسترجاع إلى نوافذ **من الأحدث إلى الأقدم**.
+
+    ليست تحسيناً في الكلفة فحسب — بها **يصير ادّعاء «الأحدث» قابلاً للإثبات**.
+    استجواب سنةٍ كاملة دفعةً واحدة يخضع لسقف صفحات الكتالوج
+    (``cdse_client._CATALOG_MAX_PAGES``)، وترتيب المزوّد **غير موثَّق**؛ فالاقتطاع قد
+    يُسقِط أحدثَ مشهدٍ نفسه ولا نعلم. أمّا حين تُستجوَب أحدثُ نافذة أوّلاً، فأيّ مشهد
+    مؤهَّل يُعثَر عليه فيها **أحدث بالضرورة** من كلّ ما في النوافذ الأقدم — بلا حاجة
+    إلى استيفاء صفحات السنة كلّها.
+
+    نقيّة وحتميّة: تُعيد قائمة ``(from, to)`` تُغطّي المدى الأصليّ بلا ثغرة ولا تجاوز
+    لحدّه الأدنى. ``step_days <= 0`` ⇒ نافذةٌ واحدة كما جاءت (لا حلقة لانهائيّة).
+    """
+    if step_days <= 0:
+        return [(date_from, date_to)]
+    try:
+        start = datetime.strptime(str(date_from)[:10], "%Y-%m-%d").replace(tzinfo=UTC)
+        end = datetime.strptime(str(date_to)[:10], "%Y-%m-%d").replace(tzinfo=UTC)
+    except ValueError:
+        return [(date_from, date_to)]
+    if end <= start:
+        return [(date_from, date_to)]
+
+    windows: list[tuple[str, str]] = []
+    cursor = end
+    while cursor > start:
+        lower = max(start, cursor - timedelta(days=step_days))
+        windows.append(
+            (lower.strftime("%Y-%m-%dT00:00:00Z"), cursor.strftime("%Y-%m-%dT23:59:59Z"))
+        )
+        cursor = lower
+    return windows
+
+
+def bind_scene_day_window(
+    scenes: list[dict] | None,
+    date_from: str,
+    date_to: str,
+    *,
+    max_cloud_pct: float = MAX_CLOUD_PCT,
+) -> tuple[str, str, scene_policy.SelectedScene | None]:
+    """يضيّق نافذة بحثٍ ممتدّة إلى **يوم أحدث اكتساب مقبول**.
+
+    العلّة المقيسة: ``process_index`` كان يُرسَل إليه ``mosaickingOrder=leastCC`` على
+    نافذة ٣٦٥ يوماً، فيُرجِع **أقلّ المشاهد غيوماً في سنة** لا الأحدث — ويُخزَّن تحت
+    مفتاح ``today`` بلا شاهدٍ على تاريخه.
+
+    **والصياغة الأولى لهذه الدالّة عالجت النافذة ولم تُعالج الدلالة:** كانت تنتقي
+    بـ``rank_scenes`` وأوزانُها ٠٫٥٠ سحاب مقابل ٠٫٢٠ حداثة، فيهزم **الأقدمُ الأنظفُ
+    الأحدثَ**. ذلك جوابٌ صحيح لسؤال «أفضل جودة» وخاطئ لسؤال «الأحدث». الآن تستهلك
+    ``scene_policy.select_scene(LATEST_ACCEPTABLE)`` — المنتقي المركزيّ نفسه الذي
+    يستهلكه مسار الإدامة، فلا تنحرف دلالتان.
+
+    نقيّة: تأخذ المشاهد مُعطاةً فتُقاس بلا شبكة، والنداء الشبكيّ في المُستدعي.
+
+    **تفشل مفتوحةً عمداً (دَينُ انتقال مُعلَن):** بلا مشهد مؤهَّل تُعيد النافذة كما
+    جاءت. هذا يحفظ التوافريّة ويُبقي ثغرةً دلاليّة — نافذةٌ واسعة تُقدَّم باسم
+    «latest» عند العطل — وهي مُسجَّلة للإغلاق في ``IMAGERY-LATEST-SELECTION-SEMANTICS-02``
+    بقاعدة «تدهور توافريّة مقبول، تلفيقٌ دلاليّ غير مقبول».
+    """
+    selected = scene_policy.select_scene(
+        scenes,
+        policy=scene_policy.SceneSelectionPolicy.LATEST_ACCEPTABLE,
+        max_cloud_pct=max_cloud_pct,
+    )
+    if selected is None:
+        return date_from, date_to, None
+    window = raster_date_geo.day_window(selected.acquisition_day)
+    if window is None:
+        return date_from, date_to, None
+    return window[0], window[1], selected
+
+
 async def ensure_field_cog(
     field_id: str,
     internal: str,
@@ -175,6 +272,8 @@ async def ensure_field_cog(
             if entry and os.path.exists(entry[1]):
                 _unlink_best_effort(entry[1], "إخلاء إدخال بائت من ذاكرة البلاطات")
                 cdse_singleflight.cdse_tile_cache.pop(cache_key, None)
+        selected: scene_policy.SelectedScene | None = None
+        mosaicking_order = _cdse.MOSAIC_LEAST_CLOUD
         try:
             client = _cdse.get_client()
             if not field_bbox:
@@ -184,6 +283,67 @@ async def ensure_field_cog(
                     internal,
                 )
                 return None
+            # ربط النافذة الممتدّة بيوم المشهد الحقيقيّ **بعد** فحص الكاش وحده: قبله
+            # كان نداءً شبكيّاً إضافيّاً على كلّ إصابة كاش. وهنا يقع مرّةً لكلّ ملء.
+            if window_spans_multiple_days(date_from, date_to):
+                probes = backward_probe_windows(date_from, date_to)
+                bound_from, bound_to = date_from, date_to
+                for probe_from, probe_to in probes:
+                    try:
+                        scenes = await asyncio.get_event_loop().run_in_executor(
+                            None,
+                            lambda pf=probe_from, pt=probe_to: client.search_scenes(
+                                bbox=list(field_bbox),
+                                time_from=pf,
+                                time_to=pt,
+                                max_cloud_pct=MAX_CLOUD_PCT,
+                                limit=10,
+                                geometry=field_geom,
+                            ),
+                        )
+                    except Exception as e:  # noqa: BLE001
+                        # انقطاعٌ في نافذةٍ لا يُبطِل ما قبلها؛ نتوقّف بدل مواصلة النزول
+                        # إلى الأقدم على شبكةٍ منهارة، ونُبقي الحدّ الأصليّ.
+                        logger.warning(
+                            "CDSE scene date binding skipped (%s/%s): %s — نافذة الاسترجاع كما هي",
+                            field_id,
+                            internal,
+                            type(e).__name__,
+                        )
+                        break
+                    bound_from, bound_to, selected = bind_scene_day_window(
+                        scenes, date_from, date_to
+                    )
+                    if selected is not None:
+                        # أوّل نافذة تُثمِر تحسم: كلّ ما بعدها **أقدم بالبناء**.
+                        break
+                date_from, date_to = bound_from, bound_to
+                if selected is not None:
+                    # العقد اتّفق: اخترنا «أحدث اكتساب مقبول»، فالفسيفساء تُطلَب
+                    # `mostRecent` لا `leastCC`. تركُ `leastCC` بعد التضييق كان يُبقي
+                    # آخر خطوة تتكلّم دلالةً غير التي اختارت المشهد.
+                    mosaicking_order = _cdse.MOSAIC_MOST_RECENT
+                    receipt = selected.as_receipt()
+                    # الشاهد يُسجَّل كاملاً: «latest» قد تكون مشهداً عمره أشهر، وبلا هذا
+                    # لا أثر في أيّ مكان يقول أيّ مشهدٍ عُرِض فعلاً.
+                    logger.info(
+                        "CDSE latest bound (%s/%s): %s",
+                        field_id,
+                        internal,
+                        _json.dumps(receipt, ensure_ascii=False, sort_keys=True),
+                    )
+                else:
+                    # دَينُ انتقال مُعلَن: نافذةٌ واسعة تُقدَّم باسم latest عند تعذّر
+                    # الاختيار (IMAGERY-LATEST-SELECTION-SEMANTICS-02).
+                    logger.warning(
+                        "CDSE latest unbound (%s/%s): لا مشهد مؤهَّل — %s على %s..%s "
+                        "(دلالةٌ غير مضمونة)",
+                        field_id,
+                        internal,
+                        mosaicking_order,
+                        date_from,
+                        date_to,
+                    )
             geotiff_bytes = await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: client.process_index(
@@ -192,7 +352,8 @@ async def ensure_field_cog(
                     time_from=date_from,
                     time_to=date_to,
                     geometry=field_geom,
-                    max_cloud_pct=40.0,
+                    max_cloud_pct=MAX_CLOUD_PCT,
+                    mosaicking_order=mosaicking_order,
                 ),
             )
             tf = tempfile.NamedTemporaryFile(

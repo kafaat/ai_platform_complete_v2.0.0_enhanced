@@ -1271,14 +1271,14 @@
         "tests_v9/test_cdse_catalog_hardening_20260626.py",
         "tests_v9/test_cdse_cloud_filter_policy.py",
         "tests_v9/test_cdse_evalscript.py",
+        "tests_v9/test_cdse_latest_scene_day_binding.py",
+        "tests_v9/test_cdse_latest_selection_semantics.py",
         "tests_v9/test_cdse_latest_window_singleflight_guard.py",
         "tests_v9/test_cdse_process_throttle_retry_guard.py",
         "tests_v9/test_deferred_satellite_integration_v30_4.py",
         "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py",
         "tests_v9/test_historical_search_cdse_v30_8.py",
-        "tests_v9/test_imagery_single_scene_process.py",
-        "tests_v9/test_normalized_scene_wiring_v63_2.py",
-        "tests_v9/test_raster_scene_model_v63.py"
+        "tests_v9/test_imagery_single_scene_process.py"
       ],
       "runtime": {
         "metrics": [],

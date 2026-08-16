@@ -644,6 +644,11 @@ class TestCdseQuotaExhaustedBreaksLoop:
 
         fake_cdse.get_client = FakeClient  # type: ignore[attr-defined]
         fake_cdse._to_rfc3339 = lambda v: v  # type: ignore[attr-defined]
+        # ثابتا ترتيب الفسيفساء: `run_cdse_processing` يقرؤهما ليجعل آخر خطوة توافق
+        # العقد الذي اختار المشهد (`mostRecent` للأحدث، `leastCC` لغيره). الوحدة
+        # الوهميّة يجب أن تحمل عقد الحقيقيّة وإلّا صار الاختبار يقيس نقصَ الدُّمية.
+        fake_cdse.MOSAIC_LEAST_CLOUD = "leastCC"  # type: ignore[attr-defined]
+        fake_cdse.MOSAIC_MOST_RECENT = "mostRecent"  # type: ignore[attr-defined]
         _sys.modules["cdse_client"] = fake_cdse
 
         class JobStatus(str, enum.Enum):
@@ -690,6 +695,11 @@ class TestCdseQuotaExhaustedBreaksLoop:
 
         fake_cdse.get_client = _FakeClient  # type: ignore[attr-defined]
         fake_cdse._to_rfc3339 = lambda v: v  # type: ignore[attr-defined]
+        # ثابتا ترتيب الفسيفساء: `run_cdse_processing` يقرؤهما ليجعل آخر خطوة توافق
+        # العقد الذي اختار المشهد (`mostRecent` للأحدث، `leastCC` لغيره). الوحدة
+        # الوهميّة يجب أن تحمل عقد الحقيقيّة وإلّا صار الاختبار يقيس نقصَ الدُّمية.
+        fake_cdse.MOSAIC_LEAST_CLOUD = "leastCC"  # type: ignore[attr-defined]
+        fake_cdse.MOSAIC_MOST_RECENT = "mostRecent"  # type: ignore[attr-defined]
         fake_cdse.supported_indices = lambda: {"ndvi", "ndmi", "msi", "evi", "ndwi", "ndre", "savi"}  # type: ignore[attr-defined]
         sys.modules["cdse_client"] = fake_cdse
 
