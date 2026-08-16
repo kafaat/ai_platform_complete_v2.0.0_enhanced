@@ -58,11 +58,7 @@
       ]
     },
     "registry_reconciliation": {
-      "identities": [
-        "INT-004:evidence_level:registry-reconciliation",
-        "INT-004:maturity:registry-reconciliation",
-        "INT-004:owner:registry-reconciliation"
-      ]
+      "identities": []
     }
   },
   "invariants": {

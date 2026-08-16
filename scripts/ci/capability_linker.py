@@ -494,29 +494,18 @@ def main() -> int:
             cap["tests"] = uniq(tests, 25)
             cap["ui_consumers"] = uniq(ui, 20)
             cap["mobile_consumers"] = uniq(mobile, 20)
-            cap["dependencies"] = DEPENDENCIES.get(cid, cap.get("dependencies", []))
+            # A′-4b: سلطة كتابة `dependencies` أُسقطت من الرابط — الحقل مملوك
+            # للتعريف القانونيّ بسياسة سلطة الحقول، ويكتبه في الإسقاط مُسقِطُ
+            # `capability_projection_sync` من Registry v1 وحده. جدول DEPENDENCIES
+            # الداخليّ صار مرجعاً تاريخيّاً لا مصدرَ كتابة.
             # Add a small deterministic evidence set, preserving existing non-duplicate evidence.
             existing = {(e.get("type"), e.get("path")) for e in cap.get("evidence", [])}
             for path in uniq(evidence_paths, 5):
                 if ("repository", path) not in existing:
                     cap.setdefault("evidence", []).append({"type": "repository", "path": path})
-            if len(linked_services) == 1:
-                cap["owner"] = (
-                    Path(linked_services[0]).parts[1]
-                    if linked_services[0].startswith("services/")
-                    else linked_services[0]
-                )
-                if cap["owner"] == "odoo-bridge":
-                    cap["owner"] = "erp-bridge"
-            elif linked_services:
-                cap["owner"] = (
-                    "+".join(
-                        sorted(
-                            {Path(p).parts[1] for p in linked_services if p.startswith("services/")}
-                        )
-                    )
-                    or "PLATFORM"
-                )
+            # A′-4b: سلطة كتابة `owner` أُسقطت كذلك — الاشتقاق من الخدمات كان
+            # يكتب حقلاً canonical-owned من شكل المستودع، وهو أصل ازدواج الكتابة
+            # الذي تُغلقه هذه الشريحة. المالك يأتي من Registry v1 عبر المُسقِط.
             # Evidence confidence is based on explicit traceability, not maturity inflation.
             linked_surfaces = sum(
                 bool(x) for x in (linked_services, linked_apis, tests, ui, mobile)

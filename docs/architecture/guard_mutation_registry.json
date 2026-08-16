@@ -354,6 +354,36 @@
         }
       ],
       "test": "tests/architecture/test_capability_consumer_migration.py"
+    },
+    "scripts/ci/capability_projection_sync.py": {
+      "$why_ar": "الكاتب الوحيد المخوَّل للحقول canonical-owned في الإسقاط التوافقيّ — A′-4b. طفراته تقيس أنّ الاشتقاق آليّ من القانونيّ (لا تحرير يدويّ) وأنّ الانحراف لا يمرّ صامتاً.",
+      "mutations": [
+        {
+          "expect": "test_projection_follows_the_canonical_value_not_the_other_way",
+          "find": "            if target.get(field) != source[field]:",
+          "replace": "            if False:  # mutated: الانحراف لا يُرى والإسقاط لا يُزامَن",
+          "why": "تعطيل كشف الانحراف يجعل --check يخضرّ على إسقاطٍ بائت و--generate لا يُسقط شيئاً — فيعود الحقل canonical في الإسقاط يتيماً يكتبه من شاء."
+        },
+        {
+          "expect": "test_identity_disagreement_fails_closed",
+          "find": "    if set(canonical) != set(legacy):",
+          "replace": "    if False:  # mutated: هويّةٌ مختلفة تُضمّ صامتة",
+          "why": "ضمّ سجلَّين مختلفَي الهويّة بالتقاطع يُخفي قدرةً كاملة بدل أن يجعل reconciliation يحسمها — القاعدة نفسها المقفلة في العرض تُقفَل في المُسقِط."
+        }
+      ],
+      "test": "tests/architecture/test_capability_projection_sync.py"
+    },
+    "scripts/ci/capability_linker.py": {
+      "$why_ar": "الرابط فقد سلطة كتابة الحقول canonical-owned في A′-4b — والطفرة تقيس أنّ عودتها لا تمرّ.",
+      "mutations": [
+        {
+          "expect": "test_the_linker_no_longer_writes_canonical_owned_fields",
+          "find": "            # A′-4b: سلطة كتابة `owner` أُسقطت كذلك — الاشتقاق من الخدمات كان",
+          "replace": "            cap[\"owner\"] = \"PLATFORM\"  # mutated: عادت سلطة كتابةٍ أُسقطت",
+          "why": "أصل ازدواج الكتابة الذي أغلقته A′-4b: كاتبٌ يشتقّ حقلاً canonical-owned من شكل المستودع فيُبيته ضدّ مالكه. عودةُ سطرٍ واحد تعيد الازدواج كلّه."
+        }
+      ],
+      "test": "tests/architecture/test_capability_projection_sync.py"
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
