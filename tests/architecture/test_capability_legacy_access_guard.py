@@ -49,3 +49,14 @@ def test_stale_allowance_is_rejected(tmp_path):
     p.write_text(json.dumps(d), encoding="utf-8")
     (tmp_path / "scripts/ci").mkdir(parents=True, exist_ok=True)
     assert "stale_access_allowance:scripts/ci/ghost.py" in m.inspect(tmp_path)
+
+
+def test_a_malformed_policy_is_a_named_finding_not_a_stack_trace(tmp_path):
+    """سياسةٌ مشوّهة (قائمة لا كائن) تُبلَّغ باسمها fail-closed — لا انفجار
+    AttributeError صاخب (رفعته مراجعة آليّة وأصابت)."""
+    m = _load()
+    p = tmp_path / m.POLICY.relative_to(m.ROOT)
+    p.parent.mkdir(parents=True)
+    p.write_text(json.dumps(["not", "an", "object"]), encoding="utf-8")
+    (tmp_path / "scripts/ci").mkdir(parents=True, exist_ok=True)
+    assert m.inspect(tmp_path) == ["policy:not_an_object"]

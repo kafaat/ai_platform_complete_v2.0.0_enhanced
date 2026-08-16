@@ -45,3 +45,22 @@ def test_runtime_apply_cannot_write_production_certified(tmp_path):
         "runtime_verification_apply:unauthorized_certification_write:production_certified"
         in m.inspect(tmp_path)
     )
+
+
+def test_a_malformed_policy_is_a_named_finding_not_a_stack_trace(tmp_path):
+    """سياسة بلا field_authority (أو ليست كائناً) تُبلَّغ باسمها — لا KeyError
+    صاخب (رفعته مراجعة آليّة وأصابت)."""
+    import json as _json
+
+    m = _load()
+    for rel in [m.LINKER, m.RUNTIME_APPLY]:
+        dst = tmp_path / rel.relative_to(m.ROOT)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_bytes(rel.read_bytes())
+    p = tmp_path / m.POLICY.relative_to(m.ROOT)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(_json.dumps(["not", "an", "object"]), encoding="utf-8")
+    assert m.inspect(tmp_path) == ["policy:malformed_field_authority"]
+
+    p.write_text(_json.dumps({"schema": "x", "field_authority": "not-a-dict"}), encoding="utf-8")
+    assert m.inspect(tmp_path) == ["policy:malformed_field_authority"]

@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "docs/capability-registry/legacy_access_policy.json"
 NEEDLE = "capabilities/registry/capabilities.json"
-# Guard itself intentionally does not embed NEEDLE as one literal in discovery candidates.
+# The guard excludes itself from discovery (below), so this literal cannot self-match.
 
 
 def discovered(root: Path = ROOT) -> set[str]:
@@ -28,6 +28,8 @@ def discovered(root: Path = ROOT) -> set[str]:
 
 def inspect(root: Path = ROOT) -> list[str]:
     doc = json.loads((root / POLICY.relative_to(ROOT)).read_text(encoding="utf-8"))
+    if not isinstance(doc, dict):
+        return ["policy:not_an_object"]
     if doc.get("schema") != "sahool.capability-legacy-access/v1" or doc.get("default") != "deny":
         return ["policy:not_fail_closed"]
     entries = doc.get("entries")

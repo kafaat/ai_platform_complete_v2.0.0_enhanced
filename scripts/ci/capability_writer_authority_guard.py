@@ -36,6 +36,8 @@ def _assigned_literal_fields(path: Path) -> set[str]:
 
 def inspect(root: Path = ROOT) -> list[str]:
     policy = json.loads((root / POLICY.relative_to(ROOT)).read_text(encoding="utf-8"))
+    if not isinstance(policy, dict) or not isinstance(policy.get("field_authority"), dict):
+        return ["policy:malformed_field_authority"]
     canonical = {
         k
         for k, v in policy["field_authority"].items()

@@ -823,6 +823,12 @@
           "find": "    for p in sorted(allowed - actual):",
           "replace": "    for p in []:",
           "why": "رخصةٌ بائتة لملفٍّ زال وصولُه تبقى ⇒ القائمة تتضخّم برخصٍ ميّتة يرثها ملفٌّ جديد بالاسم نفسه دون قرار"
+        },
+        {
+          "expect": "test_a_malformed_policy_is_a_named_finding_not_a_stack_trace",
+          "find": "    if not isinstance(doc, dict):",
+          "replace": "    if False:",
+          "why": "سياسةٌ مشوّهة تنفجر AttributeError صاخباً بدل بلاغٍ مسمّى — الأثر أحمر لكنّ رسالته لا تقود مصلحاً (رفعته مراجعة آليّة وأصابت)"
         }
       ],
       "test": "tests/architecture/test_capability_legacy_access_guard.py"
@@ -840,6 +846,12 @@
           "find": "    if \"production_certified\" in runtime:",
           "replace": "    if False:",
           "why": "كاتب التشغيل يكتب production_certified ⇒ قرارُ الإطلاق الخارجيّ للمالك يُشتَقّ آليّاً من التحقّق — الخلط الذي حرّمه العقد نصّاً («لا يُشتقّ من L5»)"
+        },
+        {
+          "expect": "test_a_malformed_policy_is_a_named_finding_not_a_stack_trace",
+          "find": "    if not isinstance(policy, dict) or not isinstance(policy.get(\"field_authority\"), dict):",
+          "replace": "    if False:",
+          "why": "فهرسة policy[\"field_authority\"] على شكلٍ مشوّه ترمي KeyError/TypeError بلا اسم مخالفة — التحقّق من الشكل قبل القاعدة يجعل الفشل قابلاً للإصلاح من رسالته"
         }
       ],
       "test": "tests/architecture/test_capability_writer_authority_guard.py"
