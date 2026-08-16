@@ -1,26 +1,32 @@
 #!/usr/bin/env bash
-# Regenerate every committed generated artifact after a structural change (routes / services /
-# modules / dependencies), IN ORDER, so you don't chase CI drift one gate at a time.
+# مُحوِّل إلى المكنسة الوحيدة — لا قائمةً ثانية.
 #
-# Rule (see sahool-brain/log.md): any change touching routes/services/deps ⇒ run this before push.
+# كان هذا السكربت يُعلن في ترويسته أنّه يُعيد توليد «**كلّ** مصنوعة مولَّدة مُلتزَمة …
+# so you don't chase CI drift one gate at a time»، ثمّ يختم بـ«verify: everything is now
+# self-consistent». والمقيس: ثلاثة مولّدات من نحو تسعة وثلاثين. فمن اتّبع القاعدة
+# المكتوبة في `sahool-brain/log.md` («أيّ تغيير يمسّ المسارات/الخدمات/التبعيّات ⇒ شغّل
+# هذا قبل الدفع») حصل على خضرة صادقة عن ثلاث بوّابات، ثمّ أسقطته CI على البقيّة —
+# واحدةً تلو الأخرى، وهو عين ما وُعِد بتفاديه.
 #
-# Order matters: the inventories + route-mount inventory are inputs to the release bundle's
-# checksums, so the bundle is rebuilt LAST. Run from the repo root.
+# وهو صنف العطل نفسه الذي يطارده هذا المستودع: **ادّعاءٌ أوسع ممّا قِيس**. الأخطر أنّه
+# هنا في الأداة المُوكَل إليها منعُ ذلك الصنف.
+#
+# `scripts/ci/verify_all_generated.py` يفعل ما ادّعته الترويسة فعلاً: يكتشف القائمة من
+# الـworkflows (لا قائمة يدويّة تبيت)، ويرتّب بالتبعيّة، ويُكرّر حتّى الثبات، ويُعلن
+# صراحةً ما لا يُولَّد آليّاً بدل تخطّيه صامتاً.
+#
+# فبقي هذا الاسم مدخلاً (يُذكر في log.md وفي عادات الجلسات) وصار يُفوّض إليه. سلطةٌ
+# واحدة على «ما يجب إعادة توليده»، لا اثنتان تنحرفان.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-echo "==> service inventory + SERVICE_REGISTRY.md"
-python scripts/ci/generate_service_inventory.py --write-registry
+# `git add -A` قبل التشغيل ضرورة لا عادة: المولّدات تمسح `git ls-files` (مُتعقَّب فقط،
+# قرار #660)، فملفّ جديد غير مُدرَج لا تراه — فتُعاد المصنوعات من فهرس ناقص.
+echo "==> git add -A (المولّدات تقرأ المُتعقَّب فقط)"
+git add -A
 
-echo "==> route-mount inventory"
-python scripts/ci/route_mount_contract_guard.py
+echo "==> المكنسة: إعادة التوليد بالترتيب حتّى الثبات"
+python scripts/ci/verify_all_generated.py --fix
 
-echo "==> release bundle (SBOM + FILE_CHECKSUMS + manifest) — last, it checksums the tree"
-python3 scripts/release/build_release_bundle.py --root .
-
-echo "==> verify: everything is now self-consistent"
-python scripts/ci/generate_service_inventory.py --check
-python scripts/ci/route_mount_contract_guard.py --check
-python3 scripts/release/validate_release_package.py
-
-echo "OK — all generated artifacts regenerated and consistent."
+echo "==> إعادة الفحص: هل بلغت الشجرة نقطةً ثابتة؟"
+python scripts/ci/verify_all_generated.py
