@@ -9,7 +9,8 @@
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ChevronUp, ChevronDown, Inbox } from 'lucide-react';
-import { T, RADIUS } from './tokens';
+import { RADIUS } from './tokens';
+import { resolveTokens, useT, type DsTone } from './theme';
 
 export interface Column<T> {
   key: keyof T & string;
@@ -42,6 +43,8 @@ export function DataTable<T extends Record<string, unknown>>({
   emptyIcon,
   // نقطة كسر الموبايل (px): تحتها تتكدّس الصفوف كبطاقات.
   mobileBreakpoint = 640,
+  // نغمة اختياريّة: dark ⇒ أسطح/نصوص داكنة (صفحات الويب). الافتراضيّ فاتح.
+  tone,
 }: {
   columns: Column<T>[];
   rows: T[];
@@ -51,8 +54,10 @@ export function DataTable<T extends Record<string, unknown>>({
   emptyHint?: string;
   emptyIcon?: ReactNode;
   mobileBreakpoint?: number;
+  tone?: DsTone;
 }) {
   const [sort, setSort] = useState<SortState<T>>(null);
+  const t = resolveTokens(tone, useT());
 
   const sorted = useMemo(() => {
     if (!sort) return rows;
@@ -90,16 +95,16 @@ export function DataTable<T extends Record<string, unknown>>({
         style={{
           textAlign: 'center',
           padding: '40px 16px',
-          color: T.muted,
-          background: T.card,
-          border: `1px solid ${T.line}`,
+          color: t.muted,
+          background: t.card,
+          border: `1px solid ${t.line}`,
           borderRadius: RADIUS.md,
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }} aria-hidden="true">
           {emptyIcon ?? <Inbox style={{ width: 32, height: 32 }} />}
         </div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{emptyTitle}</p>
+        <p style={{ fontSize: 14, fontWeight: 600, color: t.ink }}>{emptyTitle}</p>
         {emptyHint && <p style={{ fontSize: 12, marginTop: 4 }}>{emptyHint}</p>}
       </div>
     );
@@ -116,9 +121,9 @@ export function DataTable<T extends Record<string, unknown>>({
     <div
       style={{
         overflowX: 'auto',
-        border: `1px solid ${T.line}`,
+        border: `1px solid ${t.line}`,
         borderRadius: RADIUS.md,
-        background: T.card,
+        background: t.card,
       }}
     >
       {/* انهيار الموبايل: تحت نقطة الكسر يُخفى الرأس وتُكدَّس الخلايا عموديّاً مع
@@ -126,9 +131,9 @@ export function DataTable<T extends Record<string, unknown>>({
       <style>{`
         @media (max-width: ${mobileBreakpoint}px) {
           .${tid} thead { display: none; }
-          .${tid} tr { display: block; border-bottom: 1px solid ${T.line}; padding: 8px 0; }
+          .${tid} tr { display: block; border-bottom: 1px solid ${t.line}; padding: 8px 0; }
           .${tid} td { display: flex; justify-content: space-between; gap: 12px; border: none !important; padding: 6px 12px; }
-          .${tid} td::before { content: attr(data-label); font-weight: 700; color: ${T.muted}; font-size: 12px; }
+          .${tid} td::before { content: attr(data-label); font-weight: 700; color: ${t.muted}; font-size: 12px; }
         }
       `}</style>
       <table className={tid} style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -146,12 +151,12 @@ export function DataTable<T extends Record<string, unknown>>({
                     position: 'sticky',
                     top: 0,
                     zIndex: 1,
-                    background: T.card2,
-                    color: T.brownSoft,
+                    background: t.card2,
+                    color: t.brownSoft,
                     fontWeight: 700,
                     textAlign: align,
                     padding: '10px 12px',
-                    borderBottom: `1px solid ${T.line}`,
+                    borderBottom: `1px solid ${t.line}`,
                     whiteSpace: 'nowrap',
                     width: col.width,
                   }}
@@ -205,8 +210,8 @@ export function DataTable<T extends Record<string, unknown>>({
                   data-label={typeof col.label === 'string' ? col.label : undefined}
                   style={{
                     padding: '10px 12px',
-                    borderBottom: `1px solid ${T.line}`,
-                    color: T.ink,
+                    borderBottom: `1px solid ${t.line}`,
+                    color: t.ink,
                     textAlign: col.align ?? 'start',
                   }}
                 >

@@ -9,6 +9,7 @@
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { T, RADIUS, toneColors, type Tone } from './tokens';
+import { useT } from './theme';
 
 // تفعيل العناصر القابلة للنقر عبر الكيبورد (Enter/Space) — وصوليّة a11y:
 // أيّ عنصر يحمل role="button" يجب أن يُفعَّل بالمفتاحين لا بالفأرة فقط.
@@ -32,6 +33,7 @@ export function Card({
   style?: CSSProperties;
   pad?: number;
 }) {
+  const t = useT();
   return (
     <div
       onClick={onClick}
@@ -40,8 +42,8 @@ export function Card({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       style={{
-        background: T.card,
-        border: `1px solid ${T.line}`,
+        background: t.card,
+        border: `1px solid ${t.line}`,
         borderRadius: RADIUS.md,
         padding: pad,
         cursor: onClick ? 'pointer' : undefined,
@@ -55,9 +57,10 @@ export function Card({
 
 // ── SectionLabel ───────────────────────────────────────────────
 export function SectionLabel({ children, action }: { children: ReactNode; action?: ReactNode }) {
+  const t = useT();
   return (
     <div className="flex items-center justify-between mb-2">
-      <span style={{ color: T.muted, fontSize: 12, fontWeight: 700, letterSpacing: 0.3 }}>
+      <span style={{ color: t.muted, fontSize: 12, fontWeight: 700, letterSpacing: 0.3 }}>
         {children}
       </span>
       {action}
@@ -73,7 +76,8 @@ export function Pill({
   tone?: Tone;
   icon?: ReactNode;
 }) {
-  const { fg, bg } = toneColors(tone);
+  const t = useT();
+  const { fg, bg } = toneColors(tone, t);
   return (
     <span
       className="inline-flex items-center gap-1"
@@ -95,9 +99,10 @@ export function Pill({
 
 // ── Badge (نقطة حالة + نصّ) ─────────────────────────────────────
 export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
-  const { fg } = toneColors(tone);
+  const t = useT();
+  const { fg } = toneColors(tone, t);
   return (
-    <span className="inline-flex items-center gap-1.5" style={{ fontSize: 11, color: T.muted, fontWeight: 600 }}>
+    <span className="inline-flex items-center gap-1.5" style={{ fontSize: 11, color: t.muted, fontWeight: 600 }}>
       <span style={{ width: 7, height: 7, borderRadius: 999, background: fg, flexShrink: 0 }} />
       {children}
     </span>
@@ -114,17 +119,18 @@ export function StatBox({
   color?: string;
   icon?: ReactNode;
 }) {
+  const t = useT();
   return (
     <div
       className="text-center"
-      style={{ background: T.card2, borderRadius: RADIUS.sm, padding: '10px 6px' }}
+      style={{ background: t.card2, borderRadius: RADIUS.sm, padding: '10px 6px' }}
     >
       {icon && <div className="flex justify-center mb-1" style={{ color }}>{icon}</div>}
       <div style={{ color, fontWeight: 800, fontSize: 16, lineHeight: 1.1 }}>
         {value}
         {unit && <span style={{ fontSize: 10, fontWeight: 600, marginInlineStart: 2 }}>{unit}</span>}
       </div>
-      <div style={{ color: T.muted, fontSize: 10, marginTop: 3 }}>{label}</div>
+      <div style={{ color: t.muted, fontSize: 10, marginTop: 3 }}>{label}</div>
     </div>
   );
 }
@@ -137,9 +143,10 @@ export function ProgressBar({
   color?: string;
   height?: number;
 }) {
+  const t = useT();
   const pct = Math.max(0, Math.min(1, value)) * 100;
   return (
-    <div style={{ background: T.line, borderRadius: 999, height, overflow: 'hidden' }}>
+    <div style={{ background: t.line, borderRadius: 999, height, overflow: 'hidden' }}>
       <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 999, transition: 'width .4s' }} />
     </div>
   );
@@ -155,7 +162,8 @@ export function Row({
   onClick?: () => void;
   tone?: Tone;
 }) {
-  const color = tone ? toneColors(tone).fg : T.ink;
+  const t = useT();
+  const color = tone ? toneColors(tone, t).fg : t.ink;
   return (
     <div
       onClick={onClick}
@@ -163,13 +171,13 @@ export function Row({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       className="flex items-center gap-3 py-2.5"
-      style={{ cursor: onClick ? 'pointer' : undefined, borderBottom: `1px solid ${T.line}` }}
+      style={{ cursor: onClick ? 'pointer' : undefined, borderBottom: `1px solid ${t.line}` }}
     >
-      {icon && <span style={{ color: T.muted, flexShrink: 0 }}>{icon}</span>}
-      <span style={{ color: T.brownSoft, fontSize: 13, flex: 1 }}>{label}</span>
+      {icon && <span style={{ color: t.muted, flexShrink: 0 }}>{icon}</span>}
+      <span style={{ color: t.brownSoft, fontSize: 13, flex: 1 }}>{label}</span>
       {value != null && <span style={{ color, fontSize: 13, fontWeight: 700 }}>{value}</span>}
       {/* في RTL «التقدّم» يتّجه يساراً ⇒ ChevronLeft للإشارة «افتح» */}
-      {onClick && <ChevronLeft style={{ width: 16, height: 16, color: T.faint, flexShrink: 0 }} />}
+      {onClick && <ChevronLeft style={{ width: 16, height: 16, color: t.faint, flexShrink: 0 }} />}
     </div>
   );
 }
@@ -182,10 +190,11 @@ export function TabBar<TId extends string>({
   active: TId;
   onChange: (id: TId) => void;
 }) {
+  const t = useT();
   return (
     <div
       className="flex items-center gap-1 overflow-x-auto"
-      style={{ borderBottom: `1px solid ${T.line}` }}
+      style={{ borderBottom: `1px solid ${t.line}` }}
     >
       {tabs.map((tab) => {
         const on = tab.id === active;
@@ -198,7 +207,7 @@ export function TabBar<TId extends string>({
               padding: '10px 12px',
               fontSize: 13,
               fontWeight: on ? 800 : 600,
-              color: on ? T.gold : T.muted,
+              color: on ? T.gold : t.muted,
               borderBottom: on ? `2px solid ${T.gold}` : '2px solid transparent',
               background: 'transparent',
             }}
@@ -280,6 +289,7 @@ export function BottomSheet({
   title?: string;
   children: ReactNode;
 }) {
+  const t = useT();
   if (!open) return null;
   return (
     <div
@@ -293,7 +303,7 @@ export function BottomSheet({
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: T.cream,
+          background: t.cream,
           width: '100%',
           maxWidth: 420,
           borderTopLeftRadius: RADIUS.lg,
@@ -303,9 +313,9 @@ export function BottomSheet({
           overflowY: 'auto',
         }}
       >
-        <div style={{ width: 40, height: 4, background: T.line, borderRadius: 999, margin: '0 auto 12px' }} />
+        <div style={{ width: 40, height: 4, background: t.line, borderRadius: 999, margin: '0 auto 12px' }} />
         {title && (
-          <h3 style={{ color: T.ink, fontWeight: 800, fontSize: 16, marginBottom: 12, textAlign: 'center' }}>
+          <h3 style={{ color: t.ink, fontWeight: 800, fontSize: 16, marginBottom: 12, textAlign: 'center' }}>
             {title}
           </h3>
         )}

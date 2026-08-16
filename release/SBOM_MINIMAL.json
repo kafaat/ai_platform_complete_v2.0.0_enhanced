@@ -825,7 +825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "80c361b377d2a7301d9b9b70899c880be5d2b8aba95552da9ba7ca99eae55998"
+          "content": "259776158980fea7fc83ef51300ba8b9085f2235b4d2a7ef1d04f9e396626869"
         }
       ],
       "name": "frontend/src/components/ds/atoms.tsx",
@@ -845,7 +845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93fd190f37e719fb45f94b339e9187f108acbc456c948aed60308029debdd9d4"
+          "content": "0ee6ea295f046143021dfa0632aab23965aee3dd6b90ba0f26dfc7abdb8efeb4"
         }
       ],
       "name": "frontend/src/components/ds/cabin.tsx",
@@ -895,7 +895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c086324cde5d1635e2550d5f7e0652d81b5f6bacb8c3e66022171f8c6802650"
+          "content": "714ffd983e4d2b3b85ade2e37ddc173ea03bbf4bcbbc9dfe6c683099584eade2"
         }
       ],
       "name": "frontend/src/components/ds/index.ts",
@@ -905,7 +905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1cc5d14aab3504c8c85d10e1516a0c5b5e1f28918e85de9b2ca56ba6fd762179"
+          "content": "63fdddde9e867347d3db3feff1597ec67de339659491de1291279a949175cffb"
         }
       ],
       "name": "frontend/src/components/ds/merge.tsx",
@@ -955,7 +955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "41d19613c6d45cb9bdd359b099ee5d177f6ced8370cad7c54d71aa9b47456750"
+          "content": "2ae965719af33679a76b3592d88862bced7ebeffcac2665258d33193c12113ba"
         }
       ],
       "name": "frontend/src/components/ds/table.tsx",
@@ -965,7 +965,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "56667a013fbf29fafb8811bf2a8aab901295d98414a4b19f557d6c3817a11fa2"
+          "content": "4dee4a3dc189f191b0357778c65879f359bd60ae7a25709043d65953e9cd9832"
+        }
+      ],
+      "name": "frontend/src/components/ds/theme.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c12eabab7a822f88740bc9f766766b38cc46effa80c135c0c9884ae024ca13a"
+        }
+      ],
+      "name": "frontend/src/components/ds/theme.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a3d64ac1d2b75537e8e66cbb7c11a284a22ce9f5b6155955cfb72fd0fed4a0c"
         }
       ],
       "name": "frontend/src/components/ds/tokens.ts",
@@ -2645,7 +2665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "681f7b7011c422f1f3728daa32f8735cb2cefb3cc8c68944620246b2e699b4c3"
+          "content": "84771343a31f75b6502c06bb15c454ccad02b1ebbe9e7ef5e8c5e18c37612a4d"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -4865,7 +4885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "22b9077bdafab767682382fd3b2eae89f46127c73e22a0ce31cd3050b2dcaaaa"
+          "content": "e5a04801cbd1199cf848aa86778ebe4ed92dfbdc01df0246644c6788cdcd2c3e"
         }
       ],
       "name": "frontend/src/sections/CalibrationPage.tsx",
@@ -5085,7 +5105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f8087bfaf3bff04b3b836f14403a3bd32a771d57c83501eec173eab2fcfd968a"
+          "content": "c99d480b7f10a35358a7952fb002be4a6f6db0c9781bc47e97ab2b52e64b50ca"
         }
       ],
       "name": "frontend/src/sections/EconomicsDashboard.tsx",
@@ -5155,7 +5175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fa3b2736609ef5955aacf668b2b64fed5db19c7743146a6af97cfe718b432f6b"
+          "content": "971c56d2e07d8de1390907c941c371bbd5460875ec458fb95ec349f87de4bc4a"
         }
       ],
       "name": "frontend/src/sections/FarmAdvisoryReport.tsx",
@@ -5225,7 +5245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e4719ddece2cd01efaecad3c5fd1796a013948d145c0a15c2287de31c924e400"
+          "content": "dabc0de2a7bf096d25b11704711bb3baf5c7e3bd837d11c76d37d4ed8b1c7261"
         }
       ],
       "name": "frontend/src/sections/FieldRanking.tsx",
@@ -6145,7 +6165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d8c14978184323b8b6c22c689bdce7377a6346b3dd7b17e74ab3bae18d3f1ca"
+          "content": "083487306ce8f48ca5a86ff438951ce78fd2fa7cbaf865a81268fc4a22e2601c"
         }
       ],
       "name": "frontend/src/sections/YieldAnalysisPage.tsx",

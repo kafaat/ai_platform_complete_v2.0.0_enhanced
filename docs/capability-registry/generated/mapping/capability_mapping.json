@@ -15,7 +15,7 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5024,
+    "files_scanned": 5026,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
@@ -23,9 +23,9 @@
       "mobile": 51,
       "other": 1350,
       "tests": 1640,
-      "web": 454
+      "web": 456
     },
-    "unmapped_artifacts": 2041,
+    "unmapped_artifacts": 2043,
     "ambiguous_artifacts": 402
   },
   "capabilities": [
@@ -34622,6 +34622,14 @@
     },
     {
       "path": "frontend/src/components/ds/table.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/ds/theme.test.tsx",
+      "kind": "web"
+    },
+    {
+      "path": "frontend/src/components/ds/theme.tsx",
       "kind": "web"
     },
     {

@@ -84,3 +84,38 @@ def test_capabilities_registry_report_still_blocked():
     )
     assert result.returncode != 0
     assert "report-only" in result.stderr
+
+
+def test_frontend_code_with_generated_report_is_substantive():
+    # False positive مقيس على PR #857: إصلاح UI حقيقيّ (TSX) + مصنوعات مولَّدة
+    # حُجب «report-only» لأنّ التصنيف الأوّل لم يعرف frontend/ ككود.
+    result = _run(
+        "frontend/src/hooks/useApi.ts",
+        "frontend/src/components/ds/theme.tsx",
+        "release/FILE_CHECKSUMS.sha256",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_mobile_code_with_generated_report_is_substantive():
+    # نفس العيب كان سيصيب PR يعدّل Flutter/mobile مع تقرير مولَّد فقط.
+    result = _run(
+        "mobile/lib/screens/field_ranking.dart",
+        "release/FILE_CHECKSUMS.sha256",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_service_code_with_generated_report_is_substantive():
+    result = _run(
+        "services/sahool-platform/api/routers/nl_sql.py",
+        "docs/capability-registry/generated/mapping/CAPABILITY_MAPPING_REPORT.md",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_plain_docs_outside_certification_path_pass():
+    # وثيقة عاديّة بلا تلميح تقرير خارج مسار الاعتماد ليست report-like أصلاً.
+    result = _run("docs/adr/0001-topology.md")
+    assert result.returncode == 0, result.stderr
