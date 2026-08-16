@@ -196,3 +196,45 @@ def test_legitimate_architecture_evidence_remains_discoverable() -> None:
     assert "docs/architecture/jetstream_topology_inventory.md" in paths
     assert any(path.startswith("docs/architecture/") for path in paths)
     assert any(path.startswith("docs/runbooks/") for path in paths)
+
+
+def test_evidence_cap_truncation_is_declared_not_silent() -> None:
+    """CAPABILITY-EVIDENCE-LISTS-TRUNCATE-SILENTLY-01: القصّ عند سقف المئة
+    يعلن عدد محذوفه — **يمرّ بالقاعدة نفسها** (cap_evidence_dimensions) لا
+    بمصنوعتها، ثم يقيس المصنوعة المشحونة طبقةً ثانية."""
+    import importlib.util as ilu
+    import json
+
+    spec = ilu.spec_from_file_location(
+        "capability_mapping_engine_under_test", ROOT / "scripts/ci/capability_mapping_engine.py"
+    )
+    assert spec is not None and spec.loader is not None
+    eng = ilu.module_from_spec(spec)
+    spec.loader.exec_module(eng)
+
+    def _dedup(items, key):
+        return list(items)
+
+    rec = {k: [] for k in eng.EVIDENCE_DIMENSIONS}
+    rec["tests"] = [{"value": f"tests_v9/t_{i:03}.py", "score": 1} for i in range(150)]
+    rec["routes"] = [{"value": f"/api/r{i}", "score": 1} for i in range(100)]
+    eng.cap_evidence_dimensions(rec, _dedup)
+
+    assert len(rec["tests"]) == 100
+    assert rec["evidence_truncated"] == {"tests": 50}, (
+        "بُعدٌ قُصّ خمسين شاهداً بلا إعلانٍ باسمه وعدده — عاد الاقتطاع الصامت"
+    )
+    # مئةٌ بلا قصّ لا تعلن شيئاً (لا إعلان كاذب):
+    assert "routes" not in rec["evidence_truncated"]
+
+    # الطبقة الثانية: المصنوعة المشحونة تحمل الإعلان حيث السقف مبلوغ.
+    mapping = json.loads(
+        (ROOT / "docs/capability-registry/generated/mapping/capability_mapping.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    sat3 = next(r for r in mapping["capabilities"] if r["capability_id"] == "SAT-003")
+    if len(sat3.get("tests", [])) == 100:
+        assert sat3.get("evidence_truncated", {}).get("tests", 0) > 0, (
+            "SAT-003.tests عند السقف بلا إعلان قصّ في المصنوعة المشحونة"
+        )
