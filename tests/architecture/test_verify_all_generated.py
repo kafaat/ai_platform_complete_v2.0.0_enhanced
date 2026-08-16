@@ -570,9 +570,15 @@ def test_regenerate_orchestrator_delegates_to_the_fixed_point_engine() -> None:
     **بعد** آخر بناءٍ للحزمة (--check ثم validate_release_package)."""
     src = (ROOT / "scripts/ci/regenerate_all_generated.sh").read_text(encoding="utf-8")
 
-    fix_at = src.index("verify_all_generated.py --fix")
-    check_at = src.index("verify_all_generated.py --check")
-    validate_at = src.index("validate_release_package.py")
+    # المُستجوَب هو المُنفَّذ لا المشروح: ترويسة السكربت تحمل الأوامر نصّاً شرحاً،
+    # فمرساةٌ على النصّ الكامل تمرّ والسطرُ المنفَّذ محذوف (قِيس بزرع
+    # «true # fix dropped» — بقي الاختبار أخضر حتى صار الاستجواب أسطراً غير معلَّقة).
+    code = "\n".join(
+        line for line in src.splitlines() if line.strip() and not line.lstrip().startswith("#")
+    )
+    fix_at = code.index("python3 scripts/ci/verify_all_generated.py --fix")
+    check_at = code.index("python3 scripts/ci/verify_all_generated.py --check")
+    validate_at = code.index("python3 scripts/release/validate_release_package.py")
     assert fix_at < check_at < validate_at, (
         "ترتيب العقد مكسور: التوليد حتى الثبات، ثم الفحص النظيف، ثم تحقّق الحزمة"
     )

@@ -260,6 +260,12 @@
           "find": "python3 scripts/ci/verify_all_generated.py --check",
           "replace": "true # check dropped",
           "why": "إسقاط الفحص النهائيّ بعد آخر بناءٍ للحزمة يعيد بالضبط حالة «release تغيّرت والخريطة لم تُفحَص بعدها» — الصنف الذي كلّف ثلاث جولات CI في يوم واحد"
+        },
+        {
+          "expect": "test_regenerate_orchestrator_delegates_to_the_fixed_point_engine",
+          "find": "python3 scripts/ci/verify_all_generated.py --fix",
+          "replace": "true # fix dropped",
+          "why": "مراجعة Copilot على #860 قاست أنّ مرساة الاختبار كانت تطابق ترويسة الشرح لا السطر المنفَّذ — زرع هذا الإسقاط بقي أخضر قبل إصلاح الاستجواب (أسطر غير معلَّقة حصراً) ويُحمِرّ بعده"
         }
       ],
       "test": "tests/architecture/test_verify_all_generated.py"

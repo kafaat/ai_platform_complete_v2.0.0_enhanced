@@ -1,6 +1,6 @@
 {
   "$comment": "أساسٌ مُعلَن لـGUC-SCOPE-GUARD-SEES-ONE-FILE-01 — `set_config(..., true)` خارج معاملة يضيع قبل الاستعلام التالي. **يتقلّص ولا ينمو**: موضع جديد يُحجَب، وموضع مُصلَح يُحذَف من هنا. وأسماء الـGUC مجرودة بلا توحيد ميكانيكيّ — التوحيد يكسر سياسات RLS التي تقرأ الاسم الآخر، فهو قرار بشريّ بمقارنة كلّ اسم بجداوله.",
-  "measured_on": "f1674f2ba962b095032c2891b4f5b5e8b2822eeb",
+  "measured_on": "8e6cbe4ecd29810247c855b7ce37418b56b3f5a1",
   "baseline": "GUC-SCOPE-GUARD-SEES-ONE-FILE-01",
   "offenders": [
     "agents/base_agent.py:50",

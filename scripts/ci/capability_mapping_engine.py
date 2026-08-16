@@ -567,20 +567,7 @@ def build() -> dict:
     fully = 0
     for rec in maps.values():
         cap_evidence_dimensions(rec, dedup)
-        rec["evidence_counts"] = {
-            k: len(rec[k])
-            for k in (
-                "backend",
-                "routes",
-                "database",
-                "events",
-                "web",
-                "mobile",
-                "tests",
-                "governance",
-                "other_evidence",
-            )
-        }
+        rec["evidence_counts"] = {k: len(rec[k]) for k in EVIDENCE_DIMENSIONS}
         # HONESTY INVARIANT (raw scanner): ``mapped`` is decided by the SPECIFIC
         # implementation dimensions ONLY. ``governance`` and ``other_evidence`` are
         # catch-all buckets — bare capability-ID mentions in narrative/self-reference
