@@ -38,10 +38,13 @@ import { useSelectedField } from '../hooks/useSelectedField';
 import type { SeasonSummary, FieldReportSummary, DiseaseRisk } from '../services/api';
 import { fmtDateAr } from '../lib/dates';
 import {
-  T, Card, Pill, Badge, SectionLabel, Row, StatGrid, ProgressBar,
+  T, T_DARK, Card, Pill, Badge, SectionLabel, Row, StatGrid, ProgressBar,
   FieldCabin, ndviColor, severityTone,
 } from '../components/ds';
 import type { Tone } from '../components/ds';
+
+// الصفحة داكنة (نغمة ds الداكنة): أسطح/نصوص من T_DARK؛ ألوان التمييز من T.
+const t = T_DARK;
 
 // ── متسامحات قراءة آمنة (الهوكات soil/ndvi تُعيد data غير مُنمَّط) ──────────
 function asNum(v: unknown): number | null {
@@ -120,7 +123,7 @@ function SectionState({
 }) {
   if (loading) {
     return (
-      <div style={{ color: T.muted, fontSize: 13, padding: '16px 0', textAlign: 'center' }}>
+      <div style={{ color: t.muted, fontSize: 13, padding: '16px 0', textAlign: 'center' }}>
         جارٍ التحميل…
       </div>
     );
@@ -136,9 +139,9 @@ function SectionState({
     return (
       <div
         className="flex flex-col items-center"
-        style={{ color: T.muted, fontSize: 13, padding: '20px 0', gap: 8 }}
+        style={{ color: t.muted, fontSize: 13, padding: '20px 0', gap: 8 }}
       >
-        <span style={{ color: T.faint }}>{icon}</span>
+        <span style={{ color: t.faint }}>{icon}</span>
         {emptyText}
       </div>
     );
@@ -252,6 +255,7 @@ export default function FarmAdvisoryReport() {
 
   return (
     <FieldCabin
+      tone="dark"
       eyebrow="كابينة الميدان"
       title="استشارة المزرعة"
       subtitle="تقرير موحّد يصهر محرّكات الحقل الحيّة — لحقلٍ واحد"
@@ -271,7 +275,7 @@ export default function FarmAdvisoryReport() {
         </SectionLabel>
 
         {fieldsLoading ? (
-          <div style={{ color: T.muted, fontSize: 13, padding: '12px 0', textAlign: 'center' }}>
+          <div style={{ color: t.muted, fontSize: 13, padding: '12px 0', textAlign: 'center' }}>
             جارٍ تحميل الحقول…
           </div>
         ) : fieldsError ? (
@@ -288,8 +292,8 @@ export default function FarmAdvisoryReport() {
             </button>
           </div>
         ) : fields.length === 0 ? (
-          <div className="flex flex-col items-center" style={{ color: T.muted, fontSize: 13, padding: '16px 0', gap: 8 }}>
-            <Sprout style={{ width: 26, height: 26, color: T.faint }} />
+          <div className="flex flex-col items-center" style={{ color: t.muted, fontSize: 13, padding: '16px 0', gap: 8 }}>
+            <Sprout style={{ width: 26, height: 26, color: t.faint }} />
             لا توجد حقول بعد — أضِف حقلاً من «إدارة الحقول».
           </div>
         ) : (
@@ -299,7 +303,7 @@ export default function FarmAdvisoryReport() {
               onChange={(e) => setFieldId(e.target.value)}
               style={{
                 width: '100%', padding: '10px 12px', borderRadius: 12,
-                border: `1px solid ${T.line}`, background: T.card, color: T.ink,
+                border: `1px solid ${t.line}`, background: t.card, color: t.ink,
                 fontSize: 14, fontWeight: 600,
               }}
             >
@@ -344,7 +348,7 @@ export default function FarmAdvisoryReport() {
               {season && (
                 <>
                   <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-                    <div className="flex items-center gap-2" style={{ fontSize: 14, fontWeight: 800, color: T.ink }}>
+                    <div className="flex items-center gap-2" style={{ fontSize: 14, fontWeight: 800, color: t.ink }}>
                       <Sprout style={{ width: 16, height: 16, color: T.green }} />
                       {season.crops.length ? season.crops.join('، ') : '—'}
                     </div>
@@ -389,17 +393,17 @@ export default function FarmAdvisoryReport() {
                   ) : (
                     <div
                       style={{
-                        background: T.card2, borderRadius: 12, padding: '10px 12px',
-                        border: `1px solid ${T.line}`,
+                        background: t.card2, borderRadius: 12, padding: '10px 12px',
+                        border: `1px solid ${t.line}`,
                       }}
                     >
                       <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: T.brownSoft }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: t.brownSoft }}>
                           تقديرات العائد/الكتلة الحيويّة
                         </span>
-                        <span style={{ fontSize: 14, fontWeight: 800, color: T.faint }}>—</span>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: t.faint }}>—</span>
                       </div>
-                      <div style={{ fontSize: 11, color: T.faint }}>
+                      <div style={{ fontSize: 11, color: t.faint }}>
                         لم تُشغَّل محاكاة الموسم بعد — العائد والكتلة الحيويّة تقديريّان يُملآن
                         بعد التشغيل. عدد المراحل: {Array.isArray(season.stages) ? season.stages.length : 0}.
                       </div>
@@ -431,7 +435,7 @@ export default function FarmAdvisoryReport() {
                     value={
                       r.value != null
                         ? `${r.value}${r.unit ? ` ${r.unit}` : ''}`
-                        : <span style={{ color: T.faint }}>—</span>
+                        : <span style={{ color: t.faint }}>—</span>
                     }
                   />
                 ))}
@@ -452,14 +456,14 @@ export default function FarmAdvisoryReport() {
               >
                 {nRate != null && (
                   <div className="flex items-center justify-between" style={{ marginBottom: nRationale ? 6 : 0 }}>
-                    <span style={{ fontSize: 13, color: T.brownSoft }}>النيتروجين الموصى به</span>
+                    <span style={{ fontSize: 13, color: t.brownSoft }}>النيتروجين الموصى به</span>
                     <span style={{ fontSize: 16, fontWeight: 800, color: T.green }}>
                       {Math.round(nRate)} <span style={{ fontSize: 11, fontWeight: 600 }}>كغ/هـ</span>
                     </span>
                   </div>
                 )}
                 {nRationale && (
-                  <div style={{ fontSize: 12, color: T.brownSoft, lineHeight: 1.7 }}>{nRationale}</div>
+                  <div style={{ fontSize: 12, color: t.brownSoft, lineHeight: 1.7 }}>{nRationale}</div>
                 )}
               </SectionState>
             </div>
@@ -467,8 +471,8 @@ export default function FarmAdvisoryReport() {
             {/* صدق: ربط NPK→منتجات (يوريا/DAP بكمّيّات) فجوة موثّقة، غير مبنيّة */}
             <div
               style={{
-                marginTop: 12, background: T.warnBg, borderRadius: 10,
-                padding: '8px 10px', fontSize: 11, color: T.brownSoft, lineHeight: 1.6,
+                marginTop: 12, background: t.warnBg, borderRadius: 10,
+                padding: '8px 10px', fontSize: 11, color: t.brownSoft, lineHeight: 1.6,
               }}
             >
               ملاحظة: ربط NPK الكامل بمنتجات سماديّة محدّدة (كمّيّات يوريا/DAP) فجوة
@@ -493,7 +497,7 @@ export default function FarmAdvisoryReport() {
               {disease && (
                 <>
                   <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: T.brownSoft }}>مستوى خطر المرض</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: t.brownSoft }}>مستوى خطر المرض</span>
                     <Pill tone={riskTone(disease.risk_level)} icon={<ShieldAlert style={{ width: 11, height: 11 }} />}>
                       {riskAr(disease.risk_level)}
                     </Pill>
@@ -516,7 +520,7 @@ export default function FarmAdvisoryReport() {
                   )}
 
                   {disease.advice_ar && (
-                    <div style={{ fontSize: 12, color: T.brownSoft, lineHeight: 1.7 }}>{disease.advice_ar}</div>
+                    <div style={{ fontSize: 12, color: t.brownSoft, lineHeight: 1.7 }}>{disease.advice_ar}</div>
                   )}
                 </>
               )}
@@ -534,8 +538,8 @@ export default function FarmAdvisoryReport() {
                 مشاكل المحصول الشائعة
               </SectionLabel>
               {!crop ? (
-                <div className="flex flex-col items-center" style={{ color: T.muted, fontSize: 13, padding: '16px 0', gap: 8 }}>
-                  <Bug style={{ width: 24, height: 24, color: T.faint }} />
+                <div className="flex flex-col items-center" style={{ color: t.muted, fontSize: 13, padding: '16px 0', gap: 8 }}>
+                  <Bug style={{ width: 24, height: 24, color: t.faint }} />
                   غير متاح لهذا الحقل — لا محصول مُسنَد لجلب مشاكله.
                 </div>
               ) : (
@@ -576,7 +580,7 @@ export default function FarmAdvisoryReport() {
               {ndviVal != null && (
                 <>
                   <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-                    <div className="flex items-center gap-2" style={{ fontSize: 13, fontWeight: 700, color: T.brownSoft }}>
+                    <div className="flex items-center gap-2" style={{ fontSize: 13, fontWeight: 700, color: t.brownSoft }}>
                       <Leaf style={{ width: 14, height: 14, color: ndviColor(ndviVal) }} />
                       NDVI الحاليّ
                     </div>
@@ -590,11 +594,11 @@ export default function FarmAdvisoryReport() {
                       <Badge tone={severityTone(ndviLabel)}>الصحّة: {ndviLabel}</Badge>
                     )}
                     {ndviScore != null && (
-                      <span style={{ fontSize: 12, color: T.muted }}>المؤشّر الصحّيّ: {Math.round(ndviScore)}٪</span>
+                      <span style={{ fontSize: 12, color: t.muted }}>المؤشّر الصحّيّ: {Math.round(ndviScore)}٪</span>
                     )}
                   </div>
                   {ndviData?.acquisition_date && (
-                    <div style={{ fontSize: 11, color: T.faint, marginTop: 6 }}>
+                    <div style={{ fontSize: 11, color: t.faint, marginTop: 6 }}>
                       تاريخ الالتقاط: {fmtDateAr(ndviData.acquisition_date)}
                     </div>
                   )}
@@ -616,9 +620,9 @@ export default function FarmAdvisoryReport() {
               >
                 {report && (
                   <div>
-                    <Row label="المحصول" value={report.crop ?? <span style={{ color: T.faint }}>—</span>} />
+                    <Row label="المحصول" value={report.crop ?? <span style={{ color: t.faint }}>—</span>} />
                     <Row label="المساحة" value={`${report.area_ha.toFixed(2)} هـ`} />
-                    <Row label="نوع التربة" value={report.soil_type ?? <span style={{ color: T.faint }}>—</span>} />
+                    <Row label="نوع التربة" value={report.soil_type ?? <span style={{ color: t.faint }}>—</span>} />
                     <Row label="إجمالي العمليّات" value={report.activities_total} />
                     <Row
                       label="تنبيهات حديثة"

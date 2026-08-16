@@ -228,6 +228,14 @@
     "kind": "web"
   },
   {
+    "path": "frontend/src/components/ds/theme.test.tsx",
+    "kind": "web"
+  },
+  {
+    "path": "frontend/src/components/ds/theme.tsx",
+    "kind": "web"
+  },
+  {
     "path": "frontend/src/components/ds/tooltip.tsx",
     "kind": "web"
   },

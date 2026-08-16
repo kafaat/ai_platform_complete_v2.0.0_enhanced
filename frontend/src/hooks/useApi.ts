@@ -319,7 +319,11 @@ export function useAllFieldsNdvi() {
   return useQuery({
     queryKey: QK.allFieldsNdvi(tid),
     queryFn:  () => vegetationApi.get('/v1/all_fields', { params: { tenant_id: tid } }).then(r => r.data),
-    staleTime:10 * 60_000,
+    staleTime:5 * 60_000,
+    // فشلٌ سريع بلا إعادة محاولة تلقائيّة: axios timeout=15s، وretry:1 كان يُبقي
+    // «ترتيب الحقول» على «جارٍ التحميل…» دورةً ثانية كاملة (~30ث) قبل ظهور الخطأ —
+    // نقضاً لعقد الصفحة. زر «إعادة المحاولة» اليدويّ هو المسار الوحيد (كبقيّة الملفّ).
+    retry:    false,
   });
 }
 

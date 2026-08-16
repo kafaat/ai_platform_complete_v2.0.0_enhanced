@@ -253,6 +253,7 @@ export default function YieldAnalysisPage() {
               <Sprout className="w-4 h-4 text-amber-400" /> الزراعة ↔ الحصاد لكلّ موسم
             </h3>
             <DataTable
+              tone="dark"
               columns={phColumns}
               rows={phRows}
               rowKey={(r, i) => String(r.season_id ?? i)}
@@ -271,6 +272,7 @@ export default function YieldAnalysisPage() {
               <Trophy className="w-4 h-4 text-amber-400" /> أداء الهجن (متوسّط الغلّة الفعليّة)
             </h3>
             <DataTable
+              tone="dark"
               columns={hybridColumns}
               rows={hybridRows}
               rowKey={(r, i) => `${r.hybrid}-${i}`}

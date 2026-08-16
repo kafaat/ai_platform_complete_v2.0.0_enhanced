@@ -130,6 +130,13 @@ export default function CalibrationPage() {
             </div>
           )}
 
+          {/* إرشاد: غرض اللوحة وكيف تتحدّث القيم عند ربط نتائج ميدانيّة */}
+          <p className="text-[12px] text-slate-400 leading-relaxed">
+            تعرض هذه اللوحة أين تنقص المعايرة الميدانيّة الحقيقيّة لكلّ إقليم. تتحدّث القيم
+            (مستوى الدليل وعدد العيّنات والثوابت) عند ربط نتائج outcome/measure عبر
+            <code dir="ltr" className="text-slate-300">POST /api/v1/calibration/&#123;region&#125;/evidence</code>.
+          </p>
+
           {/* Regions table (+ generic row) */}
           <div className="rounded-xl border overflow-hidden" style={{ background: '#1e293b', borderColor: '#334155' }}>
             <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-100" style={{ borderBottom: '1px solid #334155' }}>

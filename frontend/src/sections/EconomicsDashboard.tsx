@@ -20,8 +20,11 @@ import {
 } from 'recharts';
 import { useCostAnalytics, useFarmSummary } from '../hooks/useApi';
 import {
-  T, Card, Pill, Badge, SectionLabel, Row, StatGrid, ProgressBar, FieldCabin,
+  T, T_DARK, Card, Pill, Badge, SectionLabel, Row, StatGrid, ProgressBar, FieldCabin,
 } from '../components/ds';
+
+// الصفحة داكنة (نغمة ds الداكنة): أسطح/نصوص من T_DARK؛ ألوان التمييز من T.
+const t = T_DARK;
 
 // تسميات عربيّة لمصادر التكلفة (fallback: المفتاح كما هو من الخادم).
 const SOURCE_LABELS: Record<string, string> = {
@@ -83,6 +86,7 @@ export default function EconomicsDashboard() {
 
   return (
     <FieldCabin
+      tone="dark"
       eyebrow="الاقتصاد"
       title="الاقتصاد والعائد"
       subtitle="تكلفة المهام (USD) + توزيعها حسب المصدر + سياق المزرعة"
@@ -112,11 +116,11 @@ export default function EconomicsDashboard() {
         </SectionLabel>
 
         {costQ.isLoading ? (
-          <div style={{ color: T.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل ملخّص التكلفة…</div>
+          <div style={{ color: t.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل ملخّص التكلفة…</div>
         ) : costQ.isError ? (
           <div style={{ color: T.danger, fontSize: 12, padding: '8px 0' }}>{errDetail(costQ.error)}</div>
         ) : isEmpty ? (
-          <div style={{ color: T.muted, fontSize: 13, padding: '8px 0' }}>لا بيانات تكلفة</div>
+          <div style={{ color: t.muted, fontSize: 13, padding: '8px 0' }}>لا بيانات تكلفة</div>
         ) : (
           <StatGrid
             cols={3}
@@ -157,11 +161,11 @@ export default function EconomicsDashboard() {
         </SectionLabel>
 
         {costQ.isLoading ? (
-          <div style={{ color: T.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل التوزيع…</div>
+          <div style={{ color: t.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل التوزيع…</div>
         ) : costQ.isError ? (
           <div style={{ color: T.danger, fontSize: 12, padding: '8px 0' }}>{errDetail(costQ.error)}</div>
         ) : bySource.length === 0 ? (
-          <div style={{ color: T.muted, fontSize: 13, padding: '8px 0' }}>لا بيانات تكلفة</div>
+          <div style={{ color: t.muted, fontSize: 13, padding: '8px 0' }}>لا بيانات تكلفة</div>
         ) : (
           <div>
             {bySource.map((s, i) => {
@@ -177,10 +181,10 @@ export default function EconomicsDashboard() {
                     label={sourceAr(s.source)}
                     value={
                       <span className="inline-flex items-center gap-2">
-                        <span style={{ color: T.muted, fontSize: 11, fontWeight: 600 }}>
+                        <span style={{ color: t.muted, fontSize: 11, fontWeight: 600 }}>
                           {Math.round(share * 100)}%
                         </span>
-                        <span style={{ color: T.ink, fontWeight: 700 }}>{usd(s.total_usd)}</span>
+                        <span style={{ color: t.ink, fontWeight: 700 }}>{usd(s.total_usd)}</span>
                       </span>
                     }
                   />
@@ -195,13 +199,13 @@ export default function EconomicsDashboard() {
             <div style={{ marginTop: 6 }}>
               <ResponsiveContainer width="100%" height={150}>
                 <BarChart data={chartData} barSize={26} margin={{ top: 6, right: 8, bottom: 0, left: -14 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={T.line} />
-                  <XAxis dataKey="source" tick={{ fill: T.faint, fontSize: 10 }} tickLine={false} />
-                  <YAxis tick={{ fill: T.faint, fontSize: 10 }} tickLine={false} width={44} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.line} />
+                  <XAxis dataKey="source" tick={{ fill: t.faint, fontSize: 10 }} tickLine={false} />
+                  <YAxis tick={{ fill: t.faint, fontSize: 10 }} tickLine={false} width={44} />
                   <Tooltip
-                    cursor={{ fill: T.card2 }}
-                    contentStyle={{ background: T.card, border: `1px solid ${T.line}`, borderRadius: 8, fontSize: 12 }}
-                    labelStyle={{ color: T.ink }}
+                    cursor={{ fill: t.card2 }}
+                    contentStyle={{ background: t.card, border: `1px solid ${t.line}`, borderRadius: 8, fontSize: 12 }}
+                    labelStyle={{ color: t.ink }}
                     formatter={(v: number | string) => [usd(Number(v)), 'التكلفة']}
                   />
                   <Bar dataKey="total_usd" fill={T.gold} radius={[4, 4, 0, 0]} name="التكلفة" />
@@ -225,9 +229,9 @@ export default function EconomicsDashboard() {
         </SectionLabel>
 
         {farmQ.isLoading ? (
-          <div style={{ color: T.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل ملخّص المزرعة…</div>
+          <div style={{ color: t.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل ملخّص المزرعة…</div>
         ) : farmQ.isError ? (
-          <div style={{ color: T.muted, fontSize: 12, padding: '8px 0' }}>تعذّر تحميل سياق المزرعة — يُعرَض «—».</div>
+          <div style={{ color: t.muted, fontSize: 12, padding: '8px 0' }}>تعذّر تحميل سياق المزرعة — يُعرَض «—».</div>
         ) : (
           <>
             <StatGrid
@@ -236,14 +240,14 @@ export default function EconomicsDashboard() {
                 {
                   label: 'المزارع',
                   value: fmtCount(farm?.farms_count),
-                  color: T.ink,
-                  icon: <Building2 style={{ width: 16, height: 16, color: T.brownSoft }} />,
+                  color: t.ink,
+                  icon: <Building2 style={{ width: 16, height: 16, color: t.brownSoft }} />,
                 },
                 {
                   label: 'الحقول',
                   value: fmtCount(farm?.fields_count),
-                  color: T.ink,
-                  icon: <MapIcon style={{ width: 16, height: 16, color: T.brownSoft }} />,
+                  color: t.ink,
+                  icon: <MapIcon style={{ width: 16, height: 16, color: t.brownSoft }} />,
                 },
                 {
                   label: 'المساحة',

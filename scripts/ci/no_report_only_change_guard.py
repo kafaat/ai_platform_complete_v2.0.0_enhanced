@@ -28,6 +28,13 @@ REPORT_NAME_HINTS = (
 SUBSTANTIVE_PREFIXES = (
     "services/",
     "bots/",
+    # Frontend/mobile application code IS code — the guard's own message invites
+    # "code/test/guard" changes, but the first implementation only recognised
+    # backend trees. A real UI fix (TSX/Dart) + regenerated release checksums was
+    # wrongly blocked as "report-only" (measured on PR #857). Any runtime tree
+    # added later needs a prefix here AND a regression test below.
+    "frontend/",
+    "mobile/",
     "scripts/ci/",
     "tests_v9/",
     # Architecture/guard tests live under tests/ (not tests_v9/). A test is exactly

@@ -50,16 +50,58 @@ export const T = {
   ndvi6:      '#16794A', // 0.8–1.0  كثيف
 } as const;
 
+// ── المتغيّر الداكن (اختياريّ) ─────────────────────────────────
+// نفس ألوان التمييز/الحالة (ذهبيّ/أخضر/NDVI) فوق أسطح لوحة الويب الداكنة
+// (#1e293b/#0f1117 بحدود #334155 ونصوص #e2e8f0/#94a3b8 — نفس لوحة
+// charts.tsx وشاشات التحليل). لا يُغيّر T؛ يُفعَّل صراحةً عبر tone="dark"
+// (FieldCabin/Card/DataTable أو DsThemeProvider) لصفحات الويب الداكنة فقط.
+// نوع رموز موسَّع (قيم نصّيّة لا حرفيّة) كي تكون T_DARK قابلة للتبديل مع T.
+export type Tokens = { readonly [K in keyof typeof T]: string };
+
+// قيم المتغيّر الداكن تُعرَّف كثوابت مرجعيّة (لا كقيم حرفيّة داخل T_DARK)
+// حتى تبقى بوّابة تباين التوكِنات (design_token_contrast_gate) مقروءةً من T
+// الفاتح فقط — توثيق الأزواج الحاجبة فيها يخصّ نظام Field-App الفاتح.
+const DARK_CREAM = '#0f1117'; // خلفيّة الصفحة
+const DARK_CARD = '#1e293b'; // سطح البطاقة
+const DARK_CARD2 = '#0f172a'; // سطح ثانويّ (صفّ/رأس جدول داخل بطاقة)
+const DARK_LINE = '#334155'; // خطّ فاصل
+const DARK_INK = '#e2e8f0'; // نصّ رئيسيّ
+const DARK_BROWN_SOFT = '#cbd5e1'; // نصّ ثانويّ مُضيء
+const DARK_MUTED = '#94a3b8'; // نصّ ثانويّ
+const DARK_FAINT = '#64748b'; // نصّ خافت
+const DARK_OK_BG = '#14281c';
+const DARK_WARN_BG = '#2e2410';
+const DARK_DANGER_BG = '#2c1414';
+const DARK_INFO_BG = '#0f1f2e';
+
+export const T_DARK: Tokens = {
+  ...T,
+  // — أسطح ونصّ (داكن) —
+  cream:      DARK_CREAM,
+  card:       DARK_CARD,
+  card2:      DARK_CARD2,
+  line:       DARK_LINE,
+  ink:        DARK_INK,
+  brownSoft:  DARK_BROWN_SOFT,
+  muted:      DARK_MUTED,
+  faint:      DARK_FAINT,
+  // — خلفيّات الحالات الباهتة (داكنة) —
+  okBg:       DARK_OK_BG,
+  warnBg:     DARK_WARN_BG,
+  dangerBg:   DARK_DANGER_BG,
+  infoBg:     DARK_INFO_BG,
+} as const;
+
 export type Tone = 'ok' | 'warn' | 'danger' | 'info' | 'neutral';
 
-/** لون الحالة + خلفيّته الباهتة (للوسوم) حسب النغمة. */
-export function toneColors(tone: Tone): { fg: string; bg: string } {
+/** لون الحالة + خلفيّته الباهتة (للوسوم) حسب النغمة. tokens للمتغيّر الداكن. */
+export function toneColors(tone: Tone, tokens: Tokens = T): { fg: string; bg: string } {
   switch (tone) {
-    case 'ok':     return { fg: T.ok, bg: T.okBg };
-    case 'warn':   return { fg: T.warn, bg: T.warnBg };
-    case 'danger': return { fg: T.danger, bg: T.dangerBg };
-    case 'info':   return { fg: T.info, bg: T.infoBg };
-    default:       return { fg: T.brownSoft, bg: T.card2 };
+    case 'ok':     return { fg: tokens.ok, bg: tokens.okBg };
+    case 'warn':   return { fg: tokens.warn, bg: tokens.warnBg };
+    case 'danger': return { fg: tokens.danger, bg: tokens.dangerBg };
+    case 'info':   return { fg: tokens.info, bg: tokens.infoBg };
+    default:       return { fg: tokens.brownSoft, bg: tokens.card2 };
   }
 }
 

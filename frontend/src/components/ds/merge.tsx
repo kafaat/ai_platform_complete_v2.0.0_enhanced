@@ -8,6 +8,7 @@
 // ═══════════════════════════════════════════════════════════════
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { T, RADIUS, toneColors, resourceColor, type Tone, type CmapId, CMAP } from './tokens';
+import { useT } from './theme';
 
 function keyActivate(onClick?: () => void) {
   if (!onClick) return undefined;
@@ -103,14 +104,15 @@ export function StatGrid({
   items: { label: string; value: ReactNode; unit?: string; color?: string; icon?: ReactNode }[];
   cols?: number;
 }) {
+  const t = useT();
   return (
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 6, textAlign: 'center' }}>
       {items.map((s, i) => (
-        <div key={i} style={{ padding: '8px 4px', background: T.card2, borderRadius: RADIUS.sm }}>
+        <div key={i} style={{ padding: '8px 4px', background: t.card2, borderRadius: RADIUS.sm }}>
           {s.icon && <div style={{ fontSize: 16 }}>{s.icon}</div>}
-          <div style={{ fontWeight: 800, fontSize: 18, color: s.color ?? T.ink }}>{s.value}</div>
-          <div style={{ fontSize: 10, color: T.muted }}>{s.label}</div>
-          {s.unit && <div style={{ fontSize: 9, color: T.faint }}>{s.unit}</div>}
+          <div style={{ fontWeight: 800, fontSize: 18, color: s.color ?? t.ink }}>{s.value}</div>
+          <div style={{ fontSize: 10, color: t.muted }}>{s.label}</div>
+          {s.unit && <div style={{ fontSize: 9, color: t.faint }}>{s.unit}</div>}
         </div>
       ))}
     </div>
