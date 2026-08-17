@@ -131,16 +131,26 @@ def test_existing_collection_vector_dimension_must_match_embedding_dimension():
 
 def test_collection_vector_size_reads_unnamed_vector_schema():
     client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=0)
-    client._request = lambda *_a, **_k: {"result": {"config": {"params": {"vectors": {"size": 768, "distance": "Cosine"}}}}}  # type: ignore[method-assign]
+    client._request = lambda *_a, **_k: {
+        "result": {"config": {"params": {"vectors": {"size": 768, "distance": "Cosine"}}}}
+    }  # type: ignore[method-assign]
     assert client.collection_vector_size() == 768
 
 
 def test_ollama_embedding_provider_learns_dimension_and_rejects_drift(monkeypatch):
     class Resp:
-        def __init__(self, payload): self.payload = payload
-        def __enter__(self): return self
-        def __exit__(self, *_a): return False
-        def read(self): return json.dumps(self.payload).encode()
+        def __init__(self, payload):
+            self.payload = payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_a):
+            return False
+
+        def read(self):
+            return json.dumps(self.payload).encode()
+
     payloads = iter([{"embedding": [0.1, 0.2, 0.3]}, {"embedding": [0.4, 0.5]}])
     monkeypatch.setattr(pq.urllib.request, "urlopen", lambda *_a, **_k: Resp(next(payloads)))
     provider = pq.OllamaEmbeddingProvider("http://ollama:11434", "nomic-embed-text")

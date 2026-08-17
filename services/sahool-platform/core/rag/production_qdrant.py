@@ -336,12 +336,7 @@ class QdrantHttpClient:
     def collection_vector_size(self) -> int:
         """Return the live unnamed-vector size; fail closed on unsupported schemas."""
         data = self._request("GET", f"/collections/{self.collection}")
-        vectors = (
-            data.get("result", {})
-            .get("config", {})
-            .get("params", {})
-            .get("vectors")
-        )
+        vectors = data.get("result", {}).get("config", {}).get("params", {}).get("vectors")
         if not isinstance(vectors, dict):
             raise ValueError("Qdrant collection vectors schema missing")
         size = vectors.get("size")
@@ -466,7 +461,9 @@ class HybridQdrantRetriever:
                 # Shared LangChain-compatible payload contract.  During EXPAND we
                 # also accept the old canonical top-level payload so a partial rollout
                 # cannot make previously written points unreadable.
-                nested = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+                nested = (
+                    payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+                )
                 meta = dict(nested)
                 text = payload.get("page_content", payload.get("text"))
                 chunk_id = meta.get("chunk_id", payload.get("chunk_id", cid))
@@ -477,13 +474,15 @@ class HybridQdrantRetriever:
                     source_type = "uploaded_document"
                 document_id = meta.get("document_id", payload.get("document_id"))
                 if document_id is None and tenant and source_file:
-                    document_id = hashlib.sha256(f"{tenant}:{source_file}".encode("utf-8")).hexdigest()
+                    document_id = hashlib.sha256(f"{tenant}:{source_file}".encode()).hexdigest()
                 # Legacy LangChain points predate canonical chunk ordinal metadata.
                 # They remain readable during EXPAND, but are treated as isolated
                 # chunks (no invented neighbor relationship).
                 chunk_index = meta.get("chunk_index", payload.get("chunk_index", 0))
                 total_chunks = meta.get("total_chunks", payload.get("total_chunks", 1))
-                if not all(v is not None for v in (text, chunk_id, tenant, source_type, document_id)):
+                if not all(
+                    v is not None for v in (text, chunk_id, tenant, source_type, document_id)
+                ):
                     continue
                 meta.setdefault("evidence_level", payload.get("evidence_level") or "document")
                 chunk = KnowledgeChunk(

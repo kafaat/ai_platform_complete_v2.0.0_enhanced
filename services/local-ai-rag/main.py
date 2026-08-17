@@ -70,7 +70,12 @@ COLLECTION_NAME = os.getenv("COLLECTION_NAME", "sahool_agri_kb")
 # never changes the response path.  Cutover/revoke is blocked by the S3 guard until
 # embedding/collection/live parity proof is accepted.
 RAG_RETRIEVAL_URL = os.getenv("RAG_RETRIEVAL_URL", "http://sahool-rag-retrieval:8000").rstrip("/")
-RAG_RETRIEVAL_SHADOW = os.getenv("RAG_RETRIEVAL_SHADOW", "false").strip().lower() in {"1", "true", "yes", "on"}
+RAG_RETRIEVAL_SHADOW = os.getenv("RAG_RETRIEVAL_SHADOW", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "800"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))
 NUM_CTX = int(os.getenv("NUM_CTX", "8192"))  # context window
@@ -229,11 +234,11 @@ async def ingest_documents(file_paths: list[Path], tenant_id: str = "default") -
 
     wire_chunks: list[dict] = []
     for source_file, rows in sorted(by_source.items()):
-        document_id = hashlib.sha256(f"{tenant_id}:{source_file}".encode("utf-8")).hexdigest()
+        document_id = hashlib.sha256(f"{tenant_id}:{source_file}".encode()).hexdigest()
         total = len(rows)
         for idx, chunk in enumerate(rows):
             chunk_id = hashlib.sha256(
-                f"{document_id}:{idx}:".encode("utf-8") + chunk.page_content.encode("utf-8")
+                f"{document_id}:{idx}:".encode() + chunk.page_content.encode("utf-8")
             ).hexdigest()
             metadata = dict(chunk.metadata)
             metadata.update(
@@ -291,7 +296,9 @@ def _retrieval_fingerprint(text: str) -> str:
     return hashlib.sha256(normalized).hexdigest()
 
 
-async def _shadow_canonical_retrieval(question: str, tenant_id: str, k: int, direct_docs: list[Document]) -> None:
+async def _shadow_canonical_retrieval(
+    question: str, tenant_id: str, k: int, direct_docs: list[Document]
+) -> None:
     """Observe canonical retrieval parity without changing the authoritative response.
 
     Shadow failure is logged explicitly; it is not a fallback because the canonical
@@ -314,7 +321,9 @@ async def _shadow_canonical_retrieval(question: str, tenant_id: str, k: int, dir
         logger.warning("RAG_RETRIEVAL_SHADOW_FAILED type=%s", type(exc).__name__)
         return
     direct = {_retrieval_fingerprint(d.page_content) for d in direct_docs}
-    canonical = {_retrieval_fingerprint(str(a.get("text") or "")) for a in annotations if a.get("text")}
+    canonical = {
+        _retrieval_fingerprint(str(a.get("text") or "")) for a in annotations if a.get("text")
+    }
     union = direct | canonical
     overlap = (len(direct & canonical) / len(union)) if union else 1.0
     logger.info(

@@ -1362,7 +1362,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 509,
+    "line": 518,
     "method": "POST",
     "path": "/v1/query",
     "function": "query_endpoint"
@@ -1370,7 +1370,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 519,
+    "line": 528,
     "method": "POST",
     "path": "/v1/ingest",
     "function": "ingest_endpoint"
@@ -1378,7 +1378,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 571,
+    "line": 580,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1386,7 +1386,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 589,
+    "line": 598,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1394,7 +1394,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 594,
+    "line": 603,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1754,7 +1754,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 56,
+    "line": 54,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1762,7 +1762,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 61,
+    "line": 59,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -1770,7 +1770,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 74,
+    "line": 72,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1778,7 +1778,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 101,
+    "line": 99,
     "method": "POST",
     "path": "/v1/ingest",
     "function": "ingest"
@@ -1786,7 +1786,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 131,
+    "line": 129,
     "method": "POST",
     "path": "/v1/search",
     "function": "search"

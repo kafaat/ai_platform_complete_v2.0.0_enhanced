@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 471,
+      "line": 480,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "ef7930db0e9ea87c0b1b5ef86bb1c61d224311458516a4bae9285454ef92ac9b",
+  "inventory_sha256": "c2e4aeeed6c5b0bd1770f2217f0382dfc9eb4fad02c54b51df37691da9759a7f",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {
