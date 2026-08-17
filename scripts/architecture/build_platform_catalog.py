@@ -380,13 +380,31 @@ def _compose_services() -> dict:
     return (_load_yaml("docker-compose.v9.yml") or {}).get("services", {})
 
 
+def _normalize_repo_relative_build_path(raw: str, *, field: str) -> str:
+    """تطبيعٌ آمن لمسار بناءٍ نسبيّ للمستودع — الهروب من الشجرة فشلٌ مغلق.
+
+    الكشف قبل أيّ «تصحيح»: المطلق وparent traversal يُرفضان برفعٍ صريح لا
+    بتطبيعٍ صامتٍ يجعل الخارجيّ يبدو داخليّاً (حكم المالك على #863: S2 يجب
+    أن ترفض أيّ build source يهرب من repository tree)."""
+    value = raw.strip()
+    if value.startswith("./"):
+        value = value[2:]
+    path = Path(value or ".")
+    if path.is_absolute():
+        raise ValueError(f"{field} must be repository-relative: {raw!r}")
+    if ".." in path.parts:
+        raise ValueError(f"{field} escapes repository tree: {raw!r}")
+    return path.as_posix() or "."
+
+
 def resolve_build_source(svc: dict) -> str | None:
     """ARCH-S2: مجلّد المصدر المقيس لخدمة compose من build نفسه — لا من اسمها.
 
     تخمينُ الأسماء (canonicalizer) ترك عشر خدمات بلا مكوّن (sahool-field-management
     لا يُحلّ إلى field-management-service نصّيّاً). القياس الصحيح: build.dockerfile
     يسمّي مجلّد المصدر حرفيّاً، وbuild.context حين لا يكون الجذر. image-only ⇒ None
-    (بنية تحتيّة، لا مصدر مكوّن)."""
+    (بنية تحتيّة، لا مصدر مكوّن). الحماية على context وdockerfile **معاً**:
+    dockerfile=../outside/Dockerfile كان يُنتج source_path خارج الشجرة بصمت."""
     build = svc.get("build")
     if not build:
         return None
@@ -395,15 +413,11 @@ def resolve_build_source(svc: dict) -> str | None:
     else:
         ctx = build.get("context", ".")
         dockerfile = build.get("dockerfile", "Dockerfile")
-    # قصّ بادئة "./" الواحدة فقط: lstrip("./") يقصّ أيّ مزيج نقاط/شُرَط فيحوّل
-    # "../foo" إلى "foo" — سياقٌ خارج الشجرة يتنكّر مصدراً داخليّاً ويخفى عن
-    # بوّابة الإغلاق. الآن يبقى كما هو فلا يطابق خريطة المصادر ⇒ unresolved.
-    if ctx.startswith("./"):
-        ctx = ctx[2:]
-    ctx = ctx or "."
+    ctx = _normalize_repo_relative_build_path(ctx, field="build.context")
     if ctx != ".":
-        return ctx.rstrip("/")
-    parent = str(Path(dockerfile).parent)
+        return ctx
+    df = _normalize_repo_relative_build_path(dockerfile, field="build.dockerfile")
+    parent = Path(df).parent.as_posix()
     return None if parent == "." else parent
 
 
@@ -462,6 +476,17 @@ def component_classification_failures(registry: dict, measured: dict[str, dict])
     kinds = set(registry["component_kinds"])
     authorities = set(registry["authority_kinds"])
     entries = registry["components"]
+    # سلطة المصدر واحدة: مكوّنان يعلنان source_path نفسه تنازعُ ملكيّةٍ يُحسم
+    # بالفشل لا بصمتِ قاموسٍ يحتفظ بأحدهما (حكم المالك على #863).
+    source_owners: dict[str, str] = {}
+    for cid in sorted(entries):
+        source = entries[cid].get("source_path")
+        if not source:
+            continue
+        if source in source_owners:
+            failures.append(f"duplicate source_path {source!r}: {source_owners[source]!r}, {cid!r}")
+        else:
+            source_owners[source] = cid
     for cid in sorted(set(measured) - set(entries)):
         failures.append(f"unclassified component: {cid} — أضِف صفّه إلى {_COMPONENT_REGISTRY}")
     for cid in sorted(set(entries) - set(measured)):
@@ -563,18 +588,28 @@ def make_canonicalizer(overrides: dict, known: set[str]):
 # ── discovery ────────────────────────────────────────────────────
 
 
-def discover_compose(canonical, source_to_component: dict[str, str] | None = None):
+def discover_compose(
+    canonical,
+    source_to_component: dict[str, str] | None = None,
+    compose_services: dict | None = None,
+):
     """Per-canonical-component runtime facts from docker-compose.v9.yml.
 
     ARCH-S2: الوحدة تُنسَب لمكوّنها **بقياس البناء** (resolve_build_source) أوّلاً؛
     تخمين الاسم يبقى للبنية التحتيّة (image-only) حيث لا مصدر يُقاس. يُعيد أيضاً
-    resolution: {unit_component, infrastructure, unresolved} لبوّابة S2."""
-    compose = _load_yaml("docker-compose.v9.yml") or {}
+    resolution: {unit_component, infrastructure, unresolved} لبوّابة S2.
+    عقد اللقطة: compose_services الممرَّرة هي اللقطة الواحدة للتصريف كلّه —
+    قراءةٌ ثانية للملفّ تكسر اتّساق القياس لا الأداء فقط."""
+    services = (
+        compose_services
+        if compose_services is not None
+        else (_load_yaml("docker-compose.v9.yml") or {}).get("services", {})
+    )
     out: dict[str, dict] = {}
     consumes_env: dict[str, set[str]] = {}
     resolution = {"unit_component": {}, "infrastructure": [], "unresolved": {}}
     source_to_component = source_to_component or {}
-    for svc_name, svc in (compose.get("services") or {}).items():
+    for svc_name, svc in (services or {}).items():
         if not isinstance(svc, dict):
             continue
         source = resolve_build_source(svc)
@@ -1026,7 +1061,10 @@ def build() -> dict[str, object]:
     source_to_component = {
         e["source_path"]: cid for cid, e in reg_components.items() if e.get("source_path")
     }
-    compose, compose_resolution = discover_compose(canonical, source_to_component)
+    compose_services_raw = _compose_services()
+    compose, compose_resolution = discover_compose(
+        canonical, source_to_component, compose_services=compose_services_raw
+    )
     gateway = discover_nginx(canonical)
     owner_tables, ownership_conflicts = discover_db_ownership(canonical)
     events = discover_events(canonical)
@@ -1100,7 +1138,6 @@ def build() -> dict[str, object]:
                 "activated": None,
             },
         }
-    compose_services_raw = _compose_services()
     for extra in overrides["extra_components"]:
         cid = extra["component_id"]
         reg = reg_components.get(cid, {})

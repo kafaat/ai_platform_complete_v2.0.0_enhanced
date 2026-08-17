@@ -254,11 +254,55 @@ def test_s2_build_source_resolution_is_measured_not_guessed() -> None:
     )
     assert MOD.resolve_build_source({"build": {"context": "./frontend"}}) == "frontend"
     assert MOD.resolve_build_source({"image": "redis:7-alpine"}) is None
-    # حدود الشجرة (مراجعة Copilot على #863): سياق خارج الشجرة أو مطلق لا يُشذَّب
-    # إلى مسار داخليّ — يبقى كما هو فلا يطابق خريطة المصادر ويفشل مغلقاً.
-    assert MOD.resolve_build_source({"build": {"context": "../escape"}}) == "../escape"
-    assert MOD.resolve_build_source({"build": {"context": "/abs/path"}}) == "/abs/path"
-    assert MOD.resolve_build_source({"build": {"context": ".//weird"}}) == "/weird"
+
+
+def test_build_source_strips_only_one_dot_slash_prefix() -> None:
+    assert MOD.resolve_build_source({"build": "./services/foo"}) == "services/foo"
+
+
+@pytest.mark.parametrize(
+    "build",
+    [
+        {"context": "../outside"},
+        {"context": "../../outside"},
+        {"context": "/absolute/outside"},
+        {"context": ".", "dockerfile": "../outside/Dockerfile"},
+        {"context": ".", "dockerfile": "/abs/Dockerfile"},
+    ],
+)
+def test_s2_build_source_cannot_escape_repository(build) -> None:
+    """حكم المالك على #863: الهروب من الشجرة يُرفض برفعٍ صريح قبل أيّ تطبيع —
+    لا تصحيحَ صامتاً يجعل الخارجيّ يبدو داخليّاً. الحماية على context
+    وdockerfile معاً (ثقب dockerfile وجده تدقيق المالك لا مراجعة Copilot)."""
+    with pytest.raises(ValueError, match="repository"):
+        MOD.resolve_build_source({"build": build})
+
+
+def test_duplicate_component_source_path_fails_closed() -> None:
+    """سلطة المصدر واحدة: مكوّنان بsource_path نفسه تنازعٌ يُحسم بالفشل لا بصمت القاموس."""
+    registry = copy.deepcopy(REG)
+    registry["components"]["auth"]["source_path"] = registry["components"][
+        "field-management-service"
+    ]["source_path"]
+    failures = MOD.component_classification_failures(registry, copy.deepcopy(_CONSISTENT))
+    assert any("duplicate source_path" in f for f in failures)
+
+
+def test_catalog_loads_compose_once(monkeypatch) -> None:
+    """عقد اللقطة الواحدة: docker-compose.v9.yml يُقرأ مرّةً لكلّ تصريف —
+    قراءةٌ ثانية تكسر اتّساق القياس لا الأداء فقط."""
+    calls = 0
+    original = MOD._load_yaml
+
+    def counted(rel):
+        nonlocal calls
+        if rel == "docker-compose.v9.yml":
+            calls += 1
+        return original(rel)
+
+    monkeypatch.setattr(MOD, "_load_yaml", counted)
+    MOD.build()
+    assert calls == 1
 
 
 def test_s2_former_orphans_are_now_classified_components() -> None:

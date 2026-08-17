@@ -103,10 +103,28 @@
           "why": "العيب الجنائيّ الثالث: أطراف الحوافّ كانت ضمنيّة — from_kind/to_kind شرطُ خوارزميّات orphan/hop/cutover اللاحقة"
         },
         {
-          "expect": "test_s2_build_source_resolution_is_measured_not_guessed",
-          "find": "    if ctx.startswith(\"./\"):\n        ctx = ctx[2:]\n    ctx = ctx or \".\"",
-          "replace": "    ctx = ctx.lstrip(\"./\") or \".\"  # mutated: boundary collapsed",
-          "why": "مراجعة Copilot على #863: lstrip(\"./\") يقصّ أيّ مزيج نقاط/شُرَط فيحوّل ../foo إلى foo — سياق بناءٍ خارج الشجرة يتنكّر مصدراً داخليّاً ويخفى عن بوّابة الإغلاق"
+          "expect": "test_s2_build_source_cannot_escape_repository",
+          "find": "    if value.startswith(\"./\"):\n        value = value[2:]",
+          "replace": "    value = value.lstrip(\"./\")  # mutated: boundary collapsed",
+          "why": "مراجعة Copilot ثم حكم المالك على #863: lstrip(\"./\") يقصّ أيّ مزيج نقاط/شُرَط فيحوّل ../foo إلى foo — traversal «يُصحَّح» قبل اكتشافه فيفلت من الرفض الصريح"
+        },
+        {
+          "expect": "test_s2_build_source_cannot_escape_repository",
+          "find": "    if \"..\" in path.parts:",
+          "replace": "    if False:  # mutated: traversal accepted",
+          "why": "حكم المالك REQUEST_CHANGES على #863: قبول parent traversal يحوّل مساراً خارج المستودع إلى مصدرٍ داخليّ ظاهريّ ويضعف صدق measured build-source closure"
+        },
+        {
+          "expect": "test_duplicate_component_source_path_fails_closed",
+          "find": "        if source in source_owners:",
+          "replace": "        if False:  # mutated: duplicate owner accepted",
+          "why": "تنازع ملكيّة المصدر كان يُحسم بصمت قاموسٍ يحتفظ بأحد الطرفين — صار فشلاً مغلقاً مسمّى في بوّابة الحوكمة نفسها"
+        },
+        {
+          "expect": "test_catalog_loads_compose_once",
+          "find": "        srcs = {resolve_build_source(compose_services_raw[u]) for u in extra_units}",
+          "replace": "        srcs = {resolve_build_source(_compose_services()[u]) for u in extra_units}  # mutated: second compose load",
+          "why": "عودة القراءة الثانية لcompose تكسر عقد اللقطة الواحدة: discover_compose تقيس نسخةً وextras تقيس أخرى — انحراف اتّساقٍ لا أداءٍ فقط"
         }
       ],
       "test": "tests_v9/test_component_registry_gate.py"
