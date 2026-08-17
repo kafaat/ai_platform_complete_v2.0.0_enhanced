@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1848,
     "route_handlers": 1049,
-    "call_edges": 73185,
+    "call_edges": 73297,
     "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -1351,7 +1351,7 @@
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 420,
+      "line": 518,
       "handler": "query_endpoint",
       "method": "POST",
       "path": "/v1/query"
@@ -1359,7 +1359,7 @@
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 430,
+      "line": 528,
       "handler": "ingest_endpoint",
       "method": "POST",
       "path": "/v1/ingest"
@@ -1367,7 +1367,7 @@
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 482,
+      "line": 580,
       "handler": "healthz",
       "method": "GET",
       "path": "/healthz"
@@ -1375,7 +1375,7 @@
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 500,
+      "line": 598,
       "handler": "legacy_health",
       "method": "GET",
       "path": "/health"
@@ -1383,7 +1383,7 @@
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 505,
+      "line": 603,
       "handler": "readyz",
       "method": "GET",
       "path": "/readyz"
@@ -1695,7 +1695,7 @@
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 55,
+      "line": 54,
       "handler": "healthz",
       "method": "GET",
       "path": "/healthz"
@@ -1703,7 +1703,7 @@
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 60,
+      "line": 59,
       "handler": "metrics",
       "method": "GET",
       "path": "/metrics"
@@ -1711,7 +1711,7 @@
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 73,
+      "line": 72,
       "handler": "readyz",
       "method": "GET",
       "path": "/readyz"
@@ -1719,7 +1719,7 @@
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 90,
+      "line": 99,
       "handler": "ingest",
       "method": "POST",
       "path": "/v1/ingest"
@@ -1727,7 +1727,7 @@
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 115,
+      "line": 129,
       "handler": "search",
       "method": "POST",
       "path": "/v1/search"
@@ -90997,76 +90997,55 @@
       "file": "services/local-ai-rag/main.py",
       "source": "decode",
       "target": "_JE",
-      "line": 36
+      "line": 37
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_validate_tenant_id",
       "target": "match",
-      "line": 79
+      "line": 91
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_validate_tenant_id",
       "target": "str",
-      "line": 79
+      "line": 91
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_validate_tenant_id",
       "target": "HTTPException",
-      "line": 80
+      "line": 92
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_validate_tenant_id",
       "target": "str",
-      "line": 81
+      "line": 93
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_require_service_token",
       "target": "Header",
-      "line": 84
+      "line": 96
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_require_service_token",
       "target": "HTTPException",
-      "line": 86
+      "line": 98
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_require_service_token",
       "target": "HTTPException",
-      "line": 88
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "wait_for_ollama",
-      "target": "get_event_loop",
-      "line": 99
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "wait_for_ollama",
-      "target": "time",
-      "line": 99
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "wait_for_ollama",
-      "target": "AsyncClient",
       "line": 100
     },
     {
@@ -91074,917 +91053,1281 @@
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
       "target": "get_event_loop",
-      "line": 101
+      "line": 111
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
       "target": "time",
-      "line": 101
+      "line": 111
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
-      "target": "get",
-      "line": 103
+      "target": "AsyncClient",
+      "line": 112
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
-      "target": "get",
-      "line": 105
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "wait_for_ollama",
-      "target": "json",
-      "line": 105
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "wait_for_ollama",
-      "target": "get",
-      "line": 106
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "wait_for_ollama",
-      "target": "info",
-      "line": 108
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "wait_for_ollama",
-      "target": "info",
+      "target": "get_event_loop",
       "line": 113
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
-      "target": "post",
-      "line": 114
+      "target": "time",
+      "line": 113
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
-      "target": "post",
+      "target": "get",
+      "line": 115
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "wait_for_ollama",
+      "target": "get",
       "line": 117
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
+      "target": "json",
+      "line": 117
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "wait_for_ollama",
+      "target": "get",
+      "line": 118
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "wait_for_ollama",
+      "target": "info",
+      "line": 120
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "wait_for_ollama",
+      "target": "info",
+      "line": 125
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "wait_for_ollama",
+      "target": "post",
+      "line": 126
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "wait_for_ollama",
+      "target": "post",
+      "line": 129
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "wait_for_ollama",
       "target": "type",
-      "line": 121
+      "line": 133
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
       "target": "warning",
-      "line": 121
+      "line": 133
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
       "target": "sleep",
-      "line": 122
+      "line": 134
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "wait_for_ollama",
       "target": "RuntimeError",
-      "line": 123
+      "line": 135
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "init_vectorstore",
       "target": "OllamaEmbeddings",
-      "line": 134
+      "line": 146
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "init_vectorstore",
       "target": "QdrantClient",
-      "line": 140
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "init_vectorstore",
-      "target": "collection_exists",
-      "line": 141
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "init_vectorstore",
-      "target": "from_existing_collection",
-      "line": 142
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "init_vectorstore",
-      "target": "info",
-      "line": 148
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "init_vectorstore",
-      "target": "from_documents",
       "line": 152
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "init_vectorstore",
-      "target": "Document",
-      "line": 154
+      "target": "collection_exists",
+      "line": 153
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "init_vectorstore",
+      "target": "RuntimeError",
+      "line": 157
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "init_vectorstore",
+      "target": "from_existing_collection",
+      "line": 158
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "init_vectorstore",
       "target": "info",
-      "line": 165
+      "line": 164
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "init_llm",
       "target": "ChatOllama",
-      "line": 176
+      "line": 175
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "init_llm",
       "target": "info",
-      "line": 182
+      "line": 181
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "load_document",
       "target": "lower",
-      "line": 190
+      "line": 189
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "load_document",
       "target": "PyPDFLoader",
-      "line": 192
+      "line": 191
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "load_document",
       "target": "str",
-      "line": 192
+      "line": 191
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "load_document",
       "target": "TextLoader",
-      "line": 194
+      "line": 193
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "load_document",
       "target": "str",
-      "line": 194
+      "line": 193
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "load_document",
       "target": "ValueError",
-      "line": 196
+      "line": 195
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "load_document",
       "target": "load",
-      "line": 197
+      "line": 196
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "split_docs",
       "target": "RecursiveCharacterTextSplitter",
-      "line": 201
+      "line": 200
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "split_docs",
       "target": "split_documents",
-      "line": 206
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "ingest_documents",
-      "target": "init_vectorstore",
-      "line": 210
+      "line": 205
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
       "target": "load_document",
-      "line": 214
+      "line": 218
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
       "target": "isoformat",
-      "line": 218
+      "line": 222
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
       "target": "now",
-      "line": 218
+      "line": 222
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
       "target": "extend",
-      "line": 219
+      "line": 223
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
       "target": "warning",
-      "line": 221
+      "line": 225
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
       "target": "split_docs",
-      "line": 226
+      "line": 230
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
-      "target": "add_documents",
-      "line": 227
+      "target": "append",
+      "line": 233
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "get",
+      "line": 233
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "setdefault",
+      "line": 233
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "str",
+      "line": 233
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "items",
+      "line": 236
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "sorted",
+      "line": 236
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "encode",
+      "line": 237
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "hexdigest",
+      "line": 237
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "sha256",
+      "line": 237
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
       "target": "len",
-      "line": 228
+      "line": 238
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "enumerate",
+      "line": 239
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "hexdigest",
+      "line": 240
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "sha256",
+      "line": 240
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "encode",
+      "line": 241
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "encode",
+      "line": 241
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "dict",
+      "line": 243
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "update",
+      "line": 244
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "append",
+      "line": 249
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "HTTPException",
+      "line": 263
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "AsyncClient",
+      "line": 265
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "post",
+      "line": 266
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "raise_for_status",
+      "line": 271
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "get",
+      "line": 272
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "int",
+      "line": 272
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "json",
+      "line": 272
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "type",
+      "line": 274
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "warning",
+      "line": 274
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "HTTPException",
+      "line": 275
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_documents",
       "target": "len",
-      "line": 228
+      "line": 276
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "HTTPException",
+      "line": 277
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "ingest_documents",
+      "target": "len",
+      "line": 278
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_retrieval_fingerprint",
+      "target": "encode",
+      "line": 295
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_retrieval_fingerprint",
+      "target": "join",
+      "line": 295
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_retrieval_fingerprint",
+      "target": "split",
+      "line": 295
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_retrieval_fingerprint",
+      "target": "hexdigest",
+      "line": 296
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_retrieval_fingerprint",
+      "target": "sha256",
+      "line": 296
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "min",
+      "line": 310
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "AsyncClient",
+      "line": 312
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "post",
+      "line": 313
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "raise_for_status",
+      "line": 318
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "get",
+      "line": 319
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "json",
+      "line": 319
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "type",
+      "line": 321
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "warning",
+      "line": 321
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "_retrieval_fingerprint",
+      "line": 323
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "_retrieval_fingerprint",
+      "line": 325
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "get",
+      "line": 325
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "get",
+      "line": 325
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "str",
+      "line": 325
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "len",
+      "line": 328
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "len",
+      "line": 328
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "info",
+      "line": 329
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "len",
+      "line": 331
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_shadow_canonical_retrieval",
+      "target": "len",
+      "line": 332
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "init_vectorstore",
-      "line": 253
+      "line": 346
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "init_llm",
-      "line": 254
+      "line": 347
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "Filter",
-      "line": 260
+      "line": 353
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "FieldCondition",
-      "line": 261
+      "line": 354
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "MatchValue",
-      "line": 261
+      "line": 354
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "as_retriever",
-      "line": 263
+      "line": 356
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "to_thread",
-      "line": 266
+      "line": 359
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "type",
-      "line": 268
+      "line": 361
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
       "target": "warning",
-      "line": 268
+      "line": 361
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_rag",
-      "target": "HTTPException",
-      "line": 269
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "isoformat",
-      "line": 278
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "now",
-      "line": 278
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "join",
-      "line": 281
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "format",
-      "line": 282
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "to_thread",
-      "line": 284
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "type",
-      "line": 286
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "warning",
-      "line": 286
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "HTTPException",
-      "line": 287
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "getattr",
-      "line": 289
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "str",
-      "line": 289
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "get",
-      "line": 292
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "get",
-      "line": 293
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "len",
-      "line": 295
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "isoformat",
-      "line": 305
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "query_rag",
-      "target": "now",
-      "line": 305
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "_init_models_background",
-      "target": "info",
-      "line": 316
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "_init_models_background",
-      "target": "wait_for_ollama",
-      "line": 317
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "_init_models_background",
-      "target": "init_llm",
-      "line": 318
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "_init_models_background",
-      "target": "init_vectorstore",
-      "line": 319
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "_init_models_background",
-      "target": "info",
-      "line": 320
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "_init_models_background",
-      "target": "error",
-      "line": 322
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "lifespan",
-      "target": "info",
-      "line": 327
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "lifespan",
-      "target": "_init_models_background",
-      "line": 329
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "lifespan",
-      "target": "create_task",
-      "line": 329
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "lifespan",
-      "target": "info",
-      "line": 330
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "lifespan",
-      "target": "info",
-      "line": 332
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "_get_rag_user",
-      "target": "Depends",
-      "line": 358
-    },
-    {
-      "owner": "local-ai-rag",
-      "file": "services/local-ai-rag/main.py",
-      "source": "_get_rag_user",
       "target": "HTTPException",
       "line": 362
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "_shadow_canonical_retrieval",
+      "line": 367
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "isoformat",
+      "line": 376
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "now",
+      "line": 376
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "join",
+      "line": 379
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "format",
+      "line": 380
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "to_thread",
+      "line": 382
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "type",
+      "line": 384
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "warning",
+      "line": 384
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "HTTPException",
+      "line": 385
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "getattr",
+      "line": 387
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "str",
+      "line": 387
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "get",
+      "line": 390
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "get",
+      "line": 391
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "len",
+      "line": 393
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "isoformat",
+      "line": 403
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "query_rag",
+      "target": "now",
+      "line": 403
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_init_models_background",
+      "target": "info",
+      "line": 414
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_init_models_background",
+      "target": "wait_for_ollama",
+      "line": 415
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_init_models_background",
+      "target": "init_llm",
+      "line": 416
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_init_models_background",
+      "target": "init_vectorstore",
+      "line": 417
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_init_models_background",
+      "target": "info",
+      "line": 418
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_init_models_background",
+      "target": "error",
+      "line": 420
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "lifespan",
+      "target": "info",
+      "line": 425
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "lifespan",
+      "target": "_init_models_background",
+      "line": 427
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "lifespan",
+      "target": "create_task",
+      "line": 427
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "lifespan",
+      "target": "info",
+      "line": 428
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "lifespan",
+      "target": "info",
+      "line": 430
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_get_rag_user",
+      "target": "Depends",
+      "line": 456
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "source": "_get_rag_user",
+      "target": "HTTPException",
+      "line": 460
+    },
+    {
+      "owner": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "len",
-      "line": 365
+      "line": 463
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "HTTPException",
-      "line": 366
+      "line": 464
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "HTTPException",
-      "line": 368
+      "line": 466
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "decode",
-      "line": 370
+      "line": 468
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "type",
-      "line": 374
+      "line": 472
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "warning",
-      "line": 374
+      "line": 472
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "HTTPException",
-      "line": 375
+      "line": 473
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "get",
-      "line": 377
+      "line": 475
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_get_rag_user",
       "target": "HTTPException",
-      "line": 378
+      "line": 476
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "_require_ready",
       "target": "HTTPException",
-      "line": 416
+      "line": 514
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_endpoint",
       "target": "post",
-      "line": 419
+      "line": 517
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_endpoint",
       "target": "Depends",
-      "line": 420
+      "line": 518
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_endpoint",
       "target": "_require_ready",
-      "line": 421
+      "line": 519
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_endpoint",
       "target": "get",
-      "line": 423
+      "line": 521
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_endpoint",
       "target": "HTTPException",
-      "line": 425
+      "line": 523
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_endpoint",
       "target": "_validate_tenant_id",
-      "line": 426
+      "line": 524
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_endpoint",
       "target": "query_rag",
-      "line": 426
+      "line": 524
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "query_endpoint",
       "target": "str",
-      "line": 426
+      "line": 524
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "post",
-      "line": 429
+      "line": 527
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "File",
-      "line": 431
+      "line": 529
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "Form",
-      "line": 432
+      "line": 530
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "Header",
-      "line": 433
+      "line": 531
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "_require_service_token",
-      "line": 439
+      "line": 537
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "_require_ready",
-      "line": 440
+      "line": 538
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "_validate_tenant_id",
-      "line": 441
+      "line": 539
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "Path",
-      "line": 444
+      "line": 542
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "lower",
-      "line": 444
+      "line": 542
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "HTTPException",
-      "line": 446
+      "line": 544
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "NamedTemporaryFile",
-      "line": 451
+      "line": 549
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "read",
-      "line": 455
+      "line": 553
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "len",
-      "line": 458
+      "line": 556
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "close",
-      "line": 460
+      "line": 558
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "Path",
-      "line": 461
+      "line": 559
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "unlink",
-      "line": 461
+      "line": 559
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "HTTPException",
-      "line": 462
+      "line": 560
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "write",
-      "line": 466
+      "line": 564
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "close",
-      "line": 469
+      "line": 567
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "Path",
-      "line": 470
+      "line": 568
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "append",
-      "line": 470
+      "line": 568
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "ingest_documents",
-      "line": 472
+      "line": 570
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "ingest_endpoint",
       "target": "unlink",
-      "line": 476
+      "line": 574
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "healthz",
       "target": "get",
-      "line": 481
+      "line": 579
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "healthz",
       "target": "AsyncClient",
-      "line": 485
+      "line": 583
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "healthz",
       "target": "get",
-      "line": 486
+      "line": 584
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "healthz",
       "target": "debug",
-      "line": 489
+      "line": 587
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "healthz",
       "target": "type",
-      "line": 489
+      "line": 587
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "legacy_health",
       "target": "get",
-      "line": 499
+      "line": 597
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "legacy_health",
       "target": "healthz",
-      "line": 501
+      "line": 599
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "readyz",
       "target": "get",
-      "line": 504
+      "line": 602
     },
     {
       "owner": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
       "source": "readyz",
       "target": "HTTPException",
-      "line": 508
+      "line": 606
     },
     {
       "owner": "local-ai-rag",
@@ -103212,203 +103555,196 @@
       "file": "services/rag-retrieval/main.py",
       "source": "healthz",
       "target": "get",
-      "line": 54
+      "line": 53
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "metrics",
       "target": "get",
-      "line": 59
+      "line": 58
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "metrics",
       "target": "join",
-      "line": 61
+      "line": 60
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "metrics",
       "target": "Response",
-      "line": 69
+      "line": 68
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "readyz",
       "target": "get",
-      "line": 72
+      "line": 71
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "readyz",
-      "target": "Request",
-      "line": 75
-    },
-    {
-      "owner": "rag-retrieval",
-      "file": "services/rag-retrieval/main.py",
-      "source": "readyz",
-      "target": "rstrip",
-      "line": 75
-    },
-    {
-      "owner": "rag-retrieval",
-      "file": "services/rag-retrieval/main.py",
-      "source": "readyz",
-      "target": "getenv",
-      "line": 76
-    },
-    {
-      "owner": "rag-retrieval",
-      "file": "services/rag-retrieval/main.py",
-      "source": "readyz",
-      "target": "add_header",
+      "target": "embed",
       "line": 77
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "readyz",
-      "target": "getenv",
-      "line": 77
-    },
-    {
-      "owner": "rag-retrieval",
-      "file": "services/rag-retrieval/main.py",
-      "source": "readyz",
-      "target": "read",
+      "target": "collection_vector_size",
       "line": 78
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "readyz",
-      "target": "urlopen",
-      "line": 78
+      "target": "len",
+      "line": 79
+    },
+    {
+      "owner": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "source": "readyz",
+      "target": "ValueError",
+      "line": 80
+    },
+    {
+      "owner": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "source": "readyz",
+      "target": "len",
+      "line": 81
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "readyz",
       "target": "HTTPException",
-      "line": 80
+      "line": 84
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
       "target": "post",
-      "line": 89
+      "line": 98
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
       "target": "Header",
-      "line": 92
+      "line": 101
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
       "target": "Depends",
-      "line": 93
-    },
-    {
-      "owner": "rag-retrieval",
-      "file": "services/rag-retrieval/main.py",
-      "source": "ingest",
-      "target": "resolve_trusted_tenant",
       "line": 102
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
+      "target": "resolve_trusted_tenant",
+      "line": 111
+    },
+    {
+      "owner": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "source": "ingest",
       "target": "HTTPException",
-      "line": 104
+      "line": 113
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
       "target": "model_dump",
-      "line": 105
+      "line": 114
+    },
+    {
+      "owner": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "source": "ingest",
+      "target": "setdefault",
+      "line": 120
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
       "target": "KnowledgeChunk",
-      "line": 107
+      "line": 121
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
       "target": "append",
-      "line": 107
+      "line": 121
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
       "target": "HTTPException",
-      "line": 111
+      "line": 125
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "ingest",
       "target": "str",
-      "line": 111
+      "line": 125
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "search",
       "target": "post",
-      "line": 114
+      "line": 128
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "search",
       "target": "Header",
-      "line": 116
+      "line": 130
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "search",
       "target": "resolve_trusted_tenant",
-      "line": 122
+      "line": 136
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "search",
       "target": "HTTPException",
-      "line": 124
+      "line": 138
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "search",
       "target": "retrieve",
-      "line": 131
+      "line": 145
     },
     {
       "owner": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
       "source": "search",
       "target": "as_annotation",
-      "line": 132
+      "line": 146
     },
     {
       "owner": "rag-retrieval",
@@ -335003,889 +335339,1337 @@
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 37
+      "line": 38
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 39
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__post_init__",
-      "target": "get",
       "line": 40
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
-      "target": "ValueError",
-      "line": 42
+      "target": "get",
+      "line": 41
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 44
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__post_init__",
+      "target": "ValueError",
+      "line": 45
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__post_init__",
       "target": "get",
-      "line": 47
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__post_init__",
-      "target": "ValueError",
       "line": 48
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "as_annotation",
-      "target": "get",
-      "line": 81
+      "source": "__post_init__",
+      "target": "ValueError",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "payload",
+      "target": "dict",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "payload",
+      "target": "update",
+      "line": 60
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 82
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "as_annotation",
       "target": "get",
-      "line": 83
+      "line": 91
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "as_annotation",
+      "target": "get",
+      "line": 92
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "findall",
-      "line": 91
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "lower",
-      "line": 91
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "tokenize",
       "target": "strip",
-      "line": 91
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "tokenize",
-      "line": 111
+      "line": 120
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "blake2b",
-      "line": 112
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "encode",
-      "line": 112
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "hexdigest",
-      "line": 112
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "int",
-      "line": 112
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "sqrt",
-      "line": 116
+      "line": 125
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "sum",
-      "line": 116
+      "line": 125
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "round",
-      "line": 117
+      "line": 126
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "rstrip",
-      "line": 127
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "dumps",
-      "line": 131
+      "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "encode",
-      "line": 131
+      "line": 149
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "Request",
-      "line": 132
+      "line": 150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "urlopen",
-      "line": 138
+      "line": 156
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "decode",
-      "line": 139
+      "line": 157
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "loads",
-      "line": 139
+      "line": 157
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "read",
-      "line": 139
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "embed",
-      "target": "float",
-      "line": 141
+      "line": 157
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "get",
-      "line": 142
+      "line": 158
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
-      "target": "float",
-      "line": 143
+      "target": "isinstance",
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "embed",
       "target": "ValueError",
-      "line": 144
+      "line": 160
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "tokenize",
-      "line": 158
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "get",
+      "source": "embed",
+      "target": "float",
       "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
+      "source": "embed",
+      "target": "len",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
       "target": "len",
       "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "get",
+      "source": "embed",
+      "target": "ValueError",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "len",
       "line": 166
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "len",
-      "line": 167
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "max",
-      "line": 167
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "sum",
-      "line": 167
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "add",
-      "target": "values",
-      "line": 167
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "len",
-      "line": 172
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 173
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "tokenize",
-      "line": 175
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 176
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 176
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "get",
-      "line": 179
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "log",
-      "line": 180
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "score",
-      "target": "round",
-      "line": 183
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "items",
-      "line": 190
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "any",
-      "line": 193
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "get",
-      "line": 194
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "items",
-      "line": 195
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "score",
-      "line": 198
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "append",
-      "line": 200
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "search",
-      "target": "sorted",
-      "line": 201
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "__init__",
-      "target": "super",
-      "line": 212
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "rstrip",
-      "line": 242
+      "line": 178
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "dumps",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "encode",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "Request",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "urlopen",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "decode",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "loads",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "read",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "float",
+      "line": 192
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "get",
+      "line": 193
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "float",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "embed",
+      "target": "ValueError",
+      "line": 195
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "tokenize",
+      "line": 209
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "get",
+      "line": 212
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "len",
+      "line": 215
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "get",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "len",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "max",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "sum",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "add",
+      "target": "values",
+      "line": 218
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "len",
+      "line": 223
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 224
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "tokenize",
+      "line": 226
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 227
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 227
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "get",
+      "line": 230
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "log",
+      "line": 231
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "score",
+      "target": "round",
+      "line": 234
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "items",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "any",
+      "line": 244
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "get",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "items",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "score",
+      "line": 249
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "append",
+      "line": 251
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "search",
+      "target": "sorted",
+      "line": 252
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__init__",
+      "target": "super",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "__init__",
+      "target": "rstrip",
+      "line": 293
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "dumps",
-      "line": 251
+      "line": 302
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "encode",
-      "line": 251
+      "line": 302
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "Request",
-      "line": 255
+      "line": 306
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "urlopen",
-      "line": 259
+      "line": 310
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "decode",
-      "line": 260
+      "line": 311
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "read",
-      "line": 260
+      "line": 311
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "loads",
-      "line": 261
+      "line": 312
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "decode",
-      "line": 263
+      "line": 314
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "read",
-      "line": 263
+      "line": 314
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_request",
       "target": "QdrantHTTPError",
-      "line": 264
+      "line": 315
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "probe_collection",
       "target": "_request",
-      "line": 269
+      "line": 320
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "_request",
+      "line": 338
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 339
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "isinstance",
+      "line": 340
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "ValueError",
+      "line": 341
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "get",
+      "line": 342
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "isinstance",
+      "line": 343
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "collection_vector_size",
+      "target": "ValueError",
+      "line": 344
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ensure_collection",
+      "target": "int",
+      "line": 349
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ensure_collection",
+      "target": "ValueError",
+      "line": 351
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "probe_collection",
-      "line": 291
+      "line": 352
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ensure_collection",
+      "target": "collection_vector_size",
+      "line": 354
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ensure_collection",
+      "target": "ValueError",
+      "line": 356
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "RuntimeError",
-      "line": 295
+      "line": 362
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ensure_collection",
       "target": "_request",
-      "line": 299
+      "line": 367
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "upsert",
       "target": "zip",
-      "line": 310
+      "line": 378
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "upsert",
+      "target": "str",
+      "line": 382
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "upsert",
+      "target": "uuid5",
+      "line": 382
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "upsert",
       "target": "append",
-      "line": 311
+      "line": 383
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "upsert",
       "target": "_request",
-      "line": 312
+      "line": 384
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "items",
-      "line": 323
+      "line": 395
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "append",
-      "line": 325
+      "line": 397
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "_request",
-      "line": 326
+      "line": 398
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "float",
-      "line": 332
+      "line": 404
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "get",
-      "line": 332
+      "line": 404
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "get",
-      "line": 332
+      "line": 404
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "str",
-      "line": 332
+      "line": 404
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "search",
       "target": "get",
-      "line": 333
+      "line": 405
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "HashEmbeddingProvider",
-      "line": 345
+      "line": 417
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "__init__",
       "target": "BM25Index",
-      "line": 346
+      "line": 418
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "add",
-      "line": 351
+      "line": 423
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "embed",
-      "line": 353
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ingest",
-      "target": "ensure_collection",
-      "line": 354
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "ingest",
-      "target": "upsert",
-      "line": 355
+      "line": 425
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "ingest",
       "target": "len",
-      "line": 356
+      "line": 428
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "len",
+      "line": 429
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "ValueError",
+      "line": 430
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "sorted",
+      "line": 430
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "ensure_collection",
+      "line": 431
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "iter",
+      "line": 431
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "next",
+      "line": 431
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "upsert",
+      "line": 432
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "ingest",
+      "target": "len",
+      "line": 433
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "embed",
-      "line": 367
+      "line": 444
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "search",
-      "line": 368
+      "line": 445
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "search",
-      "line": 372
+      "line": 449
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "set",
-      "line": 376
+      "line": 453
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "set",
-      "line": 376
+      "line": 453
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "get",
-      "line": 379
+      "line": 456
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "next",
-      "line": 381
+      "line": 458
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 465
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 465
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "isinstance",
+      "line": 465
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "dict",
+      "line": 467
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 468
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 468
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 469
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 469
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 470
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 470
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 471
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 472
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 472
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 475
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 475
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "encode",
+      "line": 477
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "hexdigest",
+      "line": 477
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "sha256",
+      "line": 477
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 481
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 481
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 482
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 482
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "all",
+      "line": 483
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "get",
+      "line": 487
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/rag/production_qdrant.py",
+      "source": "retrieve",
+      "target": "setdefault",
+      "line": 487
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "KnowledgeChunk",
-      "line": 384
+      "line": 488
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "str",
-      "line": 385
+      "line": 489
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "str",
-      "line": 386
+      "line": 490
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "str",
-      "line": 387
+      "line": 491
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "str",
-      "line": 388
+      "line": 492
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "str",
-      "line": 389
+      "line": 493
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "int",
-      "line": 390
+      "line": 494
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "int",
-      "line": 391
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "source": "retrieve",
-      "target": "items",
-      "line": 394
+      "line": 495
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "get",
-      "line": 407
+      "line": 498
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "get",
-      "line": 408
+      "line": 499
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "RetrievedAnnotation",
-      "line": 410
+      "line": 501
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "append",
-      "line": 410
+      "line": 501
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "_expand_neighbors",
-      "line": 411
+      "line": 502
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "sorted",
-      "line": 412
+      "line": 503
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "retrieve",
       "target": "_rerank",
-      "line": 414
+      "line": 505
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "list",
-      "line": 418
+      "line": 509
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "values",
-      "line": 420
+      "line": 511
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "get",
-      "line": 423
+      "line": 514
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "add",
-      "line": 425
+      "line": 516
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "append",
-      "line": 426
+      "line": 517
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_expand_neighbors",
       "target": "RetrievedAnnotation",
-      "line": 427
+      "line": 518
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "set",
-      "line": 434
+      "line": 525
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "tokenize",
-      "line": 434
+      "line": 525
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "lower",
-      "line": 437
+      "line": 528
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "sum",
-      "line": 437
+      "line": 528
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "append",
-      "line": 439
+      "line": 530
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "RetrievedAnnotation",
-      "line": 440
+      "line": 531
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "round",
-      "line": 445
+      "line": 536
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
       "source": "_rerank",
       "target": "sorted",
-      "line": 449
+      "line": 540
     },
     {
       "owner": "sahool-platform",
@@ -523028,7 +523812,7 @@
       "symbol": "HttpEmbeddingProvider",
       "kind": "class",
       "file": "services/sahool-platform/core/rag/production_qdrant.py",
-      "line": 120,
+      "line": 171,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,

@@ -400,7 +400,7 @@
       ],
       "kind": "service",
       "incoming": 3,
-      "outgoing": 4,
+      "outgoing": 5,
       "orphan": false
     },
     {
@@ -513,7 +513,7 @@
         "services/rag-retrieval"
       ],
       "kind": "service",
-      "incoming": 0,
+      "incoming": 1,
       "outgoing": 1,
       "orphan": false
     },
@@ -839,7 +839,7 @@
       "id": "sahool-ollama",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 4,
+      "incoming": 5,
       "outgoing": 0,
       "orphan": false
     },
@@ -896,7 +896,7 @@
       "paths": [],
       "kind": "compose-service",
       "incoming": 2,
-      "outgoing": 17,
+      "outgoing": 18,
       "orphan": false
     },
     {
@@ -1786,6 +1786,12 @@
       "target": "qdrant",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.unified.yml"
+    },
+    {
+      "source": "local-ai-rag",
+      "target": "rag-retrieval",
+      "kind": "code-reference",
+      "evidence": "services/local-ai-rag/main.py"
     },
     {
       "source": "market-mcp",
@@ -5047,6 +5053,12 @@
     },
     {
       "source": "sahool-rag-retrieval",
+      "target": "sahool-ollama",
+      "kind": "compose-depends-on",
+      "evidence": "docker-compose.v9.yml"
+    },
+    {
+      "source": "sahool-rag-retrieval",
       "target": "sahool-qdrant",
       "kind": "compose-depends-on",
       "evidence": "docker-compose.rag-kg-mcp.yml"
@@ -6957,11 +6969,11 @@
   "cycles": [],
   "summary": {
     "nodes": 153,
-    "edges": 944,
+    "edges": 946,
     "orphans": 6,
     "cycles": 0,
-    "code_edges": 110,
-    "compose_edges": 834
+    "code_edges": 111,
+    "compose_edges": 835
   },
-  "content_sha256": "6ee515477d13b3ef130238cc36f5939a0d88fb235f68e31de0f15d75ef83fe78"
+  "content_sha256": "fb247975a866af65911d22dbbec33d1e8679f58323460e93468608b47027b77d"
 }

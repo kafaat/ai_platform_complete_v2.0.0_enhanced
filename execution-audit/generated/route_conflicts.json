@@ -142,7 +142,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 500,
+          "line": 598,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/health",
@@ -333,7 +333,7 @@
         },
         {
           "function": "healthz",
-          "line": 482,
+          "line": 580,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/healthz",
@@ -389,7 +389,7 @@
         },
         {
           "function": "healthz",
-          "line": 55,
+          "line": 54,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/healthz",
@@ -524,7 +524,7 @@
         },
         {
           "function": "metrics",
-          "line": 60,
+          "line": 59,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/metrics",
@@ -675,7 +675,7 @@
         },
         {
           "function": "readyz",
-          "line": 505,
+          "line": 603,
           "method": "GET",
           "module": "services/local-ai-rag/main.py",
           "path": "/readyz",
@@ -731,7 +731,7 @@
         },
         {
           "function": "readyz",
-          "line": 73,
+          "line": 72,
           "method": "GET",
           "module": "services/rag-retrieval/main.py",
           "path": "/readyz",
@@ -1037,7 +1037,7 @@
       "registrations": [
         {
           "function": "ingest_endpoint",
-          "line": 430,
+          "line": 528,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/ingest",
@@ -1045,7 +1045,7 @@
         },
         {
           "function": "ingest",
-          "line": 90,
+          "line": 99,
           "method": "POST",
           "module": "services/rag-retrieval/main.py",
           "path": "/v1/ingest",
@@ -1115,7 +1115,7 @@
         },
         {
           "function": "query_endpoint",
-          "line": 420,
+          "line": 518,
           "method": "POST",
           "module": "services/local-ai-rag/main.py",
           "path": "/v1/query",
@@ -1151,7 +1151,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1096,
-  "route_inventory_sha256": "246c200b6aef864eb21c10c9dc6e99ce6c49dcc4862195cd3cb30b4a330c8896",
+  "route_inventory_sha256": "293e510ff5507ba07c2adfe65c6c0b546e68a2bd832e8d3122667cf5b4dd9e3a",
   "runtime_verified": false,
   "schema_version": 1
 }

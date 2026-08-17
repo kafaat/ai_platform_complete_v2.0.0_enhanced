@@ -45,7 +45,7 @@ healthcheck,compose-service,52,0,False,
 indicators-service,service,5,2,False,services/indicators-service
 interval,compose-service,52,0,False,
 knowledge-graph,service,2,0,False,services/knowledge-graph
-local-ai-rag,service,3,4,False,services/local-ai-rag
+local-ai-rag,service,3,5,False,services/local-ai-rag
 market-mcp,compose-service,2,2,False,
 mcp-servers,service,0,3,False,services/mcp_servers
 model-registry-adapter,service,0,3,False,services/model-registry-adapter
@@ -58,7 +58,7 @@ production-preflight,compose-service,3,0,False,
 python,compose-service,5,0,False,
 qdrant,compose-service,4,0,False,
 qdrant-seed,service,0,1,False,services/qdrant-seed
-rag-retrieval,service,0,1,False,services/rag-retrieval
+rag-retrieval,service,1,1,False,services/rag-retrieval
 raster-service,service,16,9,False,services/raster-service
 raster-tiler-service,service,0,0,True,services/raster-tiler-service
 redis,compose-service,33,0,False,
@@ -98,14 +98,14 @@ sahool-nginx,compose-service,0,51,False,
 sahool-notification-agent,compose-service,2,27,False,
 sahool-odoo,compose-service,1,24,False,
 sahool-odoo-bridge,compose-service,3,0,False,
-sahool-ollama,compose-service,4,0,False,
+sahool-ollama,compose-service,5,0,False,
 sahool-phase-runtime-outbox-worker,compose-service,0,11,False,
 sahool-plugin-runtime-worker,compose-service,0,11,False,
 sahool-postgres,compose-service,39,0,False,
 sahool-public,compose-service,2,0,False,
 sahool-qdrant,compose-service,6,0,False,
 sahool-qdrant-seed,compose-service,0,10,False,
-sahool-rag-retrieval,compose-service,2,17,False,
+sahool-rag-retrieval,compose-service,2,18,False,
 sahool-raster,compose-service,0,1,False,
 sahool-raster-backfill-scan-worker,compose-service,0,11,False,
 sahool-raster-cache-invalidation-worker,compose-service,0,11,False,

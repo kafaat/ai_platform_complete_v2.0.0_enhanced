@@ -70,6 +70,14 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/rag_authority_convergence.json",
+      "kind": "governed"
+    },
+    {
+      "path": "docs/architecture/rag_embedding_contract.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/schema_validation_policy.json",
       "kind": "governed"
     },

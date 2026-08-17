@@ -7696,6 +7696,18 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_authority_convergence_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_live_parity_probe.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_live_parity_receipt_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_operational_boundary_guard.py",
     "kind": "tests"
   },

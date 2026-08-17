@@ -14,6 +14,7 @@ import math
 import re
 import urllib.error
 import urllib.request
+import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Protocol
@@ -49,16 +50,24 @@ class KnowledgeChunk:
 
     @property
     def payload(self) -> dict[str, Any]:
-        return {
-            "chunk_id": self.chunk_id,
-            "tenant_id": self.tenant_id,
-            "text": self.text,
-            "source_type": self.source_type,
-            "document_id": self.document_id,
-            "chunk_index": self.chunk_index,
-            "total_chunks": self.total_chunks,
-            **self.metadata,
-        }
+        """Canonical Qdrant payload, deliberately compatible with LangChain Qdrant.
+
+        ``page_content`` + ``metadata`` are the shared storage contract.  Canonical
+        identifiers live inside metadata so the existing local-ai-rag reader can
+        consume canonical writes without a second collection or payload migration.
+        """
+        metadata = dict(self.metadata)
+        metadata.update(
+            {
+                "chunk_id": self.chunk_id,
+                "tenant_id": self.tenant_id,
+                "source_type": self.source_type,
+                "document_id": self.document_id,
+                "chunk_index": self.chunk_index,
+                "total_chunks": self.total_chunks,
+            }
+        )
+        return {"page_content": self.text, "metadata": metadata}
 
 
 @dataclass(frozen=True)
@@ -115,6 +124,48 @@ class HashEmbeddingProvider:
             vec[idx] += sign
         norm = math.sqrt(sum(v * v for v in vec)) or 1.0
         return [round(v / norm, 8) for v in vec]
+
+
+class OllamaEmbeddingProvider:
+    """Ollama embedding provider using the same model contract as local-ai-rag.
+
+    The vector dimension is intentionally learned from the live embedding response,
+    not hard-coded.  This prevents a nominal ``EMBEDDING_DIM`` from claiming
+    collection compatibility when the configured Ollama model actually emits a
+    different vector space.
+    """
+
+    def __init__(self, base_url: str, model: str, timeout_s: float = 20.0) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        self.timeout_s = timeout_s
+        self._dimensions: int | None = None
+
+    @property
+    def dimensions(self) -> int | None:
+        return self._dimensions
+
+    def embed(self, text: str) -> list[float]:
+        body = json.dumps({"model": self.model, "prompt": text}).encode("utf-8")
+        req = urllib.request.Request(
+            f"{self.base_url}/api/embeddings",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:  # noqa: S310 - internal Ollama URL
+            data = json.loads(resp.read().decode("utf-8"))
+        vector = data.get("embedding")
+        if not isinstance(vector, list) or not vector:
+            raise ValueError("Ollama embedding response missing non-empty embedding")
+        values = [float(x) for x in vector]
+        if self._dimensions is None:
+            self._dimensions = len(values)
+        elif len(values) != self._dimensions:
+            raise ValueError(
+                f"Ollama embedding dimension changed: expected {self._dimensions}, got {len(values)}"
+            )
+        return values
 
 
 class HttpEmbeddingProvider:
@@ -191,7 +242,7 @@ class BM25Index:
             if chunk.tenant_id != tenant_id:
                 continue
             if any(
-                value is not None and chunk.payload.get(key) != value
+                value is not None and chunk.metadata.get(key) != value
                 for key, value in filters.items()
             ):
                 continue
@@ -282,25 +333,42 @@ class QdrantHttpClient:
             # تعذّر الوصول/مهلة شبكة — انقطاع مزوّد لا غياب مجموعة.
             return CollectionProbeStatus.UNAVAILABLE
 
-    def ensure_collection(self) -> None:
-        """يُنشئ المجموعة **فقط** عند إثبات غيابها (404). أيّ تصنيف آخر يفشل مغلقاً.
+    def collection_vector_size(self) -> int:
+        """Return the live unnamed-vector size; fail closed on unsupported schemas."""
+        data = self._request("GET", f"/collections/{self.collection}")
+        vectors = data.get("result", {}).get("config", {}).get("params", {}).get("vectors")
+        if not isinstance(vectors, dict):
+            raise ValueError("Qdrant collection vectors schema missing")
+        size = vectors.get("size")
+        if not isinstance(size, int) or size <= 0:
+            raise ValueError("Qdrant named/invalid vector schema is not supported by this contract")
+        return size
 
-        الإنشاء بعد 401/503 كان يخفي السبب الحقيقيّ خلف فشل ثانٍ؛ فالآن يُرفَع الخطأ
-        بتصنيفه كي يقرأ المُشغّل «مفتاح غير مصرَّح» لا «تعذّر إنشاء المجموعة».
-        """
+    def ensure_collection(self, *, vector_size: int | None = None) -> None:
+        """Create only on proven 404 and verify vector-size parity when known."""
+        expected = int(vector_size or self.vector_size)
+        if expected <= 0:
+            raise ValueError("positive vector size is required to create/verify collection")
         status = self.probe_collection()
         if status is CollectionProbeStatus.EXISTS:
+            actual = self.collection_vector_size()
+            if actual != expected:
+                raise ValueError(
+                    f"Qdrant vector-size mismatch: collection={actual}, embedding={expected}"
+                )
+            self.vector_size = expected
             return
         if status is not CollectionProbeStatus.NOT_FOUND:
             raise RuntimeError(
                 f"Qdrant collection probe inconclusive ({status.value}) — "
                 "لا تُنشأ مجموعة على أساس فشل غير مُصنَّف"
             )
+        self.vector_size = expected
         self._request(
             "PUT",
             f"/collections/{self.collection}",
             {
-                "vectors": {"size": self.vector_size, "distance": "Cosine"},
+                "vectors": {"size": expected, "distance": "Cosine"},
                 "optimizers_config": {"default_segment_number": 2},
             },
         )
@@ -308,7 +376,11 @@ class QdrantHttpClient:
     def upsert(self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]) -> None:
         points = []
         for chunk, vector in zip(chunks, embeddings, strict=True):
-            points.append({"id": chunk.chunk_id, "vector": vector, "payload": chunk.payload})
+            # Qdrant point IDs are uint64 or UUID.  External chunk identifiers may
+            # be arbitrary strings, so derive a stable UUID while retaining the
+            # original chunk_id in metadata.
+            point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{chunk.chunk_id}"))
+            points.append({"id": point_id, "vector": vector, "payload": chunk.payload})
         self._request("PUT", f"/collections/{self.collection}/points?wait=true", {"points": points})
 
     def search(
@@ -319,10 +391,10 @@ class QdrantHttpClient:
         filters: dict[str, Any] | None = None,
         limit: int = 12,
     ) -> list[tuple[str, float, dict[str, Any]]]:
-        must = [{"key": "tenant_id", "match": {"value": tenant_id}}]
+        must = [{"key": "metadata.tenant_id", "match": {"value": tenant_id}}]
         for key, value in (filters or {}).items():
             if value is not None:
-                must.append({"key": key, "match": {"value": value}})
+                must.append({"key": f"metadata.{key}", "match": {"value": value}})
         response = self._request(
             "POST",
             f"/collections/{self.collection}/points/search",
@@ -351,7 +423,12 @@ class HybridQdrantRetriever:
             self.bm25.add(chunk)
             self._chunks[chunk.chunk_id] = chunk
         vectors = [self.embeddings.embed(chunk.text) for chunk in chunks]
-        self.qdrant.ensure_collection()
+        if not vectors:
+            return 0
+        dimensions = {len(v) for v in vectors}
+        if len(dimensions) != 1:
+            raise ValueError(f"embedding dimension drift within ingest batch: {sorted(dimensions)}")
+        self.qdrant.ensure_collection(vector_size=next(iter(dimensions)))
         self.qdrant.upsert(chunks, vectors)
         return len(chunks)
 
@@ -381,28 +458,42 @@ class HybridQdrantRetriever:
                 payload = next((p for qid, _, p in dense_rows if qid == cid), None)
                 if not payload:
                     continue
+                # Shared LangChain-compatible payload contract.  During EXPAND we
+                # also accept the old canonical top-level payload so a partial rollout
+                # cannot make previously written points unreadable.
+                nested = (
+                    payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+                )
+                meta = dict(nested)
+                text = payload.get("page_content", payload.get("text"))
+                chunk_id = meta.get("chunk_id", payload.get("chunk_id", cid))
+                tenant = meta.get("tenant_id", payload.get("tenant_id"))
+                source_file = meta.get("source_file")
+                source_type = meta.get("source_type", payload.get("source_type"))
+                if source_type is None and source_file:
+                    source_type = "uploaded_document"
+                document_id = meta.get("document_id", payload.get("document_id"))
+                if document_id is None and tenant and source_file:
+                    document_id = hashlib.sha256(f"{tenant}:{source_file}".encode()).hexdigest()
+                # Legacy LangChain points predate canonical chunk ordinal metadata.
+                # They remain readable during EXPAND, but are treated as isolated
+                # chunks (no invented neighbor relationship).
+                chunk_index = meta.get("chunk_index", payload.get("chunk_index", 0))
+                total_chunks = meta.get("total_chunks", payload.get("total_chunks", 1))
+                if not all(
+                    v is not None for v in (text, chunk_id, tenant, source_type, document_id)
+                ):
+                    continue
+                meta.setdefault("evidence_level", payload.get("evidence_level") or "document")
                 chunk = KnowledgeChunk(
-                    chunk_id=str(payload["chunk_id"]),
-                    tenant_id=str(payload["tenant_id"]),
-                    text=str(payload["text"]),
-                    source_type=str(payload["source_type"]),
-                    document_id=str(payload["document_id"]),
-                    chunk_index=int(payload["chunk_index"]),
-                    total_chunks=int(payload["total_chunks"]),
-                    metadata={
-                        k: v
-                        for k, v in payload.items()
-                        if k
-                        not in {
-                            "chunk_id",
-                            "tenant_id",
-                            "text",
-                            "source_type",
-                            "document_id",
-                            "chunk_index",
-                            "total_chunks",
-                        }
-                    },
+                    chunk_id=str(chunk_id),
+                    tenant_id=str(tenant),
+                    text=str(text),
+                    source_type=str(source_type),
+                    document_id=str(document_id),
+                    chunk_index=int(chunk_index),
+                    total_chunks=int(total_chunks),
+                    metadata=meta,
                 )
             dense = dense_map.get(cid, 0.0)
             sparse = sparse_map.get(cid, 0.0)

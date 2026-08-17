@@ -1532,7 +1532,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 420,
+    "line": 518,
     "method": "POST",
     "path": "/v1/query",
     "handler": "query_endpoint",
@@ -1541,7 +1541,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 430,
+    "line": 528,
     "method": "POST",
     "path": "/v1/ingest",
     "handler": "ingest_endpoint",
@@ -1550,7 +1550,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 482,
+    "line": 580,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1559,7 +1559,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 500,
+    "line": 598,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -1568,7 +1568,7 @@
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/main.py",
-    "line": 505,
+    "line": 603,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1964,7 +1964,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 55,
+    "line": 54,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -1973,7 +1973,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 60,
+    "line": 59,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -1982,7 +1982,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 73,
+    "line": 72,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -1991,7 +1991,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 90,
+    "line": 99,
     "method": "POST",
     "path": "/v1/ingest",
     "handler": "ingest",
@@ -2000,7 +2000,7 @@
   {
     "service": "rag-retrieval",
     "file": "services/rag-retrieval/main.py",
-    "line": 115,
+    "line": 129,
     "method": "POST",
     "path": "/v1/search",
     "handler": "search",

@@ -271,7 +271,7 @@
     },
     {
       "kind": "app",
-      "line": 382,
+      "line": 480,
       "module": "services.local-ai-rag.main",
       "node_id": "services.local-ai-rag.main:app",
       "route_count": 5,
@@ -370,7 +370,7 @@
     },
     {
       "kind": "app",
-      "line": 19,
+      "line": 18,
       "module": "services.rag-retrieval.main",
       "node_id": "services.rag-retrieval.main:app",
       "route_count": 5,
@@ -2586,7 +2586,7 @@
       "target": null
     }
   ],
-  "inventory_sha256": "9fc2eeac6d4421ba159af2527a2e48841aa72ad11c982d3d0e933dabbb04ea72",
+  "inventory_sha256": "c2e4aeeed6c5b0bd1770f2217f0382dfc9eb4fad02c54b51df37691da9759a7f",
   "orphan_candidate_count": 226,
   "orphan_candidates": [
     {

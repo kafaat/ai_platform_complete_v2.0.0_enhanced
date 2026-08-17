@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "319c7ea98dd860ff971696014b85874ee9a4316b84c9fde39ba95176fae173dd"
+          "content": "cf97a2cc5338ec368591c3911d03d417c339458e884a58bd54195aaacbd8e781"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4405,7 +4405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92a52a5e01bbae1004ef8e90047d9a5c8e0fd013e8d6a9eb061eb28952aefbcc"
+          "content": "66d4cbb20aaa6703716d04c9959afc717bf40922f0e5ddcb58bf5a00f28ca6d9"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -12535,7 +12535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03ed250aa891b879eeed1db5eae2dc8b8e1804c69cc6c56da179b38a16badaa0"
+          "content": "384c33993de7c82cd46ca9362bc4878c7aba7dd3d9356a7a90b921e4052ad459"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -12995,7 +12995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f5a06bcfcb6d8b522c64466c058b60ae5ccb0d4d5d4ffc1960a65d003a8b8ab"
+          "content": "03ffa13a6d09cd2dfd091e8b0e559f57b97aaddddf2c599b6c66707b47af3293"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -21835,7 +21835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84c38e390174e8a5367fe07c9aecb90faeb440fd6db1172d7e743005936e961a"
+          "content": "e679725929d2f08b44930a3df4f4b7a03e72b26bfacc8cc5e2b7a0a90458f095"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",

@@ -379,6 +379,12 @@ jobs:
       - name: platform-catalog-drift-gate
         run: python scripts/architecture/build_platform_catalog.py --check --enforce-expiry
 
+      # ARCH-S3: تقارب سلطة RAG (Expand→Parity→Cutover→Revoke) — يفشل مغلقاً على
+      # قطعٍ قبل اكتمال متطلّباته، أو استثناء Qdrant مباشر منتهٍ/بلا مالك، أو ادّعاء
+      # تكافؤ يخالف compose/العقد، أو كتالوج يُرقّي rag-retrieval قبل أوانه.
+      - name: rag-authority-convergence-gate
+        run: python scripts/architecture/rag_authority_convergence_guard.py
+
       # يمنع رجوع خطّافات FastAPI المهجورة (@app.on_event) — يُلزِم lifespan واحداً
       # مُرتَّباً (بدء/إيقاف صريحان) فتبقى تحذيرات الإهمال غائبة. يُشغَّل في فحص الفرع (pre-FF).
       - name: fastapi-lifespan-guard

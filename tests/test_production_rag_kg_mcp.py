@@ -29,7 +29,9 @@ class FakeQdrant:
     def __init__(self):
         self.points = {}
 
-    def ensure_collection(self):
+    def ensure_collection(self, *, vector_size=None):
+        if vector_size is not None:
+            assert vector_size == self.vector_size
         self.ready = True
 
     def upsert(self, chunks, embeddings):
