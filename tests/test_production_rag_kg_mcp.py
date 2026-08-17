@@ -8,13 +8,20 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services/sahool-platform"))
 sys.path.insert(0, str(ROOT / "services/mcp_servers"))
 
-from core.knowledge_graph.sqlite_graph import (  # noqa: E402
-    GraphEdge,
-    GraphNode,
-    SQLiteAgGraphStore,
-    graphql_readonly,
-    seed_reference_ontology,
-)
+import importlib.util  # noqa: E402
+
+_KG_STORE_PATH = ROOT / "services" / "knowledge-graph" / "kg_store.py"
+_spec = importlib.util.spec_from_file_location("sahool_kg_store", _KG_STORE_PATH)
+assert _spec is not None and _spec.loader is not None
+_kg_store = importlib.util.module_from_spec(_spec)
+# `sys` مستورَد أعلاه — استيرادٌ ثانٍ باسمٍ مستعار هنا تكرارٌ يكسر E402 بلا فائدة.
+sys.modules[_spec.name] = _kg_store
+_spec.loader.exec_module(_kg_store)
+GraphEdge = _kg_store.GraphEdge
+GraphNode = _kg_store.GraphNode
+SQLiteAgGraphStore = _kg_store.SQLiteAgGraphStore
+graphql_readonly = _kg_store.graphql_readonly
+seed_reference_ontology = _kg_store.seed_reference_ontology
 from core.mcp.independent_servers import IndependentMCPServer, MCPTool  # noqa: E402
 from core.rag.production_qdrant import (  # noqa: E402
     HashEmbeddingProvider,

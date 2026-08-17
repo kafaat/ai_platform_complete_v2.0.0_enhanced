@@ -12495,7 +12495,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c8adc45d019e7bc8782618d00e073dbb13b4b1eaa97798cf8f62b17b049fa8a"
+          "content": "991000a28f630f2ad28613de49bd91a59e13d00bd98aa9197ec9d263e7703083"
+        }
+      ],
+      "name": "services/knowledge-graph/kg_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9137570d231fdfda8a3660464014e5dc2abe1921ff5591fc0a7073d873b5322b"
         }
       ],
       "name": "services/knowledge-graph/main.py",
@@ -21495,7 +21505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "991000a28f630f2ad28613de49bd91a59e13d00bd98aa9197ec9d263e7703083"
+          "content": "6682b3a88c9784666a56112e3785517a05fb17fd930e6aa9e15cd52f14bc2741"
         }
       ],
       "name": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",

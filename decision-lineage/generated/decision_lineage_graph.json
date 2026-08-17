@@ -581,6 +581,7 @@
         "edge-inference",
         "field-segmentation",
         "indicators-service",
+        "knowledge-graph",
         "mcp_servers",
         "model-registry-adapter",
         "raster-service",
@@ -684,6 +685,7 @@
         "services/field-segmentation/test_exg_preprocess.py",
         "services/field-segmentation/test_segmentation.py",
         "services/indicators-service/main.py",
+        "services/knowledge-graph/kg_store.py",
         "services/mcp_servers/generic_context_server.py",
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -856,7 +858,6 @@
         "services/sahool-platform/core/implementation_verification.py",
         "services/sahool-platform/core/internal_orchestrator.py",
         "services/sahool-platform/core/isoxml_vrt.py",
-        "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
         "services/sahool-platform/core/lab_sampling.py",
         "services/sahool-platform/core/learning/prediction_calibration.py",
         "services/sahool-platform/core/learning/recommendation_log.py",
@@ -1254,6 +1255,7 @@
         "database",
         "decision-service",
         "guardrails-engine",
+        "knowledge-graph",
         "raster-service",
         "sahool-platform",
         "scout-ingest-service",
@@ -1331,6 +1333,7 @@
         "services/decision-service/tests/test_wx11_5_model_activation_approval.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
         "services/guardrails-engine/tiers/chemical_tier.py",
+        "services/knowledge-graph/kg_store.py",
         "services/raster-service/raster_scene_model.py",
         "services/raster-service/routers/fields.py",
         "services/raster-service/routers/imagery.py",
@@ -1406,7 +1409,6 @@
         "services/sahool-platform/core/guardrails.py",
         "services/sahool-platform/core/historical_loader.py",
         "services/sahool-platform/core/historical_onboarding.py",
-        "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
         "services/sahool-platform/core/lab_sampling.py",
         "services/sahool-platform/core/learning_source_lineage.py",
         "services/sahool-platform/core/productivity_zones.py",
@@ -2617,5 +2619,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "9b09a58bf110c3fc93a6463cdbc8c188b526bde69761d9c76d1cb2bf27361324"
+  "content_sha256": "8576e68d8ac4a21f8b404b1ce50afee4ca0b115792a97f3491080c3f2316907e"
 }

@@ -3,14 +3,14 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from core.knowledge_graph.sqlite_graph import (
+from fastapi import Depends, FastAPI, HTTPException, Response
+from kg_store import (
     GraphEdge,
     GraphNode,
     SQLiteAgGraphStore,
     graphql_readonly,
     seed_reference_ontology,
 )
-from fastapi import Depends, FastAPI, HTTPException, Response
 from pydantic import BaseModel
 
 from shared.security.gateway_deps import require_service_token, require_trusted_tenant

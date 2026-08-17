@@ -3,6 +3,7 @@
   "adjudicated_on": "2026-08-05",
   "decided": [
     "SERVICE_REGISTRY_HARDENING_CONTRACT.json",
+    "authority_cutovers.json",
     "capability_core_consumption_registry.json",
     "certification_acceptance_record.json",
     "claim_base_registry.json",
