@@ -14,7 +14,7 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = '228ac4a7206625326bbdc899f9969bb527803880fac8f70b7e63e58a32bfca4b';
+export const PLATFORM_CATALOG_FINGERPRINT = '27b88425b54e5e3f508b1747409c32a73ac56e85b3d7d68eee2087489fc0c97d';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
@@ -24,7 +24,7 @@ export const PLATFORM_CATALOG_COUNTS = {
   "capabilities_idempotent": 46,
   "capabilities_season_scoped": 10,
   "capabilities_tenant_scoped": 477,
-  "components": 34,
+  "components": 36,
   "cross_service_duplicate_method_paths": 12,
   "duplicate_groups_classified": 12,
   "indicator_products": 34,
@@ -199,6 +199,15 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
   },
   {
     "capabilityCount": 0,
+    "domain": "notifications",
+    "id": "notification-agent",
+    "tested": null,
+    "type": "worker",
+    "wired": null,
+    "wiringDisposition": null
+  },
+  {
+    "capabilityCount": 0,
     "domain": "knowledge",
     "id": "qdrant-seed",
     "tested": true,
@@ -286,6 +295,15 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "type": "service",
     "wired": true,
     "wiringDisposition": "consumed"
+  },
+  {
+    "capabilityCount": 0,
+    "domain": "messaging-channel",
+    "id": "telegram-bot",
+    "tested": null,
+    "type": "service",
+    "wired": null,
+    "wiringDisposition": null
   },
   {
     "capabilityCount": 4,

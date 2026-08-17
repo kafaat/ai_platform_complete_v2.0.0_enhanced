@@ -39,7 +39,7 @@ REG = json.loads(REGISTRY.read_text(encoding="utf-8"))
 # قياس متّسق اصطناعيّ مشتقّ من السجلّ نفسه — أساس التحوير في كلّ اختبار سلبيّ.
 _CONSISTENT = {
     cid: {
-        "deployment_unit": e["deployment_unit"],
+        "deployment_units": list(e["deployment_units"]),
         "source_path": e["source_path"],
         "owns_tables": e["authority_kind"] == "system_of_record",
     }
@@ -58,7 +58,7 @@ def test_unclassified_component_is_a_measured_failure() -> None:
     """المكوّن المكتشَف بلا صفّ سجلّ لا يسقط إلى service صامتاً — يفشل بالاسم."""
     measured = copy.deepcopy(_CONSISTENT)
     measured["ghost-service"] = {
-        "deployment_unit": None,
+        "deployment_units": [],
         "source_path": "services/ghost-service",
         "owns_tables": False,
     }
@@ -74,11 +74,11 @@ def test_stale_registry_entry_is_a_measured_failure() -> None:
     assert any("stale registry entry: auth" in f for f in failures)
 
 
-def test_declared_deployment_unit_must_match_measured() -> None:
+def test_declared_deployment_units_must_match_measured() -> None:
     registry = copy.deepcopy(REG)
-    registry["components"]["auth"]["deployment_unit"] = "wrong-unit"
+    registry["components"]["auth"]["deployment_units"] = ["wrong-unit"]
     failures = MOD.component_classification_failures(registry, copy.deepcopy(_CONSISTENT))
-    assert any("auth" in f and "deployment_unit" in f for f in failures)
+    assert any("auth" in f and "deployment_units" in f for f in failures)
 
 
 def test_declared_source_path_must_match_measured() -> None:
@@ -124,7 +124,7 @@ def test_shipped_component_inventory_matches_the_registry() -> None:
         assert r["authority_kind"] == entry["authority_kind"], r["component_id"]
         assert r["domain"] == entry["domain"], r["component_id"]
         assert r["source_path"] == entry["source_path"], r["component_id"]
-        assert r["deployment_unit"] == (entry["deployment_unit"] or ""), r["component_id"]
+        assert r["deployment_units"] == "|".join(entry["deployment_units"]), r["component_id"]
 
 
 def test_shipped_csv_header_is_the_s1a_schema() -> None:
@@ -133,7 +133,7 @@ def test_shipped_csv_header_is_the_s1a_schema() -> None:
     assert header.split(",")[:6] == [
         "component_id",
         "component_kind",
-        "deployment_unit",
+        "deployment_units",
         "domain",
         "authority_kind",
         "source_path",
@@ -197,3 +197,81 @@ def test_overrides_no_longer_carry_classification() -> None:
     assert data["components"] == {}
     for extra in data["extra_components"]:
         assert "type" not in extra and "domain" not in extra
+
+
+# ── ARCH-S2: حقيقة الاعتماد — قياس البناء يحلّ الوحدات، والإغلاق تامّ ─
+
+
+def _measured_units() -> dict[str, list[str]]:
+    return {cid: list(m["deployment_units"]) for cid, m in _CONSISTENT.items()}
+
+
+def _measured_infra() -> list[str]:
+    return list(REG["infrastructure_units"])
+
+
+def test_s2_consistent_truth_yields_zero_failures() -> None:
+    assert MOD.dependency_truth_failures(REG, _measured_units(), _measured_infra(), {}) == []
+
+
+def test_s2_unresolved_compose_unit_is_a_measured_failure() -> None:
+    """خدمة تُبنى من مصدرٍ لا مكوّن له لا تمرّ صامتة — صنف اليتيمَين المقيسَين."""
+    failures = MOD.dependency_truth_failures(
+        REG, _measured_units(), _measured_infra(), {"sahool-ghost": "services/ghost"}
+    )
+    assert any("unresolved compose unit: sahool-ghost" in f for f in failures)
+
+
+def test_s2_undeclared_infrastructure_is_a_measured_failure() -> None:
+    failures = MOD.dependency_truth_failures(
+        REG, _measured_units(), _measured_infra() + ["sahool-new-infra"], {}
+    )
+    assert any("sahool-new-infra" in f for f in failures)
+
+
+def test_s2_stale_infrastructure_declaration_is_a_measured_failure() -> None:
+    infra = [u for u in _measured_infra() if u != "sahool-postgres"]
+    failures = MOD.dependency_truth_failures(REG, _measured_units(), infra, {})
+    assert any("sahool-postgres" in f for f in failures)
+
+
+def test_s2_declared_units_must_match_measured() -> None:
+    units = _measured_units()
+    units["sahool-platform"] = [u for u in units["sahool-platform"] if u != "sahool-platform"]
+    failures = MOD.dependency_truth_failures(REG, units, _measured_infra(), {})
+    assert any("sahool-platform" in f and "deployment_units" in f for f in failures)
+
+
+def test_s2_build_source_resolution_is_measured_not_guessed() -> None:
+    """dockerfile يسمّي المصدر؛ context حين لا يكون الجذر؛ image-only ⇒ None."""
+    assert (
+        MOD.resolve_build_source({"build": {"context": ".", "dockerfile": "services/x/Dockerfile"}})
+        == "services/x"
+    )
+    assert (
+        MOD.resolve_build_source({"build": {"context": "services/model-registry-adapter"}})
+        == "services/model-registry-adapter"
+    )
+    assert MOD.resolve_build_source({"build": {"context": "./frontend"}}) == "frontend"
+    assert MOD.resolve_build_source({"image": "redis:7-alpine"}) is None
+
+
+def test_s2_former_orphans_are_now_classified_components() -> None:
+    """اليتيمان المقيسان من compose دخلا الجرد بدل إخفائهما."""
+    assert REG["components"]["telegram-bot"]["source_path"] == "bots/telegram"
+    assert REG["components"]["notification-agent"]["source_path"] == "agents/notification"
+    catalog = json.loads((ROOT / "platform_catalog.generated.json").read_text(encoding="utf-8"))
+    ids = {c["component_id"] for c in catalog["components"]}
+    assert {"telegram-bot", "notification-agent"} <= ids
+
+
+def test_s2_full_compose_closure_on_the_shipped_tree() -> None:
+    """الإغلاق التامّ: كلّ خدمة compose وحدةُ مكوّن أو بنية تحتيّة معلَنة — لا ثالث."""
+    import yaml
+
+    compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    all_units = set(compose["services"])
+    component_units = {u for e in REG["components"].values() for u in e["deployment_units"]}
+    infra = set(REG["infrastructure_units"])
+    assert component_units | infra == all_units
+    assert not component_units & infra

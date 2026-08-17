@@ -1,8 +1,10 @@
 {
-  "schema": "sahool.component_registry",
-  "version": 1,
-  "adjudicated_on": "2026-08-16",
-  "note_ar": "ARCH-S1a: المصدر المعماريّ القانونيّ الواحد لتصنيف مكوّنات المنصّة. قبل هذا السجلّ كان التصنيف يسكن config/platform_catalog_overrides.yml ويسقط افتراضيّاً إلى service لكلّ مكوّن غير مذكور — فالمكوّن غير المصنَّف كان يمرّ صامتاً. الآن: كلّ مكوّن يكتشفه المُصرِّف يجب أن يحمل صفّاً هنا (unclassified = فشل بناء)، وكلّ صفّ هنا يجب أن يقابله مكوّن مكتشَف (stale = فشل بناء). الحقول القابلة للقياس (deployment_unit/source_path/authority_kind) مُعلَنة هنا ويُثبتها المُصرِّف تقاطعيّاً ضدّ الواقع المقيس (compose/الجرد/ملكيّة الجداول) — إعلانٌ يخالف القياس يُفشِل البناء، لا يُصحَّح صامتاً. deployment_unit=null يعني: لا خدمة compose تُحلّ قانونيّاً إلى هذا المكوّن اليوم كما يقيسها المُصرِّف (فجوة تحليل أسماء موروثة تُعالَج في شريحة لاحقة، لا تُلفَّق هنا). المفردات مهاجَرة من الموروث: adapter→worker_adapter · job→init_job · batch-job-tool→tool_bundle. library صنف معتمَد بلا أعضاء اليوم (لا يُخترَع مكوّن لملئه).",
+  "adjudicated_on": "2026-08-17",
+  "authority_kinds": [
+    "system_of_record",
+    "stateless_compute",
+    "presentation"
+  ],
   "component_kinds": [
     "service",
     "worker",
@@ -14,249 +16,364 @@
     "frontend",
     "mobile"
   ],
-  "authority_kinds": [
-    "system_of_record",
-    "stateless_compute",
-    "presentation"
-  ],
   "components": {
     "actuator-service": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-actuator-service",
-      "domain": "execution",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-actuator-service"
+      ],
+      "domain": "execution",
       "source_path": "services/actuator-service"
     },
     "agriai-engine": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-agriai-engine",
-      "domain": "simulation-experimental",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-agriai-engine"
+      ],
+      "domain": "simulation-experimental",
       "source_path": "services/agriai-engine"
     },
     "ai_agronomist": {
-      "component_kind": "service",
-      "deployment_unit": null,
-      "domain": "agents",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-ai-agronomist"
+      ],
+      "domain": "agents",
       "source_path": "services/ai_agronomist"
     },
     "auth": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-auth",
-      "domain": "identity",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-auth"
+      ],
+      "domain": "identity",
       "source_path": "services/auth"
     },
     "decision-service": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-decision-service",
-      "domain": "decision-governance",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-decision-service"
+      ],
+      "domain": "decision-governance",
       "source_path": "services/decision-service"
     },
     "edge-inference": {
-      "component_kind": "service",
-      "deployment_unit": null,
-      "domain": "edge",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-edge"
+      ],
+      "domain": "edge",
       "source_path": "services/edge-inference"
     },
     "erp-bridge": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-erp-bridge",
-      "domain": "erp-projection",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-erp-bridge"
+      ],
+      "domain": "erp-projection",
       "source_path": "services/odoo-bridge"
     },
     "field-management-service": {
-      "component_kind": "service",
-      "deployment_unit": null,
-      "domain": "fields-internal",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-field-management"
+      ],
+      "domain": "fields-internal",
       "source_path": "services/field-management-service"
     },
     "field-segmentation": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-field-segmentation",
-      "domain": "fields-boundary",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-field-segmentation"
+      ],
+      "domain": "fields-boundary",
       "source_path": "services/field-segmentation"
     },
     "frontend": {
-      "component_kind": "frontend",
-      "deployment_unit": null,
-      "domain": "user-interface",
       "authority_kind": "presentation",
+      "component_kind": "frontend",
+      "deployment_units": [
+        "sahool-frontend"
+      ],
+      "domain": "user-interface",
       "source_path": "frontend"
     },
     "gis-workflow-service": {
-      "component_kind": "tool_bundle",
-      "deployment_unit": null,
-      "domain": "gis-publication",
       "authority_kind": "system_of_record",
+      "component_kind": "tool_bundle",
+      "deployment_units": [],
+      "domain": "gis-publication",
       "source_path": "services/gis-workflow-service"
     },
     "guardrails-engine": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-guardrails-engine",
-      "domain": "decision-governance",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-guardrails-engine"
+      ],
+      "domain": "decision-governance",
       "source_path": "services/guardrails-engine"
     },
     "indicators-service": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-indicators-service",
-      "domain": "indicators",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-indicators-service"
+      ],
+      "domain": "indicators",
       "source_path": "services/indicators-service"
     },
     "knowledge-graph": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-knowledge-graph",
-      "domain": "knowledge",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-knowledge-graph"
+      ],
+      "domain": "knowledge",
       "source_path": "services/knowledge-graph"
     },
     "local-ai-rag": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-local-ai-rag",
-      "domain": "knowledge",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-local-ai-rag"
+      ],
+      "domain": "knowledge",
       "source_path": "services/local-ai-rag"
     },
     "mcp_servers": {
-      "component_kind": "service",
-      "deployment_unit": null,
-      "domain": "agents-mcp",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-market-mcp",
+        "sahool-sentinel-hub-mcp",
+        "sahool-weather-mcp",
+        "sahool-wofost-mcp"
+      ],
+      "domain": "agents-mcp",
       "source_path": "services/mcp_servers"
     },
     "mobile": {
-      "component_kind": "mobile",
-      "deployment_unit": null,
-      "domain": "user-interface",
       "authority_kind": "presentation",
+      "component_kind": "mobile",
+      "deployment_units": [],
+      "domain": "user-interface",
       "source_path": "mobile"
     },
     "model-registry-adapter": {
-      "component_kind": "worker_adapter",
-      "deployment_unit": null,
-      "domain": "decision-governance",
       "authority_kind": "stateless_compute",
+      "component_kind": "worker_adapter",
+      "deployment_units": [
+        "sahool-model-lifecycle-adapter"
+      ],
+      "domain": "decision-governance",
       "source_path": "services/model-registry-adapter"
     },
-    "qdrant-seed": {
-      "component_kind": "init_job",
-      "deployment_unit": "sahool-qdrant-seed",
-      "domain": "knowledge",
+    "notification-agent": {
       "authority_kind": "stateless_compute",
+      "component_kind": "worker",
+      "deployment_units": [
+        "sahool-notification-agent"
+      ],
+      "domain": "notifications",
+      "source_path": "agents/notification"
+    },
+    "qdrant-seed": {
+      "authority_kind": "stateless_compute",
+      "component_kind": "init_job",
+      "deployment_units": [
+        "sahool-qdrant-seed"
+      ],
+      "domain": "knowledge",
       "source_path": "services/qdrant-seed"
     },
     "rag-retrieval": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-rag-retrieval",
-      "domain": "knowledge",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-rag-retrieval"
+      ],
+      "domain": "knowledge",
       "source_path": "services/rag-retrieval"
     },
     "raster-service": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-raster-service",
-      "domain": "remote-sensing-truth",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-raster-backfill-scan-worker",
+        "sahool-raster-cache-invalidation-worker",
+        "sahool-raster-service"
+      ],
+      "domain": "remote-sensing-truth",
       "source_path": "services/raster-service"
     },
     "raster-tiler-service": {
-      "component_kind": "service",
-      "deployment_unit": "raster-tiler-service",
-      "domain": "remote-sensing-truth",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "raster-tiler-service"
+      ],
+      "domain": "remote-sensing-truth",
       "source_path": "services/raster-tiler-service"
     },
     "remote-sensing-workspace-bff": {
-      "component_kind": "bff",
-      "deployment_unit": "sahool-remote-sensing-workspace-bff",
-      "domain": "remote-sensing-workspace",
       "authority_kind": "stateless_compute",
+      "component_kind": "bff",
+      "deployment_units": [
+        "sahool-remote-sensing-workspace-bff"
+      ],
+      "domain": "remote-sensing-workspace",
       "source_path": "services/remote-sensing-workspace-bff"
     },
     "sahool-platform": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-platform",
-      "domain": "platform-core",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-actuator-dispatch-worker",
+        "sahool-canonical-execution-learning-worker",
+        "sahool-irrigation-reservation-lifecycle-worker",
+        "sahool-model-registry-worker",
+        "sahool-phase-runtime-outbox-worker",
+        "sahool-platform",
+        "sahool-plugin-runtime-worker",
+        "sahool-reservation-dispatch-relay-worker",
+        "sahool-water-ledger-worker"
+      ],
+      "domain": "platform-core",
       "source_path": "services/sahool-platform"
     },
     "sam2-inference": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-sam2-inference",
-      "domain": "fields-boundary",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-sam2-inference"
+      ],
+      "domain": "fields-boundary",
       "source_path": "services/sam2-inference"
     },
     "scout-ingest-service": {
-      "component_kind": "service",
-      "deployment_unit": null,
-      "domain": "ground-ingest",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-scout-ingest",
+        "sahool-scout-ingest-projection"
+      ],
+      "domain": "ground-ingest",
       "source_path": "services/scout-ingest-service"
     },
     "soil-service": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-soil-service",
-      "domain": "soil",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-soil-service"
+      ],
+      "domain": "soil",
       "source_path": "services/soil-service"
     },
     "supervisor-agent": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-supervisor-agent",
-      "domain": "agents",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-supervisor-agent"
+      ],
+      "domain": "agents",
       "source_path": "services/supervisor-agent"
     },
-    "tts-service": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-tts-service",
-      "domain": "media",
+    "telegram-bot": {
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-telegram-bot"
+      ],
+      "domain": "messaging-channel",
+      "source_path": "bots/telegram"
+    },
+    "tts-service": {
+      "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-tts-service"
+      ],
+      "domain": "media",
       "source_path": "services/tts-service"
     },
     "vegetation-analysis-service": {
-      "component_kind": "service",
-      "deployment_unit": null,
-      "domain": "vegetation-interpretation",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-vegetation-analysis"
+      ],
+      "domain": "vegetation-interpretation",
       "source_path": "services/vegetation-analysis-service"
     },
     "video-processor": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-video-processor",
-      "domain": "media",
       "authority_kind": "stateless_compute",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-video-processor"
+      ],
+      "domain": "media",
       "source_path": "services/video-processor"
     },
     "weather-polygon-worker": {
-      "component_kind": "worker",
-      "deployment_unit": "sahool-weather-polygon-worker",
-      "domain": "weather-truth",
       "authority_kind": "stateless_compute",
+      "component_kind": "worker",
+      "deployment_units": [
+        "sahool-weather-polygon-worker"
+      ],
+      "domain": "weather-truth",
       "source_path": "services/weather-polygon-worker"
     },
     "weather-service": {
-      "component_kind": "service",
-      "deployment_unit": "sahool-weather-service",
-      "domain": "weather-truth",
       "authority_kind": "system_of_record",
+      "component_kind": "service",
+      "deployment_units": [
+        "sahool-weather-service"
+      ],
+      "domain": "weather-truth",
       "source_path": "services/weather-service"
     },
     "weather-signal-engine": {
-      "component_kind": "worker",
-      "deployment_unit": "sahool-weather-signal-engine",
-      "domain": "weather-truth",
       "authority_kind": "stateless_compute",
+      "component_kind": "worker",
+      "deployment_units": [
+        "sahool-weather-signal-engine"
+      ],
+      "domain": "weather-truth",
       "source_path": "services/weather-signal-engine"
     }
-  }
+  },
+  "infrastructure_units": [
+    "sahool-alertmanager",
+    "sahool-fastbee",
+    "sahool-grafana",
+    "sahool-jaeger",
+    "sahool-migrate",
+    "sahool-minio",
+    "sahool-minio-init",
+    "sahool-nats",
+    "sahool-nginx",
+    "sahool-odoo",
+    "sahool-ollama",
+    "sahool-postgres",
+    "sahool-prometheus",
+    "sahool-qdrant",
+    "sahool-redis",
+    "sahool-redis-state",
+    "sahool-titiler",
+    "sahool-zlmediakit",
+    "sahool-zlmediakit-config"
+  ],
+  "note_ar": "ARCH-S1a+S2: المصدر المعماريّ القانونيّ الواحد لتصنيف مكوّنات المنصّة وحقيقة نشرها. S1a أعدمت السقوط الصامت إلى service (unclassified/stale = فشل بناء، والإعلانات تُثبَت ضدّ المقيس). S2 (v2) أبدلت تخمين الأسماء بقياس البناء: deployment_units تُشتقّ من build.dockerfile/context في docker-compose.v9.yml (المسار يسمّي مجلّد المصدر لا لبس فيه) — فحُلّت العشر التي كانت null بقصور التحليل، ودخل اليتيمان المقيسان telegram-bot (bots/telegram) وnotification-agent (agents/notification) الجردَ بدل إخفائهما، وأُعلنت infrastructure_units (image-only، لا مصدر مكوّن) بقائمة مُثبَتة ضدّ المقيس. الإغلاق التامّ: كلّ خدمة compose إمّا وحدة مكوّن مبنيّة أو بنية تحتيّة معلَنة — لا ثالث. deployment_units=[] صادقة لثلاث حالات: mobile (توزيع متاجر)، gis-workflow-service (أداة دفعات بلا خدمة)، ولا تُلفَّق وحدات لملئها. المفردات كما في S1a؛ library صنف معتمَد بلا أعضاء.",
+  "schema": "sahool.component_registry",
+  "version": 2
 }

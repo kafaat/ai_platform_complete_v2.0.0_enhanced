@@ -107,6 +107,332 @@ def _load_yaml(rel: str):
     return yaml.safe_load((ROOT / rel).read_text(encoding="utf-8"))
 
 
+# ── ARCH-S2: typed dependency truth from measured repository evidence ─
+
+_S2_RELATIONS = {"CALLS", "EMITS", "CONSUMES", "READS", "WRITES", "ROUTES_TO"}
+
+
+def _component_from_path(
+    path: str, canonical, component_ids: set[str], source_prefixes: list[tuple[str, str]]
+) -> str | None:
+    """يحلّ مسار دليلٍ في المستودع إلى مكوّنه القانونيّ — بسلطة source_path في
+    السجلّ أوّلاً (فيغطّي bots/ وagents/ كما services/) بلا اختراع أسماء."""
+    s = str(path)
+    for prefix, cid in source_prefixes:
+        if s == prefix or s.startswith(prefix + "/"):
+            return cid if cid in component_ids else None
+    parts = Path(s).parts
+    if not parts:
+        return None
+    if parts[0] == "services" and len(parts) > 1:
+        cid = canonical(parts[1])
+        return cid if cid in component_ids else None
+    if parts[0] in {"frontend", "mobile"} and parts[0] in component_ids:
+        return parts[0]
+    return None
+
+
+def build_dependency_truth(
+    *,
+    components: dict[str, dict],
+    compose: dict[str, dict],
+    canonical,
+    gate_rows: dict[str, dict],
+    source_prefixes: list[tuple[str, str]],
+) -> tuple[dict, list[str]]:
+    """ARCH-S2: رسمٌ مقيس واحد فوق هويّات المكوّنات والموارد.
+
+    لا جدول اعتماد يدويّاً هنا: الحوافّ تُشتقّ حصراً من سلك compose، وشواهد UI
+    المتحقَّقة fail-closed، وتدقيق NATS الحرفيّ، وتدقيق قراءات/كتابات القاعدة،
+    وتدقيق بوّابة Nginx المولَّد. عقود التشغيل فحصُ اكتمالٍ لا سلطة ثانية."""
+    component_ids = set(components)
+    edges: list[dict] = []
+    failures: list[str] = []
+
+    source_resolution = {
+        "nats": {"observed": 0, "resolved": 0, "unresolved_component_paths": 0},
+        "postgres": {"observed": 0, "resolved": 0, "unresolved_component_paths": 0},
+        "gateway": {"observed": 0, "component_targets": 0, "runtime_upstream_targets": 0},
+    }
+
+    def add(
+        src: str,
+        dst: str,
+        relation: str,
+        *,
+        resource: str,
+        evidence: str,
+        protocol: str,
+        from_kind: str = "component",
+        to_kind: str = "component",
+    ):
+        if relation not in _S2_RELATIONS:
+            failures.append(f"unknown S2 relation: {relation}")
+            return
+        edges.append(
+            {
+                "from": src,
+                "from_kind": from_kind,
+                "to": dst,
+                "to_kind": to_kind,
+                "relation": relation,
+                "resource": resource,
+                "protocol": protocol,
+                "evidence": evidence,
+            }
+        )
+
+    def resolve_evidence_component(path: str, *, source: str) -> str | None:
+        """يحلّ دليلاً مملوكاً لمكوّن، ويفشل مغلقاً على المسار المملوك غير المحلول.
+
+        المكتبات المشتركة (shared/) يُسمح ببقائها بلا نسبة — ليست مكوّنات نشر.
+        أمّا الدليل تحت مصادر المكوّنات (services/frontend/mobile/bots/agents)
+        فيدّعي مالكاً بالبناء ولا يجوز أن يختفي لمجرّد انحراف اسمٍ مستعار."""
+        source_resolution[source]["observed"] += 1
+        cid = _component_from_path(path, canonical, component_ids, source_prefixes)
+        if cid:
+            source_resolution[source]["resolved"] += 1
+            return cid
+        parts = Path(str(path)).parts
+        if parts and parts[0] in {"services", "frontend", "mobile", "bots", "agents"}:
+            source_resolution[source]["unresolved_component_paths"] += 1
+            failures.append(f"unresolved {source} component evidence path: {path}")
+        return None
+
+    for src, row in sorted(compose.items()):
+        if src not in component_ids:
+            continue
+        for dst in sorted(row.get("consumes_services") or []):
+            if dst in component_ids and dst != src:
+                add(
+                    src,
+                    dst,
+                    "CALLS",
+                    resource="compose-env-url",
+                    evidence="docker-compose.v9.yml",
+                    protocol="http",
+                )
+
+    for dst, row in sorted(gate_rows.items()):
+        if dst not in component_ids or row.get("status") != "pass":
+            continue
+        for group in row.get("evidence") or []:
+            if group.get("kind") != "ui":
+                continue
+            for match in group.get("matches") or []:
+                src = _component_from_path(
+                    str(match.get("path") or ""), canonical, component_ids, source_prefixes
+                )
+                pattern = str(match.get("pattern") or "")
+                match_path = str(match.get("path") or "")
+                is_test = any(tok in match_path for tok in (".test.", ".spec.", "static.test"))
+                # اسم مكوّن/صنف شاهدُ استهلاكٍ لبوّابة U3 لكنّه ليس اعتماد HTTP —
+                # S2 يسجّل الإشارات الشبيهة بنقاط النهاية في الإنتاج فقط.
+                if (
+                    src in {"frontend", "mobile"}
+                    and src != dst
+                    and pattern.startswith("/")
+                    and not is_test
+                ):
+                    add(
+                        src,
+                        dst,
+                        "CALLS",
+                        resource=pattern,
+                        evidence=f"{match_path}:{match.get('line')}",
+                        protocol="ui",
+                    )
+
+    event_graph = _load_json("event-audit/generated/event_contract_graph.json")
+    for subj in event_graph.get("subjects") or []:
+        resource = f"nats://{subj.get('subject')}"
+        for prod in subj.get("producers") or []:
+            src = resolve_evidence_component(str(prod.get("file") or ""), source="nats")
+            if src:
+                add(
+                    src,
+                    resource,
+                    "EMITS",
+                    resource=resource,
+                    evidence=f"{prod.get('file')}:{prod.get('line')}",
+                    protocol="nats",
+                    to_kind="resource",
+                )
+        for cons in subj.get("consumers") or []:
+            dst = resolve_evidence_component(str(cons.get("file") or ""), source="nats")
+            if dst:
+                add(
+                    dst,
+                    resource,
+                    "CONSUMES",
+                    resource=resource,
+                    evidence=f"{cons.get('file')}:{cons.get('line')}",
+                    protocol="nats",
+                    to_kind="resource",
+                )
+
+    db_graph = _load_json("database-audit/generated/database_contract_graph.json")
+    for table in db_graph.get("tables") or []:
+        resource = f"db://{table.get('table')}"
+        for rel, key in (("READS", "code_readers"), ("WRITES", "code_writers")):
+            for path in table.get(key) or []:
+                src = resolve_evidence_component(str(path), source="postgres")
+                if src:
+                    add(
+                        src,
+                        resource,
+                        rel,
+                        resource=resource,
+                        evidence=str(path),
+                        protocol="postgres",
+                        to_kind="resource",
+                    )
+
+    gateway = _load_json("gateway-audit/generated/gateway_reachability.json")
+    for f in gateway.get("files") or []:
+        upstreams = f.get("upstreams") or {}
+        for loc in f.get("locations") or []:
+            up = loc.get("upstream")
+            hosts = upstreams.get(up) or []
+            if not hosts:
+                continue
+            raw_host = str(hosts[0].get("host") or "")
+            dst = canonical(raw_host)
+            selector = str(loc.get("selector") or "")
+            source_resolution["gateway"]["observed"] += 1
+            if dst in component_ids:
+                source_resolution["gateway"]["component_targets"] += 1
+                add(
+                    "gateway:nginx",
+                    dst,
+                    "ROUTES_TO",
+                    resource=selector,
+                    evidence=f"{f.get('file')}:{loc.get('line')}",
+                    protocol="http",
+                    from_kind="gateway",
+                    to_kind="component",
+                )
+            else:
+                # upstream مقيسٌ في البوّابة اعتمادٌ وإن لم يكن مكوّناً تطبيقيّاً
+                # قانونيّاً (بنية/تشغيل خارجيّ) — لا يُسقَط أبداً.
+                source_resolution["gateway"]["runtime_upstream_targets"] += 1
+                add(
+                    "gateway:nginx",
+                    f"runtime-upstream://{raw_host}",
+                    "ROUTES_TO",
+                    resource=selector,
+                    evidence=f"{f.get('file')}:{loc.get('line')}",
+                    protocol="http",
+                    from_kind="gateway",
+                    to_kind="runtime_upstream",
+                )
+
+    runtime = _load_json("runtime-contracts/generated/runtime_contracts.json")
+    runtime_services = {canonical(r.get("service")) for r in runtime.get("services") or []}
+    backend = {
+        cid for cid, c in components.items() if c.get("sources", {}).get("service_inventory")
+    }
+    missing_runtime = sorted(backend - runtime_services)
+    if missing_runtime:
+        failures.append(f"runtime contract missing for components: {missing_runtime}")
+
+    # إزالة تكرار حتميّة؛ الدليل المكرَّر للحافّة الدلاليّة نفسها يبقى حافّةً لكلّ
+    # مرساة دليلٍ متمايزة — فيبقى الرسم قابلاً للتدقيق لا عدّاً مجرّداً.
+    unique = {
+        (e["from"], e["to"], e["relation"], e["resource"], e["protocol"], e["evidence"]): e
+        for e in edges
+    }
+    edges = sorted(
+        unique.values(),
+        key=lambda e: (e["relation"], e["from"], e["to"], e["resource"], e["evidence"]),
+    )
+    relation_counts = {
+        r: sum(1 for e in edges if e["relation"] == r) for r in sorted(_S2_RELATIONS)
+    }
+    graph = {
+        "schema": "sahool.dependency_graph.v2",
+        "evidence_scope": [
+            "docker-compose.v9.yml",
+            "config/service_feature_ui_contracts.json + verified match anchors",
+            "event-audit/generated/event_contract_graph.json",
+            "database-audit/generated/database_contract_graph.json",
+            "gateway-audit/generated/gateway_reachability.json",
+            "runtime-contracts/generated/runtime_contracts.json (coverage invariant)",
+        ],
+        "relation_counts": relation_counts,
+        "source_resolution": source_resolution,
+        "edge_count": len(edges),
+        "edges": edges,
+        "limitations": [
+            "static repository evidence only; runtime reachability is not asserted",
+            "gateway upstreams that are not canonical app components are retained as typed runtime_upstream nodes",
+            "dynamic NATS subjects are excluded unless resolved to a literal contract",
+            "DB ownership alone is not treated as a READS/WRITES access edge",
+        ],
+    }
+    return graph, failures
+
+
+# ── ARCH-S2: dependency truth — build-measured unit resolution ───
+
+
+def _compose_services() -> dict:
+    return (_load_yaml("docker-compose.v9.yml") or {}).get("services", {})
+
+
+def resolve_build_source(svc: dict) -> str | None:
+    """ARCH-S2: مجلّد المصدر المقيس لخدمة compose من build نفسه — لا من اسمها.
+
+    تخمينُ الأسماء (canonicalizer) ترك عشر خدمات بلا مكوّن (sahool-field-management
+    لا يُحلّ إلى field-management-service نصّيّاً). القياس الصحيح: build.dockerfile
+    يسمّي مجلّد المصدر حرفيّاً، وbuild.context حين لا يكون الجذر. image-only ⇒ None
+    (بنية تحتيّة، لا مصدر مكوّن)."""
+    build = svc.get("build")
+    if not build:
+        return None
+    if isinstance(build, str):
+        ctx, dockerfile = build, "Dockerfile"
+    else:
+        ctx = build.get("context", ".")
+        dockerfile = build.get("dockerfile", "Dockerfile")
+    ctx = ctx.lstrip("./") or "."
+    if ctx != ".":
+        return ctx.rstrip("/")
+    parent = str(Path(dockerfile).parent)
+    return None if parent == "." else parent
+
+
+def dependency_truth_failures(
+    registry: dict,
+    measured_units: dict[str, list[str]],
+    measured_infra: list[str],
+    unresolved: dict[str, str],
+) -> list[str]:
+    """بوّابة S2 النقيّة: الإغلاق التامّ لخدمات compose — كلّ خدمة إمّا وحدةُ
+    مكوّنٍ مبنيّةٌ من مصدرٍ مصنَّف، أو بنيةٌ تحتيّةٌ معلَنة. لا ثالث، ولا null
+    بقصور تحليلٍ بعد اليوم."""
+    failures: list[str] = []
+    for unit, source in sorted(unresolved.items()):
+        failures.append(f"unresolved compose unit: {unit} — يُبنى من {source!r} ولا مكوّن مصنَّفاً له")
+    declared_infra = registry.get("infrastructure_units", [])
+    if sorted(declared_infra) != sorted(measured_infra):
+        extra = sorted(set(declared_infra) - set(measured_infra))
+        missing = sorted(set(measured_infra) - set(declared_infra))
+        if extra:
+            failures.append(f"infrastructure_units بائتة (لا تقابل خدمة image-only): {extra}")
+        if missing:
+            failures.append(f"خدمات image-only غير معلَنة بنيةً تحتيّة: {missing}")
+    entries = registry["components"]
+    for cid in sorted(set(entries) & set(measured_units)):
+        declared = entries[cid].get("deployment_units")
+        measured = sorted(measured_units[cid])
+        if declared != measured:
+            failures.append(
+                f"{cid}: deployment_units المُعلَنة {declared!r} تخالف المقيسة {measured!r}"
+            )
+    return failures
+
+
 # ── ARCH-S1a: canonical component classification ─────────────────
 
 _COMPONENT_REGISTRY = "docs/architecture/component_registry.json"
@@ -122,9 +448,9 @@ def load_component_registry() -> dict:
 
 def component_classification_failures(registry: dict, measured: dict[str, dict]) -> list[str]:
     """بوّابة S1a النقيّة: صفر مكوّنات غير مصنَّفة، وصفر صفوف بائتة، وكلّ إعلان
-    قابل للقياس (deployment_unit/source_path/authority_kind) مطابق للمقيس.
+    قابل للقياس (deployment_units/source_path/authority_kind) مطابق للمقيس.
 
-    measured: component_id -> {deployment_unit, source_path, owns_tables}؛
+    measured: component_id -> {deployment_units, source_path, owns_tables}؛
     القياس يأتي من compose المُحلَّل والجرد وملكيّة الجداول — لا من السجلّ نفسه،
     وإلّا صار الإعلان يُثبت الإعلان."""
     failures: list[str] = []
@@ -137,7 +463,7 @@ def component_classification_failures(registry: dict, measured: dict[str, dict])
         failures.append(f"stale registry entry: {cid} — لا مكوّن مكتشَفاً يقابله")
     required_fields = (
         "component_kind",
-        "deployment_unit",
+        "deployment_units",
         "domain",
         "authority_kind",
         "source_path",
@@ -160,10 +486,10 @@ def component_classification_failures(registry: dict, measured: dict[str, dict])
             failures.append(
                 f"{cid}: authority_kind {entry['authority_kind']!r} خارج المفردات المُحكَّمة"
             )
-        if entry["deployment_unit"] != m["deployment_unit"]:
+        if entry["deployment_units"] != m["deployment_units"]:
             failures.append(
-                f"{cid}: deployment_unit المُعلَن {entry['deployment_unit']!r} "
-                f"يخالف المقيس {m['deployment_unit']!r}"
+                f"{cid}: deployment_units المُعلَنة {entry['deployment_units']!r} "
+                f"تخالف المقيسة {m['deployment_units']!r}"
             )
         if entry["source_path"] != m["source_path"]:
             failures.append(
@@ -232,15 +558,30 @@ def make_canonicalizer(overrides: dict, known: set[str]):
 # ── discovery ────────────────────────────────────────────────────
 
 
-def discover_compose(canonical) -> dict[str, dict]:
-    """Per-canonical-component runtime facts from docker-compose.v9.yml."""
+def discover_compose(canonical, source_to_component: dict[str, str] | None = None):
+    """Per-canonical-component runtime facts from docker-compose.v9.yml.
+
+    ARCH-S2: الوحدة تُنسَب لمكوّنها **بقياس البناء** (resolve_build_source) أوّلاً؛
+    تخمين الاسم يبقى للبنية التحتيّة (image-only) حيث لا مصدر يُقاس. يُعيد أيضاً
+    resolution: {unit_component, infrastructure, unresolved} لبوّابة S2."""
     compose = _load_yaml("docker-compose.v9.yml") or {}
     out: dict[str, dict] = {}
     consumes_env: dict[str, set[str]] = {}
+    resolution = {"unit_component": {}, "infrastructure": [], "unresolved": {}}
+    source_to_component = source_to_component or {}
     for svc_name, svc in (compose.get("services") or {}).items():
         if not isinstance(svc, dict):
             continue
-        comp = canonical(svc_name)
+        source = resolve_build_source(svc)
+        if source is None:
+            resolution["infrastructure"].append(svc_name)
+            comp = canonical(svc_name)
+        elif source in source_to_component:
+            comp = source_to_component[source]
+            resolution["unit_component"][svc_name] = comp
+        else:
+            resolution["unresolved"][svc_name] = source
+            comp = canonical(svc_name)
         entry = out.setdefault(
             comp, {"compose_services": [], "ports": [], "healthcheck": None, "env_urls": []}
         )
@@ -267,7 +608,8 @@ def discover_compose(canonical) -> dict[str, dict]:
     for comp, targets in consumes_env.items():
         out.setdefault(comp, {}).setdefault("consumes_services", [])
         out[comp]["consumes_services"] = sorted(targets)
-    return out
+    resolution["infrastructure"] = sorted(resolution["infrastructure"])
+    return out, resolution
 
 
 def discover_nginx(canonical) -> dict:
@@ -675,7 +1017,11 @@ def build() -> dict[str, object]:
     waivers = _load_json("config/endpoint_ui_coverage_waivers.json").get("waivers", [])
     indicators = _load_json("config/indicators_registry.json")
 
-    compose = discover_compose(canonical)
+    # ARCH-S2: خريطة مصدر→مكوّن مقيسة من السجلّ القانونيّ (source_path سلطة الجرد).
+    source_to_component = {
+        e["source_path"]: cid for cid, e in reg_components.items() if e.get("source_path")
+    }
+    compose, compose_resolution = discover_compose(canonical, source_to_component)
     gateway = discover_nginx(canonical)
     owner_tables, ownership_conflicts = discover_db_ownership(canonical)
     events = discover_events(canonical)
@@ -689,8 +1035,8 @@ def build() -> dict[str, object]:
         reg = reg_components.get(comp_id, {})
         rt = compose.get(comp_id, {})
         measured[comp_id] = {
-            "deployment_unit": (
-                sorted(rt.get("compose_services", []))[0] if rt.get("compose_services") else None
+            "deployment_units": sorted(
+                u for u, c in compose_resolution["unit_component"].items() if c == comp_id
             ),
             "source_path": f"services/{raw}",
             "owns_tables": bool(owner_tables.get(comp_id)),
@@ -706,7 +1052,7 @@ def build() -> dict[str, object]:
             "component_id": comp_id,
             "type": reg.get("component_kind", "unclassified"),
             "component_kind": reg.get("component_kind", "unclassified"),
-            "deployment_unit": reg.get("deployment_unit"),
+            "deployment_units": reg.get("deployment_units", []),
             "authority_kind": reg.get("authority_kind", "unclassified"),
             "source_path": reg.get("source_path"),
             "domain": reg.get("domain", "unclassified"),
@@ -752,25 +1098,34 @@ def build() -> dict[str, object]:
     for extra in overrides["extra_components"]:
         cid = extra["component_id"]
         reg = reg_components.get(cid, {})
+        extra_units = sorted(u for u, c in compose_resolution["unit_component"].items() if c == cid)
+        # قياس المصدر للمكوّنات بلا صفّ جرد: من build وحداتها إن وُجدت (قياس مستقلّ)،
+        # وإلّا الإعلانُ بشرط وجود المجلّد (أضعف، ويبقى معلَناً لا مدّعىً قياساً).
+        srcs = {resolve_build_source(_compose_services()[u]) for u in extra_units}
+        measured_src = sorted(srcs)[0] if len(srcs) == 1 else None
+        declared_src = reg.get("source_path")
+        if measured_src is None and declared_src and (ROOT / declared_src).is_dir():
+            measured_src = declared_src
         measured[cid] = {
-            "deployment_unit": None,
-            "source_path": cid,
+            "deployment_units": extra_units,
+            "source_path": measured_src,
             "owns_tables": bool(owner_tables.get(cid)),
         }
+        rt = compose.get(cid, {})
         components[cid] = {
             "component_id": cid,
             "type": reg.get("component_kind", "unclassified"),
             "component_kind": reg.get("component_kind", "unclassified"),
-            "deployment_unit": reg.get("deployment_unit"),
+            "deployment_units": reg.get("deployment_units", []),
             "authority_kind": reg.get("authority_kind", "unclassified"),
             "source_path": reg.get("source_path"),
             "domain": reg.get("domain", "unclassified"),
             "canonical_name": cid,
-            "aliases": [],
+            "aliases": sorted(set(rt.get("compose_services", [])) - {cid}),
             "runtime": {
-                "compose_services": [],
-                "published_ports": [],
-                "healthcheck": None,
+                "compose_services": sorted(rt.get("compose_services", [])),
+                "published_ports": sorted(rt.get("ports", [])),
+                "healthcheck": rt.get("healthcheck"),
                 "mount_status": None,
                 "compose_reachable": None,
             },
@@ -815,16 +1170,17 @@ def build() -> dict[str, object]:
         and not any(e.split(" ", 1)[1] in waived_paths for e in c["entrypoints"])
     ]
 
-    edges = []
-    for comp in components.values():
-        for target in comp["consumes"]["services"]:
-            edges.append({"from": comp["component_id"], "to": target, "via": "env_url"})
-    for e in events:
-        if e["producer"] and e["consumer"]:
-            edges.append(
-                {"from": e["producer"], "to": e["consumer"], "via": f"nats:{e['subject']}"}
-            )
-    edges = sorted(edges, key=lambda x: (x["from"], x["to"], x["via"]))
+    source_prefixes = sorted(
+        ((e["source_path"], cid) for cid, e in reg_components.items() if e.get("source_path")),
+        key=lambda t: -len(t[0]),
+    )
+    dependency_graph, s2_graph_failures = build_dependency_truth(
+        components=components,
+        compose=compose,
+        canonical=canonical,
+        gate_rows=gate_rows,
+        source_prefixes=source_prefixes,
+    )
 
     unique_method_path = sorted({(r["method"], r["path"]) for r in routes})
     dup_groups = {}
@@ -853,6 +1209,16 @@ def build() -> dict[str, object]:
 
     # ARCH-S1a: صفر مكوّنات غير مصنَّفة — الإعلان القانونيّ يُثبَت ضدّ المقيس.
     s1a_failures = component_classification_failures(registry, measured)
+    # ARCH-S2: الإغلاق التامّ لخدمات compose — وحدات مقيسة أو بنية تحتيّة معلَنة.
+    s2_failures = (
+        dependency_truth_failures(
+            registry,
+            {cid: m["deployment_units"] for cid, m in measured.items()},
+            compose_resolution["infrastructure"],
+            compose_resolution["unresolved"],
+        )
+        + s2_graph_failures
+    )
 
     catalog = {
         "schema": "sahool.platform_catalog.v1",
@@ -896,6 +1262,12 @@ def build() -> dict[str, object]:
                 "passed": not s1a_failures,
                 "failures": sorted(s1a_failures),
             },
+            "s2_dependency_truth": {
+                "passed": not s2_failures,
+                "failures": sorted(s2_failures),
+                "edge_count": dependency_graph["edge_count"],
+                "relation_counts": dependency_graph["relation_counts"],
+            },
             "u3_wiring_ownership": {"passed": not u3_failures, "failures": sorted(u3_failures)},
             "u4_duplicates_waivers": {"passed": not u4_failures, "failures": sorted(u4_failures)},
         },
@@ -905,6 +1277,7 @@ def build() -> dict[str, object]:
     # (production_certified يبقى مسؤوليّة المسار الحيّ S1..S12، لا يُدَّعى هنا أبداً).
     consistency_checks = {
         "s1a_component_classification_passed": not s1a_failures,
+        "s2_dependency_truth_passed": not s2_failures,
         "zero_ownership_conflicts": len(ownership_conflicts) == 0,
         "zero_governing_orphans": len(orphan) == 0,
         # u3 يشمل شمول العقود (inventory ⊆ contracts) وصحّة الأدلّة fail-closed.
@@ -951,7 +1324,7 @@ def build() -> dict[str, object]:
 
     return {
         "catalog": catalog,
-        "graph": {"schema": "sahool.dependency_graph.v1", "edges": edges},
+        "graph": dependency_graph,
         "conflicts": {"schema": "sahool.ownership_conflicts.v1", "conflicts": ownership_conflicts},
         "orphans": {"schema": "sahool.orphan_functions.v1", "orphans": orphan},
         "manifest": manifest,
@@ -972,7 +1345,7 @@ def _components_csv(catalog) -> str:
         [
             "component_id",
             "component_kind",
-            "deployment_unit",
+            "deployment_units",
             "domain",
             "authority_kind",
             "source_path",
@@ -988,7 +1361,7 @@ def _components_csv(catalog) -> str:
             [
                 c["component_id"],
                 c["component_kind"],
-                c["deployment_unit"] or "",
+                "|".join(c["deployment_units"]),
                 c["domain"],
                 c["authority_kind"],
                 c["source_path"],
@@ -1051,6 +1424,19 @@ def _markdown(bundle) -> str:
             f"{', '.join(c['aliases']) or '—'} | {len(c['owns']['tables'])} | {c['status']['wired']} |"
         )
     lines += [
+        "",
+        "## Architecture gates",
+        "",
+        f"- ARCH-S1a component classification: "
+        f"`{'PASS' if cat['governance']['s1a_component_classification']['passed'] else 'FAIL'}`",
+        f"- ARCH-S2 dependency truth: "
+        f"`{'PASS' if cat['governance']['s2_dependency_truth']['passed'] else 'FAIL'}` — "
+        f"edges **{cat['governance']['s2_dependency_truth']['edge_count']}**",
+        "- S2 relations: "
+        + ", ".join(
+            f"{k}={v}"
+            for k, v in sorted(cat["governance"]["s2_dependency_truth"]["relation_counts"].items())
+        ),
         "",
         "## Governance gates (U3/U4)",
         "",

@@ -69,3 +69,7 @@ extra_components:
     notes: React SPA — يُخدَّم عبر nginx البوّابة؛ مستهلك عقود UI القانونيّ.
   - component_id: mobile
     notes: Flutter app — مستهلك متنقّل؛ مساراته عبر البوّابة نفسها.
+  - component_id: telegram-bot
+    notes: بوت تيليجرام (bots/telegram) — قناة مراسلة؛ كان يتيماً خارج جرد S1a وكشفه قياس build في S2.
+  - component_id: notification-agent
+    notes: وكيل الإشعارات (agents/notification) — مستهلك أحداث NATS؛ كان يتيماً خارج جرد S1a وكشفه قياس build في S2.

@@ -164,6 +164,7 @@ jobs:
             tests/architecture/test_integration_runtime_governance_closure.py \
             tests/architecture/test_capability_registry_v1.py \
             tests/architecture/test_capability_mapping_engine.py \
+            tests/architecture/test_arch_s2_dependency_truth.py \
             tests/architecture/test_capability_evidence_maturity_engine.py \
             tests/architecture/test_capability_parity_investment_engine.py \
             tests/architecture/test_capability_roadmap_linker.py \

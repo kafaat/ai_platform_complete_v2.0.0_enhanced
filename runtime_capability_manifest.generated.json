@@ -254,6 +254,20 @@
     },
     {
       "capability_count": 0,
+      "component_id": "notification-agent",
+      "domain": "notifications",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": null,
+        "wired": null
+      },
+      "type": "worker",
+      "wiring_disposition": null
+    },
+    {
+      "capability_count": 0,
       "component_id": "qdrant-seed",
       "domain": "knowledge",
       "status": {
@@ -393,6 +407,20 @@
       "wiring_disposition": "consumed"
     },
     {
+      "capability_count": 0,
+      "component_id": "telegram-bot",
+      "domain": "messaging-channel",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": null,
+        "wired": null
+      },
+      "type": "service",
+      "wiring_disposition": null
+    },
+    {
       "capability_count": 4,
       "component_id": "tts-service",
       "domain": "media",
@@ -477,7 +505,7 @@
       "wiring_disposition": "consumed"
     }
   ],
-  "fingerprint": "228ac4a7206625326bbdc899f9969bb527803880fac8f70b7e63e58a32bfca4b",
+  "fingerprint": "27b88425b54e5e3f508b1747409c32a73ac56e85b3d7d68eee2087489fc0c97d",
   "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
   "schema": "sahool.runtime_capability_manifest.v1"
 }

@@ -1,0 +1,46 @@
+{
+  "$comment": "نسخة أمينة من certification_record.json لالتزام main afc8f325 (دمج #862 — ARCH-S1a)، منسوخة من سجلّ وظيفة Certification (post-run) في run 32026923677 (2026-08-17T11:51:23Z). المصنوعة الأصليّة: artifact certification-record id=9287407881 (zip sha256=e484a56710a29ee25351e163936f5a433fdffcc4d2eeed7c42867274f545bc25، احتفاظ ٩٠ يوماً). أُلتزمت دليلاً مرافقاً لسرد الدماغ عن التصديق التاسع — لا مصدراً بديلاً: الحجّة التشفيريّة في المصنوعة الموقَّعة، وهذه قراءة موثَّقة المنشأ.",
+  "artifact_provenance": {
+    "head_sha": "afc8f325008af46adc902ae65b0d0fa12eed9889",
+    "schema": "sahool.certify-artifact-contract/v1",
+    "status": "present"
+  },
+  "assurance_level": "L5",
+  "attestation_bundle_sha256": "a83fefc9970d698b3d2ffdc9277302927b26749575567f8856672c397d26c848",
+  "manifest_sha256": "2189c3ddabbeccedb1d0cdb0925a6cda5fbf81a65fc7537c74c2b42ce65b7433",
+  "policy_sha256": "1c78c45091b0f1762667e3d555b597ff98cddc3808e88541df44696dcb367d69",
+  "producer_identity": {
+    "event": "push",
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+    "run_attempt": "1",
+    "run_id": "32023862028",
+    "workflow_path": ".github/workflows/ci.yml"
+  },
+  "reason_codes": [],
+  "release_binding": {
+    "accepted_commit_sha": "afc8f325008af46adc902ae65b0d0fa12eed9889",
+    "accepted_tree_sha": "658d80037373eabee9aaa9d16147b7cdaf37ee00",
+    "mode": "exact_commit"
+  },
+  "required_jobs_contract_sha256": "28076fe7d6f171a8a61ced623c70a81169c11f874511c59ba8631735e398f983",
+  "tested_identity": {
+    "commit_sha": "afc8f325008af46adc902ae65b0d0fa12eed9889",
+    "tree_sha": "658d80037373eabee9aaa9d16147b7cdaf37ee00"
+  },
+  "trusted_root": {
+    "sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+    "source": "gh attestation trusted-root"
+  },
+  "verdict": "VERIFIED",
+  "verification_toolchain": {
+    "gh_binary_sha256": "014fcd614de4de5b4a1441d298175684bad99f713d10296c5fcaaba47ac332d1",
+    "gh_version": "gh version 2.93.0 (2026-05-27)"
+  },
+  "verified_subjects": [
+    {"gh_result_count": 1, "subject": "live_pg_evidence.json"},
+    {"gh_result_count": 1, "subject": "live_pg_evidence.xml"},
+    {"gh_result_count": 1, "subject": "live_pg_role_closure.json"},
+    {"gh_result_count": 1, "subject": "live_pg_canonical_manifest.json"}
+  ],
+  "verifier_sha256": "c51a00db37fff123fa20168f116a1410c1230f5a770c55b20c32e678febc102f"
+}
