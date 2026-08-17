@@ -254,6 +254,11 @@ def test_s2_build_source_resolution_is_measured_not_guessed() -> None:
     )
     assert MOD.resolve_build_source({"build": {"context": "./frontend"}}) == "frontend"
     assert MOD.resolve_build_source({"image": "redis:7-alpine"}) is None
+    # حدود الشجرة (مراجعة Copilot على #863): سياق خارج الشجرة أو مطلق لا يُشذَّب
+    # إلى مسار داخليّ — يبقى كما هو فلا يطابق خريطة المصادر ويفشل مغلقاً.
+    assert MOD.resolve_build_source({"build": {"context": "../escape"}}) == "../escape"
+    assert MOD.resolve_build_source({"build": {"context": "/abs/path"}}) == "/abs/path"
+    assert MOD.resolve_build_source({"build": {"context": ".//weird"}}) == "/weird"
 
 
 def test_s2_former_orphans_are_now_classified_components() -> None:

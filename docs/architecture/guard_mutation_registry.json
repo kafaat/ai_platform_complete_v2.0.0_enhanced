@@ -101,6 +101,12 @@
           "replace": "        from_kind: str = \"untyped\",",
           "test": "tests/architecture/test_arch_s2_dependency_truth.py",
           "why": "العيب الجنائيّ الثالث: أطراف الحوافّ كانت ضمنيّة — from_kind/to_kind شرطُ خوارزميّات orphan/hop/cutover اللاحقة"
+        },
+        {
+          "expect": "test_s2_build_source_resolution_is_measured_not_guessed",
+          "find": "    if ctx.startswith(\"./\"):\n        ctx = ctx[2:]\n    ctx = ctx or \".\"",
+          "replace": "    ctx = ctx.lstrip(\"./\") or \".\"  # mutated: boundary collapsed",
+          "why": "مراجعة Copilot على #863: lstrip(\"./\") يقصّ أيّ مزيج نقاط/شُرَط فيحوّل ../foo إلى foo — سياق بناءٍ خارج الشجرة يتنكّر مصدراً داخليّاً ويخفى عن بوّابة الإغلاق"
         }
       ],
       "test": "tests_v9/test_component_registry_gate.py"

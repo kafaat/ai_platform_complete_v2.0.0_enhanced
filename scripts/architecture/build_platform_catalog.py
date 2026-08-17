@@ -395,7 +395,12 @@ def resolve_build_source(svc: dict) -> str | None:
     else:
         ctx = build.get("context", ".")
         dockerfile = build.get("dockerfile", "Dockerfile")
-    ctx = ctx.lstrip("./") or "."
+    # قصّ بادئة "./" الواحدة فقط: lstrip("./") يقصّ أيّ مزيج نقاط/شُرَط فيحوّل
+    # "../foo" إلى "foo" — سياقٌ خارج الشجرة يتنكّر مصدراً داخليّاً ويخفى عن
+    # بوّابة الإغلاق. الآن يبقى كما هو فلا يطابق خريطة المصادر ⇒ unresolved.
+    if ctx.startswith("./"):
+        ctx = ctx[2:]
+    ctx = ctx or "."
     if ctx != ".":
         return ctx.rstrip("/")
     parent = str(Path(dockerfile).parent)
@@ -1095,13 +1100,14 @@ def build() -> dict[str, object]:
                 "activated": None,
             },
         }
+    compose_services_raw = _compose_services()
     for extra in overrides["extra_components"]:
         cid = extra["component_id"]
         reg = reg_components.get(cid, {})
         extra_units = sorted(u for u, c in compose_resolution["unit_component"].items() if c == cid)
         # قياس المصدر للمكوّنات بلا صفّ جرد: من build وحداتها إن وُجدت (قياس مستقلّ)،
         # وإلّا الإعلانُ بشرط وجود المجلّد (أضعف، ويبقى معلَناً لا مدّعىً قياساً).
-        srcs = {resolve_build_source(_compose_services()[u]) for u in extra_units}
+        srcs = {resolve_build_source(compose_services_raw[u]) for u in extra_units}
         measured_src = sorted(srcs)[0] if len(srcs) == 1 else None
         declared_src = reg.get("source_path")
         if measured_src is None and declared_src and (ROOT / declared_src).is_dir():
