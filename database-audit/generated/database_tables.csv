@@ -119,7 +119,7 @@ field_state_snapshots,v60_event_snapshots.sql,65,True,False,False,0,False,True,1
 field_submissions,v204_field_forms.sql,209,True,True,True,1,True,False,1,1
 field_tasks,v9_new_tables.sql,3,True,False,False,0,False,True,5,2
 field_weather_overlay,v74_weather_intelligence.sql,79,True,False,False,0,False,True,1,1
-fields,v9_foundation.sql,1,True,False,False,0,False,True,45,5
+fields,v9_foundation.sql,1,True,False,False,0,False,True,47,5
 geometry_editing_sessions,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 geometry_locks,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,1
 gis_collaboration_events,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0

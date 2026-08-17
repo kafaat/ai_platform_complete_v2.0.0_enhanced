@@ -4405,7 +4405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "66d4cbb20aaa6703716d04c9959afc717bf40922f0e5ddcb58bf5a00f28ca6d9"
+          "content": "bc533fcad1cecfd255af7b9eba7275eee8d813a7adcfac8a9d54392cfdb9f5d1"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -15075,7 +15075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "72a317eec05358d589e567f094a76e15207bddeb565be6144f7786c587a5e5b6"
+          "content": "4f4ba3c7068c234443033b4dbe35308fc0225e0ae028c953b8075ecc970a8711"
         }
       ],
       "name": "services/sahool-platform/api/canonical_soil_state.py",
@@ -17725,7 +17725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6690761c86ef22d4464a753c9ebc1cf9df99231fa2f6bfa7291454bae81f7601"
+          "content": "c7e467353cea375a7127a79dbf4405fae4835e07768cd584cde61de3c7eba853"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -19035,7 +19035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef1cb4630746891960c714c7ce57ec25e67a969510793d8ae724c60a7badc607"
+          "content": "843c6835a052fbb8f84b09cea3508d3e8d588699dddfaa0c50c9dd38dcd2fb9c"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -23245,7 +23245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c59e0472ec23531ef68048ce187a9c75030cee9d4d474978573146dc815a271"
+          "content": "79e2dc7636b9b2689739e68da3d4297ce5477adb98184e695593d50240c9081d"
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
@@ -23349,6 +23349,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_circuit_breaker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "598027b02282087ab53c0328fc8e8a472fac2087a7a01bb4d3df003f4e8c39c8"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
       "type": "file"
     },
     {

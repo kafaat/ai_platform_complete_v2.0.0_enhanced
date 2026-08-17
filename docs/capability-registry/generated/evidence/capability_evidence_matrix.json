@@ -1027,7 +1027,8 @@
       "runtime_verified": false,
       "title": "Learning attribution",
       "unit_test_paths": [
-        "services/decision-service/tests/test_wx10_13_learning_attribution.py"
+        "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+        "tests_v9/test_closed_agronomic_loop_authority_guard.py"
       ]
     },
     {

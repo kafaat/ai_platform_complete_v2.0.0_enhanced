@@ -175,7 +175,7 @@ medium,sahool-platform,function,irrigation_due_by_soil,services/sahool-platform/
 medium,sahool-platform,function,generate_block_assignments,services/sahool-platform/api/trial_randomization.py,108,0,review_before_delete,False
 medium,sahool-platform,function,verify_assignment,services/sahool-platform/api/trial_randomization.py,150,0,review_before_delete,False
 medium,sahool-platform,function,heat_stress_index,services/sahool-platform/api/weather_analytics.py,53,0,review_before_delete,False
-medium,sahool-platform,function,get_wind_grid,services/sahool-platform/api/weather_service_client.py,431,0,review_before_delete,False
+medium,sahool-platform,function,get_wind_grid,services/sahool-platform/api/weather_service_client.py,496,0,review_before_delete,False
 medium,sahool-platform,function,economic_context_from_ledger,services/sahool-platform/core/agronomic_state_engine.py,592,0,review_before_delete,False
 medium,sahool-platform,function,explain_anwa_principle_ar,services/sahool-platform/core/anwa_calendar.py,120,0,review_before_delete,False
 medium,sahool-platform,function,fields_in_farm_for_user,services/sahool-platform/core/authorization.py,392,0,review_before_delete,False

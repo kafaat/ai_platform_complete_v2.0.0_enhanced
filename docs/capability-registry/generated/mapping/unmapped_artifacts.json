@@ -5088,6 +5088,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_command_dispatcher.py",
     "kind": "tests"
   },

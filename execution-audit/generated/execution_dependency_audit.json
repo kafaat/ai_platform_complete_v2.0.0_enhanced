@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1849,
     "route_handlers": 1049,
-    "call_edges": 73297,
+    "call_edges": 73346,
     "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -5335,7 +5335,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
-      "line": 80,
+      "line": 74,
       "handler": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice"
@@ -168949,7 +168949,63 @@
       "file": "services/sahool-platform/api/canonical_soil_state.py",
       "source": "resolve_canonical_soil_state",
       "target": "isinstance",
-      "line": 48
+      "line": 46
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "dict",
+      "line": 49
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "get",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "get",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "isinstance",
+      "line": 56
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "get",
+      "line": 58
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "get",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "get",
+      "line": 64
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/canonical_soil_state.py",
+      "source": "resolve_canonical_soil_state",
+      "target": "list",
+      "line": 64
     },
     {
       "owner": "sahool-platform",
@@ -259739,161 +259795,189 @@
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "tenant_connection_for",
-      "line": 62
+      "line": 56
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "_assert_field_in_tenant",
-      "line": 63
+      "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "recompute_field_state",
-      "line": 64
+      "line": 58
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "_compose_canonical",
-      "line": 66
+      "line": 60
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "_db_unavailable",
-      "line": 73
+      "line": 67
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "post",
-      "line": 79
+      "line": 73
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "Depends",
-      "line": 82
+      "line": 76
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "tenant_connection_for",
-      "line": 101
+      "line": 95
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_assert_field_in_tenant",
-      "line": 103
+      "line": 97
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_emit_domain_event",
-      "line": 104
+      "line": 98
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_ServiceUser",
-      "line": 106
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_db_unavailable",
-      "line": 116
+      "line": 110
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "resolve_canonical_water_state",
-      "line": 137
+      "line": 132
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "isinstance",
-      "line": 138
+      "line": 133
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "to_dict",
-      "line": 138
+      "line": 133
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "get",
-      "line": 139
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "str",
-      "line": 139
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "resolve_canonical_soil_state",
-      "line": 142
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "resolve_canonical_spectral_state",
-      "line": 143
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "fetchrow",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "get_canonical_field_weather",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "float",
+      "line": 152
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "float",
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "compose_canonical_field_state",
-      "line": 147
+      "line": 155
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "isoformat",
-      "line": 150
+      "line": 158
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "now",
-      "line": 150
+      "line": 158
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "to_dict",
-      "line": 162
+      "line": 164
     },
     {
       "owner": "sahool-platform",
@@ -295556,114 +295640,219 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "weather_get_json",
+      "line": 250
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 258
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 260
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 261
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 262
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 262
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 266
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "list",
+      "line": 266
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "str",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 275
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 276
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "get",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
+      "source": "get_canonical_field_weather",
+      "target": "list",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_current_weather",
       "target": "weather_get_json",
-      "line": 235
+      "line": 300
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_weather_forecast",
       "target": "weather_get_json",
-      "line": 243
+      "line": 308
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_weather_historical",
       "target": "weather_get_json",
-      "line": 251
+      "line": 316
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_weather_tile_data",
       "target": "weather_get_json",
-      "line": 289
+      "line": 354
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_weather_tile_data",
       "target": "_neutral_tile",
-      "line": 295
+      "line": 360
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_operation_tile_data",
       "target": "weather_get_json",
-      "line": 312
+      "line": 377
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_operation_tile_data",
       "target": "_neutral_tile",
-      "line": 323
+      "line": 388
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_operation_window",
       "target": "weather_get_json",
-      "line": 330
+      "line": 395
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_operation_plan",
       "target": "weather_get_json",
-      "line": 339
+      "line": 404
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_thermal_stress",
       "target": "weather_get_json",
-      "line": 360
+      "line": 425
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_lodging_risk",
       "target": "weather_get_json",
-      "line": 381
+      "line": 446
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_pollination_risk",
       "target": "weather_get_json",
-      "line": 399
+      "line": 464
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_chill_accumulation",
       "target": "weather_get_json",
-      "line": 419
+      "line": 484
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_weather_tile_series",
       "target": "weather_get_json",
-      "line": 425
+      "line": 490
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_wind_grid",
       "target": "weather_get_json",
-      "line": 434
+      "line": 499
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/weather_service_client.py",
       "source": "get_tile_cache_stats",
       "target": "weather_get_json",
-      "line": 441
+      "line": 506
     },
     {
       "owner": "sahool-platform",
@@ -357646,289 +357835,331 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "parse",
       "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "read_text",
       "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "next",
       "line": 106
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "walk",
       "line": 108
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "isinstance",
       "line": 109
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
-      "target": "next",
-      "line": 111
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "walk",
       "line": 113
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "isinstance",
       "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "isinstance",
-      "line": 115
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_passes_missing_weather_as_none_and_fabricates_nothing",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
       "target": "isinstance",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
+      "target": "len",
       "line": 120
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
+      "target": "next",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
+      "target": "walk",
+      "line": 123
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
+      "target": "isinstance",
+      "line": 124
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
+      "target": "isinstance",
+      "line": 125
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
+      "target": "get",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_weather_from_owner_resolver_not_a_literal",
+      "target": "isinstance",
+      "line": 129
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
       "target": "parse",
-      "line": 127
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "read_text",
-      "line": 127
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "next",
-      "line": 128
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "walk",
-      "line": 130
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 131
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "walk",
       "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
+      "target": "read_text",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "next",
       "line": 136
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "next",
-      "line": 142
+      "target": "walk",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 139
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
       "target": "walk",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
       "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 145
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 146
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 151
+      "target": "next",
+      "line": 150
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
       "target": "walk",
-      "line": 156
+      "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
       "target": "isinstance",
-      "line": 157
+      "line": 153
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
       "target": "isinstance",
-      "line": 158
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 159
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "walk",
+      "line": 164
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 165
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_soil_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
       "target": "parse",
-      "line": 173
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "read_text",
-      "line": 173
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "next",
-      "line": 174
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "walk",
-      "line": 176
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 177
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "walk",
       "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 182
+      "target": "read_text",
+      "line": 181
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
       "target": "next",
-      "line": 188
+      "line": 182
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
       "target": "walk",
+      "line": 184
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 185
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
+      "target": "walk",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
       "line": 190
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 191
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 192
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
-      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
-      "target": "isinstance",
-      "line": 197
+      "target": "next",
+      "line": 196
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
       "target": "walk",
-      "line": 202
+      "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
       "target": "isinstance",
-      "line": 203
+      "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
       "target": "isinstance",
-      "line": 204
+      "line": 200
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 205
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
+      "target": "walk",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 211
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
+      "source": "test_consumer_sources_spectral_from_a_resolver_call_not_a_literal",
+      "target": "isinstance",
+      "line": 212
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_canonical_field_state_wiring.py",
       "source": "test_wiring_spectral_cannot_raise_eligibility_on_its_own",
       "target": "_compose",
-      "line": 218
+      "line": 226
     },
     {
       "owner": "sahool-platform",
@@ -360190,6 +360421,118 @@
       "source": "test_invalid_config_rejected",
       "target": "CircuitBreaker",
       "line": 152
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_accepts_only_owner_canonical_lineage",
+      "target": "setattr",
+      "line": 30
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_accepts_only_owner_canonical_lineage",
+      "target": "get_canonical_field_weather",
+      "line": 31
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_accepts_only_owner_canonical_lineage",
+      "target": "run",
+      "line": 31
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_rejects_raw_or_unprovenanced_weather",
+      "target": "setattr",
+      "line": 42
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_rejects_raw_or_unprovenanced_weather",
+      "target": "get_canonical_field_weather",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_rejects_raw_or_unprovenanced_weather",
+      "target": "run",
+      "line": 43
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_rejects_raw_or_unprovenanced_weather",
+      "target": "setattr",
+      "line": 53
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_rejects_raw_or_unprovenanced_weather",
+      "target": "get_canonical_field_weather",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_rejects_raw_or_unprovenanced_weather",
+      "target": "run",
+      "line": 54
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "boom",
+      "target": "RuntimeError",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_fails_closed_on_transport_error",
+      "target": "RuntimeError",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_fails_closed_on_transport_error",
+      "target": "setattr",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_fails_closed_on_transport_error",
+      "target": "get_canonical_field_weather",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_weather_binding_fails_closed_on_transport_error",
+      "target": "run",
+      "line": 62
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_soil_quality_gate_is_not_promoted_when_non_executable",
+      "target": "read_text",
+      "line": 68
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
+      "source": "test_internal_field_state_resolves_weather_from_owner_not_local_math",
+      "target": "read_text",
+      "line": 74
     },
     {
       "owner": "sahool-platform",
@@ -523427,7 +523770,7 @@
       "symbol": "get_wind_grid",
       "kind": "function",
       "file": "services/sahool-platform/api/weather_service_client.py",
-      "line": 431,
+      "line": 496,
       "owner": "sahool-platform",
       "decorated_route": false,
       "reference_count": 0,
