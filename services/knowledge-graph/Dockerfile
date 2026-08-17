@@ -21,6 +21,10 @@ COPY services/sahool-platform/core /app/core
 # Must be copied or the container crashes at import (ModuleNotFoundError: shared).
 COPY shared /app/shared
 COPY services/knowledge-graph/main.py /app/main.py
+# ARCH-S4: المتجر الفيزيائيّ يملكه هذا الخدمة، فيجب أن يُشحَن معها. `main.py` يستورد
+# `kg_store` في أعلى الملفّ — بلا هذا السطر تنهار الحاوية عند الإقلاع
+# (ModuleNotFoundError: kg_store)، ويصير «النقل» إعلاناً لا شحناً.
+COPY services/knowledge-graph/kg_store.py /app/kg_store.py
 ENV PYTHONPATH=/app KG_SQLITE_PATH=/data/kg.sqlite
 # مستخدم غير جذري (SEC-2). /data قابل للكتابة (KG_SQLITE_PATH) — يُنشأ ويُملَّك قبل
 # VOLUME كي تُحفظ الملكيّة في نقطة التركيب (تغييرات ما بعد VOLUME تُهمَل عند البناء).

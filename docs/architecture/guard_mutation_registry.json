@@ -56,6 +56,12 @@
           "find": "    forbidden_symbols = (\n        \"class SQLiteAgGraphStore\",\n        \"class GraphNode\",\n        \"class GraphEdge\",\n        \"import sqlite3\",\n    )",
           "replace": "    forbidden_symbols = ()  # mutated: platform may host a competing KG implementation",
           "why": "إبقاء store داخل sahool-platform يعيد mismatch بين الملكية المعلنة والفيزيائية."
+        },
+        {
+          "expect": "test_kg_image_ships_the_module_its_entrypoint_imports",
+          "find": "        if f\"COPY services/knowledge-graph/{name}.py\" not in dockerfile:\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
+          "replace": "        if False:  # mutated: image need not ship what the entrypoint imports\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
+          "why": "الملكيّة الفيزيائيّة تشمل الشحن: وحدةٌ يستوردها المدخل ولا تنسخها الصورة تنهار عند الإقلاع، فيصير النقل إعلاناً."
         }
       ]
     },

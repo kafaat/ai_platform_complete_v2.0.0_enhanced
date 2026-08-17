@@ -75,6 +75,7 @@ def _sandbox(tmp_path, monkeypatch):
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
         "services/knowledge-graph/main.py",
+        "services/knowledge-graph/Dockerfile",
         "services/knowledge-graph/kg_store.py",
         "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
     ]
@@ -115,3 +116,15 @@ def test_kg_physical_implementation_is_not_in_platform(tmp_path, monkeypatch):
         p.read_text(encoding="utf-8") + "\nclass SQLiteAgGraphStore: pass\n", encoding="utf-8"
     )
     assert "sahool-platform still physically hosts KG store" in mod.findings()
+
+
+def test_kg_image_ships_the_module_its_entrypoint_imports(tmp_path, monkeypatch):
+    root = _sandbox(tmp_path, monkeypatch)
+    p = root / "services/knowledge-graph/Dockerfile"
+    p.write_text(
+        p.read_text(encoding="utf-8").replace(
+            "COPY services/knowledge-graph/kg_store.py /app/kg_store.py\n", ""
+        ),
+        encoding="utf-8",
+    )
+    assert "KG image does not ship an imported owned module: kg_store.py" in mod.findings()

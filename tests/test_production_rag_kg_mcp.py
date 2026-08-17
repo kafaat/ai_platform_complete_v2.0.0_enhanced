@@ -10,6 +10,9 @@ sys.path.insert(0, str(ROOT / "services/mcp_servers"))
 
 import importlib.util  # noqa: E402
 
+# تحميلٌ بالمسار لا بـ`sys.path`: مجلّد الخدمة يحوي `main.py`، ووضعه في `sys.path`
+# يكشفه وحدةً باسم `main` — و14 ملفّ اختبار في هذه الشجرة تستورد `main` مجرَّداً،
+# فيصير التصادم بين خدمتين في جلسة pytest واحدة مسألة ترتيب.
 _KG_STORE_PATH = ROOT / "services" / "knowledge-graph" / "kg_store.py"
 _spec = importlib.util.spec_from_file_location("sahool_kg_store", _KG_STORE_PATH)
 assert _spec is not None and _spec.loader is not None

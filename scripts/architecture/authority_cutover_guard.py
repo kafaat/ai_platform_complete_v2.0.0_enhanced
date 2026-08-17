@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -79,6 +80,16 @@ def findings() -> list[str]:
     main = _text("services/knowledge-graph/main.py")
     if "from kg_store import" not in main:
         out.append("KG service does not consume its owned store")
+    # الملكيّة الفيزيائيّة تشمل الشحن: وحدةٌ يستوردها `main.py` من جذر الصورة ولا
+    # ينسخها Dockerfile تنهار عند الإقلاع. مُشتقٌّ من الاستيرادات لا من قائمة يدويّة —
+    # قائمةٌ ثانية تُنسى كما نُسي `kg_store` نفسه.
+    dockerfile = _text("services/knowledge-graph/Dockerfile")
+    service_dir = canonical.parent
+    for name in sorted(set(re.findall(r"^(?:from|import)\s+([A-Za-z_]\w*)", main, re.M))):
+        if not (service_dir / f"{name}.py").is_file():
+            continue
+        if f"COPY services/knowledge-graph/{name}.py" not in dockerfile:
+            out.append(f"KG image does not ship an imported owned module: {name}.py")
     tomb = forbidden.read_text(encoding="utf-8") if forbidden.is_file() else ""
     forbidden_symbols = (
         "class SQLiteAgGraphStore",
@@ -89,7 +100,9 @@ def findings() -> list[str]:
     if any(x in tomb for x in forbidden_symbols):
         out.append("sahool-platform still physically hosts KG store")
     # repository-wide production imports of the old platform implementation are forbidden.
-    for p in (ROOT / "services").rglob("*.py"):
+    # مرتَّبة: ترتيب `rglob` يتبع نظام الملفّات، ورسالة الحارس تحمل مسارات — فبلا فرز
+    # يختلف مخرَجه بين آلة وأخرى على الشجرة نفسها.
+    for p in sorted((ROOT / "services").rglob("*.py")):
         if p == forbidden:
             continue
         txt = p.read_text(encoding="utf-8", errors="ignore")
