@@ -35,6 +35,30 @@
       ],
       "test": "tests_v9/test_run_outcome_guard.py"
     },
+    "scripts/architecture/build_platform_catalog.py": {
+      "$why_ar": "ARCH-S1a: بوّابة التصنيف القانونيّ للمكوّنات — نكوصها يعيد السقوط الصامت إلى service الذي عاش سنين في overrides بلا أن يراه أحد.",
+      "mutations": [
+        {
+          "expect": "test_unclassified_component_is_a_measured_failure",
+          "find": "    for cid in sorted(set(measured) - set(entries)):",
+          "replace": "    for cid in []:  # mutated: unclassified passes silently",
+          "why": "تعطيل كشف المكوّن غير المصنَّف يعيد العيب المؤسِّس للشريحة: مكوّن جديد يمرّ بلا صفّ سجلّ ولا يفشل شيء"
+        },
+        {
+          "expect": "test_stale_registry_entry_is_a_measured_failure",
+          "find": "    for cid in sorted(set(entries) - set(measured)):",
+          "replace": "    for cid in []:  # mutated: stale entries pass silently",
+          "why": "تعطيل كشف الصفّ البائت يجعل السجلّ جرداً كاذباً: صفوف لمكوّنات زالت تُقرأ تغطيةً قائمة"
+        },
+        {
+          "expect": "test_declared_deployment_unit_must_match_measured",
+          "find": "        if entry[\"deployment_unit\"] != m[\"deployment_unit\"]:",
+          "replace": "        if False:  # mutated: declaration no longer measured",
+          "why": "فكّ ربط الإعلان بالقياس يحوّل السجلّ من عقدٍ مُثبَت إلى وثيقة أمنيات — deployment_unit يُكتَب ولا يُقاس"
+        }
+      ],
+      "test": "tests_v9/test_component_registry_gate.py"
+    },
     "scripts/ci/capability_authority_view.py": {
       "$gap_ar": "CAPABILITY-CONSUMER-AUTHORITY-MIGRATION-01 — المستهلك يقرأ الحقول من مالكها لا من إسقاط واحد",
       "mutations": [

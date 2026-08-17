@@ -15120,6 +15120,7 @@
   "certification": {
     "checks": {
       "all_duplicates_classified": true,
+      "s1a_component_classification_passed": true,
       "u3_passed": true,
       "u4_passed": true,
       "zero_governing_orphans": true,
@@ -15135,8 +15136,10 @@
       "aliases": [
         "sahool-actuator-service"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "actuator-service",
       "component_id": "actuator-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15152,6 +15155,7 @@
           "decision-service"
         ]
       },
+      "deployment_unit": "sahool-actuator-service",
       "domain": "execution",
       "owns": {
         "tables": [
@@ -15173,6 +15177,7 @@
         "mount_status": "delegated_routes",
         "published_ports": []
       },
+      "source_path": "services/actuator-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "actuator-service",
@@ -15191,8 +15196,10 @@
       "aliases": [
         "sahool-agriai-engine"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "agriai-engine",
       "component_id": "agriai-engine",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15210,6 +15217,7 @@
           "sahool-wofost-mcp"
         ]
       },
+      "deployment_unit": "sahool-agriai-engine",
       "domain": "simulation-experimental",
       "owns": {
         "tables": [
@@ -15245,6 +15253,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/agriai-engine",
       "sources": {
         "db_ownership": true,
         "service_inventory": "agriai-engine",
@@ -15261,8 +15270,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "stateless_compute",
       "canonical_name": "ai_agronomist",
       "component_id": "ai_agronomist",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15276,6 +15287,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "agents",
       "owns": {
         "tables": []
@@ -15287,6 +15299,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/ai_agronomist",
       "sources": {
         "db_ownership": false,
         "service_inventory": "ai_agronomist",
@@ -15305,8 +15318,10 @@
       "aliases": [
         "sahool-auth"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "auth",
       "component_id": "auth",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15320,6 +15335,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-auth",
       "domain": "identity",
       "owns": {
         "tables": []
@@ -15333,6 +15349,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/auth",
       "sources": {
         "db_ownership": false,
         "service_inventory": "auth",
@@ -15351,8 +15368,10 @@
       "aliases": [
         "sahool-decision-service"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "decision-service",
       "component_id": "decision-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15365,6 +15384,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-decision-service",
       "domain": "decision-governance",
       "owns": {
         "tables": [
@@ -15421,6 +15441,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/decision-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "decision-service",
@@ -15437,8 +15458,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "stateless_compute",
       "canonical_name": "edge-inference",
       "component_id": "edge-inference",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15452,6 +15475,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "edge",
       "owns": {
         "tables": []
@@ -15463,6 +15487,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/edge-inference",
       "sources": {
         "db_ownership": false,
         "service_inventory": "edge-inference",
@@ -15482,8 +15507,10 @@
         "odoo-bridge",
         "sahool-erp-bridge"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "erp-bridge",
       "component_id": "erp-bridge",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15499,6 +15526,7 @@
           "sahool-odoo"
         ]
       },
+      "deployment_unit": "sahool-erp-bridge",
       "domain": "erp-projection",
       "owns": {
         "tables": [
@@ -15528,6 +15556,7 @@
         "mount_status": "delegated_routes",
         "published_ports": []
       },
+      "source_path": "services/odoo-bridge",
       "sources": {
         "db_ownership": true,
         "service_inventory": "odoo-bridge",
@@ -15544,8 +15573,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "system_of_record",
       "canonical_name": "field-management-service",
       "component_id": "field-management-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15558,6 +15589,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "fields-internal",
       "owns": {
         "tables": [
@@ -15602,6 +15634,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/field-management-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "field-management-service",
@@ -15620,8 +15653,10 @@
       "aliases": [
         "sahool-field-segmentation"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "field-segmentation",
       "component_id": "field-segmentation",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15637,6 +15672,7 @@
           "sam2-inference"
         ]
       },
+      "deployment_unit": "sahool-field-segmentation",
       "domain": "fields-boundary",
       "owns": {
         "tables": []
@@ -15650,6 +15686,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/field-segmentation",
       "sources": {
         "db_ownership": false,
         "service_inventory": "field-segmentation",
@@ -15666,8 +15703,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "presentation",
       "canonical_name": "frontend",
       "component_id": "frontend",
+      "component_kind": "frontend",
       "consumer_contract": {
         "declared": false,
         "evidence_kinds": [],
@@ -15678,6 +15717,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "user-interface",
       "owns": {
         "tables": []
@@ -15689,6 +15729,7 @@
         "mount_status": null,
         "published_ports": []
       },
+      "source_path": "frontend",
       "sources": {
         "db_ownership": false,
         "service_inventory": null,
@@ -15705,8 +15746,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "system_of_record",
       "canonical_name": "gis-workflow-service",
       "component_id": "gis-workflow-service",
+      "component_kind": "tool_bundle",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15719,6 +15762,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "gis-publication",
       "owns": {
         "tables": [
@@ -15733,6 +15777,7 @@
         "mount_status": null,
         "published_ports": []
       },
+      "source_path": "services/gis-workflow-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "gis-workflow-service",
@@ -15745,14 +15790,16 @@
         "tested": true,
         "wired": null
       },
-      "type": "batch-job-tool"
+      "type": "tool_bundle"
     },
     {
       "aliases": [
         "sahool-guardrails-engine"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "guardrails-engine",
       "component_id": "guardrails-engine",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15766,6 +15813,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-guardrails-engine",
       "domain": "decision-governance",
       "owns": {
         "tables": [
@@ -15784,6 +15832,7 @@
           "127.0.0.1:8097:8000"
         ]
       },
+      "source_path": "services/guardrails-engine",
       "sources": {
         "db_ownership": true,
         "service_inventory": "guardrails-engine",
@@ -15802,8 +15851,10 @@
       "aliases": [
         "sahool-indicators-service"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "indicators-service",
       "component_id": "indicators-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15819,6 +15870,7 @@
           "raster-service"
         ]
       },
+      "deployment_unit": "sahool-indicators-service",
       "domain": "indicators",
       "owns": {
         "tables": []
@@ -15832,6 +15884,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/indicators-service",
       "sources": {
         "db_ownership": false,
         "service_inventory": "indicators-service",
@@ -15850,8 +15903,10 @@
       "aliases": [
         "sahool-knowledge-graph"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "knowledge-graph",
       "component_id": "knowledge-graph",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15864,6 +15919,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-knowledge-graph",
       "domain": "knowledge",
       "owns": {
         "tables": []
@@ -15877,6 +15933,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/knowledge-graph",
       "sources": {
         "db_ownership": false,
         "service_inventory": "knowledge-graph",
@@ -15895,8 +15952,10 @@
       "aliases": [
         "sahool-local-ai-rag"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "local-ai-rag",
       "component_id": "local-ai-rag",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15911,6 +15970,7 @@
           "sahool-ollama"
         ]
       },
+      "deployment_unit": "sahool-local-ai-rag",
       "domain": "knowledge",
       "owns": {
         "tables": []
@@ -15924,6 +15984,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/local-ai-rag",
       "sources": {
         "db_ownership": false,
         "service_inventory": "local-ai-rag",
@@ -15940,8 +16001,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "stateless_compute",
       "canonical_name": "mcp_servers",
       "component_id": "mcp_servers",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -15954,6 +16017,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "agents-mcp",
       "owns": {
         "tables": []
@@ -15965,6 +16029,7 @@
         "mount_status": null,
         "published_ports": []
       },
+      "source_path": "services/mcp_servers",
       "sources": {
         "db_ownership": false,
         "service_inventory": "mcp_servers",
@@ -15981,8 +16046,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "presentation",
       "canonical_name": "mobile",
       "component_id": "mobile",
+      "component_kind": "mobile",
       "consumer_contract": {
         "declared": false,
         "evidence_kinds": [],
@@ -15993,6 +16060,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "user-interface",
       "owns": {
         "tables": []
@@ -16004,6 +16072,7 @@
         "mount_status": null,
         "published_ports": []
       },
+      "source_path": "mobile",
       "sources": {
         "db_ownership": false,
         "service_inventory": null,
@@ -16020,8 +16089,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "stateless_compute",
       "canonical_name": "model-registry-adapter",
       "component_id": "model-registry-adapter",
+      "component_kind": "worker_adapter",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16034,6 +16105,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "decision-governance",
       "owns": {
         "tables": []
@@ -16045,6 +16117,7 @@
         "mount_status": null,
         "published_ports": []
       },
+      "source_path": "services/model-registry-adapter",
       "sources": {
         "db_ownership": false,
         "service_inventory": "model-registry-adapter",
@@ -16057,14 +16130,16 @@
         "tested": true,
         "wired": true
       },
-      "type": "adapter"
+      "type": "worker_adapter"
     },
     {
       "aliases": [
         "sahool-qdrant-seed"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "qdrant-seed",
       "component_id": "qdrant-seed",
+      "component_kind": "init_job",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16079,6 +16154,7 @@
           "sahool-ollama"
         ]
       },
+      "deployment_unit": "sahool-qdrant-seed",
       "domain": "knowledge",
       "owns": {
         "tables": []
@@ -16092,6 +16168,7 @@
         "mount_status": null,
         "published_ports": []
       },
+      "source_path": "services/qdrant-seed",
       "sources": {
         "db_ownership": false,
         "service_inventory": "qdrant-seed",
@@ -16104,14 +16181,16 @@
         "tested": true,
         "wired": null
       },
-      "type": "job"
+      "type": "init_job"
     },
     {
       "aliases": [
         "sahool-rag-retrieval"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "rag-retrieval",
       "component_id": "rag-retrieval",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16126,6 +16205,7 @@
           "sahool-qdrant"
         ]
       },
+      "deployment_unit": "sahool-rag-retrieval",
       "domain": "knowledge",
       "owns": {
         "tables": [
@@ -16142,6 +16222,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/rag-retrieval",
       "sources": {
         "db_ownership": true,
         "service_inventory": "rag-retrieval",
@@ -16160,8 +16241,10 @@
       "aliases": [
         "sahool-raster-service"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "raster-service",
       "component_id": "raster-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16178,6 +16261,7 @@
           "sahool-titiler"
         ]
       },
+      "deployment_unit": "sahool-raster-service",
       "domain": "remote-sensing-truth",
       "owns": {
         "tables": [
@@ -16205,6 +16289,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/raster-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "raster-service",
@@ -16221,8 +16306,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "stateless_compute",
       "canonical_name": "raster-tiler-service",
       "component_id": "raster-tiler-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16235,6 +16322,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "raster-tiler-service",
       "domain": "remote-sensing-truth",
       "owns": {
         "tables": []
@@ -16250,6 +16338,7 @@
           "127.0.0.1:8088:8088"
         ]
       },
+      "source_path": "services/raster-tiler-service",
       "sources": {
         "db_ownership": false,
         "service_inventory": "raster-tiler-service",
@@ -16268,8 +16357,10 @@
       "aliases": [
         "sahool-remote-sensing-workspace-bff"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "remote-sensing-workspace-bff",
       "component_id": "remote-sensing-workspace-bff",
+      "component_kind": "bff",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16286,6 +16377,7 @@
           "sahool-vegetation-analysis"
         ]
       },
+      "deployment_unit": "sahool-remote-sensing-workspace-bff",
       "domain": "remote-sensing-workspace",
       "owns": {
         "tables": []
@@ -16299,6 +16391,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/remote-sensing-workspace-bff",
       "sources": {
         "db_ownership": false,
         "service_inventory": "remote-sensing-workspace-bff",
@@ -16315,8 +16408,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "system_of_record",
       "canonical_name": "sahool-platform",
       "component_id": "sahool-platform",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16340,6 +16435,7 @@
           "weather-service"
         ]
       },
+      "deployment_unit": "sahool-platform",
       "domain": "platform-core",
       "owns": {
         "tables": [
@@ -16549,6 +16645,7 @@
         "mount_status": "delegated_routes",
         "published_ports": []
       },
+      "source_path": "services/sahool-platform",
       "sources": {
         "db_ownership": true,
         "service_inventory": "sahool-platform",
@@ -16567,8 +16664,10 @@
       "aliases": [
         "sahool-sam2-inference"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "sam2-inference",
       "component_id": "sam2-inference",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16581,6 +16680,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-sam2-inference",
       "domain": "fields-boundary",
       "owns": {
         "tables": []
@@ -16594,6 +16694,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/sam2-inference",
       "sources": {
         "db_ownership": false,
         "service_inventory": "sam2-inference",
@@ -16610,8 +16711,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "system_of_record",
       "canonical_name": "scout-ingest-service",
       "component_id": "scout-ingest-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16624,6 +16727,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "ground-ingest",
       "owns": {
         "tables": [
@@ -16647,6 +16751,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/scout-ingest-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "scout-ingest-service",
@@ -16665,8 +16770,10 @@
       "aliases": [
         "sahool-soil-service"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "soil-service",
       "component_id": "soil-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16680,6 +16787,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-soil-service",
       "domain": "soil",
       "owns": {
         "tables": [
@@ -16726,6 +16834,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/soil-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "soil-service",
@@ -16744,8 +16853,10 @@
       "aliases": [
         "sahool-supervisor-agent"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "supervisor-agent",
       "component_id": "supervisor-agent",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16764,6 +16875,7 @@
           "sahool-wofost-mcp"
         ]
       },
+      "deployment_unit": "sahool-supervisor-agent",
       "domain": "agents",
       "owns": {
         "tables": []
@@ -16779,6 +16891,7 @@
           "127.0.0.1:8096:8000"
         ]
       },
+      "source_path": "services/supervisor-agent",
       "sources": {
         "db_ownership": false,
         "service_inventory": "supervisor-agent",
@@ -16797,8 +16910,10 @@
       "aliases": [
         "sahool-tts-service"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "tts-service",
       "component_id": "tts-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16811,6 +16926,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-tts-service",
       "domain": "media",
       "owns": {
         "tables": []
@@ -16824,6 +16940,7 @@
         "mount_status": "delegated_routes",
         "published_ports": []
       },
+      "source_path": "services/tts-service",
       "sources": {
         "db_ownership": false,
         "service_inventory": "tts-service",
@@ -16840,8 +16957,10 @@
     },
     {
       "aliases": [],
+      "authority_kind": "system_of_record",
       "canonical_name": "vegetation-analysis-service",
       "component_id": "vegetation-analysis-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16855,6 +16974,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": null,
       "domain": "vegetation-interpretation",
       "owns": {
         "tables": [
@@ -16868,6 +16988,7 @@
         "mount_status": "delegated_routes",
         "published_ports": []
       },
+      "source_path": "services/vegetation-analysis-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "vegetation-analysis-service",
@@ -16886,8 +17007,10 @@
       "aliases": [
         "sahool-video-processor"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "video-processor",
       "component_id": "video-processor",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16904,6 +17027,7 @@
           "sahool-zlmediakit"
         ]
       },
+      "deployment_unit": "sahool-video-processor",
       "domain": "media",
       "owns": {
         "tables": []
@@ -16917,6 +17041,7 @@
         "mount_status": "delegated_routes",
         "published_ports": []
       },
+      "source_path": "services/video-processor",
       "sources": {
         "db_ownership": false,
         "service_inventory": "video-processor",
@@ -16935,8 +17060,10 @@
       "aliases": [
         "sahool-weather-polygon-worker"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "weather-polygon-worker",
       "component_id": "weather-polygon-worker",
+      "component_kind": "worker",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16950,6 +17077,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-weather-polygon-worker",
       "domain": "weather-truth",
       "owns": {
         "tables": []
@@ -16963,6 +17091,7 @@
         "mount_status": "non_http_entrypoint",
         "published_ports": []
       },
+      "source_path": "services/weather-polygon-worker",
       "sources": {
         "db_ownership": false,
         "service_inventory": "weather-polygon-worker",
@@ -16981,8 +17110,10 @@
       "aliases": [
         "sahool-weather-service"
       ],
+      "authority_kind": "system_of_record",
       "canonical_name": "weather-service",
       "component_id": "weather-service",
+      "component_kind": "service",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -16996,6 +17127,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-weather-service",
       "domain": "weather-truth",
       "owns": {
         "tables": [
@@ -17018,6 +17150,7 @@
         "mount_status": "direct_routes",
         "published_ports": []
       },
+      "source_path": "services/weather-service",
       "sources": {
         "db_ownership": true,
         "service_inventory": "weather-service",
@@ -17036,8 +17169,10 @@
       "aliases": [
         "sahool-weather-signal-engine"
       ],
+      "authority_kind": "stateless_compute",
       "canonical_name": "weather-signal-engine",
       "component_id": "weather-signal-engine",
+      "component_kind": "worker",
       "consumer_contract": {
         "declared": true,
         "evidence_kinds": [
@@ -17050,6 +17185,7 @@
       "consumes": {
         "services": []
       },
+      "deployment_unit": "sahool-weather-signal-engine",
       "domain": "weather-truth",
       "owns": {
         "tables": []
@@ -17063,6 +17199,7 @@
         "mount_status": "non_http_entrypoint",
         "published_ports": []
       },
+      "source_path": "services/weather-signal-engine",
       "sources": {
         "db_ownership": false,
         "service_inventory": "weather-signal-engine",
@@ -17349,7 +17486,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "f5fa0ea8f6a04e5ddb3aa3d1671f05eeb50043a6b6c2f63e069fa2c03e59b228",
+  "fingerprint": "228ac4a7206625326bbdc899f9969bb527803880fac8f70b7e63e58a32bfca4b",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17394,6 +17531,10 @@
     ]
   },
   "governance": {
+    "s1a_component_classification": {
+      "failures": [],
+      "passed": true
+    },
     "u3_wiring_ownership": {
       "failures": [],
       "passed": true

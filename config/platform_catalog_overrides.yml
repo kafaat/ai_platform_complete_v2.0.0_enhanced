@@ -1,15 +1,15 @@
 # platform_catalog_overrides.yml — الاستثناءات اليدويّة لمُصرِّف الكتالوج الموحّد (U1)
 #
 # القاعدة الصارمة: هذا الملفّ يحمل فقط ما لا يمكن اكتشافه آليّاً من المستودع
-# (أسماء قانونيّة/أسماء مستعارة تاريخيّة، مجالات أعمال، مكوّنات غير-HTTP بلا جرد ذاتيّ).
+# (أسماء قانونيّة/أسماء مستعارة تاريخيّة، مكوّنات غير-HTTP بلا جرد ذاتيّ).
 # أيّ معلومة قابلة للاكتشاف (مسارات، منافذ compose، ملكيّة جداول، أحداث NATS، عقود UI)
 # يكتشفها scripts/architecture/build_platform_catalog.py من مصادرها القانونيّة القائمة —
 # ووضعها هنا انتهاك يُفشِل بوّابة الكتالوج.
 #
-# schema (U1):
+# schema (U1 + S1a):
 #   canonical_aliases: {alias_name: canonical_component_id}
-#   components: {component_id: {type?, domain?, notes?}}  # type/domain غير-مكتشَفين فقط
-#   extra_components: [{component_id, type, domain, notes}]  # مكوّنات بلا صفّ جرد ذاتيّ
+#   components: {}  # S1a: التصنيف كلّه في docs/architecture/component_registry.json
+#   extra_components: [{component_id, notes}]  # عضويّة المكوّنات بلا صفّ جرد ذاتيّ
 # schema (U4) — أحكام بشريّة غير قابلة للاكتشاف الآليّ:
 #   duplicate_route_classifications: قرار لكلّ مجموعة (method,path) مكرّرة عبر الخدمات —
 #     التصنيف + السبب إلزاميّان؛ التصنيفات المؤقّتة تتطلّب expires_on؛ legacy_bff_facade
@@ -22,40 +22,10 @@ canonical_aliases:
   odoo-bridge: erp-bridge
   sahool-odoo-bridge: erp-bridge
 
-components:
-  # المجال (domain) حكم أعمال غير قابل للاكتشاف الآليّ — يُعلَن هنا.
-  sahool-platform: {type: service, domain: platform-core}
-  auth: {type: service, domain: identity}
-  raster-service: {type: service, domain: remote-sensing-truth}
-  vegetation-analysis-service: {type: service, domain: vegetation-interpretation}
-  indicators-service: {type: service, domain: indicators}
-  weather-service: {type: service, domain: weather-truth}
-  weather-polygon-worker: {type: worker, domain: weather-truth}
-  weather-signal-engine: {type: worker, domain: weather-truth}
-  decision-service: {type: service, domain: decision-governance}
-  model-registry-adapter: {type: adapter, domain: decision-governance}
-  agriai-engine: {type: service, domain: simulation-experimental}
-  soil-service: {type: service, domain: soil}
-  field-management-service: {type: service, domain: fields-internal}
-  field-segmentation: {type: service, domain: fields-boundary}
-  sam2-inference: {type: service, domain: fields-boundary}
-  scout-ingest-service: {type: service, domain: ground-ingest}
-  erp-bridge: {type: service, domain: erp-projection}
-  actuator-service: {type: service, domain: execution}
-  guardrails-engine: {type: service, domain: decision-governance}
-  supervisor-agent: {type: service, domain: agents}
-  knowledge-graph: {type: service, domain: knowledge}
-  local-ai-rag: {type: service, domain: knowledge}
-  rag-retrieval: {type: service, domain: knowledge}
-  ai_agronomist: {type: service, domain: agents}
-  edge-inference: {type: service, domain: edge}
-  tts-service: {type: service, domain: media}
-  video-processor: {type: service, domain: media}
-  remote-sensing-workspace-bff: {type: bff, domain: remote-sensing-workspace}
-  gis-workflow-service: {type: batch-job-tool, domain: gis-publication}
-  qdrant-seed: {type: job, domain: knowledge}
-  mcp_servers: {type: service, domain: agents-mcp}
-  raster-tiler-service: {type: service, domain: remote-sensing-truth}
+# ARCH-S1a: التصنيف (component_kind/domain) انتقل إلى المصدر القانونيّ الواحد
+# docs/architecture/component_registry.json — وهناك يفشل البناء على أيّ مكوّن
+# غير مصنَّف بدل السقوط الصامت إلى service الذي كان يعيش هنا.
+components: {}
 
 ui_waiver_policy:
   # الإعفاءات القائمة لا تحمل مالكاً/انتهاءً ذاتيّاً — السياسة تمنحها حكماً افتراضيّاً
@@ -93,12 +63,9 @@ duplicate_route_classifications:
 
 extra_components:
   # واجهات الاستهلاك — ليست في service_inventory (ليست خدمات backend) لكنّها مكوّنات
-  # كتالوج من الطراز الأوّل (النموذج المستهدَف يشمل frontend/mobile).
+  # كتالوج من الطراز الأوّل. تصنيفها (component_kind/domain) في component_registry.json
+  # كسائر المكوّنات (ARCH-S1a)؛ هنا العضويّة والملاحظات فقط.
   - component_id: frontend
-    type: frontend
-    domain: user-interface
     notes: React SPA — يُخدَّم عبر nginx البوّابة؛ مستهلك عقود UI القانونيّ.
   - component_id: mobile
-    type: mobile
-    domain: user-interface
     notes: Flutter app — مستهلك متنقّل؛ مساراته عبر البوّابة نفسها.

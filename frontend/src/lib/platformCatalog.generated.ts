@@ -14,7 +14,7 @@ export interface CatalogComponent {
   capabilityCount: number;
 }
 
-export const PLATFORM_CATALOG_FINGERPRINT = 'f5fa0ea8f6a04e5ddb3aa3d1671f05eeb50043a6b6c2f63e069fa2c03e59b228';
+export const PLATFORM_CATALOG_FINGERPRINT = '228ac4a7206625326bbdc899f9969bb527803880fac8f70b7e63e58a32bfca4b';
 
 export const PLATFORM_CATALOG_COUNTS = {
   "backend_components": 32,
@@ -130,7 +130,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "domain": "gis-publication",
     "id": "gis-workflow-service",
     "tested": true,
-    "type": "batch-job-tool",
+    "type": "tool_bundle",
     "wired": null,
     "wiringDisposition": "standalone-job"
   },
@@ -193,7 +193,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "domain": "decision-governance",
     "id": "model-registry-adapter",
     "tested": true,
-    "type": "adapter",
+    "type": "worker_adapter",
     "wired": true,
     "wiringDisposition": "consumed"
   },
@@ -202,7 +202,7 @@ export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = [
     "domain": "knowledge",
     "id": "qdrant-seed",
     "tested": true,
-    "type": "job",
+    "type": "init_job",
     "wired": null,
     "wiringDisposition": "standalone-job"
   },

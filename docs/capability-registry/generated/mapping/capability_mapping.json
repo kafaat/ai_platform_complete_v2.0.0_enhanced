@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5030,
+    "files_scanned": 5032,
     "files_by_kind": {
       "backend": 1196,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1352,
-      "tests": 1642,
+      "other": 1353,
+      "tests": 1643,
       "web": 456
     },
-    "unmapped_artifacts": 2043,
+    "unmapped_artifacts": 2044,
     "ambiguous_artifacts": 403
   },
   "capabilities": [
@@ -8806,14 +8806,6 @@
           ]
         },
         {
-          "path": "config/platform_catalog_overrides.yml",
-          "score": 11,
-          "signals": [
-            "content:erp bridge",
-            "content:odoo bridge"
-          ]
-        },
-        {
           "path": "docker-compose.odoo-snippet.yml",
           "score": 11,
           "signals": [
@@ -8834,6 +8826,14 @@
           "score": 10,
           "signals": [
             "content:ERP integration",
+            "content:odoo bridge"
+          ]
+        },
+        {
+          "path": "config/platform_catalog_overrides.yml",
+          "score": 10,
+          "signals": [
+            "content:erp bridge",
             "content:odoo bridge"
           ]
         },
@@ -41299,6 +41299,10 @@
     },
     {
       "path": "tests_v9/test_compensation_killswitch.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_component_registry_gate.py",
       "kind": "tests"
     },
     {
