@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 531,
+      "evidence_count": 533,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -279,6 +279,7 @@
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
         "services/sahool-platform/api/temporal_arbitration.py",
+        "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/agri_tools/tools/index_explorer.py",
         "services/sahool-platform/core/agronomic_state_engine.py",
@@ -364,6 +365,7 @@
         "services/sahool-platform/tests/test_canonical_well_capability.py",
         "services/sahool-platform/tests/test_canonical_writer_call_sites.py",
         "services/sahool-platform/tests/test_capability_plan_closures.py",
+        "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
         "services/sahool-platform/tests/test_confidence_engine.py",
         "services/sahool-platform/tests/test_context_firewall_and_streams.py",
         "services/sahool-platform/tests/test_crop_confidence_contract.py",
@@ -2266,7 +2268,7 @@
         "services/sahool-platform/core/decision_playbook.py",
         "services/sahool-platform/core/evidence_graph.py"
       ],
-      "source_evidence_count": 531,
+      "source_evidence_count": 533,
       "target_evidence_count": 467,
       "static_supported": true,
       "runtime_verified": false
@@ -2619,5 +2621,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "8576e68d8ac4a21f8b404b1ce50afee4ca0b115792a97f3491080c3f2316907e"
+  "content_sha256": "6fd5870c3e6913376e0d581a5c0d8b5d815339f1f7822a099045ead68a825a2f"
 }

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "evidence_scope": "static_repository_only",
   "runtime_verified": false,
-  "python_files_parsed": 1849,
+  "python_files_parsed": 1850,
   "route_handlers": 1049,
   "call_edges": 73346,
   "dead_code_candidates": 615,

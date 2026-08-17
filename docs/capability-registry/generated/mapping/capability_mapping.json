@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5046,
+    "files_scanned": 5050,
     "files_by_kind": {
       "backend": 1197,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1362,
-      "tests": 1647,
+      "other": 1364,
+      "tests": 1649,
       "web": 456
     },
-    "unmapped_artifacts": 2049,
+    "unmapped_artifacts": 2050,
     "ambiguous_artifacts": 403
   },
   "capabilities": [
@@ -2253,6 +2253,14 @@
             "path:learning attribution",
             "content:learning attribution"
           ]
+        },
+        {
+          "path": "tests_v9/test_closed_agronomic_loop_authority_guard.py",
+          "score": 8,
+          "signals": [
+            "content:Learning attribution",
+            "content:learning attribution"
+          ]
         }
       ],
       "governance": [
@@ -2323,7 +2331,7 @@
         "events": 4,
         "web": 0,
         "mobile": 0,
-        "tests": 1,
+        "tests": 2,
         "governance": 1,
         "other_evidence": 5
       },
@@ -11574,7 +11582,7 @@
           "score": 20
         },
         {
-          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:79",
+          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:73",
           "score": 20
         },
         {
@@ -11645,7 +11653,7 @@
           "score": 20
         },
         {
-          "value": "api.canonical_soil_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:136",
+          "value": "api.canonical_soil_state @ services/sahool-platform/tests/test_canonical_field_state_wiring.py:144",
           "score": 20
         },
         {
@@ -39519,6 +39527,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_circuit_breaker.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
       "kind": "tests"
     },
     {
