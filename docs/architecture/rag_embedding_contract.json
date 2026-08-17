@@ -1,0 +1,21 @@
+{
+  "schema": "sahool.rag-embedding-contract/v1",
+  "version": 1,
+  "provider": "ollama",
+  "model": "nomic-embed-text",
+  "endpoint_path": "/api/embeddings",
+  "dimension_source": "live_embedding_response",
+  "collection": "sahool_agri_kb",
+  "payload_contract": {
+    "content_key": "page_content",
+    "metadata_key": "metadata",
+    "tenant_key": "metadata.tenant_id"
+  },
+  "consumers": [
+    "local-ai-rag",
+    "rag-retrieval",
+    "qdrant-seed"
+  ],
+  "no_hardcoded_vector_dimension": true,
+  "adjudicated_on": "2026-08-17"
+}

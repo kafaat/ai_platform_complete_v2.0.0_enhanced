@@ -773,7 +773,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 420,
+      "line": 509,
       "method": "POST",
       "path": "/v1/query",
       "function": "query_endpoint"
@@ -781,7 +781,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 430,
+      "line": 519,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest_endpoint"
@@ -789,7 +789,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 90,
+      "line": 101,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest"
@@ -797,7 +797,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 115,
+      "line": 131,
       "method": "POST",
       "path": "/v1/search",
       "function": "search"

@@ -1169,7 +1169,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 420,
+      "line": 509,
       "method": "POST",
       "path": "/v1/query",
       "function": "query_endpoint",
@@ -1178,7 +1178,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 430,
+      "line": 519,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest_endpoint",
@@ -1187,7 +1187,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 482,
+      "line": 571,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1196,7 +1196,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 500,
+      "line": 589,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -1205,7 +1205,7 @@
     {
       "service": "local-ai-rag",
       "file": "services/local-ai-rag/main.py",
-      "line": 505,
+      "line": 594,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1214,7 +1214,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 55,
+      "line": 56,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1223,7 +1223,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 60,
+      "line": 61,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -1232,7 +1232,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 73,
+      "line": 74,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1241,7 +1241,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 90,
+      "line": 101,
       "method": "POST",
       "path": "/v1/ingest",
       "function": "ingest",
@@ -1250,7 +1250,7 @@
     {
       "service": "rag-retrieval",
       "file": "services/rag-retrieval/main.py",
-      "line": 115,
+      "line": 131,
       "method": "POST",
       "path": "/v1/search",
       "function": "search",

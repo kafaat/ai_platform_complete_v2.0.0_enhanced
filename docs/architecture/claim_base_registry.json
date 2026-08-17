@@ -21,6 +21,8 @@
     "physical_effect_boundary_contract.json",
     "platform_route_placement_contract.json",
     "preflight_required.json",
+    "rag_authority_convergence.json",
+    "rag_embedding_contract.json",
     "raster_boundary_allowlist.json",
     "runtime_contract_nonsecret_keys.json",
     "schema_validation_policy.json",

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SAHOOL v9.1 — Local AI RAG Service (Qwen3 + Ollama + Qdrant)
+SAHOOL v9.1 — Local Generation Runtime (Qwen3 + Ollama; canonical retrieval shadow)
 Agricultural Advisor with local LLM — no API keys, no cloud leakage.
 Supports Arabic + English agricultural knowledge base.
 Hardware: GPU RTX 4090/5090 + 192GB RAM recommended for 70B+ models.
@@ -9,6 +9,7 @@ Hardware: GPU RTX 4090/5090 + 192GB RAM recommended for 70B+ models.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import os
 import re
@@ -64,6 +65,12 @@ LLM_MODEL = os.getenv("LLM_MODEL", "qwen3:32b")  # or qwen3:70b, qwen3:8b
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "sahool_agri_kb")
+# ARCH-S3 Expand: rag-retrieval is the intended retrieval authority.  Direct Qdrant
+# remains primary only during measured shadow parity; SHADOW is OFF by default and
+# never changes the response path.  Cutover/revoke is blocked by the S3 guard until
+# embedding/collection/live parity proof is accepted.
+RAG_RETRIEVAL_URL = os.getenv("RAG_RETRIEVAL_URL", "http://sahool-rag-retrieval:8000").rstrip("/")
+RAG_RETRIEVAL_SHADOW = os.getenv("RAG_RETRIEVAL_SHADOW", "false").strip().lower() in {"1", "true", "yes", "on"}
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "800"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))
 NUM_CTX = int(os.getenv("NUM_CTX", "8192"))  # context window
@@ -138,31 +145,18 @@ def init_vectorstore() -> QdrantVectorStore:
     from qdrant_client import QdrantClient
 
     qclient = QdrantClient(url=QDRANT_URL, prefer_grpc=False)
-    if qclient.collection_exists(COLLECTION_NAME):
-        _vectorstore = QdrantVectorStore.from_existing_collection(
-            embedding=embeddings,
-            url=QDRANT_URL,
-            prefer_grpc=False,
-            collection_name=COLLECTION_NAME,
-        )
-        logger.info("Qdrant vector store connected (existing collection)")
-    else:
-        # إنشاء لمرّة واحدة بوثيقة بذرة بلا tenant_id (مُستبعَدة بفلتر العزل، فلا
-        # تتراكم ولا تظهر كـ«مصدر»). لا نُعيد إدخالها في كلّ إقلاع.
-        _vectorstore = QdrantVectorStore.from_documents(
-            documents=[
-                Document(
-                    page_content="SAHOOL initialization document.",
-                    metadata={"source": "init"},
-                )
-            ],
-            embedding=embeddings,
-            url=QDRANT_URL,
-            prefer_grpc=False,
-            collection_name=COLLECTION_NAME,
-            force_recreate=False,
-        )
-        logger.info("Qdrant vector store created (new collection)")
+    if not qclient.collection_exists(COLLECTION_NAME):
+        # ARCH-S3 writer convergence: this runtime is now read-only against Qdrant.
+        # Collection creation/initialization belongs to qdrant-seed or the canonical
+        # rag-retrieval ingest authority; a query must never create storage as a side effect.
+        raise RuntimeError(f"Qdrant collection {COLLECTION_NAME!r} does not exist")
+    _vectorstore = QdrantVectorStore.from_existing_collection(
+        embedding=embeddings,
+        url=QDRANT_URL,
+        prefer_grpc=False,
+        collection_name=COLLECTION_NAME,
+    )
+    logger.info("Qdrant vector store connected read-only (existing collection)")
     return _vectorstore
 
 
@@ -207,7 +201,12 @@ def split_docs(docs: list[Document]) -> list[Document]:
 
 
 async def ingest_documents(file_paths: list[Path], tenant_id: str = "default") -> dict:
-    vs = init_vectorstore()
+    """Parse locally, but write knowledge only through the canonical retrieval authority.
+
+    ARCH-S3 writer convergence: local-ai-rag no longer writes Qdrant during ingest.
+    The direct Qdrant dependency remains read-only while retrieval parity is measured.
+    Canonical-ingest failure is explicit and fail-closed; there is no direct-write fallback.
+    """
     all_docs: list[Document] = []
     for p in file_paths:
         try:
@@ -224,8 +223,54 @@ async def ingest_documents(file_paths: list[Path], tenant_id: str = "default") -
         return {"ingested": 0, "chunks": 0}
 
     chunks = split_docs(all_docs)
-    vs.add_documents(chunks)
-    return {"ingested": len(all_docs), "chunks": len(chunks)}
+    by_source: dict[str, list[Document]] = {}
+    for chunk in chunks:
+        by_source.setdefault(str(chunk.metadata.get("source_file") or "unknown"), []).append(chunk)
+
+    wire_chunks: list[dict] = []
+    for source_file, rows in sorted(by_source.items()):
+        document_id = hashlib.sha256(f"{tenant_id}:{source_file}".encode("utf-8")).hexdigest()
+        total = len(rows)
+        for idx, chunk in enumerate(rows):
+            chunk_id = hashlib.sha256(
+                f"{document_id}:{idx}:".encode("utf-8") + chunk.page_content.encode("utf-8")
+            ).hexdigest()
+            metadata = dict(chunk.metadata)
+            metadata.update(
+                {
+                    "source_file": source_file,
+                }
+            )
+            wire_chunks.append(
+                {
+                    "chunk_id": chunk_id,
+                    "tenant_id": tenant_id,
+                    "text": chunk.page_content,
+                    "source_type": "uploaded_document",
+                    "document_id": document_id,
+                    "chunk_index": idx,
+                    "total_chunks": total,
+                    "metadata": metadata,
+                }
+            )
+
+    if not AGENT_TOKEN:
+        raise HTTPException(503, "خدمة المعرفة غير مهيأة للكتابة المحكومة")
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{RAG_RETRIEVAL_URL}/v1/ingest",
+                json={"chunks": wire_chunks},
+                headers={"X-Agent-Token": AGENT_TOKEN, "X-Tenant-Id": tenant_id},
+            )
+        response.raise_for_status()
+        accepted = int(response.json().get("ingested", 0))
+    except Exception as exc:  # noqa: BLE001 — canonical writer failure must be explicit
+        logger.warning("RAG_CANONICAL_INGEST_FAILED type=%s", type(exc).__name__)
+        raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاستيعاب)") from exc
+    if accepted != len(wire_chunks):
+        raise HTTPException(503, "خدمة المعرفة أعادت عدداً غير مطابق من المقاطع المستوعبة")
+    return {"ingested": len(all_docs), "chunks": accepted}
 
 
 # ══════════════════════════════════════════════════════════════
@@ -239,6 +284,45 @@ _GROUNDED_PROMPT = (
     "يكفي للإجابة، فقل حرفيّاً: «" + _NO_KNOWLEDGE_AR + "» — لا تستعمل معرفتك العامّة "
     "ولا تختلق مصادر أو أرقاماً.\n\nالسياق:\n{context}\n\nالسؤال: {question}\n\nالإجابة:"
 )
+
+
+def _retrieval_fingerprint(text: str) -> str:
+    normalized = " ".join((text or "").split()).encode("utf-8")
+    return hashlib.sha256(normalized).hexdigest()
+
+
+async def _shadow_canonical_retrieval(question: str, tenant_id: str, k: int, direct_docs: list[Document]) -> None:
+    """Observe canonical retrieval parity without changing the authoritative response.
+
+    Shadow failure is logged explicitly; it is not a fallback because the canonical
+    path is not authoritative in EXPAND.  Once S3 reaches CUTOVER this function is
+    removed together with the direct Qdrant path rather than wrapped in fallback.
+    """
+    if not RAG_RETRIEVAL_SHADOW:
+        return
+    payload = {"tenant_id": tenant_id, "query": question, "final_k": min(k, 10)}
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{RAG_RETRIEVAL_URL}/v1/search",
+                json=payload,
+                headers={"X-Tenant-Id": tenant_id},
+            )
+        response.raise_for_status()
+        annotations = response.json().get("annotations") or []
+    except Exception as exc:  # noqa: BLE001 — shadow is read-only, failure is explicit telemetry
+        logger.warning("RAG_RETRIEVAL_SHADOW_FAILED type=%s", type(exc).__name__)
+        return
+    direct = {_retrieval_fingerprint(d.page_content) for d in direct_docs}
+    canonical = {_retrieval_fingerprint(str(a.get("text") or "")) for a in annotations if a.get("text")}
+    union = direct | canonical
+    overlap = (len(direct & canonical) / len(union)) if union else 1.0
+    logger.info(
+        "RAG_RETRIEVAL_SHADOW_PARITY direct=%d canonical=%d overlap=%.4f",
+        len(direct),
+        len(canonical),
+        overlap,
+    )
 
 
 async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
@@ -267,6 +351,11 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
     except Exception as e:  # noqa: BLE001 — تعطّل Qdrant/Ollama ⇒ 503 صادق
         logger.warning("فشل استرجاع المعرفة: %s", type(e).__name__)
         raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاسترجاع)") from e
+
+    # ARCH-S3 EXPAND: compare canonical retrieval out-of-band. The direct path is
+    # still the declared primary until live parity is accepted; no response data
+    # comes from shadow and no canonical failure is silently used as a fallback.
+    await _shadow_canonical_retrieval(question, tenant_id, k, docs)
 
     # لا سياق ⇒ رفض صريح بلا مصادر (لا نستدعي النموذج لئلّا يُجيب من معرفته).
     if not docs:

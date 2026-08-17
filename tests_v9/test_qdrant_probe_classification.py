@@ -119,3 +119,32 @@ def test_typed_error_keeps_the_status_code_reachable():
     err = pq.QdrantHTTPError(401, "no key")
     assert err.status == 401
     assert isinstance(err, RuntimeError), "التوافق: مستهلكو RuntimeError يبقون عاملين"
+
+
+def test_existing_collection_vector_dimension_must_match_embedding_dimension():
+    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=0)
+    client.probe_collection = lambda: Status.EXISTS  # type: ignore[method-assign]
+    client.collection_vector_size = lambda: 768  # type: ignore[method-assign]
+    with pytest.raises(ValueError, match="vector-size mismatch"):
+        client.ensure_collection(vector_size=384)
+
+
+def test_collection_vector_size_reads_unnamed_vector_schema():
+    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=0)
+    client._request = lambda *_a, **_k: {"result": {"config": {"params": {"vectors": {"size": 768, "distance": "Cosine"}}}}}  # type: ignore[method-assign]
+    assert client.collection_vector_size() == 768
+
+
+def test_ollama_embedding_provider_learns_dimension_and_rejects_drift(monkeypatch):
+    class Resp:
+        def __init__(self, payload): self.payload = payload
+        def __enter__(self): return self
+        def __exit__(self, *_a): return False
+        def read(self): return json.dumps(self.payload).encode()
+    payloads = iter([{"embedding": [0.1, 0.2, 0.3]}, {"embedding": [0.4, 0.5]}])
+    monkeypatch.setattr(pq.urllib.request, "urlopen", lambda *_a, **_k: Resp(next(payloads)))
+    provider = pq.OllamaEmbeddingProvider("http://ollama:11434", "nomic-embed-text")
+    assert provider.embed("a") == [0.1, 0.2, 0.3]
+    assert provider.dimensions == 3
+    with pytest.raises(ValueError, match="dimension changed"):
+        provider.embed("b")

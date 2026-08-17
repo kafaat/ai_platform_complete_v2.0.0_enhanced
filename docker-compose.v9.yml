@@ -1634,9 +1634,13 @@ services:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
       QDRANT_API_KEY: ${QDRANT_API_KEY}
+      RAG_RETRIEVAL_URL: http://sahool-rag-retrieval:8000
+      RAG_RETRIEVAL_SHADOW: ${RAG_RETRIEVAL_SHADOW:-false}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
+      OLLAMA_BASE_URL: http://sahool-ollama:11434
+      EMBED_MODEL: nomic-embed-text
       EMBEDDING_URL: http://sahool-ollama:11434/api/embeddings
       LLM_URL: http://sahool-ollama:11434/api/generate
       EMBEDDING_MODEL: nomic-embed-text
@@ -1674,11 +1678,14 @@ services:
     environment:
       QDRANT_URL: http://sahool-qdrant:6333
       QDRANT_COLLECTION: ${QDRANT_COLLECTION:-sahool_agri_kb}
-      EMBEDDING_DIM: ${EMBEDDING_DIM:-384}
+      OLLAMA_BASE_URL: http://sahool-ollama:11434
+      EMBEDDING_MODEL: nomic-embed-text
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start
+      sahool-ollama:
+        condition: service_healthy
     networks:
     - sahool-internal
     healthcheck:

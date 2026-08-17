@@ -82,6 +82,7 @@ local-ai-rag,networks,compose-depends-on,docker-compose.unified.yml
 local-ai-rag,ollama,compose-depends-on,docker-compose.unified.yml
 local-ai-rag,qdrant,code-reference,services/local-ai-rag/main.py
 local-ai-rag,qdrant,compose-depends-on,docker-compose.unified.yml
+local-ai-rag,rag-retrieval,code-reference,services/local-ai-rag/main.py
 market-mcp,networks,compose-depends-on,docker-compose.unified.yml
 market-mcp,postgis,compose-depends-on,docker-compose.unified.yml
 mcp-servers,erp-bridge,code-reference,services/mcp_servers/market_server.py
@@ -625,6 +626,7 @@ sahool-rag-retrieval,python,compose-depends-on,docker-compose.v9.yml
 sahool-rag-retrieval,retries,compose-depends-on,docker-compose.v9.yml
 sahool-rag-retrieval,sahool-internal,compose-depends-on,docker-compose.rag-kg-mcp.yml
 sahool-rag-retrieval,sahool-internal,compose-depends-on,docker-compose.v9.yml
+sahool-rag-retrieval,sahool-ollama,compose-depends-on,docker-compose.v9.yml
 sahool-rag-retrieval,sahool-qdrant,compose-depends-on,docker-compose.rag-kg-mcp.yml
 sahool-rag-retrieval,sahool-qdrant,compose-depends-on,docker-compose.v9.yml
 sahool-rag-retrieval,start-period,compose-depends-on,docker-compose.v9.yml

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import os
-import urllib.request
 from typing import Any
 
 from core.rag.production_qdrant import (
-    HashEmbeddingProvider,
     HybridQdrantRetriever,
     KnowledgeChunk,
+    OllamaEmbeddingProvider,
     QdrantHttpClient,
 )
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
@@ -19,11 +18,13 @@ from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_t
 app = FastAPI(title="SAHOOL Production RAG Retrieval", version="2026.2")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
 COLLECTION = os.getenv("QDRANT_COLLECTION", "sahool_agri_kb")
-VECTOR_SIZE = int(os.getenv("EMBEDDING_DIM", "384"))
-_retriever = HybridQdrantRetriever(
-    QdrantHttpClient(QDRANT_URL, COLLECTION, VECTOR_SIZE, os.getenv("QDRANT_API_KEY") or None),
-    HashEmbeddingProvider(VECTOR_SIZE),
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://sahool-ollama:11434")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+_embedding_provider = OllamaEmbeddingProvider(OLLAMA_BASE_URL, EMBEDDING_MODEL)
+_qdrant = QdrantHttpClient(
+    QDRANT_URL, COLLECTION, 0, os.getenv("QDRANT_API_KEY") or None
 )
+_retriever = HybridQdrantRetriever(_qdrant, _embedding_provider)
 
 
 class ChunkIn(BaseModel):
@@ -62,7 +63,7 @@ async def metrics():
         [
             "# HELP sahool_rag_retrieval_info Static service info",
             "# TYPE sahool_rag_retrieval_info gauge",
-            f'sahool_rag_retrieval_info{{collection="{COLLECTION}",vector_size="{VECTOR_SIZE}"}} 1',
+            f'sahool_rag_retrieval_info{{collection="{COLLECTION}",embedding_provider="ollama",embedding_model="{EMBEDDING_MODEL}"}} 1',
             "",
         ]
     )
@@ -72,17 +73,27 @@ async def metrics():
 @app.get("/readyz")
 async def readyz():
     try:
-        req = urllib.request.Request(f"{QDRANT_URL.rstrip('/')}/collections")
-        if os.getenv("QDRANT_API_KEY"):
-            req.add_header("api-key", os.getenv("QDRANT_API_KEY", ""))
-        urllib.request.urlopen(req, timeout=3).read()
+        # Readiness proves the embedding contract against the *live* Qdrant schema.
+        # A reachable Qdrant alone is insufficient: a different vector space makes
+        # retrieval operationally wrong while all HTTP probes remain green.
+        vector = _embedding_provider.embed("SAHOOL retrieval readiness probe")
+        collection_dim = _qdrant.collection_vector_size()
+        if len(vector) != collection_dim:
+            raise ValueError(
+                f"embedding/Qdrant dimension mismatch: embedding={len(vector)} collection={collection_dim}"
+            )
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(503, f"qdrant not ready: {exc}") from exc
+        raise HTTPException(503, f"rag retrieval not ready: {exc}") from exc
     return {
         "status": "ready",
         "service": "rag-retrieval",
         "qdrant_url": QDRANT_URL,
         "collection": COLLECTION,
+        "embedding_provider": "ollama",
+        "embedding_model": EMBEDDING_MODEL,
+        "vector_size": collection_dim,
+        "embedding_contract_parity": True,
+        "collection_schema_parity": True,
     }
 
 
@@ -104,6 +115,11 @@ async def ingest(
             raise HTTPException(status_code=403, detail=exc.code) from exc
         payload = c.model_dump()
         payload["tenant_id"] = tenant_id
+        # Canonical retrieval owns the storage metadata contract. Callers provide
+        # source provenance; the retrieval authority supplies the baseline level
+        # required by KnowledgeChunk instead of forcing every generation runtime
+        # to duplicate storage-specific metadata.
+        payload["metadata"].setdefault("evidence_level", "document")
         chunks.append(KnowledgeChunk(**payload))
     try:
         return {"ingested": _retriever.ingest(chunks)}

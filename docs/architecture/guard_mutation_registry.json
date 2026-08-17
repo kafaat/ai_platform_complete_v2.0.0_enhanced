@@ -2363,5 +2363,71 @@
   },
   "unmutated_debt_ceiling": 113,
   "why_a_named_expect_and_not_just_red": "«سقط شيء ما» يمرّ على طفرة كسرت الاستيراد لا القاعدة — فالطفرة تُثبِت نفسها بسقوط الاختبار **المُسمّى**.",
-  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل."
+  "why_having_a_test_is_not_evidence": "أكثر من ثلثي حرّاس هذا المستودع لهم ملفّ اختبار، وكان أخضر طوال الوقت الذي كان فيه ثلاثة منهم عُمياً عمّا وُجِدوا له. اختبار الحارس المعتاد يقيس أنّه **يمرّ على شجرة سليمة** — وهي خاصّيّة يُحقّقها حارسٌ لا يفعل شيئاً على الإطلاق. فالوجود ليس قياساً، والقياس هو زرع العطل.",
+  "scripts/architecture/rag_authority_convergence_guard.py": {
+    "$why_ar": "ARCH-S3: التقارب Expand→Parity→Cutover→Revoke يفشل مغلقاً — القطع قبل اكتمال المتطلّبات، وانتهاء استثناء Qdrant المباشر، وملكيّته، كلّها تُثبَت بالتكذيب لا بالأخضر وحده.",
+    "test": "tests_v9/test_rag_authority_convergence_guard.py",
+    "mutations": [
+      {
+        "expect": "test_s3_cannot_cutover_before_all_requirements",
+        "find": "  if not all(bool(v) for v in reqs.values()): out.append('cutover/revoked stage without all cutover requirements')",
+        "replace": "  if False: out.append('cutover/revoked stage without all cutover requirements')  # mutated: cutover without requirements tolerated",
+        "why": "تعطيل شرط اكتمال متطلّبات القطع يسمح بإعلان cutover ناقص الأدلّة."
+      },
+      {
+        "expect": "test_s3_exception_expiry_fails_closed",
+        "find": "   if close < today: out.append('direct Qdrant exception expired')",
+        "replace": "   if False: out.append('direct Qdrant exception expired')  # mutated: expired exception tolerated",
+        "why": "استثناء Qdrant المباشر مؤقّت بعقد؛ تعطيل انتهائه يجعله دائماً بلا قرار."
+      },
+      {
+        "expect": "test_s3_direct_qdrant_exception_must_be_owned_and_dated",
+        "find": "  for k in ('component_id','owner','reason','target_close_by'):\n   if not exc.get(k): out.append(f'direct Qdrant exception missing {k}')",
+        "replace": "  for k in ():\n   if not exc.get(k): out.append(f'direct Qdrant exception missing {k}')  # mutated: unowned exception tolerated",
+        "why": "استثناء بلا مالك وسبب وتاريخ إغلاق ليس استثناءً بل ثغرة."
+      }
+    ]
+  },
+  "scripts/architecture/rag_live_parity_receipt_guard.py": {
+    "$why_ar": "ARCH-S3: إيصال التكافؤ الحيّ يُقبل فقط مربوطاً بالـSHA وغير مرقٍّ للسلطة وفوق عتبات التداخل — كلّ شرط يُثبَت بالتكذيب.",
+    "test": "tests_v9/test_rag_live_parity_receipt_guard.py",
+    "mutations": [
+      {
+        "expect": "test_receipt_rejects_wrong_subject",
+        "find": " if receipt.get('subject_sha')!=subject_sha: out.append('receipt subject SHA mismatch')",
+        "replace": " if False: out.append('receipt subject SHA mismatch')  # mutated: unbound receipt accepted",
+        "why": "إيصال غير مربوط بالـcommit يمكن إعادة تقديمه لأيّ شجرة."
+      },
+      {
+        "expect": "test_receipt_rejects_weak_overlap",
+        "find": " if float(receipt.get('min_jaccard',0))<float(p.get('min_jaccard',0.6)): out.append('minimum jaccard below threshold')",
+        "replace": " if False: out.append('minimum jaccard below threshold')  # mutated: weak overlap accepted",
+        "why": "تكافؤ بلا عتبة دنيا يقبل استرجاعين متباعدين كأنّهما متكافئان."
+      },
+      {
+        "expect": "test_receipt_never_accepts_promoting_probe",
+        "find": " if receipt.get('read_only') is not True or receipt.get('authority_promotion') is not False: out.append('receipt must be read-only/non-promoting')",
+        "replace": " if False: out.append('receipt must be read-only/non-promoting')  # mutated: promoting receipt accepted",
+        "why": "الإيصال دليل قراءة فقط؛ قبول إيصال مرقٍّ يفتح ترقية سلطة صامتة."
+      }
+    ]
+  },
+  "scripts/architecture/rag_live_parity_probe.py": {
+    "$why_ar": "ARCH-S3: المسبار الحيّ قراءة-فقط وبُعد التضمين مربوط بالمجموعة الحيّة — يُثبَت بالتكذيب.",
+    "test": "tests_v9/test_rag_live_parity_probe.py",
+    "mutations": [
+      {
+        "expect": "test_live_probe_rejects_vector_dimension_mismatch",
+        "find": "        if len(emb) != collection_dim:\n            raise ValueError(f\"embedding/Qdrant dimension mismatch: {len(emb)} != {collection_dim}\")",
+        "replace": "        if False:\n            raise ValueError(f\"embedding/Qdrant dimension mismatch: {len(emb)} != {collection_dim}\")  # mutated: dimension drift tolerated",
+        "why": "بُعد تضمين لا يطابق المجموعة الحيّة يجعل كلّ مقارنة تكافؤ بلا معنى."
+      },
+      {
+        "expect": "test_live_probe_is_read_only_and_dimension_bound",
+        "find": "        \"read_only\":True,\n        \"authority_promotion\":False,",
+        "replace": "        \"read_only\":True,\n        \"authority_promotion\":True,",
+        "why": "المسبار لا يرقّي السلطة أبداً؛ قلب العلم يكسر عقد الإيصال."
+      }
+    ]
+  }
 }

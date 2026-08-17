@@ -1,5 +1,5 @@
 {
-  "edge_count": 799,
+  "edge_count": 800,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -159,6 +159,16 @@
       "relation": "CALLS",
       "resource": "compose-env-url",
       "to": "raster-service",
+      "to_kind": "component"
+    },
+    {
+      "evidence": "docker-compose.v9.yml",
+      "from": "local-ai-rag",
+      "from_kind": "component",
+      "protocol": "http",
+      "relation": "CALLS",
+      "resource": "compose-env-url",
+      "to": "rag-retrieval",
       "to_kind": "component"
     },
     {
@@ -8007,7 +8017,7 @@
     "DB ownership alone is not treated as a READS/WRITES access edge"
   ],
   "relation_counts": {
-    "CALLS": 37,
+    "CALLS": 38,
     "CONSUMES": 1,
     "EMITS": 1,
     "READS": 410,

@@ -1,0 +1,44 @@
+{
+  "schema": "sahool.rag-authority-convergence/v1",
+  "version": 1,
+  "stage": "parity",
+  "authority_state": "NOT_YET_AUTHORITATIVE",
+  "intended_retrieval_authority": "rag-retrieval",
+  "generation_runtime": "local-ai-rag",
+  "vector_store": "qdrant",
+  "direct_qdrant_exception": {
+    "component_id": "local-ai-rag",
+    "owner": "architecture",
+    "reason": "Existing direct retrieval remains primary only while canonical retrieval parity is measured. Removing it before embedding/collection parity would be an unproven cutover.",
+    "target_close_by": "2026-09-30"
+  },
+  "shadow": {
+    "enabled_by_default": false,
+    "response_authority": "direct_existing_path",
+    "canonical_failure_behavior": "explicit_log_only",
+    "silent_fallback_forbidden": true
+  },
+  "cutover_requirements": {
+    "embedding_contract_parity": true,
+    "collection_schema_parity": false,
+    "live_shadow_parity_receipt": false,
+    "canonical_ingest_parity": true,
+    "direct_qdrant_revocation_ready": false
+  },
+  "blocking_reasons": [
+    "collection_vector_schema_not_live_verified",
+    "live_shadow_parity_receipt_missing",
+    "direct_qdrant_revocation_not_yet_ready"
+  ],
+  "cutover_rule": "All cutover_requirements must be true before authority_state may become CUTOVER_CAPABLE; direct Qdrant is revoked only after cutover, never used as a silent fallback.",
+  "embedding_contract": "docs/architecture/rag_embedding_contract.json",
+  "writer_state": "canonical_ingest_authority_active",
+  "parity_acceptance": {
+    "min_queries": 5,
+    "min_jaccard": 0.6,
+    "min_mean_jaccard": 0.8,
+    "require_subject_sha": true,
+    "receipt_schema": "sahool.rag-live-parity-receipt/v1"
+  },
+  "adjudicated_on": "2026-08-17"
+}

@@ -15,10 +15,10 @@ services/indicators-service/main.py,healthz,/healthz,63,True,True,True,ok
 services/indicators-service/main.py,ready,/readyz,73,True,True,True,ok
 services/knowledge-graph/main.py,healthz,/healthz,89,True,True,True,ok
 services/knowledge-graph/main.py,readyz,/readyz,111,True,True,True,ok
-services/local-ai-rag/main.py,healthz,/healthz,482,True,True,True,ok
-services/local-ai-rag/main.py,readyz,/readyz,505,True,True,True,ok
-services/rag-retrieval/main.py,healthz,/healthz,55,True,True,True,ok
-services/rag-retrieval/main.py,readyz,/readyz,73,True,True,True,ok
+services/local-ai-rag/main.py,healthz,/healthz,571,True,True,True,ok
+services/local-ai-rag/main.py,readyz,/readyz,594,True,True,True,ok
+services/rag-retrieval/main.py,healthz,/healthz,56,True,True,True,ok
+services/rag-retrieval/main.py,readyz,/readyz,74,True,True,True,ok
 services/remote-sensing-workspace-bff/main.py,healthz,/healthz,33,True,True,True,ok
 services/remote-sensing-workspace-bff/main.py,readyz,/readyz,38,True,True,True,ok
 services/sam2-inference/main.py,healthz,/healthz,105,True,True,True,ok

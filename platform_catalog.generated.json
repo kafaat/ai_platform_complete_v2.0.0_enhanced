@@ -16017,6 +16017,7 @@
       },
       "consumes": {
         "services": [
+          "rag-retrieval",
           "sahool-ollama"
         ]
       },
@@ -16332,6 +16333,7 @@
       },
       "consumes": {
         "services": [
+          "sahool-ollama",
           "sahool-qdrant"
         ]
       },
@@ -17743,7 +17745,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "27b88425b54e5e3f508b1747409c32a73ac56e85b3d7d68eee2087489fc0c97d",
+  "fingerprint": "824dd9c6281858436e64c10892db6b1ba134ecd1a3dfb8cb50006c7dba150cb8",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17793,11 +17795,11 @@
       "passed": true
     },
     "s2_dependency_truth": {
-      "edge_count": 799,
+      "edge_count": 800,
       "failures": [],
       "passed": true,
       "relation_counts": {
-        "CALLS": 37,
+        "CALLS": 38,
         "CONSUMES": 1,
         "EMITS": 1,
         "READS": 410,
