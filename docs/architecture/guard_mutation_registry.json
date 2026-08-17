@@ -35,6 +35,36 @@
       ],
       "test": "tests_v9/test_run_outcome_guard.py"
     },
+    "scripts/architecture/authority_cutover_guard.py": {
+      "$why_ar": "ARCH-S4: حدود عدم الترقية المبكرة للسلطة والملكية الفيزيائية تُثبت بطفرات سلوكية؛ الأخضر بلا زرع لا يكفي.",
+      "test": "tests_v9/test_authority_cutover_guard.py",
+      "mutations": [
+        {
+          "expect": "test_decision_is_cutover_capable_but_not_yet_authoritative",
+          "find": "    if d.get(\"authority_state\") != \"NOT_YET_AUTHORITATIVE\":\n        out.append(\"decision prematurely authoritative\")",
+          "replace": "    if False:  # mutated: premature authority tolerated\n        out.append(\"decision prematurely authoritative\")",
+          "why": "تعطيل منع الترقية المبكرة يسمح بقراءة CUTOVER_CAPABLE كأنه AUTHORITATIVE."
+        },
+        {
+          "expect": "test_field_requires_restricted_application_role_live_proof",
+          "find": "    if (\n        \"NOBYPASSRLS\" not in field_test\n        or \"sahool_app\" not in field_test\n        or \"pytest.skip\" not in field_test\n    ):",
+          "replace": "    if False:  # mutated: owner/superuser or missing live role can pass",
+          "why": "Field لا يجوز قطعه اعتماداً على اختبار يعمل كمالك/BYPASSRLS أو لا يعمل فعلياً."
+        },
+        {
+          "expect": "test_kg_physical_implementation_is_not_in_platform",
+          "find": "    forbidden_symbols = (\n        \"class SQLiteAgGraphStore\",\n        \"class GraphNode\",\n        \"class GraphEdge\",\n        \"import sqlite3\",\n    )",
+          "replace": "    forbidden_symbols = ()  # mutated: platform may host a competing KG implementation",
+          "why": "إبقاء store داخل sahool-platform يعيد mismatch بين الملكية المعلنة والفيزيائية."
+        },
+        {
+          "expect": "test_kg_image_ships_the_module_its_entrypoint_imports",
+          "find": "        if f\"COPY services/knowledge-graph/{name}.py\" not in dockerfile:\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
+          "replace": "        if False:  # mutated: image need not ship what the entrypoint imports\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
+          "why": "الملكيّة الفيزيائيّة تشمل الشحن: وحدةٌ يستوردها المدخل ولا تنسخها الصورة تنهار عند الإقلاع، فيصير النقل إعلاناً."
+        }
+      ]
+    },
     "scripts/architecture/build_platform_catalog.py": {
       "$why_ar": "ARCH-S1a+S2: بوّابتا التصنيف القانونيّ وحقيقة الاعتماد — نكوصهما يعيد السقوط الصامت إلى service والوحدات اليتيمة التي عاشت سنين بلا أن يراها أحد.",
       "mutations": [

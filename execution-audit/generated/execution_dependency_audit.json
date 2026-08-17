@@ -3,7 +3,7 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1848,
+    "python_files_parsed": 1849,
     "route_handlers": 1049,
     "call_edges": 73297,
     "dead_code_candidates": 615,
@@ -90599,6 +90599,370 @@
       "source": "test_timeline_flags_when_quality_not_reported",
       "target": "UUID",
       "line": 63
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "__post_init__",
+      "target": "ValueError",
+      "line": 36
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "__post_init__",
+      "target": "ValueError",
+      "line": 38
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "__post_init__",
+      "target": "ValueError",
+      "line": 40
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "__init__",
+      "target": "Path",
+      "line": 45
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "__init__",
+      "target": "mkdir",
+      "line": 46
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "__init__",
+      "target": "_init_schema",
+      "line": 47
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_connect",
+      "target": "connect",
+      "line": 50
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "_connect",
+      "line": 55
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 56
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 57
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 65
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 76
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 77
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "upsert_node",
+      "target": "_connect",
+      "line": 82
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "upsert_node",
+      "target": "execute",
+      "line": 83
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "upsert_node",
+      "target": "dumps",
+      "line": 90
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "upsert_edge",
+      "target": "_connect",
+      "line": 97
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "upsert_edge",
+      "target": "execute",
+      "line": 98
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "upsert_edge",
+      "target": "dumps",
+      "line": 108
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "count_edges",
+      "target": "_connect",
+      "line": 113
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "count_edges",
+      "target": "execute",
+      "line": 114
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "count_edges",
+      "target": "fetchone",
+      "line": 114
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "count_edges",
+      "target": "int",
+      "line": 114
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "append",
+      "line": 134
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "append",
+      "line": 137
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "append",
+      "line": 140
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "_connect",
+      "line": 141
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "dict",
+      "line": 142
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "execute",
+      "line": 142
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "fetchall",
+      "line": 142
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "graph_context_for_crop",
+      "target": "query_edges",
+      "line": 149
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "count_edges",
+      "line": 154
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 157
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 158
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 159
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 160
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 161
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 162
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "upsert_node",
+      "line": 170
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphEdge",
+      "line": 172
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphEdge",
+      "line": 173
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphEdge",
+      "line": 174
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphEdge",
+      "line": 175
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "upsert_edge",
+      "line": 184
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "len",
+      "line": 185
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "graphql_readonly",
+      "target": "lower",
+      "line": 194
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "graphql_readonly",
+      "target": "ValueError",
+      "line": 196
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "graphql_readonly",
+      "target": "split",
+      "line": 200
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "graphql_readonly",
+      "target": "split",
+      "line": 200
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "graphql_readonly",
+      "target": "split",
+      "line": 202
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "graphql_readonly",
+      "target": "split",
+      "line": 202
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "graphql_readonly",
+      "target": "query_edges",
+      "line": 203
     },
     {
       "owner": "knowledge-graph",
@@ -329509,370 +329873,6 @@
       "source": "graphql",
       "target": "query_edges",
       "line": 48
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "__post_init__",
-      "target": "ValueError",
-      "line": 36
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "__post_init__",
-      "target": "ValueError",
-      "line": 38
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "__post_init__",
-      "target": "ValueError",
-      "line": 40
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "__init__",
-      "target": "Path",
-      "line": 45
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "__init__",
-      "target": "mkdir",
-      "line": 46
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "__init__",
-      "target": "_init_schema",
-      "line": 47
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "_connect",
-      "target": "connect",
-      "line": 50
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "_init_schema",
-      "target": "_connect",
-      "line": 55
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "_init_schema",
-      "target": "execute",
-      "line": 56
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "_init_schema",
-      "target": "execute",
-      "line": 57
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "_init_schema",
-      "target": "execute",
-      "line": 65
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "_init_schema",
-      "target": "execute",
-      "line": 76
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "_init_schema",
-      "target": "execute",
-      "line": 77
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "upsert_node",
-      "target": "_connect",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "upsert_node",
-      "target": "execute",
-      "line": 83
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "upsert_node",
-      "target": "dumps",
-      "line": 90
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "upsert_edge",
-      "target": "_connect",
-      "line": 97
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "upsert_edge",
-      "target": "execute",
-      "line": 98
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "upsert_edge",
-      "target": "dumps",
-      "line": 108
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "count_edges",
-      "target": "_connect",
-      "line": 113
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "count_edges",
-      "target": "execute",
-      "line": 114
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "count_edges",
-      "target": "fetchone",
-      "line": 114
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "count_edges",
-      "target": "int",
-      "line": 114
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "query_edges",
-      "target": "append",
-      "line": 134
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "query_edges",
-      "target": "append",
-      "line": 137
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "query_edges",
-      "target": "append",
-      "line": 140
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "query_edges",
-      "target": "_connect",
-      "line": 141
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "query_edges",
-      "target": "dict",
-      "line": 142
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "query_edges",
-      "target": "execute",
-      "line": 142
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "query_edges",
-      "target": "fetchall",
-      "line": 142
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "graph_context_for_crop",
-      "target": "query_edges",
-      "line": 149
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "count_edges",
-      "line": 154
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 157
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 158
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 159
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 160
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 161
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 162
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "upsert_node",
-      "line": 170
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphEdge",
-      "line": 172
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphEdge",
-      "line": 173
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphEdge",
-      "line": 174
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphEdge",
-      "line": 175
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "upsert_edge",
-      "line": 184
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "seed_reference_ontology",
-      "target": "len",
-      "line": 185
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "graphql_readonly",
-      "target": "lower",
-      "line": 194
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "graphql_readonly",
-      "target": "ValueError",
-      "line": 196
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "graphql_readonly",
-      "target": "split",
-      "line": 200
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "graphql_readonly",
-      "target": "split",
-      "line": 200
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "graphql_readonly",
-      "target": "split",
-      "line": 202
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "graphql_readonly",
-      "target": "split",
-      "line": 202
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
-      "source": "graphql_readonly",
-      "target": "query_edges",
-      "line": 203
     },
     {
       "owner": "sahool-platform",

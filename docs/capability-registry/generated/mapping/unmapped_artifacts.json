@@ -2772,6 +2772,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/knowledge-graph/kg_store.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/knowledge-graph/main.py",
     "kind": "backend"
   },
@@ -6729,6 +6733,10 @@
   },
   {
     "path": "tests_v9/test_auth_signup_owner.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_authority_cutover_guard.py",
     "kind": "tests"
   },
   {

@@ -1,0 +1,53 @@
+{
+  "schema": "sahool.authority-cutovers/v1",
+  "version": 1,
+  "sequence": [
+    "decision",
+    "field_management",
+    "knowledge_graph"
+  ],
+  "invariant": "expand_reconcile_cutover_revoke",
+  "authorities": {
+    "decision": {
+      "declared_state": "INTERIM",
+      "cutover_capability": "CUTOVER_CAPABLE",
+      "authority_state": "NOT_YET_AUTHORITATIVE",
+      "candidate_owner": "decision-service",
+      "legacy_authority": "sahool-platform",
+      "mode_contract": "services/sahool-platform/api/decision_sor_mode.py",
+      "required_evidence": [
+        "tests_v9/test_decision_sor_platform_revoke_static.py",
+        "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+        "services/decision-service/decision_sor_role_certify.py"
+      ],
+      "cutover_rule": "explicit production approval + role certification + DB revoke/grant proof; no dual-authoritative recommendation_outcomes writes"
+    },
+    "field_management": {
+      "declared_state": "OWNER_DECLARED",
+      "cutover_capability": "NOT_YET_CUTOVER_CAPABLE",
+      "authority_state": "NOT_YET_AUTHORITATIVE",
+      "candidate_owner": "field-management-service",
+      "required_evidence": [
+        "services/field-management-service/tests/test_field_management_pg_isolation_integration.py"
+      ],
+      "blocking_reasons": [
+        "LIVE_APPLICATION_ROLE_RLS_PROOF_REQUIRED"
+      ],
+      "cutover_rule": "RLS proof must execute under NOSUPERUSER/NOBYPASSRLS application role; owner/superuser evidence is invalid"
+    },
+    "knowledge_graph": {
+      "declared_state": "OWNER_DECLARED",
+      "cutover_capability": "CUTOVER_CAPABLE",
+      "authority_state": "SERVICE_OWNED_IMPLEMENTATION",
+      "candidate_owner": "knowledge-graph",
+      "canonical_store": "services/knowledge-graph/kg_store.py",
+      "forbidden_store": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
+      "required_evidence": [
+        "tests/test_production_rag_kg_mcp.py"
+      ],
+      "cutover_rule": "knowledge-graph service owns physical store implementation; sahool-platform may not host/import the implementation"
+    }
+  },
+  "adjudicated_on": "2026-08-17",
+  "$why_decided_not_measured": "حالات السلطة (declared_state · cutover_capability · authority_state) وقواعد القطع أحكامٌ بشريّة لا يشتقّها ماسحٌ من الشجرة: لا يُقرَأ من الكود أنّ Field «ممنوع حتّى برهان RLS حيّ» — ذلك قرار. فلا يَبيت بحركة الشجرة، وأساسه تاريخُ اتّخاذه."
+}

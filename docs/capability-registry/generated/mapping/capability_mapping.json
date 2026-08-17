@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5042,
+    "files_scanned": 5046,
     "files_by_kind": {
-      "backend": 1196,
+      "backend": 1197,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1360,
-      "tests": 1646,
+      "other": 1362,
+      "tests": 1647,
       "web": 456
     },
-    "unmapped_artifacts": 2047,
+    "unmapped_artifacts": 2049,
     "ambiguous_artifacts": 403
   },
   "capabilities": [
@@ -37206,6 +37206,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/knowledge-graph/kg_store.py",
+      "kind": "backend"
+    },
+    {
       "path": "services/knowledge-graph/main.py",
       "kind": "backend"
     },
@@ -41163,6 +41167,10 @@
     },
     {
       "path": "tests_v9/test_auth_signup_owner.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_authority_cutover_guard.py",
       "kind": "tests"
     },
     {

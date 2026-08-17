@@ -6,6 +6,10 @@
   "derivation_rule_ar": "كل docs/architecture/*.json يحمل adjudicated_on يُسجَّل؛ ما عداه خارج نطاق المرحلة 1.",
   "entries": [
     {
+      "path": "docs/architecture/authority_cutovers.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/certification_acceptance_record.json",
       "kind": "governed"
     },
