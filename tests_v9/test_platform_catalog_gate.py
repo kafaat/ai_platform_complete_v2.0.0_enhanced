@@ -45,7 +45,10 @@ def test_u0_inventory_pinned() -> None:
     assert counts["backend_components"] == PINNED_BACKEND_COMPONENTS
     assert counts["unique_method_path"] == PINNED_UNIQUE_METHOD_PATH
     # frontend + mobile مكوّنا كتالوج من الطراز الأوّل
-    assert counts["components"] == PINNED_BACKEND_COMPONENTS + 2
+    # +4: frontend/mobile (U1) + telegram-bot/notification-agent — يتيمان مقيسان من
+    # compose (bots/telegram · agents/notification) كشفهما قياس build في ARCH-S2
+    # فدخلا الجرد القانونيّ بدل بقائهما خارج كلّ تصنيف. توسعة جردٍ مقيسة، لا رفع أساس.
+    assert counts["components"] == PINNED_BACKEND_COMPONENTS + 4
 
 
 def test_u2_compiler_is_deterministic_and_no_drift() -> None:

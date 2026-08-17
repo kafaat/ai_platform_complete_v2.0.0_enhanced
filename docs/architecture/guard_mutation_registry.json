@@ -36,7 +36,7 @@
       "test": "tests_v9/test_run_outcome_guard.py"
     },
     "scripts/architecture/build_platform_catalog.py": {
-      "$why_ar": "ARCH-S1a: بوّابة التصنيف القانونيّ للمكوّنات — نكوصها يعيد السقوط الصامت إلى service الذي عاش سنين في overrides بلا أن يراه أحد.",
+      "$why_ar": "ARCH-S1a+S2: بوّابتا التصنيف القانونيّ وحقيقة الاعتماد — نكوصهما يعيد السقوط الصامت إلى service والوحدات اليتيمة التي عاشت سنين بلا أن يراها أحد.",
       "mutations": [
         {
           "expect": "test_unclassified_component_is_a_measured_failure",
@@ -51,16 +51,80 @@
           "why": "تعطيل كشف الصفّ البائت يجعل السجلّ جرداً كاذباً: صفوف لمكوّنات زالت تُقرأ تغطيةً قائمة"
         },
         {
-          "expect": "test_declared_deployment_unit_must_match_measured",
-          "find": "        if entry[\"deployment_unit\"] != m[\"deployment_unit\"]:",
-          "replace": "        if False:  # mutated: declaration no longer measured",
-          "why": "فكّ ربط الإعلان بالقياس يحوّل السجلّ من عقدٍ مُثبَت إلى وثيقة أمنيات — deployment_unit يُكتَب ولا يُقاس"
+          "expect": "test_declared_deployment_units_must_match_measured",
+          "find": "        if entry[\"deployment_units\"] != m[\"deployment_units\"]:",
+          "replace": "        if False:  # mutated: units declaration no longer measured",
+          "why": "فكّ ربط وحدات النشر المُعلَنة بالمقيسة (v2: قوائم من قياس build) يحوّل السجلّ إلى وثيقة أمنيات"
         },
         {
           "expect": "test_unclassified_domain_is_a_measured_failure",
           "find": "        if not entry[\"domain\"] or entry[\"domain\"] == \"unclassified\":",
           "replace": "        if False:  # mutated: domain falls back silently",
           "why": "مراجعة Copilot على #862 قاست أنّ البوّابة لم تكن تفحص domain — فالسقوط الصامت الذي جاءت S1a لإعدامه كان باقياً من بابٍ جانبيّ"
+        },
+        {
+          "expect": "test_s2_unresolved_compose_unit_is_a_measured_failure",
+          "find": "    for unit, source in sorted(unresolved.items()):",
+          "replace": "    for unit, source in []:  # mutated: orphans pass silently",
+          "why": "تعطيل كشف الوحدة غير المحلولة يعيد صنف اليتيمَين المقيسَين: خدمة تُبنى من مصدرٍ بلا مكوّن وتمرّ صامتة (telegram-bot/notification-agent عاشا هكذا حتى S2)"
+        },
+        {
+          "expect": "test_s2_undeclared_infrastructure_is_a_measured_failure",
+          "find": "    if sorted(declared_infra) != sorted(measured_infra):",
+          "replace": "    if False:  # mutated: infrastructure unchecked",
+          "why": "تعطيل مطابقة البنية التحتيّة المُعلَنة بالمقيسة يكسر الإغلاق التامّ: خدمة image-only جديدة تدخل compose بلا إعلان ولا يفشل شيء"
+        },
+        {
+          "expect": "test_s2_runtime_contract_coverage_fails_closed",
+          "find": "    if missing_runtime:",
+          "replace": "    if False:  # mutated: coverage invariant dropped",
+          "test": "tests/architecture/test_arch_s2_dependency_truth.py",
+          "why": "إسقاط ثابت اكتمال عقود التشغيل يجعل رسم الاعتماد v2 يدّعي التغطية وخدمةٌ backend بلا عقد تشغيل تمرّ صامتة"
+        },
+        {
+          "expect": "test_s2_gateway_never_drops_measured_upstreams",
+          "find": "                source_resolution[\"gateway\"][\"runtime_upstream_targets\"] += 1",
+          "replace": "                pass  # mutated: upstream dropped silently",
+          "test": "tests/architecture/test_arch_s2_dependency_truth.py",
+          "why": "العيب الجنائيّ الأوّل في مراجعة المالك: 13/70 ربط بوّابة مقيس أُسقط صامتاً لأنّ الوجهة ليست مكوّناً قانونيّاً — «ليس مكوّناً» لا تعني «ليس اعتماداً»"
+        },
+        {
+          "expect": "test_s2_component_owned_evidence_that_cannot_resolve_fails_closed",
+          "find": "            failures.append(f\"unresolved {source} component evidence path: {path}\")",
+          "replace": "            pass  # mutated: owned evidence vanishes silently",
+          "test": "tests/architecture/test_arch_s2_dependency_truth.py",
+          "why": "العيب الجنائيّ الثاني: دليلٌ تحت مصدر مكوّنٍ لا يُحلّ يختفي صامتاً عند انحراف اسمٍ مستعار — صار فشلاً مغلقاً مسمّى"
+        },
+        {
+          "expect": "test_s2_resource_edges_are_typed_not_ambiguous_component_edges",
+          "find": "        from_kind: str = \"component\",",
+          "replace": "        from_kind: str = \"untyped\",",
+          "test": "tests/architecture/test_arch_s2_dependency_truth.py",
+          "why": "العيب الجنائيّ الثالث: أطراف الحوافّ كانت ضمنيّة — from_kind/to_kind شرطُ خوارزميّات orphan/hop/cutover اللاحقة"
+        },
+        {
+          "expect": "test_s2_build_source_cannot_escape_repository",
+          "find": "    if value.startswith(\"./\"):\n        value = value[2:]",
+          "replace": "    value = value.lstrip(\"./\")  # mutated: boundary collapsed",
+          "why": "مراجعة Copilot ثم حكم المالك على #863: lstrip(\"./\") يقصّ أيّ مزيج نقاط/شُرَط فيحوّل ../foo إلى foo — traversal «يُصحَّح» قبل اكتشافه فيفلت من الرفض الصريح"
+        },
+        {
+          "expect": "test_s2_build_source_cannot_escape_repository",
+          "find": "    if \"..\" in path.parts:",
+          "replace": "    if False:  # mutated: traversal accepted",
+          "why": "حكم المالك REQUEST_CHANGES على #863: قبول parent traversal يحوّل مساراً خارج المستودع إلى مصدرٍ داخليّ ظاهريّ ويضعف صدق measured build-source closure"
+        },
+        {
+          "expect": "test_duplicate_component_source_path_fails_closed",
+          "find": "        if source in source_owners:",
+          "replace": "        if False:  # mutated: duplicate owner accepted",
+          "why": "تنازع ملكيّة المصدر كان يُحسم بصمت قاموسٍ يحتفظ بأحد الطرفين — صار فشلاً مغلقاً مسمّى في بوّابة الحوكمة نفسها"
+        },
+        {
+          "expect": "test_catalog_loads_compose_once",
+          "find": "        srcs = {resolve_build_source(compose_services_raw[u]) for u in extra_units}",
+          "replace": "        srcs = {resolve_build_source(_compose_services()[u]) for u in extra_units}  # mutated: second compose load",
+          "why": "عودة القراءة الثانية لcompose تكسر عقد اللقطة الواحدة: discover_compose تقيس نسخةً وextras تقيس أخرى — انحراف اتّساقٍ لا أداءٍ فقط"
         }
       ],
       "test": "tests_v9/test_component_registry_gate.py"

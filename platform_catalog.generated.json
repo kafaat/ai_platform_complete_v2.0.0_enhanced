@@ -15121,6 +15121,7 @@
     "checks": {
       "all_duplicates_classified": true,
       "s1a_component_classification_passed": true,
+      "s2_dependency_truth_passed": true,
       "u3_passed": true,
       "u4_passed": true,
       "zero_governing_orphans": true,
@@ -15155,7 +15156,9 @@
           "decision-service"
         ]
       },
-      "deployment_unit": "sahool-actuator-service",
+      "deployment_units": [
+        "sahool-actuator-service"
+      ],
       "domain": "execution",
       "owns": {
         "tables": [
@@ -15217,7 +15220,9 @@
           "sahool-wofost-mcp"
         ]
       },
-      "deployment_unit": "sahool-agriai-engine",
+      "deployment_units": [
+        "sahool-agriai-engine"
+      ],
       "domain": "simulation-experimental",
       "owns": {
         "tables": [
@@ -15269,7 +15274,9 @@
       "type": "service"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-ai-agronomist"
+      ],
       "authority_kind": "stateless_compute",
       "canonical_name": "ai_agronomist",
       "component_id": "ai_agronomist",
@@ -15285,17 +15292,26 @@
         "wiring_disposition": "consumed"
       },
       "consumes": {
-        "services": []
+        "services": [
+          "guardrails-engine",
+          "knowledge-graph",
+          "rag-retrieval",
+          "sahool-platform"
+        ]
       },
-      "deployment_unit": null,
+      "deployment_units": [
+        "sahool-ai-agronomist"
+      ],
       "domain": "agents",
       "owns": {
         "tables": []
       },
       "runtime": {
-        "compose_reachable": false,
-        "compose_services": [],
-        "healthcheck": null,
+        "compose_reachable": true,
+        "compose_services": [
+          "sahool-ai-agronomist"
+        ],
+        "healthcheck": "CMD python -c import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).read()",
         "mount_status": "direct_routes",
         "published_ports": []
       },
@@ -15335,7 +15351,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-auth",
+      "deployment_units": [
+        "sahool-auth"
+      ],
       "domain": "identity",
       "owns": {
         "tables": []
@@ -15384,7 +15402,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-decision-service",
+      "deployment_units": [
+        "sahool-decision-service"
+      ],
       "domain": "decision-governance",
       "owns": {
         "tables": [
@@ -15457,7 +15477,9 @@
       "type": "service"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-edge"
+      ],
       "authority_kind": "stateless_compute",
       "canonical_name": "edge-inference",
       "component_id": "edge-inference",
@@ -15475,15 +15497,19 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": null,
+      "deployment_units": [
+        "sahool-edge"
+      ],
       "domain": "edge",
       "owns": {
         "tables": []
       },
       "runtime": {
         "compose_reachable": false,
-        "compose_services": [],
-        "healthcheck": null,
+        "compose_services": [
+          "sahool-edge"
+        ],
+        "healthcheck": "CMD-SHELL python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/healthz', timeout=3).read()\" || exit 1",
         "mount_status": "direct_routes",
         "published_ports": []
       },
@@ -15526,7 +15552,9 @@
           "sahool-odoo"
         ]
       },
-      "deployment_unit": "sahool-erp-bridge",
+      "deployment_units": [
+        "sahool-erp-bridge"
+      ],
       "domain": "erp-projection",
       "owns": {
         "tables": [
@@ -15572,7 +15600,9 @@
       "type": "service"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-field-management"
+      ],
       "authority_kind": "system_of_record",
       "canonical_name": "field-management-service",
       "component_id": "field-management-service",
@@ -15589,7 +15619,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": null,
+      "deployment_units": [
+        "sahool-field-management"
+      ],
       "domain": "fields-internal",
       "owns": {
         "tables": [
@@ -15629,8 +15661,10 @@
       },
       "runtime": {
         "compose_reachable": false,
-        "compose_services": [],
-        "healthcheck": null,
+        "compose_services": [
+          "sahool-field-management"
+        ],
+        "healthcheck": "CMD curl -sf http://localhost:8000/healthz",
         "mount_status": "direct_routes",
         "published_ports": []
       },
@@ -15672,7 +15706,9 @@
           "sam2-inference"
         ]
       },
-      "deployment_unit": "sahool-field-segmentation",
+      "deployment_units": [
+        "sahool-field-segmentation"
+      ],
       "domain": "fields-boundary",
       "owns": {
         "tables": []
@@ -15702,7 +15738,9 @@
       "type": "service"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-frontend"
+      ],
       "authority_kind": "presentation",
       "canonical_name": "frontend",
       "component_id": "frontend",
@@ -15717,17 +15755,23 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": null,
+      "deployment_units": [
+        "sahool-frontend"
+      ],
       "domain": "user-interface",
       "owns": {
         "tables": []
       },
       "runtime": {
         "compose_reachable": null,
-        "compose_services": [],
-        "healthcheck": null,
+        "compose_services": [
+          "sahool-frontend"
+        ],
+        "healthcheck": "CMD wget --quiet --tries=1 --spider http://localhost:8080/healthz",
         "mount_status": null,
-        "published_ports": []
+        "published_ports": [
+          "127.0.0.1:3003:8080"
+        ]
       },
       "source_path": "frontend",
       "sources": {
@@ -15762,7 +15806,7 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": null,
+      "deployment_units": [],
       "domain": "gis-publication",
       "owns": {
         "tables": [
@@ -15813,7 +15857,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-guardrails-engine",
+      "deployment_units": [
+        "sahool-guardrails-engine"
+      ],
       "domain": "decision-governance",
       "owns": {
         "tables": [
@@ -15870,7 +15916,9 @@
           "raster-service"
         ]
       },
-      "deployment_unit": "sahool-indicators-service",
+      "deployment_units": [
+        "sahool-indicators-service"
+      ],
       "domain": "indicators",
       "owns": {
         "tables": []
@@ -15919,7 +15967,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-knowledge-graph",
+      "deployment_units": [
+        "sahool-knowledge-graph"
+      ],
       "domain": "knowledge",
       "owns": {
         "tables": []
@@ -15970,7 +16020,9 @@
           "sahool-ollama"
         ]
       },
-      "deployment_unit": "sahool-local-ai-rag",
+      "deployment_units": [
+        "sahool-local-ai-rag"
+      ],
       "domain": "knowledge",
       "owns": {
         "tables": []
@@ -16000,7 +16052,12 @@
       "type": "service"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-market-mcp",
+        "sahool-sentinel-hub-mcp",
+        "sahool-weather-mcp",
+        "sahool-wofost-mcp"
+      ],
       "authority_kind": "stateless_compute",
       "canonical_name": "mcp_servers",
       "component_id": "mcp_servers",
@@ -16015,17 +16072,31 @@
         "wiring_disposition": "consumed"
       },
       "consumes": {
-        "services": []
+        "services": [
+          "auth",
+          "erp-bridge",
+          "weather-service"
+        ]
       },
-      "deployment_unit": null,
+      "deployment_units": [
+        "sahool-market-mcp",
+        "sahool-sentinel-hub-mcp",
+        "sahool-weather-mcp",
+        "sahool-wofost-mcp"
+      ],
       "domain": "agents-mcp",
       "owns": {
         "tables": []
       },
       "runtime": {
-        "compose_reachable": false,
-        "compose_services": [],
-        "healthcheck": null,
+        "compose_reachable": true,
+        "compose_services": [
+          "sahool-market-mcp",
+          "sahool-sentinel-hub-mcp",
+          "sahool-weather-mcp",
+          "sahool-wofost-mcp"
+        ],
+        "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": null,
         "published_ports": []
       },
@@ -16060,7 +16131,7 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": null,
+      "deployment_units": [],
       "domain": "user-interface",
       "owns": {
         "tables": []
@@ -16088,7 +16159,9 @@
       "type": "mobile"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-model-lifecycle-adapter"
+      ],
       "authority_kind": "stateless_compute",
       "canonical_name": "model-registry-adapter",
       "component_id": "model-registry-adapter",
@@ -16103,16 +16176,22 @@
         "wiring_disposition": "consumed"
       },
       "consumes": {
-        "services": []
+        "services": [
+          "decision-service"
+        ]
       },
-      "deployment_unit": null,
+      "deployment_units": [
+        "sahool-model-lifecycle-adapter"
+      ],
       "domain": "decision-governance",
       "owns": {
         "tables": []
       },
       "runtime": {
-        "compose_reachable": false,
-        "compose_services": [],
+        "compose_reachable": true,
+        "compose_services": [
+          "sahool-model-lifecycle-adapter"
+        ],
         "healthcheck": null,
         "mount_status": null,
         "published_ports": []
@@ -16131,6 +16210,55 @@
         "wired": true
       },
       "type": "worker_adapter"
+    },
+    {
+      "aliases": [
+        "sahool-notification-agent"
+      ],
+      "authority_kind": "stateless_compute",
+      "canonical_name": "notification-agent",
+      "component_id": "notification-agent",
+      "component_kind": "worker",
+      "consumer_contract": {
+        "declared": false,
+        "evidence_kinds": [],
+        "evidence_valid": null,
+        "reopen_trigger": null,
+        "wiring_disposition": null
+      },
+      "consumes": {
+        "services": []
+      },
+      "deployment_units": [
+        "sahool-notification-agent"
+      ],
+      "domain": "notifications",
+      "owns": {
+        "tables": []
+      },
+      "runtime": {
+        "compose_reachable": null,
+        "compose_services": [
+          "sahool-notification-agent"
+        ],
+        "healthcheck": "CMD-SHELL python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8123/healthz', timeout=3).read()\" || exit 1",
+        "mount_status": null,
+        "published_ports": []
+      },
+      "source_path": "agents/notification",
+      "sources": {
+        "db_ownership": false,
+        "service_inventory": null,
+        "ui_contract": null
+      },
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": null,
+        "wired": null
+      },
+      "type": "worker"
     },
     {
       "aliases": [
@@ -16154,7 +16282,9 @@
           "sahool-ollama"
         ]
       },
-      "deployment_unit": "sahool-qdrant-seed",
+      "deployment_units": [
+        "sahool-qdrant-seed"
+      ],
       "domain": "knowledge",
       "owns": {
         "tables": []
@@ -16205,7 +16335,9 @@
           "sahool-qdrant"
         ]
       },
-      "deployment_unit": "sahool-rag-retrieval",
+      "deployment_units": [
+        "sahool-rag-retrieval"
+      ],
       "domain": "knowledge",
       "owns": {
         "tables": [
@@ -16239,6 +16371,8 @@
     },
     {
       "aliases": [
+        "sahool-raster-backfill-scan-worker",
+        "sahool-raster-cache-invalidation-worker",
         "sahool-raster-service"
       ],
       "authority_kind": "system_of_record",
@@ -16261,7 +16395,11 @@
           "sahool-titiler"
         ]
       },
-      "deployment_unit": "sahool-raster-service",
+      "deployment_units": [
+        "sahool-raster-backfill-scan-worker",
+        "sahool-raster-cache-invalidation-worker",
+        "sahool-raster-service"
+      ],
       "domain": "remote-sensing-truth",
       "owns": {
         "tables": [
@@ -16283,6 +16421,8 @@
       "runtime": {
         "compose_reachable": true,
         "compose_services": [
+          "sahool-raster-backfill-scan-worker",
+          "sahool-raster-cache-invalidation-worker",
           "sahool-raster-service"
         ],
         "healthcheck": "CMD python -c import httpx; httpx.get('http://localhost:8001/healthz')",
@@ -16322,7 +16462,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "raster-tiler-service",
+      "deployment_units": [
+        "raster-tiler-service"
+      ],
       "domain": "remote-sensing-truth",
       "owns": {
         "tables": []
@@ -16377,7 +16519,9 @@
           "sahool-vegetation-analysis"
         ]
       },
-      "deployment_unit": "sahool-remote-sensing-workspace-bff",
+      "deployment_units": [
+        "sahool-remote-sensing-workspace-bff"
+      ],
       "domain": "remote-sensing-workspace",
       "owns": {
         "tables": []
@@ -16407,7 +16551,16 @@
       "type": "bff"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-actuator-dispatch-worker",
+        "sahool-canonical-execution-learning-worker",
+        "sahool-irrigation-reservation-lifecycle-worker",
+        "sahool-model-registry-worker",
+        "sahool-phase-runtime-outbox-worker",
+        "sahool-plugin-runtime-worker",
+        "sahool-reservation-dispatch-relay-worker",
+        "sahool-water-ledger-worker"
+      ],
       "authority_kind": "system_of_record",
       "canonical_name": "sahool-platform",
       "component_id": "sahool-platform",
@@ -16435,7 +16588,17 @@
           "weather-service"
         ]
       },
-      "deployment_unit": "sahool-platform",
+      "deployment_units": [
+        "sahool-actuator-dispatch-worker",
+        "sahool-canonical-execution-learning-worker",
+        "sahool-irrigation-reservation-lifecycle-worker",
+        "sahool-model-registry-worker",
+        "sahool-phase-runtime-outbox-worker",
+        "sahool-platform",
+        "sahool-plugin-runtime-worker",
+        "sahool-reservation-dispatch-relay-worker",
+        "sahool-water-ledger-worker"
+      ],
       "domain": "platform-core",
       "owns": {
         "tables": [
@@ -16639,7 +16802,15 @@
       "runtime": {
         "compose_reachable": true,
         "compose_services": [
-          "sahool-platform"
+          "sahool-actuator-dispatch-worker",
+          "sahool-canonical-execution-learning-worker",
+          "sahool-irrigation-reservation-lifecycle-worker",
+          "sahool-model-registry-worker",
+          "sahool-phase-runtime-outbox-worker",
+          "sahool-platform",
+          "sahool-plugin-runtime-worker",
+          "sahool-reservation-dispatch-relay-worker",
+          "sahool-water-ledger-worker"
         ],
         "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": "delegated_routes",
@@ -16680,7 +16851,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-sam2-inference",
+      "deployment_units": [
+        "sahool-sam2-inference"
+      ],
       "domain": "fields-boundary",
       "owns": {
         "tables": []
@@ -16710,7 +16883,10 @@
       "type": "service"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-scout-ingest",
+        "sahool-scout-ingest-projection"
+      ],
       "authority_kind": "system_of_record",
       "canonical_name": "scout-ingest-service",
       "component_id": "scout-ingest-service",
@@ -16727,7 +16903,10 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": null,
+      "deployment_units": [
+        "sahool-scout-ingest",
+        "sahool-scout-ingest-projection"
+      ],
       "domain": "ground-ingest",
       "owns": {
         "tables": [
@@ -16746,8 +16925,11 @@
       },
       "runtime": {
         "compose_reachable": false,
-        "compose_services": [],
-        "healthcheck": null,
+        "compose_services": [
+          "sahool-scout-ingest",
+          "sahool-scout-ingest-projection"
+        ],
+        "healthcheck": "CMD curl -sf http://localhost:8000/healthz",
         "mount_status": "direct_routes",
         "published_ports": []
       },
@@ -16787,7 +16969,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-soil-service",
+      "deployment_units": [
+        "sahool-soil-service"
+      ],
       "domain": "soil",
       "owns": {
         "tables": [
@@ -16875,7 +17059,9 @@
           "sahool-wofost-mcp"
         ]
       },
-      "deployment_unit": "sahool-supervisor-agent",
+      "deployment_units": [
+        "sahool-supervisor-agent"
+      ],
       "domain": "agents",
       "owns": {
         "tables": []
@@ -16908,6 +17094,55 @@
     },
     {
       "aliases": [
+        "sahool-telegram-bot"
+      ],
+      "authority_kind": "stateless_compute",
+      "canonical_name": "telegram-bot",
+      "component_id": "telegram-bot",
+      "component_kind": "service",
+      "consumer_contract": {
+        "declared": false,
+        "evidence_kinds": [],
+        "evidence_valid": null,
+        "reopen_trigger": null,
+        "wiring_disposition": null
+      },
+      "consumes": {
+        "services": []
+      },
+      "deployment_units": [
+        "sahool-telegram-bot"
+      ],
+      "domain": "messaging-channel",
+      "owns": {
+        "tables": []
+      },
+      "runtime": {
+        "compose_reachable": null,
+        "compose_services": [
+          "sahool-telegram-bot"
+        ],
+        "healthcheck": "CMD-SHELL python /app/bot_readiness.py check --max-age 90 || exit 1",
+        "mount_status": null,
+        "published_ports": []
+      },
+      "source_path": "bots/telegram",
+      "sources": {
+        "db_ownership": false,
+        "service_inventory": null,
+        "ui_contract": null
+      },
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": null,
+        "wired": null
+      },
+      "type": "service"
+    },
+    {
+      "aliases": [
         "sahool-tts-service"
       ],
       "authority_kind": "stateless_compute",
@@ -16926,7 +17161,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-tts-service",
+      "deployment_units": [
+        "sahool-tts-service"
+      ],
       "domain": "media",
       "owns": {
         "tables": []
@@ -16956,7 +17193,9 @@
       "type": "service"
     },
     {
-      "aliases": [],
+      "aliases": [
+        "sahool-vegetation-analysis"
+      ],
       "authority_kind": "system_of_record",
       "canonical_name": "vegetation-analysis-service",
       "component_id": "vegetation-analysis-service",
@@ -16972,9 +17211,17 @@
         "wiring_disposition": "consumed"
       },
       "consumes": {
-        "services": []
+        "services": [
+          "decision-service",
+          "indicators-service",
+          "raster-service",
+          "sahool-field-management",
+          "sahool-platform"
+        ]
       },
-      "deployment_unit": null,
+      "deployment_units": [
+        "sahool-vegetation-analysis"
+      ],
       "domain": "vegetation-interpretation",
       "owns": {
         "tables": [
@@ -16982,9 +17229,11 @@
         ]
       },
       "runtime": {
-        "compose_reachable": false,
-        "compose_services": [],
-        "healthcheck": null,
+        "compose_reachable": true,
+        "compose_services": [
+          "sahool-vegetation-analysis"
+        ],
+        "healthcheck": "CMD curl -f http://localhost:8000/healthz",
         "mount_status": "delegated_routes",
         "published_ports": []
       },
@@ -17027,7 +17276,9 @@
           "sahool-zlmediakit"
         ]
       },
-      "deployment_unit": "sahool-video-processor",
+      "deployment_units": [
+        "sahool-video-processor"
+      ],
       "domain": "media",
       "owns": {
         "tables": []
@@ -17077,7 +17328,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-weather-polygon-worker",
+      "deployment_units": [
+        "sahool-weather-polygon-worker"
+      ],
       "domain": "weather-truth",
       "owns": {
         "tables": []
@@ -17127,7 +17380,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-weather-service",
+      "deployment_units": [
+        "sahool-weather-service"
+      ],
       "domain": "weather-truth",
       "owns": {
         "tables": [
@@ -17185,7 +17440,9 @@
       "consumes": {
         "services": []
       },
-      "deployment_unit": "sahool-weather-signal-engine",
+      "deployment_units": [
+        "sahool-weather-signal-engine"
+      ],
       "domain": "weather-truth",
       "owns": {
         "tables": []
@@ -17223,7 +17480,7 @@
     "capabilities_idempotent": 46,
     "capabilities_season_scoped": 10,
     "capabilities_tenant_scoped": 477,
-    "components": 34,
+    "components": 36,
     "cross_service_duplicate_method_paths": 12,
     "duplicate_groups_classified": 12,
     "indicator_products": 34,
@@ -17486,7 +17743,7 @@
       "path": "/v1/recommend"
     }
   ],
-  "fingerprint": "228ac4a7206625326bbdc899f9969bb527803880fac8f70b7e63e58a32bfca4b",
+  "fingerprint": "27b88425b54e5e3f508b1747409c32a73ac56e85b3d7d68eee2087489fc0c97d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17495,11 +17752,11 @@
       "guardrails-engine",
       "indicators-service",
       "knowledge-graph",
+      "notification-agent",
       "rag-retrieval",
       "raster-service",
       "remote-sensing-workspace-bff",
       "sahool-ai-agronomist",
-      "sahool-notification-agent",
       "sahool-platform",
       "sahool-scout-ingest",
       "sahool-vegetation-analysis",
@@ -17515,11 +17772,11 @@
       "guardrails-engine",
       "indicators-service",
       "knowledge-graph",
+      "notification-agent",
       "rag-retrieval",
       "raster-service",
       "remote-sensing-workspace-bff",
       "sahool-ai-agronomist",
-      "sahool-notification-agent",
       "sahool-platform",
       "sahool-scout-ingest",
       "sahool-soil",
@@ -17534,6 +17791,19 @@
     "s1a_component_classification": {
       "failures": [],
       "passed": true
+    },
+    "s2_dependency_truth": {
+      "edge_count": 799,
+      "failures": [],
+      "passed": true,
+      "relation_counts": {
+        "CALLS": 37,
+        "CONSUMES": 1,
+        "EMITS": 1,
+        "READS": 410,
+        "ROUTES_TO": 70,
+        "WRITES": 280
+      }
     },
     "u3_wiring_ownership": {
       "failures": [],

@@ -3,8 +3,8 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `228ac4a7206625326bbdc899f9969bb527803880fac8f70b7e63e58a32bfca4b`
-- components: **34** (backend: 32)
+- fingerprint: `27b88425b54e5e3f508b1747409c32a73ac56e85b3d7d68eee2087489fc0c97d`
+- components: **36** (backend: 32)
 - route rows: **1112** → unique method/path: **998**
 - capabilities (derived, uncurated): **827**
 - cross-service duplicate method/paths: **12**
@@ -17,38 +17,46 @@
 |---|---|---|---|---|---|
 | actuator-service | service | execution | sahool-actuator-service | 7 | True |
 | agriai-engine | service | simulation-experimental | sahool-agriai-engine | 21 | False |
-| ai_agronomist | service | agents | — | 0 | True |
+| ai_agronomist | service | agents | sahool-ai-agronomist | 0 | True |
 | auth | service | identity | sahool-auth | 0 | True |
 | decision-service | service | decision-governance | sahool-decision-service | 42 | True |
-| edge-inference | service | edge | — | 0 | True |
+| edge-inference | service | edge | sahool-edge | 0 | True |
 | erp-bridge | service | erp-projection | odoo-bridge, sahool-erp-bridge | 15 | True |
-| field-management-service | service | fields-internal | — | 32 | True |
+| field-management-service | service | fields-internal | sahool-field-management | 32 | True |
 | field-segmentation | service | fields-boundary | sahool-field-segmentation | 0 | True |
-| frontend | frontend | user-interface | — | 0 | None |
+| frontend | frontend | user-interface | sahool-frontend | 0 | None |
 | gis-workflow-service | tool_bundle | gis-publication | — | 2 | None |
 | guardrails-engine | service | decision-governance | sahool-guardrails-engine | 2 | True |
 | indicators-service | service | indicators | sahool-indicators-service | 0 | True |
 | knowledge-graph | service | knowledge | sahool-knowledge-graph | 0 | True |
 | local-ai-rag | service | knowledge | sahool-local-ai-rag | 0 | True |
-| mcp_servers | service | agents-mcp | — | 0 | True |
+| mcp_servers | service | agents-mcp | sahool-market-mcp, sahool-sentinel-hub-mcp, sahool-weather-mcp, sahool-wofost-mcp | 0 | True |
 | mobile | mobile | user-interface | — | 0 | None |
-| model-registry-adapter | worker_adapter | decision-governance | — | 0 | True |
+| model-registry-adapter | worker_adapter | decision-governance | sahool-model-lifecycle-adapter | 0 | True |
+| notification-agent | worker | notifications | sahool-notification-agent | 0 | None |
 | qdrant-seed | init_job | knowledge | sahool-qdrant-seed | 0 | None |
 | rag-retrieval | service | knowledge | sahool-rag-retrieval | 2 | True |
-| raster-service | service | remote-sensing-truth | sahool-raster-service | 13 | True |
+| raster-service | service | remote-sensing-truth | sahool-raster-backfill-scan-worker, sahool-raster-cache-invalidation-worker, sahool-raster-service | 13 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |
 | remote-sensing-workspace-bff | bff | remote-sensing-workspace | sahool-remote-sensing-workspace-bff | 0 | True |
-| sahool-platform | service | platform-core | — | 195 | True |
+| sahool-platform | service | platform-core | sahool-actuator-dispatch-worker, sahool-canonical-execution-learning-worker, sahool-irrigation-reservation-lifecycle-worker, sahool-model-registry-worker, sahool-phase-runtime-outbox-worker, sahool-plugin-runtime-worker, sahool-reservation-dispatch-relay-worker, sahool-water-ledger-worker | 195 | True |
 | sam2-inference | service | fields-boundary | sahool-sam2-inference | 0 | True |
-| scout-ingest-service | service | ground-ingest | — | 11 | True |
+| scout-ingest-service | service | ground-ingest | sahool-scout-ingest, sahool-scout-ingest-projection | 11 | True |
 | soil-service | service | soil | sahool-soil-service | 32 | True |
 | supervisor-agent | service | agents | sahool-supervisor-agent | 0 | True |
+| telegram-bot | service | messaging-channel | sahool-telegram-bot | 0 | None |
 | tts-service | service | media | sahool-tts-service | 0 | True |
-| vegetation-analysis-service | service | vegetation-interpretation | — | 1 | True |
+| vegetation-analysis-service | service | vegetation-interpretation | sahool-vegetation-analysis | 1 | True |
 | video-processor | service | media | sahool-video-processor | 0 | True |
 | weather-polygon-worker | worker | weather-truth | sahool-weather-polygon-worker | 0 | True |
 | weather-service | service | weather-truth | sahool-weather-service | 8 | True |
 | weather-signal-engine | worker | weather-truth | sahool-weather-signal-engine | 0 | True |
+
+## Architecture gates
+
+- ARCH-S1a component classification: `PASS`
+- ARCH-S2 dependency truth: `PASS` — edges **799**
+- S2 relations: CALLS=37, CONSUMES=1, EMITS=1, READS=410, ROUTES_TO=70, WRITES=280
 
 ## Governance gates (U3/U4)
 
