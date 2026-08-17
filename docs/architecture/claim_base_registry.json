@@ -49,6 +49,7 @@
     "generated_sweep_unmapped_generators.json",
     "platform_extraction_map.json",
     "platform_python_module_baseline.json",
+    "platform_shrink_ratchet.json",
     "s0_s12_execution_baseline.json",
     "source_text_assertion_inventory.json",
     "tenant_guc_scope_baseline.json",
