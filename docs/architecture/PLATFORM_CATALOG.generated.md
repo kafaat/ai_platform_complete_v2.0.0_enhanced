@@ -3,7 +3,7 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `f5fa0ea8f6a04e5ddb3aa3d1671f05eeb50043a6b6c2f63e069fa2c03e59b228`
+- fingerprint: `228ac4a7206625326bbdc899f9969bb527803880fac8f70b7e63e58a32bfca4b`
 - components: **34** (backend: 32)
 - route rows: **1112** → unique method/path: **998**
 - capabilities (derived, uncurated): **827**
@@ -25,15 +25,15 @@
 | field-management-service | service | fields-internal | — | 32 | True |
 | field-segmentation | service | fields-boundary | sahool-field-segmentation | 0 | True |
 | frontend | frontend | user-interface | — | 0 | None |
-| gis-workflow-service | batch-job-tool | gis-publication | — | 2 | None |
+| gis-workflow-service | tool_bundle | gis-publication | — | 2 | None |
 | guardrails-engine | service | decision-governance | sahool-guardrails-engine | 2 | True |
 | indicators-service | service | indicators | sahool-indicators-service | 0 | True |
 | knowledge-graph | service | knowledge | sahool-knowledge-graph | 0 | True |
 | local-ai-rag | service | knowledge | sahool-local-ai-rag | 0 | True |
 | mcp_servers | service | agents-mcp | — | 0 | True |
 | mobile | mobile | user-interface | — | 0 | None |
-| model-registry-adapter | adapter | decision-governance | — | 0 | True |
-| qdrant-seed | job | knowledge | sahool-qdrant-seed | 0 | None |
+| model-registry-adapter | worker_adapter | decision-governance | — | 0 | True |
+| qdrant-seed | init_job | knowledge | sahool-qdrant-seed | 0 | None |
 | rag-retrieval | service | knowledge | sahool-rag-retrieval | 2 | True |
 | raster-service | service | remote-sensing-truth | sahool-raster-service | 13 | True |
 | raster-tiler-service | service | remote-sensing-truth | — | 0 | True |

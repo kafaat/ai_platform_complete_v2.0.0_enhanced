@@ -107,6 +107,79 @@ def _load_yaml(rel: str):
     return yaml.safe_load((ROOT / rel).read_text(encoding="utf-8"))
 
 
+# ── ARCH-S1a: canonical component classification ─────────────────
+
+_COMPONENT_REGISTRY = "docs/architecture/component_registry.json"
+
+
+def load_component_registry() -> dict:
+    """ARCH-S1a: المصدر القانونيّ الواحد لتصنيف المكوّنات. قبل هذا السجلّ كان
+    التصنيف يسقط افتراضيّاً إلى service لكلّ مكوّن غير مذكور في overrides —
+    فالمكوّن غير المصنَّف كان يمرّ صامتاً. السجلّ يقلب العقد: التصنيف إعلان
+    مُحكَّم، والمُصرِّف يُثبته تقاطعيّاً ضدّ الواقع المقيس ويفشل على أيّ فجوة."""
+    return _load_json(_COMPONENT_REGISTRY)
+
+
+def component_classification_failures(registry: dict, measured: dict[str, dict]) -> list[str]:
+    """بوّابة S1a النقيّة: صفر مكوّنات غير مصنَّفة، وصفر صفوف بائتة، وكلّ إعلان
+    قابل للقياس (deployment_unit/source_path/authority_kind) مطابق للمقيس.
+
+    measured: component_id -> {deployment_unit, source_path, owns_tables}؛
+    القياس يأتي من compose المُحلَّل والجرد وملكيّة الجداول — لا من السجلّ نفسه،
+    وإلّا صار الإعلان يُثبت الإعلان."""
+    failures: list[str] = []
+    kinds = set(registry["component_kinds"])
+    authorities = set(registry["authority_kinds"])
+    entries = registry["components"]
+    for cid in sorted(set(measured) - set(entries)):
+        failures.append(f"unclassified component: {cid} — أضِف صفّه إلى {_COMPONENT_REGISTRY}")
+    for cid in sorted(set(entries) - set(measured)):
+        failures.append(f"stale registry entry: {cid} — لا مكوّن مكتشَفاً يقابله")
+    required_fields = (
+        "component_kind",
+        "deployment_unit",
+        "domain",
+        "authority_kind",
+        "source_path",
+    )
+    for cid in sorted(set(entries) & set(measured)):
+        entry, m = entries[cid], measured[cid]
+        # مفتاح غائب = فشل مقيس مسمّى، لا KeyError يقرؤه القارئ عطلَ أداة.
+        missing = [f for f in required_fields if f not in entry]
+        if missing:
+            failures.append(f"{cid}: حقول إلزاميّة غائبة عن السجلّ: {missing}")
+            continue
+        # domain جزء من عقد «صفر غير مصنَّف» — الفراغ أو unclassified سقوطٌ صامت.
+        if not entry["domain"] or entry["domain"] == "unclassified":
+            failures.append(f"{cid}: domain غير مصنَّف — التصنيف الصريح شرط S1a")
+        if entry["component_kind"] not in kinds:
+            failures.append(
+                f"{cid}: component_kind {entry['component_kind']!r} خارج المفردات المُحكَّمة"
+            )
+        if entry["authority_kind"] not in authorities:
+            failures.append(
+                f"{cid}: authority_kind {entry['authority_kind']!r} خارج المفردات المُحكَّمة"
+            )
+        if entry["deployment_unit"] != m["deployment_unit"]:
+            failures.append(
+                f"{cid}: deployment_unit المُعلَن {entry['deployment_unit']!r} "
+                f"يخالف المقيس {m['deployment_unit']!r}"
+            )
+        if entry["source_path"] != m["source_path"]:
+            failures.append(
+                f"{cid}: source_path المُعلَن {entry['source_path']!r} "
+                f"يخالف المقيس {m['source_path']!r}"
+            )
+        if entry["authority_kind"] == "presentation":
+            continue
+        if (entry["authority_kind"] == "system_of_record") != m["owns_tables"]:
+            failures.append(
+                f"{cid}: authority_kind {entry['authority_kind']!r} يناقض ملكيّة الجداول "
+                f"المقيسة (owns_tables={m['owns_tables']})"
+            )
+    return failures
+
+
 _ALLOWED_OVERRIDE_KEYS = {
     "canonical_aliases",
     "components",
@@ -584,6 +657,9 @@ def govern_waivers(
 
 def build() -> dict[str, object]:
     overrides = load_overrides()
+    registry = load_component_registry()
+    reg_components = registry["components"]
+    measured: dict[str, dict] = {}
     services = _load_json("service_inventory.generated.json")
     services = services if isinstance(services, list) else services["services"]
     known = {s["service"] for s in services}
@@ -610,8 +686,15 @@ def build() -> dict[str, object]:
     for s in services:
         raw = s["service"]
         comp_id = canonical(raw)
-        ov = overrides["components"].get(comp_id, {})
+        reg = reg_components.get(comp_id, {})
         rt = compose.get(comp_id, {})
+        measured[comp_id] = {
+            "deployment_unit": (
+                sorted(rt.get("compose_services", []))[0] if rt.get("compose_services") else None
+            ),
+            "source_path": f"services/{raw}",
+            "owns_tables": bool(owner_tables.get(comp_id)),
+        }
         mount = mounts.get(comp_id, {})
         compose_reachable = bool(rt.get("compose_services")) and (
             comp_id in gateway["proxied_components"]
@@ -621,8 +704,12 @@ def build() -> dict[str, object]:
         gate_row = gate_rows.get(comp_id)
         components[comp_id] = {
             "component_id": comp_id,
-            "type": ov.get("type", "service"),
-            "domain": ov.get("domain", s.get("domain") or "unclassified"),
+            "type": reg.get("component_kind", "unclassified"),
+            "component_kind": reg.get("component_kind", "unclassified"),
+            "deployment_unit": reg.get("deployment_unit"),
+            "authority_kind": reg.get("authority_kind", "unclassified"),
+            "source_path": reg.get("source_path"),
+            "domain": reg.get("domain", "unclassified"),
             "canonical_name": comp_id,
             "aliases": sorted({raw, *rt.get("compose_services", [])} - {comp_id}),
             "runtime": {
@@ -664,10 +751,20 @@ def build() -> dict[str, object]:
         }
     for extra in overrides["extra_components"]:
         cid = extra["component_id"]
+        reg = reg_components.get(cid, {})
+        measured[cid] = {
+            "deployment_unit": None,
+            "source_path": cid,
+            "owns_tables": bool(owner_tables.get(cid)),
+        }
         components[cid] = {
             "component_id": cid,
-            "type": extra.get("type", "service"),
-            "domain": extra.get("domain", "unclassified"),
+            "type": reg.get("component_kind", "unclassified"),
+            "component_kind": reg.get("component_kind", "unclassified"),
+            "deployment_unit": reg.get("deployment_unit"),
+            "authority_kind": reg.get("authority_kind", "unclassified"),
+            "source_path": reg.get("source_path"),
+            "domain": reg.get("domain", "unclassified"),
             "canonical_name": cid,
             "aliases": [],
             "runtime": {
@@ -754,6 +851,9 @@ def build() -> dict[str, object]:
     ]
     u4_failures = dup_failures + waiver_failures
 
+    # ARCH-S1a: صفر مكوّنات غير مصنَّفة — الإعلان القانونيّ يُثبَت ضدّ المقيس.
+    s1a_failures = component_classification_failures(registry, measured)
+
     catalog = {
         "schema": "sahool.platform_catalog.v1",
         "counts": {
@@ -792,6 +892,10 @@ def build() -> dict[str, object]:
         # U3/U4: بوّابات الحَوكمة — إخفاقاتها ساكنة (لا تعتمد على تاريخ اليوم)؛
         # فحص الانتهاء الزمنيّ يجري في --enforce-expiry دون المساس بالمخرجات.
         "governance": {
+            "s1a_component_classification": {
+                "passed": not s1a_failures,
+                "failures": sorted(s1a_failures),
+            },
             "u3_wiring_ownership": {"passed": not u3_failures, "failures": sorted(u3_failures)},
             "u4_duplicates_waivers": {"passed": not u4_failures, "failures": sorted(u4_failures)},
         },
@@ -800,6 +904,7 @@ def build() -> dict[str, object]:
     # صدق صارم: هذه شهادة اتّساق ساكن للسجلّات، وليست شهادة إنتاج
     # (production_certified يبقى مسؤوليّة المسار الحيّ S1..S12، لا يُدَّعى هنا أبداً).
     consistency_checks = {
+        "s1a_component_classification_passed": not s1a_failures,
         "zero_ownership_conflicts": len(ownership_conflicts) == 0,
         "zero_governing_orphans": len(orphan) == 0,
         # u3 يشمل شمول العقود (inventory ⊆ contracts) وصحّة الأدلّة fail-closed.
@@ -866,8 +971,11 @@ def _components_csv(catalog) -> str:
     w.writerow(
         [
             "component_id",
-            "type",
+            "component_kind",
+            "deployment_unit",
             "domain",
+            "authority_kind",
+            "source_path",
             "aliases",
             "compose_services",
             "tables_owned",
@@ -879,8 +987,11 @@ def _components_csv(catalog) -> str:
         w.writerow(
             [
                 c["component_id"],
-                c["type"],
+                c["component_kind"],
+                c["deployment_unit"] or "",
                 c["domain"],
+                c["authority_kind"],
+                c["source_path"],
                 "|".join(c["aliases"]),
                 "|".join(c["runtime"]["compose_services"]),
                 len(c["owns"]["tables"]),

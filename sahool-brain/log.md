@@ -6428,3 +6428,21 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
   من فهرس ناقص، وهنا يُشتقّ ادّعاءٌ من فهرسٍ يسبق الالتزام.
 - **القاعدة المشدَّدة:** يُشتقّ السطر **بعد الالتزام** لا بعد الإدراج، وبعد النقطة
   الثابتة. الشرطان معاً: شجرةٌ مستقرّة **وملتزَمة**.
+### 2026-08-16 (و) — دمج #860: نقطة الثبات القانونيّة على main
+- #860 (`6363dd11`): تفويض `regenerate_all_generated.sh` الكامل + إعلان اقتطاع الأدلّة (`CAPABILITY-EVIDENCE-LISTS-TRUNCATE-SILENTLY-01` مُغلقة في السجلّ) — جولة 68/68 خضراء، squash بعقد «تحقق ثم ادمج».
+- مراجعة Copilot حُسمت بالقياس: مرساة الاختبار على الشرح لا المنفَّذ (CONFIRMED بالزرع، أُصلح + طفرة مسجَّلة) وتوحيد `EVIDENCE_DIMENSIONS` في `evidence_counts` — `2cac7463`.
+- تصديق `9d994b9e` تحقّق من سجلّ الوظيفة: VERIFIED، `reason_codes []`، هويّة = ربط الإصدار، 4/4 شهود — الخامس تواليًا.
+- قناة المرفقات عادت للعمل: شريحة vLLM/JAIS الثالثة تحقّقت بصمتُها (`c65ceb85`) داخل الحاوية ومعالجتها (`cdd73865`) بنسبٍ سليم؛ فرع التسليم أُلغي؛ بانتظار مرفقات الشرائح ١/٢/٤.
+
+### 2026-08-16 (ز) — التصديق السابع، وحدّ الثقة بصياغة المالك، وارتداد المرفوعات
+- تصديق `c817e480` (دمج #859 من فرعها): VERIFIED L5، أصفار أسباب، هويّة = ربط الإصدار (exact_commit، شجرة `53b46ae5`)، 4/4 شهود — **السابع تواليًا**. الدليل ملتزَم: [`certification/evidence/certify_run_c817e480.json`](../certification/evidence/certify_run_c817e480.json) (من run 31979005079، artifact 9271835273).
+- حدّ الثقة، بصياغة المالك بعد قراءته السجلّ كاملاً: «run_outcome_guard يثق بما أعلنته GitHub عن نتيجة الوظائف، ولا يثبت أنّ GitHub لم يكذب» — داخل نموذج الثقة المعتمد الجولة VERIFIED فعليّاً لا مجرّد CI أخضر؛ وكسر الحدّ يحتاج شاهداً مستقلّاً عن GitHub، وهو خارج النموذج بقرار.
+- الارتداد الرابع عشر طال `/root/.claude/uploads` أيضاً: حزمتا vLLM/JAIS المرفوعتان اليوم (المتحقَّق منهما `c65ceb85`/`cdd73865`) زالتا من الحاوية — **درس تشغيليّ: انسخ المرفوعات المتحقَّقة إلى مساحة العمل فور وصولها**. على المالك إعادة رفع الحزم الأربع + المعالجة.
+
+### 2026-08-17 (أ) — ARCH-S1a: سجلّ المكوّنات القانونيّ الواحد
+- بوّابة العبور تحقّقت أوّلاً (تصديق `c817e480` السابع VERIFIED L5) ثم فُتحت الشريحة بأمر المالك — S1a وحدها، لا قفز إلى S2.
+- المقيس المؤسِّس: التصنيف كان يسكن `config/platform_catalog_overrides.yml` ويسقط افتراضيّاً إلى `service` لكلّ مكوّن غير مذكور (`ov.get("type", "service")`) — المكوّن غير المصنَّف كان يمرّ صامتاً.
+- الإغلاق: [`docs/architecture/component_registry.json`](../docs/architecture/component_registry.json) مصدرٌ قانونيّ واحد (34 مكوّناً × 6 حقول؛ مفردات مهاجَرة adapter→worker_adapter · job→init_job · batch-job-tool→tool_bundle؛ governed في manifest_registry وdecided في claim_base) + بوّابة `component_classification_failures` النقيّة في [`build_platform_catalog.py`](../scripts/architecture/build_platform_catalog.py): unclassified/stale/انحراف الإعلان عن المقيس كلّها فشل بناء، والإعلانات القابلة للقياس (deployment_unit/source_path/authority_kind) تُثبَت ضدّ compose/الجرد/ملكيّة الجداول.
+- «المولّد الواحد والإسقاطات»: بقي `build_platform_catalog.py` المولّدَ الوحيد (لا مولّد موازٍ = لا كاتبَين للحقيقة)؛ إسقاط CSV صار بمخطّط S1a، وبوّابة `s1a_component_classification` دخلت حوكمة الكتالوج وشهادة الاتّساق.
+- التكذيب: 14 اختباراً في `tests_v9/test_component_registry_gate.py` (تستجوب الدالّة لا نصّها)؛ 3 طفرات مزروعة حمّرت اختبارها المسمّى (unclassified-silent · stale-silent · unmeasured-declaration) وسُجّلت.
+- صفر دلتا تشغيليّة: لا خدمة ولا مسار ولا DB؛ compose لم يُمسّ؛ العدّ ثابت 34 (backend 32 مثبَّت). ديون imagery (cache identity/headers) بقيت لشريحة Raster مستقلّة بقرار المالك.
