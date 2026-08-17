@@ -692,7 +692,7 @@ sahool-platform,services/sahool-platform/api/routers/indicators.py,47,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/indicators.py,60,GET,/api/v1/indicators/dashboard,indicators_dashboard,versioned
 sahool-platform,services/sahool-platform/api/routers/indices.py,22,GET,/api/v1/indices/coverage-report,indices_coverage_report,versioned
 sahool-platform,services/sahool-platform/api/routers/internal_service.py,26,GET,/internal/fields/{field_id}/state,internal_field_state,internal_s2s
-sahool-platform,services/sahool-platform/api/routers/internal_service.py,80,POST,/internal/events/ai-advice,internal_ai_advice_event,internal_s2s
+sahool-platform,services/sahool-platform/api/routers/internal_service.py,74,POST,/internal/events/ai-advice,internal_ai_advice_event,internal_s2s
 sahool-platform,services/sahool-platform/api/routers/introduction.py,29,GET,/api/v1/introduction/candidates,introduction_candidates_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/introduction.py,35,GET,/api/v1/introduction/card,introduction_card_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/introduction.py,41,POST,/api/v1/introduction/field-fit,introduction_field_fit_endpoint,versioned

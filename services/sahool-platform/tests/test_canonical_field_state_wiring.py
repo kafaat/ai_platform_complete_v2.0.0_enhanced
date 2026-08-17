@@ -100,26 +100,34 @@ def test_no_new_route_was_spent():
     assert sorted(paths) == ["/internal/events/ai-advice", "/internal/fields/{field_id}/state"]
 
 
-def test_consumer_passes_missing_weather_as_none_and_fabricates_nothing():
-    """الفحص على AST: تمرير weather كـNone صراحةً — لا حمولة مُختلَقة."""
+def test_consumer_sources_weather_from_owner_resolver_not_a_literal():
+    """weather must come from weather-service lineage, never a local literal/calculation."""
     tree = ast.parse(ROUTER.read_text(encoding="utf-8"))
     fn = next(
         n
         for n in ast.walk(tree)
         if isinstance(n, ast.AsyncFunctionDef) and n.name == "_compose_canonical"
     )
-    call = next(
+    calls = [
+        n
+        for n in ast.walk(fn)
+        if isinstance(n, ast.Call)
+        and (
+            (isinstance(n.func, ast.Name) and n.func.id == "get_canonical_field_weather")
+            or (isinstance(n.func, ast.Attribute) and n.func.attr == "get_canonical_field_weather")
+        )
+    ]
+    assert len(calls) == 1, "weather must be resolved exactly once through its owner boundary"
+    compose = next(
         n
         for n in ast.walk(fn)
         if isinstance(n, ast.Call)
         and isinstance(n.func, ast.Name)
         and n.func.id == "compose_canonical_field_state"
     )
-    passed = {kw.arg: kw.value for kw in call.keywords}
-    assert "weather" in passed, "weather يجب أن يُمرَّر صراحةً لا أن يُحذَف"
-    assert isinstance(passed["weather"], ast.Constant) and passed["weather"].value is None, (
-        "weather يجب أن يكون None — أيّ حمولة هنا اختلاق"
-    )
+    passed = {kw.arg: kw.value for kw in compose.keywords}
+    assert isinstance(passed.get("weather"), ast.Name)
+    assert passed["weather"].id == "weather_payload"
 
 
 def test_consumer_sources_soil_from_a_resolver_call_not_a_literal():

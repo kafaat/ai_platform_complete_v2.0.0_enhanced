@@ -45,16 +45,10 @@ async def internal_field_state(
     HTTP لِـ``soil-service``'s ``/v1/fields/{field_id}/soil/profile``)، و**الطيف**
     (``api/canonical_spectral_state.py`` — منتَج raster المُتحقَّق، غير مشترط في العقد).
 
-    يبقى **الطقس** وحده غائباً (``FIELD-STATE-PRODUCERS-MISSING-01``)، وبسبب مقيس لا تقدير:
-    المسارات الجالبة في ``weather-service`` (``current``/``forecast``/``historical``) تُرجِع
-    **مشاهدات** مُشتقّة بلا غلاف ولا ``schema_version``؛ والمسار الذي يُرجِع الغلاف كاملاً
-    (``POST /v1/weather/agro/canonical-state``) **حاسبة على مدخلات المُستدعي** — يقرأ
-    ``t_max_c``/``rh_mean_pct``/… من الجسم ولا يجلب شيئاً. فلا توجد واجهة تُجيب «ما الحالة
-    الكنسيّة لطقس هذا الحقل؟»، وتغذية الحاسبة من هنا كانت ستجعل **المنصّة** هي مَن يؤكّد
-    وقائع الطقس — التلفيق نفسه بمخطّط صحيح.
-
-    لذلك يعود ``operational_eligible=false`` ما دام الطقس غائباً، مع تسمية الناقص — وهي
-    **الحقيقة**، لا عيب، ولا يجوز اختلاق منتَج لإرضاء العقد.
+    الطقس يُحل الآن من ``weather-service /v1/weather/current`` عند مركز الحقل؛ ذلك المسار
+    يجلب من المزوّد عند حافة مالك الطقس ثم يبني ``CanonicalWeatherState`` قبل إخراج الـview.
+    المنصّة لا تعيد حساب أي حقيقة طقس: تقبل فقط view يحمل ``canonical_state_id`` ونسخة الحالة
+    و``source_snapshot_id``؛ غياب أيٍّ منها يُعامل كغياب صريح ويُبقي الحالة fail-closed.
     """
     from api.field_state_projection import recompute_field_state
 
@@ -133,6 +127,7 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
     from api.canonical_soil_state import resolve_canonical_soil_state
     from api.canonical_spectral_state import resolve_canonical_spectral_state
     from api.canonical_water_state import resolve_canonical_water_state
+    from api.weather_service_client import get_canonical_field_weather
 
     water = await resolve_canonical_water_state(conn, tenant_id=tenant_id, field_id=field_id)
     water_payload = water if isinstance(water, dict) else water.to_dict()
@@ -144,19 +139,26 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
         tenant_id=tenant_id, field_id=field_id
     )
 
+    # Field coordinates are stored with the field and are the only spatial input here.
+    # weather-service remains the owner of provider I/O and canonical weather semantics.
+    coords = await conn.fetchrow(
+        "SELECT lat, lon FROM fields WHERE field_id=$1 AND tenant_id=$2::uuid",
+        field_id,
+        tenant_id,
+    )
+    weather_payload = None
+    if coords and coords["lat"] is not None and coords["lon"] is not None:
+        weather_payload = await get_canonical_field_weather(
+            float(coords["lat"]), float(coords["lon"]), tenant_id=tenant_id
+        )
+
     state = compose_canonical_field_state(
         field_id=field_id,
         season_id=None,
         as_of_time=datetime.now(UTC).isoformat(),
         water=water_payload,
         soil=soil_payload,
-        # الطقس يبقى `None` صراحةً (FIELD-STATE-PRODUCERS-MISSING-01، نصف الطقس):
-        # لا واجهة تُرجِع غلافاً كنسيّاً **لحقل** من بيانات weather-service نفسها. المسارات
-        # الجالبة (`current`/`forecast`/`historical`) تُرجِع **مشاهدات** بلا غلاف، والمسار
-        # الذي يُرجِع الغلاف (`POST /v1/weather/agro/canonical-state`) **حاسبة على مدخلات
-        # المُستدعي** (`CanonicalWeatherStateRequest`: t_max_c/rh_mean_pct/…) لا يجلب شيئاً —
-        # فتغذيته من هنا تجعل المنصّة هي مَن يؤكّد وقائع الطقس، وهو التلفيق نفسه بمخطّط صحيح.
-        weather=None,
+        weather=weather_payload,
         spectral=spectral_payload,
     )
     return state.to_dict()

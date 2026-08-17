@@ -12,9 +12,9 @@
 - Mapped: **74**
 - Unmapped: **7**
 - Multi-dimensional mappings: **48**
-- Files scanned: **5046**
+- Files scanned: **5050**
 - Ambiguous artifacts queued: **403**
-- Unmapped artifacts queued: **2049**
+- Unmapped artifacts queued: **2050**
 
 ## Capability coverage
 
@@ -27,7 +27,7 @@
 | DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
 | DEC-007 | decision | 3 | 6 | 4 | 3 | 1 | 0 | 2 | 6 |
-| DEC-008 | decision | 5 | 94 | 14 | 4 | 0 | 0 | 1 | 5 |
+| DEC-008 | decision | 5 | 94 | 14 | 4 | 0 | 0 | 2 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 89 | 42 | 7 | 0 | 0 | 5 | 5 |
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 24 | 6 |

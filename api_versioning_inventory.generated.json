@@ -6239,7 +6239,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 80,
+    "line": 74,
     "method": "POST",
     "path": "/internal/events/ai-advice",
     "handler": "internal_ai_advice_event",

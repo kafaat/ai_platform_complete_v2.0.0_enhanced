@@ -43,8 +43,27 @@ async def resolve_canonical_soil_state(*, tenant_id: str, field_id: str) -> dict
     if not isinstance(payload, dict):
         return None
     contract_version = payload.get("contract_version")
-    if "schema_version" in payload or "schema" in payload:
-        return payload
     if not isinstance(contract_version, str) or not contract_version:
-        return None
-    return {**payload, "schema_version": contract_version}
+        if "schema_version" not in payload and "schema" not in payload:
+            return None
+    normalized = dict(payload)
+    if "schema_version" not in normalized and "schema" not in normalized:
+        normalized["schema_version"] = contract_version
+    # Translate soil-service's governed quality gate into the shared owner declaration.
+    # Do not promote a non-executable profile to healthy: it remains present for diagnosis
+    # but cannot silently make ``propose`` eligible.
+    gate = (
+        normalized.get("quality_gate") if isinstance(normalized.get("quality_gate"), dict) else {}
+    )
+    executable = gate.get("executable")
+    passed = gate.get("passed")
+    if "quality_status" not in normalized:
+        normalized["quality_status"] = (
+            "verified" if passed is True and executable is True else "degraded"
+        )
+    reasons = list(gate.get("reasons") or [])
+    if reasons and "limitations" not in normalized:
+        normalized["limitations"] = reasons
+    if executable is False:
+        normalized["operational_eligible"] = False
+    return normalized

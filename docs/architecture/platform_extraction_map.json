@@ -3873,7 +3873,7 @@
       "function": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice",
-      "line": 79,
+      "line": 73,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/internal_service.py::POST /internal/events/ai-advice::internal_ai_advice_event"

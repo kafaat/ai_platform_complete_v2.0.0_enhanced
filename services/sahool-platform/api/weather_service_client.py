@@ -229,6 +229,71 @@ async def get_gdd_product(
     return await weather_post_json("/v1/weather/agro/gdd", json_body=body, tenant_id=tenant_id)
 
 
+async def get_canonical_field_weather(
+    lat: float,
+    lon: float,
+    *,
+    tenant_id: str | None = None,
+    model: str = "best_match",
+) -> dict[str, Any] | None:
+    """Resolve the owner-produced canonical weather state for a field location.
+
+    The platform does not rebuild weather facts.  ``weather-service`` fetches the
+    observation and returns a view carrying the canonical state identity.  This
+    adapter only reconstructs the *state envelope* from fields already emitted by
+    that owner-facing response so ``canonical_field_state`` can bind the evidence.
+
+    Failures and incomplete provenance are absence (``None``), never a fabricated
+    healthy product.
+    """
+    try:
+        current = await weather_get_json(
+            "/v1/weather/current",
+            tenant_id=tenant_id,
+            params={"lat": lat, "lon": lon, "model": model},
+            timeout_s=8.0,
+        )
+    except Exception:  # noqa: BLE001 -- field-state composition is fail-closed on absence
+        return None
+    if current.get("derived_from") != "canonical_weather_state":
+        return None
+    state_id = current.get("canonical_state_id")
+    state_version = current.get("canonical_state_version")
+    source_snapshot_id = current.get("source_snapshot_id") or current.get("weather_snapshot_id")
+    if not state_id or not state_version or not source_snapshot_id:
+        return None
+    quality = current.get("quality_status")
+    limitations = list(current.get("limitations") or [])
+    return {
+        "product_id": "canonical_weather_state",
+        "state_id": state_id,
+        "state_version": state_version,
+        "schema_version": str(state_version),
+        "owner": "weather-service",
+        "source_snapshot_id": source_snapshot_id,
+        "generated_at": current.get("observed_at")
+        or current.get("time")
+        or current.get("timestamp"),
+        "quality": quality,
+        # canonical_field_state uses the cross-owner ``quality_status`` declaration.
+        "quality_status": quality,
+        "availability": {"current": quality not in {None, "insufficient", "invalid"}},
+        "provenance": {
+            "current": {
+                "quality_status": quality,
+                "weather_snapshot_id": source_snapshot_id,
+            }
+        },
+        "evidence": {
+            "canonical_state_id": state_id,
+            "source_snapshot_id": source_snapshot_id,
+            "observed_fields": list(current.get("observed_fields") or []),
+        },
+        "limitations": limitations,
+        "products": {"current": current},
+    }
+
+
 async def get_current_weather(
     lat: float, lon: float, *, model: str = "best_match"
 ) -> dict[str, Any]:
