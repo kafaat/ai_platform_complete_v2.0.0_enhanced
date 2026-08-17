@@ -238,3 +238,87 @@ def test_the_committed_candidates_csv_is_in_canonical_order():
         "capability_link_candidates.csv غير مفروز بمحتواه — أُعيد توليده بترتيب "
         "مورَّث من نظام الملفّات، فسيقول `--check` «انحراف» على عدّاء آخر."
     )
+
+
+def test_registry_evidence_truncation_is_declared_not_silent() -> None:
+    """CAPABILITY-EVIDENCE-LISTS-TRUNCATE-SILENTLY-01 — شقّ **سجلّ الحقيقة**.
+
+    #860 أعلن الاقتطاع في الخريطة وترك الرابط. والرابط أشدّ لأنّه يكتب
+    ``capabilities/registry/capabilities.json`` نفسه، وقصُّه **أبجديّ** — فبقاء
+    الشاهد كان تقرّره صدفةُ اسم الملفّ. المقيس وقتَ الاكتشاف: **٤٩٤** شاهداً
+    محذوفاً صامتاً عبر ثمانِ قدرات (FM-003 وحدها ٢٠٠ واجهة و٩٦ اختباراً).
+
+    **الحقيقةُ قبل القصّ تُقرأ من ملفّ الترشيح لا تُستنتَج من الطول.** صياغتي
+    الأولى أكّدت «كلّ بُعدٍ بلغ سقفه يجب أن يُعلن قصّاً» — وذلك **أقوى من العقد**:
+    السقف يُبلَغ بلا قصّ حين يكون عدد المرشّحين مساوياً له تماماً، فكانت الحالة
+    قنبلةً تنفجر على شجرةٍ سليمة. أمسكتها مراجعة #861. المصدر الصحيح هو
+    ``capabilities/generated/capability_link_candidates.csv``: عددُ المرشّحين
+    المُطبَّقين لكلّ (قدرة، بُعد) — فالقصّ يقع ⇔ العدد يتجاوز السقف.
+    """
+    caps = json.loads(
+        (ROOT / "capabilities/registry/capabilities.json").read_text(encoding="utf-8")
+    )
+    rows = caps["capabilities"] if isinstance(caps, dict) else caps
+    limits = {
+        "services": 8,
+        "apis": 40,
+        "tests": 25,
+        "ui_consumers": 20,
+        "mobile_consumers": 20,
+    }
+    kind_to_dimension = {
+        "service": "services",
+        "api": "apis",
+        "test": "tests",
+        "ui": "ui_consumers",
+        "mobile": "mobile_consumers",
+    }
+
+    candidates: dict[tuple[str, str], set[str]] = {}
+    with (ROOT / "capabilities/generated/capability_link_candidates.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        for row in csv.DictReader(handle):
+            dimension = kind_to_dimension.get((row.get("kind") or "").strip())
+            if not dimension or (row.get("decision") or "").strip() != "applied":
+                continue
+            key = ((row.get("capability_id") or "").strip(), dimension)
+            candidates.setdefault(key, set()).add((row.get("value") or "").strip())
+
+    undeclared: list[str] = []
+    wrong_count: list[str] = []
+    declared_without_truncation: list[str] = []
+    for row in rows:
+        cid = row.get("id")
+        declared = row.get("evidence_truncated") or {}
+        for dimension, limit in limits.items():
+            total = len(candidates.get((cid, dimension), ()))
+            expected_dropped = max(0, total - limit)
+            if expected_dropped and dimension not in declared:
+                undeclared.append(f"{cid}.{dimension}: {total} مرشّحاً · سقف {limit}")
+            elif expected_dropped and int(declared[dimension]) != expected_dropped:
+                wrong_count.append(
+                    f"{cid}.{dimension}: أُعلن {declared[dimension]} والمقيس {expected_dropped}"
+                )
+            elif not expected_dropped and dimension in declared:
+                declared_without_truncation.append(f"{cid}.{dimension} ({total}/{limit})")
+
+    assert not undeclared, f"قصٌّ واقعٌ بلا إعلان — عاد الاقتطاع الصامت: {undeclared}"
+    assert not wrong_count, f"عددُ المحذوف المُعلَن يخالف المقيس: {wrong_count}"
+    assert not declared_without_truncation, (
+        f"إعلانُ قصٍّ لبُعدٍ لم يُقصّ — إعلانٌ كاذب: {declared_without_truncation}"
+    )
+
+
+def test_the_declaration_field_is_allowed_by_the_registry_schema() -> None:
+    """حقلٌ يكتبه الرابط ويرفضه المخطَّط = بوّابةٌ حمراء لا صدقٌ مُعلَن.
+
+    المخطَّط ``additionalProperties: false`` على القدرة، فالإعلان لا يعيش بلا
+    تصريحٍ فيه — وهذا الاختبار يربط الكاتب بالعقد بدل تركهما ينحرفان.
+    """
+    schema = json.loads(
+        (ROOT / "capabilities/schema/capability-registry.schema.json").read_text(encoding="utf-8")
+    )
+    props = schema["$defs"]["capability"]["properties"]
+    assert "evidence_truncated" in props, "الرابط يكتب حقلاً لا يُصرّح به المخطَّط"
+    assert props["evidence_truncated"]["additionalProperties"]["type"] == "integer"

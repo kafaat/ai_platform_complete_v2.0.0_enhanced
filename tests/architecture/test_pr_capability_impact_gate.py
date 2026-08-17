@@ -187,3 +187,65 @@ def test_index_summary_is_deterministic_and_fail_closed():
     assert first["indexed_paths"] > 100
     assert first["constraints"]["deletion_detection"] is True
     assert first["constraints"]["runtime_claims"] is False
+
+
+def test_derivation_from_an_uncommitted_tree_is_refused() -> None:
+    """الاشتقاق يكون بعد الالتزام لا بعد الإدراج — العطل الذي حجب #859.
+
+    ``git_changed_paths`` يقارن ``base..head`` بمراجعَ **ملتزَمة**. فحين يكون
+    ``--head`` هو نسخة العمل وفيها تعديلٌ غير ملتزَم، يُنتج الاشتقاقُ جواباً عن شجرةٍ
+    أخرى غير التي ستقيسها CI. وقع فعليّاً: اشتُقّ السطر بعد ``git add`` فلم تدخل
+    المصنوعات المُعاد توليدها، فسقطت ``FM-001`` و``OPS-003`` وحجبت البوّابة.
+
+    يُقاس هنا **بشجرة اختبار حقيقيّة** لا بمحاكاة: مستودعٌ مؤقّت بالتزامَين، ثمّ
+    تعديلٌ غير ملتزَم.
+    """
+    import subprocess
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        repo = Path(tmp)
+
+        def g(*a: str) -> None:
+            subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True)
+
+        g("init", "-q")
+        g("config", "user.email", "t@example.invalid")
+        g("config", "user.name", "t")
+        (repo / "a.txt").write_text("one\n", encoding="utf-8")
+        g("add", "-A")
+        g("commit", "-qm", "base")
+        base = (
+            subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True)
+            .stdout.decode()
+            .strip()
+        )
+        (repo / "b.txt").write_text("two\n", encoding="utf-8")
+        g("add", "-A")
+        g("commit", "-qm", "head")
+
+        # شجرة نظيفة ⇒ لا انحراف مُبلَّغ.
+        assert mod.worktree_deviation("HEAD", root=repo) == []
+
+        # تعديلٌ مُدرَجٌ غير ملتزَم ⇒ يُبلَّغ عنه بالاسم.
+        (repo / "c.txt").write_text("three\n", encoding="utf-8")
+        g("add", "-A")
+        assert "c.txt" in mod.worktree_deviation("HEAD", root=repo)
+
+        # وأيضاً غير المُدرَج.
+        (repo / "a.txt").write_text("changed\n", encoding="utf-8")
+        assert "a.txt" in mod.worktree_deviation("HEAD", root=repo)
+
+        # اسمٌ فيه مسافات بادئة/لاحقة — التقسيم بالأسطر مع strip() كان يبتره
+        # (مراجعة #861). والاسم **ASCII عمداً**: `test_non_ascii_fixture_path_guard`
+        # يمنع بناء مسارات من محارف غير ASCII لأنّ `preflight --full` يعمل تحت
+        # `LC_ALL=C PYTHONUTF8=0` فيرتفع `UnicodeEncodeError` قبل بلوغ المقيس — أي
+        # يسقط الاختبار على تجهيزته لا على ما يقيسه. والمقصود هنا المسافات لا العربيّة.
+        spaced = "  name with spaces  .txt"
+        (repo / spaced).write_text("x\n", encoding="utf-8")
+        assert spaced in mod.worktree_deviation("HEAD", root=repo), (
+            "مسارٌ بمسافات بادئة/لاحقة تشوّه — التحليل ليس بـ-z"
+        )
+
+        # مرجعٌ تاريخيّ صريح ليس نسخة العمل ⇒ لا معنى لمقارنة الشجرة، فلا انحراف.
+        assert mod.worktree_deviation(base, root=repo) == []

@@ -128,6 +128,9 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 20
       }
     },
     {
@@ -381,6 +384,10 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "apis": 200,
+        "tests": 96
       }
     },
     {
@@ -497,6 +504,9 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 1
       }
     },
     {
@@ -603,6 +613,9 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 13
       }
     },
     {
@@ -966,6 +979,9 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 7
       }
     },
     {
@@ -1315,6 +1331,9 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 3
       }
     },
     {
@@ -1917,6 +1936,10 @@
         "GeoPard": null,
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "apis": 57,
+        "tests": 94
       }
     },
     {
@@ -4231,6 +4254,9 @@
         "GeoPard": "1",
         "Cropwise": null,
         "Farmonaut": null
+      },
+      "evidence_truncated": {
+        "tests": 3
       }
     },
     {

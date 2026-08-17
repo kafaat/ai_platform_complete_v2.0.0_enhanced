@@ -500,12 +500,39 @@ def main() -> int:
         def uniq(values: list[str], limit: int) -> list[str]:
             return sorted(dict.fromkeys(values))[:limit]
 
+        # CAPABILITY-EVIDENCE-LISTS-TRUNCATE-SILENTLY-01 — شقّ سجلّ الحقيقة.
+        #
+        # القصّ هنا **أبجديّ** (`sorted(...)[:limit]`)، فبقاء الشاهد في
+        # `capabilities/registry/capabilities.json` كان تقرّره صدفةُ اسم الملفّ لا صلتُه
+        # ولا حداثتُه — **وبلا أيّ أثر**. المقيس الذي كشفه: إضافة ملفَّي اختبار في #859
+        # أدخلتهما شواهدَ SAT-001 وأخرجت اثنين قائمَين (`test_normalized_scene_wiring_v63_2`
+        # و`test_raster_scene_model_v63`) وكلاهما اختبار حيّ يمرّ. أي أنّ **إضافة اختبار
+        # أسقطت شاهدَ اختبارٍ قائم من سجلّ الحقيقة** بلا سطرٍ واحد يقول ذلك.
+        #
+        # #860 أعلن الاقتطاع في **الخريطة** (`capability_mapping_engine`) وترك الرابط —
+        # وهذا هو الشقّ الأشدّ لأنّه يمسّ السجلّ لا مصنوعةً مشتقّة. والأبعاد المقصوصة
+        # **خمسة** لا واحداً.
+        #
+        # السقوف نفسها **لا تُرفَع هنا** (قرار أساس مستقلّ): المطلوب أن يُعلن السجلّ
+        # نقصانَه، لا أن يُخفيه بسقفٍ أوسع. وغيابُ الحقل يعني «لم يُقصّ شيء» لا «لا نعلم».
+        def capped(values: list[str], limit: int, dimension: str, report: dict) -> list[str]:
+            full = sorted(dict.fromkeys(values))
+            if len(full) > limit:
+                report[dimension] = len(full) - limit
+            return full[:limit]
+
         if args.apply or args.check:
-            cap["services"] = uniq(linked_services, 8)
-            cap["apis"] = uniq(linked_apis, 40)
-            cap["tests"] = uniq(tests, 25)
-            cap["ui_consumers"] = uniq(ui, 20)
-            cap["mobile_consumers"] = uniq(mobile, 20)
+            truncated: dict[str, int] = {}
+            cap["services"] = capped(linked_services, 8, "services", truncated)
+            cap["apis"] = capped(linked_apis, 40, "apis", truncated)
+            cap["tests"] = capped(tests, 25, "tests", truncated)
+            cap["ui_consumers"] = capped(ui, 20, "ui_consumers", truncated)
+            cap["mobile_consumers"] = capped(mobile, 20, "mobile_consumers", truncated)
+            if truncated:
+                cap["evidence_truncated"] = truncated
+            else:
+                # يُحذَف عند زوال القصّ: حقلٌ باقٍ بقيمة قديمة أسوأ من غيابه.
+                cap.pop("evidence_truncated", None)
             # A′-4b: سلطة كتابة `dependencies` أُسقطت من الرابط — الحقل مملوك
             # للتعريف القانونيّ بسياسة سلطة الحقول، ويكتبه في الإسقاط مُسقِطُ
             # `capability_projection_sync` من Registry v1 وحده. جدول DEPENDENCIES

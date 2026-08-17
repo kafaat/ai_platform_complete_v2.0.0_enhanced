@@ -147,6 +147,11 @@
       "canonical_role": "none",
       "disposition": "keep_outside_canonical_capability_definition",
       "reconciliation": "excluded_compatibility_assessment_outside_canonical_definition"
+    },
+    "evidence_truncated": {
+      "authority": "repository_traceability_projection",
+      "reconciliation": "excluded_projection_owned_by_traceability_engine",
+      "note": "مشتقٌّ من القصّ نفسه ويكتبه الكاتب نفسه (capability_linker)، فيتبع سلطة الأبعاد التي يصفها. ليس مصدر قيمٍ ثالثاً: لا يحمل شواهد بل عددَ ما حُذِف منها."
     }
   },
   "reconciliation": {
