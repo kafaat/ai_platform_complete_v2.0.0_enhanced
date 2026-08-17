@@ -440,12 +440,21 @@ def worktree_deviation(head: str, *, root: Path = ROOT) -> list[str]:
         return []
     if resolved != current_head:
         return []
-    status = git("status", "--porcelain", root=root, check=False)
-    return [
-        line[3:].strip()
-        for line in status.stdout.decode("utf-8", "replace").splitlines()
-        if line.strip()
-    ]
+    # `--porcelain=v1 -z` لا `--porcelain` وحده: التقسيم بالأسطر و`strip()` يكسر على
+    # أسماء فيها مسافة بادئة/لاحقة أو سطرٌ جديد (وgit يقتبسها عندئذٍ فيتشوّه المسار).
+    # وهي سابقة البيت في `scripts/ci/test_impact.py` و`scripts/ops/pre_push_stability_guard.py`.
+    status = git("status", "--porcelain=v1", "-z", "--untracked-files=all", root=root, check=False)
+    fields = [f for f in status.stdout.decode("utf-8", "replace").split("\0") if f]
+    paths: list[str] = []
+    index = 0
+    while index < len(fields):
+        entry = fields[index]
+        code, path = entry[:2], entry[3:]
+        paths.append(path)
+        if "R" in code or "C" in code:
+            index += 1  # إعادة التسمية تحمل مصدرها في الحقل التالي
+        index += 1
+    return sorted(set(paths))
 
 
 def impact(paths: Iterable[str], snapshot: Snapshot | None = None) -> dict[str, Any]:

@@ -11,7 +11,7 @@
     "docs/capability-registry/roadmap/roadmap_items.yaml": "a67bb6f7755787dc03b440cb4709d93d9f234124cdb93fb46527dbffd5811527",
     "scripts/ci/capability_impact.py": "1f8b505a6ab4e23d0fce4fb89426360a4aa94d748e9697f6ebb40e47f8137d3d",
     "scripts/ci/capability_roadmap_linker.py": "7de48c0de3fa995f0838be2f42a03ababfda5659b6513bd209559fe6f01e210a",
-    "scripts/ci/pr_capability_impact_gate.py": "ba03ccd9e5e4673160b5d05eca259b19d0850afbb386618fd5756ffc0838539b"
+    "scripts/ci/pr_capability_impact_gate.py": "2cd9758f0911859b12c919c68f95a1c4e01ff6aa712c11d47dfc9155b65c86aa"
   },
   "constraints": {
     "merge_base_snapshot_union": true,

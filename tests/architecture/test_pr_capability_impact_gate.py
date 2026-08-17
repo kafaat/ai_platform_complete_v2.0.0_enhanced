@@ -236,5 +236,11 @@ def test_derivation_from_an_uncommitted_tree_is_refused() -> None:
         (repo / "a.txt").write_text("changed\n", encoding="utf-8")
         assert "a.txt" in mod.worktree_deviation("HEAD", root=repo)
 
+        # اسمٌ فيه مسافات — التقسيم بالأسطر مع strip() كان يبتره (مراجعة #861).
+        (repo / "  اسم فيه مسافات  .txt").write_text("x\n", encoding="utf-8")
+        assert "  اسم فيه مسافات  .txt" in mod.worktree_deviation("HEAD", root=repo), (
+            "مسارٌ بمسافات بادئة/لاحقة تشوّه — التحليل ليس بـ-z"
+        )
+
         # مرجعٌ تاريخيّ صريح ليس نسخة العمل ⇒ لا معنى لمقارنة الشجرة، فلا انحراف.
         assert mod.worktree_deviation(base, root=repo) == []

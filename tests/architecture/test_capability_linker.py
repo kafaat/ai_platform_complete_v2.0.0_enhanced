@@ -248,8 +248,12 @@ def test_registry_evidence_truncation_is_declared_not_silent() -> None:
     الشاهد كان تقرّره صدفةُ اسم الملفّ. المقيس وقتَ الاكتشاف: **٤٩٤** شاهداً
     محذوفاً صامتاً عبر ثمانِ قدرات (FM-003 وحدها ٢٠٠ واجهة و٩٦ اختباراً).
 
-    يُقاس هنا على السجلّ المشحون: كلّ بُعدٍ **بالغٍ سقفَه** يجب أن يحمل إعلاناً
-    باسمه وعدده، وكلّ إعلانٍ يجب أن يقابله بُعدٌ عند سقفه فعلاً (لا إعلان كاذب).
+    **الحقيقةُ قبل القصّ تُقرأ من ملفّ الترشيح لا تُستنتَج من الطول.** صياغتي
+    الأولى أكّدت «كلّ بُعدٍ بلغ سقفه يجب أن يُعلن قصّاً» — وذلك **أقوى من العقد**:
+    السقف يُبلَغ بلا قصّ حين يكون عدد المرشّحين مساوياً له تماماً، فكانت الحالة
+    قنبلةً تنفجر على شجرةٍ سليمة. أمسكتها مراجعة #861. المصدر الصحيح هو
+    ``capabilities/generated/capability_link_candidates.csv``: عددُ المرشّحين
+    المُطبَّقين لكلّ (قدرة، بُعد) — فالقصّ يقع ⇔ العدد يتجاوز السقف.
     """
     caps = json.loads(
         (ROOT / "capabilities/registry/capabilities.json").read_text(encoding="utf-8")
@@ -262,27 +266,47 @@ def test_registry_evidence_truncation_is_declared_not_silent() -> None:
         "ui_consumers": 20,
         "mobile_consumers": 20,
     }
+    kind_to_dimension = {
+        "service": "services",
+        "api": "apis",
+        "test": "tests",
+        "ui": "ui_consumers",
+        "mobile": "mobile_consumers",
+    }
 
-    at_cap_without_declaration: list[str] = []
-    declared_without_cap: list[str] = []
+    candidates: dict[tuple[str, str], set[str]] = {}
+    with (ROOT / "capabilities/generated/capability_link_candidates.csv").open(
+        encoding="utf-8", newline=""
+    ) as handle:
+        for row in csv.DictReader(handle):
+            dimension = kind_to_dimension.get((row.get("kind") or "").strip())
+            if not dimension or (row.get("decision") or "").strip() != "applied":
+                continue
+            key = ((row.get("capability_id") or "").strip(), dimension)
+            candidates.setdefault(key, set()).add((row.get("value") or "").strip())
+
+    undeclared: list[str] = []
+    wrong_count: list[str] = []
+    declared_without_truncation: list[str] = []
     for row in rows:
         cid = row.get("id")
         declared = row.get("evidence_truncated") or {}
-        for dim, limit in limits.items():
-            n = len(row.get(dim) or [])
-            if n >= limit and dim not in declared:
-                at_cap_without_declaration.append(f"{cid}.{dim} ({n}/{limit})")
-            if dim in declared and n < limit:
-                declared_without_cap.append(f"{cid}.{dim} ({n}/{limit})")
-        for dim, dropped in declared.items():
-            assert int(dropped) >= 1, f"{cid}.{dim}: إعلانُ قصٍّ بصفرٍ محذوف"
+        for dimension, limit in limits.items():
+            total = len(candidates.get((cid, dimension), ()))
+            expected_dropped = max(0, total - limit)
+            if expected_dropped and dimension not in declared:
+                undeclared.append(f"{cid}.{dimension}: {total} مرشّحاً · سقف {limit}")
+            elif expected_dropped and int(declared[dimension]) != expected_dropped:
+                wrong_count.append(
+                    f"{cid}.{dimension}: أُعلن {declared[dimension]} والمقيس {expected_dropped}"
+                )
+            elif not expected_dropped and dimension in declared:
+                declared_without_truncation.append(f"{cid}.{dimension} ({total}/{limit})")
 
-    assert not at_cap_without_declaration, (
-        "أبعادٌ بلغت سقفها في سجلّ الحقيقة بلا إعلان قصّ — عاد الاقتطاع الصامت: "
-        f"{at_cap_without_declaration}"
-    )
-    assert not declared_without_cap, (
-        f"إعلانُ قصٍّ لبُعدٍ لم يبلغ سقفه — إعلانٌ كاذب: {declared_without_cap}"
+    assert not undeclared, f"قصٌّ واقعٌ بلا إعلان — عاد الاقتطاع الصامت: {undeclared}"
+    assert not wrong_count, f"عددُ المحذوف المُعلَن يخالف المقيس: {wrong_count}"
+    assert not declared_without_truncation, (
+        f"إعلانُ قصٍّ لبُعدٍ لم يُقصّ — إعلانٌ كاذب: {declared_without_truncation}"
     )
 
 
