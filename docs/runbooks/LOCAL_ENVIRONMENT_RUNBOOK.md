@@ -125,7 +125,8 @@ docker compose -f docker-compose.v9.yml up -d \
 ## ٦) الاختبارات محليّاً
 
 ```bash
-pip install -r requirements.txt -r requirements-dev.txt 2>/dev/null || true
+python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 pytest -m unit                      # الافتراضيّ السريع — بلا خدمات
 pytest -m integration               # فقط بعد المرحلتين أ+ب (يتطلّب Postgres+PostGIS وRedis)
 bash scripts/ci/preflight.sh --fast # ~٣٠ث · 14 حارساً قبل أيّ دفع

@@ -6,11 +6,15 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "api"
 sys.path.insert(0, str(API))
 
 import weather_service_client as wc  # noqa: E402 — يتطلّب sys.path أعلاه
+
+pytestmark = pytest.mark.unit
 
 
 def test_weather_binding_accepts_only_owner_canonical_lineage(monkeypatch):
@@ -74,5 +78,9 @@ def test_internal_field_state_resolves_weather_from_owner_not_local_math():
     source = (API / "routers" / "internal_service.py").read_text(encoding="utf-8")
     assert "get_canonical_field_weather" in source
     assert "weather=weather_payload" in source
-    assert "weather=None" not in source
-    assert "build_canonical_weather_state" not in source
+    assert "weather=None" not in source, (
+        "حقل الطقس لا يُصفَّر محليّاً — غيابه يأتي من فشل المالك المغلق لا من ثابت"
+    )
+    assert "build_canonical_weather_state" not in source, (
+        "المنصّة لا تبني حالة طقس قانونيّة — البناء حكر على weather-service المالك"
+    )

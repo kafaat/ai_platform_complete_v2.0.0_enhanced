@@ -1,0 +1,73 @@
+{
+  "$comment": "نسخة أمينة من certification_record.json لالتزام main 1ef69aca (دمج #864 — ARCH-S3)، منسوخة من سجلّ وظيفة Certification (post-run) في run 32052955986 (2026-08-17T18:16:15Z، attempt 2 للتصديق نفسه — المنتِج ci run 32049137966 attempt 1). المصنوعة الأصليّة: artifact certification-record id=9295749361 (zip sha256=11df4a72f1870c4e211b323be643cc1f45a8be6027c5932f27c4a8cd21c92f4e، احتفاظ ٩٠ يوماً). أُلتزمت دليلاً مرافقاً لسرد الدماغ عن التصديق الحادي عشر — لا مصدراً بديلاً: الحجّة التشفيريّة في المصنوعة الموقَّعة، وهذه قراءة موثَّقة المنشأ.",
+  "artifact_provenance": {
+    "$honesty_limit_ar": "يحكم على جرد المصنوعات كما أعلنته الواجهة: الاسم مشتقٌّ من head_sha وexactly-one مفروض والهويّة مُسجَّلة. سلامةُ البايتات المنزَّلة تُثبَت لاحقاً بالبيان الموقَّع والتحقّق التشفيريّ، لا ببصمة النقل وحدها.",
+    "artifacts": {
+      "attestation": {
+        "artifact_id": 9294027091,
+        "digest": "sha256:5374e5f4240898a7542231a436e15056d53c3b4dc35fda01eed6bdc1b0891dea",
+        "name": "live-pg-evidence-attestation-1ef69acabf8bde0ab8736c4420cb207b3e7c4750",
+        "size_in_bytes": 7315
+      },
+      "evidence": {
+        "artifact_id": 9294026594,
+        "digest": "sha256:dfbdbf56974d6855d9019ffb18da4dfe0274eb05bc571656ffe22c8517040f23",
+        "name": "live-pg-evidence-1ef69acabf8bde0ab8736c4420cb207b3e7c4750",
+        "size_in_bytes": 3904
+      }
+    },
+    "head_sha": "1ef69acabf8bde0ab8736c4420cb207b3e7c4750",
+    "schema": "sahool.certify-artifact-contract/v1",
+    "status": "present"
+  },
+  "assurance_level": "L5",
+  "attestation_bundle_sha256": "bcb7187c6a78ad2012b018ddcaea842681bb57b9deacee08c59ef61fed14fc8c",
+  "manifest_sha256": "079805697cc89402ca8f32cd42e163153ac77adf1b2f4431b894d638a6c46eb7",
+  "policy_sha256": "1c78c45091b0f1762667e3d555b597ff98cddc3808e88541df44696dcb367d69",
+  "producer_identity": {
+    "event": "push",
+    "repository": "kafaat/ai_platform_complete_v2.0.0_enhanced",
+    "run_attempt": "1",
+    "run_id": "32049137966",
+    "workflow_path": ".github/workflows/ci.yml"
+  },
+  "reason_codes": [],
+  "release_binding": {
+    "accepted_commit_sha": "1ef69acabf8bde0ab8736c4420cb207b3e7c4750",
+    "accepted_tree_sha": "1c4c4d402013577898342a0d8267527399139b0c",
+    "mode": "exact_commit"
+  },
+  "required_jobs_contract_sha256": "28076fe7d6f171a8a61ced623c70a81169c11f874511c59ba8631735e398f983",
+  "tested_identity": {
+    "commit_sha": "1ef69acabf8bde0ab8736c4420cb207b3e7c4750",
+    "tree_sha": "1c4c4d402013577898342a0d8267527399139b0c"
+  },
+  "trusted_root": {
+    "sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+    "source": "gh attestation trusted-root"
+  },
+  "verdict": "VERIFIED",
+  "verification_toolchain": {
+    "gh_binary_sha256": "014fcd614de4de5b4a1441d298175684bad99f713d10296c5fcaaba47ac332d1",
+    "gh_version": "gh version 2.93.0 (2026-05-27)"
+  },
+  "verified_subjects": [
+    {
+      "gh_result_count": 1,
+      "subject": "live_pg_evidence.json"
+    },
+    {
+      "gh_result_count": 1,
+      "subject": "live_pg_evidence.xml"
+    },
+    {
+      "gh_result_count": 1,
+      "subject": "live_pg_role_closure.json"
+    },
+    {
+      "gh_result_count": 1,
+      "subject": "live_pg_canonical_manifest.json"
+    }
+  ],
+  "verifier_sha256": "c51a00db37fff123fa20168f116a1410c1230f5a770c55b20c32e678febc102f"
+}

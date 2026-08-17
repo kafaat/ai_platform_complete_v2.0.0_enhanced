@@ -23355,7 +23355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "598027b02282087ab53c0328fc8e8a472fac2087a7a01bb4d3df003f4e8c39c8"
+          "content": "85c8b52b78ef1d8b5bf00bb8210e61b6726216e068632e0d8be21da2b783553e"
         }
       ],
       "name": "services/sahool-platform/tests/test_closed_agronomic_loop_weather_binding.py",
