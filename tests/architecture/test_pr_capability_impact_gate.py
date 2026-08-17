@@ -236,9 +236,14 @@ def test_derivation_from_an_uncommitted_tree_is_refused() -> None:
         (repo / "a.txt").write_text("changed\n", encoding="utf-8")
         assert "a.txt" in mod.worktree_deviation("HEAD", root=repo)
 
-        # اسمٌ فيه مسافات — التقسيم بالأسطر مع strip() كان يبتره (مراجعة #861).
-        (repo / "  اسم فيه مسافات  .txt").write_text("x\n", encoding="utf-8")
-        assert "  اسم فيه مسافات  .txt" in mod.worktree_deviation("HEAD", root=repo), (
+        # اسمٌ فيه مسافات بادئة/لاحقة — التقسيم بالأسطر مع strip() كان يبتره
+        # (مراجعة #861). والاسم **ASCII عمداً**: `test_non_ascii_fixture_path_guard`
+        # يمنع بناء مسارات من محارف غير ASCII لأنّ `preflight --full` يعمل تحت
+        # `LC_ALL=C PYTHONUTF8=0` فيرتفع `UnicodeEncodeError` قبل بلوغ المقيس — أي
+        # يسقط الاختبار على تجهيزته لا على ما يقيسه. والمقصود هنا المسافات لا العربيّة.
+        spaced = "  name with spaces  .txt"
+        (repo / spaced).write_text("x\n", encoding="utf-8")
+        assert spaced in mod.worktree_deviation("HEAD", root=repo), (
             "مسارٌ بمسافات بادئة/لاحقة تشوّه — التحليل ليس بـ-z"
         )
 
