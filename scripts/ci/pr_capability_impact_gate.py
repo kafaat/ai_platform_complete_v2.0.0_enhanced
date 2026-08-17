@@ -422,6 +422,32 @@ def git_changed_paths(base: str, head: str, *, root: Path = ROOT) -> tuple[str, 
     return base_commit, parse_name_status_z(result.stdout)
 
 
+def worktree_deviation(head: str, *, root: Path = ROOT) -> list[str]:
+    """المسارات التي تختلف بين الشجرة/الفهرس و``head`` — أي ما **لن تراه** المقارنة.
+
+    ``git_changed_paths`` يقارن ``base..head`` بمراجعَ **ملتزَمة** حصراً. فاشتقاقُ
+    الأثر بينما في الشجرة تعديلٌ غير ملتزَم يُنتج جواباً عن شجرةٍ أخرى — وهو ما وقع
+    في #859: اشتُقّ السطر بعد ``git add`` وقبل الالتزام، فلم تدخل المصنوعات المُعاد
+    توليدها في الفرق وسقطت قدرتان، فحجبت CI.
+
+    ``[]`` حين لا يكون ``head`` هو نسخة العمل (SHA صريح مثلاً): عندئذٍ لا معنى
+    لمقارنة الشجرة أصلاً، والسؤال المطروح تاريخيّ لا حاليّ.
+    """
+    try:
+        resolved = git("rev-parse", head, root=root).stdout.decode("utf-8", "replace").strip()
+        current_head = git("rev-parse", "HEAD", root=root).stdout.decode("utf-8", "replace").strip()
+    except Exception:  # noqa: BLE001 — تعذّر الحلّ ⇒ لا ندّعي انحرافاً
+        return []
+    if resolved != current_head:
+        return []
+    status = git("status", "--porcelain", root=root, check=False)
+    return [
+        line[3:].strip()
+        for line in status.stdout.decode("utf-8", "replace").splitlines()
+        if line.strip()
+    ]
+
+
 def impact(paths: Iterable[str], snapshot: Snapshot | None = None) -> dict[str, Any]:
     active = snapshot or current_snapshot()
     normalized_paths = sorted({normalize_repo_path(path) for path in paths if str(path).strip()})
@@ -597,6 +623,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--declared")
     parser.add_argument("--pr-body-file")
     parser.add_argument("--output")
+    parser.add_argument(
+        "--allow-dirty-tree",
+        action="store_true",
+        help=(
+            "اشتقّ رغم وجود تعديلات غير ملتزَمة. الناتج عندئذٍ **لا يطابق** ما تحسبه "
+            "CI، فلا يُبنى عليه إعلان."
+        ),
+    )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--generate-index", action="store_true")
     mode.add_argument("--check-index", action="store_true")
@@ -632,6 +666,21 @@ def main(argv: list[str] | None = None) -> int:
         base_commit: str | None = None
         active_snapshot = current
         if args.base and args.head:
+            # fail-closed على الاشتقاق من شجرةٍ غير ملتزَمة: الجواب حينها عن شجرةٍ
+            # أخرى غير التي ستقيسها CI، والإعلان المبنيّ عليه يبيت قبل أن يُكتَب.
+            if not args.allow_dirty_tree:
+                deviation = worktree_deviation(args.head)
+                if deviation:
+                    print(
+                        "الاشتقاق مرفوض: الشجرة تحمل تعديلات غير ملتزَمة بينما "
+                        f"--head={args.head} هو نسخة العمل. المقارنة `base..head` تقرأ "
+                        "**المُلتزَم** لا الفهرس، فالناتج لا يطابق ما تحسبه CI.\n"
+                        "  التزِم أوّلاً ثمّ أعِد الاشتقاق (أو --allow-dirty-tree "
+                        "للاستكشاف بلا بناء إعلانٍ عليه).\n"
+                        "  المنحرف: " + ", ".join(sorted(deviation)[:10]),
+                        file=sys.stderr,
+                    )
+                    return 2
             base_commit, git_paths = git_changed_paths(args.base, args.head)
             paths.extend(git_paths)
             historical = snapshot_at_ref(base_commit)
