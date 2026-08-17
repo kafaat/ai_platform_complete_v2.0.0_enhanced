@@ -27,8 +27,8 @@ REGISTRY = ROOT / "docs" / "architecture" / "component_registry.json"
 
 def _load_compiler():
     spec = importlib.util.spec_from_file_location("platform_catalog_compiler_s1a", COMPILER)
+    assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     spec.loader.exec_module(mod)
     return mod
 
@@ -166,6 +166,25 @@ def test_catalog_governance_carries_the_s1a_gate() -> None:
     gate = catalog["governance"]["s1a_component_classification"]
     assert gate["passed"] is True and gate["failures"] == []
     assert catalog["certification"]["checks"]["s1a_component_classification_passed"] is True
+
+
+def test_missing_required_field_is_a_measured_failure_not_a_crash() -> None:
+    """مفتاح غائب في صفّ السجلّ يفشل بالاسم — لا KeyError يُقرأ عطلَ أداة."""
+    registry = copy.deepcopy(REG)
+    del registry["components"]["auth"]["component_kind"]
+    failures = MOD.component_classification_failures(registry, copy.deepcopy(_CONSISTENT))
+    assert any("auth" in f and "حقول إلزاميّة غائبة" in f for f in failures)
+
+
+def test_unclassified_domain_is_a_measured_failure() -> None:
+    """domain جزء من عقد «صفر غير مصنَّف» — الفراغ أو unclassified يفشل لا يسقط صامتاً."""
+    registry = copy.deepcopy(REG)
+    registry["components"]["auth"]["domain"] = "unclassified"
+    failures = MOD.component_classification_failures(registry, copy.deepcopy(_CONSISTENT))
+    assert any("auth" in f and "domain" in f for f in failures)
+    registry["components"]["auth"]["domain"] = ""
+    failures = MOD.component_classification_failures(registry, copy.deepcopy(_CONSISTENT))
+    assert any("auth" in f and "domain" in f for f in failures)
 
 
 def test_overrides_no_longer_carry_classification() -> None:

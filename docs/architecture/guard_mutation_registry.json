@@ -55,6 +55,12 @@
           "find": "        if entry[\"deployment_unit\"] != m[\"deployment_unit\"]:",
           "replace": "        if False:  # mutated: declaration no longer measured",
           "why": "فكّ ربط الإعلان بالقياس يحوّل السجلّ من عقدٍ مُثبَت إلى وثيقة أمنيات — deployment_unit يُكتَب ولا يُقاس"
+        },
+        {
+          "expect": "test_unclassified_domain_is_a_measured_failure",
+          "find": "        if not entry[\"domain\"] or entry[\"domain\"] == \"unclassified\":",
+          "replace": "        if False:  # mutated: domain falls back silently",
+          "why": "مراجعة Copilot على #862 قاست أنّ البوّابة لم تكن تفحص domain — فالسقوط الصامت الذي جاءت S1a لإعدامه كان باقياً من بابٍ جانبيّ"
         }
       ],
       "test": "tests_v9/test_component_registry_gate.py"

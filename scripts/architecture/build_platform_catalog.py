@@ -135,8 +135,23 @@ def component_classification_failures(registry: dict, measured: dict[str, dict])
         failures.append(f"unclassified component: {cid} — أضِف صفّه إلى {_COMPONENT_REGISTRY}")
     for cid in sorted(set(entries) - set(measured)):
         failures.append(f"stale registry entry: {cid} — لا مكوّن مكتشَفاً يقابله")
+    required_fields = (
+        "component_kind",
+        "deployment_unit",
+        "domain",
+        "authority_kind",
+        "source_path",
+    )
     for cid in sorted(set(entries) & set(measured)):
         entry, m = entries[cid], measured[cid]
+        # مفتاح غائب = فشل مقيس مسمّى، لا KeyError يقرؤه القارئ عطلَ أداة.
+        missing = [f for f in required_fields if f not in entry]
+        if missing:
+            failures.append(f"{cid}: حقول إلزاميّة غائبة عن السجلّ: {missing}")
+            continue
+        # domain جزء من عقد «صفر غير مصنَّف» — الفراغ أو unclassified سقوطٌ صامت.
+        if not entry["domain"] or entry["domain"] == "unclassified":
+            failures.append(f"{cid}: domain غير مصنَّف — التصنيف الصريح شرط S1a")
         if entry["component_kind"] not in kinds:
             failures.append(
                 f"{cid}: component_kind {entry['component_kind']!r} خارج المفردات المُحكَّمة"
