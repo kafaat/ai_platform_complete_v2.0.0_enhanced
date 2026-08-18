@@ -153,16 +153,30 @@ def test_a_leaked_test_probe_fails_the_fast_tier_instead_of_warning():
 
     So the assertion is placement, not presence: it must run inside the fast tier, before
     the early exit, where the untracked-file warning it explains is printed.
+
+    And placement is anchored on the **invocation**, never on the bare path. The bare path
+    also appears in ``require_file`` and would appear in any comment that names the guard —
+    so ``text.index(path)`` could later resolve to prose above the step while the executed
+    line sits below the early exit, and the assertion would pass on a tier that never runs
+    it. That is the same class this whole file exists to reject: an assertion that stops
+    measuring what it claims. Uniqueness is asserted too, so a second invocation cannot
+    make ``index`` ambiguous again.
     """
     text = _text()
-    assert "scripts/ci/probe_leak_guard.py" in text, (
+    invocation = "python3 scripts/ci/probe_leak_guard.py"
+    assert invocation in text, (
         "a guard that blocks in CI but is never invoked locally lets the tree be pushed "
         "on the green of a tool that did not ask"
     )
-    probe_at = text.index("scripts/ci/probe_leak_guard.py")
+    assert text.count(invocation) == 1, (
+        "two invocations make the placement check read whichever comes first — pick one"
+    )
     fast_exit_at = text.index('if [ "$TIER" = fast ]')
-    assert probe_at < fast_exit_at, (
+    assert text.index(invocation) < fast_exit_at, (
         "the leak must be named in --fast: the tier developers actually run before pushing"
+    )
+    assert text.index("require_file scripts/ci/probe_leak_guard.py") < fast_exit_at, (
+        "a missing guard must be named a coverage loss inside the tier that runs it"
     )
     contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
     assert "scripts/ci/probe_leak_guard.py" in contract["required_scripts"], (
