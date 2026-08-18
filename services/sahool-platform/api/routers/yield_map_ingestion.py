@@ -14,6 +14,7 @@ from typing import Annotated
 from uuid import UUID
 
 from core.yield_intelligence import assess_yield_scope, summarize_yield_scope
+from core.yield_map_processing import process_yield_records
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.main import (
@@ -377,21 +378,46 @@ async def query_yield_map_records(
                 # lookup is I/O, and it is skipped entirely for an unsound scope.
                 record_rows = [dict(row) for row in rows]
                 scope = assess_yield_scope(rows=record_rows, truncated=len(rows) >= limit)
-                source_sha256 = (
-                    await conn.fetchval(
-                        "SELECT source_sha256 FROM yield_map_ingestions "
+                source_row = (
+                    await conn.fetchrow(
+                        "SELECT source_sha256, metadata FROM yield_map_ingestions "
                         "WHERE ingestion_id = $1::uuid",
                         scope.ingestion_id,
                     )
                     if scope.evaluable
                     else None
                 )
+                source_sha256 = source_row["source_sha256"] if source_row is not None else None
                 yield_summary = summarize_yield_scope(
                     field_id=field_id,
                     rows=record_rows,
                     scope=scope,
                     source_sha256=source_sha256,
                 )
+                if scope.evaluable and source_sha256:
+                    metadata = source_row["metadata"] or {}
+                    if isinstance(metadata, str):
+                        try:
+                            metadata = json.loads(metadata)
+                        except (TypeError, ValueError):
+                            metadata = {}
+                    standard_moisture = (
+                        metadata.get("standard_moisture_pct")
+                        if isinstance(metadata, dict)
+                        else None
+                    )
+                    try:
+                        yield_summary["processing"] = process_yield_records(
+                            source_sha256=str(source_sha256),
+                            rows=record_rows,
+                            standard_moisture_pct=standard_moisture,
+                        ).to_dict(include_samples=True)
+                    except (TypeError, ValueError):
+                        # Invalid optional processing metadata must not corrupt immutable raw evidence.
+                        yield_summary["processing"] = {
+                            "status": "not_evaluated",
+                            "limitations": ["yield_processing_metadata_invalid"],
+                        }
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001

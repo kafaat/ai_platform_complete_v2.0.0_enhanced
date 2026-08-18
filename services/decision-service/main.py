@@ -1967,6 +1967,8 @@ async def attribute_verified_outcome_to_learning(
 async def get_calibration_dataset(
     model_id: str = Query(..., min_length=1),
     feature_set_id: str | None = Query(default=None),
+    field_id: str | None = Query(default=None),
+    season_id: str | None = Query(default=None),
     limit: int = Query(default=500, ge=1, le=2000),
     x_tenant_id: str | None = Header(default=None),
 ) -> dict[str, Any]:
@@ -1978,7 +1980,12 @@ async def get_calibration_dataset(
             detail="decision-service is not the system-of-record — calibration dataset unavailable",
         )
     result = await build_calibration_dataset(
-        tenant_id=tenant, model_id=model_id.strip(), feature_set_id=feature_set_id, limit=limit
+        tenant_id=tenant,
+        model_id=model_id.strip(),
+        feature_set_id=feature_set_id,
+        field_id=field_id,
+        season_id=season_id,
+        limit=limit,
     )
     return {"tenant_id": tenant, **result}
 

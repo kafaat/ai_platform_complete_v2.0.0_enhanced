@@ -10495,7 +10495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af16940c8a02bce654b708fff6c36c290048b25f5121f574426e26efe60e478b"
+          "content": "036ec05fb802ecc226005228258a2372e33aec60532f2fa6ba74ca7dbbc5c3be"
         }
       ],
       "name": "services/ai_agronomist/vra_prescription_engine.py",
@@ -10835,7 +10835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "77c0b7b20a89faaca713fa5a07fde5dab61704f2e37346a141aa9aebcf870344"
+          "content": "947ac04e3a94ae425d6a6350dba700e51d31387a32939e15b76199c12f4d1a46"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -11175,7 +11175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ab323d4284d3358f61bd85308f6f43ee3f95e9ec38ee1d5717e897c5852c0e8d"
+          "content": "7ff4e63eaebfcc45ca2afa3202ad5e4aeff88d87fb07944578a37564b807e5e7"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -15505,7 +15505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f0bea43f1210c64756d40a8bae4cc9888bf861d67dd04a0ae6c2c6b7b1ca037"
+          "content": "46cc6ab07d106ea3086da7ca18871d55b99b2f6acc7a45766a6ff681265de7d5"
         }
       ],
       "name": "services/sahool-platform/api/decision_service_client.py",
@@ -16515,7 +16515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff2f264567185eb570ee518f2e45e25c1a054dfaae0d1b24b03a461ccc3010a9"
+          "content": "eefd348eba4aadbcbec53dea82ae94b9baea9057d8a691b49b362512374d0f6e"
         }
       ],
       "name": "services/sahool-platform/api/machinery_export.py",
@@ -17265,7 +17265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eb85903524741e1f3b93fd3bfa2f336c9a09ee50162ed3284964aa93fd8e8fa7"
+          "content": "55c1694cb3207b91e40eb4779a8c2371b9f620f4688fb3f5a4b78db2af8b66c5"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_impact.py",
@@ -17725,7 +17725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7e467353cea375a7127a79dbf4405fae4835e07768cd584cde61de3c7eba853"
+          "content": "9edddd86396e63e4faf042994b2e7b10f3b8aba6922780e0c02a543eba94f2cd"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -18115,7 +18115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f2fbb5f0e30e6c705ce67a0d9c6f09dea0c0617e0092131a6d0ba7a1cb306fd8"
+          "content": "0576274a99f1a058a082aa09dd3cf888a20888fde2df06612a9dcef83ddc3576"
         }
       ],
       "name": "services/sahool-platform/api/routers/prescriptions.py",
@@ -18555,7 +18555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c70808eec850cfa1d8e35a94b9bb66e4dc2891a50400fc9547dd5ccba0dbd12"
+          "content": "7a2c77eba50db0b0ba7bc264a24e73a0181fbf0cefbef22a2546ea40d259cc6c"
         }
       ],
       "name": "services/sahool-platform/api/routers/yield_map_ingestion.py",
@@ -21205,7 +21205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27047982e6870d012dc40945bc6de821b574caba3224c543ad3ba496c0ad6521"
+          "content": "18b404118ed9906d3836ccb4fdd4ac49df51d4c48a47849e2e7980a2489422a4"
         }
       ],
       "name": "services/sahool-platform/core/field_digital_twin.py",
@@ -21609,6 +21609,16 @@
         }
       ],
       "name": "services/sahool-platform/core/loop_referential_integrity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b303f792a4f0bd1c785caa6f20acc90680dc503d33b715881a0ddc04d1de1917"
+        }
+      ],
+      "name": "services/sahool-platform/core/machinery_as_applied.py",
       "type": "file"
     },
     {
@@ -22349,6 +22359,16 @@
         }
       ],
       "name": "services/sahool-platform/core/yield_interval_service.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "04f9ae7f235b5dae6fbdbd078d0735b348373b38010f3ec14b9e2284a4d24313"
+        }
+      ],
+      "name": "services/sahool-platform/core/yield_map_processing.py",
       "type": "file"
     },
     {
@@ -26029,6 +26049,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_practice_promotion.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45b3757dd984b6b7539005f55754daef0afaea7d83a6c835eab19e0e9ecb4c78"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_precision_execution_loop_c3.py",
       "type": "file"
     },
     {

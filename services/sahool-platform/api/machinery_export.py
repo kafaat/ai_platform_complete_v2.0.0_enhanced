@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import zipfile
 from dataclasses import dataclass
 
@@ -147,7 +148,7 @@ def build_prescription_isoxml(
         )
         zones = [
             VRTZone(
-                zone_id=f"ZN{i + 1}",
+                zone_id=str(z.get("zone_id") or f"ZN{i + 1}"),
                 rate=float(z["rate"]),
                 unit=str(z["unit"]).strip(),
                 geometry=z["geometry"],
@@ -201,6 +202,41 @@ class ExportPackage:
     package_sha256: str
     profile_snapshot: dict
     zone_count: int
+    prescription_digest: str
+    zone_lineage_digest: str
+
+
+def prescription_content_digest(prescription: dict) -> str:
+    """Freeze the exact saved prescription content used for one machine artifact."""
+    body = {
+        "prescription_id": prescription.get("prescription_id"),
+        "field_id": prescription.get("field_id"),
+        "season_id": prescription.get("season_id"),
+        "name": prescription.get("name"),
+        "product_type": prescription.get("product_type"),
+        "zones": prescription.get("zones") or [],
+    }
+    return hashlib.sha256(
+        json.dumps(
+            body, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str
+        ).encode()
+    ).hexdigest()
+
+
+def zone_lineage_digest(prescription: dict) -> str:
+    lineage = [
+        {
+            "zone_id": zone.get("zone_id"),
+            "source_lineage": zone.get("source_lineage") or {},
+        }
+        for zone in (prescription.get("zones") or [])
+        if isinstance(zone, dict)
+    ]
+    return hashlib.sha256(
+        json.dumps(
+            lineage, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str
+        ).encode()
+    ).hexdigest()
 
 
 def generate_export_package(
@@ -237,4 +273,6 @@ def generate_export_package(
         package_sha256=sha256_hex(package_bytes),
         profile_snapshot=snapshot,
         zone_count=len(prescription.get("zones") or []),
+        prescription_digest=prescription_content_digest(prescription),
+        zone_lineage_digest=zone_lineage_digest(prescription),
     )

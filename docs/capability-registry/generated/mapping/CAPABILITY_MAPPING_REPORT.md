@@ -9,12 +9,12 @@
 > runtime verification or production certification.
 
 - Capabilities: **81**
-- Mapped: **74**
-- Unmapped: **7**
-- Multi-dimensional mappings: **48**
-- Files scanned: **5054**
-- Ambiguous artifacts queued: **404**
-- Unmapped artifacts queued: **2051**
+- Mapped: **75**
+- Unmapped: **6**
+- Multi-dimensional mappings: **49**
+- Files scanned: **5060**
+- Ambiguous artifacts queued: **406**
+- Unmapped artifacts queued: **2052**
 
 ## Capability coverage
 
@@ -45,7 +45,7 @@
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 6 | 15 | 2 | 66 | 0 | 0 | 8 | 5 |
 | INT-003 | irrigation | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
-| INT-004 | precision | 4 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
+| INT-004 | precision | 5 | 9 | 8 | 11 | 0 | 0 | 3 | 5 |
 | IRR-001 | irrigation | 0 | 0 | 8 | 0 | 0 | 0 | 1 | 2 |
 | IRR-002 | irrigation | 2 | 6 | 8 | 1 | 0 | 0 | 0 | 4 |
 | IRR-003 | irrigation | 1 | 0 | 4 | 0 | 0 | 0 | 1 | 3 |
@@ -66,13 +66,13 @@
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | PA-001 | precision | 9 | 33 | 8 | 1 | 0 | 0 | 7 | 5 |
 | PA-002 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| PA-003 | precision | 3 | 3 | 9 | 2 | 0 | 0 | 3 | 5 |
+| PA-003 | precision | 4 | 4 | 9 | 2 | 0 | 0 | 4 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | SAT-001 | satellite | 37 | 65 | 3 | 32 | 5 | 0 | 44 | 6 |
 | SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 3 | 4 |
-| SAT-003 | satellite | 100 | 83 | 42 | 100 | 49 | 6 | 100 | 7 |
-| SAT-004 | satellite | 20 | 10 | 5 | 14 | 7 | 0 | 21 | 6 |
+| SAT-003 | satellite | 100 | 87 | 42 | 100 | 49 | 6 | 100 | 7 |
+| SAT-004 | satellite | 21 | 10 | 5 | 15 | 7 | 0 | 21 | 6 |
 | SAT-005 | satellite | 8 | 24 | 0 | 1 | 0 | 0 | 9 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
@@ -91,7 +91,7 @@
 | SOIL-003 | soil | 1 | 0 | 15 | 0 | 0 | 0 | 0 | 2 |
 | SOIL-004 | soil | 1 | 0 | 7 | 3 | 0 | 0 | 1 | 4 |
 | SOIL-005 | soil | 5 | 0 | 0 | 2 | 0 | 0 | 2 | 3 |
-| WX-001 | weather | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| WX-001 | weather | 1 | 4 | 0 | 3 | 0 | 0 | 1 | 4 |
 | WX-002 | weather | 22 | 51 | 8 | 55 | 9 | 0 | 21 | 6 |
 | WX-003 | weather | 4 | 6 | 4 | 0 | 0 | 0 | 4 | 4 |
 | WX-004 | weather | 59 | 53 | 0 | 81 | 19 | 0 | 57 | 5 |

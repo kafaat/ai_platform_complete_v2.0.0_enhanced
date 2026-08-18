@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 533,
+      "evidence_count": 539,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -254,6 +254,7 @@
         "services/sahool-platform/api/routers/confidence.py",
         "services/sahool-platform/api/routers/decision_confidence.py",
         "services/sahool-platform/api/routers/decision_explain.py",
+        "services/sahool-platform/api/routers/decision_impact.py",
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/devices.py",
@@ -272,11 +273,13 @@
         "services/sahool-platform/api/routers/operational_truth.py",
         "services/sahool-platform/api/routers/pest_escalation.py",
         "services/sahool-platform/api/routers/platform_health.py",
+        "services/sahool-platform/api/routers/prescriptions.py",
         "services/sahool-platform/api/routers/productivity.py",
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/soil_sampling.py",
         "services/sahool-platform/api/routers/weather.py",
+        "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/weather_service_client.py",
@@ -330,6 +333,7 @@
         "services/sahool-platform/core/internal_orchestrator.py",
         "services/sahool-platform/core/learning/recommendation_log.py",
         "services/sahool-platform/core/learning_source_lineage.py",
+        "services/sahool-platform/core/machinery_as_applied.py",
         "services/sahool-platform/core/mcp/independent_servers.py",
         "services/sahool-platform/core/mcp_service_servers.py",
         "services/sahool-platform/core/mcp_tool_registry.py",
@@ -351,6 +355,7 @@
         "services/sahool-platform/core/spatial/field_bundle.py",
         "services/sahool-platform/core/time_series.py",
         "services/sahool-platform/core/wind_geometry.py",
+        "services/sahool-platform/core/yield_map_processing.py",
         "services/sahool-platform/smoke_e2e_test.py",
         "services/sahool-platform/storage/lite_store.py",
         "services/sahool-platform/tests/test_adapt_apply_loop.py",
@@ -428,6 +433,7 @@
         "services/sahool-platform/tests/test_platform_agri_full_lifecycle_forensic.py",
         "services/sahool-platform/tests/test_ponytail_guardrails.py",
         "services/sahool-platform/tests/test_practice_promotion.py",
+        "services/sahool-platform/tests/test_precision_execution_loop_c3.py",
         "services/sahool-platform/tests/test_productivity_router.py",
         "services/sahool-platform/tests/test_productivity_zones_ai_brief.py",
         "services/sahool-platform/tests/test_recommendation_bridge.py",
@@ -573,7 +579,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 467,
+      "evidence_count": 469,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -892,6 +898,7 @@
         "services/sahool-platform/core/wind_geometry.py",
         "services/sahool-platform/core/work_order.py",
         "services/sahool-platform/core/work_order_from_recommendation.py",
+        "services/sahool-platform/core/yield_map_processing.py",
         "services/sahool-platform/examples/tenant_data/tenants_001-aljawf-142ha/calibration/sunaydar_soil_reference.yaml",
         "services/sahool-platform/knowledge/conservative_rag.py",
         "services/sahool-platform/storage/lite_store.py",
@@ -979,6 +986,7 @@
         "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
         "services/sahool-platform/tests/test_platform_agri_full_lifecycle_forensic.py",
         "services/sahool-platform/tests/test_ponytail_guardrails.py",
+        "services/sahool-platform/tests/test_precision_execution_loop_c3.py",
         "services/sahool-platform/tests/test_productivity_zones_ai_brief.py",
         "services/sahool-platform/tests/test_recommendation_bridge.py",
         "services/sahool-platform/tests/test_recommendation_engine.py",
@@ -1250,7 +1258,7 @@
       "kind": "lineage_stage",
       "stage": "review",
       "order": 4,
-      "evidence_count": 235,
+      "evidence_count": 237,
       "owners": [
         "ai_agronomist",
         "auth",
@@ -1382,6 +1390,7 @@
         "services/sahool-platform/api/routers/boundaries.py",
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
+        "services/sahool-platform/api/routers/decision_impact.py",
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/farm_operations_ledger.py",
         "services/sahool-platform/api/routers/field_single.py",
@@ -1420,6 +1429,7 @@
         "services/sahool-platform/core/review_fork.py",
         "services/sahool-platform/core/salinity_capability.py",
         "services/sahool-platform/core/source_of_truth.py",
+        "services/sahool-platform/core/yield_map_processing.py",
         "services/sahool-platform/knowledge/farmer_knowledge.py",
         "services/sahool-platform/storage/lite_store.py",
         "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
@@ -1561,7 +1571,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 117,
+      "evidence_count": 118,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1594,6 +1604,7 @@
         "services/ai_agronomist/approval.py",
         "services/ai_agronomist/main.py",
         "services/ai_agronomist/tool_executor.py",
+        "services/ai_agronomist/vra_prescription_engine.py",
         "services/auth/main.py",
         "services/auth/routers/session.py",
         "services/decision-service/main.py",
@@ -1756,7 +1767,7 @@
       "kind": "lineage_stage",
       "stage": "receipt",
       "order": 8,
-      "evidence_count": 31,
+      "evidence_count": 33,
       "owners": [
         "actuator-service",
         "database",
@@ -1796,7 +1807,9 @@
         "services/sahool-platform/api/decision_service_client.py",
         "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
         "services/sahool-platform/api/routers/decision_review.py",
+        "services/sahool-platform/core/machinery_as_applied.py",
         "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
+        "services/sahool-platform/tests/test_precision_execution_loop_c3.py",
         "services/vegetation-analysis-service/routers/outcomes.py",
         "shared/iot_execution_runtime.py"
       ],
@@ -1868,7 +1881,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 267,
+      "evidence_count": 269,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -1988,11 +2001,13 @@
         "services/sahool-platform/api/routers/decision_confidence.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
         "services/sahool-platform/api/routers/decision_explain.py",
+        "services/sahool-platform/api/routers/decision_impact.py",
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/device_twin.py",
         "services/sahool-platform/api/routers/features.py",
         "services/sahool-platform/api/routers/fields.py",
+        "services/sahool-platform/api/routers/internal_service.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py",
         "services/sahool-platform/api/routers/learning.py",
         "services/sahool-platform/api/routers/operational_truth.py",
@@ -2241,6 +2256,7 @@
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/routers/decision_confidence.py",
         "services/sahool-platform/api/routers/decision_explain.py",
+        "services/sahool-platform/api/routers/decision_impact.py",
         "services/sahool-platform/api/routers/decision_record.py",
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/evidence.py",
@@ -2250,6 +2266,7 @@
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
         "services/sahool-platform/api/routers/learning_summary.py",
+        "services/sahool-platform/api/routers/prescriptions.py",
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/weather.py",
@@ -2264,12 +2281,10 @@
         "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
         "services/sahool-platform/core/cross_reference_finder.py",
         "services/sahool-platform/core/daily_agronomist_full.py",
-        "services/sahool-platform/core/decision_firewall.py",
-        "services/sahool-platform/core/decision_playbook.py",
-        "services/sahool-platform/core/evidence_graph.py"
+        "services/sahool-platform/core/decision_firewall.py"
       ],
-      "source_evidence_count": 533,
-      "target_evidence_count": 467,
+      "source_evidence_count": 539,
+      "target_evidence_count": 469,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2369,7 +2384,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 467,
+      "source_evidence_count": 469,
       "target_evidence_count": 159,
       "static_supported": true,
       "runtime_verified": false
@@ -2419,6 +2434,7 @@
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/routers/crop_twin.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
+        "services/sahool-platform/api/routers/decision_impact.py",
         "services/sahool-platform/api/routers/decision_review.py",
         "services/sahool-platform/api/routers/irrigation_engineering.py",
         "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -2436,7 +2452,7 @@
         "shared/federated_agent_runtime.py"
       ],
       "source_evidence_count": 159,
-      "target_evidence_count": 235,
+      "target_evidence_count": 237,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2467,7 +2483,7 @@
         "services/sahool-platform/tests/test_water_decision_bridge.py",
         "shared/test_marketplace_plugin_runtime.py"
       ],
-      "source_evidence_count": 235,
+      "source_evidence_count": 237,
       "target_evidence_count": 32,
       "static_supported": true,
       "runtime_verified": false
@@ -2503,7 +2519,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 32,
-      "target_evidence_count": 117,
+      "target_evidence_count": 118,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2531,7 +2547,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 117,
+      "source_evidence_count": 118,
       "target_evidence_count": 28,
       "static_supported": true,
       "runtime_verified": false
@@ -2558,7 +2574,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
       "source_evidence_count": 28,
-      "target_evidence_count": 31,
+      "target_evidence_count": 33,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2576,7 +2592,7 @@
         "services/sahool-platform/api/routers/decision_review.py",
         "services/vegetation-analysis-service/routers/outcomes.py"
       ],
-      "source_evidence_count": 31,
+      "source_evidence_count": 33,
       "target_evidence_count": 42,
       "static_supported": true,
       "runtime_verified": false
@@ -2611,7 +2627,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 42,
-      "target_evidence_count": 267,
+      "target_evidence_count": 269,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2621,5 +2637,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "6fd5870c3e6913376e0d581a5c0d8b5d815339f1f7822a099045ead68a825a2f"
+  "content_sha256": "b77e3030e450f88bee0970e6bc56ea545d67651a0a7e83c1b273419f6f342085"
 }

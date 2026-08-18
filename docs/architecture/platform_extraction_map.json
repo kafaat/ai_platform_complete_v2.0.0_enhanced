@@ -1827,7 +1827,7 @@
       "function": "get_decision_economics",
       "method": "GET",
       "path": "/api/v1/decision/economics",
-      "line": 141,
+      "line": 184,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_impact.py::GET /api/v1/decision/economics::get_decision_economics"
@@ -3873,7 +3873,7 @@
       "function": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice",
-      "line": 73,
+      "line": 133,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/internal_service.py::POST /internal/events/ai-advice::internal_ai_advice_event"
@@ -4673,7 +4673,7 @@
       "function": "export_prescription",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
-      "line": 337,
+      "line": 366,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/prescriptions.py::GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export::export_prescription"
@@ -4683,7 +4683,7 @@
       "function": "list_prescriptions",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/prescriptions",
-      "line": 293,
+      "line": 322,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/prescriptions.py::GET /api/v1/fields/{field_id}/prescriptions::list_prescriptions"
@@ -4693,7 +4693,7 @@
       "function": "create_prescription",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions",
-      "line": 176,
+      "line": 205,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/prescriptions.py::POST /api/v1/fields/{field_id}/prescriptions::create_prescription"
@@ -6334,7 +6334,7 @@
       "function": "ingest_yield_map",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
-      "line": 79,
+      "line": 80,
       "target_owner": "sahool-platform",
       "owner_type": "system-of-record",
       "route_key": "api/routers/yield_map_ingestion.py::POST /api/v1/fields/{field_id}/yield-maps/ingestions::ingest_yield_map"
@@ -6344,7 +6344,7 @@
       "function": "list_yield_map_ingestions",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
-      "line": 251,
+      "line": 252,
       "target_owner": "sahool-platform",
       "owner_type": "system-of-record",
       "route_key": "api/routers/yield_map_ingestion.py::GET /api/v1/fields/{field_id}/yield-maps/ingestions::list_yield_map_ingestions"
@@ -6354,7 +6354,7 @@
       "function": "query_yield_map_records",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-map-records",
-      "line": 288,
+      "line": 289,
       "target_owner": "sahool-platform",
       "owner_type": "system-of-record",
       "route_key": "api/routers/yield_map_ingestion.py::GET /api/v1/fields/{field_id}/yield-map-records::query_yield_map_records"

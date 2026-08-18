@@ -1987,7 +1987,13 @@ def _cohorts_passthrough(value: Any) -> str:
 
 
 async def build_calibration_dataset(
-    *, tenant_id: str, model_id: str, feature_set_id: str | None, limit: int
+    *,
+    tenant_id: str,
+    model_id: str,
+    feature_set_id: str | None,
+    limit: int,
+    field_id: str | None = None,
+    season_id: str | None = None,
 ) -> dict[str, Any]:
     """WX-11.1: read immutable attribution/outcome lineage into a calibration dataset."""
     conn = await _connect()
@@ -2018,11 +2024,15 @@ async def build_calibration_dataset(
                   AND d.season_id IS NOT NULL
                   AND d.crop_id IS NOT NULL
                   AND d.cultivar_id IS NOT NULL
+                  AND ($4::text IS NULL OR d.field_id=$4)
+                  AND ($5::text IS NULL OR d.season_id=$5)
                 ORDER BY la.attributed_at DESC,la.learning_attribution_id DESC
-                LIMIT $4""",
+                LIMIT $6""",
             tenant_id,
             model_id,
             feature_set_id,
+            field_id,
+            season_id,
             limit,
         )
         items = []
@@ -2072,17 +2082,32 @@ async def build_calibration_dataset(
                 }
             )
         cohort_counts = _agronomic_cohort_manifest(items)
+        by_decision_type: dict[str, dict[str, Any]] = {}
+        for item in items:
+            key = str(item.get("decision_type") or "unknown")
+            bucket = by_decision_type.setdefault(
+                key, {"verified_success": 0, "verified_failure": 0, "sample": 0}
+            )
+            bucket["sample"] += 1
+            if item.get("verification_state") == "verified_success":
+                bucket["verified_success"] += 1
+            elif item.get("verification_state") == "verified_failure":
+                bucket["verified_failure"] += 1
+
         return {
             "authoritative": True,
             "persisted": True,
             "read_only": True,
             "model_id": model_id,
             "feature_set_id": feature_set_id,
+            "field_id": field_id,
+            "season_id": season_id,
             "count": len(items),
             "weighted_success_rate": (success_weight / total_weight) if total_weight else None,
             "dataset_fingerprint": _calibration_fingerprint(items),
             "agronomic_cohorts": cohort_counts,
             "agronomic_cohort_fingerprint": _agronomic_cohort_fingerprint(cohort_counts),
+            "by_decision_type": by_decision_type,
             "items": items,
         }
     finally:

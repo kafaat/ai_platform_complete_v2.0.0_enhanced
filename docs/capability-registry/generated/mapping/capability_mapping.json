@@ -12,21 +12,21 @@
   },
   "summary": {
     "capabilities_total": 81,
-    "capabilities_mapped": 74,
-    "capabilities_unmapped": 7,
-    "capabilities_multidimensional": 48,
-    "files_scanned": 5054,
+    "capabilities_mapped": 75,
+    "capabilities_unmapped": 6,
+    "capabilities_multidimensional": 49,
+    "files_scanned": 5060,
     "files_by_kind": {
-      "backend": 1197,
+      "backend": 1199,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1367,
-      "tests": 1650,
+      "other": 1368,
+      "tests": 1653,
       "web": 456
     },
-    "unmapped_artifacts": 2051,
-    "ambiguous_artifacts": 404
+    "unmapped_artifacts": 2052,
+    "ambiguous_artifacts": 406
   },
   "capabilities": [
     {
@@ -1094,11 +1094,11 @@
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots @ services/decision-service/main.py:2808",
+          "value": "/v1/context-snapshots @ services/decision-service/main.py:2815",
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:2840",
+          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:2847",
           "score": 12
         },
         {
@@ -1178,31 +1178,31 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2180",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2187",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2221",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2228",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2267",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2274",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2448",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2455",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2409",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2416",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2087",
+          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2094",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2130",
+          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2137",
           "score": 12
         },
         {
@@ -1210,59 +1210,59 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2001",
+          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2008",
           "score": 12
         },
         {
-          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2377",
+          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2384",
           "score": 12
         },
         {
-          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2485",
+          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2492",
           "score": 12
         },
         {
-          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2051",
+          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2058",
           "score": 12
         },
         {
-          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:2778",
+          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:2785",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2521",
+          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2528",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2683",
+          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2690",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2304",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2311",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2340",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2347",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2642",
+          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2649",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:2731",
+          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:2738",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2551",
+          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2558",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2588",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2595",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2612",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2619",
           "score": 12
         },
         {
@@ -1923,11 +1923,11 @@
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots @ services/decision-service/main.py:2808",
+          "value": "/v1/context-snapshots @ services/decision-service/main.py:2815",
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:2840",
+          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:2847",
           "score": 12
         },
         {
@@ -2007,31 +2007,31 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2180",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2187",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2221",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2228",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2267",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2274",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2448",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2455",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2409",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2416",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2087",
+          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2094",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2130",
+          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2137",
           "score": 12
         },
         {
@@ -2039,59 +2039,59 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2001",
+          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2008",
           "score": 12
         },
         {
-          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2377",
+          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2384",
           "score": 12
         },
         {
-          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2485",
+          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2492",
           "score": 12
         },
         {
-          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2051",
+          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2058",
           "score": 12
         },
         {
-          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:2778",
+          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:2785",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2521",
+          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2528",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2683",
+          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2690",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2304",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2311",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2340",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2347",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2642",
+          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2649",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:2731",
+          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:2738",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2551",
+          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2558",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2588",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2595",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2612",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2619",
           "score": 12
         },
         {
@@ -2594,11 +2594,11 @@
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots @ services/decision-service/main.py:2808",
+          "value": "/v1/context-snapshots @ services/decision-service/main.py:2815",
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:2840",
+          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:2847",
           "score": 12
         },
         {
@@ -2678,27 +2678,27 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2180",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2187",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2221",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2228",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2267",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2274",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2448",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2455",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2409",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2416",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2087",
+          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2094",
           "score": 12
         },
         {
@@ -2706,7 +2706,7 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2130",
+          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2137",
           "score": 12
         },
         {
@@ -2718,59 +2718,59 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2001",
+          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2008",
           "score": 12
         },
         {
-          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2377",
+          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2384",
           "score": 12
         },
         {
-          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2485",
+          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2492",
           "score": 12
         },
         {
-          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2051",
+          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2058",
           "score": 12
         },
         {
-          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:2778",
+          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:2785",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2521",
+          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2528",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2683",
+          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2690",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2304",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2311",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2340",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2347",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2642",
+          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2649",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:2731",
+          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:2738",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2551",
+          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2558",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2588",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2595",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2612",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2619",
           "score": 12
         },
         {
@@ -11559,6 +11559,13 @@
           "signals": [
             "explicit_id"
           ]
+        },
+        {
+          "path": "services/sahool-platform/core/machinery_as_applied.py",
+          "score": 20,
+          "signals": [
+            "explicit_id"
+          ]
         }
       ],
       "routes": [
@@ -11579,19 +11586,19 @@
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:176",
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:205",
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:293",
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:322",
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:337",
+          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:366",
           "score": 20
         },
         {
-          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:73",
+          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:133",
           "score": 20
         },
         {
@@ -11646,19 +11653,19 @@
           "score": 25
         },
         {
-          "value": "TASKDATA.XML @ services/sahool-platform/api/machinery_export.py:44",
+          "value": "TASKDATA.XML @ services/sahool-platform/api/machinery_export.py:45",
           "score": 20
         },
         {
-          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:547",
+          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:585",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:402",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:431",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:503",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:539",
           "score": 20
         },
         {
@@ -11737,7 +11744,7 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 4,
+        "backend": 5,
         "routes": 9,
         "database": 8,
         "events": 11,
@@ -15451,6 +15458,15 @@
           ]
         },
         {
+          "path": "services/sahool-platform/core/yield_map_processing.py",
+          "score": 33,
+          "signals": [
+            "path:yield map",
+            "content:yield map",
+            "explicit_id"
+          ]
+        },
+        {
           "path": "services/sahool-platform/api/main.py",
           "score": 23,
           "signals": [
@@ -15461,16 +15477,20 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:288",
+          "value": "/api/v1/fields/{field_id}/yield-map-records @ services/sahool-platform/api/routers/yield_map_ingestion.py:289",
           "score": 48
         },
         {
-          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:251",
+          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:252",
           "score": 48
         },
         {
-          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:79",
+          "value": "/api/v1/fields/{field_id}/yield-maps/ingestions @ services/sahool-platform/api/routers/yield_map_ingestion.py:80",
           "score": 48
+        },
+        {
+          "value": "/api/v1/fields/{field_id}/yield-map-records @ tests_v9/test_precision_execution_loop_c3_guard.py:23",
+          "score": 9
         }
       ],
       "database": [
@@ -15561,6 +15581,14 @@
             "content:yield map",
             "explicit_id"
           ]
+        },
+        {
+          "path": "tests_v9/test_precision_execution_loop_c3_guard.py",
+          "score": 9,
+          "signals": [
+            "content:Yield map ingestion",
+            "content:yield map"
+          ]
         }
       ],
       "governance": [],
@@ -15597,13 +15625,13 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 3,
-        "routes": 3,
+        "backend": 4,
+        "routes": 4,
         "database": 9,
         "events": 2,
         "web": 0,
         "mobile": 0,
-        "tests": 3,
+        "tests": 4,
         "governance": 0,
         "other_evidence": 3
       },
@@ -17815,6 +17843,14 @@
           ]
         },
         {
+          "path": "services/sahool-platform/core/field_digital_twin.py",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
           "path": "services/sahool-platform/core/field_intelligence_card.py",
           "score": 12,
           "signals": [
@@ -18080,14 +18116,6 @@
         },
         {
           "path": "services/sahool-platform/core/evidence_class.py",
-          "score": 10,
-          "signals": [
-            "content:NDVI",
-            "content:ndvi"
-          ]
-        },
-        {
-          "path": "services/sahool-platform/core/field_digital_twin.py",
           "score": 10,
           "signals": [
             "content:NDVI",
@@ -18385,6 +18413,10 @@
           "score": 8
         },
         {
+          "value": "/api/v1/decision/economics @ tests_v9/test_crop_twin_verified_learning_c2.py:79",
+          "score": 8
+        },
+        {
           "value": "/api/v1/field/operational-state @ services/sahool-platform/api/routers/field_single.py:22",
           "score": 8
         },
@@ -18414,6 +18446,18 @@
         },
         {
           "value": "/healthz @ services/mcp_servers/generic_context_server.py:143",
+          "score": 8
+        },
+        {
+          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:119",
+          "score": 8
+        },
+        {
+          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:95",
+          "score": 8
+        },
+        {
+          "value": "/internal/fields/{field_id}/state @ tests_v9/test_crop_twin_verified_learning_c2.py:89",
           "score": 8
         },
         {
@@ -18684,6 +18728,10 @@
         },
         {
           "value": "SAHOOL-v8.0 @ migrations/init_v8.sql:64",
+          "score": 12
+        },
+        {
+          "value": "canonical_field_state.v1 @ services/sahool-platform/core/field_digital_twin.py:69",
           "score": 12
         },
         {
@@ -19056,10 +19104,6 @@
         },
         {
           "value": "operation.irrigation.start @ services/sahool-platform/tests/test_yield_heuristics.py:134",
-          "score": 12
-        },
-        {
-          "value": "operation.irrigation.started @ services/sahool-platform/api/event_replay.py:245",
           "score": 12
         }
       ],
@@ -21026,12 +21070,12 @@
       "production_certified": false,
       "evidence_truncated": {
         "backend": 25,
-        "events": 36,
-        "tests": 70
+        "events": 38,
+        "tests": 71
       },
       "evidence_counts": {
         "backend": 100,
-        "routes": 83,
+        "routes": 87,
         "database": 42,
         "events": 100,
         "web": 49,
@@ -21122,6 +21166,14 @@
         },
         {
           "path": "services/sahool-platform/core/eo_stage_mismatch.py",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
+          "path": "services/sahool-platform/core/field_digital_twin.py",
           "score": 12,
           "signals": [
             "content:NDMI",
@@ -21278,6 +21330,10 @@
         }
       ],
       "events": [
+        {
+          "value": "canonical_field_state.v1 @ services/sahool-platform/core/field_digital_twin.py:69",
+          "score": 12
+        },
         {
           "value": "crop_intelligence_state.v2 @ services/sahool-platform/tests/test_crop_intelligence_spectral_state.py:65",
           "score": 12
@@ -21596,10 +21652,10 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 20,
+        "backend": 21,
         "routes": 10,
         "database": 5,
-        "events": 14,
+        "events": 15,
         "web": 7,
         "mobile": 0,
         "tests": 21,
@@ -26987,11 +27043,11 @@
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots @ services/decision-service/main.py:2808",
+          "value": "/v1/context-snapshots @ services/decision-service/main.py:2815",
           "score": 12
         },
         {
-          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:2840",
+          "value": "/v1/context-snapshots/{snapshot_id} @ services/decision-service/main.py:2847",
           "score": 12
         },
         {
@@ -27091,31 +27147,31 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2180",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/claim @ services/decision-service/main.py:2187",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2221",
+          "value": "/v1/learning/activation-commands/{activation_command_id}/receipt @ services/decision-service/main.py:2228",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2267",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command @ services/decision-service/main.py:2274",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2448",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan @ services/decision-service/main.py:2455",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2409",
+          "value": "/v1/learning/activation-receipts/{activation_receipt_id}/verification @ services/decision-service/main.py:2416",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2087",
+          "value": "/v1/learning/activation-requests @ services/decision-service/main.py:2094",
           "score": 12
         },
         {
-          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2130",
+          "value": "/v1/learning/activation-requests/{activation_request_id}/review @ services/decision-service/main.py:2137",
           "score": 12
         },
         {
@@ -27123,59 +27179,59 @@
           "score": 12
         },
         {
-          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2001",
+          "value": "/v1/learning/evaluation-runs @ services/decision-service/main.py:2008",
           "score": 12
         },
         {
-          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2377",
+          "value": "/v1/learning/models/{model_id}/active-state @ services/decision-service/main.py:2384",
           "score": 12
         },
         {
-          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2485",
+          "value": "/v1/learning/monitoring-snapshots @ services/decision-service/main.py:2492",
           "score": 12
         },
         {
-          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2051",
+          "value": "/v1/learning/promotion-decisions @ services/decision-service/main.py:2058",
           "score": 12
         },
         {
-          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:2778",
+          "value": "/v1/learning/reconcile-evidence @ services/decision-service/main.py:2785",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2521",
+          "value": "/v1/learning/retraining-requests @ services/decision-service/main.py:2528",
           "score": 12
         },
         {
-          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2683",
+          "value": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt @ services/decision-service/main.py:2690",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2304",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/claim @ services/decision-service/main.py:2311",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2340",
+          "value": "/v1/learning/rollback-commands/{rollback_command_id}/receipt @ services/decision-service/main.py:2347",
           "score": 12
         },
         {
-          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2642",
+          "value": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt @ services/decision-service/main.py:2649",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:2731",
+          "value": "/v1/learning/runtime-schedules @ services/decision-service/main.py:2738",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2551",
+          "value": "/v1/learning/runtime-work @ services/decision-service/main.py:2558",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2588",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2595",
           "score": 12
         },
         {
-          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2612",
+          "value": "/v1/learning/runtime-workers/{worker_id}/tenants @ services/decision-service/main.py:2619",
           "score": 12
         },
         {
@@ -28747,13 +28803,61 @@
       "capability_id": "WX-001",
       "domain": "weather",
       "title": "Current weather",
-      "backend": [],
-      "routes": [],
+      "backend": [
+        {
+          "path": "services/sahool-platform/core/field_digital_twin.py",
+          "score": 10,
+          "signals": [
+            "content:Current weather",
+            "content:current weather"
+          ]
+        }
+      ],
+      "routes": [
+        {
+          "value": "/api/v1/decision/economics @ tests_v9/test_crop_twin_verified_learning_c2.py:79",
+          "score": 8
+        },
+        {
+          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:119",
+          "score": 8
+        },
+        {
+          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:95",
+          "score": 8
+        },
+        {
+          "value": "/internal/fields/{field_id}/state @ tests_v9/test_crop_twin_verified_learning_c2.py:89",
+          "score": 8
+        }
+      ],
       "database": [],
-      "events": [],
+      "events": [
+        {
+          "value": "canonical_field_state.v1 @ services/sahool-platform/core/field_digital_twin.py:69",
+          "score": 10
+        },
+        {
+          "value": "canonical_field_state.v1 @ tests_v9/test_crop_twin_verified_learning_c2.py:22",
+          "score": 8
+        },
+        {
+          "value": "soil-profile.v1 @ tests_v9/test_crop_twin_verified_learning_c2.py:50",
+          "score": 8
+        }
+      ],
       "web": [],
       "mobile": [],
-      "tests": [],
+      "tests": [
+        {
+          "path": "tests_v9/test_crop_twin_verified_learning_c2.py",
+          "score": 8,
+          "signals": [
+            "content:Current weather",
+            "content:current weather"
+          ]
+        }
+      ],
       "governance": [],
       "other_evidence": [
         {
@@ -28778,18 +28882,18 @@
       "runtime_verified": false,
       "production_certified": false,
       "evidence_counts": {
-        "backend": 0,
-        "routes": 0,
+        "backend": 1,
+        "routes": 4,
         "database": 0,
-        "events": 0,
+        "events": 3,
         "web": 0,
         "mobile": 0,
-        "tests": 0,
+        "tests": 1,
         "governance": 0,
         "other_evidence": 2
       },
-      "coverage_dimensions": 0,
-      "mapped": false
+      "coverage_dimensions": 4,
+      "mapped": true
     },
     {
       "capability_id": "WX-002",
@@ -40180,6 +40284,10 @@
       "kind": "tests"
     },
     {
+      "path": "services/sahool-platform/tests/test_precision_execution_loop_c3.py",
+      "kind": "tests"
+    },
+    {
       "path": "services/sahool-platform/tests/test_prod_readiness.py",
       "kind": "tests"
     },
@@ -49641,6 +49749,36 @@
       ]
     },
     {
+      "path": "services/sahool-platform/core/field_digital_twin.py",
+      "kind": "backend",
+      "candidates": [
+        {
+          "capability_id": "SAT-004",
+          "score": 12,
+          "signals": [
+            "content:NDMI",
+            "content:ndmi"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 12,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
+          ]
+        },
+        {
+          "capability_id": "WX-001",
+          "score": 10,
+          "signals": [
+            "content:Current weather",
+            "content:current weather"
+          ]
+        }
+      ]
+    },
+    {
       "path": "services/sahool-platform/core/field_intelligence_card.py",
       "kind": "backend",
       "candidates": [
@@ -51967,6 +52105,28 @@
           "signals": [
             "content:ET0",
             "content:et0"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests_v9/test_crop_twin_verified_learning_c2.py",
+      "kind": "tests",
+      "candidates": [
+        {
+          "capability_id": "WX-001",
+          "score": 8,
+          "signals": [
+            "content:Current weather",
+            "content:current weather"
+          ]
+        },
+        {
+          "capability_id": "SAT-003",
+          "score": 8,
+          "signals": [
+            "content:NDVI",
+            "content:ndvi"
           ]
         }
       ]
