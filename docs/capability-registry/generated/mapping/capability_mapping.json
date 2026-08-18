@@ -15,17 +15,17 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5054,
+    "files_scanned": 5056,
     "files_by_kind": {
       "backend": 1197,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1367,
-      "tests": 1650,
+      "other": 1368,
+      "tests": 1651,
       "web": 456
     },
-    "unmapped_artifacts": 2051,
+    "unmapped_artifacts": 2052,
     "ambiguous_artifacts": 404
   },
   "capabilities": [
@@ -41325,6 +41325,10 @@
     },
     {
       "path": "tests_v9/test_ci_pipeline_settings.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_ci_unbounded_wait_guard.py",
       "kind": "tests"
     },
     {
