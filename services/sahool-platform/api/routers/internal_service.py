@@ -77,7 +77,11 @@ async def internal_field_state(
     if canonical_state is None:
         return result["state"]
 
-    response = {"state": result["state"], "canonical_field_state": canonical_state}
+    # الحالة تُركَّب داخليّاً لتغذية التوأم/التعلّم، لكنّ إرفاقها في الاستجابة يحكمه
+    # عقد المعاملَين وحدهما: canonical صراحةً، أو twin (المشتقّ منها فيرافقها دليلاً).
+    response = {"state": result["state"]}
+    if canonical or twin:
+        response["canonical_field_state"] = canonical_state
     if twin:
         from dataclasses import asdict
 

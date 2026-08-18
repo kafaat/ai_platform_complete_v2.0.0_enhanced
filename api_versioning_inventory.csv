@@ -692,7 +692,7 @@ sahool-platform,services/sahool-platform/api/routers/indicators.py,47,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/indicators.py,60,GET,/api/v1/indicators/dashboard,indicators_dashboard,versioned
 sahool-platform,services/sahool-platform/api/routers/indices.py,22,GET,/api/v1/indices/coverage-report,indices_coverage_report,versioned
 sahool-platform,services/sahool-platform/api/routers/internal_service.py,26,GET,/internal/fields/{field_id}/state,internal_field_state,internal_s2s
-sahool-platform,services/sahool-platform/api/routers/internal_service.py,134,POST,/internal/events/ai-advice,internal_ai_advice_event,internal_s2s
+sahool-platform,services/sahool-platform/api/routers/internal_service.py,138,POST,/internal/events/ai-advice,internal_ai_advice_event,internal_s2s
 sahool-platform,services/sahool-platform/api/routers/introduction.py,29,GET,/api/v1/introduction/candidates,introduction_candidates_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/introduction.py,35,GET,/api/v1/introduction/card,introduction_card_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/introduction.py,41,POST,/api/v1/introduction/field-fit,introduction_field_fit_endpoint,versioned
@@ -790,9 +790,9 @@ sahool-platform,services/sahool-platform/api/routers/postharvest.py,34,GET,/api/
 sahool-platform,services/sahool-platform/api/routers/postharvest.py,40,GET,/api/v1/postharvest/best-practices,postharvest_practices_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/practices.py,25,GET,/api/v1/practices/list,practices_list_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/practices.py,31,GET,/api/v1/practices/guide,practices_guide_endpoint,versioned
-sahool-platform,services/sahool-platform/api/routers/prescriptions.py,206,POST,/api/v1/fields/{field_id}/prescriptions,create_prescription,versioned
-sahool-platform,services/sahool-platform/api/routers/prescriptions.py,323,GET,/api/v1/fields/{field_id}/prescriptions,list_prescriptions,versioned
-sahool-platform,services/sahool-platform/api/routers/prescriptions.py,367,GET,/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export,export_prescription,versioned
+sahool-platform,services/sahool-platform/api/routers/prescriptions.py,216,POST,/api/v1/fields/{field_id}/prescriptions,create_prescription,versioned
+sahool-platform,services/sahool-platform/api/routers/prescriptions.py,333,GET,/api/v1/fields/{field_id}/prescriptions,list_prescriptions,versioned
+sahool-platform,services/sahool-platform/api/routers/prescriptions.py,377,GET,/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export,export_prescription,versioned
 sahool-platform,services/sahool-platform/api/routers/productivity.py,65,POST,/api/v1/fields/{field_id}/productivity-zones,productivity_zones_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/productivity.py,84,POST,/api/v1/fields/{field_id}/zone-sampling-plan,zone_sampling_plan_endpoint,versioned
 sahool-platform,services/sahool-platform/api/routers/productivity.py,107,POST,/api/v1/fields/{field_id}/daily-ai-brief,daily_ai_brief_endpoint,versioned

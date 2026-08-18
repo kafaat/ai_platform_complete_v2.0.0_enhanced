@@ -15,13 +15,13 @@
     "capabilities_mapped": 75,
     "capabilities_unmapped": 6,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5060,
+    "files_scanned": 5062,
     "files_by_kind": {
       "backend": 1199,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1368,
+      "other": 1370,
       "tests": 1653,
       "web": 456
     },
@@ -11586,19 +11586,19 @@
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:205",
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:215",
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:322",
+          "value": "/api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:332",
           "score": 20
         },
         {
-          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:366",
+          "value": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:376",
           "score": 20
         },
         {
-          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:133",
+          "value": "/internal/events/ai-advice @ services/sahool-platform/api/routers/internal_service.py:137",
           "score": 20
         },
         {
@@ -11657,15 +11657,15 @@
           "score": 20
         },
         {
-          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:585",
+          "value": "TASKDATA.xml @ services/sahool-platform/api/routers/prescriptions.py:595",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:431",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:441",
           "score": 20
         },
         {
-          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:539",
+          "value": "TASKDATA.zip @ services/sahool-platform/api/routers/prescriptions.py:549",
           "score": 20
         },
         {
@@ -18413,7 +18413,7 @@
           "score": 8
         },
         {
-          "value": "/api/v1/decision/economics @ tests_v9/test_crop_twin_verified_learning_c2.py:79",
+          "value": "/api/v1/decision/economics @ tests_v9/test_crop_twin_verified_learning_c2.py:78",
           "score": 8
         },
         {
@@ -18449,15 +18449,15 @@
           "score": 8
         },
         {
-          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:119",
+          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:118",
           "score": 8
         },
         {
-          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:95",
+          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:94",
           "score": 8
         },
         {
-          "value": "/internal/fields/{field_id}/state @ tests_v9/test_crop_twin_verified_learning_c2.py:89",
+          "value": "/internal/fields/{field_id}/state @ tests_v9/test_crop_twin_verified_learning_c2.py:88",
           "score": 8
         },
         {
@@ -28815,19 +28815,19 @@
       ],
       "routes": [
         {
-          "value": "/api/v1/decision/economics @ tests_v9/test_crop_twin_verified_learning_c2.py:79",
+          "value": "/api/v1/decision/economics @ tests_v9/test_crop_twin_verified_learning_c2.py:78",
           "score": 8
         },
         {
-          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:119",
+          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:118",
           "score": 8
         },
         {
-          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:95",
+          "value": "/internal/events/ai-advice @ tests_v9/test_crop_twin_verified_learning_c2.py:94",
           "score": 8
         },
         {
-          "value": "/internal/fields/{field_id}/state @ tests_v9/test_crop_twin_verified_learning_c2.py:89",
+          "value": "/internal/fields/{field_id}/state @ tests_v9/test_crop_twin_verified_learning_c2.py:88",
           "score": 8
         }
       ],
@@ -28838,11 +28838,11 @@
           "score": 10
         },
         {
-          "value": "canonical_field_state.v1 @ tests_v9/test_crop_twin_verified_learning_c2.py:22",
+          "value": "canonical_field_state.v1 @ tests_v9/test_crop_twin_verified_learning_c2.py:21",
           "score": 8
         },
         {
-          "value": "soil-profile.v1 @ tests_v9/test_crop_twin_verified_learning_c2.py:50",
+          "value": "soil-profile.v1 @ tests_v9/test_crop_twin_verified_learning_c2.py:49",
           "score": 8
         }
       ],

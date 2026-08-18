@@ -293,8 +293,8 @@
         "GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3058",
         "GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396",
         "GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159",
-        "GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:323",
-        "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:367",
+        "GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:333",
+        "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377",
         "GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:117",
         "GET /api/v1/fields/{field_id}/readiness @ services/sahool-platform/api/routers/field_readiness.py:56"
       ],
@@ -3418,8 +3418,8 @@
         "services/vegetation-analysis-service/main.py"
       ],
       "apis": [
-        "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:367",
-        "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:206",
+        "GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377",
+        "POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216",
         "POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707",
         "POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050",
         "POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:288"

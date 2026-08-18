@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1853,
     "route_handlers": 1049,
-    "call_edges": 73650,
+    "call_edges": 73656,
     "dead_code_candidates": 615,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -5335,7 +5335,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
-      "line": 134,
+      "line": 138,
       "handler": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice"
@@ -6127,7 +6127,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "line": 206,
+      "line": 216,
       "handler": "create_prescription",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions"
@@ -6135,7 +6135,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "line": 323,
+      "line": 333,
       "handler": "list_prescriptions",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/prescriptions"
@@ -6143,7 +6143,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "line": 367,
+      "line": 377,
       "handler": "export_prescription",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export"
@@ -260257,42 +260257,28 @@
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "asdict",
-      "line": 86
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "build_field_twin_from_canonical_state",
-      "line": 86
+      "line": 90
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get",
-      "line": 92
+      "line": 96
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
       "target": "get_calibration_dataset",
-      "line": 102
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_field_state",
-      "target": "get",
-      "line": 109
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_field_state",
-      "target": "get",
-      "line": 109
+      "line": 106
     },
     {
       "owner": "sahool-platform",
@@ -260305,22 +260291,8 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
-      "target": "int",
+      "target": "get",
       "line": 113
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_field_state",
-      "target": "get",
-      "line": 114
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "internal_field_state",
-      "target": "get",
-      "line": 115
     },
     {
       "owner": "sahool-platform",
@@ -260333,169 +260305,197 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_field_state",
+      "target": "int",
+      "line": 117
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_field_state",
+      "target": "get",
+      "line": 118
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_field_state",
       "target": "get",
       "line": 119
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_field_state",
+      "target": "get",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "internal_field_state",
+      "target": "get",
+      "line": 123
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "post",
-      "line": 133
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "Depends",
-      "line": 136
+      "line": 140
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "tenant_connection_for",
-      "line": 155
+      "line": 159
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_assert_field_in_tenant",
-      "line": 157
+      "line": 161
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_emit_domain_event",
-      "line": 158
+      "line": 162
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_ServiceUser",
-      "line": 160
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "internal_ai_advice_event",
       "target": "_db_unavailable",
-      "line": 170
+      "line": 174
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "resolve_canonical_water_state",
-      "line": 193
+      "line": 197
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "isinstance",
-      "line": 194
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "to_dict",
-      "line": 194
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "get",
-      "line": 195
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "str",
-      "line": 195
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "resolve_canonical_soil_state",
       "line": 198
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
-      "target": "resolve_canonical_spectral_state",
+      "target": "to_dict",
+      "line": 198
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "get",
       "line": 199
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
+      "target": "str",
+      "line": 199
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "resolve_canonical_soil_state",
+      "line": 202
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "resolve_canonical_spectral_state",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
       "target": "fetchrow",
-      "line": 205
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "get_canonical_field_weather",
-      "line": 212
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "float",
-      "line": 213
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "float",
-      "line": 213
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/internal_service.py",
-      "source": "_compose_canonical",
-      "target": "load_active_season_id",
       "line": 216
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
+      "target": "float",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "float",
+      "line": 217
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
+      "target": "load_active_season_id",
+      "line": 220
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/internal_service.py",
+      "source": "_compose_canonical",
       "target": "compose_canonical_field_state",
-      "line": 218
+      "line": 222
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "isoformat",
-      "line": 221
+      "line": 225
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "now",
-      "line": 221
+      "line": 225
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/internal_service.py",
       "source": "_compose_canonical",
       "target": "to_dict",
-      "line": 227
+      "line": 231
     },
     {
       "owner": "sahool-platform",
@@ -268944,139 +268944,146 @@
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "canonicalize_machine_unit",
       "target": "get",
-      "line": 103
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "canonicalize_machine_unit",
+      "target": "lower",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "canonicalize_machine_unit",
+      "target": "lower",
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "canonicalize_product_type",
       "target": "field_validator",
-      "line": 115
+      "line": 117
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "canonicalize_product_type",
       "target": "lower",
-      "line": 118
+      "line": 120
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "canonicalize_product_type",
       "target": "str",
-      "line": 118
+      "line": 120
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "canonicalize_product_type",
       "target": "strip",
-      "line": 118
+      "line": 120
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "canonicalize_product_type",
       "target": "get",
-      "line": 119
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_profile_row_from_record",
       "target": "isinstance",
-      "line": 133
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "_profile_row_from_record",
-      "target": "loads",
       "line": 135
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_profile_row_from_record",
+      "target": "loads",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_profile_row_from_record",
       "target": "isinstance",
-      "line": 146
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_prescription_content_digest",
+      "target": "items",
+      "line": 166
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_zone_view",
+      "target": "items",
+      "line": 166
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_prescription_content_digest",
       "target": "dumps",
-      "line": 158
+      "line": 168
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_prescription_content_digest",
+      "target": "_zone_view",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_prescription_content_digest",
+      "target": "dict",
+      "line": 174
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_prescription_content_digest",
       "target": "encode",
-      "line": 170
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_prescription_content_digest",
       "target": "hexdigest",
-      "line": 170
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_prescription_content_digest",
       "target": "sha256",
-      "line": 170
+      "line": 180
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_row_to_prescription",
       "target": "isinstance",
-      "line": 181
+      "line": 191
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_row_to_prescription",
       "target": "loads",
-      "line": 183
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "_row_to_prescription",
-      "target": "hasattr",
-      "line": 187
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "_row_to_prescription",
-      "target": "isoformat",
-      "line": 187
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "_row_to_prescription",
-      "target": "get",
-      "line": 191
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "_row_to_prescription",
-      "target": "hasattr",
-      "line": 191
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "_row_to_prescription",
-      "target": "get",
       "line": 193
     },
     {
@@ -269084,349 +269091,342 @@
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_row_to_prescription",
       "target": "hasattr",
-      "line": 194
+      "line": 197
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_row_to_prescription",
+      "target": "isoformat",
+      "line": 197
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_row_to_prescription",
+      "target": "get",
+      "line": 201
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_row_to_prescription",
+      "target": "hasattr",
+      "line": 201
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_row_to_prescription",
+      "target": "get",
+      "line": 203
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "_row_to_prescription",
+      "target": "hasattr",
+      "line": 204
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "_row_to_prescription",
       "target": "isinstance",
-      "line": 199
+      "line": 209
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "post",
-      "line": 205
+      "line": 215
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "Path",
-      "line": 208
+      "line": 218
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "Depends",
-      "line": 209
+      "line": 219
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "require_permission",
-      "line": 209
+      "line": 219
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "getenv",
-      "line": 218
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "create_prescription",
-      "target": "lower",
-      "line": 218
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "create_prescription",
-      "target": "strip",
-      "line": 218
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "create_prescription",
-      "target": "HTTPException",
-      "line": 222
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "create_prescription",
-      "target": "warning",
-      "line": 224
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "create_prescription",
-      "target": "HTTPException",
       "line": 228
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
-      "target": "sorted",
-      "line": 230
+      "target": "lower",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "create_prescription",
+      "target": "strip",
+      "line": 228
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "HTTPException",
-      "line": 233
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
-      "target": "model_dump",
-      "line": 237
+      "target": "warning",
+      "line": 234
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
-      "target": "_prescription_content_digest",
+      "target": "HTTPException",
       "line": 238
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
-      "target": "tenant_connection",
-      "line": 246
+      "target": "sorted",
+      "line": 240
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
-      "target": "_assert_field_in_tenant",
+      "target": "HTTPException",
+      "line": 243
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "create_prescription",
+      "target": "model_dump",
       "line": 247
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
+      "target": "_prescription_content_digest",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "create_prescription",
+      "target": "tenant_connection",
+      "line": 256
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "create_prescription",
+      "target": "_assert_field_in_tenant",
+      "line": 257
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "create_prescription",
       "target": "fetchval",
-      "line": 250
+      "line": 260
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "str",
-      "line": 258
+      "line": 268
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "dumps",
-      "line": 264
+      "line": 274
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "fetchrow",
-      "line": 270
+      "line": 280
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "HTTPException",
-      "line": 277
+      "line": 287
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
       "target": "_row_to_prescription",
-      "line": 284
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "create_prescription",
-      "target": "_prescription_content_digest",
-      "line": 285
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "create_prescription",
-      "target": "HTTPException",
       "line": 294
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "create_prescription",
+      "target": "_prescription_content_digest",
+      "line": 295
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "create_prescription",
+      "target": "HTTPException",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "create_prescription",
       "target": "_db_unavailable",
-      "line": 307
+      "line": 317
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "get",
-      "line": 322
+      "line": 332
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "Path",
-      "line": 324
+      "line": 334
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "Query",
-      "line": 325
+      "line": 335
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "Depends",
-      "line": 328
+      "line": 338
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "require_permission",
-      "line": 328
+      "line": 338
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "tenant_connection",
-      "line": 344
+      "line": 354
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "_assert_field_in_tenant",
-      "line": 345
+      "line": 355
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "fetch",
-      "line": 346
+      "line": 356
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "getenv",
-      "line": 356
+      "line": 366
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "lower",
-      "line": 356
+      "line": 366
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "strip",
-      "line": 356
+      "line": 366
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "_db_unavailable",
-      "line": 361
+      "line": 371
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "_row_to_prescription",
-      "line": 362
+      "line": 372
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "list_prescriptions",
       "target": "len",
-      "line": 363
+      "line": 373
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "get",
-      "line": 366
+      "line": 376
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "Path",
-      "line": 368
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "Path",
-      "line": 369
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "Query",
-      "line": 370
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "Query",
-      "line": 371
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "Query",
-      "line": 374
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "Query",
-      "line": 377
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "Query",
       "line": 378
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "Query",
+      "target": "Path",
       "line": 379
     },
     {
@@ -269434,343 +269434,385 @@
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "Query",
-      "line": 382
+      "line": 380
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "Query",
-      "line": 385
+      "line": 381
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "Query",
+      "line": 384
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "Query",
+      "line": 387
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "Query",
+      "line": 388
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "Query",
+      "line": 389
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "Query",
+      "line": 392
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "Query",
+      "line": 395
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "Depends",
-      "line": 386
+      "line": 396
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "require_permission",
-      "line": 386
+      "line": 396
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "HTTPException",
-      "line": 406
+      "line": 416
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "HTTPException",
-      "line": 411
+      "line": 421
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "tenant_connection",
-      "line": 414
+      "line": 424
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "_assert_field_in_tenant",
-      "line": 415
+      "line": 425
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "fetchrow",
-      "line": 418
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "HTTPException",
-      "line": 426
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "Response",
-      "line": 427
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "bytes",
       "line": 428
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "fetchrow",
-      "line": 435
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
       "target": "HTTPException",
-      "line": 442
+      "line": 436
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "get",
-      "line": 444
+      "target": "Response",
+      "line": 437
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "hasattr",
+      "target": "bytes",
+      "line": 438
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "fetchrow",
       "line": 445
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "getenv",
-      "line": 454
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "lower",
-      "line": 454
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "strip",
-      "line": 454
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
       "target": "HTTPException",
-      "line": 456
+      "line": 452
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "warning",
-      "line": 463
+      "target": "get",
+      "line": 454
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "hasattr",
-      "line": 465
+      "line": 455
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "_row_to_prescription",
-      "line": 467
+      "target": "getenv",
+      "line": 464
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "has_permission",
-      "line": 472
+      "target": "lower",
+      "line": 464
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "strip",
+      "line": 464
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "HTTPException",
+      "line": 466
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "warning",
       "line": 473
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "fetchrow",
-      "line": 480
+      "target": "hasattr",
+      "line": 475
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
-      "target": "_profile_row_from_record",
-      "line": 485
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "generate_export_package",
-      "line": 487
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "str",
-      "line": 494
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "HTTPException",
-      "line": 496
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "HTTPException",
-      "line": 497
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "fetchval",
-      "line": 501
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "fetchval",
-      "line": 509
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "str",
-      "line": 516
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "dumps",
-      "line": 520
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "len",
-      "line": 523
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "dumps",
-      "line": 525
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "Response",
-      "line": 535
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "str",
-      "line": 540
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "_db_unavailable",
-      "line": 549
+      "target": "_row_to_prescription",
+      "line": 477
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "has_permission",
-      "line": 557
+      "line": 482
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "HTTPException",
-      "line": 558
+      "line": 483
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "fetchrow",
+      "line": 490
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "_profile_row_from_record",
+      "line": 495
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "generate_export_package",
+      "line": 497
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "str",
+      "line": 504
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "HTTPException",
+      "line": 506
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "HTTPException",
+      "line": 507
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "fetchval",
+      "line": 511
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "fetchval",
+      "line": 519
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "str",
+      "line": 526
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "dumps",
+      "line": 530
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "len",
+      "line": 533
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "dumps",
+      "line": 535
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "Response",
+      "line": 545
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "str",
+      "line": 550
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "_db_unavailable",
+      "line": 559
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "has_permission",
+      "line": 567
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "HTTPException",
+      "line": 568
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "build_prescription_isoxml",
-      "line": 569
+      "line": 579
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "HTTPException",
-      "line": 581
+      "line": 591
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
       "target": "Response",
-      "line": 582
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "build_shapefile_zip",
-      "line": 588
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "HTTPException",
-      "line": 590
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/prescriptions.py",
-      "source": "export_prescription",
-      "target": "HTTPException",
       "line": 592
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/prescriptions.py",
       "source": "export_prescription",
+      "target": "build_shapefile_zip",
+      "line": 598
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "HTTPException",
+      "line": 600
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
+      "target": "HTTPException",
+      "line": 602
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/prescriptions.py",
+      "source": "export_prescription",
       "target": "Response",
-      "line": 593
+      "line": 603
     },
     {
       "owner": "sahool-platform",
@@ -417022,7 +417064,7 @@
       "file": "services/sahool-platform/tests/test_precision_execution_loop_c3.py",
       "source": "test_prescription_boundary_canonicalizes_vra_aliases_for_machine_export",
       "target": "PrescriptionCreateRequest",
-      "line": 197
+      "line": 191
     },
     {
       "owner": "sahool-platform",

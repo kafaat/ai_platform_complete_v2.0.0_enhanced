@@ -186,12 +186,6 @@ def test_as_applied_unverified_device_is_not_outcome_eligible():
 
 
 def test_prescription_boundary_canonicalizes_vra_aliases_for_machine_export():
-    import importlib.util
-    import sys
-    from pathlib import Path
-
-    # Avoid importing the full router application graph; execute the pydantic model
-    # definitions through the normal module import used by product tests if available.
     from api.routers.prescriptions import PrescriptionCreateRequest
 
     req = PrescriptionCreateRequest(

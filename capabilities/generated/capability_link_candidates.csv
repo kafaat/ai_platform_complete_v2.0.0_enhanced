@@ -395,8 +395,8 @@ FM-003,api,GET /api/v1/fields/{field_id}/imagery/timeline @ services/sahool-plat
 FM-003,api,GET /api/v1/fields/{field_id}/input-traceability @ services/sahool-platform/api/routers/fields.py:3058,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/lab-context @ services/sahool-platform/api/routers/soil_sampling.py:396,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/phenology @ services/sahool-platform/api/routers/phenology.py:159,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:323,4,applied
-FM-003,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:367,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:333,4,applied
+FM-003,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/priority-queue @ services/sahool-platform/api/routers/field_priority_queue.py:117,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/readiness @ services/sahool-platform/api/routers/field_readiness.py:56,4,applied
 FM-003,api,GET /api/v1/fields/{field_id}/recommendations @ services/sahool-platform/api/routers/fields.py:2799,4,applied
@@ -519,7 +519,7 @@ FM-003,api,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation @
 FM-003,api,POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation @ services/sahool-platform/api/routers/irrigation_mpc.py:320,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/ndvi-analysis @ services/sahool-platform/api/routers/ndvi_analysis.py:35,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/pins @ services/sahool-platform/api/routers/fields.py:3832,4,applied
-FM-003,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:206,4,applied
+FM-003,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/prescriptions/nitrogen @ services/sahool-platform/api/routers/fields.py:3593,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/productivity-zones @ services/sahool-platform/api/routers/productivity.py:65,4,applied
 FM-003,api,POST /api/v1/fields/{field_id}/rotations @ services/sahool-platform/api/routers/fields.py:3432,4,applied
@@ -1281,8 +1281,8 @@ PA-001,test,tests_v9/test_management_zone_count_v60_2.py,5,applied
 PA-001,test,tests_v9/test_productivity_zones_clustering_v60_1.py,5,applied
 PA-001,test,tests_v9/test_productivity_zones_multiindex_v60_3.py,5,applied
 PA-001,test,tests_v9/test_productivity_zones_v60.py,5,applied
-PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:367,2,applied
-PA-002,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:206,2,applied
+PA-002,api,GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export @ services/sahool-platform/api/routers/prescriptions.py:377,2,applied
+PA-002,api,POST /api/v1/fields/{field_id}/prescriptions @ services/sahool-platform/api/routers/prescriptions.py:216,2,applied
 PA-002,api,POST /api/v1/gis/cloud-native/phase6/prescriptions/generate @ services/sahool-platform/api/routers/gis_cloud_native.py:707,2,applied
 PA-002,api,POST /v1/fields/{field_id}/prescription @ services/raster-service/routers/fields.py:1050,2,applied
 PA-002,api,POST /v1/prescription/export-preview @ services/ai_agronomist/main.py:288,2,applied

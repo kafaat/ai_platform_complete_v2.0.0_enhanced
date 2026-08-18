@@ -17725,7 +17725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9edddd86396e63e4faf042994b2e7b10f3b8aba6922780e0c02a543eba94f2cd"
+          "content": "9905fa3426c45a9c22b5d871dceac2f19f6404320a8a1d1076ad614c347cd224"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -18115,7 +18115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0576274a99f1a058a082aa09dd3cf888a20888fde2df06612a9dcef83ddc3576"
+          "content": "1070c899c8d4205e55839025a0e99655bdd450bc051c6ea007e21f0b168806c3"
         }
       ],
       "name": "services/sahool-platform/api/routers/prescriptions.py",
@@ -26055,7 +26055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "45b3757dd984b6b7539005f55754daef0afaea7d83a6c835eab19e0e9ecb4c78"
+          "content": "ba401f4cfeee8e7597fcbb4eb630f5408d61378c672fa0c282712653b5b6cdf3"
         }
       ],
       "name": "services/sahool-platform/tests/test_precision_execution_loop_c3.py",

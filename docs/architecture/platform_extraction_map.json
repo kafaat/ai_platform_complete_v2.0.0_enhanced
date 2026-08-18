@@ -3873,7 +3873,7 @@
       "function": "internal_ai_advice_event",
       "method": "POST",
       "path": "/internal/events/ai-advice",
-      "line": 133,
+      "line": 137,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/internal_service.py::POST /internal/events/ai-advice::internal_ai_advice_event"
@@ -4673,7 +4673,7 @@
       "function": "export_prescription",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
-      "line": 366,
+      "line": 376,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/prescriptions.py::GET /api/v1/fields/{field_id}/prescriptions/{prescription_id}/export::export_prescription"
@@ -4683,7 +4683,7 @@
       "function": "list_prescriptions",
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/prescriptions",
-      "line": 322,
+      "line": 332,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/prescriptions.py::GET /api/v1/fields/{field_id}/prescriptions::list_prescriptions"
@@ -4693,7 +4693,7 @@
       "function": "create_prescription",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions",
-      "line": 205,
+      "line": 215,
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/prescriptions.py::POST /api/v1/fields/{field_id}/prescriptions::create_prescription"
