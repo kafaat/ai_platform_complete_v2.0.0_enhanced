@@ -1,4 +1,4 @@
-"""اختبارات مفتاح المزوّد الموحَّد (local Ollama ↔ Anthropic ↔ OpenRouter)."""
+"""اختبارات مفتاح المزوّد الموحَّد (Ollama ↔ vLLM/Jais ↔ Anthropic ↔ OpenRouter)."""
 
 import pytest
 from api.ai_provider_config import (
@@ -18,6 +18,9 @@ def _clear(monkeypatch):
         "OLLAMA_BASE_URL",
         "OLLAMA_API_KEY",
         "LOCAL_LLM_MODEL",
+        "VLLM_BASE_URL",
+        "VLLM_API_KEY",
+        "VLLM_MODEL",
         "ANTHROPIC_BASE_URL",
         "ANTHROPIC_API_KEY",
         "ANTHROPIC_MODEL",
@@ -51,6 +54,21 @@ def test_provider_aliases_normalize(monkeypatch):
     assert resolve_ai_provider().provider == "openrouter"
     monkeypatch.setenv("AI_PROVIDER", "router")
     assert resolve_ai_provider().provider == "openrouter"
+    monkeypatch.setenv("AI_PROVIDER", "jais")
+    assert resolve_ai_provider().provider == "vllm"
+
+
+def test_vllm_is_opt_in_internal_openai_provider(monkeypatch):
+    _clear(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "vllm")
+    cfg = resolve_ai_provider()
+    assert cfg.provider == "vllm"
+    assert cfg.available is True
+    assert cfg.wire_format == "openai_chat"
+    assert cfg.model == "jais-natural-farmer"
+    assert cfg.endpoint == "http://sahool-vllm-jais:8000/v1/chat/completions"
+    assert cfg.headers["authorization"] == "Bearer sahool-vllm-local"
+    assert "sahool-vllm-local" not in str(cfg.public_snapshot())
 
 
 def test_openrouter_requires_key(monkeypatch):

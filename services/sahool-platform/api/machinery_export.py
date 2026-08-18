@@ -22,11 +22,15 @@ profile is a clearly-marked dev/privileged compatibility path only.
 from __future__ import annotations
 
 import hashlib
-import io
 import json
+import io
 import zipfile
 from dataclasses import dataclass
 
+from core.machinery_artifact_identity import (
+    prescription_content_digest,
+    zone_lineage_digest,
+)
 from core.isoxml_vrt import (
     ISOXMLTask,
     MachineProfile,
@@ -206,37 +210,7 @@ class ExportPackage:
     zone_lineage_digest: str
 
 
-def prescription_content_digest(prescription: dict) -> str:
-    """Freeze the exact saved prescription content used for one machine artifact."""
-    body = {
-        "prescription_id": prescription.get("prescription_id"),
-        "field_id": prescription.get("field_id"),
-        "season_id": prescription.get("season_id"),
-        "name": prescription.get("name"),
-        "product_type": prescription.get("product_type"),
-        "zones": prescription.get("zones") or [],
-    }
-    return hashlib.sha256(
-        json.dumps(
-            body, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str
-        ).encode()
-    ).hexdigest()
 
-
-def zone_lineage_digest(prescription: dict) -> str:
-    lineage = [
-        {
-            "zone_id": zone.get("zone_id"),
-            "source_lineage": zone.get("source_lineage") or {},
-        }
-        for zone in (prescription.get("zones") or [])
-        if isinstance(zone, dict)
-    ]
-    return hashlib.sha256(
-        json.dumps(
-            lineage, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str
-        ).encode()
-    ).hexdigest()
 
 
 def generate_export_package(

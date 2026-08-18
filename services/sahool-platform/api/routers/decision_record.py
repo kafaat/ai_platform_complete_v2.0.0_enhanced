@@ -32,7 +32,10 @@ from pydantic import BaseModel, Field
 from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.decision_service_client import record_decision as _mirror_decision_to_service
 from api.decision_service_client import record_outcome as _mirror_outcome_to_service
-from api.decision_sor_mode import assert_platform_may_write_decision_sor
+from api.decision_sor_mode import (
+    assert_platform_may_write_decision_sor,
+    get_platform_decision_sor_mode,
+)
 from api.main import (
     Permission,
     UserSchema,
@@ -336,6 +339,32 @@ async def record_decision(
     """
     did = ensure_decision_id(req.decision_id)
     lineage = lineage_stage(did, "decision", field_id=req.field_id, region=req.region)
+    service_payload = {
+        "decision_id": did,
+        "field_id": req.field_id,
+        "decision_type": req.decision_type,
+        "region": req.region,
+        "stage": lineage["stage"],
+        "decision_value": req.decision_value,
+        "confidence": req.confidence,
+        "created_by": str(user.user_id),
+    }
+    mode = get_platform_decision_sor_mode()
+    if mode.strict_decision_service_required:
+        service_result = await _mirror_decision_to_service(
+            service_payload,
+            tenant_id=str(user.tenant_id),
+        )
+        if not service_result.get("authoritative") or not service_result.get("persisted"):
+            raise HTTPException(status_code=503, detail="decision-service لم يثبت كتابة القرار السلطوية")
+        return {
+            "decision_id": service_result.get("decision_id") or did,
+            "lineage": lineage,
+            "persisted": True,
+            "authoritative_store": "decision-service",
+            "replayed": bool(service_result.get("replayed", False)),
+            "recorded_by": str(user.user_id),
+        }
     try:
         async with tenant_connection(user) as conn:
             assert_platform_may_write_decision_sor("decision_record")
@@ -376,16 +405,7 @@ async def record_decision(
     # المِرْآة إلى decision-service best-effort ولا تُفشِل الطلب أبداً.
     await _mirror_to_decision_service(
         _mirror_decision_to_service,
-        {
-            "decision_id": did,
-            "field_id": req.field_id,
-            "decision_type": req.decision_type,
-            "region": req.region,
-            "stage": lineage["stage"],
-            "decision_value": req.decision_value,
-            "confidence": req.confidence,
-            "created_by": str(user.user_id),
-        },
+        service_payload,
         tenant_id=str(user.tenant_id),
         label=f"decision/record {did}",
     )
@@ -394,6 +414,7 @@ async def record_decision(
         "lineage": lineage,
         "persisted": True,
         "authoritative_store": "sahool-platform",
+        "replayed": False,
         "recorded_by": str(user.user_id),
     }
 
@@ -446,6 +467,40 @@ async def record_outcome(
     did = ensure_decision_id(req.decision_id)
     outcome_id = "out_" + _uuid.uuid4().hex[:16]
     lineage = lineage_stage(did, "outcome", field_id=req.field_id, region=req.region)
+    service_payload = {
+        "outcome_id": outcome_id,
+        "decision_id": did,
+        "field_id": req.field_id,
+        "region": req.region,
+        "planned": req.planned.model_dump(),
+        "actual": req.actual.model_dump(),
+        "metrics": metrics,
+        "success": success,
+        "created_by": str(user.user_id),
+        "idempotency_key": req.idempotency_key,
+    }
+    mode = get_platform_decision_sor_mode()
+    if mode.strict_decision_service_required:
+        service_result = await _mirror_outcome_to_service(
+            service_payload,
+            tenant_id=str(user.tenant_id),
+        )
+        if not service_result.get("authoritative") or not service_result.get("persisted"):
+            raise HTTPException(status_code=503, detail="decision-service لم يثبت كتابة النتيجة السلطوية")
+        canonical_outcome_id = service_result.get("outcome_id")
+        if not canonical_outcome_id:
+            raise HTTPException(status_code=503, detail="decision-service لم يُعد outcome_id")
+        return {
+            "outcome_id": canonical_outcome_id,
+            "decision_id": did,
+            "lineage": lineage,
+            "metrics": metrics,
+            "success": success,
+            "persisted": True,
+            "authoritative_store": "decision-service",
+            "replayed": bool(service_result.get("replayed", False)),
+            "recorded_by": str(user.user_id),
+        }
     try:
         async with tenant_connection(user) as conn:
             assert_platform_may_write_decision_sor("outcome_record")
@@ -505,18 +560,7 @@ async def record_outcome(
     # الجسر الانتقاليّ: كتابة outcome_record أعلاه موثوقة ومحفوظة؛ نعكسها best-effort فقط.
     await _mirror_to_decision_service(
         _mirror_outcome_to_service,
-        {
-            "outcome_id": outcome_id,
-            "decision_id": did,
-            "field_id": req.field_id,
-            "region": req.region,
-            "planned": req.planned.model_dump(),
-            "actual": req.actual.model_dump(),
-            "metrics": metrics,
-            "success": success,
-            "created_by": str(user.user_id),
-            "idempotency_key": req.idempotency_key,
-        },
+        service_payload,
         tenant_id=str(user.tenant_id),
         label=f"outcome/record {outcome_id}",
     )

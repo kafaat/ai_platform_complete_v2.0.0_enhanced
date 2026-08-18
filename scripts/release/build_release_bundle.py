@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "ci"))
 
 EXCLUDE_DIRS = {
     ".git",
+    "_delivery",  # outer package envelope; must never enter release inventory/checksum recursion
     ".claude",  # إعدادات أدوات محلّيّة (settings.local.json) تتغيّر لكلّ بيئة — خارج بصمة الإصدار
     "sahool-brain",  # قاعدة معرفة الوكيل (وثائق تتغيّر كلّ جلسة) — ليست أصلاً قابلاً للنشر؛ خارج بصمة الإصدار
     ".pytest_cache",

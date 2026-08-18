@@ -9,12 +9,12 @@
 > runtime verification or production certification.
 
 - Capabilities: **81**
-- Mapped: **75**
-- Unmapped: **6**
+- Mapped: **76**
+- Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5064**
-- Ambiguous artifacts queued: **406**
-- Unmapped artifacts queued: **2053**
+- Files scanned: **5099**
+- Ambiguous artifacts queued: **405**
+- Unmapped artifacts queued: **2071**
 
 ## Capability coverage
 
@@ -26,12 +26,12 @@
 | DEC-004 | decision | 9 | 20 | 24 | 30 | 0 | 0 | 15 | 5 |
 | DEC-005 | decision | 5 | 86 | 5 | 3 | 0 | 0 | 3 | 5 |
 | DEC-006 | decision | 2 | 0 | 0 | 8 | 0 | 0 | 3 | 3 |
-| DEC-007 | decision | 3 | 6 | 4 | 3 | 1 | 0 | 2 | 6 |
+| DEC-007 | decision | 3 | 8 | 4 | 3 | 1 | 0 | 4 | 6 |
 | DEC-008 | decision | 5 | 94 | 14 | 4 | 0 | 0 | 2 | 5 |
 | DEC-009 | decision | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |
 | DEC-010 | decision | 4 | 89 | 42 | 7 | 0 | 0 | 5 | 5 |
 | FM-001 | farm_management | 15 | 2 | 20 | 4 | 1 | 0 | 24 | 6 |
-| FM-002 | farm_management | 34 | 44 | 98 | 22 | 14 | 2 | 25 | 7 |
+| FM-002 | farm_management | 33 | 44 | 98 | 22 | 14 | 2 | 25 | 7 |
 | FM-003 | farm_management | 13 | 56 | 5 | 61 | 2 | 2 | 12 | 7 |
 | FM-004 | farm_management | 30 | 82 | 84 | 54 | 12 | 1 | 34 | 7 |
 | FM-005 | farm_management | 6 | 0 | 0 | 7 | 3 | 1 | 5 | 5 |
@@ -40,7 +40,7 @@
 | FM-008 | farm_management | 10 | 24 | 5 | 1 | 0 | 0 | 7 | 5 |
 | GIS-001 | gis | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 2 |
 | GIS-002 | gis | 2 | 3 | 0 | 0 | 2 | 0 | 2 | 4 |
-| GIS-003 | gis | 22 | 100 | 10 | 51 | 12 | 0 | 36 | 6 |
+| GIS-003 | gis | 22 | 100 | 10 | 51 | 12 | 0 | 37 | 6 |
 | GIS-004 | gis | 1 | 0 | 1 | 0 | 0 | 0 | 1 | 3 |
 | INT-001 | farm_management | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | INT-002 | farm_management | 6 | 15 | 2 | 66 | 0 | 0 | 8 | 5 |
@@ -61,7 +61,7 @@
 | OPS-003 | operations | 9 | 7 | 7 | 45 | 22 | 1 | 19 | 7 |
 | OPS-004 | operations | 3 | 12 | 14 | 9 | 0 | 12 | 21 | 6 |
 | OPS-005 | operations | 2 | 2 | 9 | 6 | 1 | 0 | 1 | 6 |
-| OPS-006 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| OPS-006 | operations | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | OPS-007 | operations | 0 | 0 | 3 | 1 | 0 | 0 | 2 | 3 |
 | OPS-008 | operations | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | PA-001 | precision | 9 | 33 | 8 | 1 | 0 | 0 | 7 | 5 |
@@ -69,22 +69,22 @@
 | PA-003 | precision | 4 | 4 | 9 | 2 | 0 | 0 | 4 | 5 |
 | PA-004 | precision | 1 | 0 | 18 | 2 | 0 | 0 | 1 | 4 |
 | PA-005 | precision | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
-| SAT-001 | satellite | 37 | 65 | 3 | 32 | 5 | 0 | 44 | 6 |
+| SAT-001 | satellite | 35 | 65 | 3 | 32 | 5 | 0 | 44 | 6 |
 | SAT-002 | satellite | 1 | 1 | 0 | 1 | 0 | 0 | 3 | 4 |
 | SAT-003 | satellite | 100 | 87 | 42 | 100 | 49 | 6 | 100 | 7 |
-| SAT-004 | satellite | 21 | 10 | 5 | 15 | 7 | 0 | 21 | 6 |
+| SAT-004 | satellite | 20 | 10 | 5 | 15 | 7 | 0 | 21 | 6 |
 | SAT-005 | satellite | 8 | 24 | 0 | 1 | 0 | 0 | 9 | 4 |
 | SAT-006 | satellite | 1 | 0 | 0 | 1 | 0 | 0 | 3 | 3 |
 | SAT-007 | satellite | 2 | 1 | 0 | 0 | 0 | 0 | 3 | 3 |
 | SAT-008 | satellite | 3 | 1 | 7 | 4 | 0 | 0 | 5 | 5 |
 | SAT-009 | satellite | 12 | 68 | 0 | 12 | 1 | 0 | 22 | 5 |
-| SEC-001 | security | 14 | 36 | 100 | 46 | 0 | 0 | 59 | 5 |
+| SEC-001 | security | 13 | 29 | 100 | 45 | 0 | 0 | 60 | 5 |
 | SEC-002 | security | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |
 | SEC-003 | security | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 2 |
 | SEC-004 | security | 7 | 21 | 23 | 4 | 5 | 4 | 16 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 1 | 0 | 0 | 8 | 4 |
-| SEC-007 | security | 2 | 0 | 7 | 47 | 0 | 0 | 9 | 4 |
+| SEC-007 | security | 2 | 0 | 7 | 49 | 0 | 0 | 10 | 4 |
 | SEC-008 | security | 0 | 0 | 0 | 1 | 0 | 0 | 6 | 2 |
 | SOIL-001 | soil | 13 | 91 | 14 | 36 | 1 | 0 | 16 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 6 | 5 | 0 | 11 | 6 |

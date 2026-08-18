@@ -1,0 +1,5 @@
+[
+  {"subject_id":"wheat","relation":"historically_susceptible_to","min_edges":1},
+  {"subject_id":"stripe_rust","relation":"historically_favored_by","min_edges":1},
+  {"subject_id":"soil_ec","relation":"historically_limits","min_edges":1}
+]

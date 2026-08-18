@@ -376,6 +376,7 @@ class RecommendationOutcomeIn(BaseModel):
     outcome: str = "pending"
     confidence: float | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str | None = None
 
 
 class LearningUpdateIn(BaseModel):
@@ -653,6 +654,7 @@ async def record_decision(
             "persisted": True,
             "tenant_id": tenant,
             "decision_id": did,
+            "replayed": bool(result.get("replayed", False)),
             "stage": payload.stage,
             "outbox": "decision_outbox_events",
             "received_at": datetime.now(UTC).isoformat(),
@@ -928,13 +930,14 @@ async def record_outcome(
     tenant = _tenant(x_tenant_id)
     oid = payload.outcome_id or "out_" + uuid4().hex[:16]
     if sor_enabled():
-        await persist_outcome_record(tenant_id=tenant, payload=payload, outcome_id=oid)
+        persisted = await persist_outcome_record(tenant_id=tenant, payload=payload, outcome_id=oid)
         return {
             "accepted": True,
             "authoritative": True,
             "persisted": True,
             "tenant_id": tenant,
-            "outcome_id": oid,
+            "outcome_id": persisted["outcome_id"],
+            "replayed": bool(persisted.get("replayed", False)),
             "decision_id": payload.decision_id,
             "success": payload.success,
             "outbox": "decision_outbox_events",
@@ -953,13 +956,15 @@ async def record_recommendation_outcome(
 ) -> dict[str, Any]:
     tenant = _tenant(x_tenant_id)
     if sor_enabled():
-        await persist_recommendation_outcome(tenant_id=tenant, payload=payload)
+        persisted = await persist_recommendation_outcome(tenant_id=tenant, payload=payload)
         return {
             "accepted": True,
             "authoritative": True,
             "persisted": True,
             "tenant_id": tenant,
             "recommendation_id": payload.recommendation_id,
+            "outcome_id": persisted.get("outcome_id"),
+            "replayed": bool(persisted.get("replayed", False)),
             "decision_id": payload.decision_id,
             "outcome": payload.outcome,
             "outbox": "decision_outbox_events",

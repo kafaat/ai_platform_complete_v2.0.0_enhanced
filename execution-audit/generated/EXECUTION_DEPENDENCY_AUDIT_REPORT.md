@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **1853**
+- Python files parsed: **1860**
 - FastAPI-style route handlers: **1049**
-- Static function-call edges: **73656**
-- Dead-code candidates: **615**
+- Static function-call edges: **73907**
+- Dead-code candidates: **611**
 - Duplicate function groups: **58**
 - Automatic deletions: **0**
 
@@ -15,6 +15,7 @@
 
 | Owner | Symbol | Kind | File | Line |
 |---|---|---|---|---:|
+| `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 129 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 152 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
@@ -28,8 +29,8 @@
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 417 |
 | `sahool-platform` | `_parse_series_hours` | function | `services/sahool-platform/api/routers/weather.py` | 1192 |
 | `sahool-platform` | `_time_key_from_hour` | function | `services/sahool-platform/api/routers/weather.py` | 1206 |
-| `sahool-platform` | `_best_operation_frame` | function | `services/sahool-platform/api/routers/weather.py` | 1545 |
-| `sahool-platform` | `_unavailable_tile_response` | function | `services/sahool-platform/api/routers/weather.py` | 2368 |
+| `sahool-platform` | `_best_operation_frame` | function | `services/sahool-platform/api/routers/weather.py` | 1559 |
+| `sahool-platform` | `_unavailable_tile_response` | function | `services/sahool-platform/api/routers/weather.py` | 2382 |
 | `sahool-platform` | `_irrigation_validate` | function | `services/sahool-platform/api/workflow_definitions.py` | 182 |
 | `sahool-platform` | `_irrigation_schedule` | function | `services/sahool-platform/api/workflow_definitions.py` | 188 |
 | `sahool-platform` | `_irrigation_execute` | function | `services/sahool-platform/api/workflow_definitions.py` | 194 |
@@ -72,7 +73,7 @@
 | `3fa331af9f9461ea` | 9 |
 | `406980d4b6534c4a` | 2 |
 | `40b9faafbad5a23d` | 2 |
-| `451e12ae0877302a` | 7 |
+| `451e12ae0877302a` | 6 |
 | `49b18910194fee42` | 2 |
 | `4cb77c1b81129bbe` | 2 |
 | `4d3489c6804536ee` | 2 |

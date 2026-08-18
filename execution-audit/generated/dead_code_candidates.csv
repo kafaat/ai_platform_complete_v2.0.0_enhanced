@@ -1,4 +1,5 @@
 confidence,owner,kind,symbol,file,line,reference_count,action,decorated_route
+high,decision-service,function,_memberships,services/decision-service/decision_sor_role_certify.py,129,0,review_before_delete,False
 high,decision-service,function,_service_token_guard,services/decision-service/main.py,152,0,review_before_delete,False
 high,raster-service,function,_scene_band_mapping,services/raster-service/raster_main_compat_exports.py,92,0,review_before_delete,False
 high,raster-service,function,_bbox_from_geom,services/raster-service/raster_main_compat_exports.py,97,0,review_before_delete,False
@@ -12,8 +13,8 @@ high,sahool-platform,function,_conflict_changed_fields,services/sahool-platform/
 high,sahool-platform,function,_weather_tile_interpolation_payload,services/sahool-platform/api/routers/weather.py,417,0,review_before_delete,False
 high,sahool-platform,function,_parse_series_hours,services/sahool-platform/api/routers/weather.py,1192,0,review_before_delete,False
 high,sahool-platform,function,_time_key_from_hour,services/sahool-platform/api/routers/weather.py,1206,0,review_before_delete,False
-high,sahool-platform,function,_best_operation_frame,services/sahool-platform/api/routers/weather.py,1545,0,review_before_delete,False
-high,sahool-platform,function,_unavailable_tile_response,services/sahool-platform/api/routers/weather.py,2368,0,review_before_delete,False
+high,sahool-platform,function,_best_operation_frame,services/sahool-platform/api/routers/weather.py,1559,0,review_before_delete,False
+high,sahool-platform,function,_unavailable_tile_response,services/sahool-platform/api/routers/weather.py,2382,0,review_before_delete,False
 high,sahool-platform,function,_irrigation_validate,services/sahool-platform/api/workflow_definitions.py,182,0,review_before_delete,False
 high,sahool-platform,function,_irrigation_schedule,services/sahool-platform/api/workflow_definitions.py,188,0,review_before_delete,False
 high,sahool-platform,function,_irrigation_execute,services/sahool-platform/api/workflow_definitions.py,194,0,review_before_delete,False
@@ -94,8 +95,6 @@ medium,sahool-platform,function,build_canonical_hydraulic_capability,services/sa
 medium,sahool-platform,function,hydraulic_capability_to_mpc_constraints,services/sahool-platform/api/canonical_hydraulic_capability.py,289,0,review_before_delete,False
 medium,sahool-platform,function,build_canonical_irrigation_capability_graph,services/sahool-platform/api/canonical_irrigation_capability_graph.py,179,0,review_before_delete,False
 medium,sahool-platform,function,irrigation_capability_graph_to_mpc_constraints,services/sahool-platform/api/canonical_irrigation_capability_graph.py,351,0,review_before_delete,False
-medium,sahool-platform,function,build_canonical_irrigation_machine_capability,services/sahool-platform/api/canonical_irrigation_machine_capability.py,57,0,review_before_delete,False
-medium,sahool-platform,function,machine_capability_to_mpc_constraints,services/sahool-platform/api/canonical_irrigation_machine_capability.py,148,0,review_before_delete,False
 medium,sahool-platform,function,build_canonical_nutrient_ledger,services/sahool-platform/api/canonical_nutrient_ledger.py,110,0,review_before_delete,False
 medium,sahool-platform,function,build_canonical_phenology_state,services/sahool-platform/api/canonical_phenology_state.py,203,0,review_before_delete,False
 medium,sahool-platform,function,state_payload,services/sahool-platform/api/canonical_phenology_state.py,344,0,review_before_delete,False
@@ -179,7 +178,7 @@ medium,sahool-platform,function,get_wind_grid,services/sahool-platform/api/weath
 medium,sahool-platform,function,economic_context_from_ledger,services/sahool-platform/core/agronomic_state_engine.py,592,0,review_before_delete,False
 medium,sahool-platform,function,explain_anwa_principle_ar,services/sahool-platform/core/anwa_calendar.py,120,0,review_before_delete,False
 medium,sahool-platform,function,fields_in_farm_for_user,services/sahool-platform/core/authorization.py,392,0,review_before_delete,False
-medium,sahool-platform,class,SenseDay,services/sahool-platform/core/connectors/farmonaut.py,102,0,review_before_delete,False
+medium,sahool-platform,class,BaseConnector,services/sahool-platform/core/connectors/base.py,58,0,review_before_delete,False
 medium,sahool-platform,function,build_trace_tree,services/sahool-platform/core/correlation.py,116,0,review_before_delete,False
 medium,sahool-platform,function,find_similar_activities,services/sahool-platform/core/cross_reference_finder.py,212,0,review_before_delete,False
 medium,sahool-platform,function,build_farm_brief,services/sahool-platform/core/daily_agronomist_full.py,93,0,review_before_delete,False
@@ -215,6 +214,7 @@ medium,sahool-platform,function,arbitrate_summary,services/sahool-platform/core/
 medium,sahool-platform,function,detect_zones_of_interest,services/sahool-platform/core/spatial/indicators.py,90,0,review_before_delete,False
 medium,sahool-platform,function,link_farmer_knowledge,services/sahool-platform/core/spatial/indicators.py,202,0,review_before_delete,False
 medium,sahool-platform,class,AcquisitionPlan,services/sahool-platform/core/spatial/pipeline.py,65,0,review_before_delete,False
+medium,sahool-platform,function,decide_source,services/sahool-platform/core/spatial/pipeline.py,74,0,review_before_delete,False
 medium,sahool-platform,function,build_timeline,services/sahool-platform/core/spatial/pipeline.py,126,0,review_before_delete,False
 medium,sahool-platform,function,detect_temporal_change,services/sahool-platform/core/spatial/pipeline.py,141,0,review_before_delete,False
 medium,sahool-platform,function,transfer_summary,services/sahool-platform/core/transfer_learning.py,242,0,review_before_delete,False
@@ -278,8 +278,6 @@ medium,sahool-platform,class,TestRateLimit,services/sahool-platform/tests/test_c
 medium,sahool-platform,class,TestProxyRequest,services/sahool-platform/tests/test_chat_proxy.py,37,0,review_before_delete,False
 medium,sahool-platform,class,TestCompleteness,services/sahool-platform/tests/test_completeness.py,6,0,review_before_delete,False
 medium,sahool-platform,class,TestWheatOMThreshold,services/sahool-platform/tests/test_completeness.py,43,0,review_before_delete,False
-medium,sahool-platform,class,TestConnectors,services/sahool-platform/tests/test_connectors.py,8,0,review_before_delete,False
-medium,sahool-platform,class,TestCloudThresholdConsistency,services/sahool-platform/tests/test_connectors.py,57,0,review_before_delete,False
 medium,sahool-platform,class,TestCropCards,services/sahool-platform/tests/test_crop_cards.py,6,0,review_before_delete,False
 medium,sahool-platform,class,TestVarietyCards,services/sahool-platform/tests/test_crop_cards.py,56,0,review_before_delete,False
 medium,sahool-platform,class,TestCommonBeanFromLegumesGuide,services/sahool-platform/tests/test_crop_cards.py,120,0,review_before_delete,False
@@ -350,7 +348,6 @@ medium,sahool-platform,class,TestEventsAroundRecommendation,services/sahool-plat
 medium,sahool-platform,class,TestFarmerAgency,services/sahool-platform/tests/test_farmer_agency.py,11,0,review_before_delete,False
 medium,sahool-platform,class,TestFarmerKnowledge,services/sahool-platform/tests/test_farmer_knowledge.py,18,0,review_before_delete,False
 medium,sahool-platform,class,TestConservativeWeight,services/sahool-platform/tests/test_farmer_knowledge.py,60,0,review_before_delete,False
-medium,sahool-platform,class,TestFarmonaut,services/sahool-platform/tests/test_farmonaut.py,14,0,review_before_delete,False
 medium,sahool-platform,class,TestSuccessDefinitions,services/sahool-platform/tests/test_feedback_closure.py,17,0,review_before_delete,False
 medium,sahool-platform,class,TestLagWindow,services/sahool-platform/tests/test_feedback_closure.py,42,0,review_before_delete,False
 medium,sahool-platform,class,TestBiasAwareness,services/sahool-platform/tests/test_feedback_closure.py,77,0,review_before_delete,False
@@ -396,7 +393,6 @@ medium,sahool-platform,class,TestIdentityIndex,services/sahool-platform/tests/te
 medium,sahool-platform,class,TestConflictDetection,services/sahool-platform/tests/test_identity.py,125,0,review_before_delete,False
 medium,sahool-platform,class,TestLegacyMigration,services/sahool-platform/tests/test_identity.py,157,0,review_before_delete,False
 medium,sahool-platform,class,TestCanonicalSchemasIntegration,services/sahool-platform/tests/test_identity.py,179,0,review_before_delete,False
-medium,sahool-platform,class,TestImageryProviders,services/sahool-platform/tests/test_imagery_providers.py,24,0,review_before_delete,False
 medium,sahool-platform,class,TestPassive,services/sahool-platform/tests/test_implementation_verification.py,12,0,review_before_delete,False
 medium,sahool-platform,class,TestPhysical,services/sahool-platform/tests/test_implementation_verification.py,29,0,review_before_delete,False
 medium,sahool-platform,class,TestCombined,services/sahool-platform/tests/test_implementation_verification.py,50,0,review_before_delete,False

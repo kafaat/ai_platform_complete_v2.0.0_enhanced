@@ -52,16 +52,16 @@
           "why": "Field لا يجوز قطعه اعتماداً على اختبار يعمل كمالك/BYPASSRLS أو لا يعمل فعلياً."
         },
         {
-          "expect": "test_kg_physical_implementation_is_not_in_platform",
-          "find": "    forbidden_symbols = (\n        \"class SQLiteAgGraphStore\",\n        \"class GraphNode\",\n        \"class GraphEdge\",\n        \"import sqlite3\",\n    )",
-          "replace": "    forbidden_symbols = ()  # mutated: platform may host a competing KG implementation",
-          "why": "إبقاء store داخل sahool-platform يعيد mismatch بين الملكية المعلنة والفيزيائية."
-        },
-        {
           "expect": "test_kg_image_ships_the_module_its_entrypoint_imports",
           "find": "        if f\"COPY services/knowledge-graph/{name}.py\" not in dockerfile:\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
           "replace": "        if False:  # mutated: image need not ship what the entrypoint imports\n            out.append(f\"KG image does not ship an imported owned module: {name}.py\")",
           "why": "الملكيّة الفيزيائيّة تشمل الشحن: وحدةٌ يستوردها المدخل ولا تنسخها الصورة تنهار عند الإقلاع، فيصير النقل إعلاناً."
+        },
+        {
+          "expect": "test_kg_legacy_store_path_reintroduction_is_blocked",
+          "find": "    if forbidden.exists():\n        out.append(\"legacy sahool-platform KG store path still exists\")",
+          "replace": "    if False:  # mutated: reintroduced legacy KG path tolerated\n        out.append(\"legacy sahool-platform KG store path still exists\")",
+          "why": "إعادة إنشاء مسار SQLite القديم داخل sahool-platform تعيد ملكية فيزيائية منافسة بعد S4/S5؛ يجب أن يحجبها الحارس مباشرةً."
         }
       ]
     },
@@ -182,10 +182,28 @@
           "why": "استثناءٌ بلا مالك وسبب وتاريخ إغلاق إعفاءٌ دائم بلا صاحب — وهو كيف يصير المؤقّت أبديّاً."
         },
         {
-          "expect": "test_an_exception_whose_reason_expired_is_reported_as_unnecessary",
+          "expect": "test_tombstoned_imagery_provider_reintroduction_is_blocked",
+          "find": "        for ident in new:\n            if (cat, ident) not in exceptions:\n                out.append(f\"NEW {cat}: {ident}\")",
+          "replace": "        for ident in new:\n            if False:  # mutated: new platform-owned identity tolerated\n                out.append(f\"NEW {cat}: {ident}\")",
+          "why": "تعطيل حجب الهوية الجديدة يسمح بإحياء imagery_providers.py غير المستهلك ورفع S5 domain compute من 200 إلى 201."
+        },
+        {
+          "expect": "test_stale_or_unnecessary_exception_is_blocked",
           "find": "    for (cat, ident), _e in exceptions.items():\n        if ident not in observed[cat] - base[cat]:\n            out.append(f\"stale/unnecessary exception: {cat}:{ident}\")",
           "replace": "    for (cat, ident), _e in exceptions.items():\n        if False:  # mutated: expired exception may linger\n            out.append(f\"stale/unnecessary exception: {cat}:{ident}\")",
-          "why": "استثناءٌ بطل سببه يُقرأ حراسةً قائمة وهو أثرُ قرارٍ انتهى. والسياسة الحيّة تحمل صفر استثناء، فالقاعدة لا تمرّ بها حلقة على الشجرة الحقيقيّة — لذا يقيسها اختبارٌ رمليّ يُدخِل استثناءً فعليّاً."
+          "why": "استثناءٌ بطل سببه يُقرأ حراسةً قائمة وهو أثرُ قرارٍ انتهى."
+        },
+        {
+          "expect": "test_inherited_authority_exception_requires_metadata",
+          "find": "    out.extend(_validate_baseline_authority_exception_metadata(policy, today))",
+          "replace": "    pass  # mutated: inherited baseline exception metadata is no longer enforced",
+          "why": "تعطيل عقد metadata للاستثناءات الموروثة يعيد إعفاءات Decision الخمسة بلا مالك/سبب/تاريخ إغلاق ملزم."
+        },
+        {
+          "expect": "test_inherited_authority_exception_expiry_is_blocking",
+          "find": "        if close < today:\n            out.append(f\"baseline authority exception expired: {ident}\")",
+          "replace": "        if False and close < today:  # mutated: expired inherited exception tolerated\n            out.append(f\"baseline authority exception expired: {ident}\")",
+          "why": "السماح بتاريخ إغلاق منتهٍ يحوّل استثناء Decision المؤقت إلى سلطة انتقالية بلا نهاية."
         }
       ]
     },
@@ -568,6 +586,126 @@
         }
       ],
       "test": "tests_v9/test_actuation_killswitch_behaviour.py"
+    },
+    "scripts/architecture/s5_exec_01_edge_freeze.py": {
+      "$why_ar": "S5-EXEC-01: بصمة التجميد السلطوية تخص سطح platform runtime فقط؛ نمو شهود الاختبار/خدمة القرار لا يجوز أن يُعاد تصنيفه كتضخم سلطة، لكن فقد الشهود دون أرضية أو نمو runtime يجب أن يُحجب.",
+      "mutations": [
+        {
+          "expect": "test_runtime_surface_growth_is_fail_closed_even_if_observed_graph_is_regenerated",
+          "find": "    if current.get(\"runtime_migration_surface_fingerprint_sha256\") != FROZEN_RUNTIME_MIGRATION_FINGERPRINT:\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
+          "replace": "    if False:  # mutated: runtime authority-surface growth tolerated\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
+          "why": "إذا لم تُحجب بصمة runtime، يستطيع writer/read سلطوي جديد دخول منصة S5 مع بقاء artifact غير السلطوي قابلاً لإعادة التوليد."
+        },
+        {
+          "expect": "test_test_witnesses_are_not_migration_surface_and_cannot_fall_below_freeze_floor",
+          "find": "        if int(counts.get(key, 0)) < floor:\n            findings.append(f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\")",
+          "replace": "        if False:  # mutated: frozen witness floor may silently shrink\n            findings.append(f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\")",
+          "why": "الشهود ليست migration surface، لكن السماح بانخفاضها تحت إيصال التجميد يحذف حماية regression صامتاً."
+        }
+      ],
+      "test": "tests_v9/test_s5_exec_01_edge_freeze.py"
+    },
+    "scripts/staging/decision_sor_live_closure_collector.py": {
+      "$why_ar": "S5 Decision live closure: a green receipt must prove the deployed platform is demoted and DB writes are effectively denied.",
+      "mutations": [
+        {
+          "expect": "test_collector_rejects_platform_writes_required_true_even_if_other_mode_fields_look_closed",
+          "find": "        and p_mode.get(\"platform_writes_required\") is False",
+          "replace": "        and p_mode.get(\"platform_writes_required\") is not None  # mutated: writable platform accepted",
+          "why": "قبول أي قيمة موجودة بدل False يسمح بإيصال أخضر بينما platform_writes_required=true وتبقى نافذة السلطة المزدوجة مفتوحة."
+        },
+        {
+          "expect": "test_collector_rejects_runtime_demotion_or_effective_privilege_drift",
+          "find": "            if privs.get(privilege) is not False:",
+          "replace": "            if False and privs.get(privilege) is not False:  # mutated: effective write tolerated",
+          "why": "تعطيل postcondition يسمح لصلاحية INSERT/UPDATE/DELETE فعالة بالبقاء مع receipt ناجح."
+        }
+      ],
+      "test": "tests_v9/test_s5_decision_live_closure_receipt.py"
+    },
+    "scripts/staging/kg_runtime_parity_collector.py": {
+      "$why_ar": "S4 KG live parity: equal-empty responses are not evidence and deployed source identity must match.",
+      "mutations": [
+        {
+          "expect": "test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity",
+          "find": "        minimum_met = len(nrest) >= case[\"min_edges\"] and len(ngraph) >= case[\"min_edges\"]",
+          "replace": "        minimum_met = True  # mutated: REST=GraphQL=empty accepted as parity evidence",
+          "why": "التكافؤ 0=0 لا يثبت أن الحالة الحية تحتوي الحقائق المحكومة؛ يجب حد أدنى موجب لكل حالة."
+        },
+        {
+          "expect": "test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity",
+          "find": "    if local_sha != subject_sha.lower():\n        raise ValueError(\"checkout_subject_sha_mismatch\")",
+          "replace": "    if False and local_sha != subject_sha.lower():  # mutated: operator-supplied SHA accepted without checkout binding\n        raise ValueError(\"checkout_subject_sha_mismatch\")",
+          "why": "بصمات المصدر الحي لا ترتبط بالـcommit إذا قُبل subject_sha كنص من المشغّل؛ يجب أن يكون checkout الذي حُسبت منه البصمات على الـSHA نفسه."
+        }
+      ],
+      "test": "tests_v9/test_s4_live_authority_receipt_guards.py"
+    },
+    "services/decision-service/decision_sor_role_certify.py": {
+      "$why_ar": "S5 Decision role certification: transitive membership and empty closure are cutover prerequisites.",
+      "mutations": [
+        {
+          "expect": "test_decision_role_preflight_rejects_membership_sequence_owner_and_shared_role",
+          "find": "    if not isinstance(closure, list) or closure:",
+          "replace": "    if False:  # mutated: platform membership closure tolerated",
+          "why": "قبول عضوية platform role يترك مسار inherited/SET ROLE يمكنه تجاوز REVOKE المباشر."
+        },
+        {
+          "expect": "test_role_certification_catalogue_query_is_transitive_not_direct_only",
+          "find": "            JOIN walk w ON m.member = w.roleid",
+          "replace": "            JOIN walk w ON false  -- mutated: recursive membership chain severed",
+          "why": "قطع recursion يجعل الشهادة ترى العضوية المباشرة فقط وتفقد role_a→role_b وما بعدها."
+        }
+      ],
+      "test": "tests_v9/test_s5_decision_live_cutover_hardening.py"
+    },
+    "services/decision-service/platform_sor_revoke.py": {
+      "$why_ar": "S5 Decision DB cutover: effective privileges after REVOKE are a postcondition, not informational output.",
+      "mutations": [
+        {
+          "expect": "test_platform_revoke_postcondition_uses_effective_privileges_fail_closed",
+          "find": "                if privs.get(privilege) is not False:",
+          "replace": "                if False and privs.get(privilege) is not False:  # mutated: inherited write survives",
+          "why": "تعطيل فحص effective write يسمح لـPUBLIC/role inheritance بإبقاء INSERT/UPDATE/DELETE بعد REVOKE المباشر."
+        }
+      ],
+      "test": "tests_v9/test_s5_decision_live_cutover_hardening.py"
+    },
+    "services/sahool-platform/api/machinery_export.py": {
+      "$why_ar": "C3: artifact الآلة يجب أن يحتفظ بهوية مناطق الإدارة وبصمة الوصفة/lineage، لا أن يعيد ترقيمها بما يقطع السلسلة.",
+      "mutations": [
+        {
+          "expect": "test_machine_artifact_freezes_prescription_and_zone_lineage",
+          "find": "                zone_id=str(z.get(\"zone_id\") or f\"ZN{i + 1}\"),",
+          "replace": "                zone_id=f\"ZN{i + 1}\",  # mutated: source management-zone identity lost",
+          "why": "إعادة الترقيم المتسلسل فقط تفصل TaskData عن management-zone identity الأصلية."
+        }
+      ],
+      "test": "services/sahool-platform/tests/test_precision_execution_loop_c3.py"
+    },
+    "services/sahool-platform/core/yield_map_processing.py": {
+      "$why_ar": "C3: تنظيف خرائط الغلة يبقى في core/yield_map_processing.py على main (#870)؛ زرع تعطيل رفض الشذوذ يجب أن يقتل الاختبار نفسه دون نقل الملكية خلفياً.",
+      "mutations": [
+        {
+          "expect": "test_yield_processing_is_non_destructive_deterministic_and_removes_extreme_outlier",
+          "find": "        if value < low or value > high:",
+          "replace": "        if False:  # mutated: robust outliers silently retained",
+          "why": "إسقاط مرشح الشذوذ يعيد قيمة حصاد متطرفة إلى evidence المستخدم لاحقاً في zoning."
+        }
+      ],
+      "test": "services/sahool-platform/tests/test_precision_execution_loop_c3.py"
+    },
+    "scripts/ci/s5_exec_01_writer_cutover_guard.py": {
+      "$why_ar": "S5-EXEC-01: وجود الكاتب القديم قبل القطع مقبول فقط إذا كان لكل writer عقد strict-mode قابل للتكذيب بالزرع.",
+      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
+      "mutations": [
+        {
+          "expect": "test_removing_strict_mode_marker_is_blocked",
+          "find": "            if marker not in text:",
+          "replace": "            if False:  # mutated: missing cutover markers tolerated",
+          "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
@@ -2332,6 +2470,17 @@
         }
       ],
       "test": "tests_v9/test_visual_fixme_baseline_guard.py"
+    },
+    "s5_exec_01_writer_cutover_guard.py": {
+      "test": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
+      "mutations": [
+        {
+          "expect": "test_removing_strict_mode_marker_is_blocked",
+          "find": "            if marker not in text:",
+          "replace": "            if False:  # mutated: missing cutover markers tolerated",
+          "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
+        }
+      ]
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

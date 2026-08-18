@@ -1408,7 +1408,29 @@ async def _persist_weather_decision_record(conn, user, record: dict) -> str | No
     from api.main import _emit_domain_event
 
     decision_id = f"weather-{_uuid4().hex[:16]}"
-    from api.decision_sor_mode import assert_platform_may_write_decision_sor
+    from api.decision_sor_mode import (
+        assert_platform_may_write_decision_sor,
+        get_platform_decision_sor_mode,
+    )
+
+    service_payload = {
+        "decision_id": decision_id,
+        "field_id": record["field_id"],
+        "decision_type": record["decision_type"],
+        "stage": "decision",
+        "decision_value": record.get("decision_value") or {},
+        "confidence": record.get("confidence"),
+        "created_by": str(user.user_id),
+    }
+    mode = get_platform_decision_sor_mode()
+    if mode.strict_decision_service_required:
+        service_result = await _mirror_decision_to_service(
+            service_payload,
+            tenant_id=str(user.tenant_id),
+        )
+        if not service_result.get("authoritative") or not service_result.get("persisted"):
+            raise RuntimeError("decision-service did not prove authoritative weather-decision persistence")
+        return str(service_result.get("decision_id") or decision_id)
 
     assert_platform_may_write_decision_sor("decision_record")
     await conn.execute(
@@ -1442,15 +1464,7 @@ async def _persist_weather_decision_record(conn, user, record: dict) -> str | No
     # decision-service — الفشل يُسجَّل ولا يُفشِل مسار خطّة الطقس ولا يفقد بيانات المنصّة.
     try:
         await _mirror_decision_to_service(
-            {
-                "decision_id": decision_id,
-                "field_id": record["field_id"],
-                "decision_type": record["decision_type"],
-                "stage": "decision",
-                "decision_value": record.get("decision_value") or {},
-                "confidence": record.get("confidence"),
-                "created_by": str(user.user_id),
-            },
+            service_payload,
             tenant_id=str(user.tenant_id),
         )
     except Exception as e:  # noqa: BLE001 — مِرْآة best-effort: الفشل يُسجَّل ولا يُفشِل الطلب

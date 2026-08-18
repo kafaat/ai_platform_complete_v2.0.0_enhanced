@@ -52,6 +52,39 @@ def findings() -> list[str]:
     for token in ("NOBYPASSRLS", "NOSUPERUSER", "SET ROLE", "REVOKE"):
         if token not in live:
             out.append(f"decision live cutover proof missing {token}")
+    role_cert = _text("services/decision-service/decision_sor_role_certify.py")
+    for token in ("WITH RECURSIVE walk", "membership_closure", "effective_table_privileges", "cutover_preflight_safe"):
+        if token not in role_cert:
+            out.append(f"decision role certification missing {token}")
+    revoke = _text("services/decision-service/platform_sor_revoke.py")
+    for token in ("has_table_privilege", "privilege_closure_findings", "PrivilegeClosureError", "closure_verified"):
+        if token not in revoke:
+            out.append(f"decision DB revoke postcondition missing {token}")
+    decision_collector = _text("scripts/staging/decision_sor_live_closure_collector.py")
+    decision_receipt_guard = _text("scripts/architecture/s5_decision_live_closure_receipt_guard.py")
+    platform_health = _text("services/sahool-platform/api/routers/platform_health.py")
+    for token in (
+        "sahool.s5-decision-live-closure/v1",
+        "runtime-identity",
+        "cutover/readiness",
+        "platform_sor_revoke.py",
+        "historical_zero_platform_writes_measured",
+    ):
+        if token not in decision_collector:
+            out.append(f"decision live closure collector missing {token}")
+    for token in (
+        "sahool.s5-decision-live-closure/v1",
+        "historical_zero_writes_overclaim",
+        "effective_write_not_denied",
+        "platform_not_effectively_demoted",
+    ):
+        if token not in decision_receipt_guard:
+            out.append(f"decision live closure receipt guard missing {token}")
+    for token in ("get_platform_decision_sor_mode", 'body["decision_sor"]'):
+        if token not in platform_health:
+            out.append(f"platform readyz decision SoR evidence missing {token}")
+    if "SUBJECT_BOUND_LIVE_DECISION_CLOSURE_RECEIPT_REQUIRED" not in (d.get("blocking_reasons") or []):
+        out.append("decision subject-bound live closure blocker missing")
 
     # Field: no promotion without restricted-role behavioral RLS proof contract.
     f = a.get("field_management") or {}
@@ -68,6 +101,14 @@ def findings() -> list[str]:
         or "pytest.skip" not in field_test
     ):
         out.append("field RLS proof does not fail honestly when restricted role is absent")
+    field_gate = _text("scripts/staging/field_management_live_gate.sh")
+    field_receipt_guard = _text("scripts/architecture/s4_field_rls_receipt_guard.py")
+    for token in ("rolsuper", "rolbypassrls", "pg_auth_members", "FIELD_RLS_EVIDENCE_OUT"):
+        if token not in field_gate:
+            out.append(f"field live gate missing {token}")
+    for token in ("sahool.s4-field-rls-live-evidence/v2", "reachable_privileged_role_count", "cross_tenant_http"):
+        if token not in field_receipt_guard:
+            out.append(f"field receipt guard missing {token}")
     if "LIVE_APPLICATION_ROLE_RLS_PROOF_REQUIRED" not in (f.get("blocking_reasons") or []):
         out.append("field live application-role blocker missing")
 
@@ -90,15 +131,29 @@ def findings() -> list[str]:
             continue
         if f"COPY services/knowledge-graph/{name}.py" not in dockerfile:
             out.append(f"KG image does not ship an imported owned module: {name}.py")
-    tomb = forbidden.read_text(encoding="utf-8") if forbidden.is_file() else ""
-    forbidden_symbols = (
-        "class SQLiteAgGraphStore",
-        "class GraphNode",
-        "class GraphEdge",
-        "import sqlite3",
-    )
-    if any(x in tomb for x in forbidden_symbols):
-        out.append("sahool-platform still physically hosts KG store")
+    # End-state S4/S5: even the compatibility tombstone is removed.  Physical ownership
+    # is not fully shrunk while the old platform store path remains addressable.
+    if forbidden.exists():
+        out.append("legacy sahool-platform KG store path still exists")
+    kg_collector = _text("scripts/staging/kg_runtime_parity_collector.py")
+    kg_receipt_guard = _text("scripts/architecture/s4_kg_runtime_parity_receipt_guard.py")
+    for token in (
+        "source_identity_match",
+        "minimum_evidence_met",
+        "consumer_fingerprint_sha256",
+        "local_subject_sha",
+        "checkout_subject_sha_mismatch",
+    ):
+        if token not in kg_collector:
+            out.append(f"KG live collector missing {token}")
+    for token in (
+        "sahool.s4-kg-runtime-parity/v2",
+        "deployed source identity mismatch",
+        "not every parity case produced live evidence",
+        "collector checkout subject SHA mismatch",
+    ):
+        if token not in kg_receipt_guard:
+            out.append(f"KG receipt guard missing {token}")
     # repository-wide production imports of the old platform implementation are forbidden.
     # مرتَّبة: ترتيب `rglob` يتبع نظام الملفّات، ورسالة الحارس تحمل مسارات — فبلا فرز
     # يختلف مخرَجه بين آلة وأخرى على الشجرة نفسها.

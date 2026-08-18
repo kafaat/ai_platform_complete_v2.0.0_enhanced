@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "7dab2133f87a2f509b3de16e05237a0b66643e676f231831645578b1ad1ac8c6",
+  "inventory_sha256": "afee9787f8440c81b2f44d4f5dfb55c1684a80dd345468960c15f18fc676a01d",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "2b84e875108568d8607f4fa9671429510df675e7ebb906243f2608c8e53ac23d"
+    "policy_sha256": "786cc78e066a8b73544b3918065d7c43116d820caa8f417df7f688e34420c88e"
   },
   "routes": [
     {
@@ -610,7 +610,7 @@
     {
       "classification": "domain",
       "function": "list_dispatch_decisions",
-      "line": 475,
+      "line": 491,
       "method": "GET",
       "path": "/api/v1/decision/dispatch/decisions",
       "source": "api/routers/decision_dispatch.py"
@@ -618,7 +618,7 @@
     {
       "classification": "domain",
       "function": "list_dispatch_queue",
-      "line": 507,
+      "line": 523,
       "method": "GET",
       "path": "/api/v1/decision/dispatch/queue",
       "source": "api/routers/decision_dispatch.py"
@@ -666,7 +666,7 @@
     {
       "classification": "domain",
       "function": "list_execution_ledger",
-      "line": 659,
+      "line": 675,
       "method": "GET",
       "path": "/api/v1/decision/ledger",
       "source": "api/routers/decision_dispatch.py"
@@ -682,7 +682,7 @@
     {
       "classification": "domain",
       "function": "list_decision_records",
-      "line": 576,
+      "line": 620,
       "method": "GET",
       "path": "/api/v1/decision/records",
       "source": "api/routers/decision_record.py"
@@ -698,7 +698,7 @@
     {
       "classification": "domain",
       "function": "get_decision_lineage",
-      "line": 536,
+      "line": 580,
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/lineage",
       "source": "api/routers/decision_record.py"
@@ -834,7 +834,7 @@
     {
       "classification": "domain",
       "function": "list_erp_reconciliations",
-      "line": 284,
+      "line": 302,
       "method": "GET",
       "path": "/api/v1/erp/reconciliations",
       "source": "api/routers/operational_truth.py"
@@ -914,7 +914,7 @@
     {
       "classification": "domain",
       "function": "get_season_budget",
-      "line": 608,
+      "line": 609,
       "method": "GET",
       "path": "/api/v1/farm-ledger/budgets/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -922,7 +922,7 @@
     {
       "classification": "domain",
       "function": "get_economic_state",
-      "line": 1002,
+      "line": 1014,
       "method": "GET",
       "path": "/api/v1/farm-ledger/economic-state/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -930,7 +930,7 @@
     {
       "classification": "domain",
       "function": "get_erp_projection",
-      "line": 791,
+      "line": 792,
       "method": "GET",
       "path": "/api/v1/farm-ledger/erp-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -938,7 +938,7 @@
     {
       "classification": "domain",
       "function": "get_inventory_projection",
-      "line": 911,
+      "line": 923,
       "method": "GET",
       "path": "/api/v1/farm-ledger/inventory-projection/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -946,7 +946,7 @@
     {
       "classification": "domain",
       "function": "list_operation_ledger_records",
-      "line": 353,
+      "line": 354,
       "method": "GET",
       "path": "/api/v1/farm-ledger/operations",
       "source": "api/routers/farm_operations_ledger.py"
@@ -954,7 +954,7 @@
     {
       "classification": "domain",
       "function": "get_season_profitability",
-      "line": 756,
+      "line": 757,
       "method": "GET",
       "path": "/api/v1/farm-ledger/profitability/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -962,7 +962,7 @@
     {
       "classification": "domain",
       "function": "farm_ledger_summary",
-      "line": 401,
+      "line": 402,
       "method": "GET",
       "path": "/api/v1/farm-ledger/summary",
       "source": "api/routers/farm_operations_ledger.py"
@@ -970,7 +970,7 @@
     {
       "classification": "domain",
       "function": "get_budget_variance",
-      "line": 728,
+      "line": 729,
       "method": "GET",
       "path": "/api/v1/farm-ledger/variance/{season_id}",
       "source": "api/routers/farm_operations_ledger.py"
@@ -1026,7 +1026,7 @@
     {
       "classification": "domain",
       "function": "get_field_lineage",
-      "line": 627,
+      "line": 671,
       "method": "GET",
       "path": "/api/v1/field/{field_id}/lineage",
       "source": "api/routers/decision_record.py"
@@ -1946,7 +1946,7 @@
     {
       "classification": "domain",
       "function": "capacity_profiles_endpoint",
-      "line": 364,
+      "line": 367,
       "method": "GET",
       "path": "/api/v1/recommendations/capacity-profiles",
       "source": "api/routers/recommendations.py"
@@ -1954,7 +1954,7 @@
     {
       "classification": "domain",
       "function": "recommendation_engines",
-      "line": 299,
+      "line": 302,
       "method": "GET",
       "path": "/api/v1/recommendations/engines",
       "source": "api/routers/recommendations.py"
@@ -1962,7 +1962,7 @@
     {
       "classification": "domain",
       "function": "get_recommendation",
-      "line": 533,
+      "line": 562,
       "method": "GET",
       "path": "/api/v1/recommendations/{rec_id}",
       "source": "api/routers/recommendations.py"
@@ -2314,7 +2314,7 @@
     {
       "classification": "domain",
       "function": "weather_action_recommendation",
-      "line": 2564,
+      "line": 2578,
       "method": "GET",
       "path": "/api/v1/weather/action-recommendation",
       "source": "api/routers/weather.py"
@@ -2322,7 +2322,7 @@
     {
       "classification": "domain",
       "function": "weather_alerts",
-      "line": 2629,
+      "line": 2643,
       "method": "GET",
       "path": "/api/v1/weather/alerts",
       "source": "api/routers/weather.py"
@@ -2330,7 +2330,7 @@
     {
       "classification": "domain",
       "function": "weather_current",
-      "line": 2061,
+      "line": 2075,
       "method": "GET",
       "path": "/api/v1/weather/current",
       "source": "api/routers/weather.py"
@@ -2338,7 +2338,7 @@
     {
       "classification": "domain",
       "function": "weather_env_doctor",
-      "line": 2040,
+      "line": 2054,
       "method": "GET",
       "path": "/api/v1/weather/env-doctor",
       "source": "api/routers/weather.py"
@@ -2346,7 +2346,7 @@
     {
       "classification": "domain",
       "function": "weather_field_summary",
-      "line": 2506,
+      "line": 2520,
       "method": "GET",
       "path": "/api/v1/weather/field-weather-summary",
       "source": "api/routers/weather.py"
@@ -2354,7 +2354,7 @@
     {
       "classification": "domain",
       "function": "weather_forecast",
-      "line": 2067,
+      "line": 2081,
       "method": "GET",
       "path": "/api/v1/weather/forecast",
       "source": "api/routers/weather.py"
@@ -2362,7 +2362,7 @@
     {
       "classification": "domain",
       "function": "weather_health",
-      "line": 1930,
+      "line": 1944,
       "method": "GET",
       "path": "/api/v1/weather/health",
       "source": "api/routers/weather.py"
@@ -2370,7 +2370,7 @@
     {
       "classification": "domain",
       "function": "weather_historical",
-      "line": 2073,
+      "line": 2087,
       "method": "GET",
       "path": "/api/v1/weather/historical",
       "source": "api/routers/weather.py"
@@ -2378,7 +2378,7 @@
     {
       "classification": "domain",
       "function": "historical_weather_coverage",
-      "line": 201,
+      "line": 202,
       "method": "GET",
       "path": "/api/v1/weather/history/coverage",
       "source": "api/routers/operational_truth.py"
@@ -2386,7 +2386,7 @@
     {
       "classification": "domain",
       "function": "read_historical_weather",
-      "line": 170,
+      "line": 171,
       "method": "GET",
       "path": "/api/v1/weather/history/records",
       "source": "api/routers/operational_truth.py"
@@ -2394,7 +2394,7 @@
     {
       "classification": "domain",
       "function": "weather_layers_manifest",
-      "line": 2084,
+      "line": 2098,
       "method": "GET",
       "path": "/api/v1/weather/layers",
       "source": "api/routers/weather.py"
@@ -2402,7 +2402,7 @@
     {
       "classification": "domain",
       "function": "weather_metrics_prometheus",
-      "line": 2313,
+      "line": 2327,
       "method": "GET",
       "path": "/api/v1/weather/metrics.prom",
       "source": "api/routers/weather.py"
@@ -2410,7 +2410,7 @@
     {
       "classification": "domain",
       "function": "weather_observability",
-      "line": 2282,
+      "line": 2296,
       "method": "GET",
       "path": "/api/v1/weather/observability",
       "source": "api/routers/weather.py"
@@ -2418,7 +2418,7 @@
     {
       "classification": "domain",
       "function": "weather_operation_plan",
-      "line": 2550,
+      "line": 2564,
       "method": "GET",
       "path": "/api/v1/weather/operation-plan",
       "source": "api/routers/weather.py"
@@ -2426,7 +2426,7 @@
     {
       "classification": "domain",
       "function": "weather_operation_tile_data",
-      "line": 2427,
+      "line": 2441,
       "method": "GET",
       "path": "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",
       "source": "api/routers/weather.py"
@@ -2434,7 +2434,7 @@
     {
       "classification": "domain",
       "function": "weather_operation_window",
-      "line": 2492,
+      "line": 2506,
       "method": "GET",
       "path": "/api/v1/weather/operation-window",
       "source": "api/routers/weather.py"
@@ -2442,7 +2442,7 @@
     {
       "classification": "domain",
       "function": "weather_probe",
-      "line": 2446,
+      "line": 2460,
       "method": "GET",
       "path": "/api/v1/weather/probe",
       "source": "api/routers/weather.py"
@@ -2450,7 +2450,7 @@
     {
       "classification": "domain",
       "function": "weather_rate_limit_backend",
-      "line": 2269,
+      "line": 2283,
       "method": "GET",
       "path": "/api/v1/weather/rate-limit/backend",
       "source": "api/routers/weather.py"
@@ -2458,7 +2458,7 @@
     {
       "classification": "domain",
       "function": "weather_readyz",
-      "line": 1948,
+      "line": 1962,
       "method": "GET",
       "path": "/api/v1/weather/readyz",
       "source": "api/routers/weather.py"
@@ -2466,7 +2466,7 @@
     {
       "classification": "domain",
       "function": "weather_runtime_contract",
-      "line": 2027,
+      "line": 2041,
       "method": "GET",
       "path": "/api/v1/weather/runtime-contract",
       "source": "api/routers/weather.py"
@@ -2474,7 +2474,7 @@
     {
       "classification": "domain",
       "function": "weather_runtime_smoke_plan",
-      "line": 2053,
+      "line": 2067,
       "method": "GET",
       "path": "/api/v1/weather/runtime-smoke-plan",
       "source": "api/routers/weather.py"
@@ -2482,7 +2482,7 @@
     {
       "classification": "domain",
       "function": "weather_self_test",
-      "line": 1962,
+      "line": 1976,
       "method": "GET",
       "path": "/api/v1/weather/self-test",
       "source": "api/routers/weather.py"
@@ -2490,7 +2490,7 @@
     {
       "classification": "domain",
       "function": "weather_tile_cache_backend",
-      "line": 2262,
+      "line": 2276,
       "method": "GET",
       "path": "/api/v1/weather/tile-cache/backend",
       "source": "api/routers/weather.py"
@@ -2498,7 +2498,7 @@
     {
       "classification": "domain",
       "function": "weather_tile_cache_stats",
-      "line": 2276,
+      "line": 2290,
       "method": "GET",
       "path": "/api/v1/weather/tile-cache/stats",
       "source": "api/routers/weather.py"
@@ -2506,7 +2506,7 @@
     {
       "classification": "domain",
       "function": "weather_tile_data",
-      "line": 2404,
+      "line": 2418,
       "method": "GET",
       "path": "/api/v1/weather/tile-data/{z}/{x}/{y}",
       "source": "api/routers/weather.py"
@@ -2514,7 +2514,7 @@
     {
       "classification": "domain",
       "function": "weather_tile_series",
-      "line": 2984,
+      "line": 2998,
       "method": "GET",
       "path": "/api/v1/weather/tile-series/{z}/{x}/{y}",
       "source": "api/routers/weather.py"
@@ -2522,7 +2522,7 @@
     {
       "classification": "domain",
       "function": "weather_wind_source_selftest",
-      "line": 1972,
+      "line": 1986,
       "method": "GET",
       "path": "/api/v1/weather/wind-source-selftest",
       "source": "api/routers/weather.py"
@@ -3170,7 +3170,7 @@
     {
       "classification": "domain",
       "function": "consume_dispatch_queue",
-      "line": 427,
+      "line": 443,
       "method": "POST",
       "path": "/api/v1/decision/dispatch/consume",
       "source": "api/routers/decision_dispatch.py"
@@ -3178,7 +3178,7 @@
     {
       "classification": "domain",
       "function": "evaluate_dispatch_endpoint",
-      "line": 194,
+      "line": 197,
       "method": "POST",
       "path": "/api/v1/decision/dispatch/evaluate",
       "source": "api/routers/decision_dispatch.py"
@@ -3186,7 +3186,7 @@
     {
       "classification": "domain",
       "function": "execute_dispatch_endpoint",
-      "line": 243,
+      "line": 246,
       "method": "POST",
       "path": "/api/v1/decision/dispatch/execute",
       "source": "api/routers/decision_dispatch.py"
@@ -3194,7 +3194,7 @@
     {
       "classification": "domain",
       "function": "record_execution_outcome",
-      "line": 563,
+      "line": 579,
       "method": "POST",
       "path": "/api/v1/decision/ledger",
       "source": "api/routers/decision_dispatch.py"
@@ -3218,7 +3218,7 @@
     {
       "classification": "domain",
       "function": "record_decision",
-      "line": 326,
+      "line": 329,
       "method": "POST",
       "path": "/api/v1/decision/record",
       "source": "api/routers/decision_record.py"
@@ -3226,7 +3226,7 @@
     {
       "classification": "domain",
       "function": "unified_decision_endpoint",
-      "line": 125,
+      "line": 128,
       "method": "POST",
       "path": "/api/v1/decision/unified",
       "source": "api/routers/decision_dispatch.py"
@@ -3338,7 +3338,7 @@
     {
       "classification": "domain",
       "function": "record_erp_reconciliation",
-      "line": 220,
+      "line": 221,
       "method": "POST",
       "path": "/api/v1/erp/reconciliations",
       "source": "api/routers/operational_truth.py"
@@ -3402,7 +3402,7 @@
     {
       "classification": "domain",
       "function": "operation_autowrite_preview",
-      "line": 863,
+      "line": 875,
       "method": "POST",
       "path": "/api/v1/farm-ledger/autowrite-preview",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3410,7 +3410,7 @@
     {
       "classification": "domain",
       "function": "upsert_season_budget_lines",
-      "line": 527,
+      "line": 528,
       "method": "POST",
       "path": "/api/v1/farm-ledger/budgets",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3418,7 +3418,7 @@
     {
       "classification": "domain",
       "function": "create_operation_ledger_record",
-      "line": 210,
+      "line": 211,
       "method": "POST",
       "path": "/api/v1/farm-ledger/operations",
       "source": "api/routers/farm_operations_ledger.py"
@@ -3426,7 +3426,7 @@
     {
       "classification": "domain",
       "function": "create_revenue_record",
-      "line": 636,
+      "line": 637,
       "method": "POST",
       "path": "/api/v1/farm-ledger/revenues",
       "source": "api/routers/farm_operations_ledger.py"
@@ -4138,7 +4138,7 @@
     {
       "classification": "domain",
       "function": "record_outcome",
-      "line": 429,
+      "line": 450,
       "method": "POST",
       "path": "/api/v1/outcome/record",
       "source": "api/routers/decision_record.py"
@@ -4170,7 +4170,7 @@
     {
       "classification": "domain",
       "function": "recommendations",
-      "line": 155,
+      "line": 158,
       "method": "POST",
       "path": "/api/v1/recommendations",
       "source": "api/routers/recommendations.py"
@@ -4178,7 +4178,7 @@
     {
       "classification": "domain",
       "function": "generate_crop_candidates",
-      "line": 372,
+      "line": 375,
       "method": "POST",
       "path": "/api/v1/recommendations/candidates",
       "source": "api/routers/recommendations.py"
@@ -4186,7 +4186,7 @@
     {
       "classification": "domain",
       "function": "economic_adaptation_endpoint",
-      "line": 346,
+      "line": 349,
       "method": "POST",
       "path": "/api/v1/recommendations/economic-adaptation",
       "source": "api/routers/recommendations.py"
@@ -4194,7 +4194,7 @@
     {
       "classification": "domain",
       "function": "recommendations_for_field",
-      "line": 181,
+      "line": 184,
       "method": "POST",
       "path": "/api/v1/recommendations/for-field",
       "source": "api/routers/recommendations.py"
@@ -4202,7 +4202,7 @@
     {
       "classification": "domain",
       "function": "record_recommendation_outcome",
-      "line": 437,
+      "line": 440,
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
       "source": "api/routers/recommendations.py"
@@ -4394,7 +4394,7 @@
     {
       "classification": "domain",
       "function": "weather_alerts_notify",
-      "line": 2698,
+      "line": 2712,
       "method": "POST",
       "path": "/api/v1/weather/alerts/notify",
       "source": "api/routers/weather.py"
@@ -4402,7 +4402,7 @@
     {
       "classification": "domain",
       "function": "ingest_historical_weather",
-      "line": 94,
+      "line": 95,
       "method": "POST",
       "path": "/api/v1/weather/history/records",
       "source": "api/routers/operational_truth.py"
@@ -4410,7 +4410,7 @@
     {
       "classification": "domain",
       "function": "weather_recommendation_from_operation_plan",
-      "line": 2893,
+      "line": 2907,
       "method": "POST",
       "path": "/api/v1/weather/recommendations/from-operation-plan",
       "source": "api/routers/weather.py"
@@ -4418,7 +4418,7 @@
     {
       "classification": "domain",
       "function": "weather_create_task_from_operation_plan",
-      "line": 2792,
+      "line": 2806,
       "method": "POST",
       "path": "/api/v1/weather/tasks/from-operation-plan",
       "source": "api/routers/weather.py"
@@ -4426,7 +4426,7 @@
     {
       "classification": "domain",
       "function": "weather_tile_cache_prune",
-      "line": 2329,
+      "line": 2343,
       "method": "POST",
       "path": "/api/v1/weather/tile-cache/prune",
       "source": "api/routers/weather.py"

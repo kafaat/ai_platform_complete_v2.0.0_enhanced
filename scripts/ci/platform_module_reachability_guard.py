@@ -88,7 +88,6 @@ FROZEN_UNREACHABLE = frozenset(
         "api/canonical_energy_microgrid_capability.py",
         "api/canonical_hydraulic_capability.py",
         "api/canonical_irrigation_capability_graph.py",
-        "api/canonical_irrigation_machine_capability.py",
         "api/canonical_sprinkler_runoff_capability.py",
         "api/canonical_vri_prescription.py",
         "core/canonical_field_state_lock.py",

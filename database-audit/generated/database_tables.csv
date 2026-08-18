@@ -54,11 +54,11 @@ crop_stress_memory_snapshots,v153_crop_stress_memory_store.sql,158,True,True,Tru
 custody_chain_events,v65_harvest_traceability.sql,70,True,True,True,1,False,False,1,1
 decision_learning_runs,v227_decision_learning_runtime.sql,224,True,False,False,0,False,True,1,1
 decision_policies,v69_decision_policies.sql,74,True,False,False,0,False,True,1,1
-decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,17,16
+decision_record,v78_decision_record.sql,83,True,True,True,1,True,False,17,17
 device_commands_log,v20_automation_tables.sql,24,True,False,False,0,False,True,1,1
 device_telemetry,v24_iot_devices.sql,28,True,False,False,0,False,True,2,1
 digital_twin_scenarios,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
-dispatch_decisions,v66_dispatch_decisions.sql,71,True,False,False,0,False,True,6,3
+dispatch_decisions,v66_dispatch_decisions.sql,71,True,False,False,0,False,True,6,4
 distributed_raster_jobs,v116_enterprise_gis_phase7.sql,122,True,True,True,1,True,False,0,0
 documents,v29_documents.sql,33,True,False,False,0,False,True,2,1
 drone_missions,init_v8.sql,0,True,True,False,0,False,True,0,0
@@ -238,7 +238,7 @@ onboarding_responses,v9_onboarding.sql,4,True,True,True,1,False,False,1,1
 online_feature_values,v106_phase9_10_runtime_strengthening.sql,112,True,True,True,1,True,False,0,1
 online_learning_updates,v119_phase10_continuous_learning.sql,125,True,True,True,1,False,False,0,4
 outbox_delivery_attempts,v140_outbox_delivery_attempts.sql,145,True,True,True,1,True,False,0,1
-outcome_record,v79_outcome_record.sql,84,True,True,True,1,True,False,11,7
+outcome_record,v79_outcome_record.sql,84,True,True,True,1,True,False,11,8
 phenology_observations,v224_canonical_phenology_state.sql,221,True,True,True,1,True,False,0,2
 plugin_permission_audit,v121_marketplace_ecosystem.sql,127,True,True,True,0,False,False,0,0
 point_in_time_snapshots_runtime,v108_phase10_feature_store_model_registry_runtime.sql,114,True,True,True,1,True,False,0,1
@@ -251,7 +251,7 @@ raster_batch_jobs,v154_raster_product_identity_batch_leases.sql,159,True,True,Tr
 raster_cache_invalidations,v96_spatial_geometry_integrity.sql,101,True,True,True,1,True,False,1,2
 raster_registry,v114_cloud_native_gis_best_practices.sql,120,True,True,True,1,True,False,1,2
 recommendation_feedback,v_ai_recommendation_runtime.sql,111,True,True,True,1,True,False,0,0
-recommendation_outcomes,v49_zone_key_recommendation_outcomes.sql,53,True,True,True,2,True,False,7,3
+recommendation_outcomes,v49_zone_key_recommendation_outcomes.sql,53,True,True,True,2,True,False,8,4
 recommendation_reviews,v_ai_recommendation_runtime.sql,111,True,True,True,1,True,False,0,0
 recommendations,v77_recommendations.sql,82,True,True,True,1,True,False,2,2
 retraining_jobs,v107_phase9_10_event_drift_hardening.sql,113,True,True,True,1,True,False,0,0

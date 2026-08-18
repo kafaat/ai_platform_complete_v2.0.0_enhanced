@@ -35,6 +35,8 @@ pytestmark = pytest.mark.skipif(not DB, reason="requires real Postgres (DATABASE
 PLATFORM_PROBE = "cert_platform_probe"
 SERVICE_PROBE = "cert_service_probe"
 PROBE_PASSWORD = "cert_probe_pw"
+BRIDGE_A = "cert_bridge_a"
+BRIDGE_B = "cert_bridge_b"
 
 
 async def _admin():
@@ -50,7 +52,8 @@ def _probe_url(role: str) -> str:
 
 
 async def _drop_probes(admin) -> None:
-    for role in (PLATFORM_PROBE, SERVICE_PROBE):
+    # Membership targets must be dropped after memberships are revoked by DROP ROLE cascade rules.
+    for role in (PLATFORM_PROBE, SERVICE_PROBE, BRIDGE_A, BRIDGE_B):
         if await admin.fetchval("SELECT 1 FROM pg_roles WHERE rolname=$1", role):
             await admin.execute(f'DROP ROLE IF EXISTS "{role}"')
 
@@ -61,6 +64,10 @@ async def _create_probes(admin) -> None:
         await admin.execute(
             f"CREATE ROLE \"{role}\" LOGIN PASSWORD '{PROBE_PASSWORD}' "
             "NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOINHERIT"
+        )
+    for role in (BRIDGE_A, BRIDGE_B):
+        await admin.execute(
+            f'CREATE ROLE "{role}" NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOINHERIT'
         )
 
 
@@ -87,6 +94,9 @@ def test_certification_verdict_is_correct() -> None:
             assert attrs["rolsuper"] is False and attrs["rolbypassrls"] is False, attrs
             # The probe is not a member of any role it could SET ROLE into.
             assert distinct["platform"]["memberships_can_set_role_to"] == []
+            assert distinct["platform"]["membership_closure"] == []
+            assert distinct["cutover_preflight_safe"] is True
+            assert distinct["classification"] == "PASSED"
 
             # Table owner reported for every SoR table (and it is NOT the probe app role).
             owners = distinct["platform"]["table_owners"]
@@ -102,6 +112,17 @@ def test_certification_verdict_is_correct() -> None:
             same = await csr._run()
             assert same["role_separation_confirmed"] is False, same
             assert same["platform_role"] == same["decision_service_role"] == PLATFORM_PROBE
+            assert same["cutover_preflight_safe"] is False
+
+            # 3) A two-hop membership is visible in the closure and blocks cutover certification.
+            await admin.execute(f'GRANT "{BRIDGE_B}" TO "{BRIDGE_A}"')
+            await admin.execute(f'GRANT "{BRIDGE_A}" TO "{PLATFORM_PROBE}"')
+            os.environ["DECISION_SOR_SERVICE_URL"] = service_url
+            chained = await csr._run()
+            roles = {row["role"] for row in chained["platform"]["membership_closure"]}
+            assert {BRIDGE_A, BRIDGE_B} <= roles, chained["platform"]["membership_closure"]
+            assert chained["cutover_preflight_safe"] is False
+            assert "platform_role_membership_closure_must_be_empty" in chained["blockers"]
         finally:
             os.environ.pop("DECISION_SOR_PLATFORM_URL", None)
             os.environ.pop("DECISION_SOR_SERVICE_URL", None)

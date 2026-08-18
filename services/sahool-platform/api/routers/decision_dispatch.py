@@ -44,7 +44,10 @@ from pydantic import BaseModel
 from api.decision_service_client import (
     record_dispatch_decision as _mirror_dispatch_to_service,
 )
-from api.decision_sor_mode import assert_platform_may_write_decision_sor
+from api.decision_sor_mode import (
+    assert_platform_may_write_decision_sor,
+    get_platform_decision_sor_mode,
+)
 from api.main import (
     Permission,
     UserSchema,
@@ -255,6 +258,19 @@ async def execute_dispatch_endpoint(
         raise HTTPException(
             status_code=404,
             detail="ميزة موزِّع القرار غير مُفعَّلة (اضبط SAHOOL_DECISION_DISPATCH).",
+        )
+    mode = get_platform_decision_sor_mode()
+    if mode.strict_decision_service_required:
+        # S4 end-state: this legacy endpoint combines a platform-owned persistence row with
+        # kill-switch/queue behavior that the simple decision-service mirror endpoint cannot
+        # preserve. Do not synthesize a lossy cutover. Governed execution must use the canonical
+        # execution-plan → dispatch-authorization → execution-request chain instead.
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "legacy_dispatch_writer_retired_after_decision_sor_cutover",
+                "required_path": "decision-service governed execution chain",
+            },
         )
     guardrail = check_guardrails(
         pesticide_phi_satisfied=req.pesticide_phi_satisfied,

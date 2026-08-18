@@ -1,0 +1,40 @@
+{
+  "schema_version": "sahool.payment-bridge-accounting-boundary.v1",
+  "status": "external_integration_contract_only",
+  "implemented_in_this_repository": false,
+  "authority": {
+    "payment_evidence_owner": "payment-bridge",
+    "farm_economics_owner": "farm-ledger",
+    "erp_projection_owner": "farm-ledger projection",
+    "erp_posting_owner": "selected ERP adapter",
+    "payment_evidence_is_not_agronomic_decision_authority": true
+  },
+  "evidence_levels": {
+    "E0": "UNTRUSTED",
+    "E1": "DEVICE_OBSERVED",
+    "E2": "REGULATED_CHANNEL_CONFIRMED",
+    "E3": "STRUCTURED_TRANSACTION_OBSERVED",
+    "E4V": "PROVIDER_VERIFIED",
+    "E4S": "PROVIDER_STATEMENT_CORROBORATED",
+    "E5": "RECONCILED"
+  },
+  "posting_policy": {
+    "E0": "forbidden",
+    "E1": "forbidden",
+    "E2": "draft_or_suggest_only",
+    "E3": "draft_or_suggest_only",
+    "E4V": "eligible_only_with_uniqueness_amount_currency_target_certified_adapter_idempotency",
+    "E4S": "deferred_eligible_after_statement_corroboration",
+    "E5": "reconciled"
+  },
+  "required_identity": {
+    "idempotency_key": [
+      "tenant_id",
+      "provider_id",
+      "provider_account_id",
+      "provider_transaction_reference"
+    ],
+    "short_code_role": "routing/channel identity only; never sufficient proof of payment"
+  },
+  "integration_rule": "Payment Bridge may feed accounting/ERP reconciliation; it must not write canonical agronomic state or bypass ERP projection/reconciliation contracts."
+}

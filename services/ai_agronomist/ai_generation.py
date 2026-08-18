@@ -40,6 +40,8 @@ ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
 DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_VLLM_BASE_URL = "http://sahool-vllm-jais:8000/v1"
+DEFAULT_VLLM_MODEL = "jais-natural-farmer"
 
 # المزوّدات الخارجيّة (سحابيّة) — تخضع لسياسة مشاركة البيانات/التنقيح.
 # (مرآة ``shared/ai/provider_contract.EXTERNAL_PROVIDERS`` — يفرض التطابقَ الحارس.)
@@ -57,6 +59,7 @@ _DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
         ("qwen3", "Qwen3 (محلّيّ)"),
         ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
     ],
+    "vllm": [("jais-natural-farmer", "Jais Natural Farmer (Solshine / vLLM)")],
 }
 
 # نظام تأريض صارم: يُجيب من الأدلّة المُمرَّرة فقط، لا قرارات تنفيذيّة، لا تلفيق.
@@ -94,6 +97,8 @@ def _normalize_provider(raw: str | None) -> str:
         return "anthropic"
     if p in {"openrouter", "router", "or"}:
         return "openrouter"
+    if p in {"vllm", "jais", "jais-natural-farmer"}:
+        return "vllm"
     return "local"
 
 
@@ -237,6 +242,23 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
     provider = _normalize_provider(os.getenv("AI_PROVIDER"))
     shared_model = (os.getenv("AI_MODEL") or "").strip()
 
+    if provider == "vllm":
+        model = _resolve_model(
+            "vllm",
+            shared_model or (os.getenv("VLLM_MODEL") or DEFAULT_VLLM_MODEL).strip(),
+            requested_model,
+        )
+        if not model:
+            return None
+        base = (os.getenv("VLLM_BASE_URL") or DEFAULT_VLLM_BASE_URL).strip()
+        token = (os.getenv("VLLM_API_KEY") or "sahool-vllm-local").strip()
+        headers = {"content-type": "application/json"}
+        if token:
+            headers["authorization"] = f"Bearer {token}"
+        return GenConfig(
+            "vllm", f"{base.rstrip('/')}/chat/completions", headers, model, "openai_chat"
+        )
+
     if provider == "openrouter":
         api_key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
         model = _resolve_model("openrouter", shared_model, requested_model)
@@ -285,6 +307,10 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
 
 
 def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> list[dict[str, Any]]:
+    # Jais Natural Farmer is a grounded-generation provider. Tool calls stay opt-in
+    # until model-specific tool-call conformance is proven; no direct actions by default.
+    if cfg.provider == "vllm" and (os.getenv("VLLM_ENABLE_TOOLS") or "false").strip().lower() not in {"1", "true", "yes", "on"}:
+        return []
     """Provider-native tool schema, filtered by tenant capabilities before the model sees it."""
     defs = agent_tool_schema.tool_definitions(allowed_capabilities)
     if cfg.wire_format == "openai_chat":

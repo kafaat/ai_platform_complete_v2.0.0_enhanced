@@ -66,4 +66,13 @@ async def readyz():
         body.update({"status": "not ready", "db": "down"})
         logging.warning("readyz: فحص القاعدة فشل — not ready (503)")
         return JSONResponse(status_code=503, content=body)
-    return JSONResponse(status_code=resp.status_code, content=resp.body)
+
+    # Existing readiness surface, additive operational evidence only: expose the *effective*
+    # Decision-SoR mode so a post-cutover collector can prove that this deployed platform has
+    # actually demoted itself to orchestrator/BFF.  Runtime identity remains immutable and
+    # separate at /runtime-identity; mutable mode state belongs on /readyz.
+    from api.decision_sor_mode import get_platform_decision_sor_mode
+
+    body = dict(resp.body)
+    body["decision_sor"] = get_platform_decision_sor_mode().as_dict()
+    return JSONResponse(status_code=resp.status_code, content=body)

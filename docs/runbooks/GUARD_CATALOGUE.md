@@ -12,8 +12,8 @@
 
 - حرّاس تحجب في CI: **251**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **39**
-- إجماليّ الطفرات المُسجَّلة: **259**
-- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **72** على 20 مصدراً
+- إجماليّ الطفرات المُسجَّلة: **260**
+- وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **87** على 28 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
 أنّ المسار يستشير مفتاح الطوارئ مثلاً — ويمرّ أخضر على مسارٍ يستشيره ثمّ يتجاهل
@@ -814,7 +814,7 @@
 | `irrigation_engineering_m2_1_guard.py` | Static ratchet for the M2.1 irrigation engineering foundation. | `structural-lint` |
 | `irrigation_hourly_mpc_m3_guard.py` | Static ratchet for M3 hourly energy-aware irrigation MPC. | `structural-lint` |
 | `irrigation_hydraulic_m2_4_guard.py` | Repository ratchet for M2.4 hydraulic capability. | `structural-lint` |
-| `irrigation_machine_m2_5_guard.py` | Repository ratchet for M2.5 irrigation machine capability. | `structural-lint` |
+| `irrigation_machine_m2_5_guard.py` | M2.5 end-state guard: persisted machine capability remains; dead platform compute does not. | `structural-lint` |
 | `irrigation_rls_canonical_guard.py` | Guard: the V21 irrigation migrations (v168–v181) must use canonical, fail-closed RLS. | `structural-lint` |
 | `irrigation_root_zone_m2_2_guard.py` | Static ratchet for M2.2 canonical root-zone hydraulics. | `structural-lint` |
 | `irrigation_runtime_orchestrator_guard.py` | Ratchet for the server-owned irrigation runtime orchestrator. | `structural-lint` |
@@ -938,12 +938,13 @@
 
 ---
 
-## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (2)
+## مُواصَفة بطفرات ولا يستدعيها أيّ workflow (3)
 
 أداة غير موصولة لا تحرس شيئاً (§٣.٢). وجودها هنا سؤالٌ لا اتّهام.
 
 - `actuation_killswitch_coverage_guard.py`
 - `manifest_registry_guard.py`
+- `s5_exec_01_writer_cutover_guard.py`
 
 ---
 

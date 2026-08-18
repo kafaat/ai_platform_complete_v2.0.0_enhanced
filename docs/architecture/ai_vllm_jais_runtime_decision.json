@@ -1,0 +1,41 @@
+{
+  "schema": "sahool.architecture-runtime-addition/v1",
+  "decision_id": "AI-VLLM-JAIS-RUNTIME-01",
+  "status": "implemented-opt-in-rebased-no-authority-cutover",
+  "date": "2026-08-17",
+  "component_id": "vllm-jais",
+  "compose_service": "sahool-vllm-jais",
+  "purpose": "Serve Jais Natural Farmer (Solshine) as the shared internal generation provider through vLLM's OpenAI-compatible API.",
+  "model_repository": "Solshine/Jais-adapted-7B-Reflection-Tuning-Natural-Farmer",
+  "served_model_name": "jais-natural-farmer",
+  "authority_kind": "infrastructure",
+  "runtime_role": "model_runtime",
+  "domain_authority": false,
+  "provider_switch": {
+    "env": "AI_PROVIDER",
+    "value": "vllm"
+  },
+  "constraints": {
+    "new_database": false,
+    "new_broker": false,
+    "new_domain_authority": false,
+    "host_port_exposed": false,
+    "openai_compatible_internal_api": true,
+    "requires_rag_authority_cutover_for_production_default": true,
+    "direct_qdrant_access": false
+  },
+  "baseline_effect": {
+    "compose_services_added": [
+      "sahool-vllm-jais"
+    ],
+    "route_identities_delta": 0,
+    "db_table_identities_delta": 0,
+    "nats_subject_identities_delta": 0,
+    "capability_ids_delta": 0,
+    "capability_dependency_edges_delta": 0,
+    "application_component_count_delta": 0,
+    "infrastructure_units_delta": 1
+  },
+  "implementation_base": "1ef69aca",
+  "model_contract": "config/ai-model-runtimes/jais-natural-farmer.json"
+}

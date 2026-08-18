@@ -38,16 +38,10 @@ def test_field_state_contract_requires_restricted_application_role_live_proof():
 
 
 def test_kg_current_physical_implementation_is_not_in_platform():
-    old = (ROOT / "services/sahool-platform/core/knowledge_graph/sqlite_graph.py").read_text(
-        encoding="utf-8"
-    )
-    assert "class SQLiteAgGraphStore" not in old, (
-        "ملكيّة المتجر فيزيائيّة لا إعلانيّة — صنفٌ باسمه هنا يعني أنّ sahool-platform "
-        "ما تزال تستضيف تطبيقاً منافساً، فتعود المِلكيّة المُعلَنة تسميةً بلا أثر"
-    )
-    assert "import sqlite3" not in old, (
-        "استيراد sqlite3 في الشاهدة يُعيد ربط المنصّة بمحرّك التخزين — "
-        "والنقل يُقاس بغياب الاعتماد لا بغياب الاسم"
+    old = ROOT / "services/sahool-platform/core/knowledge_graph/sqlite_graph.py"
+    assert not old.exists(), (
+        "S4/S5 shrink end-state requires the legacy sahool-platform KG store path to be absent, "
+        "not retained as an addressable tombstone"
     )
     main = (ROOT / "services/knowledge-graph/main.py").read_text(encoding="utf-8")
     assert "from kg_store import" in main
@@ -73,11 +67,19 @@ def _sandbox(tmp_path, monkeypatch):
         "services/sahool-platform/api/decision_sor_mode.py",
         "tests_v9/test_decision_sor_platform_revoke_static.py",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+        "services/decision-service/decision_sor_role_certify.py",
+        "services/decision-service/platform_sor_revoke.py",
+        "scripts/staging/decision_sor_live_closure_collector.py",
+        "scripts/architecture/s5_decision_live_closure_receipt_guard.py",
+        "services/sahool-platform/api/routers/platform_health.py",
         "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
+        "scripts/staging/field_management_live_gate.sh",
+        "scripts/architecture/s4_field_rls_receipt_guard.py",
+        "scripts/staging/kg_runtime_parity_collector.py",
+        "scripts/architecture/s4_kg_runtime_parity_receipt_guard.py",
         "services/knowledge-graph/main.py",
         "services/knowledge-graph/Dockerfile",
         "services/knowledge-graph/kg_store.py",
-        "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
     ]
     for rel in needed:
         src = ROOT / rel
@@ -109,13 +111,12 @@ def test_field_requires_restricted_application_role_live_proof(tmp_path, monkeyp
     assert "field RLS proof does not fail honestly when restricted role is absent" in mod.findings()
 
 
-def test_kg_physical_implementation_is_not_in_platform(tmp_path, monkeypatch):
+def test_kg_legacy_store_path_reintroduction_is_blocked(tmp_path, monkeypatch):
     root = _sandbox(tmp_path, monkeypatch)
     p = root / "services/sahool-platform/core/knowledge_graph/sqlite_graph.py"
-    p.write_text(
-        p.read_text(encoding="utf-8") + "\nclass SQLiteAgGraphStore: pass\n", encoding="utf-8"
-    )
-    assert "sahool-platform still physically hosts KG store" in mod.findings()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("# reintroduced legacy path\n", encoding="utf-8")
+    assert "legacy sahool-platform KG store path still exists" in mod.findings()
 
 
 def test_kg_image_ships_the_module_its_entrypoint_imports(tmp_path, monkeypatch):
@@ -128,3 +129,32 @@ def test_kg_image_ships_the_module_its_entrypoint_imports(tmp_path, monkeypatch)
         encoding="utf-8",
     )
     assert "KG image does not ship an imported owned module: kg_store.py" in mod.findings()
+
+
+def test_decision_role_certification_requires_transitive_membership_closure(tmp_path, monkeypatch):
+    root = _sandbox(tmp_path, monkeypatch)
+    p = root / "services/decision-service/decision_sor_role_certify.py"
+    p.write_text(p.read_text(encoding="utf-8").replace("WITH RECURSIVE walk", "WITH walk", 1), encoding="utf-8")
+    assert "decision role certification missing WITH RECURSIVE walk" in mod.findings()
+
+
+def test_decision_revoke_requires_effective_postcondition_guard(tmp_path, monkeypatch):
+    root = _sandbox(tmp_path, monkeypatch)
+    p = root / "services/decision-service/platform_sor_revoke.py"
+    p.write_text(p.read_text(encoding="utf-8").replace("privilege_closure_findings", "effective_closure_check"), encoding="utf-8")
+    assert "decision DB revoke postcondition missing privilege_closure_findings" in mod.findings()
+
+
+def test_decision_live_receipt_contract_is_mandatory_before_authority_promotion():
+    c = json.loads((ROOT / "docs/architecture/authority_cutovers.json").read_text(encoding="utf-8"))
+    d = c["authorities"]["decision"]
+    assert "SUBJECT_BOUND_LIVE_DECISION_CLOSURE_RECEIPT_REQUIRED" in d["blocking_reasons"]
+    assert "scripts/staging/decision_sor_live_closure_collector.py" in d["required_evidence"]
+    assert "scripts/architecture/s5_decision_live_closure_receipt_guard.py" in d["required_evidence"]
+
+
+def test_platform_readyz_must_expose_effective_decision_sor_mode(tmp_path, monkeypatch):
+    root = _sandbox(tmp_path, monkeypatch)
+    p = root / "services/sahool-platform/api/routers/platform_health.py"
+    p.write_text(p.read_text(encoding="utf-8").replace('body["decision_sor"]', 'body["decision_mode_hidden"]'), encoding="utf-8")
+    assert 'platform readyz decision SoR evidence missing body["decision_sor"]' in mod.findings()

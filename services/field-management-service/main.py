@@ -22,9 +22,11 @@ Security contract (fail-closed, no platform fallback):
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import json
 import os
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 
@@ -37,6 +39,22 @@ VERSION = os.getenv("SERVICE_VERSION", "9.1.0-field-owner")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 app = FastAPI(title="SAHOOL Field Management Service", version=VERSION)
+
+
+def _source_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _runtime_source_identity() -> dict[str, str]:
+    source = Path(__file__).resolve()
+    here = source.parent
+    assertion = here / "shared" / "security" / "service_tenant_assertion.py"
+    if not assertion.is_file():
+        assertion = source.parents[2] / "shared" / "security" / "service_tenant_assertion.py"
+    return {
+        "main_sha256": _source_sha256(source),
+        "service_tenant_assertion_sha256": _source_sha256(assertion),
+    }
 
 # Columns read for both the by-id detail and the list. geometry is JSONB GeoJSON
 # (asyncpg returns it as a str with no codec ⇒ json.loads before returning).
@@ -199,6 +217,7 @@ async def readyz():
         "ready": bool(DATABASE_URL),
         "runtime_role": "field-owner",
         "dependencies": {"database": bool(DATABASE_URL)},
+        "source_identity": _runtime_source_identity(),
     }
 
 

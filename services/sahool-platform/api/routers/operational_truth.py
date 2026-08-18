@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import Any
 
 from core.operational_truth import content_digest, reconciliation_status
+from core.erp_projection_contract import verify_reconciliation_binding
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -246,14 +247,31 @@ async def record_erp_reconciliation(
                     "persisted": True,
                     "replayed": True,
                 }
-            outbox = await conn.fetchval(
-                """SELECT 1 FROM farm_ledger_erp_projection_outbox
+            outbox = await conn.fetchrow(
+                """SELECT provider, payload, status, sent_at FROM farm_ledger_erp_projection_outbox
                    WHERE tenant_id=$1::uuid AND outbox_id=$2""",
                 tenant_id,
                 req.outbox_id,
             )
-            if outbox != 1:
+            if outbox is None:
                 raise HTTPException(status_code=404, detail="erp_projection_outbox_not_found")
+            payload = outbox["payload"]
+            if isinstance(payload, str):
+                try:
+                    payload = json.loads(payload)
+                except (TypeError, ValueError) as exc:
+                    raise HTTPException(status_code=409, detail="erp_projection_payload_invalid") from exc
+            try:
+                verify_reconciliation_binding(
+                    stored_payload=payload,
+                    stored_provider=str(outbox["provider"]),
+                    stored_status=str(outbox["status"]),
+                    stored_sent_at=outbox["sent_at"],
+                    receipt_provider=req.provider,
+                    evidence=req.evidence,
+                )
+            except ValueError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
             await conn.execute(
                 """INSERT INTO erp_reconciliation_ledger
                    (reconciliation_id,tenant_id,outbox_id,provider,provider_event_id,

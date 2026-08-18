@@ -3,7 +3,7 @@
   "version": 1,
   "adjudicated_on": "2026-08-05",
   "note_ar": "سجلّ البيانات التعريفية التحكيمية (MANIFEST-REGISTRY-01). لا تُحرَّر القائمة يدويّاً: تُشتقّ من `git ls-files docs/architecture/*.json` + قاعدة «يحمل adjudicated_on»، ويعيد توليدها `manifest_registry_guard.py`. الراتش: كلّ بيان جديد يجب أن يكون governed (schema+version+adjudicated_on)؛ الصنفان legacy انتقالان للستّة القائمة فقط.",
-  "derivation_rule_ar": "كل docs/architecture/*.json يحمل adjudicated_on يُسجَّل؛ ما عداه خارج نطاق المرحلة 1.",
+  "derivation_rule_ar": "كل ملف JSON مباشر تحت docs/architecture يحمل adjudicated_on يُسجَّل؛ مجلدات الأدلة المتداخلة خارج نطاق هذا السجل ولها عقودها الخاصة.",
   "entries": [
     {
       "path": "docs/architecture/authority_cutovers.json",
@@ -35,10 +35,6 @@
     },
     {
       "path": "docs/architecture/gate01_policy.json",
-      "kind": "governed"
-    },
-    {
-      "path": "docs/architecture/gates/adjudications/GATE01-ADJ-2026-08-13-001.json",
       "kind": "governed"
     },
     {

@@ -92,8 +92,23 @@ def test_the_environment_variable_wins_when_set(monkeypatch):
 
 
 def test_git_history_is_the_second_source(monkeypatch):
-    """بلا المتغيّر يُشتقّ الختم من آخر التزام — لا من الآن."""
+    """بلا المتغيّر يُشتقّ الختم من آخر التزام — لا من الآن.
+
+    هذا شاهدٌ خاصّ ببيئة checkout حقيقية. حزمة التسليم المستخرجة تتعمّد عدم حمل
+    ``.git``؛ هناك يغطّي الاختبار التالي عقد الفشل الصريح بلا تاريخ Git، فلا يجوز
+    تحويل غياب metadata المصدرية المقصود إلى فشلٍ زائف للحزمة. في CI checkout يبقى
+    هذا الاختبار منفّذاً بالكامل.
+    """
     monkeypatch.delenv("SOURCE_DATE_EPOCH", raising=False)
+    probe = subprocess.run(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=_ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    if probe.returncode != 0 or probe.stdout.strip() != "true":
+        pytest.skip("requires a real Git checkout; extracted delivery ZIP intentionally has no .git")
     expected = int(
         subprocess.run(
             ["git", "log", "-1", "--pretty=%ct"],
@@ -247,6 +262,16 @@ def test_no_committed_generated_artifact_carries_a_wall_clock_stamp():
     متعقَّب دليلٌ بنيويّ على عودة اللاحتميّة، بلا حاجة لقراءة المولّد.
     """
     import re
+
+    probe = subprocess.run(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=_ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    if probe.returncode != 0 or probe.stdout.strip() != "true":
+        pytest.skip("requires a real Git checkout; extracted delivery ZIP intentionally has no .git")
 
     tracked = subprocess.run(
         ["git", "ls-files", "--", "*.json"],

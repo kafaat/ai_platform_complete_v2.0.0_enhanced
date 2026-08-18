@@ -190,3 +190,49 @@ def test_the_owned_counts_add_up_to_the_measured_total():
     """الرقم المُسجَّل في سجلّ الفجوات هو نفسه المفروض هنا — لا نسختان تتباعدان."""
     assert sum(OWNED.values()) == 16
     assert len(OWNED) == 6
+
+
+def test_duplicate_definition_guard_uses_release_manifest_without_git(tmp_path, monkeypatch):
+    """Delivery ZIPs deliberately have no .git; the release manifest is the membership SoT."""
+    import hashlib
+    import duplicate_definition_guard as guard
+
+    src = tmp_path / "services" / "demo.py"
+    src.parent.mkdir(parents=True)
+    src.write_text("def one():\n    return 1\n", encoding="utf-8")
+    release = tmp_path / "release"
+    release.mkdir()
+    digest = hashlib.sha256(src.read_bytes()).hexdigest()
+    (release / "FILE_CHECKSUMS.sha256").write_text(
+        f"{digest}  services/demo.py\n", encoding="utf-8"
+    )
+
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    monkeypatch.setattr(guard, "SCAN", [tmp_path / "services", tmp_path / "shared"])
+
+    payload = guard.build_payload()
+    assert payload["python_files_parsed"] == 1
+    assert payload["finding_count"] == 0
+
+
+def test_duplicate_definition_guard_rejects_tampered_release_member(tmp_path, monkeypatch):
+    """Manifest membership without digest verification would turn ZIP fallback into trust-by-name."""
+    import hashlib
+    import duplicate_definition_guard as guard
+
+    src = tmp_path / "services" / "demo.py"
+    src.parent.mkdir(parents=True)
+    src.write_text("def one():\n    return 1\n", encoding="utf-8")
+    release = tmp_path / "release"
+    release.mkdir()
+    digest = hashlib.sha256(src.read_bytes()).hexdigest()
+    (release / "FILE_CHECKSUMS.sha256").write_text(
+        f"{digest}  services/demo.py\n", encoding="utf-8"
+    )
+    src.write_text("def one():\n    return 2\n", encoding="utf-8")
+
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    monkeypatch.setattr(guard, "SCAN", [tmp_path / "services"])
+
+    with pytest.raises(RuntimeError, match="release checksum mismatch"):
+        guard.build_payload()

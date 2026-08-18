@@ -11,6 +11,7 @@ import ast
 import csv
 import hashlib
 import json
+import subprocess
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -46,33 +47,103 @@ def rel(p: Path) -> str:
     return str(p.relative_to(ROOT))
 
 
-def _tracked_files() -> set[str]:
-    """git-tracked repo-relative paths. rglob counts transient/untracked ``*.py``
-    that exist on a dev machine but not on a clean CI checkout, so ``python_files_parsed``
-    (and this audit's drift digest) diverges local-vs-CI. Tracked files ARE the repo."""
-    import subprocess
+def _release_manifest_entries() -> dict[str, str]:
+    """Strict offline repository membership for extracted release ZIPs.
 
-    out = subprocess.run(
-        ["git", "ls-files", "-z"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    return {r for r in out.split("\0") if r}
+    Execution-audit used to require ``git ls-files`` unconditionally, so the same
+    delivered ZIP whose release/capability/static-governance gates were auditable
+    could not audit execution dependencies without manufacturing a fake .git index.
+    The fallback is fail-closed: only canonical paths in the release checksum
+    manifest are eligible, and scanned Python files are digest-verified before use.
+    """
+    manifest = ROOT / "release" / "FILE_CHECKSUMS.sha256"
+    if not manifest.exists():
+        return {}
+    if manifest.is_symlink() or not manifest.is_file():
+        raise RuntimeError("release checksum manifest must be a regular non-symlink file")
+    try:
+        manifest.resolve().relative_to(ROOT.resolve())
+    except ValueError as exc:
+        raise RuntimeError("release checksum manifest escapes repository root") from exc
+
+    entries: dict[str, str] = {}
+    for lineno, raw in enumerate(manifest.read_text(encoding="utf-8").splitlines(), start=1):
+        if not raw:
+            continue
+        if "  " not in raw:
+            raise RuntimeError(f"malformed release checksum manifest line {lineno}")
+        digest, relpath = raw.split("  ", 1)
+        path = Path(relpath)
+        if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+            raise RuntimeError(f"malformed SHA-256 on release checksum manifest line {lineno}")
+        if (
+            not relpath
+            or path.is_absolute()
+            or ".." in path.parts
+            or path.as_posix() != relpath
+        ):
+            raise RuntimeError(f"unsafe path on release checksum manifest line {lineno}: {relpath!r}")
+        if relpath in entries:
+            raise RuntimeError(f"duplicate path on release checksum manifest line {lineno}: {relpath}")
+        entries[relpath] = digest
+    return entries
+
+
+def _tracked_inventory() -> tuple[set[str], dict[str, str] | None]:
+    """Repository membership plus trust source: Git, or verified release manifest."""
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        tracked = {r for r in out.split("\0") if r}
+        if tracked:
+            return tracked, None
+    except (OSError, subprocess.CalledProcessError):
+        pass
+
+    entries = _release_manifest_entries()
+    if entries:
+        return set(entries), entries
+    raise RuntimeError(
+        "no git worktree and no release checksum manifest; refusing to scan the raw filesystem (fail-closed)"
+    )
+
+
+def _tracked_files() -> set[str]:
+    """Compatibility wrapper returning repository membership only."""
+    return _tracked_inventory()[0]
+
+
+def _verify_manifest_member(path: Path, relpath: str, digest: str) -> None:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError(f"manifest member is not a regular file: {relpath}")
+    try:
+        path.resolve().relative_to(ROOT.resolve())
+    except ValueError as exc:
+        raise RuntimeError(f"manifest member escapes repository root: {relpath}") from exc
+    got = hashlib.sha256(path.read_bytes()).hexdigest()
+    if got != digest:
+        raise RuntimeError(f"release checksum mismatch for execution-audit input: {relpath}")
 
 
 def files():
     # sorted(): rglob order is filesystem-dependent; sort for deterministic output.
-    tracked = _tracked_files()
+    tracked, manifest_entries = _tracked_inventory()
     for base in SCAN:
         if not base.exists():
             continue
         for p in sorted(base.rglob("*.py")):
             if any(part in SKIP for part in p.parts):
                 continue
-            if p.relative_to(ROOT).as_posix() not in tracked:
+            relpath = p.relative_to(ROOT).as_posix()
+            if relpath not in tracked:
                 continue
+            if manifest_entries is not None:
+                _verify_manifest_member(p, relpath, manifest_entries[relpath])
             yield p
 
 

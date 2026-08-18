@@ -58,6 +58,17 @@ def test_new_platform_owned_table_is_identity_blocked(tmp_path, monkeypatch):
     )
 
 
+
+def test_tombstoned_imagery_provider_reintroduction_is_blocked(tmp_path, monkeypatch):
+    root = _sandbox(tmp_path, monkeypatch)
+    resurrected = root / "services/sahool-platform/api/imagery_providers.py"
+    resurrected.parent.mkdir(parents=True, exist_ok=True)
+    resurrected.write_text("# mutation witness: resurrected unconsumed imagery registry\n", encoding="utf-8")
+    assert any(
+        x == "NEW platform_domain_compute: services/sahool-platform/api/imagery_providers.py"
+        for x in mod.findings(today=dt.date(2026, 8, 18))
+    )
+
 def test_stale_identity_forces_baseline_lowering(tmp_path, monkeypatch):
     root = _sandbox(tmp_path, monkeypatch)
     pol = json.loads(
@@ -80,6 +91,27 @@ def test_exception_requires_owner_reason_and_close_date(tmp_path, monkeypatch):
     assert any("missing fields" in x for x in mod.findings(today=dt.date(2026, 8, 17)))
 
 
+def test_stale_or_unnecessary_exception_is_blocked(tmp_path, monkeypatch):
+    root = _sandbox(tmp_path, monkeypatch)
+    pp = root / "docs/architecture/platform_shrink_ratchet.json"
+    pol = json.loads(pp.read_text(encoding="utf-8"))
+    existing = pol["baseline"]["platform_provider_clients"][0]
+    pol["exceptions"] = [
+        {
+            "category": "platform_provider_clients",
+            "identity": existing,
+            "owner": "architecture",
+            "reason": "mutation witness: exception is unnecessary because identity is already baseline",
+            "target_close_by": "2026-09-01",
+        }
+    ]
+    pp.write_text(json.dumps(pol), encoding="utf-8")
+    assert any(
+        x == f"stale/unnecessary exception: platform_provider_clients:{existing}"
+        for x in mod.findings(today=dt.date(2026, 8, 17))
+    )
+
+
 def test_category_compensation_cannot_hide_new_identity(tmp_path, monkeypatch):
     root = _sandbox(tmp_path, monkeypatch)
     pp = root / "docs/architecture/platform_shrink_ratchet.json"
@@ -93,26 +125,23 @@ def test_category_compensation_cannot_hide_new_identity(tmp_path, monkeypatch):
     assert any("STALE platform_provider_clients" in x and victim in x for x in f)
 
 
-def test_an_exception_whose_reason_expired_is_reported_as_unnecessary(tmp_path, monkeypatch):
-    """استثناءٌ لهُويّةٍ صارت في الأساس لم يعد يستثني شيئاً — يجب أن يُبلَّغ بائداً.
-
-    السياسة الحيّة تحمل **صفر** استثناء، فقاعدة `stale/unnecessary` لا تمرّ بها حلقةٌ
-    على الشجرة الحقيقيّة. بلا هذا الصندوق الرمليّ تبقى القاعدة غير مقيسة، ويُزرَع
-    عطلُها فيبقى كلّ اختبارٍ أخضر — وهو ما قاسته البوّابة فعلاً.
-    """
+def test_inherited_authority_exception_requires_metadata(tmp_path, monkeypatch):
     root = _sandbox(tmp_path, monkeypatch)
     pp = root / "docs/architecture/platform_shrink_ratchet.json"
     pol = json.loads(pp.read_text(encoding="utf-8"))
-    ident = pol["baseline"]["platform_provider_clients"][0]
-    pol["exceptions"] = [
-        {
-            "category": "platform_provider_clients",
-            "identity": ident,
-            "owner": "platform-team",
-            "reason": "هُويّة في الأساس أصلاً — الاستثناء لا يستثني شيئاً",
-            "target_close_by": "2026-10-01",
-        }
-    ]
+    victim = pol["baseline"]["platform_authority_exceptions"][0]
+    del pol["baseline_exception_metadata"][victim]
     pp.write_text(json.dumps(pol), encoding="utf-8")
-    f = mod.findings(today=dt.date(2026, 8, 17))
-    assert any(x == f"stale/unnecessary exception: platform_provider_clients:{ident}" for x in f), f
+    assert any("baseline authority exceptions missing metadata" in x
+               for x in mod.findings(today=dt.date(2026, 8, 18)))
+
+
+def test_inherited_authority_exception_expiry_is_blocking(tmp_path, monkeypatch):
+    root = _sandbox(tmp_path, monkeypatch)
+    pp = root / "docs/architecture/platform_shrink_ratchet.json"
+    pol = json.loads(pp.read_text(encoding="utf-8"))
+    victim = pol["baseline"]["platform_authority_exceptions"][0]
+    pol["baseline_exception_metadata"][victim]["target_close_by"] = "2026-08-17"
+    pp.write_text(json.dumps(pol), encoding="utf-8")
+    assert any("baseline authority exception expired" in x
+               for x in mod.findings(today=dt.date(2026, 8, 18)))

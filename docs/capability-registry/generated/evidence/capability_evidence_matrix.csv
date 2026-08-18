@@ -40,7 +40,7 @@ OPS-002,Work orders,operations,3,2,declared_above_evidence,7,True,True,True,True
 OPS-003,Scouting,operations,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
 OPS-004,Field forms,operations,3,3,aligned,9,True,True,True,True,True,True,True,True,True,False,False,False
 OPS-005,Offline mobile,operations,3,2,declared_above_evidence,8,True,True,True,True,True,True,True,True,False,False,False,False
-OPS-006,Equipment registry,operations,3,1,declared_above_evidence,3,True,False,True,False,False,False,True,False,False,False,False,False
+OPS-006,Equipment registry,operations,3,1,declared_above_evidence,4,True,True,True,False,False,False,True,False,False,False,False,False
 OPS-007,Maintenance,operations,3,2,declared_above_evidence,5,True,False,True,True,True,False,False,True,False,False,False,False
 OPS-008,Workforce and worker identity,operations,3,1,declared_above_evidence,2,True,False,False,False,False,False,False,False,False,True,False,False
 PA-001,Management zones,precision,3,2,declared_above_evidence,6,True,True,True,True,True,False,False,True,False,False,False,False

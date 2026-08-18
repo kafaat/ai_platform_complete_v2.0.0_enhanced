@@ -223,7 +223,6 @@
       "services/sahool-platform/api/aromatic_fodder_crops.py",
       "services/sahool-platform/api/canonical_as_applied_irrigation.py",
       "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-      "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
       "services/sahool-platform/api/canonical_nutrient_ledger.py",
       "services/sahool-platform/api/canonical_soil_state.py",
       "services/sahool-platform/api/crop_cycle.py",
@@ -268,7 +267,6 @@
       "services/sahool-platform/api/high_value_crops.py",
       "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
       "services/sahool-platform/api/imagery_automation.py",
-      "services/sahool-platform/api/imagery_providers.py",
       "services/sahool-platform/api/irrigation_activation_gate.py",
       "services/sahool-platform/api/irrigation_authoritative_reservation.py",
       "services/sahool-platform/api/irrigation_authoritative_resolver.py",
@@ -366,7 +364,6 @@
       "services/sahool-platform/core/agronomic_decision.py",
       "services/sahool-platform/core/canonical_field_state.py",
       "services/sahool-platform/core/canonical_field_state_lock.py",
-      "services/sahool-platform/core/connectors/weather_openmeteo.py",
       "services/sahool-platform/core/crop_cards/loader.py",
       "services/sahool-platform/core/crop_inference.py",
       "services/sahool-platform/core/crop_intelligence/canonical_inputs.py",
@@ -410,7 +407,6 @@
       "services/sahool-platform/core/field_twin.py",
       "services/sahool-platform/core/hybrid_rag_retrieval.py",
       "services/sahool-platform/core/irrigation_water_analysis.py",
-      "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
       "services/sahool-platform/core/knowledge_levels.py",
       "services/sahool-platform/core/rag/production_qdrant.py",
       "services/sahool-platform/core/soil_climate_sources.py",
@@ -429,10 +425,7 @@
       "services/sahool-platform/api/ai_provider_config.py",
       "services/sahool-platform/api/connectors/metno_wind.py",
       "services/sahool-platform/api/connectors/nasa_power.py",
-      "services/sahool-platform/api/connectors/openmeteo.py",
-      "services/sahool-platform/core/connectors/copernicus.py",
-      "services/sahool-platform/core/connectors/farmonaut.py",
-      "services/sahool-platform/core/connectors/weather_openmeteo.py"
+      "services/sahool-platform/api/connectors/openmeteo.py"
     ],
     "platform_authority_exceptions": [
       "decision_record:mirror:decision-service",
@@ -468,6 +461,33 @@
     "stale_baseline_identity": "BLOCK_AND_LOWER_BASELINE",
     "category_compensation": "FORBIDDEN"
   },
-  "measured_on": "c039166560486cc8e0c7795dbae959ee034b7228",
-  "$why_measured_not_decided": "الأعداد الأربعة (ملكيّة الجداول · الحوسبة النطاقيّة · عملاء المزوّدين · استثناءات السلطة) يشتقّها الماسح من الشجرة نفسها، فتَبيت بحركتها — وأساسها SHA الذي قِيست عليه لا تاريخ قرار."
+  "measured_on": "010c9627c855b2b70b37b2ed58520fb4f25d69fe+delta",
+  "$why_measured_not_decided": "الأعداد الأربعة (ملكيّة الجداول · الحوسبة النطاقيّة · عملاء المزوّدين · استثناءات السلطة) يشتقّها الماسح من الشجرة نفسها، فتَبيت بحركتها — وأساسها SHA الذي قِيست عليه لا تاريخ قرار.",
+  "baseline_exception_metadata": {
+    "decision_record:mirror:decision-service": {
+      "owner": "decision-service-cutover",
+      "reason": "interim Decision SoR mirror for decision_record; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
+      "target_close_by": "2026-10-31"
+    },
+    "dispatch_decisions:mirror:decision-service": {
+      "owner": "decision-service-cutover",
+      "reason": "interim Decision SoR mirror for dispatch_decisions; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
+      "target_close_by": "2026-10-31"
+    },
+    "online_learning_updates:mirror:decision-service": {
+      "owner": "decision-service-cutover",
+      "reason": "interim Decision SoR mirror for online_learning_updates; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
+      "target_close_by": "2026-10-31"
+    },
+    "outcome_record:mirror:decision-service": {
+      "owner": "decision-service-cutover",
+      "reason": "interim Decision SoR mirror for outcome_record; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
+      "target_close_by": "2026-10-31"
+    },
+    "recommendation_outcomes:mirror:decision-service": {
+      "owner": "decision-service-cutover",
+      "reason": "interim Decision SoR mirror for recommendation_outcomes; closes only after live PostgreSQL privilege/idempotency cutover and platform authoritative-write revocation",
+      "target_close_by": "2026-10-31"
+    }
+  }
 }

@@ -75,3 +75,16 @@ services:
       # after Arabic voice-quality tests.
       TTS_PROVIDER: ${TTS_PROVIDER:-edge_tts}
       TTS_GPU_PROVIDER: ${TTS_GPU_PROVIDER:-disabled}
+
+  sahool-vllm-jais:
+    profiles: ["vllm"]
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
