@@ -239,6 +239,12 @@ run "٦أ) brain_deferral"          python3 scripts/ci/brain_deferral_registry_g
 if git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   run "٦ب) brain_state_transition" python3 scripts/ci/brain_state_transition_guard.py --base "$BASE" --head HEAD
   run "٦ج) brain_commit_claim"     python3 scripts/ci/brain_commit_claim_guard.py --base "$BASE" --head HEAD
+  # ٦ج تقرأ **رسائل الالتزامات** في `$BASE..HEAD`. فتشغيلُ هذا السكربت قبل الالتزام
+  # يقيس مدىً لا يحوي الرسالة التي ستُكتب بعد قليل — وأخضرُه حينئذٍ يقول «ما التُزِم
+  # نظيف»، لا «رسالتك ستمرّ». مقيس: التزام يحمل `CI-HOST-PSQL:` في عنوانه — بادئةٌ
+  # مبتورة لمعرّف مُسجَّل — مرّ على أخضرِ ٦ج المُشتقّ قبله ثمّ أسقط `guard` في CI.
+  # نفس صنف تحذير Capability-Impact أدناه: يُشتقّ بعد الالتزام أو لا يُشتقّ.
+  echo "     ملاحظة: ٦ج تقرأ الرسائل **المُلتزَمة**. التزِم ثمّ أعِد هذه الخطوة وحدها."
 else
   echo "── ٦ب/٦ج) حرّاس مدى الـPR"
   echo "   ⊘ متخطّاة: '$BASE' غير موجود — **لم تُقَس**"

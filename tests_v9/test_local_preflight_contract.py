@@ -184,6 +184,28 @@ def test_a_leaked_test_probe_fails_the_fast_tier_instead_of_warning():
     )
 
 
+def test_the_commit_claim_step_says_it_reads_committed_messages_only():
+    """Measured: its green ran before the commit it was read as clearing.
+
+    ``brain_commit_claim_guard`` reads commit *messages* in ``base..HEAD``. Running the
+    preflight before committing therefore measures a range that does not contain the
+    message about to be written — so ``٦ج ✓`` means "what is committed is clean", never
+    "your message will pass". A commit whose subject carried ``CI-HOST-PSQL:`` — a
+    truncated prefix of a registered identifier — passed that green and then failed the
+    blocking ``guard`` job in CI.
+
+    Same class as the Capability-Impact reminder already in this tool: derive it after
+    committing or do not derive it. So the step must say so where its result is printed.
+    """
+    text = _text()
+    claim_at = text.index("brain_commit_claim_guard.py")
+    tail = text[claim_at:]
+    assert "المُلتزَمة" in tail[:1200], (
+        "٦ج must state that it reads committed messages — a green measured on a range "
+        "without the message reads as clearing the message"
+    )
+
+
 def test_exit_codes_use_the_form_the_runbook_proved():
     """`[ $rc -ne 0 ] && echo …` as a function's last statement returns 1 on success.
 
