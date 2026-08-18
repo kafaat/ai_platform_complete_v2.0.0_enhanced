@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fail-closed validator for S4 Knowledge Graph live runtime-parity receipts."""
+
 from __future__ import annotations
 
 import argparse
@@ -40,7 +41,10 @@ def findings(receipt: dict[str, Any], subject_sha: str) -> list[str]:
         out.append("receipt schema mismatch")
     if receipt.get("subject_sha") != subject_sha.lower():
         out.append("receipt subject SHA mismatch")
-    if receipt.get("local_subject_sha") != subject_sha.lower() or receipt.get("local_subject_match") is not True:
+    if (
+        receipt.get("local_subject_sha") != subject_sha.lower()
+        or receipt.get("local_subject_match") is not True
+    ):
         out.append("collector checkout subject SHA mismatch")
     if receipt.get("status") != "PASSED":
         out.append("receipt status is not PASSED")
@@ -52,7 +56,10 @@ def findings(receipt: dict[str, Any], subject_sha: str) -> list[str]:
     expected_identity = _source_identity()
     if receipt.get("expected_source_identity") != expected_identity:
         out.append("expected source identity drift")
-    if receipt.get("source_identity") != expected_identity or receipt.get("source_identity_match") is not True:
+    if (
+        receipt.get("source_identity") != expected_identity
+        or receipt.get("source_identity_match") is not True
+    ):
         out.append("deployed source identity mismatch")
     if receipt.get("cases_sha256") != _sha(CASES):
         out.append("parity cases digest mismatch")
@@ -61,7 +68,11 @@ def findings(receipt: dict[str, Any], subject_sha: str) -> list[str]:
     if receipt.get("consumer_fingerprint_sha256") != freeze.get("consumer_fingerprint_sha256"):
         out.append("consumer fingerprint mismatch")
     rows = receipt.get("cases")
-    if not isinstance(rows, list) or len(rows) != len(cases) or receipt.get("case_count") != len(cases):
+    if (
+        not isinstance(rows, list)
+        or len(rows) != len(cases)
+        or receipt.get("case_count") != len(cases)
+    ):
         out.append("parity case count mismatch")
     else:
         for expected, row in zip(cases, rows, strict=True):
@@ -73,7 +84,10 @@ def findings(receipt: dict[str, Any], subject_sha: str) -> list[str]:
                 out.append(f"parity failed for {expected['subject_id']}")
             if row.get("minimum_evidence_met") is not True:
                 out.append(f"minimum evidence flag failed for {expected['subject_id']}")
-            if int(row.get("rest_count", 0)) < minimum or int(row.get("graphql_count", 0)) < minimum:
+            if (
+                int(row.get("rest_count", 0)) < minimum
+                or int(row.get("graphql_count", 0)) < minimum
+            ):
                 out.append(f"empty/insufficient evidence for {expected['subject_id']}")
             digest = row.get("edge_digest")
             if not isinstance(digest, str) or not _HEX64.fullmatch(digest):
@@ -94,7 +108,9 @@ def main() -> int:
     ap.add_argument("--receipt", required=True)
     ap.add_argument("--subject-sha", required=True)
     args = ap.parse_args()
-    if len(args.subject_sha) not in (40, 64) or any(c not in "0123456789abcdefABCDEF" for c in args.subject_sha):
+    if len(args.subject_sha) not in (40, 64) or any(
+        c not in "0123456789abcdefABCDEF" for c in args.subject_sha
+    ):
         print("s4_kg_runtime_parity_receipt_fail invalid subject sha")
         return 1
     receipt = json.loads(Path(args.receipt).read_text(encoding="utf-8"))
@@ -103,7 +119,9 @@ def main() -> int:
         for problem in problems:
             print("s4_kg_runtime_parity_receipt_fail", problem)
         return 1
-    print(f"s4_kg_runtime_parity_receipt_ok cases={receipt['case_count']} subject={args.subject_sha[:12]}")
+    print(
+        f"s4_kg_runtime_parity_receipt_ok cases={receipt['case_count']} subject={args.subject_sha[:12]}"
+    )
     return 0
 
 

@@ -1,4 +1,3 @@
-
 """Provider-neutral Farm Ledger -> ERP projection identity.
 
 This module creates no ERP write. It freezes the exact projection payload so a later

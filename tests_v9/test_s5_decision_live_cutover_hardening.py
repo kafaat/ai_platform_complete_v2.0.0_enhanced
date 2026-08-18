@@ -4,6 +4,10 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -39,7 +43,9 @@ def _connection(role: str):
 
 
 def test_decision_role_preflight_rejects_membership_sequence_owner_and_shared_role():
-    m = _load("decision_role_certify_s5_test", "services/decision-service/decision_sor_role_certify.py")
+    m = _load(
+        "decision_role_certify_s5_test", "services/decision-service/decision_sor_role_certify.py"
+    )
     platform = _connection("sahool_app")
     service = _connection("decision_service_app")
     for conn in (platform, service):
@@ -61,12 +67,24 @@ def test_decision_role_preflight_rejects_membership_sequence_owner_and_shared_ro
         **result,
         "platform": {
             **platform,
-            "sequences": {"decision_record_id_seq": {"effective": {"USAGE": True, "SELECT": False, "UPDATE": False}}},
+            "sequences": {
+                "decision_record_id_seq": {
+                    "effective": {"USAGE": True, "SELECT": False, "UPDATE": False}
+                }
+            },
         },
     }
-    assert "platform_sequence_privilege_present:decision_record_id_seq" in m._preflight_blockers(sequence)
+    assert "platform_sequence_privilege_present:decision_record_id_seq" in m._preflight_blockers(
+        sequence
+    )
 
-    owner = {**result, "platform": {**platform, "table_owners": {**platform["table_owners"], "decision_record": "sahool_app"}}}
+    owner = {
+        **result,
+        "platform": {
+            **platform,
+            "table_owners": {**platform["table_owners"], "decision_record": "sahool_app"},
+        },
+    }
     assert any("app_role_owns_table:sahool_app" in x for x in m._preflight_blockers(owner))
 
 
@@ -105,7 +123,7 @@ def test_platform_revoke_postcondition_uses_effective_privileges_fail_closed():
 
 
 def test_revoke_mutation_and_effective_verification_share_one_outer_transaction():
-    source = (ROOT / "services/decision-service/platform_sor_revoke.py").read_text()
+    source = (ROOT / "services/decision-service/platform_sor_revoke.py").read_text(encoding="utf-8")
     run = source.split("async def _run(action: str)", 1)[1].split("def main", 1)[0]
     assert "async with conn.transaction():" in run
     assert "after = await privilege_state" in run
@@ -114,7 +132,9 @@ def test_revoke_mutation_and_effective_verification_share_one_outer_transaction(
 
 
 def test_role_certification_catalogue_query_is_transitive_not_direct_only():
-    source = (ROOT / "services/decision-service/decision_sor_role_certify.py").read_text()
+    source = (ROOT / "services/decision-service/decision_sor_role_certify.py").read_text(
+        encoding="utf-8"
+    )
     assert "WITH RECURSIVE walk AS" in source
     assert "JOIN walk w ON m.member = w.roleid" in source
     assert "platform_role_membership_closure_must_be_empty" in source

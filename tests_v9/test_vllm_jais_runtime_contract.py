@@ -73,7 +73,9 @@ def test_env_default_remains_local_and_exact_vllm_switch_is_documented():
 
 
 def test_model_runtime_contract_declares_no_domain_or_retrieval_authority():
-    contract = json.loads((ROOT / "config/ai-model-runtimes/jais-natural-farmer.json").read_text())
+    contract = json.loads(
+        (ROOT / "config/ai-model-runtimes/jais-natural-farmer.json").read_text(encoding="utf-8")
+    )
     assert contract["provider"] == "vllm"
     assert contract["model_repository"] == MODEL_REPO
     assert contract["domain_authority"] is False
@@ -83,6 +85,8 @@ def test_model_runtime_contract_declares_no_domain_or_retrieval_authority():
 
 
 def test_runtime_registered_as_infrastructure_only():
-    registry = json.loads((ROOT / "docs/architecture/component_registry.json").read_text())
+    registry = json.loads(
+        (ROOT / "docs/architecture/component_registry.json").read_text(encoding="utf-8")
+    )
     assert "sahool-vllm-jais" in registry["infrastructure_units"]
     assert "vllm-jais" not in registry["components"]

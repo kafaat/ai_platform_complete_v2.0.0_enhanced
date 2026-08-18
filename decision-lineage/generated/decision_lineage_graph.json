@@ -586,7 +586,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 476,
+      "evidence_count": 478,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -594,6 +594,7 @@
         "database",
         "decision-service",
         "edge-inference",
+        "field-management-service",
         "field-segmentation",
         "indicators-service",
         "knowledge-graph",
@@ -700,12 +701,14 @@
         "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
         "services/edge-inference/models/pest_detector.py",
         "services/edge-inference/models/yield_estimator.py",
+        "services/field-management-service/main.py",
         "services/field-segmentation/exg_preprocess.py",
         "services/field-segmentation/main.py",
         "services/field-segmentation/test_exg_preprocess.py",
         "services/field-segmentation/test_segmentation.py",
         "services/indicators-service/main.py",
         "services/knowledge-graph/kg_store.py",
+        "services/knowledge-graph/main.py",
         "services/mcp_servers/generic_context_server.py",
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -2258,6 +2261,7 @@
         "services/decision-service/tests/test_wx10_9_execution_plan.py",
         "services/decision-service/tests/test_wx11_6_registry_activation_boundary.py",
         "services/indicators-service/main.py",
+        "services/knowledge-graph/main.py",
         "services/mcp_servers/generic_context_server.py",
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -2317,11 +2321,10 @@
         "services/sahool-platform/core/authorization.py",
         "services/sahool-platform/core/canonical_field_state_lock.py",
         "services/sahool-platform/core/canonical_schemas.py",
-        "services/sahool-platform/core/crop_intelligence/confidence.py",
-        "services/sahool-platform/core/crop_intelligence/engine.py"
+        "services/sahool-platform/core/crop_intelligence/confidence.py"
       ],
       "source_evidence_count": 545,
-      "target_evidence_count": 476,
+      "target_evidence_count": 478,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2425,7 +2428,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 476,
+      "source_evidence_count": 478,
       "target_evidence_count": 168,
       "static_supported": true,
       "runtime_verified": false
@@ -2681,5 +2684,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "b1e8f593c2f60a92fc843a1395c7791f069d768665958bf690f4564c8fbf0961"
+  "content_sha256": "b72a1005866810cbeb4b1f2aae8673d0ed7b2a7c1758580a50cf30e54de309bd"
 }

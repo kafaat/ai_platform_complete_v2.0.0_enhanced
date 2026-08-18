@@ -6,6 +6,7 @@ A PASS requires: the canonical service is ready, its shipped source digests matc
 checkout, every governed case returns at least its declared minimum evidence, and REST/GraphQL
 normalize to the same edge set.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -106,6 +107,7 @@ def local_subject_sha() -> str:
     proc = subprocess.run(
         ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         timeout=10,
@@ -148,10 +150,13 @@ def collect(*, base_url: str, tenant_id: str, subject_sha: str, cases_path: Path
         query = {"subject_id": subject}
         if relation:
             query["relation"] = relation
-        rest = _edges(get_json(base + "/v1/edges?" + urllib.parse.urlencode(query), headers), "rest")
-        gql = 'query { edges(subject:"%s"%s) { edge_id subject_id relation object_id confidence prescriptive } }' % (
-            subject,
-            ', relation:"%s"' % relation if relation else "",
+        rest = _edges(
+            get_json(base + "/v1/edges?" + urllib.parse.urlencode(query), headers), "rest"
+        )
+        relation_clause = f', relation:"{relation}"' if relation else ""
+        gql = (
+            f'query {{ edges(subject:"{subject}"{relation_clause}) '
+            "{ edge_id subject_id relation object_id confidence prescriptive } }"
         )
         graph = _edges(
             get_json(base + "/graphql", headers, json.dumps({"query": gql}).encode("utf-8")),
@@ -188,7 +193,11 @@ def collect(*, base_url: str, tenant_id: str, subject_sha: str, cases_path: Path
         "read_only": True,
         "authority_promotion": False,
         "service": "knowledge-graph",
-        "ready": {"status": ready.get("status"), "service": ready.get("service"), "edges": ready.get("edges")},
+        "ready": {
+            "status": ready.get("status"),
+            "service": ready.get("service"),
+            "edges": ready.get("edges"),
+        },
         "source_identity": live_identity,
         "expected_source_identity": expected_identity,
         "source_identity_match": identity_match,

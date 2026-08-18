@@ -385,6 +385,16 @@ jobs:
       - name: rag-authority-convergence-gate
         run: python scripts/architecture/rag_authority_convergence_guard.py
 
+      # S4: يمنع عودة مستهلك منصّة لتخزين المعرفة القديم — الملكيّة الوحيدة القانونيّة
+      # خدمة knowledge-graph. الأساس مصدرٌ ثابت يُشتقّ من الشجرة الحاليّة لا يُكتَب هنا.
+      - name: s4-kg-consumer-freeze-gate
+        run: python scripts/architecture/s4_kg_consumer_freeze.py --check
+
+      # S5-EXEC-01: يجمّد سطح الهجرة التشغيليّ لهُويّات Decision SoR الخمس ويمنع نموّاً
+      # صامتاً في كاتبي التنفيذ خارج المجموعة المُقرَّرة (٦ كتّاب مجمَّدون).
+      - name: s5-exec-01-edge-freeze-gate
+        run: python scripts/architecture/s5_exec_01_edge_freeze.py --check
+
       # يمنع رجوع خطّافات FastAPI المهجورة (@app.on_event) — يُلزِم lifespan واحداً
       # مُرتَّباً (بدء/إيقاف صريحان) فتبقى تحذيرات الإهمال غائبة. يُشغَّل في فحص الفرع (pre-FF).
       - name: fastapi-lifespan-guard
@@ -1030,6 +1040,17 @@ jobs:
       - name: WX-10.8 review-queue endpoint tests
         working-directory: services/decision-service
         run: pytest tests/test_wx10_8_review_queue.py -q -p no:cacheprovider
+      # S5-EXEC-01 recommendation_outcomes cutover (static/text-inspection, no DB): compat shim,
+      # decision_record immutability, outcome_record idempotency, and the preflight guard that
+      # blocks the cutover until the new writer path is proven — none touch Postgres.
+      - name: S5-EXEC-01 recommendation_outcomes cutover tests
+        working-directory: services/decision-service
+        run: >-
+          pytest -q -p no:cacheprovider
+          tests/test_s5_exec_01_decision_record_immutable.py
+          tests/test_s5_exec_01_outcome_record_idempotency.py
+          tests/test_s5_exec_01_recommendation_outcomes_compat.py
+          tests/test_s5_exec_01_recommendation_outcomes_preflight.py
       # WX-10.9..10.12 post-approval execution chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (plan -> authorize -> execute request -> delivery
       # receipt -> outcome verify), concurrency + idempotency proven on real Postgres.

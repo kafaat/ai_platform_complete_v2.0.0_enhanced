@@ -53,11 +53,21 @@ def findings() -> list[str]:
         if token not in live:
             out.append(f"decision live cutover proof missing {token}")
     role_cert = _text("services/decision-service/decision_sor_role_certify.py")
-    for token in ("WITH RECURSIVE walk", "membership_closure", "effective_table_privileges", "cutover_preflight_safe"):
+    for token in (
+        "WITH RECURSIVE walk",
+        "membership_closure",
+        "effective_table_privileges",
+        "cutover_preflight_safe",
+    ):
         if token not in role_cert:
             out.append(f"decision role certification missing {token}")
     revoke = _text("services/decision-service/platform_sor_revoke.py")
-    for token in ("has_table_privilege", "privilege_closure_findings", "PrivilegeClosureError", "closure_verified"):
+    for token in (
+        "has_table_privilege",
+        "privilege_closure_findings",
+        "PrivilegeClosureError",
+        "closure_verified",
+    ):
         if token not in revoke:
             out.append(f"decision DB revoke postcondition missing {token}")
     decision_collector = _text("scripts/staging/decision_sor_live_closure_collector.py")
@@ -83,7 +93,9 @@ def findings() -> list[str]:
     for token in ("get_platform_decision_sor_mode", 'body["decision_sor"]'):
         if token not in platform_health:
             out.append(f"platform readyz decision SoR evidence missing {token}")
-    if "SUBJECT_BOUND_LIVE_DECISION_CLOSURE_RECEIPT_REQUIRED" not in (d.get("blocking_reasons") or []):
+    if "SUBJECT_BOUND_LIVE_DECISION_CLOSURE_RECEIPT_REQUIRED" not in (
+        d.get("blocking_reasons") or []
+    ):
         out.append("decision subject-bound live closure blocker missing")
 
     # Field: no promotion without restricted-role behavioral RLS proof contract.
@@ -106,7 +118,11 @@ def findings() -> list[str]:
     for token in ("rolsuper", "rolbypassrls", "pg_auth_members", "FIELD_RLS_EVIDENCE_OUT"):
         if token not in field_gate:
             out.append(f"field live gate missing {token}")
-    for token in ("sahool.s4-field-rls-live-evidence/v2", "reachable_privileged_role_count", "cross_tenant_http"):
+    for token in (
+        "sahool.s4-field-rls-live-evidence/v2",
+        "reachable_privileged_role_count",
+        "cross_tenant_http",
+    ):
         if token not in field_receipt_guard:
             out.append(f"field receipt guard missing {token}")
     if "LIVE_APPLICATION_ROLE_RLS_PROOF_REQUIRED" not in (f.get("blocking_reasons") or []):

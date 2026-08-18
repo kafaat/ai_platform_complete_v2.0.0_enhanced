@@ -456,12 +456,12 @@ async def persist_phase10_learning_outputs(
             from core.learning_source_lineage import resolve_learning_source
 
             _lin = resolve_learning_source(update)
+            from api.decision_service_client import (
+                record_learning_update as _mirror_learning_update_to_service,
+            )
             from api.decision_sor_mode import (
                 assert_platform_may_write_decision_sor,
                 get_platform_decision_sor_mode,
-            )
-            from api.decision_service_client import (
-                record_learning_update as _mirror_learning_update_to_service,
             )
 
             service_payload = {
@@ -488,7 +488,9 @@ async def persist_phase10_learning_outputs(
                     tenant_id=str(tenant),
                 )
                 if not service_result.get("authoritative") or not service_result.get("persisted"):
-                    raise RuntimeError("decision-service did not prove authoritative learning-update persistence")
+                    raise RuntimeError(
+                        "decision-service did not prove authoritative learning-update persistence"
+                    )
             else:
                 assert_platform_may_write_decision_sor("online_learning_updates")
                 await conn.execute(

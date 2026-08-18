@@ -149,9 +149,7 @@ async def privilege_state(
     return state
 
 
-def privilege_closure_findings(
-    state: dict[str, dict[str, bool]], *, action: str
-) -> list[str]:
+def privilege_closure_findings(state: dict[str, dict[str, bool]], *, action: str) -> list[str]:
     """Validate effective DB privileges, including inherited/PUBLIC grants.
 
     ``has_table_privilege`` is intentionally used upstream instead of reading only direct GRANT
@@ -290,7 +288,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         result = asyncio.run(_run(action))
     except PrivilegeClosureError as exc:
-        print(json.dumps({"action": action, "closure_verified": False, "error": str(exc)}, indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                {"action": action, "closure_verified": False, "error": str(exc)},
+                indent=2,
+                sort_keys=True,
+            )
+        )
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

@@ -76,15 +76,14 @@ def _release_manifest_entries() -> dict[str, str]:
         path = Path(relpath)
         if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
             raise RuntimeError(f"malformed SHA-256 on release checksum manifest line {lineno}")
-        if (
-            not relpath
-            or path.is_absolute()
-            or ".." in path.parts
-            or path.as_posix() != relpath
-        ):
-            raise RuntimeError(f"unsafe path on release checksum manifest line {lineno}: {relpath!r}")
+        if not relpath or path.is_absolute() or ".." in path.parts or path.as_posix() != relpath:
+            raise RuntimeError(
+                f"unsafe path on release checksum manifest line {lineno}: {relpath!r}"
+            )
         if relpath in entries:
-            raise RuntimeError(f"duplicate path on release checksum manifest line {lineno}: {relpath}")
+            raise RuntimeError(
+                f"duplicate path on release checksum manifest line {lineno}: {relpath}"
+            )
         entries[relpath] = digest
     return entries
 

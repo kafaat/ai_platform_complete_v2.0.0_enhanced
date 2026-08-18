@@ -5,6 +5,7 @@ This freezes the *platform migration surface* for the five Decision SoR identiti
 retaining decision-service edges as the destination witness set.  edge_class is emitted
 here once and downstream consumers must not re-derive it.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,9 +34,15 @@ SELECT_FIELDS = ("from", "relation", "resource", "protocol", "to", "evidence")
 # S5 is actually shrinking: sahool-platform runtime READS/WRITES to the five Decision SoR
 # identities.  These constants are measured on the same 71108f2e S4/S5 cut and can only move
 # through an explicit shrink/adjudication update.
-LEGACY_FULL_GRAPH_FREEZE_FINGERPRINT = "34f240e7e3ca33dcdcc3b54dd88e3ce6c9052b4bb540ee3901ad2f3801088c1a"
-FROZEN_RUNTIME_MIGRATION_FINGERPRINT = "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7"
-FROZEN_RUNTIME_WRITER_FINGERPRINT = "c6820171e88b4f785d49f88023828bc59fd32a5b260a42d52a1f0d952376786a"
+LEGACY_FULL_GRAPH_FREEZE_FINGERPRINT = (
+    "34f240e7e3ca33dcdcc3b54dd88e3ce6c9052b4bb540ee3901ad2f3801088c1a"
+)
+FROZEN_RUNTIME_MIGRATION_FINGERPRINT = (
+    "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7"
+)
+FROZEN_RUNTIME_WRITER_FINGERPRINT = (
+    "c6820171e88b4f785d49f88023828bc59fd32a5b260a42d52a1f0d952376786a"
+)
 FROZEN_RUNTIME_COUNTS = {"total": 31, "reads": 25, "writes": 6}
 NON_MIGRATION_WITNESS_FLOOR = {"test_witness_total": 19, "decision_service_total": 24}
 
@@ -84,7 +91,9 @@ def fingerprint(edges: list[dict[str, Any]]) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def _surface(edges: list[dict[str, Any]], identity: str, edge_class: str, relation: str) -> list[dict[str, Any]]:
+def _surface(
+    edges: list[dict[str, Any]], identity: str, edge_class: str, relation: str
+) -> list[dict[str, Any]]:
     rows = []
     for edge in edges:
         if (
@@ -112,7 +121,9 @@ def build() -> dict[str, Any]:
     platform = [edge for edge in edges if edge["from"] == "sahool-platform"]
     decision = [edge for edge in edges if edge["from"] == "decision-service"]
 
-    def count(items: list[dict[str, Any]], *, relation: str | None = None, cls: str | None = None) -> int:
+    def count(
+        items: list[dict[str, Any]], *, relation: str | None = None, cls: str | None = None
+    ) -> int:
         return sum(
             1
             for edge in items
@@ -202,22 +213,34 @@ def build() -> dict[str, Any]:
             "projection READ rather than force-deleted; the invariant is authoritative platform reads == 0."
         ),
         "migration_batches": batches,
+        # قياسٌ يَبيت بحركة الشجرة — الأساس الذي قِيست عليه لا تاريخ قرار
+        # (claim_base_registry.json). ثابتٌ حرفيّاً لا مُشتقّ من git وقت التشغيل، فتظلّ
+        # المطابقة الحرفيّة بين المخزَّن والمُشتقّ حتميّة عبر البيئات والأزمنة.
+        "measured_on": "010c9627c855b2b70b37b2ed58520fb4f25d69fe+delta",
     }
 
 
 def invariant_findings(current: dict[str, Any]) -> list[str]:
     """Authority-bearing freeze checks; non-migration witness growth is informational only."""
     findings: list[str] = []
-    if current.get("runtime_migration_surface_fingerprint_sha256") != FROZEN_RUNTIME_MIGRATION_FINGERPRINT:
+    if (
+        current.get("runtime_migration_surface_fingerprint_sha256")
+        != FROZEN_RUNTIME_MIGRATION_FINGERPRINT
+    ):
         findings.append("RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT")
-    if current.get("runtime_writer_surface_fingerprint_sha256") != FROZEN_RUNTIME_WRITER_FINGERPRINT:
+    if (
+        current.get("runtime_writer_surface_fingerprint_sha256")
+        != FROZEN_RUNTIME_WRITER_FINGERPRINT
+    ):
         findings.append("RUNTIME_WRITER_SURFACE_FINGERPRINT_DRIFT")
     if current.get("runtime_migration_surface_counts") != FROZEN_RUNTIME_COUNTS:
         findings.append("RUNTIME_MIGRATION_SURFACE_COUNT_DRIFT")
     counts = current.get("counts") or {}
     for key, floor in NON_MIGRATION_WITNESS_FLOOR.items():
         if int(counts.get(key, 0)) < floor:
-            findings.append(f"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}")
+            findings.append(
+                f"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}"
+            )
     return findings
 
 
@@ -238,7 +261,9 @@ def main() -> int:
     if args.write:
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text(rendered, encoding="utf-8")
-        print(f"wrote {OUT.relative_to(ROOT)} legacy_fingerprint={current['edge_fingerprint_sha256']} runtime_fingerprint={current['runtime_migration_surface_fingerprint_sha256']}")
+        print(
+            f"wrote {OUT.relative_to(ROOT)} legacy_fingerprint={current['edge_fingerprint_sha256']} runtime_fingerprint={current['runtime_migration_surface_fingerprint_sha256']}"
+        )
         return 0
     if not OUT.exists():
         print(f"missing freeze artifact: {OUT.relative_to(ROOT)}")
@@ -246,10 +271,14 @@ def main() -> int:
     existing = json.loads(OUT.read_text(encoding="utf-8"))
     if existing != current:
         print("S5_EXEC_01_EDGE_FREEZE_DRIFT")
-        print(f"expected={existing.get('edge_fingerprint_sha256')} current={current.get('edge_fingerprint_sha256')}")
+        print(
+            f"expected={existing.get('edge_fingerprint_sha256')} current={current.get('edge_fingerprint_sha256')}"
+        )
         print(f"expected_counts={existing.get('counts')} current_counts={current.get('counts')}")
         return 1
-    print(f"s5_exec_01_edge_freeze_ok legacy_fingerprint={current['edge_fingerprint_sha256']} runtime_fingerprint={current['runtime_migration_surface_fingerprint_sha256']} counts={current['counts']}")
+    print(
+        f"s5_exec_01_edge_freeze_ok legacy_fingerprint={current['edge_fingerprint_sha256']} runtime_fingerprint={current['runtime_migration_surface_fingerprint_sha256']} counts={current['counts']}"
+    )
     return 0
 
 

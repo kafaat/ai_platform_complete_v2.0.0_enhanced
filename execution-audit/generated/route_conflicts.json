@@ -9,7 +9,7 @@
       "registrations": [
         {
           "function": "root",
-          "line": 225,
+          "line": 251,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/",
@@ -55,7 +55,7 @@
       "registrations": [
         {
           "function": "contract",
-          "line": 567,
+          "line": 568,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/contract",
@@ -63,7 +63,7 @@
         },
         {
           "function": "contract",
-          "line": 206,
+          "line": 232,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/contract",
@@ -110,7 +110,7 @@
         },
         {
           "function": "legacy_health",
-          "line": 189,
+          "line": 214,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/health",
@@ -277,7 +277,7 @@
         },
         {
           "function": "healthz",
-          "line": 515,
+          "line": 516,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/healthz",
@@ -293,7 +293,7 @@
         },
         {
           "function": "healthz",
-          "line": 184,
+          "line": 209,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/healthz",
@@ -325,7 +325,7 @@
         },
         {
           "function": "healthz",
-          "line": 89,
+          "line": 116,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/healthz",
@@ -516,7 +516,7 @@
         },
         {
           "function": "metrics",
-          "line": 94,
+          "line": 121,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/metrics",
@@ -619,7 +619,7 @@
         },
         {
           "function": "readyz",
-          "line": 520,
+          "line": 521,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/readyz",
@@ -635,7 +635,7 @@
         },
         {
           "function": "readyz",
-          "line": 194,
+          "line": 219,
           "method": "GET",
           "module": "services/field-management-service/main.py",
           "path": "/readyz",
@@ -667,7 +667,7 @@
         },
         {
           "function": "readyz",
-          "line": 111,
+          "line": 138,
           "method": "GET",
           "module": "services/knowledge-graph/main.py",
           "path": "/readyz",
@@ -842,7 +842,7 @@
         },
         {
           "function": "runtime_identity",
-          "line": 509,
+          "line": 510,
           "method": "GET",
           "module": "services/decision-service/main.py",
           "path": "/runtime-identity",
@@ -1151,7 +1151,7 @@
   "hard_conflicts": [],
   "production_certified": false,
   "route_count": 1096,
-  "route_inventory_sha256": "98280e173780331722fb6c46a3db1958a54ba1fbea7b9e0631f67af4eeaa9fa4",
+  "route_inventory_sha256": "83fbac192b915de6c629f445e7f36000adbaf0fcd3d0d730b7ca7fbe8cff706d",
   "runtime_verified": false,
   "schema_version": 1
 }

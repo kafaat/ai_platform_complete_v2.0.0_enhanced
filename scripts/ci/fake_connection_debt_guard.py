@@ -100,8 +100,7 @@ def _release_tracked_tests(base: Path) -> list[str]:
         actual = hashlib.sha256(path.read_bytes()).hexdigest()
         if actual != expected:
             raise RuntimeError(
-                f"release-tracked test digest mismatch: {rel} "
-                f"expected={expected} actual={actual}"
+                f"release-tracked test digest mismatch: {rel} expected={expected} actual={actual}"
             )
         tests.append(rel)
     if not tests:
@@ -159,9 +158,7 @@ def _tracked_in(base: Path) -> list[str]:
         return tracked
     if base.resolve() == ROOT.resolve():
         return _release_tracked_tests(base)
-    raise RuntimeError(
-        f"cannot enumerate governed tests under {base}: no Git index is available"
-    )
+    raise RuntimeError(f"cannot enumerate governed tests under {base}: no Git index is available")
 
 
 def _load_baseline() -> dict:

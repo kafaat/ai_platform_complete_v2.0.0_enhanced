@@ -24,5 +24,6 @@
     }
   ],
   "consumer_fingerprint_sha256": "55a58ceea6efc2e9cfb3a18177392ac204005381d30e627839b49a74f831093f",
-  "closure_rule": "live subject-bound REST/GraphQL parity PASS + legacy platform store path absent"
+  "closure_rule": "live subject-bound REST/GraphQL parity PASS + legacy platform store path absent",
+  "measured_on": "010c9627c855b2b70b37b2ed58520fb4f25d69fe+delta"
 }

@@ -16,7 +16,7 @@
 | Order | Stage | Primary owner | Evidence files |
 |---:|---|---|---:|
 | 1 | `evidence` | `sahool-platform` | 545 |
-| 2 | `candidate` | `sahool-platform` | 476 |
+| 2 | `candidate` | `sahool-platform` | 478 |
 | 3 | `decision` | `sahool-platform` | 168 |
 | 4 | `review` | `sahool-platform` | 238 |
 | 5 | `plan` | `decision-service` | 32 |

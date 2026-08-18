@@ -108,10 +108,6 @@
       "reads": 1,
       "subprocess": 0
     },
-    "scripts/ci/irrigation_machine_m2_5_guard.py": {
-      "reads": 1,
-      "subprocess": 0
-    },
     "scripts/ci/irrigation_vri_m4_guard.py": {
       "reads": 2,
       "subprocess": 0

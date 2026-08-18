@@ -5,6 +5,7 @@ The writer inventory comes exclusively from the generated edge-freeze artifact. 
 never re-derives edge_class or writer identity lexically.  It verifies the code-side cutover
 contract for each frozen writer while the pre-cutover bridge remains physically present.
 """
+
 from __future__ import annotations
 
 import json

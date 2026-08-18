@@ -75,10 +75,17 @@ def test_decision_record_persists_content_digest_from_evidence():
     assert '(payload.decision_value or {}).get("content_digest")' in src, (
         "content_digest يجب أن يُستخرَج من decision_value مثل candidate_lineage_id"
     )
-    # INSERT + ON CONFLICT يشملان العمود (COALESCE يحفظ القيمة السابقة عند الغياب).
-    assert (
-        "content_digest = COALESCE(EXCLUDED.content_digest, decision_record.content_digest)" in src
+    # S5-EXEC-01: decision_record صار إلحاقاً غير قابل للتغيير (DO NOTHING لا DO UPDATE
+    # SET)، فالانتشار يقع مرّة واحدة في عمود INSERT لا عبر COALESCE عند تعارض — الرأس لا
+    # يُعاد كتابته أبداً فلا حاجة لدمجٍ لاحق. يفرض الحارس الشرط الكامل في
+    # test_s5_exec_01_decision_record_immutable.py.
+    start = src.index("async def persist_decision_record(")
+    end = src.index("async def persist_dispatch_decision", start)
+    body = src[start:end]
+    assert "content_digest)\n" in body, (
+        "content_digest يجب أن يكون آخر عمود INSERT في decision_record"
     )
+    assert "DO UPDATE SET" not in body, "decision_record أصبح إلحاقاً غير قابل للتغيير (S5-EXEC-01)"
 
 
 # ── دالّة انتشار server-side: تقرأ الـdigest من الرأس داخل معاملة المستأجِر ──
@@ -94,11 +101,23 @@ def test_lookup_helper_reads_from_head_row():
 # ── الحلقات الأدنى تُنتشِر الـdigest server-side (لا ثقة بقيمة العميل) ──
 def test_downstream_links_propagate_content_digest():
     src = _read(_PERSIST)
-    # كلّ حلقة أدنى: تربط المستأجِر + تبحث عن الـdigest + تُدرِجه مع COALESCE.
-    for table in ("dispatch_decisions", "outcome_record", "recommendation_outcomes"):
-        assert (
-            f"content_digest = COALESCE(EXCLUDED.content_digest, {table}.content_digest)" in src
-        ), f"{table} يجب أن يُنتشِر content_digest مع COALESCE"
+    # dispatch_decisions يبقى دمجاً قابلاً للتحديث (upsert) — الانتشار عبر COALESCE عند تعارض.
+    assert (
+        "content_digest = COALESCE(EXCLUDED.content_digest, dispatch_decisions.content_digest)"
+        in src
+    )
+    # S5-EXEC-01: outcome_record وrecommendation_outcomes صارا إلحاقاً غير قابل للتغيير
+    # (DO NOTHING + كشف إعادة صريح) — الانتشار عبر عمود INSERT وقت الإدراج الأوّل، فلا حاجة
+    # إلى COALESCE على تعارض لا يُحدِّث الصفّ أصلاً.
+    for func_start, func_end in (
+        ("async def persist_outcome_record(", "def _recommendation_outcome_request_hash("),
+        ("async def persist_recommendation_outcome(", "async def read_outcomes_for_reconcile("),
+    ):
+        start = src.index(func_start)
+        end = src.index(func_end, start)
+        body = src[start:end]
+        assert "content_digest" in body, f"{func_start} يجب أن يمرّر content_digest إلى INSERT"
+        assert "DO NOTHING" in body, f"{func_start} يجب أن يكون إلحاقاً غير قابل للتغيير"
     # ثلاثة استدعاءات انتشار (dispatch + outcome + recommendation).
     assert src.count("await _lookup_content_digest(") == 3
 

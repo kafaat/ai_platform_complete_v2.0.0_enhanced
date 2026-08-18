@@ -3,8 +3,9 @@
 Provider implementations that have a canonical runtime path must not remain as
 dead duplicate clients under sahool-platform.
 """
-from pathlib import Path
+
 import re
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -27,8 +28,15 @@ def test_cdse_provider_is_owned_by_raster_service():
     owner = ROOT / "services/raster-service/cdse_client.py"
     assert owner.is_file()
     s = owner.read_text(encoding="utf-8")
-    for token in ("CDSE_CLIENT_ID", "CDSE_CLIENT_SECRET", "SH_TOKEN_URL", "SH_BASE_URL",
-                  "def is_configured", "def get_client", "class CdseClient"):
+    for token in (
+        "CDSE_CLIENT_ID",
+        "CDSE_CLIENT_SECRET",
+        "SH_TOKEN_URL",
+        "SH_BASE_URL",
+        "def is_configured",
+        "def get_client",
+        "class CdseClient",
+    ):
         assert token in s
     assert _production_imports(r"core\.connectors\.copernicus|CopernicusConnector") == []
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fail-closed validator for subject-bound S4 field-management live RLS receipts."""
+
 from __future__ import annotations
 
 import argparse
@@ -36,7 +37,10 @@ def findings(receipt: dict[str, Any], subject_sha: str) -> list[str]:
         out.append("receipt status is not PASSED")
     if receipt.get("service") != "field-management-service":
         out.append("service identity mismatch")
-    if receipt.get("source_identity") != _source_identity() or receipt.get("source_identity_match") is not True:
+    if (
+        receipt.get("source_identity") != _source_identity()
+        or receipt.get("source_identity_match") is not True
+    ):
         out.append("deployed field source identity mismatch")
     if receipt.get("owner_or_superuser_proof_accepted") is not False:
         out.append("owner/superuser proof must be rejected")
@@ -82,7 +86,9 @@ def main() -> int:
     ap.add_argument("--receipt", required=True)
     ap.add_argument("--subject-sha", required=True)
     args = ap.parse_args()
-    if len(args.subject_sha) not in (40, 64) or any(c not in "0123456789abcdefABCDEF" for c in args.subject_sha):
+    if len(args.subject_sha) not in (40, 64) or any(
+        c not in "0123456789abcdefABCDEF" for c in args.subject_sha
+    ):
         print("s4_field_rls_receipt_fail invalid subject sha")
         return 1
     receipt = json.loads(Path(args.receipt).read_text(encoding="utf-8"))
@@ -91,7 +97,9 @@ def main() -> int:
         for problem in problems:
             print("s4_field_rls_receipt_fail", problem)
         return 1
-    print(f"s4_field_rls_receipt_ok role={receipt['application_role']['name']} subject={args.subject_sha[:12]}")
+    print(
+        f"s4_field_rls_receipt_ok role={receipt['application_role']['name']} subject={args.subject_sha[:12]}"
+    )
     return 0
 
 

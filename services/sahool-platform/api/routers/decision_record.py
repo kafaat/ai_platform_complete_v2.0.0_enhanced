@@ -356,7 +356,9 @@ async def record_decision(
             tenant_id=str(user.tenant_id),
         )
         if not service_result.get("authoritative") or not service_result.get("persisted"):
-            raise HTTPException(status_code=503, detail="decision-service لم يثبت كتابة القرار السلطوية")
+            raise HTTPException(
+                status_code=503, detail="decision-service لم يثبت كتابة القرار السلطوية"
+            )
         return {
             "decision_id": service_result.get("decision_id") or did,
             "lineage": lineage,
@@ -486,7 +488,9 @@ async def record_outcome(
             tenant_id=str(user.tenant_id),
         )
         if not service_result.get("authoritative") or not service_result.get("persisted"):
-            raise HTTPException(status_code=503, detail="decision-service لم يثبت كتابة النتيجة السلطوية")
+            raise HTTPException(
+                status_code=503, detail="decision-service لم يثبت كتابة النتيجة السلطوية"
+            )
         canonical_outcome_id = service_result.get("outcome_id")
         if not canonical_outcome_id:
             raise HTTPException(status_code=503, detail="decision-service لم يُعد outcome_id")

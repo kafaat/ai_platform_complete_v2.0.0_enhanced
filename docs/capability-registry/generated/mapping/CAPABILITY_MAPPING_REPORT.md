@@ -12,7 +12,7 @@
 - Mapped: **76**
 - Unmapped: **5**
 - Multi-dimensional mappings: **49**
-- Files scanned: **5099**
+- Files scanned: **5100**
 - Ambiguous artifacts queued: **405**
 - Unmapped artifacts queued: **2071**
 
@@ -84,7 +84,7 @@
 | SEC-004 | security | 7 | 21 | 23 | 4 | 5 | 4 | 16 | 7 |
 | SEC-005 | security | 0 | 0 | 4 | 0 | 0 | 0 | 1 | 2 |
 | SEC-006 | security | 2 | 7 | 0 | 1 | 0 | 0 | 8 | 4 |
-| SEC-007 | security | 2 | 0 | 7 | 49 | 0 | 0 | 10 | 4 |
+| SEC-007 | security | 2 | 1 | 7 | 49 | 0 | 0 | 10 | 5 |
 | SEC-008 | security | 0 | 0 | 0 | 1 | 0 | 0 | 6 | 2 |
 | SOIL-001 | soil | 13 | 91 | 14 | 36 | 1 | 0 | 16 | 6 |
 | SOIL-002 | soil | 14 | 35 | 9 | 6 | 5 | 0 | 11 | 6 |

@@ -309,7 +309,9 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
 def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> list[dict[str, Any]]:
     # Jais Natural Farmer is a grounded-generation provider. Tool calls stay opt-in
     # until model-specific tool-call conformance is proven; no direct actions by default.
-    if cfg.provider == "vllm" and (os.getenv("VLLM_ENABLE_TOOLS") or "false").strip().lower() not in {"1", "true", "yes", "on"}:
+    if cfg.provider == "vllm" and (
+        os.getenv("VLLM_ENABLE_TOOLS") or "false"
+    ).strip().lower() not in {"1", "true", "yes", "on"}:
         return []
     """Provider-native tool schema, filtered by tenant capabilities before the model sees it."""
     defs = agent_tool_schema.tool_definitions(allowed_capabilities)

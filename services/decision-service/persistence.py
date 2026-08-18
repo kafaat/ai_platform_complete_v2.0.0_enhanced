@@ -394,7 +394,9 @@ async def persist_recommendation_outcome(*, tenant_id: str, payload: Any) -> dic
             replayed = False
             if row is None:
                 if not idem:
-                    raise RuntimeError("recommendation outcome insert returned no row without idempotency key")
+                    raise RuntimeError(
+                        "recommendation outcome insert returned no row without idempotency key"
+                    )
                 row = await conn.fetchrow(
                     "SELECT outcome_id, request_hash FROM recommendation_outcomes "
                     "WHERE tenant_id=$1::uuid AND idempotency_key=$2",
@@ -404,7 +406,9 @@ async def persist_recommendation_outcome(*, tenant_id: str, payload: Any) -> dic
                 if row is None:
                     raise RuntimeError("idempotency conflict row disappeared")
                 if row["request_hash"] != request_hash:
-                    raise ValueError("idempotency_key reused with different recommendation-outcome payload")
+                    raise ValueError(
+                        "idempotency_key reused with different recommendation-outcome payload"
+                    )
                 replayed = True
             outcome_id = row["outcome_id"]
             if not replayed:

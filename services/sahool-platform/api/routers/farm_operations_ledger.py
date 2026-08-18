@@ -11,6 +11,7 @@ import os
 import uuid
 from datetime import date
 
+from core.erp_projection_contract import build_projection_envelope
 from core.farm_closed_loop import (
     OperationEvent,
     ResourceUse,
@@ -27,7 +28,6 @@ from core.farm_costing import (
     normalize_budget_line,
     project_to_erp_lines,
 )
-from core.erp_projection_contract import build_projection_envelope
 from core.farm_operations_ledger import LedgerSummary
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator

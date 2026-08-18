@@ -83,9 +83,7 @@ def tracked_manifests() -> list[str]:
     # intentionally governs direct architecture manifests only. Nested evidence may be arrays
     # or other JSON payloads and has its own evidence contracts.
     return sorted(
-        p
-        for p in out.stdout.splitlines()
-        if p.strip() and Path(p).parent.as_posix() == SCAN_DIR
+        p for p in out.stdout.splitlines() if p.strip() and Path(p).parent.as_posix() == SCAN_DIR
     )
 
 

@@ -9,6 +9,7 @@ Field and Knowledge Graph and is READY FOR EXPLICIT AUTHORITY ADJUDICATION.
 Collection intentionally keeps secrets in environment variables.  Tokens/DSNs are never copied
 into the output bundle.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -57,12 +58,15 @@ def _load(path: Path) -> dict[str, Any]:
     return value
 
 
-def _run(cmd: list[str], *, env: dict[str, str] | None = None, timeout: int = 600) -> dict[str, Any]:
+def _run(
+    cmd: list[str], *, env: dict[str, str] | None = None, timeout: int = 600
+) -> dict[str, Any]:
     proc = subprocess.run(
         cmd,
         cwd=ROOT,
         env=env,
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         timeout=timeout,
@@ -76,7 +80,14 @@ def _run(cmd: list[str], *, env: dict[str, str] | None = None, timeout: int = 60
 
 def _guard(path: Path, *, subject_sha: str, guard_rel: str) -> dict[str, Any]:
     result = _run(
-        [sys.executable, str(ROOT / guard_rel), "--receipt", str(path), "--subject-sha", subject_sha],
+        [
+            sys.executable,
+            str(ROOT / guard_rel),
+            "--receipt",
+            str(path),
+            "--subject-sha",
+            subject_sha,
+        ],
         timeout=120,
     )
     return {
@@ -145,7 +156,9 @@ def verify_receipts(
         }
 
     findings = sorted(set(findings))
-    evidence_complete = not findings and all(row.get("guard_passed") is True for row in rows.values())
+    evidence_complete = not findings and all(
+        row.get("guard_passed") is True for row in rows.values()
+    )
     return {
         "schema": SCHEMA,
         "subject_sha": subject_sha,
@@ -164,7 +177,9 @@ def verify_receipts(
 
 def _write(path: Path, body: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(body, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(body, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def _required_env(names: tuple[str, ...]) -> list[str]:
@@ -320,8 +335,12 @@ def main(argv: list[str] | None = None) -> int:
     p_collect = sub.add_parser("collect")
     p_collect.add_argument("--subject-sha", required=True)
     p_collect.add_argument("--out-dir", required=True, type=Path)
-    p_collect.add_argument("--decision-url", default=os.getenv("DECISION_SERVICE_URL", "http://localhost:8097"))
-    p_collect.add_argument("--platform-url", default=os.getenv("SAHOOL_PLATFORM_URL", "http://localhost:8000"))
+    p_collect.add_argument(
+        "--decision-url", default=os.getenv("DECISION_SERVICE_URL", "http://localhost:8097")
+    )
+    p_collect.add_argument(
+        "--platform-url", default=os.getenv("SAHOOL_PLATFORM_URL", "http://localhost:8000")
+    )
     p_collect.add_argument("--bundle-output", type=Path)
 
     args = parser.parse_args(argv)

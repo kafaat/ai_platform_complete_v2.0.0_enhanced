@@ -22,21 +22,20 @@ profile is a clearly-marked dev/privileged compatibility path only.
 from __future__ import annotations
 
 import hashlib
-import json
 import io
 import zipfile
 from dataclasses import dataclass
 
-from core.machinery_artifact_identity import (
-    prescription_content_digest,
-    zone_lineage_digest,
-)
 from core.isoxml_vrt import (
     ISOXMLTask,
     MachineProfile,
     ProductProfile,
     VRTZone,
     export_taskdata_xml,
+)
+from core.machinery_artifact_identity import (
+    prescription_content_digest,
+    zone_lineage_digest,
 )
 
 # Saved-prescription product_type -> ISOXML prescription kind. The saved model
@@ -208,9 +207,6 @@ class ExportPackage:
     zone_count: int
     prescription_digest: str
     zone_lineage_digest: str
-
-
-
 
 
 def generate_export_package(

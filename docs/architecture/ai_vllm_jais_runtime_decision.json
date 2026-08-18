@@ -37,5 +37,7 @@
     "infrastructure_units_delta": 1
   },
   "implementation_base": "1ef69aca",
-  "model_contract": "config/ai-model-runtimes/jais-natural-farmer.json"
+  "model_contract": "config/ai-model-runtimes/jais-natural-farmer.json",
+  "adjudicated_on": "2026-08-18",
+  "version": 1
 }

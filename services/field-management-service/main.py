@@ -50,11 +50,18 @@ def _runtime_source_identity() -> dict[str, str]:
     here = source.parent
     assertion = here / "shared" / "security" / "service_tenant_assertion.py"
     if not assertion.is_file():
-        assertion = source.parents[2] / "shared" / "security" / "service_tenant_assertion.py"
+        # Container flattens main.py to /app/main.py (no repo-tree parents[2]); walk up
+        # from here instead of hardcoding a parent index (2026-07-12 startup regression).
+        for base in here.parents:
+            candidate = base / "shared" / "security" / "service_tenant_assertion.py"
+            if candidate.is_file():
+                assertion = candidate
+                break
     return {
         "main_sha256": _source_sha256(source),
         "service_tenant_assertion_sha256": _source_sha256(assertion),
     }
+
 
 # Columns read for both the by-id detail and the list. geometry is JSONB GeoJSON
 # (asyncpg returns it as a str with no codec ⇒ json.loads before returning).

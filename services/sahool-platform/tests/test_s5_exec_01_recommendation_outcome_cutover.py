@@ -39,7 +39,9 @@ def test_pre_cutover_branch_remains_platform_authoritative_then_fail_soft_mirror
 
 def test_idempotency_identity_is_forwarded_to_authoritative_service():
     body = _body()
-    payload = body[body.index("service_payload = {"):body.index("mode = get_platform_decision_sor_mode()")]
+    payload = body[
+        body.index("service_payload = {") : body.index("mode = get_platform_decision_sor_mode()")
+    ]
     assert '"idempotency_key": idem' in payload
     assert '"recommendation_id": req.recommendation_id' in payload
     assert '"predicted_yield_t_ha": req.predicted_yield_t_ha' in payload

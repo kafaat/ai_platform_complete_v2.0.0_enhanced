@@ -592,14 +592,14 @@
       "mutations": [
         {
           "expect": "test_runtime_surface_growth_is_fail_closed_even_if_observed_graph_is_regenerated",
-          "find": "    if current.get(\"runtime_migration_surface_fingerprint_sha256\") != FROZEN_RUNTIME_MIGRATION_FINGERPRINT:\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
+          "find": "    if (\n        current.get(\"runtime_migration_surface_fingerprint_sha256\")\n        != FROZEN_RUNTIME_MIGRATION_FINGERPRINT\n    ):\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
           "replace": "    if False:  # mutated: runtime authority-surface growth tolerated\n        findings.append(\"RUNTIME_MIGRATION_SURFACE_FINGERPRINT_DRIFT\")",
           "why": "إذا لم تُحجب بصمة runtime، يستطيع writer/read سلطوي جديد دخول منصة S5 مع بقاء artifact غير السلطوي قابلاً لإعادة التوليد."
         },
         {
           "expect": "test_test_witnesses_are_not_migration_surface_and_cannot_fall_below_freeze_floor",
-          "find": "        if int(counts.get(key, 0)) < floor:\n            findings.append(f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\")",
-          "replace": "        if False:  # mutated: frozen witness floor may silently shrink\n            findings.append(f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\")",
+          "find": "        if int(counts.get(key, 0)) < floor:\n            findings.append(\n                f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\"\n            )",
+          "replace": "        if False:  # mutated: frozen witness floor may silently shrink\n            findings.append(\n                f\"NON_MIGRATION_WITNESS_FLOOR_BREACH {key} {counts.get(key, 0)}<{floor}\"\n            )",
           "why": "الشهود ليست migration surface، لكن السماح بانخفاضها تحت إيصال التجميد يحذف حماية regression صامتاً."
         }
       ],

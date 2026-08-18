@@ -37,7 +37,13 @@ def _runtime_source_identity() -> dict[str, str]:
     # Image layout is /app/shared/...; source-checkout layout is <repo>/shared/....
     gateway = here / "shared" / "security" / "gateway_deps.py"
     if not gateway.is_file():
-        gateway = source.parents[2] / "shared" / "security" / "gateway_deps.py"
+        # Container flattens main.py to /app/main.py (no repo-tree parents[2]); walk up
+        # from here instead of hardcoding a parent index (2026-07-12 startup regression).
+        for base in here.parents:
+            candidate = base / "shared" / "security" / "gateway_deps.py"
+            if candidate.is_file():
+                gateway = candidate
+                break
     return {
         "main_sha256": _source_sha256(source),
         "kg_store_sha256": _source_sha256(here / "kg_store.py"),

@@ -4,6 +4,10 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.unit
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/architecture/s5_exec_01_edge_freeze.py"
 SPEC = importlib.util.spec_from_file_location("s5_edge_freeze", SCRIPT)
@@ -17,16 +21,22 @@ def test_frozen_runtime_surface_and_legacy_receipt_are_stable():
     # The authority-bearing migration surface is unchanged even though end-state tests and
     # destination-service witnesses have legitimately grown since the original freeze.
     assert data["runtime_migration_surface_counts"] == {"total": 31, "reads": 25, "writes": 6}
-    assert data["frozen_runtime_migration_surface_counts"] == {"total": 31, "reads": 25, "writes": 6}
+    assert data["frozen_runtime_migration_surface_counts"] == {
+        "total": 31,
+        "reads": 25,
+        "writes": 6,
+    }
     assert data["runtime_migration_surface_fingerprint_sha256"] == (
         "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7"
     )
-    assert data["runtime_migration_surface_fingerprint_sha256"] == data[
-        "runtime_migration_surface_frozen_sha256"
-    ]
-    assert data["runtime_writer_surface_fingerprint_sha256"] == data[
-        "runtime_writer_surface_frozen_sha256"
-    ]
+    assert (
+        data["runtime_migration_surface_fingerprint_sha256"]
+        == data["runtime_migration_surface_frozen_sha256"]
+    )
+    assert (
+        data["runtime_writer_surface_fingerprint_sha256"]
+        == data["runtime_writer_surface_frozen_sha256"]
+    )
     # Compatibility receipt remains the original full-graph freeze value. The observed full
     # graph may equal it (as on this main-based forward-port) or may grow via non-authority
     # witnesses; authority is frozen by the runtime migration fingerprint above.
@@ -55,7 +65,9 @@ def test_runtime_writer_cutover_set_is_exact():
 
 def test_generator_owns_edge_class_and_artifact_is_exact():
     generated = mod.build()
-    stored = json.loads((ROOT / "docs/architecture/s5_exec_01_edge_freeze.json").read_text(encoding="utf-8"))
+    stored = json.loads(
+        (ROOT / "docs/architecture/s5_exec_01_edge_freeze.json").read_text(encoding="utf-8")
+    )
     assert stored == generated
     assert all(
         edge["edge_class"] in {"runtime", "test_witness"}
@@ -68,8 +80,14 @@ def test_generator_owns_edge_class_and_artifact_is_exact():
 
 def test_test_witnesses_are_not_migration_surface_and_cannot_fall_below_freeze_floor():
     data = mod.build()
-    assert data["counts"]["test_witness_total"] >= data["non_migration_witness_floor"]["test_witness_total"]
-    assert data["counts"]["decision_service_total"] >= data["non_migration_witness_floor"]["decision_service_total"]
+    assert (
+        data["counts"]["test_witness_total"]
+        >= data["non_migration_witness_floor"]["test_witness_total"]
+    )
+    assert (
+        data["counts"]["decision_service_total"]
+        >= data["non_migration_witness_floor"]["decision_service_total"]
+    )
     assert "NOT migration surface" in data["test_witness_policy"]
 
     # Growth is allowed; a loss below the original witness receipt is fail-closed.

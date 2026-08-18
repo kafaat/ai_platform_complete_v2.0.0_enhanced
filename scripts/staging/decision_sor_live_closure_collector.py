@@ -24,7 +24,7 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib import request
@@ -66,6 +66,7 @@ def _run_json(cmd: list[str], *, env: dict[str, str]) -> dict[str, Any]:
         cwd=ROOT,
         env=env,
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         timeout=90,
@@ -75,7 +76,9 @@ def _run_json(cmd: list[str], *, env: dict[str, str]) -> dict[str, Any]:
     try:
         body = json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise RuntimeError(f"command emitted non-JSON (exit={proc.returncode}): {raw[-500:]}") from exc
+        raise RuntimeError(
+            f"command emitted non-JSON (exit={proc.returncode}): {raw[-500:]}"
+        ) from exc
     if proc.returncode != 0:
         raise RuntimeError(
             f"command failed exit={proc.returncode}: {json.dumps(body, sort_keys=True)[:1000]}"
@@ -205,9 +208,7 @@ def collect(args: argparse.Namespace) -> dict[str, Any]:
     decision_cutover = _json_get(decision + "/v1/cutover/readiness", token=token)
     platform_identity = _json_get(platform + "/runtime-identity")
     platform_ready = _json_get(platform + "/readyz")
-    role_cert = _run_json(
-        [sys.executable, str(DECISION / "decision_sor_role_certify.py")], env=env
-    )
+    role_cert = _run_json([sys.executable, str(DECISION / "decision_sor_role_certify.py")], env=env)
     privilege = _run_json(
         [sys.executable, str(DECISION / "platform_sor_revoke.py"), "--check"], env=env
     )
@@ -224,7 +225,7 @@ def collect(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "schema": SCHEMA,
         "subject_sha": subject_sha,
-        "observed_at": datetime.now(timezone.utc).isoformat(),
+        "observed_at": datetime.now(UTC).isoformat(),
         "classification": "PASSED" if not findings else "FAILED",
         "read_only": True,
         "authority_promotion": False,
@@ -245,8 +246,12 @@ def _write(path: Path, receipt: dict[str, Any]) -> None:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--subject-sha", required=True)
-    ap.add_argument("--decision-url", default=os.getenv("DECISION_SERVICE_URL", "http://localhost:8097"))
-    ap.add_argument("--platform-url", default=os.getenv("SAHOOL_PLATFORM_URL", "http://localhost:8000"))
+    ap.add_argument(
+        "--decision-url", default=os.getenv("DECISION_SERVICE_URL", "http://localhost:8097")
+    )
+    ap.add_argument(
+        "--platform-url", default=os.getenv("SAHOOL_PLATFORM_URL", "http://localhost:8000")
+    )
     ap.add_argument("--output", required=True, type=Path)
     args = ap.parse_args(argv)
     try:
@@ -255,7 +260,7 @@ def main(argv: list[str] | None = None) -> int:
         receipt = {
             "schema": SCHEMA,
             "subject_sha": str(args.subject_sha).strip().lower(),
-            "observed_at": datetime.now(timezone.utc).isoformat(),
+            "observed_at": datetime.now(UTC).isoformat(),
             "classification": "FAILED",
             "read_only": True,
             "authority_promotion": False,

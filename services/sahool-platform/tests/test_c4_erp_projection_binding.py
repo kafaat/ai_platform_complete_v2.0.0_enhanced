@@ -1,8 +1,6 @@
-
 from __future__ import annotations
 
 import pytest
-
 from core.erp_projection_contract import (
     build_projection_envelope,
     canonical_digest,
@@ -12,12 +10,8 @@ from core.erp_projection_contract import (
 
 def test_projection_identity_is_deterministic_and_read_only():
     lines = [{"account": "6000", "debit": 100.0, "credit": 0.0}]
-    a = build_projection_envelope(
-        season_id="s1", lines=lines, provider="erpnext", currency="yer"
-    )
-    b = build_projection_envelope(
-        season_id="s1", lines=lines, provider="erpnext", currency="YER"
-    )
+    a = build_projection_envelope(season_id="s1", lines=lines, provider="erpnext", currency="yer")
+    b = build_projection_envelope(season_id="s1", lines=lines, provider="erpnext", currency="YER")
     assert a["projection_digest"] == b["projection_digest"]
     assert a["posting_eligible"] is True
     assert a["erp_write"] is False
@@ -40,14 +34,17 @@ def test_reconciliation_requires_exact_projection_digest_and_provider():
         "lines": [{"amount": 100}],
     }
     digest = canonical_digest(payload)
-    assert verify_reconciliation_binding(
-        stored_payload=payload,
-        stored_provider="erpnext",
-        stored_status="sent",
-        stored_sent_at="2026-08-18T00:00:00Z",
-        receipt_provider="erpnext",
-        evidence={"projection_digest": digest},
-    ) == digest
+    assert (
+        verify_reconciliation_binding(
+            stored_payload=payload,
+            stored_provider="erpnext",
+            stored_status="sent",
+            stored_sent_at="2026-08-18T00:00:00Z",
+            receipt_provider="erpnext",
+            evidence={"projection_digest": digest},
+        )
+        == digest
+    )
 
     with pytest.raises(ValueError, match="projection_digest_mismatch"):
         verify_reconciliation_binding(

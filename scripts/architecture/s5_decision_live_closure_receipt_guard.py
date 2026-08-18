@@ -86,7 +86,7 @@ def findings_for(receipt: dict[str, Any], subject_sha: str) -> list[str]:
     ):
         findings.append("decision_cutover_not_closed")
 
-    pm = ((ev.get("platform_ready") or {}).get("decision_sor") or {})
+    pm = (ev.get("platform_ready") or {}).get("decision_sor") or {}
     if not (
         pm.get("requested_mode") == "decision_service_sor"
         and pm.get("effective_mode") == "decision_service_sor"

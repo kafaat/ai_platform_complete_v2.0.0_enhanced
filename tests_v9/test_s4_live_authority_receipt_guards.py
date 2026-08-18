@@ -3,10 +3,12 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
-
-import pytest
 from datetime import UTC, datetime
 from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 SUBJECT = "a" * 40
@@ -69,8 +71,8 @@ def test_field_receipt_guard_accepts_only_restricted_two_tenant_live_proof():
 
 
 def _kg_receipt(m):
-    cases = json.loads(m.CASES.read_text())
-    freeze = json.loads(m.FREEZE.read_text())
+    cases = json.loads(m.CASES.read_text(encoding="utf-8"))
+    freeze = json.loads(m.FREEZE.read_text(encoding="utf-8"))
     identity = m._source_identity()
     rows = []
     for case in cases:
@@ -109,7 +111,9 @@ def _kg_receipt(m):
 
 
 def test_kg_receipt_guard_rejects_empty_equal_results_and_source_drift():
-    m = _load("s4_kg_receipt_guard_test", "scripts/architecture/s4_kg_runtime_parity_receipt_guard.py")
+    m = _load(
+        "s4_kg_receipt_guard_test", "scripts/architecture/s4_kg_runtime_parity_receipt_guard.py"
+    )
     receipt = _kg_receipt(m)
     assert m.findings(receipt, SUBJECT) == []
 
@@ -132,12 +136,17 @@ def test_kg_receipt_guard_rejects_empty_equal_results_and_source_drift():
 
 def test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity(monkeypatch):
     m = _load("s4_kg_collector_test", "scripts/staging/kg_runtime_parity_collector.py")
-    cases = json.loads(m.DEFAULT_CASES.read_text())
+    cases = json.loads(m.DEFAULT_CASES.read_text(encoding="utf-8"))
     expected_identity = m.expected_source_identity()
 
     def fake_get(url, headers=None, data=None):
         if url.endswith("/readyz"):
-            return {"status": "ready", "service": "knowledge-graph", "edges": 4, "source_identity": expected_identity}
+            return {
+                "status": "ready",
+                "service": "knowledge-graph",
+                "edges": 4,
+                "source_identity": expected_identity,
+            }
         if "/v1/edges?" in url or url.endswith("/graphql"):
             return {
                 "edges": [
@@ -155,7 +164,9 @@ def test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity
 
     monkeypatch.setattr(m, "get_json", fake_get)
     monkeypatch.setattr(m, "local_subject_sha", lambda: SUBJECT)
-    doc = m.collect(base_url="http://kg", tenant_id="tenant-a", subject_sha=SUBJECT, cases_path=m.DEFAULT_CASES)
+    doc = m.collect(
+        base_url="http://kg", tenant_id="tenant-a", subject_sha=SUBJECT, cases_path=m.DEFAULT_CASES
+    )
     assert doc["status"] == "PASSED"
     assert doc["source_identity_match"] is True
     assert doc["local_subject_sha"] == SUBJECT
@@ -164,22 +175,38 @@ def test_kg_collector_requires_non_empty_governed_cases_and_live_source_identity
 
     monkeypatch.setattr(m, "local_subject_sha", lambda: "b" * 40)
     with pytest.raises(ValueError, match="checkout_subject_sha_mismatch"):
-        m.collect(base_url="http://kg", tenant_id="tenant-a", subject_sha=SUBJECT, cases_path=m.DEFAULT_CASES)
+        m.collect(
+            base_url="http://kg",
+            tenant_id="tenant-a",
+            subject_sha=SUBJECT,
+            cases_path=m.DEFAULT_CASES,
+        )
     monkeypatch.setattr(m, "local_subject_sha", lambda: SUBJECT)
 
     def empty_get(url, headers=None, data=None):
         if url.endswith("/readyz"):
-            return {"status": "ready", "service": "knowledge-graph", "edges": 4, "source_identity": expected_identity}
+            return {
+                "status": "ready",
+                "service": "knowledge-graph",
+                "edges": 4,
+                "source_identity": expected_identity,
+            }
         return {"edges": []}
 
     monkeypatch.setattr(m, "get_json", empty_get)
-    doc = m.collect(base_url="http://kg", tenant_id="tenant-a", subject_sha=SUBJECT, cases_path=m.DEFAULT_CASES)
+    doc = m.collect(
+        base_url="http://kg", tenant_id="tenant-a", subject_sha=SUBJECT, cases_path=m.DEFAULT_CASES
+    )
     assert doc["status"] == "FAILED"
     assert doc["non_empty_case_count"] == 0
 
 
 def test_kg_readyz_exposes_shipped_source_digests_without_new_route():
-    source = (ROOT / "services/knowledge-graph/main.py").read_text()
+    source = (ROOT / "services/knowledge-graph/main.py").read_text(encoding="utf-8")
     assert '"source_identity": _runtime_source_identity()' in source
-    assert '@app.get("/runtime-identity")' not in source
-    assert "main_sha256" in source and "kg_store_sha256" in source and "gateway_deps_sha256" in source
+    assert '@app.get("/runtime-identity")' not in source, (
+        "المسار قانونيّ فقط في api/routers/platform_health.py — إضافته هنا يخالف عقد الموضع"
+    )
+    assert (
+        "main_sha256" in source and "kg_store_sha256" in source and "gateway_deps_sha256" in source
+    )

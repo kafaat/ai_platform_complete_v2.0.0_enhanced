@@ -241,12 +241,15 @@ async def _certify_connection(url: str, schema: str) -> dict[str, Any]:
             "current_user": current_user,
             "session_user": session_user,
             "role_attributes": await _role_attributes(conn, current_user),
-            "memberships_can_set_role_to": [row["role"] for row in membership_closure if row.get("set_option")],
+            "memberships_can_set_role_to": [
+                row["role"] for row in membership_closure if row.get("set_option")
+            ],
             "membership_closure": membership_closure,
             "table_owners": {t: await _table_owner(conn, schema, t) for t in SOR_TABLES},
             "table_grants": {t: await _table_grants(conn, schema, t) for t in SOR_TABLES},
             "effective_table_privileges": {
-                t: await _effective_table_privileges(conn, current_user, schema, t) for t in SOR_TABLES
+                t: await _effective_table_privileges(conn, current_user, schema, t)
+                for t in SOR_TABLES
             },
             "sequences": await _sequences_for_tables(conn, schema, SOR_TABLES, current_user),
             "security_definer_writers": await _security_definer_writers(conn, SOR_TABLES),

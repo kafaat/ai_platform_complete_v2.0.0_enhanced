@@ -3,6 +3,7 @@
   "adjudicated_on": "2026-08-05",
   "decided": [
     "SERVICE_REGISTRY_HARDENING_CONTRACT.json",
+    "ai_vllm_jais_runtime_decision.json",
     "authority_cutovers.json",
     "capability_core_consumption_registry.json",
     "certification_acceptance_record.json",
@@ -18,6 +19,7 @@
     "knowledge_source_registry.json",
     "live_pg_schema_contract.json",
     "manifest_registry.json",
+    "payment_bridge_accounting_boundary.json",
     "permanent_compatibility_contract.json",
     "physical_effect_boundary_contract.json",
     "platform_route_placement_contract.json",
@@ -51,6 +53,8 @@
     "platform_python_module_baseline.json",
     "platform_shrink_ratchet.json",
     "s0_s12_execution_baseline.json",
+    "s4_kg_consumer_freeze.json",
+    "s5_exec_01_edge_freeze.json",
     "source_text_assertion_inventory.json",
     "tenant_guc_scope_baseline.json",
     "text_encoding_locale_baseline.json"

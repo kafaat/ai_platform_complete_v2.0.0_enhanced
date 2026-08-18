@@ -108,7 +108,9 @@ def test_git_history_is_the_second_source(monkeypatch):
         encoding="utf-8",
     )
     if probe.returncode != 0 or probe.stdout.strip() != "true":
-        pytest.skip("requires a real Git checkout; extracted delivery ZIP intentionally has no .git")
+        pytest.skip(
+            "requires a real Git checkout; extracted delivery ZIP intentionally has no .git"
+        )
     expected = int(
         subprocess.run(
             ["git", "log", "-1", "--pretty=%ct"],
@@ -271,7 +273,9 @@ def test_no_committed_generated_artifact_carries_a_wall_clock_stamp():
         encoding="utf-8",
     )
     if probe.returncode != 0 or probe.stdout.strip() != "true":
-        pytest.skip("requires a real Git checkout; extracted delivery ZIP intentionally has no .git")
+        pytest.skip(
+            "requires a real Git checkout; extracted delivery ZIP intentionally has no .git"
+        )
 
     tracked = subprocess.run(
         ["git", "ls-files", "--", "*.json"],

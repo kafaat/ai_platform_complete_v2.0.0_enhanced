@@ -195,6 +195,7 @@ def test_the_owned_counts_add_up_to_the_measured_total():
 def test_duplicate_definition_guard_uses_release_manifest_without_git(tmp_path, monkeypatch):
     """Delivery ZIPs deliberately have no .git; the release manifest is the membership SoT."""
     import hashlib
+
     import duplicate_definition_guard as guard
 
     src = tmp_path / "services" / "demo.py"
@@ -218,6 +219,7 @@ def test_duplicate_definition_guard_uses_release_manifest_without_git(tmp_path, 
 def test_duplicate_definition_guard_rejects_tampered_release_member(tmp_path, monkeypatch):
     """Manifest membership without digest verification would turn ZIP fallback into trust-by-name."""
     import hashlib
+
     import duplicate_definition_guard as guard
 
     src = tmp_path / "services" / "demo.py"

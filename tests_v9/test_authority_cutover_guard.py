@@ -134,14 +134,22 @@ def test_kg_image_ships_the_module_its_entrypoint_imports(tmp_path, monkeypatch)
 def test_decision_role_certification_requires_transitive_membership_closure(tmp_path, monkeypatch):
     root = _sandbox(tmp_path, monkeypatch)
     p = root / "services/decision-service/decision_sor_role_certify.py"
-    p.write_text(p.read_text(encoding="utf-8").replace("WITH RECURSIVE walk", "WITH walk", 1), encoding="utf-8")
+    p.write_text(
+        p.read_text(encoding="utf-8").replace("WITH RECURSIVE walk", "WITH walk", 1),
+        encoding="utf-8",
+    )
     assert "decision role certification missing WITH RECURSIVE walk" in mod.findings()
 
 
 def test_decision_revoke_requires_effective_postcondition_guard(tmp_path, monkeypatch):
     root = _sandbox(tmp_path, monkeypatch)
     p = root / "services/decision-service/platform_sor_revoke.py"
-    p.write_text(p.read_text(encoding="utf-8").replace("privilege_closure_findings", "effective_closure_check"), encoding="utf-8")
+    p.write_text(
+        p.read_text(encoding="utf-8").replace(
+            "privilege_closure_findings", "effective_closure_check"
+        ),
+        encoding="utf-8",
+    )
     assert "decision DB revoke postcondition missing privilege_closure_findings" in mod.findings()
 
 
@@ -150,11 +158,18 @@ def test_decision_live_receipt_contract_is_mandatory_before_authority_promotion(
     d = c["authorities"]["decision"]
     assert "SUBJECT_BOUND_LIVE_DECISION_CLOSURE_RECEIPT_REQUIRED" in d["blocking_reasons"]
     assert "scripts/staging/decision_sor_live_closure_collector.py" in d["required_evidence"]
-    assert "scripts/architecture/s5_decision_live_closure_receipt_guard.py" in d["required_evidence"]
+    assert (
+        "scripts/architecture/s5_decision_live_closure_receipt_guard.py" in d["required_evidence"]
+    )
 
 
 def test_platform_readyz_must_expose_effective_decision_sor_mode(tmp_path, monkeypatch):
     root = _sandbox(tmp_path, monkeypatch)
     p = root / "services/sahool-platform/api/routers/platform_health.py"
-    p.write_text(p.read_text(encoding="utf-8").replace('body["decision_sor"]', 'body["decision_mode_hidden"]'), encoding="utf-8")
+    p.write_text(
+        p.read_text(encoding="utf-8").replace(
+            'body["decision_sor"]', 'body["decision_mode_hidden"]'
+        ),
+        encoding="utf-8",
+    )
     assert 'platform readyz decision SoR evidence missing body["decision_sor"]' in mod.findings()

@@ -3319,6 +3319,7 @@ def test_cdse_provider():
         ("✓", "CDSE: credentials/env + OAuth runtime remain fail-closed"),
     ]
 
+
 def test_planetary_computer_fallback():
     """مصدر احتياطي (Planetary Computer): يُجرَّب عند فشل الأساس قبل stale."""
     import asyncio

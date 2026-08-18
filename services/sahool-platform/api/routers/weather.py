@@ -1429,7 +1429,9 @@ async def _persist_weather_decision_record(conn, user, record: dict) -> str | No
             tenant_id=str(user.tenant_id),
         )
         if not service_result.get("authoritative") or not service_result.get("persisted"):
-            raise RuntimeError("decision-service did not prove authoritative weather-decision persistence")
+            raise RuntimeError(
+                "decision-service did not prove authoritative weather-decision persistence"
+            )
         return str(service_result.get("decision_id") or decision_id)
 
     assert_platform_may_write_decision_sor("decision_record")

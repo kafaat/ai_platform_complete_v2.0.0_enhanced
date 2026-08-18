@@ -102,7 +102,16 @@ def test_mirror_failure_can_never_raise_into_the_request_path() -> None:
         ("api/routers/weather.py", "await _mirror_decision_to_service("),
     ]:
         text = (ROOT / rel).read_text(encoding="utf-8")
-        idx = text.rindex(needle) if rel in {"api/routers/recommendations.py", "api/phase_runtime_store.py", "api/routers/weather.py"} else text.index(needle)
+        idx = (
+            text.rindex(needle)
+            if rel
+            in {
+                "api/routers/recommendations.py",
+                "api/phase_runtime_store.py",
+                "api/routers/weather.py",
+            }
+            else text.index(needle)
+        )
         window = text[max(0, idx - 1400) : idx + 1400]
         assert "try:" in window and "except Exception" in window, rel
 

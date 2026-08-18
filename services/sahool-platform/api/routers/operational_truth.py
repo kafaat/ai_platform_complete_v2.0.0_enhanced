@@ -8,8 +8,8 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from core.operational_truth import content_digest, reconciliation_status
 from core.erp_projection_contract import verify_reconciliation_binding
+from core.operational_truth import content_digest, reconciliation_status
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -260,7 +260,9 @@ async def record_erp_reconciliation(
                 try:
                     payload = json.loads(payload)
                 except (TypeError, ValueError) as exc:
-                    raise HTTPException(status_code=409, detail="erp_projection_payload_invalid") from exc
+                    raise HTTPException(
+                        status_code=409, detail="erp_projection_payload_invalid"
+                    ) from exc
             try:
                 verify_reconciliation_binding(
                     stored_payload=payload,

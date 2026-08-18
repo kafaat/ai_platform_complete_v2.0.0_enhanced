@@ -21,8 +21,13 @@ def _load(name: str, rel: str):
     return mod
 
 
-collector = _load("decision_live_collector_test", "scripts/staging/decision_sor_live_closure_collector.py")
-guard = _load("decision_live_receipt_guard_test", "scripts/architecture/s5_decision_live_closure_receipt_guard.py")
+collector = _load(
+    "decision_live_collector_test", "scripts/staging/decision_sor_live_closure_collector.py"
+)
+guard = _load(
+    "decision_live_receipt_guard_test",
+    "scripts/architecture/s5_decision_live_closure_receipt_guard.py",
+)
 
 
 def _identity(service: str):
@@ -85,7 +90,13 @@ def _privilege():
         t: {"INSERT": False, "UPDATE": False, "DELETE": False, "SELECT": True}
         for t in collector.SOR_TABLES
     }
-    return {"action": "check", "role": "sahool_app", "schema": "public", "after": state, "before": state}
+    return {
+        "action": "check",
+        "role": "sahool_app",
+        "schema": "public",
+        "after": state,
+        "before": state,
+    }
 
 
 def _evaluated():
@@ -121,12 +132,24 @@ def test_subject_bound_post_cutover_receipt_accepts_only_full_live_closure():
     assert guard.findings_for(receipt, SHA) == []
 
     mutations = []
-    x = copy.deepcopy(receipt); x["evidence"]["platform_runtime_identity"]["git_sha"] = "8" * 40; mutations.append(x)
-    x = copy.deepcopy(receipt); x["evidence"]["platform_ready"]["decision_sor"]["platform_writes_required"] = True; mutations.append(x)
-    x = copy.deepcopy(receipt); x["evidence"]["decision_ready"]["db_readiness"]["migrations_current"] = False; mutations.append(x)
-    x = copy.deepcopy(receipt); x["evidence"]["role_certification"]["role_separation_confirmed"] = False; mutations.append(x)
-    x = copy.deepcopy(receipt); x["evidence"]["platform_privilege_check"]["after"]["decision_record"]["UPDATE"] = True; mutations.append(x)
-    x = copy.deepcopy(receipt); x["claims"]["historical_zero_platform_writes_measured"] = True; mutations.append(x)
+    x = copy.deepcopy(receipt)
+    x["evidence"]["platform_runtime_identity"]["git_sha"] = "8" * 40
+    mutations.append(x)
+    x = copy.deepcopy(receipt)
+    x["evidence"]["platform_ready"]["decision_sor"]["platform_writes_required"] = True
+    mutations.append(x)
+    x = copy.deepcopy(receipt)
+    x["evidence"]["decision_ready"]["db_readiness"]["migrations_current"] = False
+    mutations.append(x)
+    x = copy.deepcopy(receipt)
+    x["evidence"]["role_certification"]["role_separation_confirmed"] = False
+    mutations.append(x)
+    x = copy.deepcopy(receipt)
+    x["evidence"]["platform_privilege_check"]["after"]["decision_record"]["UPDATE"] = True
+    mutations.append(x)
+    x = copy.deepcopy(receipt)
+    x["claims"]["historical_zero_platform_writes_measured"] = True
+    mutations.append(x)
     for broken in mutations:
         assert guard.findings_for(broken, SHA), broken
 
@@ -162,10 +185,12 @@ def test_collector_rejects_runtime_demotion_or_effective_privilege_drift():
 
 
 def test_collector_is_read_only_and_uses_canonical_live_tools():
-    src = (ROOT / "scripts/staging/decision_sor_live_closure_collector.py").read_text(encoding="utf-8")
+    src = (ROOT / "scripts/staging/decision_sor_live_closure_collector.py").read_text(
+        encoding="utf-8"
+    )
     assert '"--check"' in src
-    assert '"--revoke"' not in src
-    assert '"--grant"' not in src
+    assert '"--revoke"' not in src, "المُجمِّع دليلٌ حيّ read-only — لا يجوز أن يحمل سلطة سحب الدور"
+    assert '"--grant"' not in src, "المُجمِّع دليلٌ حيّ read-only — لا يجوز أن يحمل سلطة منح الدور"
     assert "decision_sor_role_certify.py" in src
     assert "platform_sor_revoke.py" in src
     assert "/runtime-identity" in src
@@ -173,8 +198,12 @@ def test_collector_is_read_only_and_uses_canonical_live_tools():
 
 
 def test_platform_readyz_exposes_mutable_mode_without_polluting_immutable_identity():
-    src = (ROOT / "services/sahool-platform/api/routers/platform_health.py").read_text(encoding="utf-8")
-    identity_body = src[src.index("def runtime_evidence_identity"):src.index("@router.get(\"/healthz\")")]
+    src = (ROOT / "services/sahool-platform/api/routers/platform_health.py").read_text(
+        encoding="utf-8"
+    )
+    identity_body = src[
+        src.index("def runtime_evidence_identity") : src.index('@router.get("/healthz")')
+    ]
     ready_body = src[src.index("async def readyz") :]
     assert "get_platform_decision_sor_mode" not in identity_body
     assert "get_platform_decision_sor_mode" in ready_body

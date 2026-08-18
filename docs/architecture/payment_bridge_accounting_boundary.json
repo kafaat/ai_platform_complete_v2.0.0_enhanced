@@ -36,5 +36,8 @@
     ],
     "short_code_role": "routing/channel identity only; never sufficient proof of payment"
   },
-  "integration_rule": "Payment Bridge may feed accounting/ERP reconciliation; it must not write canonical agronomic state or bypass ERP projection/reconciliation contracts."
+  "integration_rule": "Payment Bridge may feed accounting/ERP reconciliation; it must not write canonical agronomic state or bypass ERP projection/reconciliation contracts.",
+  "schema": "sahool.payment-bridge-accounting-boundary.v1",
+  "adjudicated_on": "2026-08-18",
+  "version": 1
 }

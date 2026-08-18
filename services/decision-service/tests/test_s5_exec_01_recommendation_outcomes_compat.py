@@ -4,11 +4,25 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_compat_migration_converges_identity_without_collapsing_recommendation_history():
-    sql = (ROOT / "services/decision-service/migrations/032_recommendation_outcomes_cutover_compat.sql").read_text()
+    sql = (
+        ROOT / "services/decision-service/migrations/032_recommendation_outcomes_cutover_compat.sql"
+    ).read_text()
     for column in (
-        "outcome_id", "idempotency_key", "request_hash", "decision_id", "outcome",
-        "confidence", "metadata", "updated_at", "farm_id", "crop", "predicted_yield_t_ha",
-        "actual_yield_t_ha", "accepted", "matured_within_lag", "issued_at",
+        "outcome_id",
+        "idempotency_key",
+        "request_hash",
+        "decision_id",
+        "outcome",
+        "confidence",
+        "metadata",
+        "updated_at",
+        "farm_id",
+        "crop",
+        "predicted_yield_t_ha",
+        "actual_yield_t_ha",
+        "accepted",
+        "matured_within_lag",
+        "issued_at",
         "outcome_recorded_at",
     ):
         assert f"ADD COLUMN IF NOT EXISTS {column}" in sql
@@ -16,7 +30,10 @@ def test_compat_migration_converges_identity_without_collapsing_recommendation_h
     assert "PRIMARY KEY (outcome_id)" in sql
     assert "ux_recommendation_outcomes_tenant_idempotency" in sql
     assert "UNIQUE INDEX" in sql
-    assert "tenant_recommendation" in sql and "UNIQUE INDEX IF NOT EXISTS ux_recommendation_outcomes_tenant_recommendation" not in sql
+    assert (
+        "tenant_recommendation" in sql
+        and "UNIQUE INDEX IF NOT EXISTS ux_recommendation_outcomes_tenant_recommendation" not in sql
+    )
 
 
 def test_authoritative_persistence_uses_idempotency_not_recommendation_id_as_uniqueness():
@@ -35,7 +52,7 @@ def test_authoritative_persistence_uses_idempotency_not_recommendation_id_as_uni
 
 def test_service_contract_accepts_idempotency_and_exposes_compatibility_identity():
     src = (ROOT / "services/decision-service/main.py").read_text()
-    model = src[src.index("class RecommendationOutcomeIn"):src.index("class LearningUpdateIn")]
+    model = src[src.index("class RecommendationOutcomeIn") : src.index("class LearningUpdateIn")]
     assert "idempotency_key: str | None = None" in model
     start = src.index('@app.post("/v1/recommendation-outcomes")')
     end = src.index('@app.post("/v1/learning/updates")', start)
