@@ -835,7 +835,7 @@ jobs:
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
           for i in 1 2; do
-            timeout 240 sudo apt-get update -qq && timeout 240 sudo apt-get install -y -qq postgresql-client && break
+            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
             echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
             [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
           done
@@ -972,7 +972,7 @@ jobs:
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
           for i in 1 2; do
-            timeout 240 sudo apt-get update -qq && timeout 240 sudo apt-get install -y -qq postgresql-client && break
+            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
             echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
             [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
           done
@@ -1292,7 +1292,7 @@ jobs:
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
           for i in 1 2; do
-            timeout 240 sudo apt-get update -qq && timeout 240 sudo apt-get install -y -qq postgresql-client && break
+            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
             echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
             [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
           done
