@@ -795,6 +795,8 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-24.04
+    # سقف صارم: المدّة الطبيعيّة دقائق قليلة؛ بلاه يحترق runner ستّ ساعات على أيّ تجمّد (مقيس).
+    timeout-minutes: 30
     # ملاحظة: لا نستخدم `services:` لـPostgres/Redis لأنّ GitHub يسحب صورها عند
     # بدء المهمّة بثلاث محاولات سريعة فقط ⇒ فشل متكرّر حين يتباطأ/يُقيّد Docker Hub
     # (registry-1.docker.io: context deadline exceeded). بدلاً منها نُدير الحاويات
@@ -829,7 +831,15 @@ jobs:
             -e POSTGRES_DB=sahool_test -e POSTGRES_USER=sahool_test \
             -e POSTGRES_PASSWORD=test_password -p 5433:5432 postgis/postgis:15-3.4
           docker run -d --name sahool-redis -p 6380:6379 redis:7-alpine
-          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
+          # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
+          # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
+          for i in 1 2; do
+            timeout 240 sudo apt-get update -qq && timeout 240 sudo apt-get install -y -qq postgresql-client && break
+            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
+            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
+          done
+          command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5433 -U sahool_test && break
             echo "بانتظار Postgres ($i)"; sleep 2
@@ -927,6 +937,8 @@ jobs:
   decision-service-tests:
     name: Decision Service Tests
     runs-on: ubuntu-24.04
+    # سقف صارم: المدّة الطبيعيّة دقائق قليلة؛ بلاه يحترق runner ستّ ساعات على أيّ تجمّد (مقيس).
+    timeout-minutes: 30
     # WX-10.7: decision-service owns the authoritative review transition (state machine + append
     # -only audit + concurrency). Its tests need a real Postgres (the concurrency race + DB-level
     # append-only cannot be faked) — this job is their CI home. Same resilient-pull pattern as
@@ -956,7 +968,15 @@ jobs:
           docker run -d --name ds-pg \
             -e POSTGRES_DB=decision_test -e POSTGRES_USER=decision_test \
             -e POSTGRES_PASSWORD=test_password -p 5434:5432 postgres:15
-          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
+          # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
+          # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
+          for i in 1 2; do
+            timeout 240 sudo apt-get update -qq && timeout 240 sudo apt-get install -y -qq postgresql-client && break
+            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
+            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
+          done
+          command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5434 -U decision_test && break
             echo "بانتظار Postgres ($i)"; sleep 2
@@ -1235,6 +1255,8 @@ jobs:
     # بـ`SAHOOL_REQUIRE_LIVE_PG=1` الذي يجعل غياب القاعدة **خطأ جمع** لا تخطّياً.
     name: Live PG Proofs (fake-connection debt)
     runs-on: ubuntu-24.04
+    # سقف صارم: المدّة الطبيعيّة دقائق قليلة؛ بلاه يحترق runner ستّ ساعات على أيّ تجمّد (مقيس).
+    timeout-minutes: 30
     # The evidence bytes are now independently attestable. The OIDC token is
     # used only by actions/attest; database credentials remain job-local test values.
     permissions:
@@ -1266,7 +1288,15 @@ jobs:
             -e POSTGRES_DB=sahool -e POSTGRES_USER=sahool_user \
             -e POSTGRES_PASSWORD=test_password -p 5435:5432 --pull=never \
             postgis/postgis:16-3.4
-          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
+          # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
+          # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
+          for i in 1 2; do
+            timeout 240 sudo apt-get update -qq && timeout 240 sudo apt-get install -y -qq postgresql-client && break
+            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
+            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
+          done
+          command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5435 -U sahool_user && break
             echo "بانتظار Postgres ($i)"; sleep 2
