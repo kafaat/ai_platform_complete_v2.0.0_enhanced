@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "c13839ac2a9b3c48a30beb6b8856a7e1cb5694619cf0dad6d9b433acd4000d63",
+  "inventory_sha256": "7dab2133f87a2f509b3de16e05237a0b66643e676f231831645578b1ad1ac8c6",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "f708025022a5674b8aefb5cfcfcaff9736d8875ad93df03b0e03cd967eba6853"
+    "policy_sha256": "2b84e875108568d8607f4fa9671429510df675e7ebb906243f2608c8e53ac23d"
   },
   "routes": [
     {
@@ -626,7 +626,7 @@
     {
       "classification": "domain",
       "function": "get_decision_economics",
-      "line": 141,
+      "line": 184,
       "method": "GET",
       "path": "/api/v1/decision/economics",
       "source": "api/routers/decision_impact.py"
@@ -1202,7 +1202,7 @@
     {
       "classification": "domain",
       "function": "list_prescriptions",
-      "line": 293,
+      "line": 332,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/prescriptions",
       "source": "api/routers/prescriptions.py"
@@ -1210,7 +1210,7 @@
     {
       "classification": "domain",
       "function": "export_prescription",
-      "line": 337,
+      "line": 376,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
       "source": "api/routers/prescriptions.py"
@@ -1426,7 +1426,7 @@
     {
       "classification": "domain",
       "function": "query_yield_map_records",
-      "line": 288,
+      "line": 289,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-map-records",
       "source": "api/routers/yield_map_ingestion.py"
@@ -1434,7 +1434,7 @@
     {
       "classification": "domain",
       "function": "list_yield_map_ingestions",
-      "line": 251,
+      "line": 252,
       "method": "GET",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
       "source": "api/routers/yield_map_ingestion.py"
@@ -3650,7 +3650,7 @@
     {
       "classification": "domain",
       "function": "create_prescription",
-      "line": 176,
+      "line": 215,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/prescriptions",
       "source": "api/routers/prescriptions.py"
@@ -3770,7 +3770,7 @@
     {
       "classification": "domain",
       "function": "ingest_yield_map",
-      "line": 79,
+      "line": 80,
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/yield-maps/ingestions",
       "source": "api/routers/yield_map_ingestion.py"
@@ -4666,7 +4666,7 @@
     {
       "classification": "domain",
       "function": "internal_ai_advice_event",
-      "line": 73,
+      "line": 137,
       "method": "POST",
       "path": "/internal/events/ai-advice",
       "source": "api/routers/internal_service.py"

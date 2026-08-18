@@ -6092,6 +6092,7 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_yield_map_ingestion.py",
         "tests_v9/test_platform_catalog_gate.py",
+        "tests_v9/test_precision_execution_loop_c3_guard.py",
         "tests_v9/test_v215_yield_map_ingestion_static.py"
       ]
     },
@@ -9400,9 +9401,10 @@
       ]
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -9430,16 +9432,16 @@
       "domain": "weather",
       "evidence": {
         "api": true,
-        "backend": false,
+        "backend": true,
         "database": false,
         "documentation": true,
-        "events": false,
+        "events": true,
         "integration_tests": false,
         "mobile": false,
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
       "evidence_records": [
@@ -9449,7 +9451,7 @@
           "type": "api"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "backend"
         },
@@ -9464,7 +9466,7 @@
           "type": "documentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "events"
         },
@@ -9494,7 +9496,7 @@
           "type": "runtime_instrumentation"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "unit_tests"
         },
@@ -9504,7 +9506,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 2,
+      "evidence_score": 5,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -9514,12 +9516,14 @@
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
       "title": "Current weather",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "tests_v9/test_crop_twin_verified_learning_c2.py"
+      ]
     },
     {
       "assessed_maturity": 3,
@@ -10792,7 +10796,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 28,
-    "average_assessed_maturity": 2.02,
+    "average_assessed_maturity": 2.04,
     "capability_count": 81,
     "declared_above_evidence": 50,
     "evidence_above_declared": 3,

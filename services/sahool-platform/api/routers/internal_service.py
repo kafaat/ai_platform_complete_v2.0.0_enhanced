@@ -28,9 +28,17 @@ async def internal_field_state(
     tenant_id: str = Query(..., description="معرّف المستأجِر الصريح (خدمة-لخدمة)"),
     canonical: bool = Query(
         False,
+        description="أرفِق canonical_field_state.v1 المُركَّب من منتجات المُلّاك.",
+    ),
+    twin: bool = Query(
+        False,
+        description="أرفِق Field Digital Twin مشتقاً فقط من canonical_field_state.",
+    ),
+    learning_model_id: str | None = Query(
+        None,
         description=(
-            "أرفِق canonical_field_state.v1 المُركَّب من المنتَجات المتاحة. "
-            "يعود operational_eligible=false ما دام الطقس غير مُتاح كغلاف كنسيّ."
+            "اختياري: أرفِق ملخص دليل التعلّم المتحقق لهذا الحقل من decision-service. "
+            "لا fallback إلى execution_ledger."
         ),
     ),
     _: None = Depends(_require_service_token),
@@ -56,9 +64,10 @@ async def internal_field_state(
         async with main.tenant_connection_for(tenant_id) as conn:
             await main._assert_field_in_tenant(conn, field_id)
             result = await recompute_field_state(conn, field_id)
+            need_canonical = canonical or twin or bool(learning_model_id)
             canonical_state = (
                 await _compose_canonical(conn, tenant_id=tenant_id, field_id=field_id)
-                if canonical
+                if need_canonical
                 else None
             )
     except HTTPException:
@@ -67,7 +76,62 @@ async def internal_field_state(
         raise main._db_unavailable("قراءة الحالة القانونيّة (خدمة)", e) from e
     if canonical_state is None:
         return result["state"]
-    return {"state": result["state"], "canonical_field_state": canonical_state}
+
+    # الحالة تُركَّب داخليّاً لتغذية التوأم/التعلّم، لكنّ إرفاقها في الاستجابة يحكمه
+    # عقد المعاملَين وحدهما: canonical صراحةً، أو twin (المشتقّ منها فيرافقها دليلاً).
+    response = {"state": result["state"]}
+    if canonical or twin:
+        response["canonical_field_state"] = canonical_state
+    if twin:
+        from dataclasses import asdict
+
+        from core.field_digital_twin import build_field_twin_from_canonical_state
+
+        response["field_twin"] = asdict(build_field_twin_from_canonical_state(canonical_state))
+
+    if learning_model_id:
+        from api.decision_service_client import get_calibration_dataset
+
+        try:
+            season_id = canonical_state.get("season_id")
+            if not season_id:
+                response["twin_learning_evidence"] = {
+                    "available": False,
+                    "source_authority": "decision-service/verified-calibration-dataset",
+                    "reason": "authoritative_verified_dataset_unavailable:no_active_season",
+                    "verified_outcome_count": 0,
+                    "auto_promoted": False,
+                }
+                return response
+            dataset = await get_calibration_dataset(
+                model_id=learning_model_id,
+                field_id=field_id,
+                season_id=season_id,
+                limit=500,
+                tenant_id=tenant_id,
+            )
+            verified = dataset.get("authoritative") is True and dataset.get("read_only") is True
+            response["twin_learning_evidence"] = {
+                "available": verified,
+                "source_authority": "decision-service/verified-calibration-dataset",
+                "verified_outcome_count": int(dataset.get("count", 0)) if verified else 0,
+                "weighted_success_rate": dataset.get("weighted_success_rate") if verified else None,
+                "dataset_fingerprint": dataset.get("dataset_fingerprint") if verified else None,
+                "agronomic_cohort_fingerprint": (
+                    dataset.get("agronomic_cohort_fingerprint") if verified else None
+                ),
+                "by_decision_type": dataset.get("by_decision_type", {}) if verified else {},
+                "auto_promoted": False,
+            }
+        except HTTPException as exc:
+            response["twin_learning_evidence"] = {
+                "available": False,
+                "source_authority": "decision-service/verified-calibration-dataset",
+                "reason": f"authoritative_verified_dataset_unavailable:{exc.status_code}",
+                "verified_outcome_count": 0,
+                "auto_promoted": False,
+            }
+    return response
 
 
 @router.post("/internal/events/ai-advice")
@@ -127,6 +191,7 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
     from api.canonical_soil_state import resolve_canonical_soil_state
     from api.canonical_spectral_state import resolve_canonical_spectral_state
     from api.canonical_water_state import resolve_canonical_water_state
+    from api.persisted_canonical_repositories import load_active_season_id
     from api.weather_service_client import get_canonical_field_weather
 
     water = await resolve_canonical_water_state(conn, tenant_id=tenant_id, field_id=field_id)
@@ -152,9 +217,11 @@ async def _compose_canonical(conn, *, tenant_id: str, field_id: str) -> dict:
             float(coords["lat"]), float(coords["lon"]), tenant_id=tenant_id
         )
 
+    season_id = await load_active_season_id(conn, field_id=field_id)
+
     state = compose_canonical_field_state(
         field_id=field_id,
-        season_id=None,
+        season_id=season_id,
         as_of_time=datetime.now(UTC).isoformat(),
         water=water_payload,
         soil=soil_payload,

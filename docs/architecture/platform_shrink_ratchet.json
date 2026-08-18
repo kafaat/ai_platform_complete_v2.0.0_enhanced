@@ -442,7 +442,15 @@
       "recommendation_outcomes:mirror:decision-service"
     ]
   },
-  "exceptions": [],
+  "exceptions": [
+    {
+      "category": "platform_domain_compute",
+      "identity": "services/sahool-platform/core/yield_map_processing.py",
+      "owner": "C3-precision-execution",
+      "reason": "وحدة C3 مقصودة ملاصقة لحالة الحقل القانونيّة؛ الخروج إلى خدمة مالكة يتبع مسار S5-EXEC بدليل مستهلكين، لا إعفاء عدّ.",
+      "target_close_by": "2026-11-30"
+    }
+  ],
   "exception_contract": {
     "required_fields": [
       "category",

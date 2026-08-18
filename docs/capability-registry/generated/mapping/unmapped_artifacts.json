@@ -5712,6 +5712,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_precision_execution_loop_c3.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_prod_readiness.py",
     "kind": "tests"
   },

@@ -6967,6 +6967,36 @@
     ]
   },
   {
+    "path": "services/sahool-platform/core/field_digital_twin.py",
+    "kind": "backend",
+    "candidates": [
+      {
+        "capability_id": "SAT-004",
+        "score": 12,
+        "signals": [
+          "content:NDMI",
+          "content:ndmi"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 12,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      },
+      {
+        "capability_id": "WX-001",
+        "score": 10,
+        "signals": [
+          "content:Current weather",
+          "content:current weather"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/sahool-platform/core/field_intelligence_card.py",
     "kind": "backend",
     "candidates": [
@@ -9293,6 +9323,28 @@
         "signals": [
           "content:ET0",
           "content:et0"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests_v9/test_crop_twin_verified_learning_c2.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-001",
+        "score": 8,
+        "signals": [
+          "content:Current weather",
+          "content:current weather"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 8,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
         ]
       }
     ]

@@ -39,7 +39,7 @@ import logging
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from api.machinery_export import (
     MachineryExportError,
@@ -69,6 +69,19 @@ _PRODUCT_TYPES = {"seed", "fertility"}
 _RX_SELECT_COLS = "prescription_id, field_id, season_id, season_resolution_status, name, product_type, zones, created_by, created_at"
 
 
+# VRA historically emitted underscore unit/product aliases while the persisted
+# machinery path uses ISOXML-style canonical spellings. Normalize only at this
+# boundary so old clients remain accepted but persisted evidence is unambiguous.
+_UNIT_ALIASES = {
+    "kg_ha": "kg/ha",
+    "seeds_m2": "seeds/m2",
+    "seeds_ha": "seeds/ha",
+    "l_ha": "l/ha",
+    "m3_ha": "m3/ha",
+}
+_PRODUCT_ALIASES = {"fertilizer": "fertility"}
+
+
 # ─── النماذج ─────────────────────────────────────────────────────
 
 
@@ -78,6 +91,18 @@ class PrescriptionZone(BaseModel):
     geometry: dict  # GeoJSON Polygon (يرسمه المستخدِم في الواجهة)
     rate: float  # المعدّل (seeds/m² أو kg/ha) — يضبطه المستخدِم
     unit: str  # الوحدة (مثل "seeds/m2" أو "kg/ha")
+    zone_id: str | None = Field(default=None, max_length=128)
+    source_lineage: dict = Field(default_factory=dict)
+
+    @field_validator("unit")
+    @classmethod
+    def canonicalize_machine_unit(cls, value: str) -> str:
+        unit = str(value or "").strip()
+        if not unit:
+            raise ValueError("unit must not be blank")
+        # التطبيع غير حسّاس لحالة الأحرف: KG_HA وKg/Ha قيم عملاء حقيقيّة، وتجاوزها
+        # القاموس يُخزّن وحدة غير قانونيّة فيهزم هدف تطبيع الحدود من أساسه.
+        return _UNIT_ALIASES.get(unit.lower(), unit.lower())
 
 
 class PrescriptionCreateRequest(BaseModel):
@@ -88,6 +113,12 @@ class PrescriptionCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     product_type: str = Field(default="seed")
     zones: list[PrescriptionZone] = Field(default_factory=list)
+
+    @field_validator("product_type")
+    @classmethod
+    def canonicalize_product_type(cls, value: str) -> str:
+        product = str(value or "").strip().lower()
+        return _PRODUCT_ALIASES.get(product, product)
 
 
 # أعمدة قراءة ملفّ التحكّم المُدام (v216) — بالترتيب الذي يتوقّعه resolve_persisted_profile.
@@ -126,13 +157,21 @@ def _prescription_content_digest(
     """Stable sha256 over the content-bearing fields — used to tell an idempotent
     replay (same id, same content) from an idempotency CONFLICT (same id, different
     content). Canonical JSON (sorted keys, compact) so it is order-stable."""
+
+    # C3 وسّعت PrescriptionZone بحقلَي نسبٍ اختياريّين (zone_id/source_lineage) —
+    # فصفوف ما قبل C3 المخزونة لا تحملهما بينما model_dump يحملهما فارغَين، وبلا
+    # تطبيعٍ تُقرأ الإعادة المشروعة تعارضاً (409 مقيس). القيم الفارغة تُسقَط من
+    # الجهتين قبل الهضم؛ القيم المعيَّنة فعلاً تبقى محتوى يشارك في البصمة.
+    def _zone_view(z: dict) -> dict:
+        return {k: v for k, v in z.items() if v not in (None, {}, [])}
+
     canon = json.dumps(
         {
             "field_id": field_id,
             "season_id": season_id,
             "name": name,
             "product_type": product_type,
-            "zones": zones,
+            "zones": [_zone_view(dict(z)) for z in zones],
         },
         sort_keys=True,
         ensure_ascii=False,
@@ -493,7 +532,14 @@ async def export_prescription(
                         pkg.package_bytes,
                         len(pkg.package_bytes),
                         pkg.zone_count,
-                        json.dumps({"product_type": rx["product_type"], "name": rx["name"]}),
+                        json.dumps(
+                            {
+                                "product_type": rx["product_type"],
+                                "name": rx["name"],
+                                "prescription_digest": pkg.prescription_digest,
+                                "zone_lineage_digest": pkg.zone_lineage_digest,
+                            }
+                        ),
                         user.user_id,
                     )
                 return Response(
@@ -503,6 +549,8 @@ async def export_prescription(
                         "Content-Disposition": 'attachment; filename="TASKDATA.zip"',
                         "X-Artifact-Id": str(existing),
                         "X-Package-SHA256": pkg.package_sha256,
+                        "X-Prescription-SHA256": pkg.prescription_digest,
+                        "X-Zone-Lineage-SHA256": pkg.zone_lineage_digest,
                     },
                 )
     except HTTPException:

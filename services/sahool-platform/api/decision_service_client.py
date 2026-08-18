@@ -359,6 +359,8 @@ async def get_calibration_dataset(
     *,
     model_id: str,
     feature_set_id: str | None = None,
+    field_id: str | None = None,
+    season_id: str | None = None,
     limit: int = 500,
     tenant_id: str | None = None,
 ) -> dict[str, Any]:
@@ -366,7 +368,13 @@ async def get_calibration_dataset(
     return await decision_get_json(
         "/v1/learning/calibration-dataset",
         tenant_id=tenant_id,
-        params={"model_id": model_id, "feature_set_id": feature_set_id, "limit": limit},
+        params={
+            "model_id": model_id,
+            "feature_set_id": feature_set_id,
+            "field_id": field_id,
+            "season_id": season_id,
+            "limit": limit,
+        },
     )
 
 

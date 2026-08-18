@@ -43,6 +43,7 @@ This index identifies the current release-candidate evidence and separates it fr
 ## Historical reports
 
 - `AI_FIELD_MEMORY_EVIDENCE_TRANSPARENCY_V49_REPORT_20260701.md`
+- `C3_REBASE_ON_C2_REMEDIATED_REPORT.md`
 - `CDSE_RASTER_RUNTIME_HARDENING_REPORT_20260626.md`
 - `CLP_ALL_NAN_TEST_COMPAT_FIX_REPORT_20260710.md`
 - `CONTRACT_CAPABILITIES_CONTINUATION_REPORT_20260709.md`
@@ -121,5 +122,4 @@ This index identifies the current release-candidate evidence and separates it fr
 - `P5_SERVICE_REGISTRY_HARDENING_REPORT.md`
 - `P6_GATEWAY_SPLIT_CONTRACT_REPORT.md`
 - `PHASE10_RELIABILITY_LOAD_CHAOS_RECOVERY_REPORT_20260626.md`
-- `PHASE11_MOBILE_OFFLINE_SYNC_RUNTIME_REPORT_20260626.md`
-- ... 104 additional historical reports omitted from this index view
+- ... 105 additional historical reports omitted from this index view

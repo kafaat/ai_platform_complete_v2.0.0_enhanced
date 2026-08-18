@@ -88,6 +88,28 @@ def _zone_area(zone: dict[str, Any]) -> float:
     return area_ha_for_bbox(bbox) if bbox else 0.0
 
 
+def _zone_source_lineage(zone: dict[str, Any], evidence_context: dict[str, Any]) -> dict[str, Any]:
+    """Preserve evidence identity; never turn it into an execution authorization."""
+    lineage = zone.get("source_lineage") if isinstance(zone.get("source_lineage"), dict) else {}
+    out = dict(lineage)
+    for key in (
+        "management_zone_id",
+        "yield_processing_digest",
+        "canonical_yield_state_digest",
+        "spectral_state_digest",
+        "soil_profile_hash",
+    ):
+        value = zone.get(key)
+        if value is None:
+            value = evidence_context.get(key)
+        if value is not None:
+            out[key] = value
+    evidence_ids = zone.get("evidence_ids") or evidence_context.get("evidence_ids") or []
+    if isinstance(evidence_ids, list):
+        out["evidence_ids"] = [str(v) for v in evidence_ids if str(v)]
+    return out
+
+
 def _base_rate(params: dict[str, Any], product_type: str) -> float:
     explicit = _as_float(params.get("base_rate"))
     if explicit is not None and explicit > 0:
@@ -194,6 +216,7 @@ def generate_vra_prescription(
         confidence -= 0.12
     confidence = round(max(0.38, min(confidence, 0.88)), 2)
 
+    ctx = evidence_context if isinstance(evidence_context, dict) else {}
     prescription_zones: list[dict[str, Any]] = []
     total_area = 0.0
     weighted_total = 0.0
@@ -221,6 +244,7 @@ def generate_vra_prescription(
                 "evidence_level": "lab_supported"
                 if has_lab
                 else "estimated_requires_agronomist_review",
+                "source_lineage": _zone_source_lineage(zone, ctx),
             }
         )
 
@@ -252,7 +276,6 @@ def generate_vra_prescription(
     # structured verdict. Fail-closed: missing/low quality ⇒ machine_ready=False. This never
     # relaxes the existing (always-False) export gate — it only makes the raster-quality
     # dimension explicit and adds an Arabic warning when the imagery is too weak/stale.
-    ctx = evidence_context if isinstance(evidence_context, dict) else {}
     ndvi_evidence = ctx.get("ndvi_grid_evidence")
     raster_quality: dict[str, Any] | None = None
     if isinstance(ndvi_evidence, dict):
@@ -288,6 +311,7 @@ def generate_vra_prescription(
             "readiness_status": readiness_status,
             "machine_export_formats": _available_export_formats(),
             "requires_agronomist_review": True,
+            "source_lineage": _zone_source_lineage({}, ctx),
         },
         "prescription_zones": prescription_zones,
         "data_completeness": completeness,
