@@ -1031,6 +1031,38 @@
     ]
   },
   {
+    "path": "docs/architecture/platform_shrink_ratchet.json",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "FM-003",
+        "score": 14,
+        "signals": [
+          "content:field boundary",
+          "content:field geometry",
+          "content:field workspace"
+        ]
+      },
+      {
+        "capability_id": "SEC-004",
+        "score": 11,
+        "signals": [
+          "content:MFA",
+          "content:mfa",
+          "content:recovery code"
+        ]
+      },
+      {
+        "capability_id": "PA-003",
+        "score": 11,
+        "signals": [
+          "content:Yield map ingestion",
+          "content:yield map"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/architecture/raster_boundary_allowlist.json",
     "kind": "other",
     "candidates": [

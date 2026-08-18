@@ -159,6 +159,36 @@
       ],
       "test": "tests_v9/test_component_registry_gate.py"
     },
+    "scripts/architecture/platform_shrink_ratchet_guard.py": {
+      "$why_ar": "ARCH-S5: راتشِت انكماش المنصّة يقيس هُويّات لا أعداداً؛ نكوصه يعيد التضخّم الصامت والاستثناء الأبديّ.",
+      "test": "tests_v9/test_platform_shrink_ratchet_guard.py",
+      "mutations": [
+        {
+          "expect": "test_new_platform_owned_table_is_identity_blocked",
+          "find": "        for ident in new:\n            if (cat, ident) not in exceptions:\n                out.append(f\"NEW {cat}: {ident}\")",
+          "replace": "        for ident in new:\n            if False:  # mutated: new platform-owned identity tolerated\n                out.append(f\"NEW {cat}: {ident}\")",
+          "why": "بلا حجب الهُويّة الجديدة يعود تضخّم المنصّة صامتاً — والراتشِت يقيس هُويّات لا أعداداً."
+        },
+        {
+          "expect": "test_stale_identity_forces_baseline_lowering",
+          "find": "        for ident in stale:\n            out.append(f\"STALE {cat}: {ident} — lower baseline\")",
+          "replace": "        for ident in stale:\n            pass  # mutated: stale baseline entry need not be lowered",
+          "why": "أساسٌ لا ينزل عند اختفاء الهُويّة يترك رصيداً وهميّاً يُبتلَع به دخولٌ جديد بلا أثر."
+        },
+        {
+          "expect": "test_exception_requires_owner_reason_and_close_date",
+          "find": "        if missing:\n            f.append(f\"exception[{i}] missing fields: {','.join(missing)}\")\n            continue",
+          "replace": "        if False:  # mutated: exception without owner/reason/close-date accepted\n            f.append(f\"exception[{i}] missing fields: {','.join(missing)}\")\n            continue",
+          "why": "استثناءٌ بلا مالك وسبب وتاريخ إغلاق إعفاءٌ دائم بلا صاحب — وهو كيف يصير المؤقّت أبديّاً."
+        },
+        {
+          "expect": "test_an_exception_whose_reason_expired_is_reported_as_unnecessary",
+          "find": "    for (cat, ident), _e in exceptions.items():\n        if ident not in observed[cat] - base[cat]:\n            out.append(f\"stale/unnecessary exception: {cat}:{ident}\")",
+          "replace": "    for (cat, ident), _e in exceptions.items():\n        if False:  # mutated: expired exception may linger\n            out.append(f\"stale/unnecessary exception: {cat}:{ident}\")",
+          "why": "استثناءٌ بطل سببه يُقرأ حراسةً قائمة وهو أثرُ قرارٍ انتهى. والسياسة الحيّة تحمل صفر استثناء، فالقاعدة لا تمرّ بها حلقة على الشجرة الحقيقيّة — لذا يقيسها اختبارٌ رمليّ يُدخِل استثناءً فعليّاً."
+        }
+      ]
+    },
     "scripts/ci/capability_authority_view.py": {
       "$gap_ar": "CAPABILITY-CONSUMER-AUTHORITY-MIGRATION-01 — المستهلك يقرأ الحقول من مالكها لا من إسقاط واحد",
       "mutations": [

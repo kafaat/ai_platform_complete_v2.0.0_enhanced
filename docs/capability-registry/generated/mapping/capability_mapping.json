@@ -15,18 +15,18 @@
     "capabilities_mapped": 74,
     "capabilities_unmapped": 7,
     "capabilities_multidimensional": 48,
-    "files_scanned": 5050,
+    "files_scanned": 5053,
     "files_by_kind": {
       "backend": 1197,
       "database": 273,
       "governance": 60,
       "mobile": 51,
-      "other": 1364,
-      "tests": 1649,
+      "other": 1366,
+      "tests": 1650,
       "web": 456
     },
-    "unmapped_artifacts": 2050,
-    "ambiguous_artifacts": 403
+    "unmapped_artifacts": 2051,
+    "ambiguous_artifacts": 404
   },
   "capabilities": [
     {
@@ -5938,6 +5938,15 @@
           ]
         },
         {
+          "path": "docs/architecture/platform_shrink_ratchet.json",
+          "score": 14,
+          "signals": [
+            "content:field boundary",
+            "content:field geometry",
+            "content:field workspace"
+          ]
+        },
+        {
           "path": "docs/testing/FIELD_WORKSPACE_PRODUCTION_CLOSURE.md",
           "score": 14,
           "signals": [
@@ -6024,7 +6033,7 @@
         "mobile": 2,
         "tests": 12,
         "governance": 1,
-        "other_evidence": 11
+        "other_evidence": 12
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -15573,6 +15582,14 @@
             "content:yield map",
             "explicit_id"
           ]
+        },
+        {
+          "path": "docs/architecture/platform_shrink_ratchet.json",
+          "score": 11,
+          "signals": [
+            "content:Yield map ingestion",
+            "content:yield map"
+          ]
         }
       ],
       "ambiguous": [],
@@ -15588,7 +15605,7 @@
         "mobile": 0,
         "tests": 3,
         "governance": 0,
-        "other_evidence": 2
+        "other_evidence": 3
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -25962,6 +25979,15 @@
           ]
         },
         {
+          "path": "docs/architecture/platform_shrink_ratchet.json",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
           "path": "docker-compose.dev.yml",
           "score": 10,
           "signals": [
@@ -26015,7 +26041,7 @@
         "mobile": 4,
         "tests": 16,
         "governance": 0,
-        "other_evidence": 17
+        "other_evidence": 18
       },
       "coverage_dimensions": 7,
       "mapped": true
@@ -42086,6 +42112,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_platform_shrink_ratchet_guard.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_portfolio_allocation.py",
       "kind": "tests"
     },
@@ -43670,6 +43700,38 @@
             "content:Management zones",
             "content:management zone",
             "content:productivity zone"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/platform_shrink_ratchet.json",
+      "kind": "other",
+      "candidates": [
+        {
+          "capability_id": "FM-003",
+          "score": 14,
+          "signals": [
+            "content:field boundary",
+            "content:field geometry",
+            "content:field workspace"
+          ]
+        },
+        {
+          "capability_id": "SEC-004",
+          "score": 11,
+          "signals": [
+            "content:MFA",
+            "content:mfa",
+            "content:recovery code"
+          ]
+        },
+        {
+          "capability_id": "PA-003",
+          "score": 11,
+          "signals": [
+            "content:Yield map ingestion",
+            "content:yield map"
           ]
         }
       ]
