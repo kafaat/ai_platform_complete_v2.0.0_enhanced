@@ -847,11 +847,7 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          for i in 1 2; do
-            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
-            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
-            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
-          done
+          bash scripts/ci/resilient_apt_install.sh postgresql-client
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5433 -U sahool_test && break
@@ -984,11 +980,7 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          for i in 1 2; do
-            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
-            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
-            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
-          done
+          bash scripts/ci/resilient_apt_install.sh postgresql-client
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5434 -U decision_test && break
@@ -1304,11 +1296,7 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          for i in 1 2; do
-            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
-            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
-            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
-          done
+          bash scripts/ci/resilient_apt_install.sh postgresql-client
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5435 -U sahool_user && break

@@ -33,9 +33,16 @@ spec.loader.exec_module(mod)
 
 
 def _sandbox(tmp_path, monkeypatch):
+    """يُنسَخ **الموضعان** — الـworkflows وسكربتات `scripts/ci` — لأنّ الحارس يمسحهما.
+
+    نسخُ أحدهما وحده كان سيُنتِج سرابَ تغطية: الطفرة تُزرَع حيث لا يُقاس.
+    """
     dst = tmp_path / ".github/workflows"
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(ROOT / ".github/workflows", dst)
+    scripts = tmp_path / "scripts/ci"
+    scripts.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(ROOT / "scripts/ci", scripts)
     monkeypatch.setattr(mod, "ROOT", tmp_path)
     monkeypatch.setattr(mod, "WORKFLOWS", dst)
     return dst
@@ -46,17 +53,18 @@ def test_the_current_tree_has_no_unbounded_provisioning_wait():
 
 
 def test_an_unbounded_apt_get_is_blocked(tmp_path, monkeypatch):
-    """يُزرَع الشكل الذي كان قائماً قبل `#868` حرفيّاً — لا شكلاً مصطنعاً."""
-    wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
-    wf.write_text(
-        wf.read_text(encoding="utf-8").replace(
-            "sudo timeout -k 10 240 apt-get update -qq "
-            "&& sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break",
-            "sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client && break",
-            1,
-        ),
-        encoding="utf-8",
-    )
+    """يُزرَع الشكل الذي كان قائماً قبل `#868` حرفيّاً — لا شكلاً مصطنعاً.
+
+    وموضعه اليوم **السكربت** لا الـworkflow: نقلُ الكتلة إلى
+    `resilient_apt_install.sh` أخرج `apt-get` من ملفّات الـworkflows كلّها، فلو بقي
+    مدى الحارس عليها وحدها لصار هذا الاختبار يزرع حيث لا يُقاس — **سرابَ تغطية**.
+    """
+    _sandbox(tmp_path, monkeypatch)
+    sh = tmp_path / "scripts/ci/resilient_apt_install.sh"
+    text = sh.read_text(encoding="utf-8")
+    bounded = 'sudo timeout -k 10 "$APT_TIMEOUT" apt-get update -qq'
+    assert bounded in text, "المرساة انحرفت — أعد قراءة دالّة attempt"
+    sh.write_text(text.replace(bounded, "sudo apt-get update -qq", 1), encoding="utf-8")
     assert any("apt-get بلا `timeout`" in x for x in mod.findings()), mod.findings()
 
 
@@ -146,3 +154,33 @@ def test_the_host_side_readiness_probe_is_deliberately_not_forbidden():
     ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert "pg_isready -h localhost" in ci, "الاستجواب من المضيف هو العقد المقيس"
     assert mod.findings() == [], "الحارس لا يجوز أن يُدين الاستجواب من المضيف"
+
+
+def test_moving_apt_into_a_script_does_not_move_it_out_of_the_guard(tmp_path, monkeypatch):
+    """الإصلاح الذي يفتح ثغرة — مقيس على هذه الشريحة نفسها.
+
+    نُقِلت كتلة APT من ثلاث `run:` متطابقة إلى سكربتٍ واحد (مكسبٌ حقيقيّ: لا انحراف
+    بين نسخٍ، ومنطقٌ يُختبَر). ولو بقي مدى الحارس على `.github/workflows` وحدها لكان
+    النقل قد **أخرج الأمر من القياس** بلا أن يُنقِص سطراً من الحارس — وهو نفس درس ③
+    بصيغةٍ أخرى: حدٌّ مربوطٌ بموضعٍ يفوته من ينتقل عنه.
+    """
+    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "apt-get install -y -qq postgresql-client && break" not in ci, (
+        "الكتلة المكرّرة أُزيلت — وإلّا فهذا الاختبار يقيس شجرةً أخرى"
+    )
+    scanned = sorted((ROOT / "scripts/ci").glob("*.sh"))
+    assert any("apt-get" in p.read_text(encoding="utf-8") for p in scanned), (
+        "APT يعيش في سكربت الآن؛ إن لم يعد كذلك فأعد النظر في هذا العقد"
+    )
+    _sandbox(tmp_path, monkeypatch)
+    sh = tmp_path / "scripts/ci/resilient_apt_install.sh"
+    sh.write_text(
+        sh.read_text(encoding="utf-8").replace(
+            'sudo timeout -k 10 "$APT_TIMEOUT" apt-get install -y -qq "$@"',
+            'sudo apt-get install -y -qq "$@"',
+            1,
+        ),
+        encoding="utf-8",
+    )
+    f = mod.findings()
+    assert any("resilient_apt_install.sh" in x for x in f), f

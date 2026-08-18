@@ -84,7 +84,13 @@ def findings() -> list[str]:
     import yaml
 
     out: list[str] = []
-    for wf in sorted(WORKFLOWS.glob("*.yml")):
+
+    # النطاق **الـworkflows وسكربتات `scripts/ci/*.sh` معاً**. والسبب مقيس على هذه
+    # الشريحة نفسها: نقلُ كتلة APT من ثلاث `run:` إلى سكربتٍ واحد أخرجها من مدى
+    # حارسٍ يمسح الـworkflows وحدها — فكان **إصلاحٌ يفتح ثغرة**، وهو نفس درس ③:
+    # حدٌّ مربوطٌ بموضعٍ يفوته من ينتقل عنه. يُمسح الموضعان فلا يُنجِي النقل.
+    scanned = sorted(WORKFLOWS.glob("*.yml")) + sorted((ROOT / "scripts/ci").glob("*.sh"))
+    for wf in scanned:
         text = wf.read_text(encoding="utf-8")
         rel = wf.relative_to(ROOT).as_posix()
 
@@ -110,7 +116,11 @@ def findings() -> list[str]:
                         "فلا تبلغه القاعدة ②"
                     )
 
-        # ① سقف الوظيفة.
+        # ① سقف الوظيفة — على الـworkflows وحدها: السكربت لا يملك `timeout-minutes`،
+        # وسقفُه يفرضه مُستدعيه. وتمريرُ نصّ shell إلى `yaml.safe_load` يُعيد سلسلة
+        # فيسقط الحارس بـAttributeError — انهيارٌ يُقرأ حجباً وهو عطلٌ فيه.
+        if wf.suffix != ".yml":
+            continue
         try:
             doc = yaml.safe_load(text) or {}
         except yaml.YAMLError as exc:  # وثيقةٌ لا تُقرأ فشلٌ مغلق لا تخطٍّ

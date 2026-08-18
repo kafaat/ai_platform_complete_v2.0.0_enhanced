@@ -15,17 +15,17 @@
     "capabilities_mapped": 75,
     "capabilities_unmapped": 6,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5064,
+    "files_scanned": 5065,
     "files_by_kind": {
       "backend": 1199,
       "database": 273,
       "governance": 60,
       "mobile": 51,
       "other": 1371,
-      "tests": 1654,
+      "tests": 1655,
       "web": 456
     },
-    "unmapped_artifacts": 2053,
+    "unmapped_artifacts": 2054,
     "ambiguous_artifacts": 406
   },
   "capabilities": [
@@ -42393,6 +42393,10 @@
     },
     {
       "path": "tests_v9/test_requirements_pinning_guard.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_resilient_apt_install.py",
       "kind": "tests"
     },
     {
