@@ -1040,6 +1040,36 @@
       ],
       "test": "tests/architecture/test_capability_writer_authority_guard.py"
     },
+    "ci_unbounded_wait_guard.py": {
+      "$why_ar": "CI-UNBOUNDED-PROVISIONING-WAIT-01: المواضع أُصلحت في #868؛ هذا يمنع عودة الصنف — وحارسٌ يتّهم الصحيح يُنزَع، فالذِّكر مُميَّز عن الاستدعاء.",
+      "test": "tests_v9/test_ci_unbounded_wait_guard.py",
+      "mutations": [
+        {
+          "expect": "test_an_unbounded_apt_get_is_blocked",
+          "find": "            if not _BOUNDED_APT.search(stripped):\n                out.append(f\"{rel}:{i}: apt-get بلا `timeout` — اعتمادٌ شبكيّ غير مسقوف\")",
+          "replace": "            if False:  # mutated: unbounded apt-get tolerated\n                out.append(f\"{rel}:{i}: apt-get بلا `timeout` — اعتمادٌ شبكيّ غير مسقوف\")",
+          "why": "تثبيتٌ شبكيّ بلا حدّ جداريّ هو ما أحرق 112 دقيقة ثمّ بقي معلَّقاً — والصمت يُقرأ عملاً جارياً."
+        },
+        {
+          "expect": "test_a_db_job_without_a_job_timeout_is_blocked",
+          "find": "            if any(m in body for m in _DB_JOB_MARKERS) and not job.get(\"timeout-minutes\"):",
+          "replace": "            if False:  # mutated: a db job may burn the default six hours",
+          "why": "وظيفةٌ بلا سقف تحرق runner ستّ ساعات على أيّ تجمّد — والافتراضيّ 360 دقيقة لا صفر."
+        },
+        {
+          "expect": "test_an_unreadable_workflow_fails_closed_instead_of_being_skipped",
+          "find": "        except yaml.YAMLError as exc:  # وثيقةٌ لا تُقرأ فشلٌ مغلق لا تخطٍّ\n            out.append(f\"{rel}: تعذّرت قراءة الـYAML: {exc}\")\n            continue",
+          "replace": "        except yaml.YAMLError:  # mutated: unreadable workflow silently skipped\n            continue",
+          "why": "وثيقةٌ لا تُقرأ تُخرِج وظائفها من القياس كلّه، فيصير «لم يُقَس» «مرّ»."
+        },
+        {
+          "expect": "test_the_current_tree_has_no_unbounded_provisioning_wait",
+          "find": "def _commands_only(line: str) -> str:\n    \"\"\"يُسقِط ما بين الاقتباسات فيبقى ما يُنفَّذ وحده.\"\"\"\n    return _QUOTED.sub(\" \", line)",
+          "replace": "def _commands_only(line: str) -> str:  # mutated: a mention is read as an invocation\n    return line",
+          "why": "ذِكرُ `apt-get` داخل رسالة `echo` ليس استدعاءً — وإدانتُه إيجابيّةٌ كاذبة تُسقِط الحارس بلا تعطيله (وقعت على ci.yml:839)."
+        }
+      ]
+    },
     "claim_base_guard.py": {
       "mutations": [
         {

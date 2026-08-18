@@ -519,7 +519,9 @@ jobs:
       # تتغيّر بين الإصدارات ⇒ تنسيق محلّيّ سليم يفشل في CI لا لشيء سوى انجراف الإصدار
       # (حدث فعلاً: ملفّ «already formatted» محلّيّاً صار «would reformat» في CI).
       # التثبيت يجعل التنسيق حتميّاً وقابلاً لإعادة الإنتاج محلّيّاً. حدّثه عمداً عند الرغبة.
-      - run: pip install ruff==0.15.8 mypy
+      # PyYAML: `ci_unbounded_wait_guard` يقرأ الـworkflows كـYAML، وبيئة
+      # `setup-python` لا تحمله — غيابُه أسقط الخطوة بـModuleNotFoundError (مقيس).
+      - run: pip install ruff==0.15.8 mypy PyYAML
       # نطاق كامل الشجرة (`.`): تحكمه استثناءات ruff.toml (extend-exclude) وتجاهلاته
       # لكلّ ملفّ. يُغلق ثغرة «الأخضر يقيس ما تختبره فقط» للـlint/format نهائيّاً —
       # كلّ ملفّ بايثون في المستودع (scripts/ tests/ alembic/ sdk/ sahool_ai/ …) مشمول.
@@ -532,6 +534,10 @@ jobs:
       # واحد ويمنع العلاج الخاطئ (تصنيف المسار أو إضافته إلى allowlist).
       - name: test probes must not leak into tracked sources or inventories
         run: python scripts/ci/probe_leak_guard.py
+      # CI-UNBOUNDED-PROVISIONING-WAIT-01: المواضع الثلاثة أُصلحت في #868، وهذا يمنع
+      # عودة الصنف — إصلاحٌ يُغلق ما وقع، وحارسٌ يمنع أن يقع رابعةً.
+      - name: provisioning waits must be bounded (no six-hour silent burn)
+        run: python scripts/ci/ci_unbounded_wait_guard.py
       # FAKE-CONNECTION-ENFORCES-NOTHING-01: بعد ٢٢٦ هجرة على PG16 نظيفة، تعطّلت
       # الرحلة القانونيّة أربع مرّات متتالية بأربعة أسباب مختلفة — وكلّها كانت خضراء
       # سنةً على اتّصال وهميّ لا يفرض CHECK ولا TRIGGER ولا يُعيد أنواع asyncpg.
