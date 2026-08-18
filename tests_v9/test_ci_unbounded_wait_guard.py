@@ -33,9 +33,16 @@ spec.loader.exec_module(mod)
 
 
 def _sandbox(tmp_path, monkeypatch):
+    """يُنسَخ **الموضعان** — الـworkflows وسكربتات `scripts/ci` — لأنّ الحارس يمسحهما.
+
+    نسخُ أحدهما وحده كان سيُنتِج سرابَ تغطية: الطفرة تُزرَع حيث لا يُقاس.
+    """
     dst = tmp_path / ".github/workflows"
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(ROOT / ".github/workflows", dst)
+    scripts = tmp_path / "scripts/ci"
+    scripts.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(ROOT / "scripts/ci", scripts)
     monkeypatch.setattr(mod, "ROOT", tmp_path)
     monkeypatch.setattr(mod, "WORKFLOWS", dst)
     return dst
@@ -46,17 +53,18 @@ def test_the_current_tree_has_no_unbounded_provisioning_wait():
 
 
 def test_an_unbounded_apt_get_is_blocked(tmp_path, monkeypatch):
-    """يُزرَع الشكل الذي كان قائماً قبل `#868` حرفيّاً — لا شكلاً مصطنعاً."""
-    wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
-    wf.write_text(
-        wf.read_text(encoding="utf-8").replace(
-            "sudo timeout -k 10 240 apt-get update -qq "
-            "&& sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break",
-            "sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client && break",
-            1,
-        ),
-        encoding="utf-8",
-    )
+    """يُزرَع الشكل الذي كان قائماً قبل `#868` حرفيّاً — لا شكلاً مصطنعاً.
+
+    وموضعه اليوم **السكربت** لا الـworkflow: نقلُ الكتلة إلى
+    `resilient_apt_install.sh` أخرج `apt-get` من ملفّات الـworkflows كلّها، فلو بقي
+    مدى الحارس عليها وحدها لصار هذا الاختبار يزرع حيث لا يُقاس — **سرابَ تغطية**.
+    """
+    _sandbox(tmp_path, monkeypatch)
+    sh = tmp_path / "scripts/ci/resilient_apt_install.sh"
+    text = sh.read_text(encoding="utf-8")
+    bounded = 'sudo timeout -k 10 "$APT_TIMEOUT" apt-get update -qq'
+    assert bounded in text, "المرساة انحرفت — أعد قراءة دالّة attempt"
+    sh.write_text(text.replace(bounded, "sudo apt-get update -qq", 1), encoding="utf-8")
     assert any("apt-get بلا `timeout`" in x for x in mod.findings()), mod.findings()
 
 
@@ -83,6 +91,47 @@ def test_a_db_job_without_a_job_timeout_is_blocked(tmp_path, monkeypatch):
     assert any("بلا `timeout-minutes`" in x for x in mod.findings()), mod.findings()
 
 
+def test_a_tool_that_calls_apt_from_inside_itself_must_be_bounded(tmp_path, monkeypatch):
+    """القاعدة ② تبحث عن `apt-get` **نصّاً**، فأفلت منها من يستدعيه من جوفه.
+
+    مقيس على هذا المستودع: `npx playwright install --with-deps` علق **٨٠+ دقيقة** في
+    التشغيل 32160054946 وحجب PR شجرتُه خضراء، بينما نجحت الخطوة نفسها على **الرأس
+    نفسه بالبايت** في التشغيل الشقيق 32160058172 في دقيقتين وخمس وخمسين ثانية. ولم
+    تكن وظيفته تُقيم حاوية قاعدة، فلم تطلب ① سقفاً لها ⇒ **بلا حدَّين معاً**.
+    """
+    wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
+    bounded = "timeout -k 10 300 npx playwright install --with-deps chromium"
+    text = wf.read_text(encoding="utf-8")
+    assert bounded in text, "المرساة انحرفت — أعد قراءة خطوة تثبيت Playwright"
+    wf.write_text(
+        text.replace(bounded, "npx playwright install --with-deps chromium", 1),
+        encoding="utf-8",
+    )
+    assert any("يستدعي apt-get من جوفه" in x for x in mod.findings()), mod.findings()
+
+
+def test_a_job_that_provisions_over_the_network_without_a_cap_is_blocked(tmp_path, monkeypatch):
+    """السقف مطلوبٌ لكلّ تجهيزٍ شبكيّ، لا لحاويات القواعد وحدها."""
+    wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
+    text = wf.read_text(encoding="utf-8")
+    head = text.index("  frontend-e2e:")
+    steps = text.index("    steps:", head)
+    wf.write_text(
+        text[:head]
+        + "  frontend-e2e:\n"
+        + "    name: Frontend E2E (Playwright · MapLibre/WebGL QA)\n"
+        + "    runs-on: ubuntu-24.04\n"
+        + text[steps:],
+        encoding="utf-8",
+    )
+    f = mod.findings()
+    assert any("frontend-e2e" in x and "timeout-minutes" in x for x in f), f
+    # والرسالة تسمّي **ما وُجِد**: حارسٌ وسّع مداه وأبقى نصّه يُدين «حاوية قاعدة»
+    # في وظيفةٍ لا حاوية فيها يوجّه قارئه إلى إصلاحٍ خاطئ.
+    assert any("--with-deps" in x for x in f), f
+    assert not any("frontend-e2e" in x and "حاوية قاعدة" in x for x in f), f
+
+
 def test_an_unreadable_workflow_fails_closed_instead_of_being_skipped(tmp_path, monkeypatch):
     wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
     wf.write_text("jobs: [ this is not: valid yaml", encoding="utf-8")
@@ -105,3 +154,33 @@ def test_the_host_side_readiness_probe_is_deliberately_not_forbidden():
     ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert "pg_isready -h localhost" in ci, "الاستجواب من المضيف هو العقد المقيس"
     assert mod.findings() == [], "الحارس لا يجوز أن يُدين الاستجواب من المضيف"
+
+
+def test_moving_apt_into_a_script_does_not_move_it_out_of_the_guard(tmp_path, monkeypatch):
+    """الإصلاح الذي يفتح ثغرة — مقيس على هذه الشريحة نفسها.
+
+    نُقِلت كتلة APT من ثلاث `run:` متطابقة إلى سكربتٍ واحد (مكسبٌ حقيقيّ: لا انحراف
+    بين نسخٍ، ومنطقٌ يُختبَر). ولو بقي مدى الحارس على `.github/workflows` وحدها لكان
+    النقل قد **أخرج الأمر من القياس** بلا أن يُنقِص سطراً من الحارس — وهو نفس درس ③
+    بصيغةٍ أخرى: حدٌّ مربوطٌ بموضعٍ يفوته من ينتقل عنه.
+    """
+    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "apt-get install -y -qq postgresql-client && break" not in ci, (
+        "الكتلة المكرّرة أُزيلت — وإلّا فهذا الاختبار يقيس شجرةً أخرى"
+    )
+    scanned = sorted((ROOT / "scripts/ci").glob("*.sh"))
+    assert any("apt-get" in p.read_text(encoding="utf-8") for p in scanned), (
+        "APT يعيش في سكربت الآن؛ إن لم يعد كذلك فأعد النظر في هذا العقد"
+    )
+    _sandbox(tmp_path, monkeypatch)
+    sh = tmp_path / "scripts/ci/resilient_apt_install.sh"
+    sh.write_text(
+        sh.read_text(encoding="utf-8").replace(
+            'sudo timeout -k 10 "$APT_TIMEOUT" apt-get install -y -qq "$@"',
+            'sudo apt-get install -y -qq "$@"',
+            1,
+        ),
+        encoding="utf-8",
+    )
+    f = mod.findings()
+    assert any("resilient_apt_install.sh" in x for x in f), f

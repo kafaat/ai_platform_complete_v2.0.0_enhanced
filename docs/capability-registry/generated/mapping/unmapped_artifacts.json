@@ -6864,6 +6864,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ci_trigger_contract.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ci_unbounded_wait_guard.py",
     "kind": "tests"
   },
@@ -7821,6 +7825,10 @@
   },
   {
     "path": "tests_v9/test_requirements_pinning_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_resilient_apt_install.py",
     "kind": "tests"
   },
   {
