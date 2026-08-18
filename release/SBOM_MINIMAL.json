@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f3759b798531d73f8ec03444ef6a2ede8ec059d43864a803c3161692e69403d"
+          "content": "2d439762334ffb411103b2226dea0e8f6139527be9d4fc87bf4f15ea11624da3"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -13035,7 +13035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b0b0e0d1d663f6fcd66f69a0c297386a95c4bebf88008b2ac57a3d3d0abbc7ff"
+          "content": "3cc11ca52a869ee55eff4b5fe8daa9c7f0c6c5d28932ddce8a82ddef891ad113"
         }
       ],
       "name": "services/qdrant-seed/seed.py",
@@ -13045,7 +13045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae6cde4c4641cbf74f4fcbf8415503c8a1f2061e2b0bf8635f15ae62c91ece74"
+          "content": "ff8a3edb4f23cb0e2785e407dc94b0410a211bf3db44ab0b52497d8cabdc64c7"
         }
       ],
       "name": "services/qdrant-seed/test_aljawf_knowledge.py",

@@ -1,0 +1,51 @@
+{
+  "adjudicated_on": "2026-08-18",
+  "implementation_rule": "stage wrappers must delegate to existing canonical guards/collectors; they may aggregate verdicts but may not define a parallel authority or evidence schema",
+  "invariants": [
+    "no_authority_promotion_from_static_evidence",
+    "no_direct_agent_actions",
+    "no_automatic_model_promotion",
+    "no_parallel_field_or_trial_source_of_truth",
+    "no_s5_baseline_increase",
+    "no_parallel_certification_truth_layer"
+  ],
+  "schema": "sahool.c8-c13-execution-contract/v2",
+  "sequence": [
+    {
+      "authority_change": false,
+      "live_evidence_required": true,
+      "name": "rag_production_certification",
+      "stage": "C8"
+    },
+    {
+      "authority_change": false,
+      "live_evidence_required": true,
+      "name": "decision_authority_certification",
+      "stage": "C9"
+    },
+    {
+      "authority_change": false,
+      "live_evidence_required": true,
+      "name": "field_authority_certification",
+      "stage": "C10"
+    },
+    {
+      "authority_change": false,
+      "live_evidence_required": true,
+      "name": "closed_agronomic_loop_lineage",
+      "stage": "C11"
+    },
+    {
+      "automatic_promotion": false,
+      "live_evidence_required": true,
+      "name": "governed_learning_and_model_promotion",
+      "stage": "C12"
+    },
+    {
+      "name": "physical_shrink_and_release_closure",
+      "rule": "idempotent closure only: prove already-obsolete implementations remain absent and current shrink ratchet still passes; do not lower a numeric baseline for an already-removed path",
+      "stage": "C13"
+    }
+  ],
+  "version": 1
+}

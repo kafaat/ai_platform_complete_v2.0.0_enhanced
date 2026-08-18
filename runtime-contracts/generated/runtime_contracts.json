@@ -1376,9 +1376,14 @@
         "total": 7
       },
       "configuration": [
+        "COLLECTION",
         "COLLECTION_NAME",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_URL",
         "EMBED_MODEL",
         "OLLAMA_BASE_URL",
+        "QDRANT_HOST",
+        "QDRANT_PORT",
         "QDRANT_URL"
       ],
       "container": {
@@ -1395,7 +1400,8 @@
       "entrypoint": "-",
       "evidence_paths": {
         "configuration": [
-          "services/qdrant-seed/seed.py"
+          "services/qdrant-seed/seed.py",
+          "services/qdrant-seed/test_aljawf_knowledge.py"
         ],
         "metrics": [],
         "routes": [
@@ -1411,7 +1417,9 @@
         "trace_spans": [],
         "tracing_instrumented": false
       },
-      "secrets": [],
+      "secrets": [
+        "QDRANT_API_KEY"
+      ],
       "service": "qdrant-seed",
       "source_service": "qdrant-seed",
       "static_repository_evidence_only": true

@@ -1,6 +1,26 @@
 name: SAHOOL v9.1.0 CI
 
-on: [push, pull_request]
+# ── لماذا `push` على `main` وحدها ─────────────────────────────────────────────
+# CI-DUPLICATE-PUSH-RUN-BLOCKS-THE-PR-01. كانت `on: [push, pull_request]`، فكلّ دفعةٍ
+# على فرع شريحة تُنشئ **تشغيلين** على الرأس نفسه: واحدٌ لـ`pull_request` وآخرُ
+# لـ`push`. والثاني **لا يُلغى أبداً** — مجموعته أدناه تحوي `run_id` فهي فريدة لكلّ
+# تشغيل — فيُعيد الـ٦٨ فحصاً كاملةً بلا فائدة.
+#
+# **وضررُه ليس الكلفة وحدها، بل الحجب:** GitHub يقرأ **أحدث** سجلٍّ لكلّ اسم فحص.
+# فحين يُلغى تشغيل push (أو يسقط لعطلٍ عابر) بعد أن اخضرّ تشغيل الـPR، تعلو نتيجته
+# الحمراء على الخضراء ويبقى الـPR محجوباً بلا شيء يُصلَح. مقيس على 2026-08-18: أربعة
+# تشغيلات push على فرعٍ واحد — `failure` · عالق ٨٠+ دقيقة · `failure` · `cancelled`
+# بعد ٦٥ دقيقة — حجبت الدمج مرّتين، وصفرُ فائدة منها.
+#
+# **والقصر لا يُنقِص مستهلِكاً واحداً، مقيساً لا مُرجَّحاً:** المستهلك الوحيد لتشغيلات
+# `push` هو `certify-run.yml`، وهو يشترط صراحةً
+# `workflow_run.event == 'push' && workflow_run.head_branch == 'main'` (سطرا 54-55).
+# فتشغيلات push على غير main لم تكن تُغذّي شيئاً أصلاً. وتغطية فروع الشرائح يوفّرها
+# تشغيل `pull_request` كاملاً.
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 # دفعةٌ فوق دفعةٍ على الـPR تُلغي الجولةَ البائتة — قياسُها لا يعني شيئاً بعد أن
 # تجاوزها الرأس. **وعلى main لا إلغاء**: لكلّ التزامٍ سجلُّه، لأنّ تشغيلات main هي
@@ -385,6 +405,23 @@ jobs:
       - name: rag-authority-convergence-gate
         run: python scripts/architecture/rag_authority_convergence_guard.py
 
+      # C8–C13: عقود تنسيق **لا طبقةَ حقيقةٍ موازية**. كلٌّ منها يفوّض إلى الحرّاس
+      # القانونيّين القائمين ويجمع أحكامهم، ويُعيد `EVIDENCE_REQUIRED` صراحةً حين
+      # يغيب إيصالٌ حيّ مربوط بالموضوع — فلا يحجب الدمج على غياب دليلٍ حيّ، ويحجبه
+      # على **انحدار حارسٍ قانونيّ** (rc≠0). ولا يُرقّي أيٌّ منها سلطةً بحال.
+      - name: c8-rag-production-certification-contract
+        run: python scripts/ci/c8_rag_production_certification.py
+      - name: c9-decision-authority-certification-contract
+        run: python scripts/ci/c9_decision_authority_certification.py
+      - name: c10-field-authority-certification-contract
+        run: python scripts/ci/c10_field_authority_certification.py
+      - name: c11-closed-loop-lineage-certification-contract
+        run: python scripts/ci/c11_closed_loop_lineage_certification.py
+      - name: c12-governed-learning-promotion-certification-contract
+        run: python scripts/ci/c12_governed_learning_promotion_certification.py
+      - name: c13-physical-shrink-certification
+        run: python scripts/ci/c13_physical_shrink_certification.py
+
       # S4: يمنع عودة مستهلك منصّة لتخزين المعرفة القديم — الملكيّة الوحيدة القانونيّة
       # خدمة knowledge-graph. الأساس مصدرٌ ثابت يُشتقّ من الشجرة الحاليّة لا يُكتَب هنا.
       - name: s4-kg-consumer-freeze-gate
@@ -626,6 +663,10 @@ jobs:
   frontend-e2e:
     name: Frontend E2E (Playwright · MapLibre/WebGL QA)
     runs-on: ubuntu-24.04
+    # سقف صارم: المدّة الطبيعيّة المقيسة ~٣ دقائق (تشغيل 32160058172 ⇒ 2م55ث).
+    # وبلاه احترق runner على تشغيل 32160054946 وهو عالق في `playwright install
+    # --with-deps` (الافتراضيّ ٣٦٠ دقيقة) وحجب الـPR ساعاتٍ على شجرةٍ خضراء.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
@@ -637,7 +678,10 @@ jobs:
       # مُعلَّمتان @visual ومُخطّاتان (test.fixme) ⇒ تُتخطّى تلقائيّاً، فلا تحجب.
       - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: frontend
-      - run: npx playwright install --with-deps chromium
+      # `--with-deps` يستدعي `apt-get` **داخل الأداة**، فلا يبلغه تصلّب APT المكتوب
+      # في الـworkflow ولا يراه ماسحٌ يبحث عن `apt-get` نصّاً. مقيس: عَلِق هنا ٨٠+
+      # دقيقة على تشغيل 32160054946 بينما نجح على الرأس نفسه في 2م55ث.
+      - run: timeout -k 10 300 npx playwright install --with-deps chromium
         working-directory: frontend
       - run: npx playwright test
         working-directory: frontend
@@ -850,11 +894,7 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          for i in 1 2; do
-            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
-            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
-            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
-          done
+          bash scripts/ci/resilient_apt_install.sh postgresql-client
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5433 -U sahool_test && break
@@ -987,11 +1027,7 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          for i in 1 2; do
-            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
-            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
-            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
-          done
+          bash scripts/ci/resilient_apt_install.sh postgresql-client
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5434 -U decision_test && break
@@ -1318,11 +1354,7 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          for i in 1 2; do
-            sudo timeout -k 10 240 apt-get update -qq && sudo timeout -k 10 240 apt-get install -y -qq postgresql-client && break
-            echo "apt-get تعثّر/تجمّد (محاولة $i) — إعادة"; sleep 10
-            [ "$i" = 2 ] && { echo '::error::apt-get تجاوز مهلته مرّتين'; exit 1; }
-          done
+          bash scripts/ci/resilient_apt_install.sh postgresql-client
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5435 -U sahool_user && break

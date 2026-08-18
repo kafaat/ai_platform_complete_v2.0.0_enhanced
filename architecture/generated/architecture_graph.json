@@ -493,7 +493,7 @@
       "id": "qdrant",
       "paths": [],
       "kind": "compose-service",
-      "incoming": 4,
+      "incoming": 5,
       "outgoing": 0,
       "orphan": false
     },
@@ -504,7 +504,7 @@
       ],
       "kind": "service",
       "incoming": 0,
-      "outgoing": 1,
+      "outgoing": 2,
       "orphan": false
     },
     {
@@ -2374,6 +2374,12 @@
       "target": "qdrant",
       "kind": "code-reference",
       "evidence": "services/qdrant-seed/seed.py"
+    },
+    {
+      "source": "qdrant-seed",
+      "target": "qdrant",
+      "kind": "code-reference",
+      "evidence": "services/qdrant-seed/test_aljawf_knowledge.py"
     },
     {
       "source": "rag-retrieval",
@@ -6969,11 +6975,11 @@
   "cycles": [],
   "summary": {
     "nodes": 153,
-    "edges": 946,
+    "edges": 947,
     "orphans": 6,
     "cycles": 0,
-    "code_edges": 111,
+    "code_edges": 112,
     "compose_edges": 835
   },
-  "content_sha256": "fb247975a866af65911d22dbbec33d1e8679f58323460e93468608b47027b77d"
+  "content_sha256": "9a9a714a1263d6f10b694ed327be58d38d7f9af8ae8aa0938d689859ad25d2be"
 }

@@ -1861,8 +1861,11 @@ services:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
       QDRANT_API_KEY: ${QDRANT_API_KEY}
-      EMBEDDING_URL: http://sahool-ollama:11434/api/embeddings
-      EMBEDDING_MODEL: nomic-embed-text
+      COLLECTION_NAME: ${QDRANT_COLLECTION:-sahool_agri_kb}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}
+      EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}
+      EMBEDDING_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}/api/embeddings
+      EMBEDDING_MODEL: ${EMBED_MODEL:-nomic-embed-text}
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start

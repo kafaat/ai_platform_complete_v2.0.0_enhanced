@@ -5,6 +5,7 @@
     "SERVICE_REGISTRY_HARDENING_CONTRACT.json",
     "ai_vllm_jais_runtime_decision.json",
     "authority_cutovers.json",
+    "c8_c13_execution_contract.json",
     "capability_core_consumption_registry.json",
     "certification_acceptance_record.json",
     "claim_base_registry.json",

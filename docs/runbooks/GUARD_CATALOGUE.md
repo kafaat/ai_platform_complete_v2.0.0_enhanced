@@ -10,9 +10,9 @@
 
 ## ما يقوله هذا الجرد قبل أيّ تفصيل
 
-- حرّاس تحجب في CI: **251**
+- حرّاس تحجب في CI: **257**
 - منها **مُثبَتة بالتكذيب** (لها مواصفة طفرة نُفِّذت): **39**
-- إجماليّ الطفرات المُسجَّلة: **260**
+- إجماليّ الطفرات المُسجَّلة: **261**
 - وطفراتٌ **سلوكيّة** تُزرَع في منطق الإنتاج نفسه: **87** على 28 مصدراً
 
 والسلوكيّة محورٌ آخر لا زيادةٌ في العدد: الحارس الساكن يقيس **وقوع** الشيء —
@@ -20,7 +20,7 @@
 نتيجته، أو يستشيره بنطاقٍ أضيق فلا يُطابِق. فتلك تُزرَع في المصدر الفيزيائيّ
 ويجب أن يحمرّ اختبارُ **أثرها**.
 
-أي أنّ **212** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
+أي أنّ **218** حارساً يحجب الدمج ولم يُثبَت قطّ أنّه
 يفشل حين يوجد العطل. هذا ليس اتّهاماً لها بل **قياس لِما نعرفه عنها**: اختبار
 الحارس المعتاد يقيس أنّه يمرّ على شجرة سليمة، وهي خاصّيّة يُحقّقها حارسٌ لا يفعل
 شيئاً. ومواصفة الطفرة هي الفرق بين «يمرّ» و«يمسك».
@@ -239,9 +239,10 @@
 **ما يمسكه** — كلّ بند مُثبَت بزرع العطل وتشغيله:
 
 - تثبيتٌ شبكيّ بلا حدّ جداريّ هو ما أحرق 112 دقيقة ثمّ بقي معلَّقاً — والصمت يُقرأ عملاً جارياً. — يُسقِط `test_an_unbounded_apt_get_is_blocked`
-- وظيفةٌ بلا سقف تحرق runner ستّ ساعات على أيّ تجمّد — والافتراضيّ 360 دقيقة لا صفر. — يُسقِط `test_a_db_job_without_a_job_timeout_is_blocked`
+- وظيفةٌ تُجهّز اعتماداً شبكيّاً بلا سقف تحرق runner ستّ ساعات — والافتراضيّ 360 دقيقة لا صفر. وُسِّع المدى من «حاوية قاعدة» إلى «تجهيزٌ شبكيّ» بعد تعليق `--with-deps` ٨٠+ دقيقة (تشغيل 32160054946). — يُسقِط `test_a_db_job_without_a_job_timeout_is_blocked`
 - وثيقةٌ لا تُقرأ تُخرِج وظائفها من القياس كلّه، فيصير «لم يُقَس» «مرّ». — يُسقِط `test_an_unreadable_workflow_fails_closed_instead_of_being_skipped`
 - ذِكرُ `apt-get` داخل رسالة `echo` ليس استدعاءً — وإدانتُه إيجابيّةٌ كاذبة تُسقِط الحارس بلا تعطيله (وقعت على ci.yml:839). — يُسقِط `test_the_current_tree_has_no_unbounded_provisioning_wait`
+- حدٌّ يُفرَض على **اسم الأمر** يفوته كلُّ من يستدعيه من جوفه: `playwright install --with-deps` عَلِق ٨٠+ دقيقة بينما نجح على الرأس نفسه بالبايت في تشغيلٍ شقيق في 2م55ث. — يُسقِط `test_a_tool_that_calls_apt_from_inside_itself_must_be_bounded`
 
 ### `claim_base_guard.py`
 
@@ -716,7 +717,7 @@
 
 ---
 
-## حرّاس تحجب ولم تُثبَت بالتكذيب (212)
+## حرّاس تحجب ولم تُثبَت بالتكذيب (218)
 
 تعمل، وتُسقِط بناءً حين تُخالَف — لكنّ أحداً لم يقِس أنّها **تفشل حين يوجد**
 **العطل**. عند إضافة مواصفة لأيٍّ منها ينتقل صفّها إلى القسم أعلاه تلقائيّاً.
@@ -740,6 +741,12 @@
 | `backfill_ui_sync_gate.py` | Static contract gate for historical imagery backfill UI/runtime synchronization. | `structural-lint` |
 | `brain_deferral_registry_guard.py` | يمنع تسرّب التأجيلات من `hot.md` دون تسجيلها في `gaps/registry.md`. | `no-report-only-change` |
 | `build_service_dependency_bundle.py` | Build a deterministic direct-dependency bundle for audit/review. | `dependency-conflict-inventory` |
+| `c10_field_authority_certification.py` | — | `structural-lint` |
+| `c11_closed_loop_lineage_certification.py` | — | `structural-lint` |
+| `c12_governed_learning_promotion_certification.py` | — | `structural-lint` |
+| `c13_physical_shrink_certification.py` | — | `structural-lint` |
+| `c8_rag_production_certification.py` | — | `structural-lint` |
+| `c9_decision_authority_certification.py` | — | `structural-lint` |
 | `calibration_dataset_boundary_gate.py` | — | `structural-lint` |
 | `capability_core_consumption_guard.py` | Ratchet the platform capability cores against silently returning to orphaned. | `capability-registry` |
 | `capability_evidence_maturity_engine.py` | Generate a fail-closed evidence matrix and evidence-derived maturity baseline. | `capability-registry` |

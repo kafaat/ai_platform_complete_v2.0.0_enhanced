@@ -16,12 +16,25 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 logger = logging.getLogger("qdrant-seed")
 logging.basicConfig(level=logging.INFO)
 
-QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
-COLLECTION = os.getenv("COLLECTION_NAME", "sahool-agri-knowledge")
+QDRANT_HOST = os.getenv("QDRANT_HOST", "sahool-qdrant")
+QDRANT_PORT = os.getenv("QDRANT_PORT", "6333")
+QDRANT_URL = os.getenv("QDRANT_URL", f"http://{QDRANT_HOST}:{QDRANT_PORT}")
+# compose يُمرّر QDRANT_API_KEY منذ البداية، وهذا الملفّ كان يتجاهله فيتصل بلا اعتماد.
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY") or None
+# الاسم القانونيّ للمجموعة هو ما يقرؤه المستهلكان: local-ai-rag (COLLECTION_NAME) و
+# rag-retrieval (QDRANT_COLLECTION) وكلاهما يفترض `sahool_agri_kb`. الافتراضيّ السابق
+# (`sahool-agri-knowledge`) كان يبذر مجموعةً لا يقرؤها أحد.
+COLLECTION = os.getenv("COLLECTION_NAME") or os.getenv("COLLECTION") or "sahool_agri_kb"
 # نموذج التضمين + عنوان Ollama — يطابقان local-ai-rag كي تتّسق المتجهات بين
 # البذور والاستعلام (نفس النموذج ⇒ نفس فضاء المتجهات). البُعد يُكتشَف تلقائيّاً.
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
-EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
+# وcompose يُمرّر EMBEDDING_URL/EMBEDDING_MODEL بهذين الاسمين، فيُقبَلان مرادفَين.
+_embedding_url = os.getenv("EMBEDDING_URL")
+OLLAMA_BASE_URL = (
+    os.getenv("OLLAMA_BASE_URL")
+    or (_embedding_url.removesuffix("/api/embeddings") if _embedding_url else None)
+    or "http://sahool-ollama:11434"
+).rstrip("/")
+EMBED_MODEL = os.getenv("EMBED_MODEL") or os.getenv("EMBEDDING_MODEL") or "nomic-embed-text"
 
 # قاعدة معرفية زراعية لليمن (يُستبدل بـ embedding حقيقي في الإنتاج)
 KNOWLEDGE_BASE = [
@@ -149,7 +162,7 @@ async def seed():
     dim = len(vectors[0])
     logger.info(f"✅ وُلّد تضمين {len(vectors)} وثيقة (بُعد={dim}, نموذج={EMBED_MODEL})")
 
-    client = AsyncQdrantClient(url=QDRANT_URL)
+    client = AsyncQdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
     try:
         await client.create_collection(
             collection_name=COLLECTION,

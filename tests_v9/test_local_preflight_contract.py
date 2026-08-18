@@ -119,7 +119,7 @@ def test_skips_are_counted_and_the_summary_refuses_to_overclaim():
     text = _text()
     assert "skipped=$((skipped + 1))" in text, "a skipped gate must be counted, not swallowed"
     assert "لم تُقَس" in text
-    assert "٢٠٩" in text and "٧٠" in text, (
+    assert "٢٠٩" in text and "٧١" in text, (
         "the summary must state the measured coverage ratio, not imply completeness"
     )
     assert "ادفع بثقة" not in text
@@ -131,6 +131,79 @@ def test_it_reports_index_state_not_only_untracked_files():
     assert "git ls-files --others --exclude-standard" in text
     assert "git diff --name-only" in text
     assert "git diff --cached --name-only" in text
+
+
+def test_a_leaked_test_probe_fails_the_fast_tier_instead_of_warning():
+    """Measured twice: an untracked probe left the tree, and the tool called it green.
+
+    ``test_api_versioning_policy_guard`` injects an unadjudicated route, *deliberately
+    regenerates the inventories* to prove regeneration does not launder it, then restores
+    in ``finally`` — and ``finally`` does not survive an interrupt. What is left behind is
+    ``_probe_unadjudicated_route.py`` plus drifted generated inventories.
+
+    The first time, that leak was read as a real unauthorized route and cost an external
+    certification round nineteen misattributed failures. ``probe_leak_guard.py`` was
+    written to name it in one line, and it blocks in CI (``ci.yml:536``).
+
+    It happened again anyway, because the local preflight never called it: step ٠ب prints
+    a generic ``⚠ untracked file`` — a warning, not a failure — so ``--fast`` reported
+    ``إخفاقات=0`` on a tree CI would block, and the defect resurfaced later as eleven
+    ``pytest -m unit`` failures on route-derived inventories. Eleven symptoms instead of
+    one named cause. The guard existed; the question was never asked locally.
+
+    So the assertion is placement, not presence: it must run inside the fast tier, before
+    the early exit, where the untracked-file warning it explains is printed.
+
+    And placement is anchored on the **invocation**, never on the bare path. The bare path
+    also appears in ``require_file`` and would appear in any comment that names the guard —
+    so ``text.index(path)`` could later resolve to prose above the step while the executed
+    line sits below the early exit, and the assertion would pass on a tier that never runs
+    it. That is the same class this whole file exists to reject: an assertion that stops
+    measuring what it claims. Uniqueness is asserted too, so a second invocation cannot
+    make ``index`` ambiguous again.
+    """
+    text = _text()
+    invocation = "python3 scripts/ci/probe_leak_guard.py"
+    assert invocation in text, (
+        "a guard that blocks in CI but is never invoked locally lets the tree be pushed "
+        "on the green of a tool that did not ask"
+    )
+    assert text.count(invocation) == 1, (
+        "two invocations make the placement check read whichever comes first — pick one"
+    )
+    fast_exit_at = text.index('if [ "$TIER" = fast ]')
+    assert text.index(invocation) < fast_exit_at, (
+        "the leak must be named in --fast: the tier developers actually run before pushing"
+    )
+    assert text.index("require_file scripts/ci/probe_leak_guard.py") < fast_exit_at, (
+        "a missing guard must be named a coverage loss inside the tier that runs it"
+    )
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert "scripts/ci/probe_leak_guard.py" in contract["required_scripts"], (
+        "deleting the guard must be named a coverage loss, not read as a passing gate"
+    )
+
+
+def test_the_commit_claim_step_says_it_reads_committed_messages_only():
+    """Measured: its green ran before the commit it was read as clearing.
+
+    ``brain_commit_claim_guard`` reads commit *messages* in ``base..HEAD``. Running the
+    preflight before committing therefore measures a range that does not contain the
+    message about to be written — so ``٦ج ✓`` means "what is committed is clean", never
+    "your message will pass". A commit whose subject carried ``CI-HOST-PSQL:`` — a
+    truncated prefix of a registered identifier — passed that green and then failed the
+    blocking ``guard`` job in CI.
+
+    Same class as the Capability-Impact reminder already in this tool: derive it after
+    committing or do not derive it. So the step must say so where its result is printed.
+    """
+    text = _text()
+    claim_at = text.index("brain_commit_claim_guard.py")
+    tail = text[claim_at:]
+    assert "المُلتزَمة" in tail[:1200], (
+        "٦ج must state that it reads committed messages — a green measured on a range "
+        "without the message reads as clearing the message"
+    )
 
 
 def test_exit_codes_use_the_form_the_runbook_proved():

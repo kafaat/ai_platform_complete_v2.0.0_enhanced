@@ -186,3 +186,40 @@ if __name__ == "__main__":
     print(f"{'🎉' if failed == 0 else '⚠️'} {passed} passed, {failed} failed")
     for f in failures[:5]:
         print(f"  • {f}")
+
+
+# ── عقد تشغيل البذّار: ما يُمرّره compose يجب أن يقرأه seed.py فعلاً ──────────────
+# العطل المُغلَق: compose كان يُمرّر QDRANT_API_KEY وEMBEDDING_URL/EMBEDDING_MODEL منذ
+# البداية، و`seed.py` لا يقرأ أيّاً منها — فيتّصل بلا اعتماد ويبذر مجموعةً باسمٍ
+# (`sahool-agri-knowledge`) لا يقرؤه أيّ مستهلك: local-ai-rag وrag-retrieval كلاهما
+# يفترض `sahool_agri_kb`. أي بذرٌ ينجح صامتاً ثمّ استرجاعٌ فارغ.
+
+
+def _seed_source() -> str:
+    return (Path(__file__).parent / "seed.py").read_text(encoding="utf-8")
+
+
+def test_seed_runtime_contract_matches_canonical_rag_collection_and_ollama():
+    source = _seed_source()
+    assert 'or "sahool_agri_kb"' in source, "اسم المجموعة الافتراضيّ يجب أن يطابق المستهلكين"
+    assert 'os.getenv("COLLECTION")' in source
+    assert 'os.getenv("OLLAMA_BASE_URL")' in source
+    assert 'os.getenv("EMBEDDING_URL")' in source, "compose يُمرّر EMBEDDING_URL — يجب قبوله"
+    assert '.removesuffix("/api/embeddings")' in source
+
+
+def test_seed_qdrant_client_receives_api_key():
+    source = _seed_source()
+    assert 'QDRANT_API_KEY = os.getenv("QDRANT_API_KEY") or None' in source
+    assert "AsyncQdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)" in source, (
+        "المفتاح يُقرأ ولا يُمرَّر = اتّصالٌ بلا اعتماد"
+    )
+
+
+def test_compose_passes_canonical_seed_contract():
+    compose = (Path(__file__).parents[2] / "docker-compose.v9.yml").read_text(encoding="utf-8")
+    section = compose.split("  sahool-qdrant-seed:", 1)[1].split("\n  sahool-", 1)[0]
+    assert "COLLECTION_NAME: ${QDRANT_COLLECTION:-sahool_agri_kb}" in section
+    assert "OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}" in section
+    assert "EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}" in section
+    assert "QDRANT_API_KEY: ${QDRANT_API_KEY}" in section
