@@ -83,6 +83,47 @@ def test_a_db_job_without_a_job_timeout_is_blocked(tmp_path, monkeypatch):
     assert any("بلا `timeout-minutes`" in x for x in mod.findings()), mod.findings()
 
 
+def test_a_tool_that_calls_apt_from_inside_itself_must_be_bounded(tmp_path, monkeypatch):
+    """القاعدة ② تبحث عن `apt-get` **نصّاً**، فأفلت منها من يستدعيه من جوفه.
+
+    مقيس على هذا المستودع: `npx playwright install --with-deps` علق **٨٠+ دقيقة** في
+    التشغيل 32160054946 وحجب PR شجرتُه خضراء، بينما نجحت الخطوة نفسها على **الرأس
+    نفسه بالبايت** في التشغيل الشقيق 32160058172 في دقيقتين وخمس وخمسين ثانية. ولم
+    تكن وظيفته تُقيم حاوية قاعدة، فلم تطلب ① سقفاً لها ⇒ **بلا حدَّين معاً**.
+    """
+    wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
+    bounded = "timeout -k 10 300 npx playwright install --with-deps chromium"
+    text = wf.read_text(encoding="utf-8")
+    assert bounded in text, "المرساة انحرفت — أعد قراءة خطوة تثبيت Playwright"
+    wf.write_text(
+        text.replace(bounded, "npx playwright install --with-deps chromium", 1),
+        encoding="utf-8",
+    )
+    assert any("يستدعي apt-get من جوفه" in x for x in mod.findings()), mod.findings()
+
+
+def test_a_job_that_provisions_over_the_network_without_a_cap_is_blocked(tmp_path, monkeypatch):
+    """السقف مطلوبٌ لكلّ تجهيزٍ شبكيّ، لا لحاويات القواعد وحدها."""
+    wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
+    text = wf.read_text(encoding="utf-8")
+    head = text.index("  frontend-e2e:")
+    steps = text.index("    steps:", head)
+    wf.write_text(
+        text[:head]
+        + "  frontend-e2e:\n"
+        + "    name: Frontend E2E (Playwright · MapLibre/WebGL QA)\n"
+        + "    runs-on: ubuntu-24.04\n"
+        + text[steps:],
+        encoding="utf-8",
+    )
+    f = mod.findings()
+    assert any("frontend-e2e" in x and "timeout-minutes" in x for x in f), f
+    # والرسالة تسمّي **ما وُجِد**: حارسٌ وسّع مداه وأبقى نصّه يُدين «حاوية قاعدة»
+    # في وظيفةٍ لا حاوية فيها يوجّه قارئه إلى إصلاحٍ خاطئ.
+    assert any("--with-deps" in x for x in f), f
+    assert not any("frontend-e2e" in x and "حاوية قاعدة" in x for x in f), f
+
+
 def test_an_unreadable_workflow_fails_closed_instead_of_being_skipped(tmp_path, monkeypatch):
     wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
     wf.write_text("jobs: [ this is not: valid yaml", encoding="utf-8")

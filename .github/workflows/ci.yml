@@ -616,6 +616,10 @@ jobs:
   frontend-e2e:
     name: Frontend E2E (Playwright · MapLibre/WebGL QA)
     runs-on: ubuntu-24.04
+    # سقف صارم: المدّة الطبيعيّة المقيسة ~٣ دقائق (تشغيل 32160058172 ⇒ 2م55ث).
+    # وبلاه احترق runner على تشغيل 32160054946 وهو عالق في `playwright install
+    # --with-deps` (الافتراضيّ ٣٦٠ دقيقة) وحجب الـPR ساعاتٍ على شجرةٍ خضراء.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
@@ -627,7 +631,10 @@ jobs:
       # مُعلَّمتان @visual ومُخطّاتان (test.fixme) ⇒ تُتخطّى تلقائيّاً، فلا تحجب.
       - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: frontend
-      - run: npx playwright install --with-deps chromium
+      # `--with-deps` يستدعي `apt-get` **داخل الأداة**، فلا يبلغه تصلّب APT المكتوب
+      # في الـworkflow ولا يراه ماسحٌ يبحث عن `apt-get` نصّاً. مقيس: عَلِق هنا ٨٠+
+      # دقيقة على تشغيل 32160054946 بينما نجح على الرأس نفسه في 2م55ث.
+      - run: timeout -k 10 300 npx playwright install --with-deps chromium
         working-directory: frontend
       - run: npx playwright test
         working-directory: frontend

@@ -14,12 +14,21 @@
 الإصلاح يُغلق ثلاث حالات، ولا شيء كان يمنع رابعةً من الدخول غداً. وهذا هو الفرق
 المُسجَّل في هذا المستودع بين «أصلحتُ ما وقع» و«منعتُ أن يقع».
 
-**القاعدتان — كلٌّ تُقاس وحدها:**
+**القواعد — كلٌّ تُقاس وحدها:**
 
-  ① كلّ وظيفة تُقيم حاوية قاعدة بيانات تحمل `timeout-minutes`. الافتراضيّ عند
-     GitHub **360 دقيقة**، فتعليقٌ واحد يحرق runner ستّ ساعات صامتاً.
+  ① كلّ وظيفة تُجهّز اعتماداً شبكيّاً — حاوية قاعدة بيانات **أو** أداةً تجلب حِزَماً —
+     تحمل `timeout-minutes`. الافتراضيّ عند GitHub **360 دقيقة**، فتعليقٌ واحد يحرق
+     runner ستّ ساعات صامتاً.
   ② لا `apt-get` بلا `timeout` في أيّ workflow. (وليس «APT بلا مهلة» — له
      `Acquire::http::Timeout`؛ الغائب حدٌّ **جداريّ** على الخطوة.)
+  ③ ولا أداةً **تستدعي APT من جوفها** بلا `timeout`. وهذه أُضيفت بعد أن أفلت منها
+     العطلُ نفسه: `npx playwright install --with-deps` يُشغّل `apt-get` داخله، فلا
+     يراه ماسحٌ يبحث عن `apt-get` **نصّاً** في الـworkflow، ولم تكن وظيفته تُقيم
+     حاوية قاعدة فلم تطلب ① سقفاً لها. فبقيت بلا حدَّين معاً. **مقيس على هذا
+     المستودع:** التشغيل 32160054946 علق فيها **٨٠+ دقيقة** وحجب PR شجرتُه خضراء،
+     بينما نجحت الخطوة نفسها على **الرأس نفسه بالبايت** في التشغيل الشقيق
+     32160058172 في **دقيقتين وخمس وخمسين ثانية**. والدرس أعمّ من الأداة: حدٌّ
+     يُفرَض على **اسم الأمر** يفوته كلُّ من يستدعيه من جوفه.
 
 **وقاعدةٌ ثالثة حُذِفت لأنّ القياس كذّبها، والتصريح بها جزءٌ من الصدق:** كنتُ
 أفرض «لا `pg_isready` من المضيف — اسألها داخل الحاوية». وقِيس في تشغيل
@@ -48,11 +57,17 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github/workflows"
 
-# وظائف تُقيم حاوية قاعدة بيانات ⇒ يجب أن تحمل سقفاً.
-_DB_JOB_MARKERS = ("docker run -d --name",)
+# تجهيزٌ شبكيّ ⇒ الوظيفة يجب أن تحمل سقفاً. حاوية قاعدة، **أو** أداةٌ تجلب حِزَماً
+# من الشبكة — والثانية أُضيفت بعد أن مرّ العطل من بينهما (انظر ③ في الترويسة).
+_DB_JOB_MARKERS = ("docker run -d --name", "--with-deps")
 
 # `timeout` قد يسبق `sudo` أو يتلوه — كلاهما حدٌّ جداريّ صحيح.
 _BOUNDED_APT = re.compile(r"\btimeout\b[^|;&]*\bapt-get\b")
+
+# أدواتٌ تستدعي مدير حِزَم من جوفها. القائمة **مقيسة لا مُتخيَّلة**: يُضاف إليها ما
+# وقع هنا فعلاً. وتوسيعها بالتخمين يُنتِج إدانات لا يفهمها قارئها.
+_APT_INVOKING_TOOLS = ("playwright install --with-deps",)
+_BOUNDED_TOOL = re.compile(r"\btimeout\b[^|;&]*")
 
 # نصٌّ داخل اقتباس **ذِكرٌ لا استدعاء**: رسالةُ `echo "apt-get تعثّر…"` تصف العطل
 # ولا ترتكبه. وإدانتُها إيجابيّةٌ كاذبة تُسقِط الحارس بلا أن تُعطّله — قارئ الأحمر
@@ -81,6 +96,20 @@ def findings() -> list[str]:
             if not _BOUNDED_APT.search(stripped):
                 out.append(f"{rel}:{i}: apt-get بلا `timeout` — اعتمادٌ شبكيّ غير مسقوف")
 
+        # ③ أداةٌ تستدعي APT من جوفها، بلا سقف جداريّ.
+        for i, line in enumerate(text.splitlines(), 1):
+            stripped = _commands_only(line.strip())
+            if line.strip().startswith("#"):
+                continue
+            for tool in _APT_INVOKING_TOOLS:
+                if tool in stripped and not _BOUNDED_TOOL.match(
+                    stripped.lstrip("- ").removeprefix("run:").strip()
+                ):
+                    out.append(
+                        f"{rel}:{i}: `{tool}` بلا `timeout` — يستدعي apt-get من جوفه "
+                        "فلا تبلغه القاعدة ②"
+                    )
+
         # ① سقف الوظيفة.
         try:
             doc = yaml.safe_load(text) or {}
@@ -95,10 +124,14 @@ def findings() -> list[str]:
                 for step in (job.get("steps") or [])
                 if isinstance(step, dict)
             )
-            if any(m in body for m in _DB_JOB_MARKERS) and not job.get("timeout-minutes"):
+            hit = next((m for m in _DB_JOB_MARKERS if m in body), None)
+            if hit and not job.get("timeout-minutes"):
+                # الرسالة تسمّي **ما وُجِد**، لا صنفاً واحداً افتراضاً: حارسٌ وسّع مداه
+                # وأبقى نصّه يُدين «حاوية قاعدة» في وظيفةٍ لا حاوية فيها يُقرأ خطأً
+                # فيُصلَح الخطأ الخطأ. (وقعت هنا فعلاً أوّل تشغيل بعد التوسعة.)
                 out.append(
-                    f"{rel}: وظيفة {job_id} تُقيم حاوية قاعدة بلا `timeout-minutes` "
-                    "⇒ تعليقٌ واحد يحرق runner ستّ ساعات"
+                    f"{rel}: وظيفة {job_id} تُجهّز اعتماداً شبكيّاً (`{hit}`) بلا "
+                    "`timeout-minutes` ⇒ تعليقٌ واحد يحرق runner ستّ ساعات"
                 )
     return out
 

@@ -1041,7 +1041,7 @@
       "test": "tests/architecture/test_capability_writer_authority_guard.py"
     },
     "ci_unbounded_wait_guard.py": {
-      "$why_ar": "CI-UNBOUNDED-PROVISIONING-WAIT-01: المواضع أُصلحت في #868؛ هذا يمنع عودة الصنف — وحارسٌ يتّهم الصحيح يُنزَع، فالذِّكر مُميَّز عن الاستدعاء.",
+      "$why_ar": "CI-UNBOUNDED-PROVISIONING-WAIT-01: المواضع أُصلحت في #868؛ هذا يمنع عودة الصنف — وحارسٌ يتّهم الصحيح يُنزَع، فالذِّكر مُميَّز عن الاستدعاء. وثقبٌ ثالث كشفه تعليقٌ حيّ: الحدّ على اسم الأمر يفوته من يستدعي APT من جوفه، والسقف كان مقصوراً على حاويات القواعد.",
       "test": "tests_v9/test_ci_unbounded_wait_guard.py",
       "mutations": [
         {
@@ -1052,9 +1052,9 @@
         },
         {
           "expect": "test_a_db_job_without_a_job_timeout_is_blocked",
-          "find": "            if any(m in body for m in _DB_JOB_MARKERS) and not job.get(\"timeout-minutes\"):",
-          "replace": "            if False:  # mutated: a db job may burn the default six hours",
-          "why": "وظيفةٌ بلا سقف تحرق runner ستّ ساعات على أيّ تجمّد — والافتراضيّ 360 دقيقة لا صفر."
+          "find": "            hit = next((m for m in _DB_JOB_MARKERS if m in body), None)\n            if hit and not job.get(\"timeout-minutes\"):",
+          "replace": "            hit = None  # mutated: any provisioning job may burn the default six hours\n            if hit and not job.get(\"timeout-minutes\"):",
+          "why": "وظيفةٌ تُجهّز اعتماداً شبكيّاً بلا سقف تحرق runner ستّ ساعات — والافتراضيّ 360 دقيقة لا صفر. وُسِّع المدى من «حاوية قاعدة» إلى «تجهيزٌ شبكيّ» بعد تعليق `--with-deps` ٨٠+ دقيقة (تشغيل 32160054946)."
         },
         {
           "expect": "test_an_unreadable_workflow_fails_closed_instead_of_being_skipped",
@@ -1067,6 +1067,12 @@
           "find": "def _commands_only(line: str) -> str:\n    \"\"\"يُسقِط ما بين الاقتباسات فيبقى ما يُنفَّذ وحده.\"\"\"\n    return _QUOTED.sub(\" \", line)",
           "replace": "def _commands_only(line: str) -> str:  # mutated: a mention is read as an invocation\n    return line",
           "why": "ذِكرُ `apt-get` داخل رسالة `echo` ليس استدعاءً — وإدانتُه إيجابيّةٌ كاذبة تُسقِط الحارس بلا تعطيله (وقعت على ci.yml:839)."
+        },
+        {
+          "expect": "test_a_tool_that_calls_apt_from_inside_itself_must_be_bounded",
+          "find": "_APT_INVOKING_TOOLS = (\"playwright install --with-deps\",)",
+          "replace": "_APT_INVOKING_TOOLS = ()  # mutated: a tool that shells out to apt needs no bound",
+          "why": "حدٌّ يُفرَض على **اسم الأمر** يفوته كلُّ من يستدعيه من جوفه: `playwright install --with-deps` عَلِق ٨٠+ دقيقة بينما نجح على الرأس نفسه بالبايت في تشغيلٍ شقيق في 2م55ث."
         }
       ]
     },
