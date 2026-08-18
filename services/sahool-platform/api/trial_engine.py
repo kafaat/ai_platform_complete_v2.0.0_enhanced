@@ -81,6 +81,124 @@ class TrialVerdict:
         }
 
 
+@dataclass(frozen=True)
+class METObservation:
+    genotype: str
+    environment_id: str
+    yield_value: float
+    replicate: int | None = None
+
+
+@dataclass(frozen=True)
+class METAnalysis:
+    n_observations: int
+    genotypes: list[str]
+    environments: list[str]
+    grand_mean: float
+    genotype_means: dict[str, float]
+    environment_means: dict[str, float]
+    interaction_rms: dict[str, float]
+    stability_rank: list[str]
+
+    def to_dict(self) -> dict:
+        return {
+            "n_observations": self.n_observations,
+            "genotypes": self.genotypes,
+            "environments": self.environments,
+            "grand_mean": round(self.grand_mean, 4),
+            "genotype_means": {k: round(v, 4) for k, v in self.genotype_means.items()},
+            "environment_means": {k: round(v, 4) for k, v in self.environment_means.items()},
+            "interaction_rms": {k: round(v, 4) for k, v in self.interaction_rms.items()},
+            "stability_rank": self.stability_rank,
+            "method": "two_way_additive_residual_rms",
+            "claim_scope": "descriptive_gxe_stability_only",
+            "decision_eligible": False,
+            "automatic_model_promotion_eligible": False,
+        }
+
+
+def analyze_met(observations: list[METObservation]) -> METAnalysis:
+    if not observations:
+        raise ValueError("met_observations فارغة")
+
+    rows: dict[tuple[str, str], list[float]] = {}
+    for obs in observations:
+        genotype = str(obs.genotype).strip()
+        environment_id = str(obs.environment_id).strip()
+        value = float(obs.yield_value)
+        if not genotype or not environment_id or not np.isfinite(value):
+            raise ValueError("MET inputs invalid")
+        rows.setdefault((genotype, environment_id), []).append(value)
+
+    genotypes = sorted({genotype for genotype, _environment_id in rows})
+    environments = sorted({environment_id for _genotype, environment_id in rows})
+    if len(genotypes) < 2 or len(environments) < 2:
+        raise ValueError("MET/G×E يتطلب genotypeين وبيئتين")
+    if any((g, e) not in rows for g in genotypes for e in environments):
+        raise ValueError("MET/G×E matrix incomplete")
+
+    cells = {(g, e): float(np.mean(values)) for (g, e), values in rows.items()}
+    grand_mean = float(np.mean(list(cells.values())))
+    genotype_means = {g: float(np.mean([cells[(g, e)] for e in environments])) for g in genotypes}
+    environment_means = {
+        e: float(np.mean([cells[(g, e)] for g in genotypes])) for e in environments
+    }
+    interaction_rms = {
+        g: float(
+            np.sqrt(
+                np.mean(
+                    np.square(
+                        [
+                            cells[(g, e)] - genotype_means[g] - environment_means[e] + grand_mean
+                            for e in environments
+                        ]
+                    )
+                )
+            )
+        )
+        for g in genotypes
+    }
+    return METAnalysis(
+        n_observations=len(observations),
+        genotypes=genotypes,
+        environments=environments,
+        grand_mean=grand_mean,
+        genotype_means=genotype_means,
+        environment_means=environment_means,
+        interaction_rms=interaction_rms,
+        stability_rank=sorted(genotypes, key=lambda g: (interaction_rms[g], g)),
+    )
+
+
+def build_digital_trial_envelope(
+    *,
+    season_id: str | None,
+    study_id: str | None,
+    trial_id: str | None,
+    met: METAnalysis,
+) -> dict:
+    """Build a truthful C5 envelope without inventing season authority.
+
+    The current endpoint has no canonical season lookup in its dependency graph.
+    Therefore a caller-provided ``season_id`` is a reference, not proof that the
+    season exists or is authoritative.  Decision/model-promotion eligibility stays
+    false until a later governed consumer supplies that proof.
+    """
+    if not season_id:
+        raise ValueError("season_id مطلوب لتحليل Digital Trials/MET")
+    return {
+        "season_id": season_id,
+        "study_id": study_id,
+        "trial_id": trial_id,
+        "lifecycle_authority": "caller_provided_season_reference",
+        "season_binding_verified": False,
+        "parallel_trial_season_created": False,
+        "met_analysis": met.to_dict(),
+        "decision_eligible": False,
+        "automatic_model_promotion_eligible": False,
+    }
+
+
 MIN_BLOCKS = 4  # معيار SARE: أقلّ من ٤ = لا صحّة إحصائيّة
 
 

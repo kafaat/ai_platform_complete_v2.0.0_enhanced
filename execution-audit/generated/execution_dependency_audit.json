@@ -3,10 +3,10 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1860,
+    "python_files_parsed": 1861,
     "route_handlers": 1049,
-    "call_edges": 73909,
-    "dead_code_candidates": 611,
+    "call_edges": 73992,
+    "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
     "automatic_deletions": 0
@@ -6903,7 +6903,7 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/trials.py",
-      "line": 30,
+      "line": 36,
       "handler": "analyze_trial",
       "method": "POST",
       "path": "/api/v1/trials/analyze"
@@ -30076,35 +30076,63 @@
       "file": "services/ai_agronomist/tool_executor.py",
       "source": "execute_read_tool",
       "target": "_redact",
-      "line": 166
+      "line": 161
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/tool_executor.py",
       "source": "execute_read_tool",
       "target": "str",
-      "line": 167
+      "line": 162
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/tool_executor.py",
       "source": "execute_read_tool",
       "target": "str",
-      "line": 168
+      "line": 163
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/tool_executor.py",
       "source": "execute_read_tool",
       "target": "input_hash",
-      "line": 173
+      "line": 165
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/tool_executor.py",
+      "source": "execute_read_tool",
+      "target": "_redact",
+      "line": 188
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/tool_executor.py",
+      "source": "execute_read_tool",
+      "target": "str",
+      "line": 189
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/tool_executor.py",
+      "source": "execute_read_tool",
+      "target": "str",
+      "line": 190
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/tool_executor.py",
+      "source": "execute_read_tool",
+      "target": "input_hash",
+      "line": 195
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/tool_executor.py",
       "source": "execute_read_tool",
       "target": "summarize_result",
-      "line": 174
+      "line": 196
     },
     {
       "owner": "ai-agronomist",
@@ -117905,147 +117933,63 @@
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "get",
-      "line": 242
+      "line": 248
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "hexdigest",
-      "line": 246
+      "line": 252
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "sha1",
-      "line": 246
+      "line": 252
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "dumps",
-      "line": 247
+      "line": 253
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "encode",
-      "line": 247
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "get",
-      "line": 255
+      "line": 253
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "get",
-      "line": 255
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "exists",
-      "line": 256
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "_cache_hit",
-      "target": "monotonic",
-      "line": 256
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "exists",
-      "line": 256
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "monotonic",
-      "line": 256
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 260
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_cache_hit",
-      "line": 261
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_key_lock",
-      "line": 264
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 267
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_cache_hit",
-      "line": 268
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "get",
-      "line": 271
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "exists",
-      "line": 272
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_unlink_best_effort",
-      "line": 273
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "pop",
-      "line": 274
+      "target": "window_spans_multiple_days",
+      "line": 262
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "get_client",
-      "line": 278
+      "line": 270
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 272
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 276
     },
     {
       "owner": "raster-service",
@@ -118058,63 +118002,63 @@
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "window_spans_multiple_days",
-      "line": 288
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
       "target": "backward_probe_windows",
-      "line": 289
+      "line": 287
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "get_event_loop",
-      "line": 293
+      "line": 289
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "run_in_executor",
-      "line": 293
+      "line": 289
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "search_scenes",
-      "line": 295
+      "line": 291
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "list",
-      "line": 296
+      "line": 292
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "warning",
-      "line": 307
+      "line": 301
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "type",
-      "line": 311
+      "line": 305
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "bind_scene_day_window",
+      "line": 308
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
       "line": 314
     },
     {
@@ -118122,210 +118066,329 @@
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "as_receipt",
-      "line": 326
+      "line": 322
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "info",
-      "line": 329
+      "line": 323
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "dumps",
-      "line": 333
+      "line": 327
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 338
+      "target": "str",
+      "line": 329
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "get",
+      "line": 340
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "get_event_loop",
-      "line": 347
+      "target": "get",
+      "line": 340
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "exists",
+      "line": 341
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "_cache_hit",
+      "target": "monotonic",
+      "line": 341
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "run_in_executor",
-      "line": 347
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "process_index",
-      "line": 349
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "list",
-      "line": 351
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "NamedTemporaryFile",
-      "line": 359
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "write",
-      "line": 362
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "close",
-      "line": 363
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "is_truecolor",
-      "line": 369
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "apply_polygon_mask_rgba",
-      "line": 370
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "apply_polygon_mask",
-      "line": 372
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 374
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "type",
-      "line": 378
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "unlink",
-      "line": 387
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "debug",
-      "line": 389
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "type",
-      "line": 392
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "raster_has_observable_content",
-      "line": 403
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "warning",
-      "line": 405
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "type",
-      "line": 409
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "info",
-      "line": 413
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "_unlink_best_effort",
-      "line": 419
-    },
-    {
-      "owner": "raster-service",
-      "file": "services/raster-service/raster_cdse_tile_runtime.py",
-      "source": "ensure_field_cog",
-      "target": "cdse_lock",
-      "line": 421
+      "target": "exists",
+      "line": 341
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "monotonic",
-      "line": 422
+      "line": 341
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
-      "target": "cdse_prune_key_locks_locked",
-      "line": 423
+      "target": "cdse_lock",
+      "line": 345
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_cache_hit",
+      "line": 346
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_key_lock",
+      "line": 349
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_lock",
+      "line": 352
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_cache_hit",
+      "line": 353
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get",
+      "line": 356
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "exists",
+      "line": 357
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_unlink_best_effort",
+      "line": 358
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "pop",
+      "line": 359
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get_client",
+      "line": 363
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "ensure_field_cog",
       "target": "warning",
-      "line": 426
+      "line": 365
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "get_event_loop",
+      "line": 372
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "run_in_executor",
+      "line": 372
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "process_index",
+      "line": 374
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "list",
+      "line": 376
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "NamedTemporaryFile",
+      "line": 384
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "write",
+      "line": 387
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "close",
+      "line": 388
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "is_truecolor",
+      "line": 394
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "apply_polygon_mask_rgba",
+      "line": 395
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "apply_polygon_mask",
+      "line": 397
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 399
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 403
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "unlink",
+      "line": 410
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "debug",
+      "line": 412
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 415
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "raster_has_observable_content",
+      "line": 422
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 424
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "type",
+      "line": 428
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "info",
+      "line": 432
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "_unlink_best_effort",
+      "line": 438
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_lock",
+      "line": 440
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "monotonic",
+      "line": 442
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "cdse_prune_key_locks_locked",
+      "line": 445
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/raster_cdse_tile_runtime.py",
+      "source": "ensure_field_cog",
+      "target": "warning",
+      "line": 448
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "tilejson_availability",
       "target": "get",
-      "line": 439
+      "line": 461
     },
     {
       "owner": "raster-service",
       "file": "services/raster-service/raster_cdse_tile_runtime.py",
       "source": "tilejson_availability",
       "target": "is_truecolor",
-      "line": 440
+      "line": 462
     },
     {
       "owner": "raster-service",
@@ -144009,6 +144072,195 @@
       "source": "test_single_open_metric_is_certified",
       "target": "read_text",
       "line": 11
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "search_scenes",
+      "target": "RuntimeError",
+      "line": 25
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_clean_cache",
+      "target": "fixture",
+      "line": 39
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_clean_cache",
+      "target": "clear",
+      "line": 42
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_clean_cache",
+      "target": "clear",
+      "line": 43
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_clean_cache",
+      "target": "list",
+      "line": 45
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_clean_cache",
+      "target": "values",
+      "line": 45
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_clean_cache",
+      "target": "unlink",
+      "line": 47
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_clean_cache",
+      "target": "clear",
+      "line": 50
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_clean_cache",
+      "target": "clear",
+      "line": 51
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "_args",
+      "target": "dict",
+      "line": 55
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_scene_receipt_contains_provenance_identity",
+      "target": "SelectedScene",
+      "line": 69
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_scene_receipt_contains_provenance_identity",
+      "target": "as_receipt",
+      "line": 77
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_bind_scene_day_window_returns_none_when_no_eligible_scene",
+      "target": "bind_scene_day_window",
+      "line": 84
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "_LatestClient",
+      "line": 92
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "setattr",
+      "line": 93
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "setattr",
+      "line": 94
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "setattr",
+      "line": 95
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "_args",
+      "line": 97
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "ensure_field_cog",
+      "line": 97
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "_args",
+      "line": 98
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "ensure_field_cog",
+      "line": 98
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "list",
+      "line": 106
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_cache_is_scene_bound_and_reused",
+      "target": "len",
+      "line": 107
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_catalog_failure_is_fail_closed",
+      "target": "_LatestClient",
+      "line": 114
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_catalog_failure_is_fail_closed",
+      "target": "setattr",
+      "line": 115
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_catalog_failure_is_fail_closed",
+      "target": "_args",
+      "line": 117
+    },
+    {
+      "owner": "raster-service",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "source": "test_latest_catalog_failure_is_fail_closed",
+      "target": "ensure_field_cog",
+      "line": 117
     },
     {
       "owner": "raster-service",
@@ -280515,49 +280767,70 @@
       "file": "services/sahool-platform/api/routers/trials.py",
       "source": "analyze_trial",
       "target": "post",
-      "line": 29
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/trials.py",
-      "source": "analyze_trial",
-      "target": "Depends",
-      "line": 32
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/routers/trials.py",
-      "source": "analyze_trial",
-      "target": "BlockResult",
       "line": 35
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/trials.py",
       "source": "analyze_trial",
+      "target": "Depends",
+      "line": 38
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/trials.py",
+      "source": "analyze_trial",
+      "target": "BlockResult",
+      "line": 41
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/trials.py",
+      "source": "analyze_trial",
       "target": "analyze_paired_trial",
-      "line": 37
+      "line": 43
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/trials.py",
       "source": "analyze_trial",
       "target": "to_dict",
-      "line": 42
+      "line": 48
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/trials.py",
+      "source": "analyze_trial",
+      "target": "analyze_met",
+      "line": 50
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/trials.py",
+      "source": "analyze_trial",
+      "target": "METObservation",
+      "line": 52
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/routers/trials.py",
+      "source": "analyze_trial",
+      "target": "build_digital_trial_envelope",
+      "line": 61
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/trials.py",
       "source": "analyze_trial",
       "target": "HTTPException",
-      "line": 44
+      "line": 69
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/trials.py",
       "source": "analyze_trial",
       "target": "str",
-      "line": 44
+      "line": 69
     },
     {
       "owner": "sahool-platform",
@@ -292756,156 +293029,464 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "to_dict",
+      "target": "round",
+      "line": 108
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "to_dict",
+      "target": "items",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "to_dict",
+      "target": "round",
+      "line": 109
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "to_dict",
+      "target": "items",
+      "line": 110
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "to_dict",
+      "target": "round",
+      "line": 110
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "to_dict",
+      "target": "items",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "to_dict",
+      "target": "round",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "ValueError",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "str",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "strip",
+      "line": 126
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "str",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "strip",
+      "line": 127
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "float",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "isfinite",
+      "line": 129
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "ValueError",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "append",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "setdefault",
+      "line": 131
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "sorted",
+      "line": 133
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "sorted",
+      "line": 134
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "len",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "len",
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "ValueError",
+      "line": 136
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "any",
+      "line": 137
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "ValueError",
+      "line": 138
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "float",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "items",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "mean",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "float",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "list",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "mean",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "values",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "float",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "mean",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "float",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "mean",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "float",
+      "line": 147
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "sqrt",
+      "line": 148
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "mean",
+      "line": 149
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "square",
+      "line": 150
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "METAnalysis",
+      "line": 161
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "len",
+      "line": 162
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "analyze_met",
+      "target": "sorted",
+      "line": 169
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "build_digital_trial_envelope",
+      "target": "ValueError",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
+      "source": "build_digital_trial_envelope",
+      "target": "to_dict",
+      "line": 196
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "len",
-      "line": 97
+      "line": 215
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "ValueError",
-      "line": 99
+      "line": 217
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "array",
-      "line": 104
+      "line": 222
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "array",
-      "line": 105
+      "line": 223
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "float",
-      "line": 108
+      "line": 226
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "mean",
-      "line": 108
+      "line": 226
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "float",
-      "line": 109
+      "line": 227
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "std",
-      "line": 109
+      "line": 227
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "sqrt",
-      "line": 110
+      "line": 228
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "float",
-      "line": 116
+      "line": 234
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "abs",
-      "line": 120
+      "line": 238
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "cdf",
-      "line": 120
+      "line": 238
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "float",
-      "line": 120
+      "line": 238
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "float",
-      "line": 123
+      "line": 241
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "ppf",
-      "line": 123
+      "line": 241
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "abs",
-      "line": 125
+      "line": 243
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "float",
-      "line": 130
+      "line": 248
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "mean",
-      "line": 130
+      "line": 248
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "float",
-      "line": 131
+      "line": 249
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "mean",
-      "line": 131
+      "line": 249
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "abs",
-      "line": 137
+      "line": 255
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/trial_engine.py",
       "source": "analyze_paired_trial",
       "target": "TrialVerdict",
-      "line": 146
+      "line": 264
     },
     {
       "owner": "sahool-platform",
@@ -525842,6 +526423,17 @@
       "kind": "function",
       "file": "services/raster-service/raster_main_runtime.py",
       "line": 93,
+      "owner": "raster-service",
+      "decorated_route": false,
+      "reference_count": 0,
+      "confidence": "high",
+      "action": "review_before_delete"
+    },
+    {
+      "symbol": "_clean_cache",
+      "kind": "function",
+      "file": "services/raster-service/test_c7_latest_cache_provenance.py",
+      "line": 40,
       "owner": "raster-service",
       "decorated_route": false,
       "reference_count": 0,

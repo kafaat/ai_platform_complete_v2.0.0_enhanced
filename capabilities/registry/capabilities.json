@@ -1885,6 +1885,7 @@
         "services/raster-service/test_band_math_zones.py",
         "services/raster-service/test_batch_single_open_certification.py",
         "services/raster-service/test_batch_single_open_metrics.py",
+        "services/raster-service/test_c7_latest_cache_provenance.py",
         "services/raster-service/test_cdse_date_normalization.py",
         "services/raster-service/test_cdse_empty_raster_not_cached.py",
         "services/raster-service/test_cdse_poly_contract.py",
@@ -1901,8 +1902,7 @@
         "services/raster-service/test_field_terrain.py",
         "services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py",
         "services/raster-service/test_historical_backfill.py",
-        "services/raster-service/test_imagery_source_gate.py",
-        "services/raster-service/test_imagery_source_gate_no_bypass_static.py"
+        "services/raster-service/test_imagery_source_gate.py"
       ],
       "runtime": {
         "metrics": [],
@@ -1942,7 +1942,7 @@
       },
       "evidence_truncated": {
         "apis": 57,
-        "tests": 94
+        "tests": 95
       }
     },
     {
@@ -2393,6 +2393,7 @@
       "ui_consumers": [],
       "mobile_consumers": [],
       "tests": [
+        "services/raster-service/test_c7_latest_cache_provenance.py",
         "services/raster-service/test_indicator_grid_provenance_static.py",
         "services/weather-service/tests/test_canonical_weather_state.py",
         "tests/architecture/test_provenance_receipt_and_replay.py",
@@ -2431,7 +2432,7 @@
           "path": "services/sahool-platform/docs/INFORMATION_PROVENANCE.md"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=7, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=0, tests=8, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,

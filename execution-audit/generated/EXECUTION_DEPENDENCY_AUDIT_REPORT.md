@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **1860**
+- Python files parsed: **1861**
 - FastAPI-style route handlers: **1049**
-- Static function-call edges: **73909**
-- Dead-code candidates: **611**
+- Static function-call edges: **73992**
+- Dead-code candidates: **612**
 - Duplicate function groups: **58**
 - Automatic deletions: **0**
 
@@ -22,6 +22,7 @@
 | `raster-service` | `_evict_field_layers` | function | `services/raster-service/raster_main_runtime.py` | 46 |
 | `raster-service` | `_require_layer_tenant` | function | `services/raster-service/raster_main_runtime.py` | 89 |
 | `raster-service` | `_require_layer_tenant_authorized` | function | `services/raster-service/raster_main_runtime.py` | 93 |
+| `raster-service` | `_clean_cache` | function | `services/raster-service/test_c7_latest_cache_provenance.py` | 40 |
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
 | `sahool-platform` | `_apply_tenant_guc` | function | `services/sahool-platform/api/main.py` | 645 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 59 |

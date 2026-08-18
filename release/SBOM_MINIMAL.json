@@ -10465,7 +10465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d6dc8f07d569cd42d34bf12494a66a00c9f74aaeaf80b5df120cdd53daf023c7"
+          "content": "adb43d21cc3864d085d6225c0fae263a858093acf081108e0aed01c92735d0ef"
         }
       ],
       "name": "services/ai_agronomist/tool_executor.py",
@@ -13435,7 +13435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2709120842fd6893470a6c0c2d11ec90059abbbe70ea25450b8a33d5de2bd75"
+          "content": "4d09614d9bc9f9b8e889d556937a302c1cdcead4a81f7ab49e30c46f76d98f0d"
         }
       ],
       "name": "services/raster-service/raster_cdse_tile_runtime.py",
@@ -14009,6 +14009,16 @@
         }
       ],
       "name": "services/raster-service/test_batch_single_open_metrics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "13d76cce7df6787f341781911de9d2c9f51aea019b662fa106215165b122cac1"
+        }
+      ],
+      "name": "services/raster-service/test_c7_latest_cache_provenance.py",
       "type": "file"
     },
     {
@@ -18475,7 +18485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f66cf8eb4f468802477df2774a7d633adfaba870e197ecbe525a17f7d9d476c5"
+          "content": "f8ba387cd1b2cfadb18b8a86b613bdb1303a9d9f766c7b1a16c6837269df1f4a"
         }
       ],
       "name": "services/sahool-platform/api/routers/trials.py",
@@ -18875,7 +18885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "850f9c462ece586b5182ffab3760756b462001a6a4d15ecdb7fb539e380c11a4"
+          "content": "376234c1459aa604d3a791f61ef6cc9534acc8c284f6ce66c1a29d7286f4b4e1"
         }
       ],
       "name": "services/sahool-platform/api/trial_engine.py",
@@ -18885,7 +18895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd8d8b793da1a8c31e2b8317e46421f303a0988f34b0509ce36a6701ade078c8"
+          "content": "3d1a53d50c9a0307b5280cbb4d10181179816997caeb40a4b08353b1f066797e"
         }
       ],
       "name": "services/sahool-platform/api/trial_models.py",

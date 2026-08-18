@@ -20,7 +20,13 @@ from api.main import (
     UserSchema,
     get_current_user,
 )
-from api.trial_engine import BlockResult, analyze_paired_trial
+from api.trial_engine import (
+    BlockResult,
+    METObservation,
+    analyze_met,
+    analyze_paired_trial,
+    build_digital_trial_envelope,
+)
 from api.trial_models import TrialAnalysisRequest
 
 router = APIRouter()
@@ -39,6 +45,25 @@ def analyze_trial(
             confidence_level=req.confidence_level,
             treatment_label_ar=req.treatment_label_ar,
         )
-        return verdict.to_dict()
+        out = verdict.to_dict()
+        if req.met_observations:
+            met = analyze_met(
+                [
+                    METObservation(
+                        observation.genotype,
+                        observation.environment_id,
+                        observation.yield_value,
+                        observation.replicate,
+                    )
+                    for observation in req.met_observations
+                ]
+            )
+            out["digital_trial"] = build_digital_trial_envelope(
+                season_id=req.season_id,
+                study_id=req.study_id,
+                trial_id=req.trial_id,
+                met=met,
+            )
+        return out
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e

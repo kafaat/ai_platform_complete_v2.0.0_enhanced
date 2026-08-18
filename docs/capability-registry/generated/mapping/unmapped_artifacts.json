@@ -3020,6 +3020,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_c7_latest_cache_provenance.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_imagery_source_gate.py",
     "kind": "tests"
   },
@@ -6829,6 +6833,10 @@
   },
   {
     "path": "tests_v9/test_c4m1_mobile_push.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_c5_c6_parallel_contracts.py",
     "kind": "tests"
   },
   {

@@ -6,7 +6,7 @@
     "infrastructure_routes": 4,
     "raw_routes": 631
   },
-  "inventory_sha256": "2db68472c2e90a51168b78b748410506abb9dba5b03ce7db3d1ff79e770d7122",
+  "inventory_sha256": "6b3c7679b7ef407dd3b8a55d112cf0ac134c63ea91c5ff929426bafd01c4052d",
   "policy": {
     "canonical_infrastructure_allowlist": [
       {
@@ -28,7 +28,7 @@
     ],
     "domain_route_budget": 629,
     "policy_file": "docs/architecture/platform_extraction_map.json",
-    "policy_sha256": "bf3a2603cd6787d06181c167202e72577d1932ca2aad4b5914e23605dc7380d9"
+    "policy_sha256": "f72ff4bf9e29c1eee0bd570da4e57d56298402db077163ea17f0ad28fc21d584"
   },
   "routes": [
     {
@@ -4346,7 +4346,7 @@
     {
       "classification": "domain",
       "function": "analyze_trial",
-      "line": 29,
+      "line": 35,
       "method": "POST",
       "path": "/api/v1/trials/analyze",
       "source": "api/routers/trials.py"

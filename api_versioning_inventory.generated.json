@@ -7958,7 +7958,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/trials.py",
-    "line": 30,
+    "line": 36,
     "method": "POST",
     "path": "/api/v1/trials/analyze",
     "handler": "analyze_trial",

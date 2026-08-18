@@ -1599,6 +1599,7 @@ SAT-009,test,services/raster-service/test_backfill_worker_schema_drift_visibilit
 SAT-009,test,services/raster-service/test_band_math_zones.py,3,applied
 SAT-009,test,services/raster-service/test_batch_single_open_certification.py,3,applied
 SAT-009,test,services/raster-service/test_batch_single_open_metrics.py,3,applied
+SAT-009,test,services/raster-service/test_c7_latest_cache_provenance.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_date_normalization.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_empty_raster_not_cached.py,3,applied
 SAT-009,test,services/raster-service/test_cdse_poly_contract.py,3,applied
@@ -1874,6 +1875,7 @@ WX-009,service,services/weather-service/main.py,10,applied
 WX-009,test,services/sahool-platform/tests/test_weather_engine_disease_window_layers.py,3,applied
 WX-009,test,tests_v9/test_disease_field_state_feed.py,3,applied
 WX-010,service,services/weather-service/main.py,10,applied
+WX-010,test,services/raster-service/test_c7_latest_cache_provenance.py,3,applied
 WX-010,test,services/raster-service/test_indicator_grid_provenance_static.py,3,applied
 WX-010,test,services/weather-service/tests/test_canonical_weather_state.py,3,applied
 WX-010,test,tests/architecture/test_provenance_receipt_and_replay.py,3,applied

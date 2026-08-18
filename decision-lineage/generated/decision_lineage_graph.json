@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 545,
+      "evidence_count": 549,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -103,6 +103,7 @@
         "services/ai_agronomist/runtime_evidence.py",
         "services/ai_agronomist/soil_sampling_planner.py",
         "services/ai_agronomist/test_ai_field_memory_v49.py",
+        "services/ai_agronomist/tool_executor.py",
         "services/ai_agronomist/vra_prescription_engine.py",
         "services/decision-service/activation_gate.py",
         "services/decision-service/activation_gate_core.py",
@@ -283,10 +284,13 @@
         "services/sahool-platform/api/routers/recommendations.py",
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/soil_sampling.py",
+        "services/sahool-platform/api/routers/trials.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/soil_evidence_bridge.py",
         "services/sahool-platform/api/temporal_arbitration.py",
+        "services/sahool-platform/api/trial_engine.py",
+        "services/sahool-platform/api/trial_models.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/agri_tools/tools/index_explorer.py",
@@ -2244,6 +2248,7 @@
         "services/ai_agronomist/productivity_zones.py",
         "services/ai_agronomist/productivity_zones_clustering.py",
         "services/ai_agronomist/test_ai_field_memory_v49.py",
+        "services/ai_agronomist/tool_executor.py",
         "services/decision-service/backfill.py",
         "services/decision-service/decision_sor_role_certify.py",
         "services/decision-service/main.py",
@@ -2316,14 +2321,13 @@
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/temporal_arbitration.py",
+        "services/sahool-platform/api/trial_engine.py",
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/ai_artifacts.py",
         "services/sahool-platform/core/authorization.py",
-        "services/sahool-platform/core/canonical_field_state_lock.py",
-        "services/sahool-platform/core/canonical_schemas.py",
-        "services/sahool-platform/core/crop_intelligence/confidence.py"
+        "services/sahool-platform/core/canonical_field_state_lock.py"
       ],
-      "source_evidence_count": 545,
+      "source_evidence_count": 549,
       "target_evidence_count": 478,
       "static_supported": true,
       "runtime_verified": false
@@ -2684,5 +2688,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "b72a1005866810cbeb4b1f2aae8673d0ed7b2a7c1758580a50cf30e54de309bd"
+  "content_sha256": "57b40c9bc48bf10005723a6886f0529bfdfe3e6d6d153f2b620e0710d30edd52"
 }

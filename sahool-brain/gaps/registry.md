@@ -4676,3 +4676,27 @@ scripts/ci/capability_mapping_engine.py:270      ["git","ls-files","-z"]
 
 **وحدٌّ يُقال:** لا حارس يمنع التوليد من فهرسٍ غير محلول. الإصلاح إجرائيّ ومُسجَّل.
 </details>
+
+## `S5-EXEC-01` — `fixed` (`ee4fdff7` · دلتا واردة مُراجَعة)
+
+**المصدر:** `services/decision-service/persistence.py` · مفروض بـ
+`services/decision-service/tests/test_s5_exec_01_decision_record_immutable.py`
+و`tests_v9/test_s5_exec_01_edge_freeze.py` · مقيس على `010c9627+delta`.
+
+**الفجوة.** رأس سلسلة القرار وحلقتاها الدنيا (`decision_record` · `outcome_record` ·
+`recommendation_outcomes`) كانت تُكتَب بـ`ON CONFLICT … DO UPDATE SET` مع
+`content_digest = COALESCE(EXCLUDED.content_digest, …)`. أي أنّ **سجلّ القرار قابل
+لإعادة الكتابة بعد إصداره**: مفتاح تعاملٍ مُعاد بمحتوًى مختلف يُبدّل الصفّ صامتاً بدل
+أن يُرفَض — فالسجلّ الذي يُفترَض أن يكون شاهداً يصير قابلاً للتحرير، ويضيع تمييز
+«إعادة إرسال» عن «تغيير أثر رجعيّ».
+
+**الإغلاق.** الكتابات الثلاث صارت إلحاقاً غير قابل للتغيير: `ON CONFLICT … DO NOTHING`
+زائداً **كشف إعادة صريح** (`SELECT` عند التعارض، ورفض fail-closed إن أُعيد مفتاح
+التعامل بمحتوًى مختلف التجزئة). و`dispatch_decisions` وحده أُبقي على نمط الدمج القابل
+للتحديث — وهو مقصود ومُوثَّق في `tests_v9/test_content_digest_lineage_column_v167.py`،
+لأنّه صفّ إرسالٍ يُحدَّث بحالته لا شاهدُ قرار.
+
+**حدّ صدق مقيس:** هذا تصليبُ كتابةٍ ساكن مفروض بقراءة المصدر؛ **لا يُرقّي أيّ سلطة**
+ولا يُثبِت السلوك على Postgres حيّ. الإثبات الحيّ يبقى دَيناً على أدلّة
+`decision_sor_live_closure_collector.py` — والسلطات لم تتغيّر: القرار
+`CUTOVER_CAPABLE/INTERIM` · الحقل `BLOCKED` · الرسم المعرفيّ `SERVICE_OWNED`.

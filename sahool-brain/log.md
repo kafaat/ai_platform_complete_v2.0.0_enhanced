@@ -6494,3 +6494,13 @@ no_third_value_registry نصّاً)، GATE-01 نظيف، 33 اختباراً، r
   - **معضلة `measured_on` الميكانيكيّة**: إلصاقه خارج مُخرَج المولِّد يكسر مطابقة `stored == generated` — أُصلح بإدراجه **داخل** `build()` بقيمة ثابتة حرفيّة `"010c9627…+delta"` لا مُشتقّة من git، فتبقى المطابقة حتميّة.
   - **عشر ملفّات جديدة تفكّ ترميز نصّ بترميز الآلة** + مدخل أساسٍ بائتٍ حُذف.
   القياس النهائيّ: preflight --fast صفر إخفاق · guard_mutation_guard_ok (التكذيب الكامل) · CHECK_EXIT=0 · الجناحان ٥٣٥٠+٤١٠٠ صفر فشل · تغطية ٤٨٪. الحزمتان C5/C6/C7 المُعلَنتان (`b50b2d42`/`932f0d30` — نسخة واحدة مكرَّرة) لم تُفحَصا بعد.
+
+## 2026-08-18 (د) — تطبيق C5/C6/C7 والتحقّق الكامل
+
+- **المُدخَل:** `a56be3d4-SAHOOL_C5_C6_C7_DELTA_ON_010c9627_S5_C4_VLLM_JAIS_20260818.zip` فوق `ee4fdff7`.
+- **المُطبَّق:** ٦ ملفّات مصدر + ملفّا اختبار جديدان (`tests_v9/test_c5_c6_parallel_contracts.py` · `services/raster-service/test_c7_latest_cache_provenance.py`) + وظيفة CI `raster-service-tests`.
+- **`ci.yml` طُبِّق جراحيّاً لا كاملاً:** نسخة الدلتا كانت **تحذف** بوّابتَي `s4-kg-consumer-freeze-gate` و`s5-exec-01-edge-freeze-gate` وخطوة اختبارات S5-EXEC-01 (بُنيت على قاعدة تسبقها) — أُخِذت الوظيفة الجديدة وحدها.
+- **أربعة إخفاقات كُشفت بالتشغيل وأُصلحت:** ثلاثة اختبارات CDSE تفرض سلوكاً أغلقته C7 (حُدِّثت بنصّ الدَّين المُغلَق) · وحارس كاش pip لوظيفة CI الجديدة.
+- **القياس:** جناح الجذر **5354/5354** (تغطية 48.38% ≥ أرضيّة 43%) · جناح المنصّة **4100/4100** · `regenerate_all_generated.sh` بلغ **نقطة ثبات** (EXIT=0، 5572 بصمة) · `preflight --fast` **إخفاقات=0**.
+- **مرساة مسار انحرفت:** `platform_extraction_map.json` لـ`trials.py::analyze_trial` (29→35) — صُحّحت بالمطابقة البنيويّة ثمّ `platform_route_ownership_guard --write-generated` **قبل** `platform_route_governance_attestation --write-generated`.
+- **حارسان في الدماغ أحمرّا:** `bidi_control_char` (محرف RLM زائد في `ledger.md` من إدخالي السابق + محرفان في إدخالي الجديد — حُذفت) و`brain_commit_claim` (رسالة `ee4fdff7` تذكر `S5-EXEC-01` بلا تسجيل — سُجِّلت الفجوة بمصدرها وحالتها وحدّ صدقها).
