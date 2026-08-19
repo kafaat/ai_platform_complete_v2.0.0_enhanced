@@ -181,3 +181,35 @@ def test_semantic_proofs_do_not_run_when_migrations_did_not_complete():
     assert ci.count("steps.live_pg_migrations.outcome == 'success'") == 2, (
         "شهادةُ الدور وعقدُ الوظيفة يجب أن يشترطا اكتمال الهجرات"
     )
+
+
+def test_the_bound_accepts_an_alternation_of_prefixes(tmp_path):
+    """العقد القائم يُصرّح بالبادئتين معاً (`v195_*|v196_*`).
+
+    اختزالُه في واحدةٍ يعتمد ضمناً على ترتيب البيان، وقد أمسك ذلك حارسٌ قائم:
+    `tests/irrigation/test_irr_f01_certification_ci_contract.py` يفرض بقاء النصّ
+    صريحاً — فاحمرّ على اختزالي في 32292741829.
+    """
+    names = ["v190.sql", "v196_late.sql", "v195_upgrade.sql"]
+    log = _workspace(tmp_path, names, greedy_psql=True)
+    result = subprocess.run(
+        [
+            "bash",
+            str(RUNNER),
+            "--port",
+            "5433",
+            "--user",
+            "u",
+            "--db",
+            "d",
+            "--stop-before",
+            "v195_*|v196_*",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+        env={"PATH": f"{tmp_path}:/usr/bin:/bin"},
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    # يقف عند `v196_late.sql` رغم أنّها ليست البادئة الأولى في التناوب.
+    assert log.read_text(encoding="utf-8").split() == ["migrations/v190.sql"]

@@ -65,7 +65,7 @@ echo "== Gate U1: apply migration chain through v194 only =="
 bash "$ROOT/scripts/ci/apply_migration_manifest.sh" \
   --root "$ROOT" --manifest "$MANIFEST" \
   --host "$PGHOST" --port "$PGPORT" --user "$ADMIN_USER" --db "$U1_DB" \
-  --stop-before 'v195_*'
+  --stop-before 'v195_*|v196_*'
 
 # The v195 tables MUST NOT exist yet — proves we truly stopped before the upgrade.
 for t in hydraulic_capacity_evaluations irrigation_resource_reservations \

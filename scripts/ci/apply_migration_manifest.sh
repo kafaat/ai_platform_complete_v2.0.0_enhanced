@@ -62,9 +62,18 @@ expected="${#migrations[@]}"
 # فحصُ الوجود **قبل** لمس القاعدة: اسمٌ خاطئ لا يترك قاعدةً نصفَ مُهاجَرة.
 # الحدّ يُطبَّق على اللقطة قبل الفحص، فيُفحَص ما سيُطبَّق فعلاً لا أكثر.
 if [ -n "$stop_before" ]; then
+  # التناوب يُقبَل (`v195_*|v196_*`): العقد القائم يُصرّح بالبادئتين معاً، وحصرُه
+  # في واحدةٍ يعتمد ضمناً على ترتيب البيان. والحارس
+  # `tests/irrigation/test_irr_f01_certification_ci_contract.py` يفرض بقاء النصّ
+  # صريحاً — وقد أمسك اختزالي فعلاً.
+  IFS='|' read -r -a _bounds <<<"$stop_before"
   bounded=()
   for f in "${migrations[@]}"; do
-    case "$f" in $stop_before) break;; esac
+    _hit=0
+    for _b in "${_bounds[@]}"; do
+      case "$f" in $_b) _hit=1; break;; esac
+    done
+    [ "$_hit" = 1 ] && break
     bounded+=("$f")
   done
   migrations=("${bounded[@]+"${bounded[@]}"}")
