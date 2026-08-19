@@ -6756,6 +6756,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_apply_migration_manifest.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
     "kind": "tests"
   },

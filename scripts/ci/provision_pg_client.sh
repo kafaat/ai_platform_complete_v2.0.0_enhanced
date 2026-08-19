@@ -21,10 +21,12 @@
 # ② `export PATH` هنا يموت مع عمليّة هذا السكربت، و`GITHUB_PATH` يخدم الخطوات
 #    **التالية** وحدها. فبقيت الأداة مفقودة وسقطت `Integration Tests`. فالتصدير
 #    لازمٌ في الخطوة نفسها، ويحرسه `test_provision_pg_client.py`.
-# ③ `docker run -i` **يستنزف stdin** (32283081538). وخطوة الهجرات حلقةٌ تقرأ
-#    قائمتها من مجرى دخلها، فالتهم أوّلُ استدعاءٍ بقيّةَ القائمة وانتهت الحلقة
-#    **خضراء بلا جداول** ثمّ سقطت 57 حالة بـ`relation ... does not exist`.
-#    فصار `-i` يُوصَل عند الحاجة فقط: مع `-f` لا وصل، وبدونها يبقى للمستندات.
+# ③ `docker run -i` **يستنزف stdin** (32285597465): خطوة الهجرات كانت تُعدّد
+#    بيانها من مجرى حيّ، فالتهم أوّلُ استدعاءٍ الـ225 الباقية وتوقّفت عند 1/226.
+#    وأوّلُ إصلاحٍ جرّبتُه كان نزعَ `-i` عند وجود `-f` — ورفضه المالك بحقّ: الغلاف
+#    عميلٌ عامّ، وشرطُه يكسر `psql -f -` ويُقيّد استعمالاتٍ مشروعة. فبقي `-i` كما
+#    هو، وانتقل العلاج إلى مالك التعداد: `scripts/ci/apply_migration_manifest.sh`
+#    يأخذ لقطةً بـ`mapfile` ويُعطي كلّ استدعاءٍ `</dev/null`. فصل سلطاتٍ لا ترقيع.
 #
 #   الاستعمال (والتصدير **لازم** في الخطوة نفسها):
 #     bash scripts/ci/provision_pg_client.sh <container>
@@ -49,15 +51,7 @@ for tool in psql pg_isready; do
 #!/usr/bin/env bash
 # غلافٌ مولَّد — @@TOOL@@ من '@@IMAGE@@' بشبكة المضيف وشجرة العمل مركَّبة كما هي.
 set -euo pipefail
-attach=()
-needs_stdin=1
-for a in "$@"; do
-  case "$a" in
-    -f | --file | -f* | --file=*) needs_stdin=0 ;;
-  esac
-done
-if [ "$needs_stdin" = 1 ]; then attach=(-i); fi
-exec docker run --rm ${attach[@]+"${attach[@]}"} --network host \
+exec docker run --rm -i --network host \
   -v "$PWD:$PWD" -w "$PWD" \
   -e PGPASSWORD="${PGPASSWORD:-}" \
   -e PGHOST -e PGPORT -e PGUSER -e PGDATABASE \

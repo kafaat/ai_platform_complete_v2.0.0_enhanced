@@ -116,37 +116,12 @@ def test_every_call_site_exports_the_shim_directory_in_its_own_step():
         )
 
 
-def test_a_file_driven_call_does_not_drain_the_callers_stdin(tmp_path):
-    """أداةٌ تستنزف stdin تُنهي حلقةَ الهجرات بعد أوّل ملفّ **بنجاح**.
-
-    خطوة الهجرات تقرأ قائمتها من مجرى دخلها:
-        while read -r f; do psql ... -f "migrations/$f"; done < <(grep ... MANIFEST)
-    و`psql` الأصليّ مع `-f` لا يمسّ stdin. أمّا `docker run -i` فيستنزفه، فمرّت
-    الخطوة خضراء والمخطَّط فارغ ثمّ سقطت 57 حالة بـrelation does not exist
-    (تشغيل 32283081538). فالمقيس هنا: الحلقة تُكمِل أسطرها الثلاثة.
-    """
-    _fake_docker(tmp_path, image="postgres:15")
-    assert _run(tmp_path, "sahool-pg").returncode == 0
-    loop = tmp_path / "loop.sh"
-    loop.write_text(
-        "#!/usr/bin/env bash\nset -euo pipefail\n"
-        'while read -r f; do echo "APPLIED:$f"; psql -f "$f" >/dev/null 2>&1 || true; done '
-        '< <(printf "a.sql\\nb.sql\\nc.sql\\n")\n',
-        encoding="utf-8",
-    )
-    loop.chmod(0o755)
-    shim_dir = _shim(tmp_path, "psql").parent
-    result = subprocess.run(
-        ["bash", str(loop)],
-        capture_output=True,
-        text=True,
-        env={"PATH": f"{shim_dir}:{tmp_path}:/usr/bin:/bin"},
-        cwd=tmp_path,
-    )
-    applied = [x for x in result.stdout.splitlines() if x.startswith("APPLIED:")]
-    assert applied == ["APPLIED:a.sql", "APPLIED:b.sql", "APPLIED:c.sql"], (
-        f"الحلقة توقّفت بعد {len(applied)} ملفّاً — المجرى استُنزِف"
-    )
+# ملاحظة: كانت هنا حالةٌ تفرض أنّ الغلاف لا يصل `-i` مع `-f`. ورفض المالك ذلك
+# التصميم بحقّ: الغلاف **عميلٌ عامّ**، وشرطٌ كهذا يكسر `psql -f -` ويُقيّد
+# استعمالاتٍ مشروعة (`psql < file.sql` · `\copy`). فبقي `-i` كما هو، وانتقل
+# العقد إلى مالك التعداد — `test_apply_migration_manifest.py::
+# test_a_client_that_reads_stdin_cannot_truncate_the_manifest` — حيث يُقاس
+# بـ`psql` مزيّفٍ **يقرأ stdin عمداً**. فصلُ سلطاتٍ لا ترقيع عميل.
 
 
 def test_the_integration_job_fails_loudly_when_migrations_create_nothing():

@@ -909,10 +909,8 @@ jobs:
         env:
           PGPASSWORD: test_password
         run: |
-          while read -r f; do
-            case "$f" in ''|\#*) continue;; esac
-            psql -h localhost -p 5433 -U sahool_test -d sahool_test -v ON_ERROR_STOP=1 -f "migrations/$f"
-          done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
+          bash scripts/ci/apply_migration_manifest.sh \
+            --port 5433 --user sahool_test --db sahool_test
       - name: Migrations must have created a schema (a silent no-op is a failure)
         # MIGRATIONS-PASSED-WITHOUT-CREATING-ANYTHING-01 — الحلقة أعلاه تقرأ قائمتها
         # من stdin، فأيّ أداةٍ تستنزف المجرى تُنهيها بعد أوّل ملفّ **بنجاح**. وقع
@@ -1380,6 +1378,7 @@ jobs:
           done
           pg_isready -h localhost -p 5435 -U sahool_user
       - name: Apply the canonical MANIFEST
+        id: live_pg_migrations
         # `DEDICATED_PG_JOB: migrations mismatch → failure` — الشطر الأوّل منه.
         # الحلقة تُطبِّق وتَعُدّ، ثمّ تُقارِن المُطبَّق بالمُعلَن. بلا العدّاد يستطيع
         # `case` أو `grep` أن يُسقِط ملفّاً صامتاً فتعمل الأدلّة على مخطّط ناقص —
@@ -1387,17 +1386,9 @@ jobs:
         env: {PGPASSWORD: test_password}
         run: |
           set -euo pipefail
-          expected=$(grep -vcE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
-          applied=0
-          while read -r f; do
-            case "$f" in ''|\#*) continue;; esac
-            psql -h localhost -p 5435 -U sahool_user -d sahool -v ON_ERROR_STOP=1 \
-              -q -f "migrations/$f"
-            applied=$((applied + 1))
-          done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
-          echo "هجرات مُطبَّقة: $applied من $expected مُعلَنة"
-          test "$applied" -eq "$expected" || {
-            echo "::error::طُبِّق $applied من $expected — أُسقِط ملفّ صامتاً"; exit 1; }
+          bash scripts/ci/apply_migration_manifest.sh \
+            --port 5435 --user sahool_user --db sahool \
+            || { echo "MIGRATION_MANIFEST_APPLY_FAILED" >live_pg_primary_cause.txt; exit 1; }
       - name: Provision the restricted application role
         # `sahool_app` متطلَّب تشغيليّ مُعلَن في `migrations/v56_rls_dynamic_all.sql:27`
         # ولا تُنشئه هجرة — فتُنشئه الوظيفة صراحةً. و`NOBYPASSRLS` ليس تجميلاً: بدونه
@@ -1453,7 +1444,9 @@ jobs:
         # `live_pg_evidence.json` بحكمه `PASS`/`FAIL` **قبل** إعادة أيّ رمز خروج غير
         # صفريّ (`--evidence`)، فلو عُلِّقت على نجاح ما قبلها لما وُجِدت الوثيقة إلّا
         # يوم لا نحتاجها. والفشل يبقى فشلاً: رمز الخروج غير الصفريّ يُسقِط الوظيفة.
-        if: always() && steps.live_pg_harness.outcome == 'success'
+        if: >-
+          always() && steps.live_pg_harness.outcome == 'success' &&
+          steps.live_pg_migrations.outcome == 'success'
         env:
           PGHOST: localhost
           PGPORT: "5435"
@@ -1469,7 +1462,9 @@ jobs:
         # `direct_role_attributes` proves only the named row in pg_roles. This
         # companion proof closes pg_auth_members / SET ROLE ambiguity for the
         # dedicated evidence role by requiring its membership closure to be empty.
-        if: always() && steps.live_pg_harness.outcome == 'success'
+        if: >-
+          always() && steps.live_pg_harness.outcome == 'success' &&
+          steps.live_pg_migrations.outcome == 'success'
         env:
           PGHOST: localhost
           PGPORT: "5435"
@@ -1503,7 +1498,12 @@ jobs:
             # وطبّق `init_v8.sql` كاملةً، والعطل كان اقتطاع حلقة الهجرات. أي أنّ
             # الإصلاح استبدل نسبةً كاذبة (`RESTRICTED_ROLE_NOT_FOUND`) بأخرى.
             # فالسبب يُقاس من حالة العالم: أموجودٌ العميل؟ أقامت القاعدة؟
-            if ! command -v psql >/dev/null 2>&1; then
+            # السببُ الأوّل يُورَث ولا يُستبدَل: `JUNIT_REPORT_MISSING` و
+            # `RESTRICTED_ROLE_NOT_FOUND` أعراضٌ تالية، ونسبةُ العطل إليها تُفسِد
+            # سلسلة النَّسَب. فإن ترك عطلٌ سببيّ فُتاتَه، فهو الحكم.
+            if [ -s live_pg_primary_cause.txt ]; then
+              primary="$(head -n1 live_pg_primary_cause.txt)"
+            elif ! command -v psql >/dev/null 2>&1; then
               primary=POSTGRES_CLIENT_PROVISIONING_FAILED
             elif ! psql -h localhost -p 5435 -U sahool_user \
                    -d "${SAHOOL_TEST_PGDATABASE:-sahool}" -Atc 'select 1' >/dev/null 2>&1; then
