@@ -157,6 +157,34 @@ def test_irrigation_refusal_always_states_a_reason(propose):
     assert out["reason_codes"] == ["field_eligibility_not_proposable"]
 
 
+@pytest.mark.parametrize(
+    ("kwargs", "second_reason"),
+    [
+        (
+            {"capacity": {"max_application_mm": 0.0, "target_area_ha": 2.0}},
+            "delivery_capacity_zero",
+        ),
+        (
+            {"capacity": _CAP, "irrigation_plan": {**_PLAN, "budget_exhausted": True}},
+            "season_water_budget_exhausted",
+        ),
+    ],
+)
+def test_two_independent_refusal_causes_are_both_reported(kwargs, second_reason):
+    """سببٌ حقيقيّ لا يبتلع سبباً حقيقيّاً آخر.
+
+    رفعه المالك وأصاب: لو وُضِع السببُ الافتراضيّ **بعد** قيدَي السعة والميزانيّة
+    لصار شرطُه `not reason_codes` كاذباً عند التصادف، فيُبلَّغ القيدُ وحده ويسقط
+    رفضُ الأهليّة صامتاً — والمُصلِح يرفع السعة ثمّ يجد المنع قائماً بلا تفسير.
+    """
+    kwargs.setdefault("irrigation_plan", _PLAN)
+    out = irrigation_closed_loop_advisory(
+        field_state={"eligibility": {"propose": {"allowed": False}}}, **kwargs
+    )
+    assert out["proposal_allowed"] is False
+    assert out["reason_codes"] == ["field_eligibility_not_proposable", second_reason]
+
+
 def test_irrigation_default_reason_never_masks_an_explicit_one():
     """السبب الافتراضيّ يسدّ الصمت فقط — ولا يُزيح سبباً مقيساً ولا مُصرَّحاً."""
     explicit = irrigation_closed_loop_advisory(
