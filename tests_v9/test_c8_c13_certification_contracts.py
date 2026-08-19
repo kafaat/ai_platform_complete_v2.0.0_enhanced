@@ -28,6 +28,7 @@ def run(stage, *args, env=None):
         [sys.executable, str(SCRIPTS[stage]), *args],
         cwd=ROOT,
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         env=env,

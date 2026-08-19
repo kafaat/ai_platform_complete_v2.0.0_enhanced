@@ -14,6 +14,7 @@ def run(rel, *args):
         [sys.executable, str(ROOT / rel), *map(str, args)],
         cwd=ROOT,
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         check=False,

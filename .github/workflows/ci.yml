@@ -1615,8 +1615,11 @@ jobs:
           cache-dependency-path: services/raster-service/requirements.txt
       # C7 is service-local: root pytest.ini only collects tests_v9, so without
       # an explicit raster job the scene-bound latest/cache contract is dormant.
+      # Pillow تبعيّةُ **اختبارٍ** لا تشغيل: ثلاثة اختبارات تصيير (soil/terrain/truecolor)
+      # تفكّ ترميز PNG الناتج للتحقّق منه، ولا يستوردها أيّ ملفّ إنتاجيّ في الخدمة —
+      # فموضعها هنا لا في requirements.txt كي لا تُثقَل صورة الإنتاج بما لا تستعمله.
       - name: Install raster test dependencies
-        run: pip install -r services/raster-service/requirements.txt pytest pytest-asyncio
+        run: pip install -r services/raster-service/requirements.txt pytest pytest-asyncio Pillow
       - name: Raster service unit/runtime contracts
         working-directory: services/raster-service
         env:

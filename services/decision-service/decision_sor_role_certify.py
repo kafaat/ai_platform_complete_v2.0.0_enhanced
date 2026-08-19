@@ -73,18 +73,52 @@ async def _membership_closure(conn: Any, role: str) -> list[dict[str, Any]]:
     preserve inherited privileges or a SET ROLE path after a direct table REVOKE. PostgreSQL 16
     exposes membership-level INHERIT/SET/ADMIN options; preserve them in the evidence so reviewers
     can see why a chain is reachable.
+
+    **Server-version boundary (measured, not assumed).** ``pg_auth_members.inherit_option`` and
+    ``.set_option`` are **PostgreSQL 16** columns; on 15 the same query aborts with
+    ``UndefinedColumnError``. Rather than demand 16 — the gating CI and the deployed baseline both
+    run ``postgres:15`` — the pre-16 branch substitutes the semantics that actually governed there:
+    inheritance followed the *member role's* ``rolinherit`` attribute, and membership always
+    permitted ``SET ROLE``. The substitution is therefore faithful, not a stub; and it is declared
+    in the evidence via ``membership_option_source`` so a reviewer never mistakes a derived value
+    for one the server reported.
     """
+    version = await conn.fetchval("SELECT current_setting('server_version_num')::int")
+    per_membership_options = int(version or 0) >= 160000
+    if per_membership_options:
+        seed_options = (
+            "m.admin_option AS admin_option, "
+            "m.inherit_option AS inherit_option, "
+            "m.set_option AS set_option"
+        )
+        step_options = (
+            "(w.admin_option OR m.admin_option), "
+            "(w.inherit_option AND m.inherit_option), "
+            "(w.set_option AND m.set_option)"
+        )
+    else:
+        # قبل ١٦: لا خيارات على مستوى العضويّة. الوراثة كانت سمة الدور العضو
+        # (rolinherit)، وSET ROLE مسموح دائماً لعضوٍ في الدور. والتسمية صريحة لأنّ
+        # الفرع العَوديّ يشير إليها بـw.inherit_option/w.set_option.
+        seed_options = (
+            "m.admin_option AS admin_option, "
+            "member_role.rolinherit AS inherit_option, "
+            "TRUE AS set_option"
+        )
+        step_options = (
+            "(w.admin_option OR m.admin_option), "
+            "(w.inherit_option AND step_member.rolinherit), "
+            "w.set_option"
+        )
     rows = await conn.fetch(
-        """
+        f"""
         WITH RECURSIVE walk AS (
             SELECT
                 m.roleid,
                 m.member,
                 1 AS depth,
                 ARRAY[m.member, m.roleid]::oid[] AS path,
-                m.admin_option,
-                m.inherit_option,
-                m.set_option
+                {seed_options}
             FROM pg_auth_members m
             JOIN pg_roles member_role ON member_role.oid = m.member
             WHERE member_role.rolname = $1
@@ -96,11 +130,10 @@ async def _membership_closure(conn: Any, role: str) -> list[dict[str, Any]]:
                 m.member,
                 w.depth + 1,
                 w.path || m.roleid,
-                (w.admin_option OR m.admin_option),
-                (w.inherit_option AND m.inherit_option),
-                (w.set_option AND m.set_option)
+                {step_options}
             FROM pg_auth_members m
             JOIN walk w ON m.member = w.roleid
+            JOIN pg_roles step_member ON step_member.oid = m.member
             WHERE NOT m.roleid = ANY(w.path)
         )
         SELECT
@@ -123,7 +156,8 @@ async def _membership_closure(conn: Any, role: str) -> list[dict[str, Any]]:
         """,
         role,
     )
-    return [dict(row) for row in rows]
+    source = "pg_auth_members" if per_membership_options else "derived_pre_pg16_rolinherit"
+    return [dict(row, membership_option_source=source) for row in rows]
 
 
 async def _memberships(conn: Any, role: str) -> list[str]:

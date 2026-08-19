@@ -447,7 +447,11 @@ services:
     profiles:
     - vllm
     ipc: host
-    mem_limit: ${VLLM_MEM_LIMIT:-24g}
+    # حرفيّ لا ${VAR}: بوّابة *Validate Docker Compose* تكتب `.ci.env` تُسنِد لكلّ متغيّر
+    # مُشار إليه قيمةً وهميّةً نصّيّة، و`mem_limit` حقلٌ عدديّ — فالاستبدال يُنتِج
+    # `strconv.ParseFloat: invalid syntax` ويُسقِط الملفّ كلّه. وهو أيضاً النمط الوحيد
+    # الشاذّ هنا: بقيّة الخدمات (٥٩) تُصرّح mem_limit حرفيّاً.
+    mem_limit: 24g
     security_opt:
     - no-new-privileges:true
     restart: unless-stopped
