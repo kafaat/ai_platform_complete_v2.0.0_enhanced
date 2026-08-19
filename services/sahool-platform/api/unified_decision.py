@@ -105,6 +105,15 @@ def irrigation_closed_loop_advisory(
     if irrigation_plan.get("budget_exhausted"):
         reason_codes.append("season_water_budget_exhausted")
 
+    # رفضٌ بلا سببٍ مذكور هو «الأخضر عن سؤال لم يُطرَح» مقلوباً: المستهلك يقرأ
+    # `proposal_allowed=False` ولا يجد في `reason_codes` ما يُفسّره، فيُخمّن. وكان
+    # يقع فعلاً حين يحضر `field_state` وتكون `eligibility.propose.allowed` كاذبة
+    # أو غائبة بلا `reasons` ولا قيدٍ آخر يُضاف. والنظير في
+    # `spectral_action_candidate` لا يترك رفضاً بلا سبب — وهذا يُطابقه.
+    proposal_allowed = proposal_allowed and not reason_codes
+    if not proposal_allowed and not reason_codes:
+        reason_codes.append("field_eligibility_not_proposable")
+
     body = {
         "schema": f"{SCHEMA_VERSION}/irrigation-closed-loop",
         "next_event_day": next_event.get("day_index") if next_event else None,
@@ -116,7 +125,7 @@ def irrigation_closed_loop_advisory(
         "estimated_water_energy_cost": round(estimated_cost, 4)
         if estimated_cost is not None
         else None,
-        "proposal_allowed": proposal_allowed and not reason_codes,
+        "proposal_allowed": proposal_allowed,
         "direct_execution_permitted": False,
         "reason_codes": list(dict.fromkeys(reason_codes)),
         "outcome_evidence_present": isinstance(outcome_evidence, dict),

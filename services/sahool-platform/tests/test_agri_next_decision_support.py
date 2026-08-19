@@ -1,3 +1,4 @@
+import pytest
 from api.unified_decision import (
     canonical_agronomic_context,
     irrigation_closed_loop_advisory,
@@ -6,6 +7,12 @@ from api.unified_decision import (
     spectral_action_candidate,
     unified_decision,
 )
+
+# منطقٌ صرف بلا قاعدة ولا خدمة. وظيفة CI تُشغّل `pytest tests` بلا `-m` فالملفّ
+# يعمل معلَّماً أو لا، لكنّ العلامة تُخرِجه من مجموعة «ما يسقط صامتاً لو أُضيف
+# `-m unit` لاحقاً» — وهو صنف العطل الذي يحرسه `test_marker_coverage_guard` في
+# `tests_v9`، ولا يبلغ هذا الدليل.
+pytestmark = pytest.mark.unit
 
 
 def _field_state():
@@ -127,3 +134,59 @@ def test_unified_decision_exposes_all_five_closures_without_changing_existing_ke
         "precision_yield_response",
     ):
         assert key in out
+
+
+# ── لا رفضَ بلا سببٍ مذكور ────────────────────────────────────────────────────
+# العطل الذي تمنعه هذه الحالات: `proposal_allowed=False` مع `reason_codes=[]`،
+# فيقرأ المستهلك منعاً بلا ما يُفسّره ويُخمّن سببه. وقع فعلاً حين يحضر
+# `field_state` وتكون `eligibility.propose.allowed` كاذبةً أو غائبة بلا `reasons`
+# ولا قيدَ سعةٍ أو ميزانيّةٍ يُضيف سبباً.
+
+_PLAN = {"days": [{"day_index": 1, "irrigation_mm": 8.0}]}
+_CAP = {"max_application_mm": 20.0, "target_area_ha": 2.0}
+
+
+@pytest.mark.parametrize("propose", [{"allowed": False}, {}, {"allowed": False, "reasons": []}])
+def test_irrigation_refusal_always_states_a_reason(propose):
+    out = irrigation_closed_loop_advisory(
+        field_state={"eligibility": {"propose": propose}},
+        irrigation_plan=_PLAN,
+        capacity=_CAP,
+    )
+    assert out["proposal_allowed"] is False
+    assert out["reason_codes"] == ["field_eligibility_not_proposable"]
+
+
+def test_irrigation_default_reason_never_masks_an_explicit_one():
+    """السبب الافتراضيّ يسدّ الصمت فقط — ولا يُزيح سبباً مقيساً ولا مُصرَّحاً."""
+    explicit = irrigation_closed_loop_advisory(
+        field_state={"eligibility": {"propose": {"allowed": False, "reasons": ["agronomy_hold"]}}},
+        irrigation_plan=_PLAN,
+        capacity=_CAP,
+    )
+    assert explicit["reason_codes"] == ["agronomy_hold"]
+
+    measured = irrigation_closed_loop_advisory(
+        field_state={"eligibility": {"propose": {"allowed": True}}},
+        irrigation_plan=_PLAN,
+        capacity={"max_application_mm": 0.0, "target_area_ha": 2.0},
+    )
+    assert measured["proposal_allowed"] is False
+    assert measured["reason_codes"] == ["delivery_capacity_zero"]
+
+    missing = irrigation_closed_loop_advisory(
+        field_state=None, irrigation_plan=_PLAN, capacity=_CAP
+    )
+    assert missing["reason_codes"] == ["field_state_missing"]
+
+
+def test_irrigation_permission_is_not_given_a_manufactured_reason():
+    """والسماح يبقى سماحاً: لا يُقحَم سببٌ في مسارٍ لم يُمنَع."""
+    out = irrigation_closed_loop_advisory(
+        field_state={"eligibility": {"propose": {"allowed": True}}},
+        irrigation_plan=_PLAN,
+        capacity=_CAP,
+    )
+    assert out["proposal_allowed"] is True
+    assert out["reason_codes"] == []
+    assert out["direct_execution_permitted"] is False
