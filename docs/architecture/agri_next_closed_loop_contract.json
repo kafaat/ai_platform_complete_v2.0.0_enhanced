@@ -18,5 +18,6 @@
     "AGRI-NEXT-3": "nutrient_mass_balance_and_salinity_evidence_ledger",
     "AGRI-NEXT-4": "verified_spectral_stress_to_decision_candidate_not_direct_action",
     "AGRI-NEXT-5": "planned_as_applied_yield_response_observation_without_causal_or_promotion_claim"
-  }
+  },
+  "version": 1
 }
