@@ -1,65 +1,62 @@
 #!/usr/bin/env bash
-# عميل PostgreSQL **من صورة الخادم القائمة**، لا من مرآة Ubuntu وقت التشغيل.
+# عميل PostgreSQL **من الصورة المسحوبة أصلاً**، لا من مرآة Ubuntu وقت التشغيل.
 #
 # CI-PG-CLIENT-VIA-HOST-APT-IS-A-NETWORK-BET-01
 # ─────────────────────────────────────────────
-# كان `resilient_apt_install.sh postgresql-client` هو الطريق، وسقط مقيساً:
-# 2026-08-17 ثلاث مرّات، و2026-08-19 مرّتين في تشغيلٍ واحد (Decision Service
-# وLive PG) — في كلّ مرّة ثلاث محاولاتٍ مع تبديل مرآة ثمّ خروجٌ بـ1. والسكربت
-# نفسه يقول بنصّه إنّ المهلة «تحوّل الحرق إلى فشل، ولا تُنجح التثبيت»، وإنّ سبب
-# المرآة الجذريّ لم يُثبَت. أي أنّه احتواءٌ لعَرَضٍ لا علاج.
+# كان `resilient_apt_install.sh postgresql-client` هو الطريق، وسقط مقيساً: ثلاث
+# مرّات في ٢٠٢٦-٠٨-١٧ (موثَّقة داخل ذلك السكربت)، ومرّتين في تشغيلٍ واحد
+# ٢٠٢٦-٠٨-١٩ (Decision Service وLive PG) — في كلٍّ ثلاث محاولاتٍ مع تبديل مرآة
+# ثمّ خروجٌ بـ1. والسكربت نفسه يقول إنّ المهلة «تحوّل الحرق إلى فشل، ولا تُنجح
+# التثبيت». أي أنّه احتواءُ عَرَضٍ لا علاج.
 #
-# والعطل لم يكن ليقف عند وظيفةٍ حمراء: خطوة إنشاء الدور تحتاج `psql`، فغيابه
-# جعل `sahool_app` غير موجود، فطبع حارس الإغلاق `RESTRICTED_ROLE_NOT_FOUND` —
-# وهي **رسالة عن schema** تُقرأ لاحقاً إثباتاً على عطلٍ في التوفير بينما القاعدة
-# لم تبلغ حالةً تُقاس أصلاً. فالعطل البنيويّ كان يتنكّر عطلاً في المجال.
+# ولم يقف الأثر عند وظيفةٍ حمراء: خطوة إنشاء الدور تحتاج `psql`، فغيابه جعل
+# `sahool_app` غير موجود، فطبع حارس الإغلاق `RESTRICTED_ROLE_NOT_FOUND` — رسالةً
+# **عن schema** عن قاعدةٍ لم تبلغ حالةً تُقاس. فتنكّر عطلٌ بنيويّ عطلاً في المجال.
 #
-# العلاج: الحاوية التي نُشغّلها **تحمل `psql` و`pg_isready` أصلاً** وبنفس إصدار
-# الخادم الرئيس. فنُركّب غلافين رفيعين يُمرّران كلّ شيء إلى `docker exec`، بلا
-# شبكةٍ خارجيّة وبلا اعتماد على مرآة، وبتطابقٍ في الإصدار كان apt يكسره أحياناً.
+# ── لماذا `docker run` على الصورة، لا `docker exec` في الحاوية ────────────────
+# أوّل صيغةٍ كتبتُها نفّذت `psql` **داخل** حاوية الخادم، فسقطت مقيسةً بـ
+# `psql: error: migrations/init_v8.sql: No such file or directory`: الرايةُ `-f`
+# يحلّها **العميل** من نظام ملفّاته، وشجرةُ المستودع لا وجود لها داخل الحاوية.
+# فالصيغة الصحيحة حاويةٌ عابرة من **الصورة نفسها** (فلا سحبَ إضافيّ ولا شبكة):
+#   · `--network host` ⇒ `-h localhost -p <port>` تعمل كما هي، فلا تُعاد كتابة
+#     أيّ وسيط — وإعادةُ الكتابة كانت مصدر العطل الثاني المحتمل.
+#   · `-v "$PWD:$PWD" -w "$PWD"` ⇒ `-f migrations/…` و`\copy` تحلّ مساراتها.
+#   · إصدار العميل = إصدار الخادم، وهو ما كان apt يكسره أحياناً.
 #
-#   الاستعمال: bash scripts/ci/provision_pg_client.sh <container> <port>
+#   الاستعمال (والتصدير **لازم** في الخطوة نفسها):
+#     bash scripts/ci/provision_pg_client.sh <container>
+#     export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
 #
-# `<port>` هو المنفَذ المنشور على المضيف؛ الغلاف يترجمه إلى 5432 داخل الحاوية
-# فتبقى نداءات `-h localhost -p <port>` القائمة صحيحة بلا تعديل موضع استدعاء.
+# `GITHUB_PATH` يخدم الخطوات التالية وحدها؛ و`export` داخل هذا السكربت يموت مع
+# عمليّته — وهو العطل الذي أسقط `Integration Tests` في أوّل تشغيل. فالتصدير في
+# الخطوة صريحٌ، ويحرسه `test_provision_pg_client.py` كي لا يعود سقوطه صامتاً.
 set -euo pipefail
 
 container="${1:?container name required}"
-host_port="${2:?published host port required}"
 bin_dir="${RUNNER_TEMP:-/tmp}/pg-client-shims"
 
-docker inspect --format '{{.State.Running}}' "$container" >/dev/null 2>&1 || {
-  echo "::error::الحاوية '$container' غير قائمة — لا يمكن اشتقاق عميل منها"
+image="$(docker inspect --format '{{.Config.Image}}' "$container" 2>/dev/null || true)"
+if [ -z "$image" ]; then
+  echo "::error::الحاوية '$container' غير قائمة — لا صورة تُشتقّ منها أدوات العميل"
   exit 1
-}
+fi
 
 mkdir -p "$bin_dir"
 
 for tool in psql pg_isready; do
   cat >"$bin_dir/$tool" <<SHIM
 #!/usr/bin/env bash
-# غلافٌ مولَّد — يُنفّذ $tool داخل '$container' بإصدار الخادم نفسه.
+# غلافٌ مولَّد — $tool من '$image' بشبكة المضيف وشجرة العمل مركَّبة كما هي.
 set -euo pipefail
-args=()
-skip_next=0
-for a in "\$@"; do
-  if [ "\$skip_next" = 1 ]; then skip_next=0; continue; fi
-  case "\$a" in
-    # المضيف والمنفَذ يُترجَمان إلى داخل الحاوية: القيمة التالية تُبتلَع معهما.
-    -h|--host|-p|--port) skip_next=1; continue;;
-    -h*|--host=*|-p*|--port=*) continue;;
-    *) args+=("\$a");;
-  esac
-done
-exec docker exec -i \\
+exec docker run --rm -i --network host \\
+  -v "\$PWD:\$PWD" -w "\$PWD" \\
   -e PGPASSWORD="\${PGPASSWORD:-}" \\
-  "$container" $tool -h 127.0.0.1 -p 5432 "\${args[@]}"
+  -e PGHOST -e PGPORT -e PGUSER -e PGDATABASE \\
+  "$image" $tool "\$@"
 SHIM
   chmod +x "$bin_dir/$tool"
 done
 
-# `GITHUB_PATH` يُصدِّر للخطوات التالية؛ و`PATH` هنا يُفيد بقيّة هذه الخطوة.
 if [ -n "${GITHUB_PATH:-}" ]; then echo "$bin_dir" >>"$GITHUB_PATH"; fi
-export PATH="$bin_dir:$PATH"
 
-echo "عميل PostgreSQL مُشتقٌّ من '$container' (المنفَذ المنشور $host_port) في $bin_dir"
+echo "عميل PostgreSQL من صورة '$image' في $bin_dir (صدِّر PATH في هذه الخطوة)"

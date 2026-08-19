@@ -1,15 +1,19 @@
-"""عقد توفير عميل PostgreSQL: **من صورة الخادم، لا من مرآة Ubuntu**.
+"""عقد توفير عميل PostgreSQL: **من الصورة المسحوبة، لا من مرآة Ubuntu**.
 
-العطل الذي يوجد هذا الملفّ لأجله مقيس مرّتين في تشغيلٍ واحد (32274613475):
-`apt-get` تجمّد ثلاث محاولاتٍ مع تبديل مرآة، فلم يُثبَّت `postgresql-client`،
-فغاب `psql`، فلم تعمل خطوة إنشاء `sahool_app`، فطبع حارس الإغلاق
-``RESTRICTED_ROLE_NOT_FOUND`` — **رسالةٌ عن schema عن قاعدةٍ لم تُقَس أصلاً**.
+العطل المؤسِّس مقيس مرّتين في تشغيلٍ واحد (32274613475): `apt-get` تجمّد ثلاث
+محاولاتٍ مع تبديل مرآة، فغاب `psql`، فلم تعمل خطوة إنشاء `sahool_app`، فطبع حارس
+الإغلاق ``RESTRICTED_ROLE_NOT_FOUND`` — رسالةً **عن schema** عن قاعدةٍ لم تُقَس.
 
-فالمقيس هنا ثلاثة أشياء لا واحد:
-  ① لا يُلمَس apt ولا الشبكة الخارجيّة — الأداة تُشتقّ من الحاوية القائمة.
-  ② حاويةٌ غير قائمة تُفشِل التوفير **فوراً**، ولا تترك غلافاً يفشل لاحقاً بغموض.
-  ③ الغلاف يترجم `-h/-p` إلى داخل الحاوية، فتبقى نداءات `-h localhost -p <port>`
-     القائمة في الـworkflow صحيحةً بلا تعديل موضع استدعاء.
+وحالتان منها ليستا نظريّتين: **أسقطتا أوّل صيغةٍ كتبتُها** في تشغيل 32280469751،
+فهما مُثبتتان بالتاريخ لا بالتخيّل.
+
+  ① `docker exec` داخل حاوية الخادم ⇒ ``psql: error: migrations/init_v8.sql:
+     No such file or directory``. الرايةُ `-f` يحلّها **العميل** من نظام ملفّاته،
+     وشجرةُ المستودع لا وجود لها داخل الحاوية. فالعلاج حاويةٌ عابرة من الصورة
+     نفسها مع تركيب شجرة العمل.
+  ② `export PATH` داخل سكربتٍ مُستدعىً بـ`bash` يموت مع عمليّته، و`GITHUB_PATH`
+     يخدم الخطوات **التالية** وحدها. فبقيت `pg_isready` مفقودةً في الخطوة نفسها
+     وسقطت `Integration Tests` — وكانت خضراء قبل تغييري.
 """
 
 from __future__ import annotations
@@ -23,92 +27,87 @@ pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "ci" / "provision_pg_client.sh"
+CI = ROOT / ".github/workflows/ci.yml"
 
 
-def _fake_docker(tmp_path: Path, *, running: bool) -> Path:
+def _fake_docker(tmp_path: Path, *, image: str | None) -> Path:
     log = tmp_path / "calls.log"
     docker = tmp_path / "docker"
-    docker.write_text(
-        "#!/usr/bin/env bash\n"
-        f'echo "$@" >> "{log}"\n'
-        'if [ "$1" = "inspect" ]; then\n'
-        f'  echo "{str(running).lower()}"\n'
-        f"  exit {0 if running else 1}\n"
-        "fi\n"
-        "exit 0\n",
-        encoding="utf-8",
-    )
+    body = f'#!/usr/bin/env bash\necho "$@" >> "{log}"\nif [ "$1" = "inspect" ]; then\n'
+    body += "  exit 1\nfi\n" if image is None else f'  echo "{image}"\n  exit 0\nfi\n'
+    body += "exit 0\n"
+    docker.write_text(body, encoding="utf-8")
     docker.chmod(0o755)
     return log
 
 
 def _run(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    env = {
-        "PATH": f"{tmp_path}:/usr/bin:/bin",
-        "RUNNER_TEMP": str(tmp_path / "runner"),
-        "HOME": str(tmp_path),
-    }
+    env = {"PATH": f"{tmp_path}:/usr/bin:/bin", "RUNNER_TEMP": str(tmp_path / "runner")}
     return subprocess.run(
         ["bash", str(SCRIPT), *args], capture_output=True, text=True, env=env, cwd=tmp_path
     )
 
 
-def test_the_client_is_derived_from_the_container_and_never_from_apt(tmp_path):
-    log = _fake_docker(tmp_path, running=True)
-    result = _run(tmp_path, "sahool-pg16", "5435")
+def _shim(tmp_path: Path, tool: str) -> Path:
+    return tmp_path / "runner" / "pg-client-shims" / tool
+
+
+def test_the_client_is_derived_from_the_pulled_image_and_never_from_apt(tmp_path):
+    log = _fake_docker(tmp_path, image="postgis/postgis:16-3.4")
+    result = _run(tmp_path, "sahool-pg16")
     assert result.returncode == 0, result.stderr
     calls = log.read_text(encoding="utf-8")
-    # القرار كلّه محلّيّ: فحصُ حالة الحاوية فقط، بلا تنزيلٍ ولا مرآة.
     assert "inspect" in calls
-    assert "pull" not in calls
+    assert "pull" not in calls, "لا سحبَ إضافيّاً: الصورة محلّيّة أصلاً"
     for tool in ("psql", "pg_isready"):
-        shim = tmp_path / "runner" / "pg-client-shims" / tool
-        assert shim.is_file() and shim.stat().st_mode & 0o111, f"{tool} لم يُركَّب"
-        body = shim.read_text(encoding="utf-8")
-        assert "docker exec" in body
-        assert "apt" not in body
+        shim = _shim(tmp_path, tool)
+        assert shim.is_file() and shim.stat().st_mode & 0o111
+        assert "apt" not in shim.read_text(encoding="utf-8")
 
 
 def test_a_container_that_is_not_running_fails_provisioning_immediately(tmp_path):
     """وإلّا رُكِّب غلافٌ يفشل لاحقاً برسالةٍ لا تسمّي سببها."""
-    _fake_docker(tmp_path, running=False)
-    result = _run(tmp_path, "sahool-pg16", "5435")
+    _fake_docker(tmp_path, image=None)
+    result = _run(tmp_path, "sahool-pg16")
     assert result.returncode != 0
     assert "sahool-pg16" in result.stdout + result.stderr
-    assert not (tmp_path / "runner" / "pg-client-shims" / "psql").exists()
+    assert not _shim(tmp_path, "psql").exists()
 
 
-@pytest.mark.parametrize(
-    "argv",
-    [
-        ["-h", "localhost", "-p", "5435", "-U", "sahool_user", "-qAtc", "select 1"],
-        ["--host=localhost", "--port=5435", "-d", "sahool"],
-        ["-hlocalhost", "-p5435", "-d", "sahool"],
-    ],
-)
-def test_host_and_port_are_translated_into_the_container(tmp_path, argv):
-    """الغلاف يبتلع عنوان المضيف ومنفَذه ويستبدلهما بعنوان الحاوية الداخليّ.
+def test_the_workspace_is_mounted_so_client_side_file_flags_resolve(tmp_path):
+    """الرايةُ `-f migrations/…` تُحلّ من جانب العميل — بلا تركيبٍ يفشل بـNo such file.
 
-    لولا ذلك لَحاول `psql` داخل الحاوية الاتّصال بـ`localhost:5435` وهو منفَذ
-    المضيف المنشور، فيفشل الاتّصال ويُقرأ العطل «قاعدة البيانات لا تستجيب».
+    هذا العطل بعينه أسقط أوّل صيغة: `docker exec` في حاوية الخادم لا ترى المستودع.
     """
-    log = _fake_docker(tmp_path, running=True)
-    assert _run(tmp_path, "sahool-pg16", "5435").returncode == 0
-    shim = tmp_path / "runner" / "pg-client-shims" / "psql"
+    log = _fake_docker(tmp_path, image="postgres:15")
+    assert _run(tmp_path, "ds-pg").returncode == 0
     log.write_text("", encoding="utf-8")
     subprocess.run(
-        [str(shim), *argv],
+        [str(_shim(tmp_path, "psql")), "-h", "localhost", "-p", "5434", "-f", "migrations/x.sql"],
         capture_output=True,
         text=True,
-        env={"PATH": f"{tmp_path}:/usr/bin:/bin", "PGPASSWORD": "x"},
+        env={"PATH": f"{tmp_path}:/usr/bin:/bin"},
+        cwd=tmp_path,
     )
     forwarded = log.read_text(encoding="utf-8").strip()
-    assert "-h 127.0.0.1 -p 5432" in forwarded
-    assert "5435" not in forwarded, "منفَذ المضيف تسرّب إلى داخل الحاوية"
+    assert f"-v {tmp_path}:{tmp_path}" in forwarded, "شجرة العمل غير مركَّبة"
+    assert f"-w {tmp_path}" in forwarded
+    # الوسائط تُمرَّر كما هي: `--network host` تجعل عنوان المضيف صحيحاً بلا إعادة كتابة.
+    assert "--network host" in forwarded
+    assert "-h localhost -p 5434 -f migrations/x.sql" in forwarded
 
 
-def test_the_workflow_no_longer_provisions_the_client_through_apt():
-    """العقد على الـworkflow نفسها: لا عودة صامتة إلى المسار الذي سقط مقيساً."""
-    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+def test_every_call_site_exports_the_shim_directory_in_its_own_step():
+    """المتغيّر `GITHUB_PATH` يخدم الخطوات التالية وحدها؛ وبلا تصديرٍ هنا تبقى الأداة مفقودة.
+
+    سقوطُ `Integration Tests` في 32280469751 كان هذا بعينه — وكانت خضراء قبله.
+    """
+    ci = CI.read_text(encoding="utf-8")
     assert "resilient_apt_install.sh postgresql-client" not in ci
-    assert ci.count("provision_pg_client.sh") == 3
+    lines = ci.splitlines()
+    sites = [i for i, line in enumerate(lines) if "provision_pg_client.sh" in line]
+    assert len(sites) == 3, f"مواضع الاستدعاء = {len(sites)}"
+    for i in sites:
+        assert 'export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"' in lines[i + 1], (
+            f"السطر {i + 1} لا يُصدِّر دليل الأغلفة في الخطوة نفسها"
+        )
