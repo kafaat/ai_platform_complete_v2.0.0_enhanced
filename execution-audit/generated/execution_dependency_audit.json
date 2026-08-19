@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1861,
     "route_handlers": 1049,
-    "call_edges": 74000,
+    "call_edges": 74040,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -39133,589 +39133,603 @@
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_membership_closure",
+      "target": "fetchval",
+      "line": 86
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_membership_closure",
+      "target": "int",
+      "line": 87
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_membership_closure",
       "target": "fetch",
-      "line": 77
+      "line": 113
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_membership_closure",
       "target": "dict",
-      "line": 126
+      "line": 160
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_memberships",
       "target": "_membership_closure",
-      "line": 131
+      "line": 165
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_table_owner",
       "target": "fetchval",
-      "line": 135
+      "line": 169
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_effective_table_privileges",
       "target": "bool",
-      "line": 146
+      "line": 180
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_effective_table_privileges",
       "target": "fetchval",
-      "line": 147
+      "line": 181
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_table_grants",
       "target": "fetch",
-      "line": 155
+      "line": 189
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_table_grants",
       "target": "append",
-      "line": 167
+      "line": 201
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_table_grants",
       "target": "setdefault",
-      "line": 167
+      "line": 201
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_sequences_for_tables",
       "target": "fetch",
-      "line": 175
+      "line": 209
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_sequences_for_tables",
       "target": "list",
-      "line": 185
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_sequences_for_tables",
-      "target": "fetch",
-      "line": 190
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_sequences_for_tables",
-      "target": "append",
-      "line": 202
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_sequences_for_tables",
-      "target": "setdefault",
-      "line": 202
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_sequences_for_tables",
-      "target": "bool",
-      "line": 205
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_sequences_for_tables",
-      "target": "fetchval",
-      "line": 206
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_security_definer_writers",
-      "target": "fetch",
       "line": 219
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_sequences_for_tables",
+      "target": "fetch",
+      "line": 224
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_sequences_for_tables",
+      "target": "append",
+      "line": 236
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_sequences_for_tables",
+      "target": "setdefault",
+      "line": 236
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_sequences_for_tables",
+      "target": "bool",
+      "line": 239
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_sequences_for_tables",
+      "target": "fetchval",
+      "line": 240
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_security_definer_writers",
+      "target": "fetch",
+      "line": 253
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_security_definer_writers",
       "target": "list",
-      "line": 229
+      "line": 263
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_security_definer_writers",
       "target": "dict",
-      "line": 231
+      "line": 265
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "_connect",
-      "line": 235
+      "line": 269
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "fetchval",
-      "line": 237
+      "line": 271
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "fetchval",
-      "line": 238
+      "line": 272
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "_membership_closure",
-      "line": 239
+      "line": 273
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "_role_attributes",
-      "line": 243
+      "line": 277
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "get",
-      "line": 245
+      "line": 279
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "_table_owner",
-      "line": 248
+      "line": 282
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "_table_grants",
-      "line": 249
+      "line": 283
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "_effective_table_privileges",
-      "line": 251
+      "line": 285
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "_sequences_for_tables",
-      "line": 254
+      "line": 288
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "_security_definer_writers",
-      "line": 255
+      "line": 289
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_certify_connection",
       "target": "close",
-      "line": 258
+      "line": 292
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_connection_blockers",
       "target": "get",
-      "line": 263
+      "line": 297
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_connection_blockers",
       "target": "str",
-      "line": 263
+      "line": 297
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_connection_blockers",
-      "target": "get",
-      "line": 264
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_connection_blockers",
-      "target": "get",
-      "line": 266
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_connection_blockers",
-      "target": "append",
-      "line": 267
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_connection_blockers",
-      "target": "get",
-      "line": 268
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_connection_blockers",
-      "target": "get",
-      "line": 270
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_connection_blockers",
-      "target": "append",
-      "line": 272
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_connection_blockers",
-      "target": "append",
-      "line": 274
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "get",
-      "line": 281
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "get",
-      "line": 282
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "isinstance",
-      "line": 283
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "isinstance",
-      "line": 283
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "get",
-      "line": 285
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "append",
-      "line": 286
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "get",
-      "line": 287
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "get",
-      "line": 287
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "str",
-      "line": 287
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "str",
-      "line": 287
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "_connection_blockers",
-      "line": 288
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "extend",
-      "line": 288
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "_connection_blockers",
-      "line": 289
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "extend",
-      "line": 289
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "get",
-      "line": 294
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "isinstance",
-      "line": 295
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "append",
-      "line": 296
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
       "target": "get",
       "line": 298
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "items",
-      "line": 298
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "get",
-      "line": 299
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
-      "target": "any",
-      "line": 300
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
+      "source": "_connection_blockers",
       "target": "get",
       "line": 300
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
+      "source": "_connection_blockers",
       "target": "append",
       "line": 301
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
-      "source": "_preflight_blockers",
+      "source": "_connection_blockers",
       "target": "get",
       "line": 302
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_connection_blockers",
+      "target": "get",
+      "line": 304
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_connection_blockers",
+      "target": "append",
+      "line": 306
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_connection_blockers",
+      "target": "append",
+      "line": 308
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 315
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 316
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "isinstance",
+      "line": 317
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "isinstance",
+      "line": 317
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 319
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_preflight_blockers",
       "target": "append",
-      "line": 303
+      "line": 320
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 321
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 321
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "str",
+      "line": 321
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "str",
+      "line": 321
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "_connection_blockers",
+      "line": 322
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "extend",
+      "line": 322
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "_connection_blockers",
+      "line": 323
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "extend",
+      "line": 323
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 328
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "isinstance",
+      "line": 329
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "append",
+      "line": 330
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 332
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "items",
+      "line": 332
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 333
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "any",
+      "line": 334
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 334
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "append",
+      "line": 335
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "get",
+      "line": 336
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/decision_sor_role_certify.py",
+      "source": "_preflight_blockers",
+      "target": "append",
+      "line": 337
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_preflight_blockers",
       "target": "set",
-      "line": 304
+      "line": 338
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_preflight_blockers",
       "target": "sorted",
-      "line": 304
+      "line": 338
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "getenv",
-      "line": 308
+      "line": 342
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "strip",
-      "line": 308
+      "line": 342
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "getenv",
-      "line": 309
+      "line": 343
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "strip",
-      "line": 309
+      "line": 343
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "getenv",
-      "line": 310
+      "line": 344
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "strip",
-      "line": 310
+      "line": 344
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "SystemExit",
-      "line": 312
+      "line": 346
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "list",
-      "line": 315
+      "line": 349
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "_certify_connection",
-      "line": 317
+      "line": 351
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "_certify_connection",
-      "line": 319
+      "line": 353
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "bool",
-      "line": 323
+      "line": 357
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "_run",
       "target": "_preflight_blockers",
-      "line": 326
+      "line": 360
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "main",
       "target": "_run",
-      "line": 334
+      "line": 368
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "main",
       "target": "run",
-      "line": 334
+      "line": 368
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "main",
       "target": "dumps",
-      "line": 335
+      "line": 369
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "main",
       "target": "print",
-      "line": 335
+      "line": 369
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/decision_sor_role_certify.py",
       "source": "main",
       "target": "get",
-      "line": 336
+      "line": 370
     },
     {
       "owner": "decision-service",
@@ -61401,287 +61415,553 @@
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_admin",
       "target": "connect",
-      "line": 45
+      "line": 48
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_probe_url",
       "target": "urlparse",
-      "line": 49
+      "line": 52
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_probe_url",
       "target": "lstrip",
-      "line": 50
+      "line": 53
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_drop_probes",
       "target": "fetchval",
-      "line": 57
+      "line": 60
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_drop_probes",
       "target": "execute",
-      "line": 58
+      "line": 61
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_create_probes",
       "target": "_drop_probes",
-      "line": 62
+      "line": 65
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_create_probes",
       "target": "execute",
-      "line": 64
+      "line": 67
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_create_probes",
       "target": "execute",
-      "line": 69
+      "line": 72
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_run",
       "target": "_admin",
-      "line": 76
+      "line": 79
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "_admin",
-      "line": 76
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "_run",
-      "target": "_create_probes",
-      "line": 78
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "test_certification_verdict_is_correct",
-      "target": "_create_probes",
-      "line": 78
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "_run",
-      "target": "_probe_url",
-      "line": 79
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "test_certification_verdict_is_correct",
-      "target": "_probe_url",
       "line": 79
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_run",
+      "target": "_create_probes",
+      "line": 81
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_certification_verdict_is_correct",
+      "target": "_create_probes",
+      "line": 81
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
       "target": "_probe_url",
-      "line": 80
+      "line": 82
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "_probe_url",
-      "line": 80
+      "line": 82
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "_probe_url",
+      "line": 83
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_certification_verdict_is_correct",
+      "target": "_probe_url",
+      "line": 83
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "_run",
-      "line": 85
+      "line": 88
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_run",
       "target": "set",
-      "line": 103
+      "line": 106
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_run",
       "target": "set",
-      "line": 103
+      "line": 106
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "set",
-      "line": 103
+      "line": 106
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "set",
-      "line": 103
+      "line": 106
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_run",
       "target": "items",
-      "line": 104
+      "line": 107
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "items",
-      "line": 104
+      "line": 107
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_run",
       "target": "isinstance",
-      "line": 108
+      "line": 111
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "isinstance",
-      "line": 108
+      "line": 111
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "_run",
-      "line": 112
+      "line": 115
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_run",
       "target": "execute",
-      "line": 118
+      "line": 121
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "execute",
-      "line": 118
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "_run",
-      "target": "execute",
-      "line": 119
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "test_certification_verdict_is_correct",
-      "target": "execute",
-      "line": 119
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "test_certification_verdict_is_correct",
-      "target": "_run",
       "line": 121
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "_run",
-      "target": "pop",
-      "line": 127
+      "target": "execute",
+      "line": 122
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
-      "target": "pop",
-      "line": 127
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "_run",
-      "target": "pop",
-      "line": 128
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "test_certification_verdict_is_correct",
-      "target": "pop",
-      "line": 128
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "_run",
-      "target": "_drop_probes",
-      "line": 129
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "test_certification_verdict_is_correct",
-      "target": "_drop_probes",
-      "line": 129
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "_run",
-      "target": "close",
-      "line": 130
-    },
-    {
-      "owner": "decision-service",
-      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
-      "source": "test_certification_verdict_is_correct",
-      "target": "close",
-      "line": 130
+      "target": "execute",
+      "line": 122
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
       "target": "_run",
+      "line": 124
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "pop",
+      "line": 130
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_certification_verdict_is_correct",
+      "target": "pop",
+      "line": 130
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "pop",
+      "line": 131
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_certification_verdict_is_correct",
+      "target": "pop",
+      "line": 131
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "_drop_probes",
       "line": 132
     },
     {
       "owner": "decision-service",
       "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
       "source": "test_certification_verdict_is_correct",
-      "target": "run",
+      "target": "_drop_probes",
       "line": 132
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "close",
+      "line": 133
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_certification_verdict_is_correct",
+      "target": "close",
+      "line": 133
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_certification_verdict_is_correct",
+      "target": "_run",
+      "line": 135
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_certification_verdict_is_correct",
+      "target": "run",
+      "line": 135
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "_admin",
+      "line": 156
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "_admin",
+      "line": 156
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "execute",
+      "line": 159
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "execute",
+      "line": 159
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "execute",
+      "line": 160
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "execute",
+      "line": 160
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "execute",
+      "line": 162
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "execute",
+      "line": 162
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "execute",
+      "line": 163
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "execute",
+      "line": 163
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "execute",
+      "line": 164
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "execute",
+      "line": 164
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "execute",
+      "line": 165
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "execute",
+      "line": 165
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "fetchval",
+      "line": 167
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "fetchval",
+      "line": 167
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "fetchval",
+      "line": 173
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "fetchval",
+      "line": 173
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "fetchval",
+      "line": 176
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "fetchval",
+      "line": 176
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "fetchval",
+      "line": 195
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "fetchval",
+      "line": 195
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "fetch",
+      "line": 198
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "fetch",
+      "line": 198
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "_PinnedVersion",
+      "line": 200
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "_PinnedVersion",
+      "line": 200
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "items",
+      "line": 204
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "items",
+      "line": 204
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "_membership_closure",
+      "line": 205
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "_membership_closure",
+      "line": 205
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "set",
+      "line": 207
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "set",
+      "line": 207
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "execute",
+      "line": 221
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "execute",
+      "line": 221
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "_run",
+      "target": "close",
+      "line": 222
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "close",
+      "line": 222
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "_run",
+      "line": 224
+    },
+    {
+      "owner": "decision-service",
+      "file": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "source": "test_membership_closure_does_not_inherit_across_a_noinherit_middle_role",
+      "target": "run",
+      "line": 224
     },
     {
       "owner": "decision-service",
@@ -526412,7 +526692,7 @@
       "symbol": "_memberships",
       "kind": "function",
       "file": "services/decision-service/decision_sor_role_certify.py",
-      "line": 129,
+      "line": 163,
       "owner": "decision-service",
       "decorated_route": false,
       "reference_count": 0,

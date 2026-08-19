@@ -6,7 +6,7 @@
 
 - Python files parsed: **1861**
 - FastAPI-style route handlers: **1049**
-- Static function-call edges: **74000**
+- Static function-call edges: **74040**
 - Dead-code candidates: **612**
 - Duplicate function groups: **58**
 - Automatic deletions: **0**
@@ -15,7 +15,7 @@
 
 | Owner | Symbol | Kind | File | Line |
 |---|---|---|---|---:|
-| `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 129 |
+| `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 152 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |

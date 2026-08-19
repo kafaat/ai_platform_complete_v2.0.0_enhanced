@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d439762334ffb411103b2226dea0e8f6139527be9d4fc87bf4f15ea11624da3"
+          "content": "17baa765f76956dde3a3c79eecd879545d31089f5f47c8cd385eed73291e24c1"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -10815,7 +10815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ebfe493365df211136650aeac3ff31f093e0afe4df583a303024388f2d9af571"
+          "content": "3eadd957e07c52edbb83f9b44d6af27b37c3e6c2d6b0195fb33459d9835076ab"
         }
       ],
       "name": "services/decision-service/decision_sor_role_certify.py",
@@ -11405,7 +11405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75ff47baf8f75937077b5f2da69ba81d14f56f7cbbee49bc3d8602f73e6ceb5d"
+          "content": "0fb615f3845c853e9273b1c3f04cb8c36808b0f5e033ba1455de3748cdac38f6"
         }
       ],
       "name": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
