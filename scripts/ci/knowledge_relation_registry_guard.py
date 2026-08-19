@@ -197,6 +197,57 @@ def violations(relations: list[dict], root: Path) -> tuple[list[str], int]:
     return problems, checked
 
 
+RETRIEVAL_GATE_MODULE = "services/ai_agronomist/ai_evidence_runtime.py"
+RETRIEVAL_GATE_SYMBOL = "RETRIEVAL_CONTEXT_RELATIONS"
+
+
+def retrieval_gate_violations(relations: list[dict], root: Path) -> list[str]:
+    """بوّابةُ توسعة الاستدعاء تُقيَّد بالسجلّ، لا بحقلين يفرضهما المخزن أصلاً.
+
+    العطل الذي تمنعه هذه الحالة رفعه المالك بقياس: `kg_store` يفرض بقيدٍ في الجدول
+    ``confidence='reference'`` و``prescriptive=0``، فبوّابةٌ تفحص هذين الحقلين تقبل
+    **كلّ حافّةٍ يمكن للمخزن أن يحملها** — حشوٌ لا مُرشِّح. و``/v1/edges`` لا يُلحِق
+    ``graph_role``، فعلاقةٌ جديدة غير مُسجَّلة كانت تنزلق إلى توسعة الاستدعاء بمجرّد
+    كونها غير آمرة. فيُفرَض هنا أنّ الثابت المنفَّذ = مجموعة العلاقات المُسجَّلة
+    ``graph_role=reference`` و``evidence_semantics=retrieval_context_only`` تماماً.
+    """
+    expected = {
+        str(r.get("name"))
+        for r in relations
+        if r.get("graph_role") == "reference"
+        and r.get("evidence_semantics") == "retrieval_context_only"
+    }
+    path = root / RETRIEVAL_GATE_MODULE
+    if not path.is_file():
+        return [f"✗ بوّابة التوسعة: المصدر غير موجود — {RETRIEVAL_GATE_MODULE}"]
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    found: set[str] | None = None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(isinstance(t, ast.Name) and t.id == RETRIEVAL_GATE_SYMBOL for t in node.targets):
+            continue
+        try:
+            value = ast.literal_eval(
+                node.value.args[0]
+                if isinstance(node.value, ast.Call) and node.value.args
+                else node.value
+            )
+        except (ValueError, SyntaxError, AttributeError, IndexError):
+            return [f"✗ بوّابة التوسعة: تعذّر تقييم {RETRIEVAL_GATE_SYMBOL} ساكناً"]
+        found = {str(x) for x in value}
+    if found is None:
+        return [f"✗ بوّابة التوسعة: {RETRIEVAL_GATE_SYMBOL} غير معرّف في {RETRIEVAL_GATE_MODULE}"]
+    if not expected:
+        return ["✗ بوّابة التوسعة: صفرُ علاقةٍ مرجعيّةٍ في السجلّ — أخضرُ عن سؤال لم يُطرَح"]
+    if found != expected:
+        return [
+            f"✗ بوّابة التوسعة: {RETRIEVAL_GATE_SYMBOL} ≠ السجلّ — "
+            f"زائد={sorted(found - expected)} ناقص={sorted(expected - found)}"
+        ]
+    return []
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="knowledge relation registry guard")
     parser.add_argument("--registry", default=str(REGISTRY))
@@ -205,6 +256,7 @@ def main(argv: list[str] | None = None) -> int:
 
     relations = load_relations(Path(args.registry))
     problems, checked = violations(relations, Path(args.root))
+    problems += retrieval_gate_violations(relations, Path(args.root))
 
     if checked == 0:
         problems.append("✗ لم تُقابَل أيّ علاقةٍ بشيفرةٍ منفَّذة — الحارس أخضرُ لأنّه لم ينظر")
