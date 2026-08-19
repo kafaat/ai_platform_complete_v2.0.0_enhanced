@@ -169,3 +169,8 @@ def test_playwright_dependency_install_is_retried_and_still_fails_closed():
     block = ci[ci.index("Install Playwright browser") : ci.index("npx playwright test")]
     assert "continue-on-error" not in block
     assert "exit 1" in block
+    # والحدّ **أوّلُ ما يُنفَّذ في سطره**: `ci_unbounded_wait_guard` يُثبِّت نمطه على
+    # بداية الأمر، وخبْؤه داخل `if` أخفاه عنه فاحمرّ في 32296898767. وهو محقّ:
+    # حدٌّ لا يظهر في المقدّمة يسهل أن يزول بإعادة صياغة.
+    invocation = next(ln for ln in block.splitlines() if "playwright install --with-deps" in ln)
+    assert invocation.strip().startswith("timeout "), invocation

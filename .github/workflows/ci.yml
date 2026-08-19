@@ -691,9 +691,11 @@ jobs:
         run: |
           set -uo pipefail
           for attempt in 1 2 3; do
-            if timeout -k 10 300 npx playwright install --with-deps chromium; then
-              echo "playwright_deps_installed attempt=$attempt"; exit 0
-            fi
+            # الحدّ **أوّلُ ما يُنفَّذ في السطر**: `ci_unbounded_wait_guard` يُثبِّت
+            # نمطه على بداية الأمر (`_BOUNDED_TOOL.match`)، وخبْؤه داخل `if` يُخفيه
+            # عنه. وهو محقّ: حدٌّ لا يظهر في مقدّمة الأمر يسهل أن يزول بإعادة صياغة.
+            timeout -k 10 300 npx playwright install --with-deps chromium \
+              && { echo "playwright_deps_installed attempt=$attempt"; exit 0; }
             echo "::warning::playwright install تعثّر/تجاوز مهلته (محاولة $attempt من 3)"
             sleep $((attempt * 15))
           done
