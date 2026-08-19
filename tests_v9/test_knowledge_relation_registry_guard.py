@@ -49,6 +49,10 @@ def _relation(**overrides) -> list[dict]:
         "name": "feeds",
         "from": "src",
         "to": "dst",
+        "graph_role": "operational",
+        "authority_semantics": "gates_operational_eligibility",
+        "evidence_semantics": "not_evidence",
+        "direct_execution_permitted": False,
         "semantics": {"directional": True, "temporal": True, "acyclic": True},
         "constraints": {"requires_active_relation": True},
         "chain_source_module": "api/graph.py",
@@ -58,6 +62,33 @@ def _relation(**overrides) -> list[dict]:
     }
     base.update(overrides)
     return [base]
+
+
+def _satisfy_retrieval_gate(root: Path) -> dict:
+    """يجعل بوّابة التوسعة **راضية**، فلا تُقنّع سبباً آخر داخل ``main``.
+
+    عطلٌ مقيس لا مُتخيَّل: `guard_mutation_guard` أسقط الطفرة السادسة في الجولة
+    96216401333 — زُرِع تعطيلُ ``if checked == 0:`` و**بقي الاختبار أخضر**. والسبب
+    أنّ الجذر المؤقّت لا يحوي ``services/ai_agronomist/ai_evidence_runtime.py``،
+    فتُرجِع ``retrieval_gate_violations`` «المصدر غير موجود» ويبقى ``SystemExit``
+    مرفوعاً **بسببها هي**. فمرّت الطفرة لأنّ الاختبار كان يسأل «هل فشل؟» لا «هل
+    فشل لهذا السبب؟».
+
+    ولا يكفي إنشاء الملفّ وحده: بلا علاقةٍ مرجعيّة في السجلّ تصير ``expected``
+    فارغةً فتُطلِق البوّابة «صفرُ علاقةٍ مرجعيّة» وتُقنّع من بابٍ ثانٍ. فيُعاد
+    الطرفان معاً — الملفّ والعلاقة — ويُطابَق الثابت بالسجلّ تماماً.
+    """
+    module = root / "services" / "ai_agronomist"
+    module.mkdir(parents=True, exist_ok=True)
+    (module / "ai_evidence_runtime.py").write_text(
+        'RETRIEVAL_CONTEXT_RELATIONS = frozenset({"historically_limits"})\n',
+        encoding="utf-8",
+    )
+    return {
+        "name": "historically_limits",
+        "graph_role": "reference",
+        "evidence_semantics": "retrieval_context_only",
+    }
 
 
 def test_a_relation_matching_its_executed_chain_passes(tmp_path):
@@ -125,15 +156,29 @@ def test_a_missing_consumer_is_blocked(tmp_path):
     assert any("مُستهلِكٌ مُعلَنٌ غير موجود" in p for p in problems)
 
 
-def test_zero_relations_checked_fails_closed(tmp_path, monkeypatch):
+def test_zero_relations_checked_fails_closed(tmp_path, monkeypatch, capsys):
+    """«فشل» ليس قياساً — المقيس هو **أيّ** بوّابةٍ فشلت.
+
+    يُسمّي الاختبار سببه ويرفض أن يُقنَّع: بلا التأكيد الثاني كان يخضرّ على أيّ
+    انتهاكٍ آخر داخل ``main``، وهو بعينه ما وقع (انظر ``_satisfy_retrieval_gate``).
+    """
+    reference = _satisfy_retrieval_gate(tmp_path)
     registry = tmp_path / "reg.json"
     registry.write_text(
-        json.dumps({"schema": "sahool.knowledge_relation_registry", "relations": _relation()}),
+        json.dumps(
+            {
+                "schema": "sahool.knowledge_relation_registry",
+                "relations": [*_relation(), reference],
+            }
+        ),
         encoding="utf-8",
     )
     monkeypatch.setattr(guard, "violations", lambda relations, root: ([], 0))
     with pytest.raises(SystemExit):
         guard.main(["--registry", str(registry), "--root", str(tmp_path)])
+    printed = capsys.readouterr().out
+    assert "لم تُقابَل أيّ علاقةٍ بشيفرةٍ منفَّذة" in printed, printed
+    assert "بوّابة التوسعة" not in printed, f"سببٌ آخر يُقنّع المقيس: {printed}"
 
 
 def test_a_missing_registry_fails_closed(tmp_path):
@@ -164,3 +209,70 @@ def test_the_live_relation_matches_the_irrigation_chain():
     assert feeds["chain"] == ["well", "hydraulic", "machine", "sprinkler", "energy", "controller"]
     problems, checked = guard.violations(relations, guard.ROOT)
     assert problems == [] and checked >= 1
+
+
+def test_reference_relation_cannot_claim_authority(tmp_path):
+    rel = _relation(
+        graph_role="reference",
+        authority_semantics="decision",
+        evidence_semantics="retrieval_context_only",
+        direct_execution_permitted=False,
+        causal_claim_permitted=False,
+    )
+    problems, _ = guard.violations(rel, _tree(tmp_path))
+    assert any("لا يجوز أن تمنح سلطة قرار" in p for p in problems)
+
+
+def test_evidence_relation_cannot_claim_causality(tmp_path):
+    rel = _relation(
+        graph_role="evidence",
+        authority_semantics="none",
+        evidence_semantics="explanatory_not_causal",
+        direct_execution_permitted=False,
+        causal_claim_permitted=True,
+    )
+    problems, _ = guard.violations(rel, _tree(tmp_path))
+    assert any("لا يجوز أن تتحول إلى ادعاء سببي" in p for p in problems)
+
+
+def test_no_registered_relation_can_grant_direct_execution(tmp_path):
+    problems, _ = guard.violations(_relation(direct_execution_permitted=True), _tree(tmp_path))
+    assert any("لا يجوز أن يمنح تنفيذًا مباشرًا" in p for p in problems)
+
+
+def test_vocabulary_bound_relation_must_exist_in_executed_vocabulary(tmp_path):
+    root = _tree(tmp_path, 'RELATIONS = ("supports", "has_evidence")\n')
+    rel = _relation(
+        name="supports",
+        graph_role="evidence",
+        authority_semantics="none",
+        evidence_semantics="explanatory_not_causal",
+        direct_execution_permitted=False,
+        causal_claim_permitted=False,
+        chain=None,
+        chain_source_module=None,
+        chain_symbol=None,
+        vocabulary_source_module="api/graph.py",
+        vocabulary_symbol="RELATIONS",
+    )
+    problems, checked = guard.violations(rel, root)
+    assert problems == [] and checked == 1
+
+    rel[0]["name"] = "invented_relation"
+    problems, _ = guard.violations(rel, root)
+    assert any("غير موجودة في المفردات المنفَّذة" in p for p in problems)
+
+
+def test_live_registry_has_three_graph_roles_without_authority_leak():
+    relations = guard.load_relations(guard.REGISTRY)
+    roles = {r["graph_role"] for r in relations}
+    assert roles == {"reference", "evidence", "operational"}
+    assert sum(r["graph_role"] == "reference" for r in relations) == 4
+    assert sum(r["graph_role"] == "evidence" for r in relations) == 2
+    assert sum(r["graph_role"] == "operational" for r in relations) == 1
+    assert all(r["direct_execution_permitted"] is False for r in relations)
+    assert all(
+        r["authority_semantics"] == "none"
+        for r in relations
+        if r["graph_role"] in {"reference", "evidence"}
+    )

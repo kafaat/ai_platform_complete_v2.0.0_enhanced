@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import Any
 
 _SCHEMA = "sahool.evidence_graph/1"
+EVIDENCE_RELATIONS = ("has_evidence", "supports")
 
 # مفتاح قسم البطاقة → (نوع العقدة، تسمية، مصدر ثابت|None يعني يُقرأ من القسم).
 _EVIDENCE_TYPES: dict[str, tuple[str, str, str | None]] = {
@@ -74,7 +75,7 @@ def build_evidence_graph(analyze: dict[str, Any]) -> dict[str, Any]:
                     "source": _source_of(key, sec),
                 }
             )
-            edges.append({"from": "field", "to": node_id, "rel": "has_evidence"})
+            edges.append({"from": "field", "to": node_id, "rel": EVIDENCE_RELATIONS[0]})
         else:
             reason = sec.get("reason") if isinstance(sec, dict) else "not_supplied"
             gaps.append({"key": key, "label": label, "reason": reason or "not_supplied"})
@@ -97,7 +98,7 @@ def build_evidence_graph(analyze: dict[str, Any]) -> dict[str, Any]:
         )
         for node in nodes:
             if isinstance(node["id"], str) and node["id"].startswith("evidence:"):
-                edges.append({"from": node["id"], "to": rec_id, "rel": "supports"})
+                edges.append({"from": node["id"], "to": rec_id, "rel": EVIDENCE_RELATIONS[1]})
 
     evidence_count = sum(1 for n in nodes if n["type"] not in ("field", "recommendation"))
     return {

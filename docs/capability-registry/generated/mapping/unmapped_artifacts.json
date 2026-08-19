@@ -6756,6 +6756,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_apply_migration_manifest.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
     "kind": "tests"
   },
@@ -7780,6 +7784,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_provision_pg_client.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_qdrant_probe_classification.py",
     "kind": "tests"
   },
@@ -7993,6 +8001,10 @@
   },
   {
     "path": "tests_v9/test_segmentation_remaining_ui_live_gate_20260703.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_semantic_convergence_01.py",
     "kind": "tests"
   },
   {

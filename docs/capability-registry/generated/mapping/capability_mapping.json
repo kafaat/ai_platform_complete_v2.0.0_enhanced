@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5115,
+    "files_scanned": 5118,
     "files_by_kind": {
       "backend": 1196,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1397,
-      "tests": 1681,
+      "tests": 1684,
       "web": 456
     },
-    "unmapped_artifacts": 2078,
+    "unmapped_artifacts": 2081,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -41383,6 +41383,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_apply_migration_manifest.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
       "kind": "tests"
     },
@@ -42407,6 +42411,10 @@
       "kind": "tests"
     },
     {
+      "path": "tests_v9/test_provision_pg_client.py",
+      "kind": "tests"
+    },
+    {
       "path": "tests_v9/test_qdrant_probe_classification.py",
       "kind": "tests"
     },
@@ -42620,6 +42628,10 @@
     },
     {
       "path": "tests_v9/test_segmentation_remaining_ui_live_gate_20260703.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_semantic_convergence_01.py",
       "kind": "tests"
     },
     {

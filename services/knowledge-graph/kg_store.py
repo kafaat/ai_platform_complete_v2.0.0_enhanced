@@ -12,6 +12,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+SEED_REFERENCE_RELATIONS = (
+    "historically_susceptible_to",
+    "historically_favored_by",
+    "historically_limits",
+    "historically_used_for",
+)
+
 
 @dataclass(frozen=True)
 class GraphNode:
@@ -169,13 +176,13 @@ def seed_reference_ontology(store: SQLiteAgGraphStore) -> int:
     for node in nodes:
         store.upsert_node(node)
     edges = [
-        GraphEdge("e1", "wheat", "historically_susceptible_to", "stripe_rust"),
-        GraphEdge("e2", "stripe_rust", "historically_favored_by", "cool_humid_weather"),
-        GraphEdge("e3", "soil_ec", "historically_limits", "salt_sensitive_crops"),
+        GraphEdge("e1", "wheat", SEED_REFERENCE_RELATIONS[0], "stripe_rust"),
+        GraphEdge("e2", "stripe_rust", SEED_REFERENCE_RELATIONS[1], "cool_humid_weather"),
+        GraphEdge("e3", "soil_ec", SEED_REFERENCE_RELATIONS[2], "salt_sensitive_crops"),
         GraphEdge(
             "e4",
             "fungicide_review_required",
-            "historically_used_for",
+            SEED_REFERENCE_RELATIONS[3],
             "stripe_rust",
             properties={"human_review_required": True},
         ),

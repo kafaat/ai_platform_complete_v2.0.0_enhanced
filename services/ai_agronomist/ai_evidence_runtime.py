@@ -76,6 +76,67 @@ async def _fetch_canonical_field_state(
         return {"status": "unavailable", "reason": str(exc)}
 
 
+# العلاقات المحكومة التي **دورها البيانيّ مرجعيّ ودلالتها الدليليّة سياقُ استرجاع
+# فقط**، مأخوذةً بالاسم من `docs/architecture/knowledge_relation_registry.json`.
+# يفرض التطابقَ `knowledge_relation_registry_guard.py`، فلا تنزلق علاقةٌ إلى هنا
+# بلا تسجيل ولا يبقى الاسمان مستقلَّين يتباعدان بصمت.
+RETRIEVAL_CONTEXT_RELATIONS = frozenset(
+    {
+        "historically_susceptible_to",
+        "historically_favored_by",
+        "historically_limits",
+        "historically_used_for",
+    }
+)
+
+
+def _safe_graph_expansion_terms(kg_payload: dict[str, Any], *, limit: int = 6) -> list[str]:
+    """Return governed reference-relation terms for retrieval expansion only.
+
+    An edge expands the query only when its ``relation`` is a **registered**
+    retrieval-context relation.  Unknown or unregistered relations are ignored
+    fail-closed, together with anything not explicitly ``confidence=reference`` and
+    ``prescriptive=false``.  The terms improve recall; they never become decision
+    authority, and their influence is surfaced in annotations for auditability.
+    """
+    terms: list[str] = []
+    for row in kg_payload.get("edges", []) or []:
+        if not isinstance(row, dict):
+            continue
+        # ── الحقلان وحدهما لا يُرشِّحان شيئاً ────────────────────────────────────
+        # رفعه المالك وأصاب: `kg_store` يفرض بقيدٍ في الجدول `confidence='reference'`
+        # و`prescriptive=0`، فشرطٌ عليهما يقبل **كلّ حافّةٍ يمكن للمخزن أن يحملها** —
+        # حشوٌ لا مُرشِّح. و`/v1/edges` لا يُلحِق `graph_role` من السجلّ، فعلاقةٌ
+        # جديدة غير مُسجَّلة كانت تدخل توسعة الاستدعاء بمجرّد كونها غير آمرة، وهي
+        # الحالة الافتراضيّة للمخزن. فالتقييد صار بالاسم المُسجَّل نفسه.
+        if row.get("relation") not in RETRIEVAL_CONTEXT_RELATIONS:
+            continue
+        if row.get("confidence") != "reference" or row.get("prescriptive") not in (False, 0):
+            continue
+        for key in ("object_name", "object_id"):
+            value = row.get(key)
+            if not isinstance(value, str):
+                continue
+            value = " ".join(value.replace("_", " ").split()).strip()
+            if not value or len(value) > 96 or value in terms:
+                continue
+            terms.append(value)
+            break
+        if len(terms) >= limit:
+            break
+    return terms
+
+
+def _graph_conditioned_retrieval_query(
+    question: str, kg_payload: dict[str, Any]
+) -> tuple[str, list[str]]:
+    terms = _safe_graph_expansion_terms(kg_payload)
+    if not terms:
+        return question, []
+    # Deliberately retrieval-only: no imperative/prescriptive wording is introduced.
+    return f"{question}\nReference graph context: {'; '.join(terms)}", terms
+
+
 def _extract_evidence_ids(rag_payload: dict[str, Any], kg_payload: dict[str, Any]) -> list[str]:
     ids: list[str] = []
     for row in rag_payload.get("annotations", []) or []:
@@ -601,11 +662,32 @@ async def build_evidence_response(
                 },
             )
 
+        # SEMANTIC-CONVERGENCE-01: resolve reference KG context first, then use it only
+        # to expand RAG retrieval. KG remains reference-only and never becomes decision evidence.
+        kg_resp = await client.get(
+            f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
+            params={"subject_id": req.crop} if req.crop else {},
+            # C2: forward the trusted tenant so knowledge-graph enforces its C5 read
+            # guard (require_trusted_tenant) on this internal service-to-service call.
+            headers={"X-Tenant-Id": tenant_id},
+            timeout=5.0,
+        )
+        if kg_resp.status_code >= 500:
+            raise HTTPException(502, {"dependency": "knowledge-graph", "detail": kg_resp.text})
+        # ٤xx من KG (رفض حارس المستأجر مثلاً) يُهبَط به فاشلاً-مغلقاً إلى «لا حواف»،
+        # لكنّ الهبوط **يُعلَن**: بدونه يصير «KG لم يُجِب» مطابقاً حرفيّاً لـ«KG لم يجد
+        # شيئاً» في الاستجابة، وكلاهما `edges: []`. وهو تدهورُ توافريّةٍ يجب أن يكون
+        # صريحاً لا مُلفَّقاً دلاليّاً — فالمستهلك يقرأ ثقةً محسوبةً بلا دليل رسمٍ بيانيّ
+        # ولا شيء يقول له إنّ المصدر كان غائباً.
+        kg_available = kg_resp.status_code < 400
+        kg_payload = kg_resp.json() if kg_available else {"edges": []}
+        retrieval_query, graph_terms = _graph_conditioned_retrieval_query(req.question, kg_payload)
+
         rag_resp = await client.post(
             f"{RAG_BASE_URL.rstrip('/')}/v1/search",
             json={
                 "tenant_id": tenant_id,
-                "query": req.question,
+                "query": retrieval_query,
                 "crop": req.crop,
                 "field_id": req.field_id,
                 "region": req.region,
@@ -619,22 +701,38 @@ async def build_evidence_response(
         )
         if rag_resp.status_code >= 400:
             raise HTTPException(502, {"dependency": "rag-retrieval", "detail": rag_resp.text})
-        kg_resp = await client.get(
-            f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/v1/edges",
-            params={"subject_id": req.crop} if req.crop else {},
-            # C2: forward the trusted tenant so knowledge-graph enforces its C5 read
-            # guard (require_trusted_tenant) on this internal service-to-service call.
-            headers={"X-Tenant-Id": tenant_id},
-            timeout=5.0,
-        )
-        if kg_resp.status_code >= 500:
-            raise HTTPException(502, {"dependency": "knowledge-graph", "detail": kg_resp.text})
 
     rag_payload = rag_resp.json()
-    kg_payload = kg_resp.json()
     annotations = {
         "rag": rag_payload.get("annotations", []),
         "knowledge_graph": kg_payload.get("edges", []),
+        # ── وسمُ السلطة يقول ما يقع، لا ما نتمنّاه ──────────────────────────────
+        # كُتِب أوّلاً `evidence_authority: "none"` وهو **غير صحيح من طرفٍ إلى طرف**،
+        # رفعه المالك بقياسٍ لا رأي: `_extract_evidence_ids` تُدرِج كلّ حافّة KG في
+        # معرّفات الأدلّة، و`_confidence_from_payloads` تمنح كلّ حافّة
+        # `EvidenceStrength.KG` بوزن 0.65 — وكلاهما سابقٌ لهذه الشريحة. وأضافت هذه
+        # الشريحة أثراً ثالثاً: عبارات التوسعة تُغيّر استعلام RAG، فتُغيّر الوثائق
+        # المُسترجَعة ⇒ التوصيفات ⇒ معرّفات الأدلّة ⇒ الثقة.
+        #
+        # فالتمييز الصحيح: **سلطةُ القرار** غائبة فعلاً (لا مسار من حافّةٍ إلى مُشغِّل
+        # ولا إلى اعتماد قرار)، أمّا **التأثير في اختيار الدليل** فقائم. وكتابة
+        # «none» عليه كانت تُعمي قارئ الاستجابة عن أثرٍ حقيقيّ. وإسقاط KG من حساب
+        # الثقة قرارٌ يسبق هذه الشريحة ويخصّ سلوكاً على `main`، فيُحكَّم مستقلّاً؛
+        # والواجب هنا ألّا نصف القائم وصفاً كاذباً.
+        "graph_retrieval_expansion": {
+            "mode": "reference_only",
+            "terms": graph_terms,
+            "decision_authority": "none",
+            "evidence_authority": "indirect_unverified_evidence_influence",
+            "evidence_influence_paths": [
+                "expansion_terms_change_rag_query_selection",
+                "kg_edges_enter_evidence_ids",
+                "kg_edges_contribute_to_confidence",
+            ],
+            "governed_relations_only": sorted(RETRIEVAL_CONTEXT_RELATIONS),
+            # يفرّق «KG غاب» عن «KG لم يجد»: كلاهما `edges: []` ولا يُميَّزان بغيره.
+            "knowledge_graph_available": kg_available,
+        },
         "canonical_field_state": field_state,
     }
     # Safety invariant: this runtime explains and gathers evidence only. It must not emit decision-shaped outputs.

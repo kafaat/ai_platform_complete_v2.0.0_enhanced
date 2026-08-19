@@ -876,7 +876,7 @@ jobs:
         run: |
           echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
           sudo systemctl restart docker
-      - name: Start Postgres+PostGIS and Redis (resilient pull)
+      - name: Start Postgres+PostGIS and Redis, then provision the client from the image
         run: |
           set -e
           pull() {
@@ -895,7 +895,8 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          bash scripts/ci/resilient_apt_install.sh postgresql-client
+          bash scripts/ci/provision_pg_client.sh sahool-pg
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5433 -U sahool_test && break
@@ -909,10 +910,22 @@ jobs:
         env:
           PGPASSWORD: test_password
         run: |
-          while read -r f; do
-            case "$f" in ''|\#*) continue;; esac
-            psql -h localhost -p 5433 -U sahool_test -d sahool_test -v ON_ERROR_STOP=1 -f "migrations/$f"
-          done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
+          bash scripts/ci/apply_migration_manifest.sh \
+            --port 5433 --user sahool_test --db sahool_test
+      - name: Migrations must have created a schema (a silent no-op is a failure)
+        # MIGRATIONS-PASSED-WITHOUT-CREATING-ANYTHING-01 — الحلقة أعلاه تقرأ قائمتها
+        # من stdin، فأيّ أداةٍ تستنزف المجرى تُنهيها بعد أوّل ملفّ **بنجاح**. وقع
+        # مقيساً في 32283081538: الخطوة خضراء ثمّ 57 حالةً بـ`relation ... does not
+        # exist`. فالعدّ هنا يحوّل الصمت إلى فشلٍ يسمّي نفسه في موضعه.
+        env: {PGPASSWORD: test_password}
+        run: |
+          set -euo pipefail
+          declared=$(grep -cvE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
+          tables=$(psql -h localhost -p 5433 -U sahool_test -d sahool_test -Atc \
+            "select count(*) from information_schema.tables where table_schema='public'")
+          echo "هجرات مُعلَنة=$declared . جداول مُنشأة=$tables"
+          [ "$tables" -gt 0 ] || {
+            echo "::error::MIGRATIONS_APPLIED_NOTHING - الخطوة مرّت والمخطَّط فارغ"; exit 1; }
       - env:
           TEST_DATABASE_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_REDIS_URL: redis://localhost:6380/0
@@ -1011,7 +1024,7 @@ jobs:
         run: |
           echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
           sudo systemctl restart docker
-      - name: Start Postgres (resilient pull)
+      - name: Start Postgres, then provision the client from the image
         run: |
           set -e
           pull() {
@@ -1028,7 +1041,8 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          bash scripts/ci/resilient_apt_install.sh postgresql-client
+          bash scripts/ci/provision_pg_client.sh ds-pg
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5434 -U decision_test && break
@@ -1339,7 +1353,8 @@ jobs:
         run: |
           echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
           sudo systemctl restart docker
-      - name: Start PostgreSQL 16 + PostGIS (resilient pull)
+      - name: Start PostgreSQL 16 + PostGIS, then provision the client from the image
+        id: live_pg_harness
         # حلقة السحب انتقلت إلى `scripts/ci/resilient_docker_pull.sh` كي **تُختبَر**:
         # منطقٌ مدفون في `run: |` لا يُقاس إلّا بتشغيل الوظيفة كاملةً، فيبقى
         # «مقيسٌ بمحاكاة» ادّعاءً في رسالة التزام. الاختبار في
@@ -1355,7 +1370,8 @@ jobs:
           # apt بلا مهلة افتراضيّة: مرآة متجمّدة علّقت runner ساعتين (مقيس 2026-08-17
           # على وظيفة Integration Tests — السجلّ صمت بعد إنشاء الحاويتين مباشرةً،
           # وحلقة الانتظار المسقوفة لم تبدأ). timeout يفشل سريعاً فيُعاد على runner سليم.
-          bash scripts/ci/resilient_apt_install.sh postgresql-client
+          bash scripts/ci/provision_pg_client.sh sahool-pg16
+          export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"
           command -v pg_isready >/dev/null
           for i in $(seq 1 30); do
             pg_isready -h localhost -p 5435 -U sahool_user && break
@@ -1363,6 +1379,7 @@ jobs:
           done
           pg_isready -h localhost -p 5435 -U sahool_user
       - name: Apply the canonical MANIFEST
+        id: live_pg_migrations
         # `DEDICATED_PG_JOB: migrations mismatch → failure` — الشطر الأوّل منه.
         # الحلقة تُطبِّق وتَعُدّ، ثمّ تُقارِن المُطبَّق بالمُعلَن. بلا العدّاد يستطيع
         # `case` أو `grep` أن يُسقِط ملفّاً صامتاً فتعمل الأدلّة على مخطّط ناقص —
@@ -1370,17 +1387,9 @@ jobs:
         env: {PGPASSWORD: test_password}
         run: |
           set -euo pipefail
-          expected=$(grep -vcE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
-          applied=0
-          while read -r f; do
-            case "$f" in ''|\#*) continue;; esac
-            psql -h localhost -p 5435 -U sahool_user -d sahool -v ON_ERROR_STOP=1 \
-              -q -f "migrations/$f"
-            applied=$((applied + 1))
-          done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
-          echo "هجرات مُطبَّقة: $applied من $expected مُعلَنة"
-          test "$applied" -eq "$expected" || {
-            echo "::error::طُبِّق $applied من $expected — أُسقِط ملفّ صامتاً"; exit 1; }
+          bash scripts/ci/apply_migration_manifest.sh \
+            --port 5435 --user sahool_user --db sahool \
+            || { echo "MIGRATION_MANIFEST_APPLY_FAILED" >live_pg_primary_cause.txt; exit 1; }
       - name: Provision the restricted application role
         # `sahool_app` متطلَّب تشغيليّ مُعلَن في `migrations/v56_rls_dynamic_all.sql:27`
         # ولا تُنشئه هجرة — فتُنشئه الوظيفة صراحةً. و`NOBYPASSRLS` ليس تجميلاً: بدونه
@@ -1436,7 +1445,9 @@ jobs:
         # `live_pg_evidence.json` بحكمه `PASS`/`FAIL` **قبل** إعادة أيّ رمز خروج غير
         # صفريّ (`--evidence`)، فلو عُلِّقت على نجاح ما قبلها لما وُجِدت الوثيقة إلّا
         # يوم لا نحتاجها. والفشل يبقى فشلاً: رمز الخروج غير الصفريّ يُسقِط الوظيفة.
-        if: always()
+        if: >-
+          always() && steps.live_pg_harness.outcome == 'success' &&
+          steps.live_pg_migrations.outcome == 'success'
         env:
           PGHOST: localhost
           PGPORT: "5435"
@@ -1452,7 +1463,9 @@ jobs:
         # `direct_role_attributes` proves only the named row in pg_roles. This
         # companion proof closes pg_auth_members / SET ROLE ambiguity for the
         # dedicated evidence role by requiring its membership closure to be empty.
-        if: always()
+        if: >-
+          always() && steps.live_pg_harness.outcome == 'success' &&
+          steps.live_pg_migrations.outcome == 'success'
         env:
           PGHOST: localhost
           PGPORT: "5435"
@@ -1465,9 +1478,45 @@ jobs:
           python scripts/ci/live_pg_role_closure_guard.py \
             --evidence live_pg_role_closure.json
       - name: Build the canonical evidence manifest and subject digest set
+        id: live_pg_subjects
         if: always()
         run: |
           set -euo pipefail
+          # ── لا مجموعةَ بصماتٍ فارغة تُكتَب باسمٍ يَعِد ─────────────────────────
+          # `sha256sum … > live_pg_evidence.sha256` تُنشئ الوجهة **قبل** أن تفشل،
+          # فتبقى على القرص فارغةً ثمّ تُرفَع مصنوعةً وتُقدَّم موضوعاً للتصديق. مقيس
+          # في تشغيل 32274613475: الحزمة حملت `manifest.json` وبصماتٍ فارغة، ثمّ
+          # سقط `attest` بـ«no statement subjects» — ثلاثةُ أحمرَ من عطلٍ واحد.
+          # فتُفحَص المواضيع أوّلاً، ويُكتَب إلى ملفٍّ مؤقّت، ولا يُسمّى الاسم النهائيّ
+          # إلّا بإعادة تسميةٍ ذرّيّة بعد نجاح الجميع.
+          subjects=(live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json)
+          missing=()
+          for f in "${subjects[@]}"; do [ -s "$f" ] || missing+=("$f"); done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            # ── السببُ يُشتقّ ولا يُكتَب بيد ────────────────────────────────────
+            # كُتِب هنا أوّلاً `primary_error=POSTGRES_CLIENT_PROVISIONING_FAILED`
+            # ثابتاً، فطُبِع في تشغيل 32285597465 **والتوفير ناجح**: `psql` عمل
+            # وطبّق `init_v8.sql` كاملةً، والعطل كان اقتطاع حلقة الهجرات. أي أنّ
+            # الإصلاح استبدل نسبةً كاذبة (`RESTRICTED_ROLE_NOT_FOUND`) بأخرى.
+            # فالسبب يُقاس من حالة العالم: أموجودٌ العميل؟ أقامت القاعدة؟
+            # السببُ الأوّل يُورَث ولا يُستبدَل: `JUNIT_REPORT_MISSING` و
+            # `RESTRICTED_ROLE_NOT_FOUND` أعراضٌ تالية، ونسبةُ العطل إليها تُفسِد
+            # سلسلة النَّسَب. فإن ترك عطلٌ سببيّ فُتاتَه، فهو الحكم.
+            if [ -s live_pg_primary_cause.txt ]; then
+              primary="$(head -n1 live_pg_primary_cause.txt)"
+            elif ! command -v psql >/dev/null 2>&1; then
+              primary=POSTGRES_CLIENT_PROVISIONING_FAILED
+            elif ! psql -h localhost -p 5435 -U sahool_user \
+                   -d "${SAHOOL_TEST_PGDATABASE:-sahool}" -Atc 'select 1' >/dev/null 2>&1; then
+              primary=POSTGRES_UNREACHABLE
+            else
+              primary=PREREQUISITE_STEP_FAILED_SEE_EARLIER_ERROR
+            fi
+            echo "::error::HARNESS_INVALID — مواضيع الأدلّة غائبة: ${missing[*]}"
+            echo "::error::primary_error=$primary (القاعدة لم تبلغ حالةً تُقاس)"
+            echo "subjects_ready=false" >>"$GITHUB_OUTPUT"
+            exit 1
+          fi
           tested_commit="$(git rev-parse HEAD)"
           tested_tree="$(git rev-parse HEAD^{tree})"
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
@@ -1480,7 +1529,11 @@ jobs:
           workflow_path="${GITHUB_WORKFLOW_REF#"${GITHUB_REPOSITORY}"/}"
           workflow_path="${workflow_path%@*}"
           python scripts/ci/sot_evidence_manifest.py             --output live_pg_canonical_manifest.json             --file live_pg_evidence.json             --file live_pg_evidence.xml             --file live_pg_role_closure.json             --tested-commit "$tested_commit" --tested-tree "$tested_tree"             --source-ref "${GITHUB_REF}"             --producer-repository "${GITHUB_REPOSITORY}"             --producer-workflow-path "${workflow_path}"             --producer-run-id "${GITHUB_RUN_ID}"             --producer-run-attempt "${GITHUB_RUN_ATTEMPT}"             --producer-event "${GITHUB_EVENT_NAME}" "${binding_args[@]}"
-          sha256sum live_pg_evidence.json live_pg_evidence.xml live_pg_role_closure.json             live_pg_canonical_manifest.json > live_pg_evidence.sha256
+          tmp_sums="$(mktemp)"
+          sha256sum "${subjects[@]}" live_pg_canonical_manifest.json >"$tmp_sums"
+          [ -s "$tmp_sums" ] || { echo "::error::مجموعة البصمات خرجت فارغة"; rm -f "$tmp_sums"; exit 1; }
+          mv "$tmp_sums" live_pg_evidence.sha256
+          echo "subjects_ready=true" >>"$GITHUB_OUTPUT"
           cat live_pg_evidence.sha256
       # **محاولتان لا واحدة — والسبب مقيس لا مُفترَض.** أوّل تشغيل فعليّ لهذه الخطوة
       # سقط بـ`InternalError: error fetching tlog entry` ⇒ `network timeout` على
@@ -1497,6 +1550,7 @@ jobs:
         # persist attestations. Do not pretend an internal SHA file is provenance.
         if: >-
           always() &&
+          steps.live_pg_subjects.outputs.subjects_ready == 'true' &&
           (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
         continue-on-error: true
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
@@ -1505,7 +1559,9 @@ jobs:
       - name: Retry the attestation once (transparency-log timeouts are transient)
         id: live_pg_attest_retry
         # حاجزةٌ عمداً: هذه المحاولة الأخيرة، وسقوطُها يعني أنّ المنشأ لم يُثبَت فعلاً.
-        if: always() && steps.live_pg_attest.outcome == 'failure'
+        if: >-
+          always() && steps.live_pg_attest.outcome == 'failure' &&
+          steps.live_pg_subjects.outputs.subjects_ready == 'true'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-checksums: live_pg_evidence.sha256
