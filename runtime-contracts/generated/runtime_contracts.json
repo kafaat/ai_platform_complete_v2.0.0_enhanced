@@ -2554,7 +2554,6 @@
           "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
           "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
           "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
-          "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
           "services/sahool-platform/tests/test_season_comparison.py",
           "services/sahool-platform/tests/test_skills_registry.py",
           "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",

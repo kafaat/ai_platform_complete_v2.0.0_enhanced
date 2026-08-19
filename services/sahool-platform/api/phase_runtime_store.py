@@ -456,87 +456,73 @@ async def persist_phase10_learning_outputs(
             from core.learning_source_lineage import resolve_learning_source
 
             _lin = resolve_learning_source(update)
-            from api.decision_service_client import (
-                record_learning_update as _mirror_learning_update_to_service,
-            )
-            from api.decision_sor_mode import (
-                assert_platform_may_write_decision_sor,
-                get_platform_decision_sor_mode,
-            )
+            from api.decision_sor_mode import assert_platform_may_write_decision_sor
 
-            service_payload = {
-                "update_id": str(update.get("update_id")),
-                "model_id": str(update.get("model_id")),
-                "feature_set_id": str(update.get("feature_set_id")),
-                "learning_rate": float(update.get("learning_rate", 0.01)),
-                "sample_count": int(update.get("sample_count", 0)),
-                "label_summary": update.get("label_summary", {}),
-                "drift_score": float(update.get("drift_score", 0)),
-                "action": str(update.get("action")),
-                "source_type": _lin["source_type"],
-                "source_id": _lin["source_id"],
-                "field_id": _lin["field_id"],
-                "season_id": _lin["season_id"],
-                "recommendation_id": _lin["recommendation_id"],
-                "decision_id": _lin["decision_id"],
-                "evidence_snapshot_id": _lin["evidence_snapshot_id"],
-            }
-            mode = get_platform_decision_sor_mode()
-            if mode.strict_decision_service_required:
-                service_result = await _mirror_learning_update_to_service(
-                    service_payload,
+            assert_platform_may_write_decision_sor("online_learning_updates")
+            await conn.execute(
+                """
+                INSERT INTO online_learning_updates
+                    (tenant_id, update_id, model_id, feature_set_id, learning_rate, sample_count,
+                     label_summary, drift_score, action, source_type, source_id, field_id, season_id,
+                     recommendation_id, decision_id, evidence_snapshot_id, traceability_status)
+                VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+                ON CONFLICT (tenant_id, update_id) DO UPDATE SET
+                    action = EXCLUDED.action, drift_score = EXCLUDED.drift_score,
+                    source_type = EXCLUDED.source_type, source_id = EXCLUDED.source_id,
+                    traceability_status = EXCLUDED.traceability_status
+                """,
+                tenant,
+                str(update.get("update_id")),
+                str(update.get("model_id")),
+                str(update.get("feature_set_id")),
+                float(update.get("learning_rate", 0.01)),
+                int(update.get("sample_count", 0)),
+                _json(update.get("label_summary", {})),
+                float(update.get("drift_score", 0)),
+                str(update.get("action")),
+                _lin["source_type"],
+                _lin["source_id"],
+                _lin["field_id"],
+                _lin["season_id"],
+                _lin["recommendation_id"],
+                _lin["decision_id"],
+                _lin["evidence_snapshot_id"],
+                _lin["traceability_status"],
+            )
+            # الجسر الانتقاليّ: كتابة online_learning_updates أعلاه موثوقة ومحفوظة (المنصّة
+            # هي مصدر السجلّ المؤقّت). نعكسها best-effort إلى decision-service — الفشل يُسجَّل
+            # ولا يُفشِل مسار الطلب ولا يفقد بيانات المنصّة.
+            try:
+                from api.decision_service_client import (
+                    record_learning_update as _mirror_learning_update_to_service,
+                )
+
+                await _mirror_learning_update_to_service(
+                    {
+                        "update_id": str(update.get("update_id")),
+                        "model_id": str(update.get("model_id")),
+                        "feature_set_id": str(update.get("feature_set_id")),
+                        "learning_rate": float(update.get("learning_rate", 0.01)),
+                        "sample_count": int(update.get("sample_count", 0)),
+                        "label_summary": update.get("label_summary", {}),
+                        "drift_score": float(update.get("drift_score", 0)),
+                        "action": str(update.get("action")),
+                        "source_type": _lin["source_type"],
+                        "source_id": _lin["source_id"],
+                        "field_id": _lin["field_id"],
+                        "season_id": _lin["season_id"],
+                        "recommendation_id": _lin["recommendation_id"],
+                        "decision_id": _lin["decision_id"],
+                        "evidence_snapshot_id": _lin["evidence_snapshot_id"],
+                    },
                     tenant_id=str(tenant),
                 )
-                if not service_result.get("authoritative") or not service_result.get("persisted"):
-                    raise RuntimeError(
-                        "decision-service did not prove authoritative learning-update persistence"
-                    )
-            else:
-                assert_platform_may_write_decision_sor("online_learning_updates")
-                await conn.execute(
-                    """
-                    INSERT INTO online_learning_updates
-                        (tenant_id, update_id, model_id, feature_set_id, learning_rate, sample_count,
-                         label_summary, drift_score, action, source_type, source_id, field_id, season_id,
-                         recommendation_id, decision_id, evidence_snapshot_id, traceability_status)
-                    VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-                    ON CONFLICT (tenant_id, update_id) DO UPDATE SET
-                        action = EXCLUDED.action, drift_score = EXCLUDED.drift_score,
-                        source_type = EXCLUDED.source_type, source_id = EXCLUDED.source_id,
-                        traceability_status = EXCLUDED.traceability_status
-                    """,
-                    tenant,
-                    str(update.get("update_id")),
-                    str(update.get("model_id")),
-                    str(update.get("feature_set_id")),
-                    float(update.get("learning_rate", 0.01)),
-                    int(update.get("sample_count", 0)),
-                    _json(update.get("label_summary", {})),
-                    float(update.get("drift_score", 0)),
-                    str(update.get("action")),
-                    _lin["source_type"],
-                    _lin["source_id"],
-                    _lin["field_id"],
-                    _lin["season_id"],
-                    _lin["recommendation_id"],
-                    _lin["decision_id"],
-                    _lin["evidence_snapshot_id"],
-                    _lin["traceability_status"],
+            except Exception as e:  # noqa: BLE001 — مِرْآة best-effort: لا تُفشِل الطلب
+                logger.warning(
+                    "decision-service mirror (learning-update %s) فشلت — كتابة المنصّة موثوقة: %s",
+                    update.get("update_id"),
+                    e,
                 )
-            # Pre-cutover only: mirror after the authoritative platform write. In strict
-            # decision-service SoR mode the service call above is the sole authoritative write.
-            if not mode.strict_decision_service_required:
-                try:
-                    await _mirror_learning_update_to_service(
-                        service_payload,
-                        tenant_id=str(tenant),
-                    )
-                except Exception as e:  # noqa: BLE001 — pre-cutover mirror is fail-soft
-                    logger.warning(
-                        "decision-service mirror (learning-update %s) فشلت — كتابة المنصّة موثوقة: %s",
-                        update.get("update_id"),
-                        e,
-                    )
         scenario = outputs.get("scenario_result") or {}
         if scenario:
             await conn.execute(
