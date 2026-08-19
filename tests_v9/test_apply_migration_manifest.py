@@ -112,8 +112,47 @@ def test_both_jobs_use_the_one_canonical_runner_and_not_a_copied_loop():
     """
     ci = CI.read_text(encoding="utf-8")
     assert ci.count("apply_migration_manifest.sh") == 2
-    # ولا تبقى نسخةٌ من الحلقة القديمة تُعدّد من مجرى حيّ.
-    assert "done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)" not in ci
+    # ولا يبقى **أيّ** مُعدِّدٍ آخر للبيان في الشجرة. النسخة الثالثة كانت في
+    # `scripts/irr_f01/upgrade_gate_u1.sh` وأسقطت 32290853228 بعد أن ظننّا العطل
+    # مُغلَقاً — لأنّ الفحص كان على `ci.yml` وحدها.
+    offenders = []
+    for path in sorted(ROOT.glob("scripts/**/*.sh")) + sorted(ROOT.glob(".github/workflows/*.yml")):
+        if path.name == "apply_migration_manifest.sh":
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if "MANIFEST" in line and "done <" in line:
+                offenders.append(f"{path.relative_to(ROOT)}: {line.strip()[:70]}")
+    assert not offenders, offenders
+
+
+def test_the_bounded_variant_stops_before_the_named_prefix(tmp_path):
+    """بوّابة الترقية تحتاج تطبيقاً محدوداً — وهي الحاجة التي بُنيت لأجلها نسختها."""
+    names = ["v190.sql", "v194.sql", "v195_upgrade.sql", "v196.sql"]
+    log = _workspace(tmp_path, names, greedy_psql=True)
+    result = subprocess.run(
+        [
+            "bash",
+            str(RUNNER),
+            "--port",
+            "5433",
+            "--user",
+            "u",
+            "--db",
+            "d",
+            "--stop-before",
+            "v195_*",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+        env={"PATH": f"{tmp_path}:/usr/bin:/bin"},
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert log.read_text(encoding="utf-8").split() == [
+        "migrations/v190.sql",
+        "migrations/v194.sql",
+    ], "الحدّ لم يقف عند النمط المُسمّى"
+    assert "applied=2 expected=2" in result.stdout
 
 
 # ── `EVIDENCE-PRIMARY-CAUSE-PROPAGATION-01` ──────────────────────────────────

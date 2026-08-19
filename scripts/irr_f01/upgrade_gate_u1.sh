@@ -59,14 +59,13 @@ psql_admin -d postgres -c "DROP DATABASE IF EXISTS $U1_DB WITH (FORCE)" >/dev/nu
 psql_admin -d postgres -c "CREATE DATABASE $U1_DB OWNER $ADMIN_USER" >/dev/null
 
 echo "== Gate U1: apply migration chain through v194 only =="
-applied=0
-while IFS= read -r f; do
-  case "$f" in ''|\#*) continue;; esac
-  case "$f" in v195_*|v196_*) echo "   stop before $f"; break;; esac
-  db -f "$ROOT/migrations/$f" >/dev/null
-  applied=$((applied + 1))
-done < <(grep -vE '^\s*#|^\s*$' "$MANIFEST")
-echo "   applied $applied migrations (pre-v195)"
+# المُشغّل القانونيّ وحده يملك التعداد. كانت هنا نسخةٌ ثالثة من الحلقة المعطوبة،
+# فطبعت `applied 1 migrations (pre-v195)` في 32290853228 ثمّ سقطت البذرة بـ
+# `relation "irrigation_projects" does not exist` — نفس تصادم ملكيّة المجرى.
+bash "$ROOT/scripts/ci/apply_migration_manifest.sh" \
+  --root "$ROOT" --manifest "$MANIFEST" \
+  --host "$PGHOST" --port "$PGPORT" --user "$ADMIN_USER" --db "$U1_DB" \
+  --stop-before 'v195_*'
 
 # The v195 tables MUST NOT exist yet — proves we truly stopped before the upgrade.
 for t in hydraulic_capacity_evaluations irrigation_resource_reservations \
