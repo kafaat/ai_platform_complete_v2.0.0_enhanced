@@ -221,6 +221,18 @@ require_file scripts/ci/no_merge_conflict_markers_guard.py "٢ب) no_merge_confl
 # أخضرَ CI»، فموضعُ العلاج هو الملفّ الأرخص نفسه. Python صرف، أقلّ من ثانيتين.
 require_file scripts/ci/bidi_control_char_guard.py "٢ج) bidi_control_char" && run "٢ج) bidi_control_char" python3 scripts/ci/bidi_control_char_guard.py
 
+# ── ٢د) مسارُ تجهيزةٍ غير ASCII — نفس صنف ٢ج، ومقيسٌ **أربع مرّات** ────────
+# NON-ASCII-TEST-FIXTURE-PATH-BREAKS-C-LOCALE-01 وقع في #820 ثمّ #824، فكُتِب له حارس
+# ثمّ وقع **في الحارس نفسه**، ثمّ وقع رابعةً في `test_resilient_apt_install.py:224`
+# باللفظ ذاته حرفيّاً (`لا-وجود-له.<لاحقة>` لتأكيدٍ عن ملفٍّ غائب — والعربيّة فيه
+# زينةٌ لا خاصّيّة).
+#
+# والحارس قائم ويحجب. لكنّه اختبار pytest لا سكربت، فلا يعمل إلّا داخل ٨أ — أي في
+# جناحٍ مقيسُه **١١د٢٧ث** خارج الطبقة السريعة. فمَن دفع على أخضر `--fast` دفع على
+# أداةٍ لم تسأله: جولة CI كاملة (**٥٣ دقيقة** حتّى الحمرة) لسؤالٍ يُقاس هنا في
+# **١٫٦ث**. وهو حرفيّاً صنف ٢ج فوقه بسطر: حارسٌ رخيص محبوسٌ في طبقةٍ غالية.
+run "٢د) non_ascii_fixture_path" python3 -m pytest -q tests_v9/test_non_ascii_fixture_path_guard.py
+
 # ── ٣) أساس الادّعاءات وحارس الطفرات ──────────────────────────────────────
 require_file scripts/ci/claim_base_guard.py "٣أ) claim_base_guard" && run "٣أ) claim_base_guard"        python3 scripts/ci/claim_base_guard.py
 run "٣ب) guard_mutation (ساكن)"   python3 scripts/ci/guard_mutation_guard.py

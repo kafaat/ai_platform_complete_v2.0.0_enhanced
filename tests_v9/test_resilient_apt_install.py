@@ -220,8 +220,13 @@ def test_the_mirror_switch_is_driven_by_injection_not_by_the_runner_filesystem(t
     assert "/etc/apt" not in calls, "لا يُمَسّ نظام ملفّات المُشغِّل: المسار محقون"
 
     # ② مسارٌ محقونٌ **غائب** ⇒ صفرُ استدعاء، ورمزُ خروجٍ صفر: الغياب ليس فشلاً.
+    #
+    # والاسم ASCII عمداً: `test_non_ascii_fixture_path_guard` يمنع بناء مسارٍ من حرفٍ
+    # غير ASCII داخل اختبار، لأنّ خطوة `LC_ALL=C PYTHONUTF8=0` تجعل ترميز نظام
+    # الملفّات ASCII فيرتفع `UnicodeEncodeError` **قبل** بلوغ المقيس. وما يقيسه هذا
+    # السطر هو **الغياب**، ولا علاقة له بحروف الاسم.
     log.unlink()
-    env["APT_SOURCE_FILES"] = str(tmp_path / "لا-وجود-له.sources")
+    env["APT_SOURCE_FILES"] = str(tmp_path / "absent-on-purpose.sources")
     r = subprocess.run(
         ["bash", str(probe)], capture_output=True, text=True, encoding="utf-8", env=env
     )
