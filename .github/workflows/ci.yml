@@ -405,6 +405,33 @@ jobs:
       - name: rag-authority-convergence-gate
         run: python scripts/architecture/rag_authority_convergence_guard.py
 
+      # C8–C13: عقود تنسيق **لا طبقةَ حقيقةٍ موازية**. كلٌّ منها يفوّض إلى الحرّاس
+      # القانونيّين القائمين ويجمع أحكامهم، ويُعيد `EVIDENCE_REQUIRED` صراحةً حين
+      # يغيب إيصالٌ حيّ مربوط بالموضوع — فلا يحجب الدمج على غياب دليلٍ حيّ، ويحجبه
+      # على **انحدار حارسٍ قانونيّ** (rc≠0). ولا يُرقّي أيٌّ منها سلطةً بحال.
+      - name: c8-rag-production-certification-contract
+        run: python scripts/ci/c8_rag_production_certification.py
+      - name: c9-decision-authority-certification-contract
+        run: python scripts/ci/c9_decision_authority_certification.py
+      - name: c10-field-authority-certification-contract
+        run: python scripts/ci/c10_field_authority_certification.py
+      - name: c11-closed-loop-lineage-certification-contract
+        run: python scripts/ci/c11_closed_loop_lineage_certification.py
+      - name: c12-governed-learning-promotion-certification-contract
+        run: python scripts/ci/c12_governed_learning_promotion_certification.py
+      - name: c13-physical-shrink-certification
+        run: python scripts/ci/c13_physical_shrink_certification.py
+
+      # S4: يمنع عودة مستهلك منصّة لتخزين المعرفة القديم — الملكيّة الوحيدة القانونيّة
+      # خدمة knowledge-graph. الأساس مصدرٌ ثابت يُشتقّ من الشجرة الحاليّة لا يُكتَب هنا.
+      - name: s4-kg-consumer-freeze-gate
+        run: python scripts/architecture/s4_kg_consumer_freeze.py --check
+
+      # S5-EXEC-01: يجمّد سطح الهجرة التشغيليّ لهُويّات Decision SoR الخمس ويمنع نموّاً
+      # صامتاً في كاتبي التنفيذ خارج المجموعة المُقرَّرة (٦ كتّاب مجمَّدون).
+      - name: s5-exec-01-edge-freeze-gate
+        run: python scripts/architecture/s5_exec_01_edge_freeze.py --check
+
       # يمنع رجوع خطّافات FastAPI المهجورة (@app.on_event) — يُلزِم lifespan واحداً
       # مُرتَّباً (بدء/إيقاف صريحان) فتبقى تحذيرات الإهمال غائبة. يُشغَّل في فحص الفرع (pre-FF).
       - name: fastapi-lifespan-guard
@@ -1049,6 +1076,17 @@ jobs:
       - name: WX-10.8 review-queue endpoint tests
         working-directory: services/decision-service
         run: pytest tests/test_wx10_8_review_queue.py -q -p no:cacheprovider
+      # S5-EXEC-01 recommendation_outcomes cutover (static/text-inspection, no DB): compat shim,
+      # decision_record immutability, outcome_record idempotency, and the preflight guard that
+      # blocks the cutover until the new writer path is proven — none touch Postgres.
+      - name: S5-EXEC-01 recommendation_outcomes cutover tests
+        working-directory: services/decision-service
+        run: >-
+          pytest -q -p no:cacheprovider
+          tests/test_s5_exec_01_decision_record_immutable.py
+          tests/test_s5_exec_01_outcome_record_idempotency.py
+          tests/test_s5_exec_01_recommendation_outcomes_compat.py
+          tests/test_s5_exec_01_recommendation_outcomes_preflight.py
       # WX-10.9..10.12 post-approval execution chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (plan -> authorize -> execute request -> delivery
       # receipt -> outcome verify), concurrency + idempotency proven on real Postgres.
@@ -1563,6 +1601,30 @@ jobs:
             live_pg_verification_record.json
           if-no-files-found: error
           retention-days: 90
+
+  raster-service-tests:
+    name: Raster Service Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/raster-service/requirements.txt
+      # C7 is service-local: root pytest.ini only collects tests_v9, so without
+      # an explicit raster job the scene-bound latest/cache contract is dormant.
+      # Pillow تبعيّةُ **اختبارٍ** لا تشغيل: ثلاثة اختبارات تصيير (soil/terrain/truecolor)
+      # تفكّ ترميز PNG الناتج للتحقّق منه، ولا يستوردها أيّ ملفّ إنتاجيّ في الخدمة —
+      # فموضعها هنا لا في requirements.txt كي لا تُثقَل صورة الإنتاج بما لا تستعمله.
+      - name: Install raster test dependencies
+        run: pip install -r services/raster-service/requirements.txt pytest pytest-asyncio Pillow
+      - name: Raster service unit/runtime contracts
+        working-directory: services/raster-service
+        env:
+          PYTHONPATH: .
+        run: pytest -q -p no:cacheprovider test_*.py
 
   security-scan:
     name: Security Scan

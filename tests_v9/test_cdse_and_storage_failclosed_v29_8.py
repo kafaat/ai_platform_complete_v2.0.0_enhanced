@@ -45,10 +45,22 @@ def _load(path: Path, name: str):
 
 
 def test_cdse_cache_key_isolates_tenant_and_geometry() -> None:
+    # مفتاح الكاش قد يمتدّ عبر أسطر (سلسلة scene-bound مقابل request-bound)، فالمطابقة
+    # تُجرى على كتلة الإسناد كاملة لا سطراً واحداً هشّاً.
     src = _cdse_src()
-    key_line = next(ln for ln in src.splitlines() if 'cache_key = f"' in ln)
-    assert "{tenant}" in key_line, "مفتاح الكاش لا يعزل المستأجر — تصادم عبر المستأجرين"
-    assert "{geom_sig}" in key_line, "مفتاح الكاش لا يتبدّل مع هندسة الحقل — تسريب COG قديم"
+    blocks = []
+    idx = 0
+    while True:
+        pos = src.find("cache_key = ", idx)
+        if pos == -1:
+            break
+        end = src.index("\n\n", pos) if "\n\n" in src[pos:] else pos + 400
+        blocks.append(src[pos : min(end, pos + 400)])
+        idx = pos + 1
+    assert blocks, "لا يوجد إسناد cache_key في المصدر"
+    for block in blocks:
+        assert "{tenant}" in block, "مفتاح الكاش لا يعزل المستأجر — تصادم عبر المستأجرين"
+        assert "{geom_sig}" in block, "مفتاح الكاش لا يتبدّل مع هندسة الحقل — تسريب COG قديم"
 
 
 def test_cdse_has_no_hardcoded_yemen_bbox_fallback() -> None:

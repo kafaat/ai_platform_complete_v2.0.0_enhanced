@@ -440,6 +440,66 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+  sahool-vllm-jais:
+    # Internal OpenAI-compatible inference runtime for Jais Natural Farmer.
+    # Opt-in only; infrastructure, never retrieval/decision/field authority.
+    image: ${VLLM_IMAGE:-vllm/vllm-openai:v0.26.0}
+    profiles:
+    - vllm
+    ipc: host
+    # حرفيّ لا متغيّر بيئة: بوّابة *Validate Docker Compose* تكتب `.ci.env` تُسنِد لكلّ متغيّر
+    # مُشار إليه قيمةً وهميّةً نصّيّة، و`mem_limit` حقلٌ عدديّ — فالاستبدال يُنتِج
+    # `strconv.ParseFloat: invalid syntax` ويُسقِط الملفّ كلّه. وهو أيضاً النمط الوحيد
+    # الشاذّ هنا: بقيّة الخدمات (٥٩) تُصرّح mem_limit حرفيّاً.
+    mem_limit: 24g
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN:-}
+    command:
+    - --model
+    - ${VLLM_MODEL_REPOSITORY:-Solshine/Jais-adapted-7B-Reflection-Tuning-Natural-Farmer}
+    - --served-model-name
+    - ${VLLM_MODEL:-jais-natural-farmer}
+    - --host
+    - 0.0.0.0
+    - --port
+    - "8000"
+    - --dtype
+    - ${VLLM_DTYPE:-auto}
+    - --max-model-len
+    - ${VLLM_MAX_MODEL_LEN:-4096}
+    - --gpu-memory-utilization
+    - ${VLLM_GPU_MEMORY_UTILIZATION:-0.70}
+    - --tensor-parallel-size
+    - ${VLLM_TENSOR_PARALLEL_SIZE:-1}
+    - --api-key
+    - ${VLLM_API_KEY:-sahool-vllm-local}
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: 1
+            capabilities:
+            - gpu
+    volumes:
+    - huggingface-cache:/root/.cache/huggingface
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3).read()
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
   sahool-migrate:
     image: postgis/postgis:15-3.4
     restart: 'no'
@@ -573,6 +633,17 @@ services:
       RAG_RETRIEVAL_URL: ${RAG_RETRIEVAL_URL:-http://sahool-rag-retrieval:8000}
       KNOWLEDGE_GRAPH_URL: ${KNOWLEDGE_GRAPH_URL:-http://sahool-knowledge-graph:8000}
       AI_AGRONOMIST_URL: ${AI_AGRONOMIST_URL:-http://sahool-ai-agronomist:8000}
+      AI_PROVIDER: ${AI_PROVIDER:-local}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_MODELS: ${AI_MODELS:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}
+      VLLM_BASE_URL: ${VLLM_BASE_URL:-http://sahool-vllm-jais:8000/v1}
+      VLLM_API_KEY: ${VLLM_API_KEY:-sahool-vllm-local}
+      VLLM_MODEL: ${VLLM_MODEL:-jais-natural-farmer}
+      VLLM_ENABLE_TOOLS: ${VLLM_ENABLE_TOOLS:-false}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.anthropic.com}
       FEATURE_PORTFOLIO_COMMAND: ${FEATURE_PORTFOLIO_COMMAND:-0}
       FEATURE_DEVICE_TWIN: ${FEATURE_DEVICE_TWIN:-0}
       FEATURE_DELTA_SYNC: ${FEATURE_DELTA_SYNC:-0}
@@ -1742,6 +1813,18 @@ services:
       KNOWLEDGE_GRAPH_URL: http://sahool-knowledge-graph:8000
       PLATFORM_URL: http://sahool-platform:8000
       GUARDRAILS_URL: http://sahool-guardrails-engine:8000
+      AI_PROVIDER: ${AI_PROVIDER:-local}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_MODELS: ${AI_MODELS:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}
+      VLLM_BASE_URL: ${VLLM_BASE_URL:-http://sahool-vllm-jais:8000/v1}
+      VLLM_API_KEY: ${VLLM_API_KEY:-sahool-vllm-local}
+      VLLM_MODEL: ${VLLM_MODEL:-jais-natural-farmer}
+      VLLM_ENABLE_TOOLS: ${VLLM_ENABLE_TOOLS:-false}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.anthropic.com}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
@@ -1782,8 +1865,11 @@ services:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
       QDRANT_API_KEY: ${QDRANT_API_KEY}
-      EMBEDDING_URL: http://sahool-ollama:11434/api/embeddings
-      EMBEDDING_MODEL: nomic-embed-text
+      COLLECTION_NAME: ${QDRANT_COLLECTION:-sahool_agri_kb}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}
+      EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}
+      EMBEDDING_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}/api/embeddings
+      EMBEDDING_MODEL: ${EMBED_MODEL:-nomic-embed-text}
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start
@@ -2643,6 +2729,7 @@ volumes:
   qdrant-storage: null
   kg-storage: null
   ollama-models: null
+  huggingface-cache: null
   edge-models: null
   edge-sync: null
   odoo-web-data: null

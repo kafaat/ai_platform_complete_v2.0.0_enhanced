@@ -27,7 +27,10 @@ from api.decision_service_client import (
 # ApiRequest/handle_recommendation_request تُستورَدان مباشرةً من core.api_adapter —
 # نفس الرمزين اللذين كان main يستوردهما (نُقل استيرادهما هنا لإزالة F401 من main
 # بعد نقل دالّتي التوصية).
-from api.decision_sor_mode import assert_platform_may_write_decision_sor
+from api.decision_sor_mode import (
+    assert_platform_may_write_decision_sor,
+    get_platform_decision_sor_mode,
+)
 from api.field_models import FieldRecommendationRequest
 from api.main import (
     CommandStore,
@@ -440,17 +443,61 @@ async def record_recommendation_outcome(
     idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ):
-    """يسجّل نتيجة توصية (توقّع/فعليّ + قبول/نضج) — مسار الكتابة لحلقة التعلّم (v49).
+    """Record one recommendation outcome without a dual-authoritative cutover window.
 
-    تقرأ هذه الصفوفَ نقطتا learning/activation-status و prediction-calibration حيّاً.
-    tenant عبر RLS (WITH CHECK يفرض المستأجِر). صدق: يسجّل المُرسَل فقط (لا اختراع).
+    Before S4 cutover the platform remains authoritative and mirrors best-effort. Once the
+    fully-gated ``decision_service_sor`` mode is effective, this endpoint performs **no**
+    platform DB write: decision-service must persist authoritatively and return the stable
+    compatibility ``outcome_id``. A non-authoritative/mirror acknowledgement is rejected.
     """
-    # اتّساق: matured_within_lag يعني نضج نتيجة فعليّة — يستلزم actual_yield_t_ha.
     if req.matured_within_lag and req.actual_yield_t_ha is None:
         raise HTTPException(
             status_code=422,
             detail="matured_within_lag=true يستلزم actual_yield_t_ha (نتيجة فعليّة)",
         )
+
+    service_payload = {
+        "recommendation_id": req.recommendation_id,
+        "field_id": req.field_id,
+        "season_id": req.season_id,
+        "outcome": "actual_recorded" if req.actual_yield_t_ha is not None else "pending",
+        "idempotency_key": idem,
+        "metadata": {
+            "farm_id": req.farm_id,
+            "crop": req.crop,
+            "predicted_yield_t_ha": req.predicted_yield_t_ha,
+            "actual_yield_t_ha": req.actual_yield_t_ha,
+            "accepted": req.accepted,
+            "matured_within_lag": req.matured_within_lag,
+        },
+    }
+    mode = get_platform_decision_sor_mode()
+
+    if mode.strict_decision_service_required:
+        # S4 end-state: exactly one authoritative write. No platform DB session is opened here.
+        service_result = await _mirror_recommendation_outcome_to_service(
+            service_payload,
+            tenant_id=str(user.tenant_id),
+        )
+        if not service_result.get("authoritative") or not service_result.get("persisted"):
+            raise HTTPException(
+                status_code=503,
+                detail="decision-service لم يثبت الكتابة السلطوية؛ رفض القطع الجزئي",
+            )
+        outcome_id = service_result.get("outcome_id")
+        if outcome_id is None:
+            raise HTTPException(
+                status_code=503,
+                detail="decision-service لم يُعد هوية outcome_id المتوافقة",
+            )
+        return {
+            "outcome_id": outcome_id,
+            "recorded": True,
+            "replayed": bool(service_result.get("replayed", False)),
+            "authoritative_store": "decision-service",
+        }
+
+    # Pre-cutover bridge: platform is the only authoritative writer.
     try:
         async with tenant_connection(user) as conn:
 
@@ -475,11 +522,8 @@ async def record_recommendation_outcome(
                     req.accepted,
                     req.matured_within_lag,
                 )
-                # نُعيد النتيجة لتُخزَّن كنتيجة أمر idempotent وتُعاد حرفيّاً عند الإعادة
-                # (مع حفظ outcome_id الأصليّ) — قيم قابلة للتسلسل.
                 return {"outcome_id": row["outcome_id"], "recorded": True}
 
-            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر الإدراج)؛ وإلّا تنفيذ عاديّ.
             if idem:
                 result = await _idempotent(
                     CommandStore(get_pool(), conn=conn),
@@ -494,37 +538,22 @@ async def record_recommendation_outcome(
                 result = await _work()
     except HTTPException:
         raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+    except Exception as e:  # noqa: BLE001
         raise _db_unavailable("تسجيل نتيجة التوصية", e) from e
 
-    # الجسر الانتقاليّ: كتابة recommendation_outcomes أعلاه موثوقة ومحفوظة؛ نعكسها
-    # best-effort إلى decision-service — **لا ترفع أبداً** إلى مسار الطلب.
+    # Mirror only after the authoritative platform transaction has committed. It can never
+    # turn into a second authority because decision-service reports authoritative=false while
+    # its SoR gate is disabled.
     try:
         await _mirror_recommendation_outcome_to_service(
-            {
-                "recommendation_id": req.recommendation_id,
-                "field_id": req.field_id,
-                "season_id": req.season_id,
-                "outcome": "actual_recorded" if req.actual_yield_t_ha is not None else "pending",
-                "metadata": {
-                    "farm_id": req.farm_id,
-                    "crop": req.crop,
-                    "predicted_yield_t_ha": req.predicted_yield_t_ha,
-                    "actual_yield_t_ha": req.actual_yield_t_ha,
-                    "accepted": req.accepted,
-                    "matured_within_lag": req.matured_within_lag,
-                    "idempotency_key": idem,
-                    "outcome_id": result.get("outcome_id"),
-                },
-            },
+            service_payload,
             tenant_id=str(user.tenant_id),
         )
-    except Exception as e:  # noqa: BLE001 — مِرْآة best-effort: الفشل يُسجَّل ولا يُفشِل الطلب
-        logger.warning(
-            "decision-service mirror (recommendation-outcome %s) فشلت — كتابة المنصّة موثوقة: %s",
-            req.recommendation_id,
-            e,
-        )
+    except Exception:  # noqa: BLE001 — pre-cutover mirror is fail-soft by contract
+        logger.warning("recommendation outcome mirror failed", exc_info=True)
+
+    result["authoritative_store"] = "sahool-platform"
+    result.setdefault("replayed", False)
     return result
 
 

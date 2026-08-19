@@ -109,6 +109,8 @@ _GENERATE_FLAG.update(
         "capability_linker.py": "--apply",
         "health_readiness_schema_guard.py": "--write",
         "route_residual_classification_guard.py": "--write",
+        "s4_kg_consumer_freeze.py": "--write",
+        "s5_exec_01_edge_freeze.py": "--write",
         # أساسُ نطاق GUC المستأجِر (`GUC-SCOPE-GUARD-SEES-ONE-FILE-01`): راتشِت يتقلّص
         # ولا ينمو، فإعادة التوليد تُستعمَل **بعد إصلاح** موضعٍ لحذفه من الأساس — لا
         # لابتلاع مواضع جديدة (تلك يحجبها `--check` قبل أن تبلغ هنا).

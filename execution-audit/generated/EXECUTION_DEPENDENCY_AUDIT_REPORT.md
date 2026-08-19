@@ -4,10 +4,10 @@
 
 ## Summary
 
-- Python files parsed: **1853**
+- Python files parsed: **1861**
 - FastAPI-style route handlers: **1049**
-- Static function-call edges: **73656**
-- Dead-code candidates: **615**
+- Static function-call edges: **74029**
+- Dead-code candidates: **612**
 - Duplicate function groups: **58**
 - Automatic deletions: **0**
 
@@ -15,12 +15,14 @@
 
 | Owner | Symbol | Kind | File | Line |
 |---|---|---|---|---:|
+| `decision-service` | `_memberships` | function | `services/decision-service/decision_sor_role_certify.py` | 163 |
 | `decision-service` | `_service_token_guard` | function | `services/decision-service/main.py` | 152 |
 | `raster-service` | `_scene_band_mapping` | function | `services/raster-service/raster_main_compat_exports.py` | 92 |
 | `raster-service` | `_bbox_from_geom` | function | `services/raster-service/raster_main_compat_exports.py` | 97 |
 | `raster-service` | `_evict_field_layers` | function | `services/raster-service/raster_main_runtime.py` | 46 |
 | `raster-service` | `_require_layer_tenant` | function | `services/raster-service/raster_main_runtime.py` | 89 |
 | `raster-service` | `_require_layer_tenant_authorized` | function | `services/raster-service/raster_main_runtime.py` | 93 |
+| `raster-service` | `_clean_cache` | function | `services/raster-service/test_c7_latest_cache_provenance.py` | 40 |
 | `raster-service` | `_clean_cache` | function | `services/raster-service/test_cdse_empty_raster_not_cached.py` | 70 |
 | `sahool-platform` | `_apply_tenant_guc` | function | `services/sahool-platform/api/main.py` | 645 |
 | `sahool-platform` | `_record_to_json` | function | `services/sahool-platform/api/routers/field_ai_context.py` | 59 |
@@ -28,8 +30,8 @@
 | `sahool-platform` | `_weather_tile_interpolation_payload` | function | `services/sahool-platform/api/routers/weather.py` | 417 |
 | `sahool-platform` | `_parse_series_hours` | function | `services/sahool-platform/api/routers/weather.py` | 1192 |
 | `sahool-platform` | `_time_key_from_hour` | function | `services/sahool-platform/api/routers/weather.py` | 1206 |
-| `sahool-platform` | `_best_operation_frame` | function | `services/sahool-platform/api/routers/weather.py` | 1545 |
-| `sahool-platform` | `_unavailable_tile_response` | function | `services/sahool-platform/api/routers/weather.py` | 2368 |
+| `sahool-platform` | `_best_operation_frame` | function | `services/sahool-platform/api/routers/weather.py` | 1561 |
+| `sahool-platform` | `_unavailable_tile_response` | function | `services/sahool-platform/api/routers/weather.py` | 2384 |
 | `sahool-platform` | `_irrigation_validate` | function | `services/sahool-platform/api/workflow_definitions.py` | 182 |
 | `sahool-platform` | `_irrigation_schedule` | function | `services/sahool-platform/api/workflow_definitions.py` | 188 |
 | `sahool-platform` | `_irrigation_execute` | function | `services/sahool-platform/api/workflow_definitions.py` | 194 |
@@ -72,7 +74,7 @@
 | `3fa331af9f9461ea` | 9 |
 | `406980d4b6534c4a` | 2 |
 | `40b9faafbad5a23d` | 2 |
-| `451e12ae0877302a` | 7 |
+| `451e12ae0877302a` | 6 |
 | `49b18910194fee42` | 2 |
 | `4cb77c1b81129bbe` | 2 |
 | `4d3489c6804536ee` | 2 |

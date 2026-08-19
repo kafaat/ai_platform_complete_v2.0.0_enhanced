@@ -79,7 +79,12 @@ def tracked_manifests() -> list[str]:
     if out.returncode != 0:
         # جرد فارغ عند تعطّل git يُقرأ «لا بيانات» — فشل صامت. الحارس يُغلِق لا يفتح.
         raise RuntimeError(f"git ls-files فشل ({out.returncode}): {out.stderr.strip()}")
-    return sorted(p for p in out.stdout.splitlines() if p.strip())
+    # git pathspec ``docs/architecture/*.json`` also matches descendants; this contract
+    # intentionally governs direct architecture manifests only. Nested evidence may be arrays
+    # or other JSON payloads and has its own evidence contracts.
+    return sorted(
+        p for p in out.stdout.splitlines() if p.strip() and Path(p).parent.as_posix() == SCAN_DIR
+    )
 
 
 def _load(path: str) -> dict:
@@ -147,7 +152,7 @@ def build_registry(entries: dict[str, str]) -> dict:
         "version": 1,
         "adjudicated_on": "2026-08-05",
         "note_ar": "سجلّ البيانات التعريفية التحكيمية (MANIFEST-REGISTRY-01). لا تُحرَّر القائمة يدويّاً: تُشتقّ من `git ls-files docs/architecture/*.json` + قاعدة «يحمل adjudicated_on»، ويعيد توليدها `manifest_registry_guard.py`. الراتش: كلّ بيان جديد يجب أن يكون governed (schema+version+adjudicated_on)؛ الصنفان legacy انتقالان للستّة القائمة فقط.",
-        "derivation_rule_ar": "كل docs/architecture/*.json يحمل adjudicated_on يُسجَّل؛ ما عداه خارج نطاق المرحلة 1.",
+        "derivation_rule_ar": "كل ملف JSON مباشر تحت docs/architecture يحمل adjudicated_on يُسجَّل؛ مجلدات الأدلة المتداخلة خارج نطاق هذا السجل ولها عقودها الخاصة.",
         "entries": [{"path": path, "kind": kind} for path, kind in sorted(entries.items())],
     }
 

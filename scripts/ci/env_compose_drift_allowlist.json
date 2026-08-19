@@ -148,6 +148,10 @@
   "SAHOOL_FTW_WEIGHTS": {
    "category": "C",
    "why": "مسار أوزان نموذج حدود الحقل FTW؛ غيابه=استدلال حتميّ (fallback مُعلَن)؛ ai_agronomist/field_boundary_backends.py + core/capabilities.py (P1-9)."
+  },
+  "COLLECTION": {
+   "category": "A",
+   "why": "مرادف توافقيّ لاسم المجموعة في services/qdrant-seed/seed.py — يُقرأ بعد COLLECTION_NAME وقبل الافتراضيّ القانونيّ 'sahool_agri_kb'. compose يُمرّر COLLECTION_NAME صراحةً، فغياب COLLECTION هو الوضع الطبيعيّ ولا يُغيّر سلوكاً: الافتراضيّ يطابق ما يقرؤه المستهلكان local-ai-rag وrag-retrieval."
   }
  }
 }

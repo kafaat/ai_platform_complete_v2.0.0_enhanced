@@ -902,7 +902,9 @@
       "runtime_verified": false,
       "title": "Outcome recording",
       "unit_test_paths": [
-        "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py"
+        "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
+        "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+        "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py"
       ]
     },
     {
@@ -2762,6 +2764,7 @@
         "services/decision-service/tests/test_ac1_agronomic_context.py",
         "services/decision-service/tests/test_agronomic_lineage_integrity.py",
         "services/decision-service/tests/test_no_leakage_certification.py",
+        "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
         "services/raster-service/test_field_terrain.py",
         "services/raster-service/test_poly_clip.py",
         "services/raster-service/test_raster_crs_window.py",
@@ -5378,7 +5381,7 @@
       "domain": "operations",
       "evidence": {
         "api": true,
-        "backend": false,
+        "backend": true,
         "database": false,
         "documentation": true,
         "events": false,
@@ -5397,7 +5400,7 @@
           "type": "api"
         },
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "backend"
         },
@@ -5452,7 +5455,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 3,
+      "evidence_score": 4,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -7836,6 +7839,7 @@
         "tests_v9/test_rls_tenant_coverage.py",
         "tests_v9/test_roadmap_phase23.py",
         "tests_v9/test_rs_anomaly_postgres_store_static.py",
+        "tests_v9/test_s4_live_authority_receipt_guards.py",
         "tests_v9/test_security_review_fixes.py",
         "tests_v9/test_v197_external_submissions_rls_live.py",
         "tests_v9/test_v197_external_submissions_static.py",
@@ -8495,9 +8499,10 @@
       ]
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -8524,7 +8529,7 @@
       "declared_maturity": 3,
       "domain": "security",
       "evidence": {
-        "api": false,
+        "api": true,
         "backend": true,
         "database": true,
         "documentation": true,
@@ -8539,7 +8544,7 @@
       },
       "evidence_records": [
         {
-          "present": false,
+          "present": true,
           "source": "docs/capability-registry/generated/mapping/capability_mapping.json",
           "type": "api"
         },
@@ -8599,7 +8604,7 @@
           "type": "web"
         }
       ],
-      "evidence_score": 5,
+      "evidence_score": 6,
       "field_validation": {
         "evidence_level": "in_enum",
         "maturity": "in_enum",
@@ -8609,7 +8614,7 @@
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "promotion_preconditions_satisfied": false,
       "runtime_verified": false,
@@ -8623,7 +8628,8 @@
         "services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py",
         "services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py",
         "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
-        "tests_v9/test_decision_sor_platform_revoke_static.py"
+        "tests_v9/test_decision_sor_platform_revoke_static.py",
+        "tests_v9/test_s5_decision_live_closure_receipt.py"
       ]
     },
     {
@@ -10796,7 +10802,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 28,
-    "average_assessed_maturity": 2.04,
+    "average_assessed_maturity": 2.05,
     "capability_count": 81,
     "declared_above_evidence": 50,
     "evidence_above_declared": 3,

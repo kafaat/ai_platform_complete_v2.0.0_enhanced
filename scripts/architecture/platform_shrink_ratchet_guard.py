@@ -32,8 +32,6 @@ def observe(policy=None):
     keywords = tuple(policy["measurement"]["domain_compute_keywords"])
     compute = set()
     providers = set()
-    # الجذر من السياسة لا مثبَّتاً هنا: العقد يُعلنه، فتثبيتُه في الكود يخلق مصدرين
-    # يفترقان بصمت — وهو صنف «المُعلَن ≠ المُطبَّق» الذي يقيسه هذا الراتشِت أصلاً.
     platform_root = policy["measurement"]["platform_root"]
     for p in sorted((ROOT / platform_root).rglob("*.py")):
         rel = p.relative_to(ROOT).as_posix()
@@ -92,12 +90,41 @@ def _valid_exceptions(policy, today):
             f.append(f"exception target too far: {cat}:{ident}")
             continue
         if (cat, ident) in out:
-            # تُبلَّغ **وتُستبعَد**: قبولها يجعل «آخر مَن كتب يفوز»، فيختفي اختلاف
-            # المالك والسبب بين نسختين بلا أثر. الأولى تبقى، والثانية لا تدهسها.
             f.append(f"duplicate exception identity: {cat}:{ident}")
             continue
         out[(cat, ident)] = e
     return out, f
+
+
+def _validate_baseline_authority_exception_metadata(policy, today):
+    out = []
+    required = ("owner", "reason", "target_close_by")
+    metadata = policy.get("baseline_exception_metadata") or {}
+    expected = set(policy.get("baseline", {}).get("platform_authority_exceptions") or [])
+    if set(metadata) != expected:
+        missing = sorted(expected - set(metadata))
+        extra = sorted(set(metadata) - expected)
+        if missing:
+            out.append("baseline authority exceptions missing metadata: " + ",".join(missing))
+        if extra:
+            out.append("baseline authority exception metadata is stale: " + ",".join(extra))
+    max_days = int(policy["exception_contract"].get("max_target_days", 180))
+    for ident in sorted(expected & set(metadata)):
+        row = metadata[ident]
+        missing = [k for k in required if not row.get(k)]
+        if missing:
+            out.append(f"baseline authority exception {ident} missing fields: {','.join(missing)}")
+            continue
+        try:
+            close = dt.date.fromisoformat(row["target_close_by"])
+        except ValueError:
+            out.append(f"baseline authority exception {ident} invalid target_close_by")
+            continue
+        if close < today:
+            out.append(f"baseline authority exception expired: {ident}")
+        elif (close - today).days > max_days:
+            out.append(f"baseline authority exception target too far: {ident}")
+    return out
 
 
 def findings(today=None):
@@ -105,6 +132,7 @@ def findings(today=None):
     observed = observe(policy)
     today = today or dt.date.today()
     exceptions, out = _valid_exceptions(policy, today)
+    out.extend(_validate_baseline_authority_exception_metadata(policy, today))
     base = {k: set(policy["baseline"].get(k) or []) for k in CATEGORIES}
     for cat in CATEGORIES:
         obs = observed[cat]
@@ -126,8 +154,7 @@ def main():
     f = findings()
     if f:
         print("platform_shrink_ratchet_fail")
-        for x in f:
-            print(" -", x)
+        [print(" -", x) for x in f]
         return 1
     o = observe()
     print("platform_shrink_ratchet_ok " + " ".join(f"{k}={len(o[k])}" for k in CATEGORIES))

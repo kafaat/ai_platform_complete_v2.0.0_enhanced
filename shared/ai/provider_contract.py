@@ -29,10 +29,13 @@ PROVIDER_ALIASES: dict[str, str] = {
     "or": "openrouter",
     "ollama": "local",
     "local": "local",
+    "vllm": "vllm",
+    "jais": "vllm",
+    "jais-natural-farmer": "vllm",
 }
 
-# المعرّفات القانونيّة الثلاثة. المجهول/الفارغ ⇒ المحلّيّ الآمن (بلا مفاتيح سحابيّة).
-CANONICAL_PROVIDERS: tuple[str, ...] = ("local", "anthropic", "openrouter")
+# المعرّفات القانونيّة الأربعة. المجهول/الفارغ ⇒ المحلّيّ الآمن (بلا مفاتيح سحابيّة).
+CANONICAL_PROVIDERS: tuple[str, ...] = ("local", "vllm", "anthropic", "openrouter")
 DEFAULT_PROVIDER = "local"
 
 # المزوّدات «الخارجيّة» (سحابيّة) — تُطبَّق عليها سياسة مشاركة البيانات/التنقيح قبل
@@ -54,10 +57,13 @@ ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
 DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_VLLM_BASE_URL = "http://sahool-vllm-jais:8000/v1"
+DEFAULT_VLLM_MODEL = "jais-natural-farmer"
 
 # صيغة السلك ولاحقة نقطة النهاية لكلّ مزوّد قانونيّ.
 WIRE_FORMAT: dict[str, str] = {
     "local": "messages",
+    "vllm": "openai_chat",
     "anthropic": "messages",
     "openrouter": "openai_chat",
 }
@@ -75,8 +81,15 @@ ENV_MODELS_CATALOG = "AI_MODELS"
 ENV_GENERATION_ENABLED = "AI_GENERATION_ENABLED"
 ENV_OPENROUTER_API_KEY = "OPENROUTER_API_KEY"
 ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY"
+ENV_VLLM_BASE_URL = "VLLM_BASE_URL"
+ENV_VLLM_API_KEY = "VLLM_API_KEY"
+ENV_VLLM_MODEL = "VLLM_MODEL"
 # المفاتيح السرّيّة تُقرأ من البيئة خادميّاً فقط — لا تصل الكود العميل ولا الواجهة.
-SECRET_ENV_NAMES: tuple[str, ...] = (ENV_OPENROUTER_API_KEY, ENV_ANTHROPIC_API_KEY)
+SECRET_ENV_NAMES: tuple[str, ...] = (
+    ENV_OPENROUTER_API_KEY,
+    ENV_ANTHROPIC_API_KEY,
+    ENV_VLLM_API_KEY,
+)
 
 # ──────────────────────────────────────────────────────────────────────────
 # مستويات مشاركة البيانات (حوكمة V52) — كم من سياق الحقل يجوز أن يغادر حدّ المستأجِر.
@@ -107,4 +120,5 @@ DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
         ("qwen3", "Qwen3 (محلّيّ)"),
         ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
     ],
+    "vllm": [("jais-natural-farmer", "Jais Natural Farmer (Solshine / vLLM)")],
 }

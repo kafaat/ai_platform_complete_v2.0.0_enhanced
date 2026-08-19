@@ -39,7 +39,7 @@ IRR-001,Water source registry,0,0,0,0,0,False
 IRR-002,Water quality samples,0,0,0,0,0,False
 IRR-003,Field water-source binding,0,0,0,0,0,False
 IRR-004,Water balance,0,0,0,0,0,False
-IRR-005,Irrigation recommendation,0,0,2,0,1,False
+IRR-005,Irrigation recommendation,0,0,5,0,1,False
 IRR-006,Irrigation scheduling,0,0,0,0,0,False
 IRR-007,Pump and valve control,0,0,5,0,1,False
 IRR-008,Execution verification,0,0,0,0,0,False
@@ -64,7 +64,7 @@ DEC-003,Human approval,0,0,4,0,1,False
 DEC-004,Execution request,0,0,4,0,1,False
 DEC-005,Dispatch authorization,0,0,1,0,1,False
 DEC-006,Execution receipt,0,0,3,0,1,False
-DEC-007,Outcome recording,0,0,19,0,1,False
+DEC-007,Outcome recording,0,0,22,0,1,False
 DEC-008,Learning attribution,0,0,3,0,1,False
 DEC-009,Model calibration,0,0,0,0,0,False
 DEC-010,Model lifecycle and activation,0,0,4,0,1,False

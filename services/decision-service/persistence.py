@@ -152,7 +152,7 @@ async def persist_decision_record(
                 if reason:
                     return {"status": "rejected", "reason": reason}
             try:
-                await conn.execute(
+                inserted = await conn.fetchval(
                     """
                     INSERT INTO decision_record
                       (decision_id, tenant_id, field_id, decision_type, region, stage,
@@ -163,14 +163,8 @@ async def persist_decision_record(
                        content_digest)
                     VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11,
                             $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
-                    ON CONFLICT (decision_id) DO UPDATE SET
-                      stage = EXCLUDED.stage,
-                      decision_value = EXCLUDED.decision_value,
-                      confidence = EXCLUDED.confidence,
-                      review_state = EXCLUDED.review_state,
-                      candidate_lineage_id = EXCLUDED.candidate_lineage_id,
-                      content_digest = COALESCE(EXCLUDED.content_digest, decision_record.content_digest),
-                      updated_at = now()
+                    ON CONFLICT (decision_id) DO NOTHING
+                    RETURNING decision_id
                     """,
                     decision_id,
                     tenant_id,
@@ -202,15 +196,24 @@ async def persist_decision_record(
                 # DB-level semantic backstop (migration 019 trigger/constraints): anything the
                 # typed pre-validation did not catch is still a fail-closed rejection, not a 500.
                 return {"status": "rejected", "reason": "lineage_integrity_violation:" + str(exc)}
-            await emit_outbox_event(
-                conn,
-                tenant_id=tenant_id,
-                event_type="DECISION_RECORDED",
-                aggregate_type="decision_record",
-                aggregate_id=decision_id,
-                payload={"field_id": payload.field_id, "decision_type": payload.decision_type},
-            )
-        return {"decision_id": decision_id}
+            replayed = inserted is None
+            if replayed:
+                existing = await conn.fetchrow(
+                    "SELECT tenant_id, decision_id FROM decision_record WHERE decision_id=$1",
+                    decision_id,
+                )
+                if existing is None or str(existing["tenant_id"]) != str(tenant_id):
+                    raise ValueError("decision_id collision belongs to another tenant")
+            else:
+                await emit_outbox_event(
+                    conn,
+                    tenant_id=tenant_id,
+                    event_type="DECISION_RECORDED",
+                    aggregate_type="decision_record",
+                    aggregate_id=decision_id,
+                    payload={"field_id": payload.field_id, "decision_type": payload.decision_type},
+                )
+        return {"decision_id": decision_id, "replayed": replayed}
     finally:
         await conn.close()
 
@@ -271,16 +274,15 @@ async def persist_outcome_record(
             content_digest = await _lookup_content_digest(
                 conn, tenant_id=tenant_id, decision_id=payload.decision_id
             )
-            await conn.execute(
+            inserted = await conn.fetchval(
                 """
                 INSERT INTO outcome_record
                   (outcome_id, tenant_id, decision_id, field_id, region, planned, actual,
                    metrics, success, created_by, idempotency_key, content_digest)
                 VALUES ($1, $2::uuid, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb, $9, $10, $11, $12)
                 ON CONFLICT (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL
-                DO UPDATE SET actual = EXCLUDED.actual, metrics = EXCLUDED.metrics,
-                  success = EXCLUDED.success,
-                  content_digest = COALESCE(EXCLUDED.content_digest, outcome_record.content_digest)
+                DO NOTHING
+                RETURNING outcome_id
                 """,
                 outcome_id,
                 tenant_id,
@@ -295,40 +297,81 @@ async def persist_outcome_record(
                 payload.idempotency_key,
                 content_digest,
             )
-            await emit_outbox_event(
-                conn,
-                tenant_id=tenant_id,
-                event_type="OUTCOME_RECORDED",
-                aggregate_type="outcome_record",
-                aggregate_id=outcome_id,
-                payload={"decision_id": payload.decision_id, "success": payload.success},
-            )
-        return {"outcome_id": outcome_id}
+            replayed = inserted is None
+            canonical_outcome_id = inserted
+            if replayed:
+                if not payload.idempotency_key:
+                    raise RuntimeError("outcome insert conflicted without idempotency identity")
+                existing = await conn.fetchrow(
+                    "SELECT outcome_id FROM outcome_record "
+                    "WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                    tenant_id,
+                    payload.idempotency_key,
+                )
+                if existing is None:
+                    raise RuntimeError("outcome idempotency conflict row disappeared")
+                canonical_outcome_id = existing["outcome_id"]
+            else:
+                await emit_outbox_event(
+                    conn,
+                    tenant_id=tenant_id,
+                    event_type="OUTCOME_RECORDED",
+                    aggregate_type="outcome_record",
+                    aggregate_id=canonical_outcome_id,
+                    payload={"decision_id": payload.decision_id, "success": payload.success},
+                )
+        return {"outcome_id": canonical_outcome_id, "replayed": replayed}
     finally:
         await conn.close()
 
 
+def _recommendation_outcome_request_hash(payload: Any) -> str:
+    metadata = dict(payload.metadata or {})
+    metadata.pop("idempotency_key", None)
+    canonical = {
+        "recommendation_id": payload.recommendation_id,
+        "decision_id": payload.decision_id,
+        "field_id": payload.field_id,
+        "season_id": payload.season_id,
+        "outcome": payload.outcome,
+        "confidence": payload.confidence,
+        "metadata": metadata,
+    }
+    return hashlib.sha256(
+        json.dumps(canonical, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    ).hexdigest()
+
+
 async def persist_recommendation_outcome(*, tenant_id: str, payload: Any) -> dict[str, Any]:
+    """Persist without collapsing distinct observations for one recommendation.
+
+    ``outcome_id`` is row identity. ``idempotency_key`` is replay identity when supplied.
+    A replay with identical content returns the original outcome_id; reuse of the same key
+    for different content fails closed instead of silently overwriting history.
+    """
     conn = await _connect()
     try:
         async with conn.transaction():
-            # v167: bind tenant then propagate the full digest server-side from the head row.
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             content_digest = await _lookup_content_digest(
                 conn, tenant_id=tenant_id, decision_id=payload.decision_id
             )
-            await conn.execute(
+            metadata = dict(payload.metadata or {})
+            idem = payload.idempotency_key or metadata.get("idempotency_key")
+            request_hash = _recommendation_outcome_request_hash(payload)
+            row = await conn.fetchrow(
                 """
                 INSERT INTO recommendation_outcomes
                   (tenant_id, recommendation_id, decision_id, field_id, season_id, outcome,
-                   confidence, metadata, content_digest)
-                VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
-                ON CONFLICT (tenant_id, recommendation_id) DO UPDATE SET
-                  decision_id = EXCLUDED.decision_id,
-                  outcome = EXCLUDED.outcome,
-                  confidence = EXCLUDED.confidence,
-                  metadata = EXCLUDED.metadata,
-                  content_digest = COALESCE(EXCLUDED.content_digest, recommendation_outcomes.content_digest)
+                   confidence, metadata, content_digest, idempotency_key, request_hash,
+                   farm_id, crop, predicted_yield_t_ha, actual_yield_t_ha, accepted,
+                   matured_within_lag, outcome_recorded_at)
+                VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11,
+                        $12, $13, $14, $15, $16, $17,
+                        CASE WHEN $15 IS NOT NULL THEN now() ELSE NULL END)
+                ON CONFLICT (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL
+                DO NOTHING
+                RETURNING outcome_id, request_hash
                 """,
                 tenant_id,
                 payload.recommendation_id,
@@ -337,18 +380,56 @@ async def persist_recommendation_outcome(*, tenant_id: str, payload: Any) -> dic
                 payload.season_id,
                 payload.outcome,
                 payload.confidence,
-                _json(payload.metadata),
+                _json(metadata),
                 content_digest,
+                idem,
+                request_hash,
+                metadata.get("farm_id"),
+                metadata.get("crop"),
+                metadata.get("predicted_yield_t_ha"),
+                metadata.get("actual_yield_t_ha"),
+                bool(metadata.get("accepted", False)),
+                bool(metadata.get("matured_within_lag", False)),
             )
-            await emit_outbox_event(
-                conn,
-                tenant_id=tenant_id,
-                event_type="RECOMMENDATION_OUTCOME_RECORDED",
-                aggregate_type="recommendation_outcomes",
-                aggregate_id=payload.recommendation_id,
-                payload={"decision_id": payload.decision_id, "outcome": payload.outcome},
-            )
-        return {"recommendation_id": payload.recommendation_id}
+            replayed = False
+            if row is None:
+                if not idem:
+                    raise RuntimeError(
+                        "recommendation outcome insert returned no row without idempotency key"
+                    )
+                row = await conn.fetchrow(
+                    "SELECT outcome_id, request_hash FROM recommendation_outcomes "
+                    "WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                    tenant_id,
+                    idem,
+                )
+                if row is None:
+                    raise RuntimeError("idempotency conflict row disappeared")
+                if row["request_hash"] != request_hash:
+                    raise ValueError(
+                        "idempotency_key reused with different recommendation-outcome payload"
+                    )
+                replayed = True
+            outcome_id = row["outcome_id"]
+            if not replayed:
+                await emit_outbox_event(
+                    conn,
+                    tenant_id=tenant_id,
+                    event_type="RECOMMENDATION_OUTCOME_RECORDED",
+                    aggregate_type="recommendation_outcomes",
+                    aggregate_id=str(outcome_id),
+                    payload={
+                        "recommendation_id": payload.recommendation_id,
+                        "decision_id": payload.decision_id,
+                        "outcome": payload.outcome,
+                        "outcome_id": outcome_id,
+                    },
+                )
+        return {
+            "recommendation_id": payload.recommendation_id,
+            "outcome_id": outcome_id,
+            "replayed": replayed,
+        }
     finally:
         await conn.close()
 
@@ -364,22 +445,23 @@ async def read_outcomes_for_reconcile(
     """
     conn = await _connect()
     try:
-        await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
-        orows = await conn.fetch(
-            "SELECT * FROM outcome_record "
-            "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2)",
-            tenant_id,
-            field_id,
-        )
-        rrows = await conn.fetch(
-            "SELECT * FROM recommendation_outcomes "
-            "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2) "
-            "AND ($3::text IS NULL OR season_id=$3)",
-            tenant_id,
-            field_id,
-            season_id,
-        )
-        return [dict(r) for r in orows], [dict(r) for r in rrows]
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            orows = await conn.fetch(
+                "SELECT * FROM outcome_record "
+                "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2)",
+                tenant_id,
+                field_id,
+            )
+            rrows = await conn.fetch(
+                "SELECT * FROM recommendation_outcomes "
+                "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2) "
+                "AND ($3::text IS NULL OR season_id=$3)",
+                tenant_id,
+                field_id,
+                season_id,
+            )
+            return [dict(r) for r in orows], [dict(r) for r in rrows]
     finally:
         await conn.close()
 

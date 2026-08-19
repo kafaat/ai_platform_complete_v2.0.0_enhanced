@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
@@ -29,21 +30,70 @@ SCAN = [ROOT / "services", ROOT / "sahool-platform", ROOT / "shared"]
 SKIP = {".git", ".venv", "venv", "node_modules", "dist", "build", "__pycache__", ".pytest_cache"}
 
 
-def _tracked_files() -> set[str]:
-    """git-tracked repo-relative paths. Scanning the raw filesystem (rglob) counts
-    transient/untracked ``*.py`` (editor scratch, tool output) that exist on a
-    developer machine but not on a clean CI checkout, making ``python_files_parsed``
-    — and therefore this generated file's hash — non-reproducible between local and
-    CI. Since ``--check`` rewrites the file, that drift surfaces in the downstream
-    static-governance manifest. Tracked files ARE the repository."""
-    out = subprocess.run(
-        ["git", "ls-files", "-z"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    return {rel for rel in out.split("\0") if rel}
+def _release_manifest_entries() -> dict[str, str]:
+    """Fail-closed repository membership for extracted release ZIPs.
+
+    Delivery archives intentionally contain no ``.git``. In that mode the signed
+    release checksum manifest is the only accepted membership source; raw ``rglob``
+    would admit arbitrary local files and make this generated artifact non-reproducible.
+    """
+    manifest = ROOT / "release" / "FILE_CHECKSUMS.sha256"
+    if not manifest.exists():
+        return {}
+    if manifest.is_symlink() or not manifest.is_file():
+        raise RuntimeError("release checksum manifest must be a regular non-symlink file")
+    entries: dict[str, str] = {}
+    for lineno, raw in enumerate(manifest.read_text(encoding="utf-8").splitlines(), start=1):
+        if not raw.strip():
+            continue
+        parts = raw.split(None, 1)
+        if len(parts) != 2:
+            raise RuntimeError(f"malformed release checksum manifest line {lineno}")
+        digest, rel = parts[0].lower(), parts[1].strip()
+        if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+            raise RuntimeError(f"malformed SHA-256 on release checksum manifest line {lineno}")
+        rp = Path(rel)
+        if rp.is_absolute() or ".." in rp.parts:
+            raise RuntimeError(f"unsafe path on release checksum manifest line {lineno}: {rel!r}")
+        if rel in entries:
+            raise RuntimeError(f"duplicate path on release checksum manifest line {lineno}: {rel}")
+        entries[rel] = digest
+    return entries
+
+
+def _tracked_inventory() -> tuple[set[str], dict[str, str] | None]:
+    """Repository membership from Git, or digest-bound release membership in ZIP mode."""
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        tracked = {rel for rel in out.split("\0") if rel}
+        if tracked:
+            return tracked, None
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    entries = _release_manifest_entries()
+    if entries:
+        return set(entries), entries
+    raise RuntimeError(
+        "no git worktree and no release checksum manifest; refusing raw filesystem scan (fail-closed)"
+    )
+
+
+def _verify_manifest_member(path: Path, rel: str, expected: str) -> None:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError(f"manifest member is not a regular file: {rel}")
+    try:
+        path.resolve().relative_to(ROOT.resolve())
+    except ValueError as exc:
+        raise RuntimeError(f"manifest member escapes repository root: {rel}") from exc
+    got = hashlib.sha256(path.read_bytes()).hexdigest()
+    if got != expected:
+        raise RuntimeError(f"release checksum mismatch for scanned file: {rel}")
 
 
 @dataclass(frozen=True)
@@ -56,15 +106,18 @@ class Finding:
 
 
 def iter_files():
-    tracked = _tracked_files()
+    tracked, manifest_entries = _tracked_inventory()
     for base in SCAN:
         if not base.exists():
             continue
         for path in base.rglob("*.py"):
             if any(part in SKIP for part in path.parts):
                 continue
-            if path.relative_to(ROOT).as_posix() not in tracked:
+            rel = path.relative_to(ROOT).as_posix()
+            if rel not in tracked:
                 continue
+            if manifest_entries is not None:
+                _verify_manifest_member(path, rel, manifest_entries[rel])
             yield path
 
 

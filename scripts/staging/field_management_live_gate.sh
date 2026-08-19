@@ -43,11 +43,18 @@ case "$actual_sha" in
   *) fail "SHA mismatch: expected=$EXPECTED_SHA actual=$actual_sha (run the gate on the CI-green SHA)" ;;
 esac
 
-echo "== 1) RLS role is NOT superuser / BYPASSRLS =="
-role_flags="$(psql "$DATABASE_URL" -tAc \
-  "SELECT rolsuper::text||','||rolbypassrls::text FROM pg_roles WHERE rolname = current_user")"
-[ "$role_flags" = "false,false" ] || fail "app role is superuser/bypassrls ($role_flags) — RLS would be vacuous"
-pass "current_user is NOSUPERUSER + NOBYPASSRLS"
+echo "== 1) RLS role identity + privilege closure =="
+role_row="$(psql "$DATABASE_URL" -tAc \
+  "SELECT rolname||','||rolsuper::text||','||rolbypassrls::text||','||rolcreatedb::text||','||rolcreaterole::text FROM pg_roles WHERE rolname=current_user")"
+IFS=',' read -r role_name role_super role_bypass role_createdb role_createrole <<<"$role_row"
+[ -n "$role_name" ] || fail "current_user role not found in pg_roles"
+[ "$role_super,$role_bypass" = "false,false" ] || fail "app role is superuser/bypassrls ($role_super,$role_bypass) — RLS would be vacuous"
+[ "$role_createdb,$role_createrole" = "false,false" ] || fail "app role has CREATEDB/CREATEROLE ($role_createdb,$role_createrole)"
+# A restricted current role that can SET ROLE into a privileged membership can still make
+# an RLS proof vacuous.  Reject any reachable membership carrying elevated attributes.
+role_closure="$(psql "$DATABASE_URL" -tAc "WITH RECURSIVE r(oid) AS (SELECT oid FROM pg_roles WHERE rolname=current_user UNION SELECT m.roleid FROM pg_auth_members m JOIN r ON m.member=r.oid) SELECT count(*) FROM r JOIN pg_roles p ON p.oid=r.oid WHERE p.rolname<>current_user AND (p.rolsuper OR p.rolbypassrls OR p.rolcreatedb OR p.rolcreaterole)")"
+[ "$role_closure" = "0" ] || fail "application role can reach privileged role membership(s): $role_closure"
+pass "current_user=$role_name is NOSUPERUSER + NOBYPASSRLS with no privileged role closure"
 
 echo "== 2) set_config(...,true) is transaction-local in the service source =="
 grep -q "set_config('app.current_tenant', \$1, true)" "$ROOT/services/field-management-service/main.py" \
@@ -67,7 +74,30 @@ echo "$iso_out" | grep -qE "[0-9]+ skipped" \
   && fail "isolation test was SKIPPED (missing DB/env) — a skip is not a pass for a live gate"
 pass "cross-tenant read 404 + connection-reuse isolation actually executed under RLS"
 
-echo "== 4) HTTP contract against the running field owner =="
+echo "== 4) running-service source identity matches this checkout =="
+field_ready_json="$(curl -fsS "$FIELD_SERVICE_URL/readyz")" || fail "field service /readyz unavailable"
+read -r live_main_sha live_assertion_sha ready_status ready_service <<<"$(FIELD_READY_JSON="$field_ready_json" python3 - <<'PYIDENT'
+import json, os
+d=json.loads(os.environ['FIELD_READY_JSON']); i=d.get('source_identity') or {}
+print(i.get('main_sha256',''), i.get('service_tenant_assertion_sha256',''), d.get('status',''), d.get('service',''))
+PYIDENT
+)"
+expected_main_sha="$(python3 - "$ROOT/services/field-management-service/main.py" <<'PYHASH'
+import hashlib, pathlib, sys
+print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())
+PYHASH
+)"
+expected_assertion_sha="$(python3 - "$ROOT/shared/security/service_tenant_assertion.py" <<'PYHASH'
+import hashlib, pathlib, sys
+print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())
+PYHASH
+)"
+[ "$ready_status,$ready_service" = "ready,field-management-service" ] || fail "running field service readiness identity mismatch ($ready_status,$ready_service)"
+[ "$live_main_sha" = "$expected_main_sha" ] || fail "running field main.py digest does not match EXPECTED_SHA checkout"
+[ "$live_assertion_sha" = "$expected_assertion_sha" ] || fail "running tenant-assertion verifier digest does not match EXPECTED_SHA checkout"
+pass "running field owner source digests match the SHA-pinned checkout"
+
+echo "== 5) HTTP contract against the running field owner =="
 code() { curl -sS -o /dev/null -w '%{http_code}' "$@"; }
 c200="$(code -H "$TOK" -H "$SVC" -H "X-Tenant-Id: $TENANT_A" "$FIELD_SERVICE_URL/internal/fields/$FIELD_A")"
 [ "$c200" = 200 ] || fail "valid token + owner tenant + valid field expected 200, got $c200"; pass "valid → 200"
@@ -78,8 +108,42 @@ c401m="$(code -H "$SVC" -H "X-Tenant-Id: $TENANT_A" "$FIELD_SERVICE_URL/internal
 c401w="$(code -H "X-Agent-Token: wrong-token" -H "X-Tenant-Id: $TENANT_A" "$FIELD_SERVICE_URL/internal/fields/$FIELD_A")"
 [ "$c401w" = 401 ] || fail "wrong service token expected 401, got $c401w"; pass "wrong token → 401"
 
-echo "== 5) audit trail (no secret printed) =="
+echo "== 6) audit trail (no secret printed) =="
 printf '{"commit_sha":"%s","tenant_a":"%s","tenant_b":"%s","field_id":"%s","field_owner_200":%s,"cross_tenant_404":%s,"missing_token_401":%s,"wrong_token_401":%s,"service_name":"vegetation-analysis-service"}\n' \
   "$(git -C "$ROOT" rev-parse --short HEAD)" "$TENANT_A" "$TENANT_B" "$FIELD_A" "$c200" "$c404" "$c401m" "$c401w"
+
+if [ -n "${FIELD_RLS_EVIDENCE_OUT:-}" ]; then
+  python3 - "$FIELD_RLS_EVIDENCE_OUT" "$actual_sha" "$role_name" "$role_super" "$role_bypass" "$role_createdb" "$role_createrole" "$role_closure" "$TENANT_A" "$TENANT_B" "$FIELD_A" "$c200" "$c404" "$c401m" "$c401w" "$live_main_sha" "$live_assertion_sha" <<'PYJSON'
+from datetime import UTC, datetime
+import json, pathlib, sys
+out, sha, role, rs, rb, rdb, rr, closure, ta, tb, field, c200, c404, c401m, c401w, main_sha, assertion_sha = sys.argv[1:]
+doc = {
+  "schema":"sahool.s4-field-rls-live-evidence/v2",
+  "subject_sha":sha,
+  "status":"PASSED",
+  "observed_at":datetime.now(UTC).isoformat().replace("+00:00","Z"),
+  "service":"field-management-service",
+  "source_identity":{
+    "main_sha256":main_sha,
+    "service_tenant_assertion_sha256":assertion_sha
+  },
+  "source_identity_match":True,
+  "application_role":{
+    "name":role,"superuser":rs=="true","bypassrls":rb=="true",
+    "createdb":rdb=="true","createrole":rr=="true",
+    "reachable_privileged_role_count":int(closure)
+  },
+  "tenant_isolation":{
+    "tenant_a":ta,"tenant_b":tb,"field_id":field,
+    "owner_http":int(c200),"cross_tenant_http":int(c404)
+  },
+  "authentication":{"missing_token_http":int(c401m),"wrong_token_http":int(c401w)},
+  "owner_or_superuser_proof_accepted":False,
+  "authority_promotion":False
+}
+p=pathlib.Path(out); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+PYJSON
+  pass "subject-bound RLS evidence written to $FIELD_RLS_EVIDENCE_OUT"
+fi
 
 echo "field_management_live_gate_ok"

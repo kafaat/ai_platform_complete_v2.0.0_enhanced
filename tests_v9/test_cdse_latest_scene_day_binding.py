@@ -218,12 +218,17 @@ async def test_an_explicit_historical_date_is_not_searched_again(monkeypatch) ->
 
 
 @pytest.mark.asyncio
-async def test_a_failing_catalog_search_falls_back_to_todays_behaviour(monkeypatch) -> None:
-    """انقطاع الكتالوج يُعيدنا إلى سلوك ما قبل الشريحة بالضبط — لا إلى بلاطة مفقودة."""
+async def test_a_failing_catalog_search_fails_closed(monkeypatch) -> None:
+    """C7 (IMAGERY-LATEST-CANONICAL-SCENE-BINDING-01) يُغلِق الدَّين المُعلَن أعلاه:
+    انقطاع الكتالوج لم يعد يُعيدنا إلى «سلوك ما قبل الشريحة» (معالجة النافذة الواسعة
+    تحت اسم latest) — بل يفشل مُغلَقاً بلا معالجة، تفضيلاً لبلاطة مفقودة على بلاطة
+    مُسمّاة «الأحدث» وهي ليست كذلك.
+    """
     client = _StubClient(search_raises=RuntimeError("الكتالوج منقطع"))
-    await _drive(monkeypatch, client, _WIDE_FROM, _WIDE_TO)
+    result = await _drive(monkeypatch, client, _WIDE_FROM, _WIDE_TO)
 
+    assert result is None
     assert len(client.search_calls) == 1
-    assert client.process_calls, "فشل البحث يجب ألّا يمنع المعالجة"
-    assert client.process_calls[0]["time_from"] == _WIDE_FROM
-    assert client.process_calls[0]["time_to"] == _WIDE_TO
+    assert client.process_calls == [], (
+        "فشل البحث يجب ألّا يُفضي إلى معالجة نافذة واسعة تحت اسم latest"
+    )

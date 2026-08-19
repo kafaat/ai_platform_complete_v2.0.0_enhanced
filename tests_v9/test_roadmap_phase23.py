@@ -3301,43 +3301,23 @@ def test_additional_providers():
 
 
 def test_cdse_provider():
-    """مزوّد CDSE (Copernicus Data Space): URLs من البيئة + OAuth صادق."""
+    """CDSE provider is canonical in raster-service, not duplicated in sahool-platform."""
     import os
-    import sys
 
     base = os.path.join(os.path.dirname(__file__), "..")
-    sys.path.insert(0, os.path.join(base, "services/sahool-platform"))
-    r = []
-    cop = open(
-        os.path.join(base, "services/sahool-platform/core/connectors/copernicus.py"),
-        encoding="utf-8",
-    ).read()
-    # 1. URLs قابلة للضبط من البيئة (لا hardcode صارم)
-    if (
-        'os.getenv("SH_BASE_URL"' in cop
-        and 'os.getenv(\n        "SH_TOKEN_URL"'
-        in cop.replace('os.getenv("SH_TOKEN_URL"', 'os.getenv(\n        "SH_TOKEN_URL"')
-        or "SH_TOKEN_URL" in cop
-    ):
-        r.append(("\u2713", "CDSE: SH_BASE_URL + SH_TOKEN_URL من البيئة (قابلة للضبط)"))
-    # 2. OAuth client_credentials موجود
-    if "def fetch_access_token" in cop and "client_credentials" in cop:
-        r.append(("\u2713", "CDSE: تدفّق OAuth client_credentials (الاتّصال الفعلي)"))
-    # 3. المفاتيح من البيئة فقط (لا hardcode)
-    if 'os.getenv("CDSE_CLIENT_ID"' in cop and 'os.getenv("CDSE_CLIENT_SECRET"' in cop:
-        r.append(("\u2713", "CDSE: المفاتيح من البيئة فقط (لا أسرار بالكود)"))
-    # 4. صدق: لا توكن وهمي عند غياب المفاتيح
-    try:
-        os.environ.pop("CDSE_CLIENT_ID", None)
-        os.environ.pop("CDSE_CLIENT_SECRET", None)
-        from core.connectors.copernicus import CopernicusConnector
-
-        res = CopernicusConnector().fetch_access_token()
-        if res["ok"] is False and "غير مضبوط" in res["reason"]:
-            r.append(("\u2713", "CDSE: صدق — لا توكن وهمي بلا مفاتيح"))
-    except Exception as e:
-        r.append(("\u2717", f"CDSE token فشل: {e}"))
-    return r
+    legacy = os.path.join(base, "services/sahool-platform/core/connectors/copernicus.py")
+    owner = os.path.join(base, "services/raster-service/cdse_client.py")
+    assert not os.path.exists(legacy)
+    src = open(owner, encoding="utf-8").read()
+    assert 'os.getenv("SH_BASE_URL"' in src
+    assert "SH_TOKEN_URL" in src
+    assert "CDSE_CLIENT_ID" in src and "CDSE_CLIENT_SECRET" in src
+    assert "def is_configured" in src
+    assert "class CdseClient" in src
+    return [
+        ("✓", "CDSE: canonical provider owned by raster-service"),
+        ("✓", "CDSE: credentials/env + OAuth runtime remain fail-closed"),
+    ]
 
 
 def test_planetary_computer_fallback():

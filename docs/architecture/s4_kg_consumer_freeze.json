@@ -1,0 +1,29 @@
+{
+  "schema": "sahool.s4-kg-consumer-freeze/v1",
+  "canonical_owner": "knowledge-graph",
+  "legacy_platform_store_absent": true,
+  "consumer_count": 3,
+  "consumers": [
+    {
+      "evidence": "services/ai_agronomist/ai_evidence_runtime.py",
+      "modes": [
+        "rest_edges"
+      ]
+    },
+    {
+      "evidence": "services/mcp_servers/generic_context_server.py",
+      "modes": [
+        "service_registry"
+      ]
+    },
+    {
+      "evidence": "services/sahool-platform/core/mcp_service_servers.py",
+      "modes": [
+        "service_registry"
+      ]
+    }
+  ],
+  "consumer_fingerprint_sha256": "55a58ceea6efc2e9cfb3a18177392ac204005381d30e627839b49a74f831093f",
+  "closure_rule": "live subject-bound REST/GraphQL parity PASS + legacy platform store path absent",
+  "measured_on": "010c9627c855b2b70b37b2ed58520fb4f25d69fe+delta"
+}

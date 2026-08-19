@@ -10,6 +10,7 @@
     AI_PROVIDER=openrouter  ⇒ OpenRouter (واجهة OpenAI chat/completions) — مُوجِّه يتيح
                              عدّة نماذج (DeepSeek، Claude Sonnet، Gemini 3 Pro…)
                              يُختار النموذج من كتالوج `AI_MODELS` وتختاره الواجهة.
+    AI_PROVIDER=vllm       ⇒ خادم vLLM داخليّ OpenAI-compatible؛ opt-in وغير افتراضي.
 
 الطرفان local/anthropic يتكلّمان `POST /v1/messages` بنفس البنية؛ openrouter يتكلّم
 `POST /v1/chat/completions` (صيغة OpenAI). نُجرّد الفرق عبر `wire_format` و`endpoint`،
@@ -33,6 +34,8 @@ DEFAULT_LOCAL_MODEL = "qwen3"
 DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
 DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_VLLM_BASE_URL = "http://sahool-vllm-jais:8000/v1"
+DEFAULT_VLLM_MODEL = "jais-natural-farmer"
 
 # كتالوج النماذج الافتراضيّ لكلّ مزوّد حين لا يُضبَط `AI_MODELS` في البيئة.
 # قيم أمثلة قابلة للتجاوز بالكامل من `.env` (المعرّفات الفعليّة يضبطها المشغّل).
@@ -46,6 +49,7 @@ _DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
         ("qwen3", "Qwen3 (محلّيّ)"),
         ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
     ],
+    "vllm": [("jais-natural-farmer", "Jais Natural Farmer (Solshine / vLLM)")],
 }
 
 
@@ -60,6 +64,8 @@ def _normalize_provider(raw: str | None) -> str:
         return "anthropic"
     if p in {"openrouter", "router", "or"}:
         return "openrouter"
+    if p in {"vllm", "jais", "jais-natural-farmer"}:
+        return "vllm"
     return "local"
 
 
@@ -185,6 +191,25 @@ def resolve_ai_provider(requested_model: str | None = None) -> AIProviderConfig:
             available=available,
             reason_ar=reason,
             wire_format="messages",
+            models=catalog,
+        )
+
+    if provider == "vllm":
+        base_url = (os.getenv("VLLM_BASE_URL") or DEFAULT_VLLM_BASE_URL).strip()
+        token = (os.getenv("VLLM_API_KEY") or "sahool-vllm-local").strip()
+        default_model = shared_model or (os.getenv("VLLM_MODEL") or DEFAULT_VLLM_MODEL).strip()
+        model = _resolve_model("vllm", default_model, requested_model)
+        headers = {"content-type": "application/json"}
+        if token:
+            headers["authorization"] = f"Bearer {token}"
+        return AIProviderConfig(
+            provider="vllm",
+            base_url=base_url,
+            model=model,
+            headers=headers,
+            available=bool(model and base_url),
+            reason_ar="" if model and base_url else "المزوّد vllm يحتاج VLLM_BASE_URL ونموذجاً.",
+            wire_format="openai_chat",
             models=catalog,
         )
 

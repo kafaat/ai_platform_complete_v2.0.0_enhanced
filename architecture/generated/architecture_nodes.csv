@@ -56,8 +56,8 @@ platform,service,2,80,False,services/sahool-platform
 postgis,compose-service,12,0,False,
 production-preflight,compose-service,3,0,False,
 python,compose-service,5,0,False,
-qdrant,compose-service,4,0,False,
-qdrant-seed,service,0,1,False,services/qdrant-seed
+qdrant,compose-service,5,0,False,
+qdrant-seed,service,0,2,False,services/qdrant-seed
 rag-retrieval,service,1,1,False,services/rag-retrieval
 raster-service,service,16,9,False,services/raster-service
 raster-tiler-service,service,0,0,True,services/raster-tiler-service

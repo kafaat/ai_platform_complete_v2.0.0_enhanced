@@ -59,6 +59,15 @@ def test_check_passes_on_current_tree() -> None:
     assert _guard().check(fix=False) == 0
 
 
+def test_nested_architecture_evidence_is_out_of_manifest_registry_scope() -> None:
+    # git pathspec docs/architecture/*.json matches descendants too. The registry contract
+    # governs direct manifests only; nested evidence payloads may legitimately be JSON arrays.
+    guard = _guard()
+    tracked = guard.tracked_manifests()
+    assert "docs/architecture/evidence/s4_kg_parity_cases.json" not in tracked
+    assert guard.derive_entries() == {e["path"]: e["kind"] for e in _registry()["entries"]}
+
+
 def test_unregistered_adjudicated_manifest_is_caught() -> None:
     # تزييف حقيقي: بيان محكَّم يدخل الشجرة بلا تسجيل يجب أن يُقبض، ثم يُحذف
     # فيعود الأخضر — يثبت أن القبض على الجرد الفعلي لا على نسخة قديمة.

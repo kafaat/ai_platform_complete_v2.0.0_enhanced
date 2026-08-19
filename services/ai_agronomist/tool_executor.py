@@ -153,9 +153,31 @@ def execute_read_tool(
                 logger.warning("فشل جالب الأداة %s: %s", tool_name, exc)
                 outcome, reason = OUTCOME_FAILED, "fetcher_error"
 
+    candidate = None
+    if plan["outcome"] == OUTCOME_PENDING_APPROVAL:
+        candidate = {
+            "kind": "agent_action_candidate.v1",
+            "tool": tool_name,
+            "params": _redact(params),
+            "tenant_id": str(tenant_id),
+            "actor": str(actor),
+            "requested_at": timestamp,
+            "input_hash": input_hash(params),
+            "authority": "decision_service",
+            "required_chain": [
+                "candidate",
+                "decision",
+                "approval",
+                "execution",
+                "evidence",
+                "outcome",
+            ],
+            "direct_action_permitted": False,
+        }
     return {
         "tool": tool_name,
         "outcome": outcome,
+        "candidate": candidate,
         "reason": reason,
         "risk": plan["risk"],
         "capability": plan["capability"],

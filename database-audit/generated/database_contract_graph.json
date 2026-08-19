@@ -2504,7 +2504,8 @@
         "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
         "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
         "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
-        "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py"
+        "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
+        "services/sahool-platform/tests/test_s5_exec_01_decision_record_cutover.py"
       ],
       "created_in": "v78_decision_record.sql",
       "has_tenant_id": true,
@@ -2576,7 +2577,8 @@
       "code_writers": [
         "services/decision-service/persistence.py",
         "services/sahool-platform/api/routers/decision_dispatch.py",
-        "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py"
+        "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+        "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py"
       ],
       "created_in": "v66_dispatch_decisions.sql",
       "has_tenant_id": true,
@@ -5458,7 +5460,8 @@
         "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
         "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
         "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
-        "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py"
+        "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+        "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py"
       ],
       "created_in": "v79_outcome_record.sql",
       "has_tenant_id": true,
@@ -5663,6 +5666,7 @@
     {
       "code_readers": [
         "services/decision-service/persistence.py",
+        "services/decision-service/recommendation_outcomes_cutover_preflight.py",
         "services/sahool-platform/api/learning_feedback.py",
         "services/sahool-platform/api/routers/fields.py",
         "services/sahool-platform/api/routers/learning.py",
@@ -5673,7 +5677,8 @@
       "code_writers": [
         "services/decision-service/persistence.py",
         "services/sahool-platform/api/routers/recommendations.py",
-        "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py"
+        "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+        "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py"
       ],
       "created_in": "v49_zone_key_recommendation_outcomes.sql",
       "has_tenant_id": true,

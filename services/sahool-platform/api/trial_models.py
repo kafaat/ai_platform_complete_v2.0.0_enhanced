@@ -9,7 +9,7 @@ stdlib، بلا أيّ رمز آخر من ``api.main``. مستهلِكها ال�
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TrialBlockInput(BaseModel):
@@ -18,7 +18,18 @@ class TrialBlockInput(BaseModel):
     control_yield: float
 
 
+class METObservationInput(BaseModel):
+    genotype: str = Field(min_length=1, max_length=120)
+    environment_id: str = Field(min_length=1, max_length=160)
+    yield_value: float
+    replicate: int | None = Field(default=None, ge=1)
+
+
 class TrialAnalysisRequest(BaseModel):
     blocks: list[TrialBlockInput]
     confidence_level: float = 0.95
     treatment_label_ar: str = "المعالجة الجديدة"
+    season_id: str | None = None
+    study_id: str | None = None
+    trial_id: str | None = None
+    met_observations: list[METObservationInput] = Field(default_factory=list)

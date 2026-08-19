@@ -1,0 +1,543 @@
+{
+  "schema": "sahool.s5-exec-01.edge-freeze/v2",
+  "measured_on_tree": "main 71108f2e (S4); regenerate on current tree before each shrink batch",
+  "identity_set": [
+    "recommendation_outcomes",
+    "outcome_record",
+    "decision_record",
+    "dispatch_decisions",
+    "online_learning_updates"
+  ],
+  "edge_class_rule": "deterministic, emitted by this generator: evidence path normalized (posix); test_witness iff a path segment is tests|tests_v9 or basename starts with test_; else runtime. Downstream guards consume edge_class, never re-derive lexically.",
+  "fingerprint_algorithm": {
+    "select_fields": [
+      "from",
+      "relation",
+      "resource",
+      "protocol",
+      "to",
+      "evidence"
+    ],
+    "normalize": "evidence path posix-normalized",
+    "sort": "lexicographic by all selected fields as strings",
+    "serialize": "JSON UTF-8, separators (\",\",\":\"), ensure_ascii=false",
+    "hash": "sha256(bytes)"
+  },
+  "counts": {
+    "graph_total": 54,
+    "graph_reads": 29,
+    "graph_writes": 25,
+    "runtime_total": 31,
+    "runtime_reads": 25,
+    "runtime_writes": 6,
+    "test_witness_total": 23,
+    "test_witness_reads": 4,
+    "test_witness_writes": 19,
+    "decision_service_total": 25
+  },
+  "edge_fingerprint_sha256": "34f240e7e3ca33dcdcc3b54dd88e3ce6c9052b4bb540ee3901ad2f3801088c1a",
+  "edge_fingerprint_scope": "historical full selected graph at the original S5-EXEC-01 freeze; compatibility receipt only",
+  "observed_edge_fingerprint_sha256": "93cdcbd748cfc35230a93bf24e9dfed37847a55bb45f47053b1cf5f23880314f",
+  "runtime_migration_surface_frozen_sha256": "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7",
+  "runtime_migration_surface_fingerprint_sha256": "bb8565c7a42368ee57cb01a3b4ec42dec1d2b5c676425b6b62b45df38d7ef7a7",
+  "runtime_writer_surface_frozen_sha256": "c6820171e88b4f785d49f88023828bc59fd32a5b260a42d52a1f0d952376786a",
+  "runtime_writer_surface_fingerprint_sha256": "c6820171e88b4f785d49f88023828bc59fd32a5b260a42d52a1f0d952376786a",
+  "runtime_migration_surface_counts": {
+    "total": 31,
+    "reads": 25,
+    "writes": 6
+  },
+  "frozen_runtime_migration_surface_counts": {
+    "total": 31,
+    "reads": 25,
+    "writes": 6
+  },
+  "non_migration_witness_floor": {
+    "test_witness_total": 19,
+    "decision_service_total": 24
+  },
+  "writer_cutover_set_runtime_only": [
+    {
+      "table": "recommendation_outcomes",
+      "writers": [
+        "services/sahool-platform/api/routers/recommendations.py"
+      ]
+    },
+    {
+      "table": "outcome_record",
+      "writers": [
+        "services/sahool-platform/api/routers/decision_record.py"
+      ]
+    },
+    {
+      "table": "decision_record",
+      "writers": [
+        "services/sahool-platform/api/routers/decision_record.py",
+        "services/sahool-platform/api/routers/weather.py"
+      ]
+    },
+    {
+      "table": "dispatch_decisions",
+      "writers": [
+        "services/sahool-platform/api/routers/decision_dispatch.py"
+      ]
+    },
+    {
+      "table": "online_learning_updates",
+      "writers": [
+        "services/sahool-platform/api/phase_runtime_store.py"
+      ]
+    }
+  ],
+  "test_witness_policy": "test witnesses are NOT migration surface; they may grow as end-state protection is added, but the original witness floor must not shrink merely because legacy SQL disappears.",
+  "projection_read_rule": "a legitimate projection read is reclassified in the graph to non-authoritative projection READ rather than force-deleted; the invariant is authoritative platform reads == 0.",
+  "migration_batches": {
+    "recommendation_outcomes": {
+      "runtime": {
+        "reads": [
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/api/learning_feedback.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/api/routers/fields.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/api/routers/learning.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/api/routers/learning_summary.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/api/routers/seasons.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "runtime"
+          }
+        ],
+        "writes": [
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/api/routers/recommendations.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "runtime"
+          }
+        ]
+      },
+      "test_witness": {
+        "reads": [
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "test_witness"
+          }
+        ],
+        "writes": [
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://recommendation_outcomes",
+            "evidence": "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
+            "protocol": "postgres",
+            "to": "db://recommendation_outcomes",
+            "edge_class": "test_witness"
+          }
+        ]
+      }
+    },
+    "outcome_record": {
+      "runtime": {
+        "reads": [
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/agronomic_replay.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/calibration.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/decision_explain.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/decision_record.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/evidence_map.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/execution_feedback.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/learning_summary.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/seasons.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          }
+        ],
+        "writes": [
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/api/routers/decision_record.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "runtime"
+          }
+        ]
+      },
+      "test_witness": {
+        "reads": [
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "test_witness"
+          }
+        ],
+        "writes": [
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/tests/test_decision_interim_bridge.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://outcome_record",
+            "evidence": "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
+            "protocol": "postgres",
+            "to": "db://outcome_record",
+            "edge_class": "test_witness"
+          }
+        ]
+      }
+    },
+    "decision_record": {
+      "runtime": {
+        "reads": [
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/agronomic_replay.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/decision_explain.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/decision_record.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/evidence_map.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/execution_feedback.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/learning_summary.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/operations.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          }
+        ],
+        "writes": [
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/decision_record.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/api/routers/weather.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "runtime"
+          }
+        ]
+      },
+      "test_witness": {
+        "reads": [
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/tests/test_operations_summary_endpoint.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "test_witness"
+          }
+        ],
+        "writes": [
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/tests/test_decision_interim_bridge.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://decision_record",
+            "evidence": "services/sahool-platform/tests/test_s5_exec_01_decision_record_cutover.py",
+            "protocol": "postgres",
+            "to": "db://decision_record",
+            "edge_class": "test_witness"
+          }
+        ]
+      }
+    },
+    "dispatch_decisions": {
+      "runtime": {
+        "reads": [
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/api/routers/decision_dispatch.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/api/routers/decision_impact.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/api/routers/field_twin.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/api/routers/learning_summary.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "runtime"
+          },
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/api/routers/seasons.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "runtime"
+          }
+        ],
+        "writes": [
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/api/routers/decision_dispatch.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "runtime"
+          }
+        ]
+      },
+      "test_witness": {
+        "reads": [
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "test_witness"
+          }
+        ],
+        "writes": [
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://dispatch_decisions",
+            "evidence": "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
+            "protocol": "postgres",
+            "to": "db://dispatch_decisions",
+            "edge_class": "test_witness"
+          }
+        ]
+      }
+    },
+    "online_learning_updates": {
+      "runtime": {
+        "reads": [],
+        "writes": [
+          {
+            "resource": "db://online_learning_updates",
+            "evidence": "services/sahool-platform/api/phase_runtime_store.py",
+            "protocol": "postgres",
+            "to": "db://online_learning_updates",
+            "edge_class": "runtime"
+          }
+        ]
+      },
+      "test_witness": {
+        "reads": [],
+        "writes": [
+          {
+            "resource": "db://online_learning_updates",
+            "evidence": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+            "protocol": "postgres",
+            "to": "db://online_learning_updates",
+            "edge_class": "test_witness"
+          },
+          {
+            "resource": "db://online_learning_updates",
+            "evidence": "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
+            "protocol": "postgres",
+            "to": "db://online_learning_updates",
+            "edge_class": "test_witness"
+          }
+        ]
+      }
+    }
+  },
+  "measured_on": "010c9627c855b2b70b37b2ed58520fb4f25d69fe+delta"
+}

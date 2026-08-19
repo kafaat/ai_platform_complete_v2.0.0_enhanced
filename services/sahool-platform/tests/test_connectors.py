@@ -1,91 +1,52 @@
-"""Tests for external connectors — honest behavior, no fabrication."""
+"""S5 provider ownership/end-state witnesses.
 
-from core.connectors.base import FetchStatus
-from core.connectors.copernicus import CopernicusConnector, ImageryRequest
-from core.connectors.weather_openmeteo import OpenMeteoConnector
+Provider implementations that have a canonical runtime path must not remain as
+dead duplicate clients under sahool-platform.
+"""
 
+import re
+from pathlib import Path
 
-class TestConnectors:
-    def test_openmeteo_no_fabrication_offline(self):
-        om = OpenMeteoConnector()
-        r = om.fetch(lat=16.15, lon=45.30)
-        # without server response, must NOT invent data
-        assert r.status == FetchStatus.UNAVAILABLE
-        assert not r.data
-
-    def test_openmeteo_parses_server_response(self):
-        om = OpenMeteoConnector()
-        fake = {
-            "daily": {
-                "temperature_2m_max": [42],
-                "temperature_2m_min": [22],
-                "relative_humidity_2m_mean": [25],
-                "wind_speed_10m_max": [12.6],
-                "shortwave_radiation_sum": [28],
-                "precipitation_sum": [0],
-            }
-        }
-        r = om.fetch(lat=16.15, elevation_m=1100, _live_response=fake)
-        assert r.status == FetchStatus.OK
-        assert r.data["temp_max_c"] == 42
-        assert abs(r.data["wind_speed_ms"] - 3.5) < 0.01  # km/h converted
-        assert r.error_margin > 0  # carries provenance
-
-    def test_openmeteo_free_no_key(self):
-        om = OpenMeteoConnector()
-        assert om.is_configured()  # free, no key needed
-
-    def test_copernicus_requires_key(self):
-        cop = CopernicusConnector()
-        # without env key, not configured -> won't fabricate
-        assert cop.requires_key
-        r = cop.fetch(request=ImageryRequest([[45.3, 16.15]], "2026-05-01", "2026-05-23"))
-        assert r.status == FetchStatus.UNAVAILABLE
-
-    def test_cloud_gate_decides_radar(self):
-        cop = CopernicusConnector()
-        assert not cop.should_use_radar(10)  # clear -> optical
-        assert cop.should_use_radar(50)  # cloudy -> radar
-
-    def test_no_keys_in_code(self):
-        # the key must come from env var name, never a literal
-        cop = CopernicusConnector()
-        assert cop.key_env_var == "CDSE_CLIENT_SECRET"
-        assert cop._get_key() is None  # not set in test env
+ROOT = Path(__file__).resolve().parents[3]
 
 
-class TestCloudThresholdConsistency:
-    """يحرس إصلاح تكرار العتبة السحرية: مصدر حقيقة واحد للعتبة (DRY)."""
+def _production_imports(pattern: str) -> list[str]:
+    rx = re.compile(pattern)
+    out = []
+    for p in sorted((ROOT / "services").rglob("*.py")):
+        rel = p.relative_to(ROOT).as_posix()
+        if "/tests/" in rel or p.name.startswith("test_"):
+            continue
+        txt = p.read_text(encoding="utf-8", errors="ignore")
+        if rx.search(txt):
+            out.append(rel)
+    return out
 
-    def test_shared_constant_exists(self):
-        from core.connectors.base import CLOUD_THRESHOLD_PCT
 
-        assert CLOUD_THRESHOLD_PCT == 20.0
+def test_cdse_provider_is_owned_by_raster_service():
+    assert not (ROOT / "services/sahool-platform/core/connectors/copernicus.py").exists()
+    owner = ROOT / "services/raster-service/cdse_client.py"
+    assert owner.is_file()
+    s = owner.read_text(encoding="utf-8")
+    for token in (
+        "CDSE_CLIENT_ID",
+        "CDSE_CLIENT_SECRET",
+        "SH_TOKEN_URL",
+        "SH_BASE_URL",
+        "def is_configured",
+        "def get_client",
+        "class CdseClient",
+    ):
+        assert token in s
+    assert _production_imports(r"core\.connectors\.copernicus|CopernicusConnector") == []
 
-    def test_imagery_request_uses_shared_constant(self):
-        # ImageryRequest الافتراضي يطابق الثابت المشترك، لا قيمة سحرية منفصلة
-        from core.connectors.base import CLOUD_THRESHOLD_PCT
-        from core.connectors.copernicus import ImageryRequest
 
-        assert ImageryRequest([], "", "").max_cloud_pct == CLOUD_THRESHOLD_PCT
-
-    def test_radar_decision_matches_threshold(self):
-        # القرار عند العتبة متّسق: تحتها بصري، عندها/فوقها رادار
-        from core.connectors.base import CLOUD_THRESHOLD_PCT
-        from core.connectors.copernicus import CopernicusConnector
-
-        c = CopernicusConnector()
-        assert c.should_use_radar(CLOUD_THRESHOLD_PCT - 0.1) is False
-        assert c.should_use_radar(CLOUD_THRESHOLD_PCT) is True
-
-    def test_pipeline_agrees_with_connector_at_threshold(self):
-        # pipeline.decide_source و connector متّسقان عند العتبة (لا تضارب)
-        from core.connectors.base import CLOUD_THRESHOLD_PCT
-        from core.connectors.copernicus import CopernicusConnector
-        from core.spatial.pipeline import Satellite, decide_source
-
-        c = CopernicusConnector()
-        # تحت العتبة: pipeline يختار بصري، connector لا يلجأ للرادار
-        sat, _ = decide_source(CLOUD_THRESHOLD_PCT - 1)
-        assert sat == Satellite.S2_OPTICAL
-        assert c.should_use_radar(CLOUD_THRESHOLD_PCT - 1) is False
+def test_openmeteo_provider_uses_canonical_api_connector_only():
+    legacy = ROOT / "services/sahool-platform/core/connectors/weather_openmeteo.py"
+    owner = ROOT / "services/sahool-platform/api/connectors/openmeteo.py"
+    assert not legacy.exists()
+    assert owner.is_file()
+    src = owner.read_text(encoding="utf-8")
+    for token in ("FORECAST_URL", "HISTORICAL_URL", "CircuitBreaker", "httpx.AsyncClient"):
+        assert token in src
+    assert _production_imports(r"core\.connectors\.weather_openmeteo|OpenMeteoConnector") == []

@@ -238,7 +238,13 @@ async def ensure_field_cog(
     *,
     logger,
 ) -> str | None:
-    """Ensure a cropped field COG exists for CDSE tile/thumbnail rendering."""
+    """Ensure a cropped field COG exists for CDSE tile/thumbnail rendering.
+
+    C7 invariant: a multi-day ``latest`` request is first bound to one eligible
+    scene.  The selected scene identity then becomes the cache/single-flight key
+    *before* cache lookup.  This prevents request-day aliases from pinning stale
+    bytes and avoids the broken pattern of locking one key while storing another.
+    """
     tenant = REQ_TENANT.get() or "_"
     geom_sig = "none"
     if field_geom is not None:
@@ -249,7 +255,86 @@ async def ensure_field_cog(
             ).hexdigest()[:12]
         except (TypeError, ValueError):
             geom_sig = "err"
-    cache_key = f"{tenant}:{field_id}:{internal}:{today}:{'p' if has_poly else 'b'}:{geom_sig}"
+
+    selected: scene_policy.SelectedScene | None = None
+    mosaicking_order = _cdse.MOSAIC_LEAST_CLOUD
+    client = None
+    latest_window = window_spans_multiple_days(date_from, date_to)
+
+    # ``latest`` cannot use a durable cache identity until the latest eligible
+    # scene has been established.  The catalogue lookup therefore deliberately
+    # precedes cache lookup for multi-day windows.  Availability may degrade;
+    # semantic fabrication (processing the whole window as "latest") may not.
+    if latest_window:
+        try:
+            client = _cdse.get_client()
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                "CDSE latest client unavailable (%s/%s): %s — fail-closed",
+                field_id,
+                internal,
+                type(e).__name__,
+            )
+            return None
+        if not field_bbox:
+            logger.warning(
+                "CDSE fetch aborted (%s/%s): لا bbox للحقل — fail-closed بلا احتياطيّ ثابت",
+                field_id,
+                internal,
+            )
+            return None
+
+        for probe_from, probe_to in backward_probe_windows(date_from, date_to):
+            try:
+                scenes = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda pf=probe_from, pt=probe_to: client.search_scenes(
+                        bbox=list(field_bbox),
+                        time_from=pf,
+                        time_to=pt,
+                        max_cloud_pct=MAX_CLOUD_PCT,
+                        limit=10,
+                        geometry=field_geom,
+                    ),
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.warning(
+                    "CDSE latest binding failed (%s/%s): %s — fail-closed",
+                    field_id,
+                    internal,
+                    type(e).__name__,
+                )
+                return None
+            bound_from, bound_to, selected = bind_scene_day_window(scenes, date_from, date_to)
+            if selected is not None:
+                date_from, date_to = bound_from, bound_to
+                break
+
+        if selected is None:
+            logger.warning(
+                "CDSE latest unavailable (%s/%s): no eligible scene — fail-closed",
+                field_id,
+                internal,
+            )
+            return None
+
+        mosaicking_order = _cdse.MOSAIC_MOST_RECENT
+        receipt = selected.as_receipt()
+        logger.info(
+            "CDSE latest bound (%s/%s): %s",
+            field_id,
+            internal,
+            _json.dumps(receipt, ensure_ascii=False, sort_keys=True),
+        )
+        scene_identity = str(selected.scene_id or selected.acquisition_datetime)
+        cache_key = (
+            f"{tenant}:{field_id}:{internal}:scene:{scene_identity}:"
+            f"{selected.acquisition_day}:{'p' if has_poly else 'b'}:{geom_sig}"
+        )
+    else:
+        cache_key = (
+            f"{tenant}:{field_id}:{internal}:request:{today}:{'p' if has_poly else 'b'}:{geom_sig}"
+        )
 
     def _cache_hit() -> str | None:
         entry = cdse_singleflight.cdse_tile_cache.get(cache_key)
@@ -272,10 +357,10 @@ async def ensure_field_cog(
             if entry and os.path.exists(entry[1]):
                 _unlink_best_effort(entry[1], "إخلاء إدخال بائت من ذاكرة البلاطات")
                 cdse_singleflight.cdse_tile_cache.pop(cache_key, None)
-        selected: scene_policy.SelectedScene | None = None
-        mosaicking_order = _cdse.MOSAIC_LEAST_CLOUD
+
         try:
-            client = _cdse.get_client()
+            if client is None:
+                client = _cdse.get_client()
             if not field_bbox:
                 logger.warning(
                     "CDSE fetch aborted (%s/%s): لا bbox للحقل — fail-closed بلا احتياطيّ ثابت",
@@ -283,67 +368,7 @@ async def ensure_field_cog(
                     internal,
                 )
                 return None
-            # ربط النافذة الممتدّة بيوم المشهد الحقيقيّ **بعد** فحص الكاش وحده: قبله
-            # كان نداءً شبكيّاً إضافيّاً على كلّ إصابة كاش. وهنا يقع مرّةً لكلّ ملء.
-            if window_spans_multiple_days(date_from, date_to):
-                probes = backward_probe_windows(date_from, date_to)
-                bound_from, bound_to = date_from, date_to
-                for probe_from, probe_to in probes:
-                    try:
-                        scenes = await asyncio.get_event_loop().run_in_executor(
-                            None,
-                            lambda pf=probe_from, pt=probe_to: client.search_scenes(
-                                bbox=list(field_bbox),
-                                time_from=pf,
-                                time_to=pt,
-                                max_cloud_pct=MAX_CLOUD_PCT,
-                                limit=10,
-                                geometry=field_geom,
-                            ),
-                        )
-                    except Exception as e:  # noqa: BLE001
-                        # انقطاعٌ في نافذةٍ لا يُبطِل ما قبلها؛ نتوقّف بدل مواصلة النزول
-                        # إلى الأقدم على شبكةٍ منهارة، ونُبقي الحدّ الأصليّ.
-                        logger.warning(
-                            "CDSE scene date binding skipped (%s/%s): %s — نافذة الاسترجاع كما هي",
-                            field_id,
-                            internal,
-                            type(e).__name__,
-                        )
-                        break
-                    bound_from, bound_to, selected = bind_scene_day_window(
-                        scenes, date_from, date_to
-                    )
-                    if selected is not None:
-                        # أوّل نافذة تُثمِر تحسم: كلّ ما بعدها **أقدم بالبناء**.
-                        break
-                date_from, date_to = bound_from, bound_to
-                if selected is not None:
-                    # العقد اتّفق: اخترنا «أحدث اكتساب مقبول»، فالفسيفساء تُطلَب
-                    # `mostRecent` لا `leastCC`. تركُ `leastCC` بعد التضييق كان يُبقي
-                    # آخر خطوة تتكلّم دلالةً غير التي اختارت المشهد.
-                    mosaicking_order = _cdse.MOSAIC_MOST_RECENT
-                    receipt = selected.as_receipt()
-                    # الشاهد يُسجَّل كاملاً: «latest» قد تكون مشهداً عمره أشهر، وبلا هذا
-                    # لا أثر في أيّ مكان يقول أيّ مشهدٍ عُرِض فعلاً.
-                    logger.info(
-                        "CDSE latest bound (%s/%s): %s",
-                        field_id,
-                        internal,
-                        _json.dumps(receipt, ensure_ascii=False, sort_keys=True),
-                    )
-                else:
-                    # دَينُ انتقال مُعلَن: نافذةٌ واسعة تُقدَّم باسم latest عند تعذّر
-                    # الاختيار (IMAGERY-LATEST-SELECTION-SEMANTICS-02).
-                    logger.warning(
-                        "CDSE latest unbound (%s/%s): لا مشهد مؤهَّل — %s على %s..%s "
-                        "(دلالةٌ غير مضمونة)",
-                        field_id,
-                        internal,
-                        mosaicking_order,
-                        date_from,
-                        date_to,
-                    )
+
             geotiff_bytes = await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: client.process_index(
@@ -380,9 +405,7 @@ async def ensure_field_cog(
                     # يبقى النداء حرفيّاً `os.unlink(cog_path)` هنا لا عبر المساعِد:
                     # `tests_v9/test_tile_mask_fail_closed_v29_8.py:49` حارس **مصدريّ**
                     # يفتّش النصّ عن هذه الصيغة بالذات ليُثبِت أنّ فشل القناع ينظّف
-                    # الملفّ المؤقّت (منع تسريب قرص على مسار fail-closed أمنيّ). تليين
-                    # الحارس ليقبل المساعِد كان سيُضعِف حارساً أمنيّاً من أجل إعادة صياغة
-                    # تجميليّة — فالرؤية تُضاف هنا بلا تغيير الصيغة.
+                    # الملفّ المؤقّت (منع تسريب قرص على مسار fail-closed أمنيّ).
                     try:
                         os.unlink(cog_path)
                     except OSError as unlink_exc:
@@ -392,11 +415,7 @@ async def ensure_field_cog(
                             type(unlink_exc).__name__,
                         )
                     return None
-            # نجاح النقل ليس نجاحاً للمحتوى (IMAGERY-BLANK-THUMBNAIL-01): استجابة ٢٠٠
-            # بـGeoTIFF سليم البنية وفارغ البكسلات تدخل الكاش ساعةً وتُجمِّد الفراغ،
-            # فلا يُعيد أيّ طلب لاحق المحاولة حتّى بعد نشر إصلاح. نقيس المحتوى قبل
-            # التخزين: بلا مشاهدة ⇒ لا كاش ولا ملفّ (fail-closed، والطلب التالي يعيد
-            # السؤال بدل استهلاك فراغ مُخبّأ).
+            # نجاح النقل ليس نجاحاً للمحتوى (IMAGERY-BLANK-THUMBNAIL-01).
             try:
                 import tile_render as _tr
 
@@ -419,7 +438,10 @@ async def ensure_field_cog(
                 _unlink_best_effort(cog_path, "راستر فارغ من CDSE ⇒ لا يُخزَّن")
                 return None
             async with cdse_singleflight.cdse_lock():
-                cdse_singleflight.cdse_tile_cache[cache_key] = (_t.monotonic() + 3600.0, cog_path)
+                cdse_singleflight.cdse_tile_cache[cache_key] = (
+                    _t.monotonic() + 3600.0,
+                    cog_path,
+                )
                 cdse_singleflight.cdse_prune_key_locks_locked()
             return cog_path
         except Exception as e:  # noqa: BLE001

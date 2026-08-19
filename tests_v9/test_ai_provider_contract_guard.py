@@ -49,6 +49,9 @@ _INPUTS = [
     "  CLAUDE  ",
     "openrouter",
     "router",
+    "vllm",
+    "jais",
+    "jais-natural-farmer",
     "or",
     "OpenRouter",
     "ollama",
@@ -77,12 +80,14 @@ def test_network_contract_constants_match():
         assert mod.DEFAULT_ANTHROPIC_BASE_URL == CONTRACT.DEFAULT_ANTHROPIC_BASE_URL
         assert mod.DEFAULT_OPENROUTER_BASE_URL == CONTRACT.DEFAULT_OPENROUTER_BASE_URL
         assert mod.DEFAULT_OLLAMA_BASE_URL == CONTRACT.DEFAULT_OLLAMA_BASE_URL
+        assert mod.DEFAULT_VLLM_BASE_URL == CONTRACT.DEFAULT_VLLM_BASE_URL
+        assert mod.DEFAULT_VLLM_MODEL == CONTRACT.DEFAULT_VLLM_MODEL
 
 
 def test_canonical_providers_closed_set():
     """مجموعة المزوّدات القانونيّة مغلقة: لا يُنتِج أيّ مدخل معرّفاً خارجها."""
     allowed = set(CONTRACT.CANONICAL_PROVIDERS)
-    assert allowed == {"local", "anthropic", "openrouter"}
+    assert allowed == {"local", "vllm", "anthropic", "openrouter"}
     for raw in _INPUTS:
         assert CONTRACT.normalize_provider(raw) in allowed
 
@@ -97,6 +102,7 @@ def test_secret_env_names_are_key_suffixed():
     """أسماء المتغيّرات السرّيّة للمزوّد تُقرأ من البيئة فقط (عقد، لا قيَم)."""
     assert CONTRACT.ENV_OPENROUTER_API_KEY == "OPENROUTER_API_KEY"
     assert CONTRACT.ENV_ANTHROPIC_API_KEY == "ANTHROPIC_API_KEY"
+    assert CONTRACT.ENV_VLLM_API_KEY == "VLLM_API_KEY"
     assert all(name.endswith("_API_KEY") for name in CONTRACT.SECRET_ENV_NAMES)
 
 
@@ -113,4 +119,5 @@ def test_external_providers_no_drift():
     assert set(CONTRACT.EXTERNAL_PROVIDERS) == {"anthropic", "openrouter"}
     # المحلّيّ ليس خارجيّاً (لا تُطبَّق عليه قيود المشاركة).
     assert "local" not in CONTRACT.EXTERNAL_PROVIDERS
+    assert "vllm" not in CONTRACT.EXTERNAL_PROVIDERS
     assert GEN.provider_is_external("anthropic") and not GEN.provider_is_external("local")

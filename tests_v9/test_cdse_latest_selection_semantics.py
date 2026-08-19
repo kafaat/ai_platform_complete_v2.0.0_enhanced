@@ -271,18 +271,18 @@ async def test_the_live_path_asks_for_most_recent_once_it_bound_a_scene(monkeypa
 
 
 @pytest.mark.asyncio
-async def test_an_unbound_window_does_not_claim_most_recent(monkeypatch) -> None:
-    """تعذّر الاختيار ⇒ نبقى على ``leastCC`` ولا ندّعي دلالةً لم نُنفّذها.
+async def test_an_unbound_window_fails_closed_instead_of_claiming_most_recent(monkeypatch) -> None:
+    """تعذّر الاختيار ⇒ لا معالجة أصلاً، لا ``leastCC`` ولا ادّعاء «latest».
 
-    **حدّ صدق مقيس:** هذه الحالة تُثبِت أنّنا لا **نكذب** في وسيط الفسيفساء؛ ولا
-    تُثبِت أنّ الناتج «latest». تقديمُ نافذة واسعة تحت اسم latest عند العطل دَينُ
-    انتقال مُعلَن في `IMAGERY-LATEST-CANONICAL-SCENE-BINDING-01`، يُغلَق بتدهور
-    توافريّة صريح لا بتلفيق دلاليّ.
+    **حدّ صدق مقيس:** الدَّين المُعلَن سابقاً في `IMAGERY-LATEST-CANONICAL-SCENE-BINDING-01`
+    (تقديم نافذة واسعة تحت اسم latest عند العطل) أُغلِق بواسطة C7: تعذّر الاختيار الآن
+    يُنتِج ``None`` صراحةً — تدهور توافريّة صريح لا تلفيق دلاليّ، وليس معالجة ``leastCC``
+    صامتة كما كان.
     """
     client = _RecordingClient([])
     monkeypatch.setattr(runtime._cdse, "get_client", lambda: client)
     monkeypatch.setattr(runtime._cdse, "is_truecolor", lambda _index: False)
-    await runtime.ensure_field_cog(
+    result = await runtime.ensure_field_cog(
         "fld_sem2",
         "ndvi",
         "2026-08-16",
@@ -293,9 +293,8 @@ async def test_an_unbound_window_does_not_claim_most_recent(monkeypatch) -> None
         False,
         logger=__import__("logging").getLogger(__name__),
     )
-    sent = client.process_calls[0]
-    assert sent["mosaicking_order"] == cdse_client.MOSAIC_LEAST_CLOUD
-    assert sent["time_from"] == "2019-01-01T00:00:00Z"
+    assert result is None
+    assert client.process_calls == [], "تعذّر الاختيار يجب ألّا يُفضي إلى معالجة leastCC صامتة"
 
 
 # ── ٤) تكافؤ المسارين على الدلالة الصحيحة ───────────────────────────────────────

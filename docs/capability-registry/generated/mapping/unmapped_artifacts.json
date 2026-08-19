@@ -2492,6 +2492,10 @@
     "kind": "database"
   },
   {
+    "path": "services/decision-service/migrations/032_recommendation_outcomes_cutover_compat.sql",
+    "kind": "database"
+  },
+  {
     "path": "services/decision-service/outcome_reconcile.py",
     "kind": "backend"
   },
@@ -2505,6 +2509,10 @@
   },
   {
     "path": "services/decision-service/read_side_compare.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/decision-service/recommendation_outcomes_cutover_preflight.py",
     "kind": "backend"
   },
   {
@@ -2565,6 +2573,18 @@
   },
   {
     "path": "services/decision-service/tests/test_p4_decision_service_runtime.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_s5_exec_01_decision_record_immutable.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_compat.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/decision-service/tests/test_s5_exec_01_recommendation_outcomes_preflight.py",
     "kind": "tests"
   },
   {
@@ -3000,6 +3020,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/raster-service/test_c7_latest_cache_provenance.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/raster-service/test_imagery_source_gate.py",
     "kind": "tests"
   },
@@ -3165,10 +3189,6 @@
   },
   {
     "path": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
     "kind": "backend"
   },
   {
@@ -3940,6 +3960,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/api/routers/recommendations.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/api/routers/regional_calendar.py",
     "kind": "backend"
   },
@@ -4205,10 +4229,6 @@
   },
   {
     "path": "services/sahool-platform/core/connectors/base.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/core/connectors/weather_openmeteo.py",
     "kind": "backend"
   },
   {
@@ -4568,6 +4588,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/sahool-platform/core/erp_projection_contract.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/sahool-platform/core/event_schema.py",
     "kind": "backend"
   },
@@ -4661,10 +4685,6 @@
   },
   {
     "path": "services/sahool-platform/core/knowledge_graph/__init__.py",
-    "kind": "backend"
-  },
-  {
-    "path": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
     "kind": "backend"
   },
   {
@@ -5041,6 +5061,10 @@
   },
   {
     "path": "services/sahool-platform/tests/test_boundary_confidence.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_c4_erp_projection_binding.py",
     "kind": "tests"
   },
   {
@@ -5448,6 +5472,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_imagery_providers.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_imagery_sync_24h_cadence.py",
     "kind": "tests"
   },
@@ -5749,6 +5777,22 @@
   },
   {
     "path": "services/sahool-platform/tests/test_runtime_routes_v66.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_s5_exec_01_decision_record_cutover.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
+    "kind": "tests"
+  },
+  {
+    "path": "services/sahool-platform/tests/test_s5_exec_01_weather_learning_cutover.py",
     "kind": "tests"
   },
   {
@@ -6784,7 +6828,19 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_c4_economics_erp_payment_boundary_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_c4m1_mobile_push.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_c5_c6_parallel_contracts.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_c8_c13_certification_contracts.py",
     "kind": "tests"
   },
   {
@@ -7037,6 +7093,10 @@
   },
   {
     "path": "tests_v9/test_decision_service_deployment_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_decision_service_migration_number_uniqueness.py",
     "kind": "tests"
   },
   {
@@ -7864,6 +7924,26 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_s4_field_kg_closure_contract.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_s5_decision_live_cutover_hardening.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_s5_exec_01_edge_freeze.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_s5_exec_01_writer_cutover_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_s5_live_authority_closure.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_sahool_inspector.py",
     "kind": "tests"
   },
@@ -8141,6 +8221,10 @@
   },
   {
     "path": "tests_v9/test_visual_fixme_baseline_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_vllm_jais_runtime_contract.py",
     "kind": "tests"
   },
   {

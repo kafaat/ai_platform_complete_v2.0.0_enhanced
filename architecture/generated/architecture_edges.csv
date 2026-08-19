@@ -180,6 +180,7 @@ platform,weather-service,code-reference,services/sahool-platform/tests/test_weat
 platform,weather-service,code-reference,services/sahool-platform/tests/test_weather_field_timeline_link.py
 platform,weather-service,code-reference,services/sahool-platform/tests/test_weather_tile_engine_v10.py
 qdrant-seed,qdrant,code-reference,services/qdrant-seed/seed.py
+qdrant-seed,qdrant,code-reference,services/qdrant-seed/test_aljawf_knowledge.py
 rag-retrieval,qdrant,code-reference,services/rag-retrieval/main.py
 raster-service,decision-service,code-reference,services/raster-service/imagery_source_gate.py
 raster-service,redis,code-reference,services/raster-service/cache_invalidation_worker.py

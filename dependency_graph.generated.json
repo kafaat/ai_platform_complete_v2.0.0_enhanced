@@ -1,5 +1,5 @@
 {
-  "edge_count": 802,
+  "edge_count": 807,
   "edges": [
     {
       "evidence": "docker-compose.v9.yml",
@@ -653,6 +653,16 @@
     },
     {
       "evidence": "services/decision-service/persistence.py",
+      "from": "decision-service",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "READS",
+      "resource": "db://recommendation_outcomes",
+      "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/decision-service/recommendation_outcomes_cutover_preflight.py",
       "from": "decision-service",
       "from_kind": "component",
       "protocol": "postgres",
@@ -6102,6 +6112,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_s5_exec_01_decision_record_cutover.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://decision_record",
+      "to": "db://decision_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/routers/devices.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -6123,6 +6143,16 @@
     },
     {
       "evidence": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://dispatch_decisions",
+      "to": "db://dispatch_decisions",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_s5_exec_01_dispatch_cutover.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -7202,6 +7232,16 @@
       "to_kind": "resource"
     },
     {
+      "evidence": "services/sahool-platform/tests/test_s5_exec_01_outcome_record_cutover.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://outcome_record",
+      "to": "db://outcome_record",
+      "to_kind": "resource"
+    },
+    {
       "evidence": "services/sahool-platform/api/persisted_canonical_repositories.py",
       "from": "sahool-platform",
       "from_kind": "component",
@@ -7293,6 +7333,16 @@
     },
     {
       "evidence": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+      "from": "sahool-platform",
+      "from_kind": "component",
+      "protocol": "postgres",
+      "relation": "WRITES",
+      "resource": "db://recommendation_outcomes",
+      "to": "db://recommendation_outcomes",
+      "to_kind": "resource"
+    },
+    {
+      "evidence": "services/sahool-platform/tests/test_s5_exec_01_recommendation_outcome_cutover.py",
       "from": "sahool-platform",
       "from_kind": "component",
       "protocol": "postgres",
@@ -8040,9 +8090,9 @@
     "CALLS": 38,
     "CONSUMES": 1,
     "EMITS": 1,
-    "READS": 412,
+    "READS": 413,
     "ROUTES_TO": 70,
-    "WRITES": 280
+    "WRITES": 284
   },
   "schema": "sahool.dependency_graph.v2",
   "source_resolution": {
@@ -8057,8 +8107,8 @@
       "unresolved_component_paths": 0
     },
     "postgres": {
-      "observed": 693,
-      "resolved": 692,
+      "observed": 698,
+      "resolved": 697,
       "unresolved_component_paths": 0
     }
   }

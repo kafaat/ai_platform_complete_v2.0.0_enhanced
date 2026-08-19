@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 683,
+  "baseline_python_module_count": 679,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -27,7 +27,6 @@
     "api/canonical_energy_microgrid_capability.py",
     "api/canonical_hydraulic_capability.py",
     "api/canonical_irrigation_capability_graph.py",
-    "api/canonical_irrigation_machine_capability.py",
     "api/canonical_nutrient_ledger.py",
     "api/canonical_phenology_state.py",
     "api/canonical_root_zone_profile.py",
@@ -135,7 +134,6 @@
     "api/high_value_crops.py",
     "api/hourly_energy_aware_irrigation_mpc.py",
     "api/imagery_automation.py",
-    "api/imagery_providers.py",
     "api/index_registry.py",
     "api/inventory_models.py",
     "api/ipm_advisor.py",
@@ -463,9 +461,6 @@
     "core/circuit_breaker.py",
     "core/connectors/__init__.py",
     "core/connectors/base.py",
-    "core/connectors/copernicus.py",
-    "core/connectors/farmonaut.py",
-    "core/connectors/weather_openmeteo.py",
     "core/conversation_tree.py",
     "core/correlation.py",
     "core/crop_cards/loader.py",
@@ -540,6 +535,7 @@
     "core/engines/yield_interval.py",
     "core/eo_stage_mismatch.py",
     "core/equipment_intelligence.py",
+    "core/erp_projection_contract.py",
     "core/event_schema.py",
     "core/evidence_class.py",
     "core/evidence_graph.py",
@@ -588,7 +584,6 @@
     "core/kg_autoseed.py",
     "core/kg_graphql_readonly.py",
     "core/knowledge_graph/__init__.py",
-    "core/knowledge_graph/sqlite_graph.py",
     "core/knowledge_levels.py",
     "core/lab_sampling.py",
     "core/learning/__init__.py",
@@ -599,6 +594,7 @@
     "core/learning_activation.py",
     "core/learning_source_lineage.py",
     "core/loop_referential_integrity.py",
+    "core/machinery_artifact_identity.py",
     "core/machinery_as_applied.py",
     "core/mcp/__init__.py",
     "core/mcp/independent_servers.py",
@@ -720,5 +716,6 @@
   "field_state_producers_missing_01_spectral_note": "674->675: api/canonical_spectral_state.py (FIELD-STATE-PRODUCERS-MISSING-01, spectral half). Same terms as the soil half: a production consumer on an existing route, no new route, no synthesis. api/routers/internal_service.py's _compose_canonical() calls resolve_canonical_spectral_state() to fill the spectral= argument to core.canonical_field_state.compose_canonical_field_state instead of a hardcoded None. It is not new logic: the server-side resolver already existed inside api/routers/crop_twin.py and was moved here unchanged, because a resolver reachable from exactly one router is why this composer declared spectral_missing for fields whose indices the platform could already read. Both consumers now share it; crop_twin imports the name so its existing monkeypatch-based tests keep working. NDVI is the master index: without it the resolver returns None rather than a product whose indices are all None, which would set availability.spectral=true while nothing is known. spectral is not in the core's required=(weather,water,soil), so wiring it cannot raise operational_eligible - locked by tests/test_canonical_field_state_wiring.py::test_wiring_spectral_cannot_raise_eligibility_on_its_own. Weather stays unwired - see the gap registry entry for the measured reason.",
   "persisted_agronomic_sor_chain_note": "675->680: the persisted agronomic source-of-truth chain, admitted on the ground this file has required since ci10_knowledge_layer_note - every one of the five is REACHABLE FROM A MOUNTED ROUTE, measured, in the same change that makes it so. api/routers/recommendations.py -> api/persisted_canonical_repositories.py -> api/agronomic_state_consumers.py -> canonical_phenology_state / canonical_salinity_state / canonical_nutrient_ledger. NO NEW ROUTE: the chain folds into the existing GET, and the platform router surface is unchanged at 573. WHY THIS WORDING IS 'reachable' AND NOT 'has a consumer': the wave package this chain came from shipped twenty-three modules that each had an importer, and only these five had any import path from a router that router_registry actually mounts. The other eighteen were imported by four consumer modules that nothing imported - dead code one hop further from view, and passing every naive has-an-importer check. That distinction is now enforced, not just described, by services/sahool-platform/tests/test_canonical_state_reachability_guard.py, which walks the import graph from the auto-mounted routers and is falsified by planting exactly that shape. The eighteen stay out of this baseline under CAPABILITY-WAVE-V217-V231-DEFERRED until each is genuinely reached. The route reads canonical truth from the database under tenant RLS and accepts identifiers only - a client-supplied canonical object or digest would forge the source of truth, and the guard rejects one.",
   "container_command_path_not_in_image_note": "680->681 — **نقلٌ لا نموّ**: workers/canonical_execution_learning_worker.py كان في scripts/workers/ بجذر المستودع، و`services/sahool-platform/Dockerfile` ينسخ shared/ وجذر الخدمة فقط ⇒ لم يكن في الصورة أصلاً، والحاوية تموت عند الإقلاع وrestart يُعيدها إلى الأبد (CONTAINER-COMMAND-PATH-NOT-IN-IMAGE-01، مُثبَت بالتشغيل في تخطيط صورةٍ محاكاة). ولا يُعَدّ كوداً مجالَ استخراج: يستورد ستّ وحدات `api.*` مملوكة للمنصّة (canonical_nutrient_ledger · canonical_phenology_state · canonical_salinity_state · irrigation_closed_loop_runtime · learning_feedback · persisted_canonical_repositories)، فموضعه القانونيّ هو الخدمة التي يقرأ داخلها لا جذر المستودع. وجرد وحدات المستودع **لم يتغيّر** — ملفّ واحد انتقل، ولم يُكتَب كودُ مجالٍ جديد. وسكناه تحت جذر الخدمة هو ما يجعل parents[1] يصحّ في المستودع وفي الصورة معاً.",
-  "c3_precision_execution_note": "C3 (2026-08-18): وحدتان جديدتان مقصودتان — core/yield_map_processing.py (معالجة خرائط الغلّة لتغذية التعلّم المتحقَّق) وcore/machinery_as_applied.py (تحقّق التطبيق الفعليّ للآليّات فاشلاً مغلقاً). ملاصقتان لحالة الحقل القانونيّة التي تملكها المنصّة اليوم؛ خروجهما إلى خدمة مالكة يتبع مسار S5-EXEC لا هذا الأساس، وهما مقيَّدتان زمنيّاً في استثناءات راتشِت الانكماش (target_close_by=2026-11-30)."
+  "c3_precision_execution_note": "C3 (2026-08-18): وحدتان جديدتان مقصودتان — core/yield_map_processing.py (معالجة خرائط الغلّة لتغذية التعلّم المتحقَّق) وcore/machinery_as_applied.py (تحقّق التطبيق الفعليّ للآليّات فاشلاً مغلقاً). ملاصقتان لحالة الحقل القانونيّة التي تملكها المنصّة اليوم؛ خروجهما إلى خدمة مالكة يتبع مسار S5-EXEC لا هذا الأساس، وهما مقيَّدتان زمنيّاً في استثناءات راتشِت الانكماش (target_close_by=2026-11-30).",
+  "s5_main_delta_forward_port_note": "main@010c9627 + S5/C4/JAIS delta: physical tombstones lowered module baseline 683→679 while retaining C3 core/yield_map_processing.py and core/machinery_as_applied.py from #870."
 }

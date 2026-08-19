@@ -18,9 +18,14 @@
       "required_evidence": [
         "tests_v9/test_decision_sor_platform_revoke_static.py",
         "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
-        "services/decision-service/decision_sor_role_certify.py"
+        "services/decision-service/decision_sor_role_certify.py",
+        "scripts/staging/decision_sor_live_closure_collector.py",
+        "scripts/architecture/s5_decision_live_closure_receipt_guard.py"
       ],
-      "cutover_rule": "explicit production approval + role certification + DB revoke/grant proof; no dual-authoritative recommendation_outcomes writes"
+      "cutover_rule": "explicit production approval + subject-bound live runtime identities + role certification + effective DB revoke proof; no dual-authoritative recommendation_outcomes writes",
+      "blocking_reasons": [
+        "SUBJECT_BOUND_LIVE_DECISION_CLOSURE_RECEIPT_REQUIRED"
+      ]
     },
     "field_management": {
       "declared_state": "OWNER_DECLARED",
@@ -28,7 +33,9 @@
       "authority_state": "NOT_YET_AUTHORITATIVE",
       "candidate_owner": "field-management-service",
       "required_evidence": [
-        "services/field-management-service/tests/test_field_management_pg_isolation_integration.py"
+        "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
+        "scripts/staging/field_management_live_gate.sh",
+        "scripts/architecture/s4_field_rls_receipt_guard.py"
       ],
       "blocking_reasons": [
         "LIVE_APPLICATION_ROLE_RLS_PROOF_REQUIRED"
@@ -36,16 +43,22 @@
       "cutover_rule": "RLS proof must execute under NOSUPERUSER/NOBYPASSRLS application role; owner/superuser evidence is invalid"
     },
     "knowledge_graph": {
-      "declared_state": "OWNER_DECLARED",
-      "cutover_capability": "CUTOVER_CAPABLE",
-      "authority_state": "SERVICE_OWNED_IMPLEMENTATION",
+      "declared_state": "PHYSICAL_OWNER_TRANSFERRED",
+      "cutover_capability": "RUNTIME_PARITY_REQUIRED",
+      "authority_state": "SERVICE_OWNED_IMPLEMENTATION_NOT_YET_CLOSED",
       "candidate_owner": "knowledge-graph",
       "canonical_store": "services/knowledge-graph/kg_store.py",
       "forbidden_store": "services/sahool-platform/core/knowledge_graph/sqlite_graph.py",
       "required_evidence": [
-        "tests/test_production_rag_kg_mcp.py"
+        "tests/test_production_rag_kg_mcp.py",
+        "docs/architecture/s4_kg_consumer_freeze.json",
+        "scripts/staging/kg_runtime_parity_collector.py",
+        "scripts/architecture/s4_kg_runtime_parity_receipt_guard.py"
       ],
-      "cutover_rule": "knowledge-graph service owns physical store implementation; sahool-platform may not host/import the implementation"
+      "cutover_rule": "knowledge-graph owns the only physical store; the legacy sahool-platform store path must be absent; closure additionally requires subject-bound live REST/GraphQL consumer parity evidence",
+      "blocking_reasons": [
+        "LIVE_RUNTIME_CONSUMER_PARITY_REQUIRED"
+      ]
     }
   },
   "adjudicated_on": "2026-08-17",

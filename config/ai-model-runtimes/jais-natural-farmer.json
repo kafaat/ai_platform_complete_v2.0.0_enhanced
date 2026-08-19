@@ -1,0 +1,19 @@
+{
+  "schema": "sahool.ai-model-runtime/v1",
+  "component_id": "vllm-jais",
+  "provider": "vllm",
+  "model_repository": "Solshine/Jais-adapted-7B-Reflection-Tuning-Natural-Farmer",
+  "served_model_name": "jais-natural-farmer",
+  "wire_format": "openai_chat",
+  "base_url_env": "VLLM_BASE_URL",
+  "api_key_env": "VLLM_API_KEY",
+  "provider_switch_env": "AI_PROVIDER",
+  "provider_switch_value": "vllm",
+  "authority_kind": "infrastructure",
+  "runtime_role": "model_runtime",
+  "domain_authority": false,
+  "activation": "opt_in",
+  "production_default": false,
+  "retrieval_authority": "rag-retrieval",
+  "direct_vector_store_access": false
+}

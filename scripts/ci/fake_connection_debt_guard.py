@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -66,16 +67,67 @@ _DB_ENFORCED = {
 }
 
 
-def _tracked_tests() -> list[str]:
+def _release_tracked_tests(base: Path) -> list[str]:
+    """Delivery-ZIP fallback: derive membership from the sealed Release manifest.
+
+    The delivery intentionally omits ``.git``.  Falling back to a raw filesystem walk
+    would let ungoverned/package-only files enter the survey, so the fallback is the
+    release membership list itself and every scanned candidate is digest-verified
+    before it is trusted.
+    """
+    manifest = base / "release" / "FILE_CHECKSUMS.sha256"
+    if not manifest.is_file():
+        raise RuntimeError(
+            "fake_connection_debt_guard requires either a Git index or "
+            "release/FILE_CHECKSUMS.sha256"
+        )
+
+    tests: list[str] = []
+    for raw in manifest.read_text(encoding="utf-8").splitlines():
+        if not raw.strip():
+            continue
+        try:
+            expected, rel = raw.split("  ", 1)
+        except ValueError as exc:
+            raise RuntimeError(f"malformed release checksum entry: {raw!r}") from exc
+        if not (rel.endswith(".py") and "test" in rel):
+            continue
+        if not rel.startswith(("tests_v9/", "tests/", "services/")):
+            continue
+        path = base / rel
+        if not path.is_file():
+            raise RuntimeError(f"release-tracked test is missing: {rel}")
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        if actual != expected:
+            raise RuntimeError(
+                f"release-tracked test digest mismatch: {rel} expected={expected} actual={actual}"
+            )
+        tests.append(rel)
+    if not tests:
+        raise RuntimeError("release manifest yielded zero tracked Python tests")
+    return sorted(tests)
+
+
+def _git_tracked_tests(base: Path, *pathspecs: str) -> list[str] | None:
+    cmd = ["git", "ls-files", *pathspecs]
     out = subprocess.run(
-        ["git", "ls-files", "tests_v9", "tests", "services"],
-        cwd=ROOT,
+        cmd,
+        cwd=base,
         capture_output=True,
         text=True,
         encoding="utf-8",
-        check=True,
+        check=False,
     )
+    if out.returncode != 0:
+        return None
     return [ln for ln in out.stdout.splitlines() if ln.endswith(".py") and "test" in ln]
+
+
+def _tracked_tests() -> list[str]:
+    tracked = _git_tracked_tests(ROOT, "tests_v9", "tests", "services")
+    if tracked is not None:
+        return tracked
+    return _release_tracked_tests(ROOT)
 
 
 def survey(root: Path | None = None) -> dict:
@@ -101,15 +153,12 @@ def survey(root: Path | None = None) -> dict:
 
 
 def _tracked_in(base: Path) -> list[str]:
-    out = subprocess.run(
-        ["git", "ls-files"],
-        cwd=base,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        check=True,
-    )
-    return [ln for ln in out.stdout.splitlines() if ln.endswith(".py") and "test" in ln]
+    tracked = _git_tracked_tests(base)
+    if tracked is not None:
+        return tracked
+    if base.resolve() == ROOT.resolve():
+        return _release_tracked_tests(base)
+    raise RuntimeError(f"cannot enumerate governed tests under {base}: no Git index is available")
 
 
 def _load_baseline() -> dict:

@@ -11,6 +11,7 @@ import os
 import uuid
 from datetime import date
 
+from core.erp_projection_contract import build_projection_envelope
 from core.farm_closed_loop import (
     OperationEvent,
     ResourceUse,
@@ -804,11 +805,22 @@ async def get_erp_projection(
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("إسقاط ERP", e) from e
     lines = project_to_erp_lines(actuals, cost_center=cost_center, project=season_id)
+    line_payload = [line.__dict__ for line in lines]
+    provider = os.getenv("ERP_PROVIDER", "none").strip().lower() or "none"
+    envelope = build_projection_envelope(
+        season_id=season_id,
+        lines=line_payload,
+        provider=provider,
+        currency="YER",
+    )
     return {
-        "season_id": season_id,
-        "lines": [line.__dict__ for line in lines],
+        **envelope,
         "synced": False,
-        "provenance": {"source": "farm_operations_ledger", "erp_write": False},
+        "provenance": {
+            "source": "farm_operations_ledger",
+            "erp_write": False,
+            "projection_digest": envelope["projection_digest"],
+        },
     }
 
 

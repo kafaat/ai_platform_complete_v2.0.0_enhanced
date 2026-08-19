@@ -94,14 +94,39 @@ def test_mirror_failure_can_never_raise_into_the_request_path() -> None:
     # awaited CALL (not the import) and use a generous window around it.
     for rel, needle in [
         ("api/routers/decision_dispatch.py", "await _mirror_dispatch_to_service("),
+        # S5-EXEC-01 converts this witness: recommendations now has an earlier STRICT
+        # authoritative service call whose failure MUST propagate after cutover. The final
+        # occurrence is the pre-cutover mirror and alone must remain fail-soft.
         ("api/routers/recommendations.py", "await _mirror_recommendation_outcome_to_service("),
         ("api/phase_runtime_store.py", "await _mirror_learning_update_to_service("),
         ("api/routers/weather.py", "await _mirror_decision_to_service("),
     ]:
         text = (ROOT / rel).read_text(encoding="utf-8")
-        idx = text.index(needle)
+        idx = (
+            text.rindex(needle)
+            if rel
+            in {
+                "api/routers/recommendations.py",
+                "api/phase_runtime_store.py",
+                "api/routers/weather.py",
+            }
+            else text.index(needle)
+        )
         window = text[max(0, idx - 1400) : idx + 1400]
         assert "try:" in window and "except Exception" in window, rel
+
+
+def test_recommendation_cutover_service_failure_is_not_swallowed() -> None:
+    """End-state witness: authoritative decision-service failure must fail the request."""
+    text = (ROOT / "api/routers/recommendations.py").read_text(encoding="utf-8")
+    start = text.index("if mode.strict_decision_service_required:")
+    end = text.index("# Pre-cutover bridge:", start)
+    branch = text[start:end]
+    assert "await _mirror_recommendation_outcome_to_service(" in branch
+    assert "try:" not in branch
+    assert "except Exception" not in branch
+    assert 'service_result.get("authoritative")' in branch
+    assert 'service_result.get("persisted")' in branch
 
 
 def test_decision_service_client_exposes_mirror_facade_functions() -> None:

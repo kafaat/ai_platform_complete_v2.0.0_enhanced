@@ -4485,6 +4485,28 @@
     ]
   },
   {
+    "path": "services/decision-service/tests/test_s5_exec_01_outcome_record_idempotency.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "GIS-003",
+        "score": 11,
+        "signals": [
+          "path:dem",
+          "content:dem"
+        ]
+      },
+      {
+        "capability_id": "DEC-007",
+        "score": 11,
+        "signals": [
+          "path:outcome record",
+          "content:outcome record"
+        ]
+      }
+    ]
+  },
+  {
     "path": "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
     "kind": "tests",
     "candidates": [
@@ -6720,58 +6742,6 @@
       {
         "capability_id": "SAT-003",
         "score": 8,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/sahool-platform/core/connectors/copernicus.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "SAT-003",
-        "score": 12,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 12,
-        "signals": [
-          "content:cdse",
-          "content:sentinel"
-        ]
-      },
-      {
-        "capability_id": "SAT-004",
-        "score": 10,
-        "signals": [
-          "content:NDMI",
-          "content:ndmi"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "services/sahool-platform/core/connectors/farmonaut.py",
-    "kind": "backend",
-    "candidates": [
-      {
-        "capability_id": "FM-002",
-        "score": 14,
-        "signals": [
-          "path:farm",
-          "content:farm"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 12,
         "signals": [
           "content:NDVI",
           "content:ndvi"

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import os
+from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Response
@@ -22,6 +24,31 @@ seed_reference_ontology(store)
 MAX_GRAPHQL_QUERY_BYTES = int(os.getenv("KG_GRAPHQL_MAX_QUERY_BYTES", "4096"))
 MAX_GRAPHQL_DEPTH = int(os.getenv("KG_GRAPHQL_MAX_DEPTH", "6"))
 MAX_GRAPHQL_TOKENS = int(os.getenv("KG_GRAPHQL_MAX_TOKENS", "120"))
+
+
+def _source_sha256(path: Path) -> str:
+    """Digest shipped source bytes so live evidence can bind to the reviewed checkout."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _runtime_source_identity() -> dict[str, str]:
+    source = Path(__file__).resolve()
+    here = source.parent
+    # Image layout is /app/shared/...; source-checkout layout is <repo>/shared/....
+    gateway = here / "shared" / "security" / "gateway_deps.py"
+    if not gateway.is_file():
+        # Container flattens main.py to /app/main.py (no repo-tree parents[2]); walk up
+        # from here instead of hardcoding a parent index (2026-07-12 startup regression).
+        for base in here.parents:
+            candidate = base / "shared" / "security" / "gateway_deps.py"
+            if candidate.is_file():
+                gateway = candidate
+                break
+    return {
+        "main_sha256": _source_sha256(source),
+        "kg_store_sha256": _source_sha256(here / "kg_store.py"),
+        "gateway_deps_sha256": _source_sha256(gateway),
+    }
 
 
 def _graphql_depth(query: str) -> int:
@@ -113,7 +140,12 @@ async def readyz():
         edge_count = store.count_edges()
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(503, f"knowledge graph store not ready: {exc}") from exc
-    return {"status": "ready", "service": "knowledge-graph", "edges": edge_count}
+    return {
+        "status": "ready",
+        "service": "knowledge-graph",
+        "edges": edge_count,
+        "source_identity": _runtime_source_identity(),
+    }
 
 
 @app.post("/v1/nodes")

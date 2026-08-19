@@ -149,6 +149,32 @@ async def privilege_state(
     return state
 
 
+def privilege_closure_findings(state: dict[str, dict[str, bool]], *, action: str) -> list[str]:
+    """Validate effective DB privileges, including inherited/PUBLIC grants.
+
+    ``has_table_privilege`` is intentionally used upstream instead of reading only direct GRANT
+    rows. A direct REVOKE that leaves an inherited write privilege is not a successful cutover.
+    """
+    findings: list[str] = []
+    for table in PLATFORM_SOR_TABLES:
+        privs = state.get(table) or {}
+        if action == "revoke":
+            for privilege in WRITE_PRIVILEGES:
+                if privs.get(privilege) is not False:
+                    findings.append(f"{table}:{privilege}:effective_write_still_allowed")
+            if privs.get(RETAINED_PRIVILEGE) is not True:
+                findings.append(f"{table}:{RETAINED_PRIVILEGE}:read_facade_privilege_missing")
+        elif action == "grant":
+            for privilege in (*WRITE_PRIVILEGES, RETAINED_PRIVILEGE):
+                if privs.get(privilege) is not True:
+                    findings.append(f"{table}:{privilege}:rollback_privilege_missing")
+    return findings
+
+
+class PrivilegeClosureError(RuntimeError):
+    pass
+
+
 async def revoke_platform_writes(
     conn: Any, role: str, *, schema: str = "public", tables: tuple[str, ...] = PLATFORM_SOR_TABLES
 ) -> None:
@@ -186,32 +212,56 @@ async def _run(action: str) -> dict[str, Any]:
     schema = table_schema()
     conn = await _connect(admin_database_url())
     try:
-        before = await privilege_state(conn, role, schema=schema)
-        if action == "revoke":
-            if not (_truthy(CUTOVER_APPROVED_ENV) and _truthy(ALLOW_REVOKE_ENV)):
-                raise SystemExit(
-                    f"refusing to REVOKE: require {CUTOVER_APPROVED_ENV}=true and "
-                    f"{ALLOW_REVOKE_ENV}=true (cutover-approved, fail-closed)"
-                )
-            await revoke_platform_writes(conn, role, schema=schema)
-        elif action == "grant":
-            if not (_truthy(ROLLBACK_APPROVED_ENV) and _truthy(ALLOW_REVOKE_ENV)):
-                raise SystemExit(
-                    f"refusing to GRANT (rollback): require {ROLLBACK_APPROVED_ENV}=true and "
-                    f"{ALLOW_REVOKE_ENV}=true"
-                )
-            await grant_platform_writes(conn, role, schema=schema)
-        after = await privilege_state(conn, role, schema=schema)
-        return {
-            "action": action,
-            "role": role,
-            "schema": schema,
-            "tables": list(PLATFORM_SOR_TABLES),
-            "revoked_privileges": list(WRITE_PRIVILEGES),
-            "retained_privilege": RETAINED_PRIVILEGE,
-            "before": before,
-            "after": after,
-        }
+        if action == "check":
+            before = await privilege_state(conn, role, schema=schema)
+            return {
+                "action": action,
+                "role": role,
+                "schema": schema,
+                "tables": list(PLATFORM_SOR_TABLES),
+                "revoked_privileges": list(WRITE_PRIVILEGES),
+                "retained_privilege": RETAINED_PRIVILEGE,
+                "before": before,
+                "after": before,
+                "closure_verified": None,
+                "closure_findings": [],
+            }
+
+        # Mutation + effective postcondition are ONE transaction. If an inherited/PUBLIC grant
+        # leaves writes enabled (or rollback fails to restore them), raising here rolls back the
+        # direct GRANT/REVOKE instead of leaving a half-certified privilege state behind.
+        async with conn.transaction():
+            before = await privilege_state(conn, role, schema=schema)
+            if action == "revoke":
+                if not (_truthy(CUTOVER_APPROVED_ENV) and _truthy(ALLOW_REVOKE_ENV)):
+                    raise SystemExit(
+                        f"refusing to REVOKE: require {CUTOVER_APPROVED_ENV}=true and "
+                        f"{ALLOW_REVOKE_ENV}=true (cutover-approved, fail-closed)"
+                    )
+                await revoke_platform_writes(conn, role, schema=schema)
+            elif action == "grant":
+                if not (_truthy(ROLLBACK_APPROVED_ENV) and _truthy(ALLOW_REVOKE_ENV)):
+                    raise SystemExit(
+                        f"refusing to GRANT (rollback): require {ROLLBACK_APPROVED_ENV}=true and "
+                        f"{ALLOW_REVOKE_ENV}=true"
+                    )
+                await grant_platform_writes(conn, role, schema=schema)
+            after = await privilege_state(conn, role, schema=schema)
+            closure = privilege_closure_findings(after, action=action)
+            if closure:
+                raise PrivilegeClosureError(";".join(closure))
+            return {
+                "action": action,
+                "role": role,
+                "schema": schema,
+                "tables": list(PLATFORM_SOR_TABLES),
+                "revoked_privileges": list(WRITE_PRIVILEGES),
+                "retained_privilege": RETAINED_PRIVILEGE,
+                "before": before,
+                "after": after,
+                "closure_verified": True,
+                "closure_findings": [],
+            }
     finally:
         await conn.close()
 
@@ -235,7 +285,17 @@ def main(argv: list[str] | None = None) -> int:
 
     import json
 
-    result = asyncio.run(_run(action))
+    try:
+        result = asyncio.run(_run(action))
+    except PrivilegeClosureError as exc:
+        print(
+            json.dumps(
+                {"action": action, "closure_verified": False, "error": str(exc)},
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return 2
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 

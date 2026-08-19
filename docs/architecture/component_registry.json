@@ -370,6 +370,7 @@
     "sahool-redis",
     "sahool-redis-state",
     "sahool-titiler",
+    "sahool-vllm-jais",
     "sahool-zlmediakit",
     "sahool-zlmediakit-config"
   ],
