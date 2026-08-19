@@ -1715,7 +1715,8 @@
         "tests_v9/test_field_boundary_ai_v59.py",
         "tests_v9/test_field_boundary_backends_v59_5.py",
         "tests_v9/test_field_geometry_history_append_only_v39_5.py",
-        "tests_v9/test_field_geometry_save_guard_20260703.py"
+        "tests_v9/test_field_geometry_save_guard_20260703.py",
+        "tests_v9/test_gap_closure_v6.py"
       ]
     },
     {

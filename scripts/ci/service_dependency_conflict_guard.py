@@ -93,7 +93,7 @@ def write(rows: list[ConflictRow], output_root: Path = ROOT) -> None:
             if rows
             else ["package", "version_count", "versions", "services", "files"]
         )
-        w = csv.DictWriter(f, fieldnames=fields)
+        w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         w.writerows(payload)
 

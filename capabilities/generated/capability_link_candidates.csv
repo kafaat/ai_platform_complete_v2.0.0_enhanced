@@ -730,6 +730,7 @@ FM-003,test,tests_v9/test_internal_field_read_channel.py,3,applied
 FM-003,test,tests_v9/test_internal_field_state_channel.py,3,applied
 FM-003,test,tests_v9/test_offline_dispatch_field_update.py,3,applied
 FM-003,test,tests_v9/test_physical_effect_boundary_guard.py,3,applied
+FM-003,test,tests_v9/test_rag_direct_qdrant_boundary_guard.py,3,applied
 FM-003,test,tests_v9/test_rag_operational_boundary_guard.py,3,applied
 FM-003,test,tests_v9/test_raster_field_tenant_authz.py,3,applied
 FM-003,test,tests_v9/test_recommendations_field_state_gate.py,3,applied
@@ -989,6 +990,7 @@ GIS-001,test,tests_v9/test_field_workspace_closure_workflow_declares_its_boundar
 GIS-001,test,tests_v9/test_fields_geometry_integrity_v39_5.py,3,applied
 GIS-001,test,tests_v9/test_gis_multipolygon_geometry_versioning.py,3,applied
 GIS-001,test,tests_v9/test_physical_effect_boundary_guard.py,3,applied
+GIS-001,test,tests_v9/test_rag_direct_qdrant_boundary_guard.py,3,applied
 GIS-001,test,tests_v9/test_rag_operational_boundary_guard.py,3,applied
 GIS-001,test,tests_v9/test_sam2_polygon_cleaning_20260702.py,3,applied
 GIS-001,test,tests_v9/test_sam2_polygon_postprocessing_20260703.py,3,applied
@@ -1020,6 +1022,7 @@ GIS-002,test,services/sahool-platform/tests/test_yield_map_ingestion.py,3,applie
 GIS-002,test,tests_v9/test_a6_print_map.py,3,applied
 GIS-002,test,tests_v9/test_evidence_map_shape.py,3,applied
 GIS-002,test,tests_v9/test_layer_evict_v30_9.py,3,applied
+GIS-002,test,tests_v9/test_service_map_image_pin_parity.py,3,applied
 GIS-002,test,tests_v9/test_soil_layer_v31_7.py,3,applied
 GIS-002,test,tests_v9/test_terrain_layers_v31_6.py,3,applied
 GIS-002,test,tests_v9/test_v215_yield_map_ingestion_static.py,3,applied

@@ -404,6 +404,10 @@ jobs:
       # تكافؤ يخالف compose/العقد، أو كتالوج يُرقّي rag-retrieval قبل أوانه.
       - name: rag-authority-convergence-gate
         run: python scripts/architecture/rag_authority_convergence_guard.py
+      # ARCH-S3 direct-store boundary: Qdrant قد يبقى للـcanonical retrieval ولـseed،
+      # لكن لا يجوز ظهور مسار response مباشر جديد موازٍ لـrag-retrieval.
+      - name: rag-direct-qdrant-boundary-gate
+        run: python scripts/architecture/rag_direct_qdrant_boundary_guard.py
 
       # C8–C13: عقود تنسيق **لا طبقةَ حقيقةٍ موازية**. كلٌّ منها يفوّض إلى الحرّاس
       # القانونيّين القائمين ويجمع أحكامهم، ويُعيد `EVIDENCE_REQUIRED` صراحةً حين

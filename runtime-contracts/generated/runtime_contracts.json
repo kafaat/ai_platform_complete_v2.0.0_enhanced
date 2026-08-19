@@ -1196,6 +1196,7 @@
       },
       "secrets": [
         "JWT_SECRET",
+        "QDRANT_API_KEY",
         "SAHOOL_AGENT_TOKEN"
       ],
       "service": "local-ai-rag",
@@ -1384,6 +1385,10 @@
         "OLLAMA_BASE_URL",
         "QDRANT_HOST",
         "QDRANT_PORT",
+        "QDRANT_SEED_PROVENANCE_FILE",
+        "QDRANT_SEED_PROVENANCE_JSON",
+        "QDRANT_SEED_REVISION",
+        "QDRANT_SEED_TENANT_ID",
         "QDRANT_URL"
       ],
       "container": {
@@ -1654,10 +1659,12 @@
           "services/raster-service/raster_indicator_product.py",
           "services/raster-service/raster_job_orchestration.py",
           "services/raster-service/raster_pixel_processing.py",
+          "services/raster-service/raster_processing_runtime.py",
           "services/raster-service/raster_provenance.py",
           "services/raster-service/raster_quality.py",
           "services/raster-service/raster_scene_model.py",
           "services/raster-service/raster_security_context.py",
+          "services/raster-service/raster_stage_receipt.py",
           "services/raster-service/raster_topographic_qa.py",
           "services/raster-service/raster_validated_product.py",
           "services/raster-service/routers/analysis.py",
@@ -1700,6 +1707,7 @@
           "services/raster-service/test_tile_tenant_query.py",
           "services/raster-service/test_tiles.py",
           "services/raster-service/time_series.py",
+          "services/raster-service/trial_zonal_outcomes.py",
           "services/raster-service/wapor_worldcereal.py",
           "services/raster-service/worker_heartbeat.py"
         ],

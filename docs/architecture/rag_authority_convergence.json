@@ -12,6 +12,13 @@
     "reason": "Existing direct retrieval remains primary only while canonical retrieval parity is measured. Removing it before embedding/collection parity would be an unproven cutover.",
     "target_close_by": "2026-09-30"
   },
+  "direct_qdrant_policy": {
+    "scope": "runtime knowledge retrieval boundary; bootstrap init jobs are data writers, not response authority",
+    "canonical_component": "rag-retrieval",
+    "bootstrap_component_kind": "init_job",
+    "new_runtime_exceptions_forbidden": true,
+    "post_cutover_rule": "Only rag-retrieval may serve runtime retrieval from Qdrant; bootstrap init jobs may write curated/canonical data but never answer retrieval responses."
+  },
   "shadow": {
     "enabled_by_default": false,
     "response_authority": "direct_existing_path",
@@ -38,7 +45,9 @@
     "min_jaccard": 0.6,
     "min_mean_jaccard": 0.8,
     "require_subject_sha": true,
-    "receipt_schema": "sahool.rag-live-parity-receipt/v1"
+    "receipt_schema": "sahool.rag-live-parity-receipt/v1",
+    "min_comparable_queries": 5
   },
-  "adjudicated_on": "2026-08-17"
+  "adjudicated_on": "2026-08-17",
+  "cutover_admission_guard": "scripts/architecture/rag_cutover_admission_guard.py"
 }

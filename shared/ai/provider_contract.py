@@ -54,7 +54,7 @@ def normalize_provider(raw: str | None) -> str:
 # ثوابت عقد الشبكة المشتركة (يجب أن تطابق نسختَي الخدمة حرفيّاً).
 # ──────────────────────────────────────────────────────────────────────────
 ANTHROPIC_VERSION = "2023-06-01"
-DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
+DEFAULT_OLLAMA_BASE_URL = "http://sahool-ollama:11434"
 DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_VLLM_BASE_URL = "http://sahool-vllm-jais:8000/v1"
@@ -62,7 +62,7 @@ DEFAULT_VLLM_MODEL = "jais-natural-farmer"
 
 # صيغة السلك ولاحقة نقطة النهاية لكلّ مزوّد قانونيّ.
 WIRE_FORMAT: dict[str, str] = {
-    "local": "messages",
+    "local": "openai_chat",
     "vllm": "openai_chat",
     "anthropic": "messages",
     "openrouter": "openai_chat",
@@ -116,9 +116,6 @@ DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
         ("anthropic/claude-sonnet-4.6", "Claude Sonnet"),
         ("google/gemini-3-pro", "Gemini 3 Pro"),
     ],
-    "local": [
-        ("qwen3", "Qwen3 (محلّيّ)"),
-        ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
-    ],
+    "local": [("llama3.2:3b", "Llama 3.2 3B (محلّيّ / Ollama)")],
     "vllm": [("jais-natural-farmer", "Jais Natural Farmer (Solshine / vLLM)")],
 }

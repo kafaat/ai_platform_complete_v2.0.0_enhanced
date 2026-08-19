@@ -20,6 +20,81 @@ from enum import Enum
 from typing import Any, Protocol
 
 _TOKEN_RE = re.compile(r"[\w\u0600-\u06FF\.]+", re.UNICODE)
+GLOBAL_REFERENCE_TENANT = "__global__"
+GLOBAL_REFERENCE_CLASSES = frozenset(
+    {"external_reference", "curated_reference", "official_reference", "scientific_reference"}
+)
+TENANT_DOCUMENT_CLASSES = frozenset({"tenant_document"})
+_REQUIRED_EXTERNAL_PROVENANCE = (
+    "publisher",
+    "source_uri",
+    "source_revision",
+    "license",
+    "content_digest",
+)
+_REQUIRED_TENANT_PROVENANCE = ("source_uri", "source_revision", "content_digest")
+
+
+def _content_digest(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _normalized_source_class(source_type: str, metadata: dict[str, Any]) -> str:
+    explicit = str(metadata.get("source_class") or "").strip()
+    if explicit:
+        return explicit
+    if source_type == "uploaded_document":
+        return "tenant_document"
+    if source_type in GLOBAL_REFERENCE_CLASSES:
+        return source_type
+    return "internal_document"
+
+
+@dataclass(frozen=True)
+class ReferenceProvenance:
+    """Curated external-document provenance carried inside RAG metadata.
+
+    This is deliberately not the canonical knowledge source registry. It describes
+    a retrieved document and can never grant decision or prescriptive authority.
+    """
+
+    publisher: str
+    source_uri: str
+    source_revision: str
+    license: str
+    citation: str | None = None
+    jurisdiction: str | None = None
+    language: str | None = None
+    effective_from: str | None = None
+    effective_to: str | None = None
+    retrieved_at: str | None = None
+    agrovoc_concept_ids: tuple[str, ...] = ()
+    source_class: str = "external_reference"
+
+    def metadata(self, *, text: str, evidence_level: str = "document") -> dict[str, Any]:
+        required = {
+            "publisher": self.publisher,
+            "source_uri": self.source_uri,
+            "source_revision": self.source_revision,
+            "license": self.license,
+        }
+        missing = [key for key, value in required.items() if not str(value).strip()]
+        if missing:
+            raise ValueError(f"reference provenance missing: {', '.join(missing)}")
+        return {
+            **required,
+            "citation": self.citation,
+            "jurisdiction": self.jurisdiction,
+            "language": self.language,
+            "effective_from": self.effective_from,
+            "effective_to": self.effective_to,
+            "retrieved_at": self.retrieved_at,
+            "agrovoc_concept_ids": list(dict.fromkeys(self.agrovoc_concept_ids)),
+            "source_class": self.source_class,
+            "evidence_level": evidence_level,
+            "content_digest": _content_digest(text),
+            "prescriptive_eligible": False,
+        }
 
 
 @dataclass(frozen=True)
@@ -47,6 +122,79 @@ class KnowledgeChunk:
             )
         if self.metadata.get("tenant_id") not in (None, self.tenant_id):
             raise ValueError("metadata tenant_id must match chunk tenant_id")
+        if self.metadata.get("prescriptive_eligible") not in (None, False):
+            raise ValueError("RAG reference chunks cannot be prescriptive")
+
+        metadata = dict(self.metadata)
+        source_class = _normalized_source_class(self.source_type, metadata)
+        metadata["source_class"] = source_class
+        metadata.setdefault("content_digest", _content_digest(self.text))
+        if metadata["content_digest"] != _content_digest(self.text):
+            raise ValueError("content_digest does not match RAG chunk text")
+
+        if source_class in GLOBAL_REFERENCE_CLASSES:
+            missing = [
+                key
+                for key in _REQUIRED_EXTERNAL_PROVENANCE
+                if not str(metadata.get(key) or "").strip()
+            ]
+            if missing:
+                raise ValueError(f"external reference provenance missing: {', '.join(missing)}")
+        elif source_class in TENANT_DOCUMENT_CLASSES:
+            missing = [
+                key
+                for key in _REQUIRED_TENANT_PROVENANCE
+                if not str(metadata.get(key) or "").strip()
+            ]
+            if missing:
+                raise ValueError(f"tenant document provenance missing: {', '.join(missing)}")
+        elif source_class != "internal_document":
+            raise ValueError(f"unsupported RAG source_class: {source_class}")
+
+        if (
+            self.tenant_id == GLOBAL_REFERENCE_TENANT
+            and source_class not in GLOBAL_REFERENCE_CLASSES
+        ):
+            raise ValueError("global RAG chunks must be explicitly classified reference data")
+        object.__setattr__(self, "metadata", metadata)
+
+    @classmethod
+    def from_payload(
+        cls, payload: dict[str, Any], *, fallback_id: str | None = None
+    ) -> KnowledgeChunk:
+        """Parse the canonical LangChain-compatible payload and tolerate legacy EXPAND rows.
+
+        The logical identity is always ``metadata.chunk_id`` when present. Qdrant's
+        storage UUID is deliberately not allowed to become the retrieval identity.
+        """
+        nested = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        meta = dict(nested)
+        text = payload.get("page_content", payload.get("text"))
+        chunk_id = meta.get("chunk_id", payload.get("chunk_id", fallback_id))
+        tenant = meta.get("tenant_id", payload.get("tenant_id"))
+        source_file = meta.get("source_file")
+        source_type = meta.get("source_type", payload.get("source_type"))
+        if source_type is None and source_file:
+            source_type = "uploaded_document"
+        document_id = meta.get("document_id", payload.get("document_id"))
+        if document_id is None and tenant and source_file:
+            document_id = hashlib.sha256(f"{tenant}:{source_file}".encode()).hexdigest()
+        chunk_index = meta.get("chunk_index", payload.get("chunk_index", 0))
+        total_chunks = meta.get("total_chunks", payload.get("total_chunks", 1))
+        if not all(v is not None for v in (text, chunk_id, tenant, source_type, document_id)):
+            raise ValueError("Qdrant payload is missing canonical RAG identity fields")
+        meta.setdefault("evidence_level", payload.get("evidence_level") or "document")
+        meta.setdefault("prescriptive_eligible", False)
+        return cls(
+            chunk_id=str(chunk_id),
+            tenant_id=str(tenant),
+            text=str(text),
+            source_type=str(source_type),
+            document_id=str(document_id),
+            chunk_index=int(chunk_index),
+            total_chunks=int(total_chunks),
+            metadata=meta,
+        )
 
     @property
     def payload(self) -> dict[str, Any]:
@@ -57,6 +205,9 @@ class KnowledgeChunk:
         consume canonical writes without a second collection or payload migration.
         """
         metadata = dict(self.metadata)
+        metadata.setdefault("prescriptive_eligible", False)
+        metadata.setdefault("content_digest", _content_digest(self.text))
+        metadata.setdefault("source_class", _normalized_source_class(self.source_type, metadata))
         metadata.update(
             {
                 "chunk_id": self.chunk_id,
@@ -87,12 +238,29 @@ class RetrievedAnnotation:
             "chunk_id": self.chunk.chunk_id,
             "document_id": self.chunk.document_id,
             "source_type": self.chunk.source_type,
+            "source_class": self.chunk.metadata.get("source_class"),
+            "publisher": self.chunk.metadata.get("publisher"),
+            "source_uri": self.chunk.metadata.get("source_uri"),
+            "source_revision": self.chunk.metadata.get("source_revision"),
+            "content_digest": self.chunk.metadata.get("content_digest"),
+            "license": self.chunk.metadata.get("license"),
+            "jurisdiction": self.chunk.metadata.get("jurisdiction"),
+            "language": self.chunk.metadata.get("language"),
             "evidence_level": self.chunk.metadata.get("evidence_level"),
             "page": self.chunk.metadata.get("page"),
             "section": self.chunk.metadata.get("section"),
             "text": self.chunk.text,
             "score": self.rerank_score if self.rerank_score is not None else self.fused_score,
             "role": self.role,
+            # Diagnostic-only retrieval decomposition. These values never become
+            # agronomic evidence or decision authority; they let live certification
+            # prove that hybrid retrieval remains hybrid after a process restart.
+            "retrieval": {
+                "dense_score": self.dense_score,
+                "bm25_score": self.bm25_score,
+                "fused_score": self.fused_score,
+                "rerank_score": self.rerank_score,
+            },
         }
 
 
@@ -206,6 +374,18 @@ class BM25Index:
         self.avg_len = 0.0
 
     def add(self, chunk: KnowledgeChunk) -> None:
+        # Upserts must be idempotent for sparse document frequencies.  Re-ingesting
+        # an existing canonical chunk replaces its previous sparse contribution
+        # instead of counting the same logical document twice.
+        previous_tf = self.term_freqs.get(chunk.chunk_id)
+        if previous_tf is not None:
+            for term in previous_tf:
+                previous_df = self.doc_freq.get(term, 0)
+                if previous_df <= 1:
+                    self.doc_freq.pop(term, None)
+                else:
+                    self.doc_freq[term] = previous_df - 1
+
         terms = tokenize(chunk.text)
         tf: dict[str, int] = {}
         for term in terms:
@@ -216,6 +396,22 @@ class BM25Index:
         for term in tf:
             self.doc_freq[term] = self.doc_freq.get(term, 0) + 1
         self.avg_len = sum(self.doc_len.values()) / max(len(self.doc_len), 1)
+
+    def clear(self) -> None:
+        self.docs.clear()
+        self.term_freqs.clear()
+        self.doc_freq.clear()
+        self.doc_len.clear()
+        self.avg_len = 0.0
+
+    def rebuild(self, chunks: list[KnowledgeChunk]) -> int:
+        self.clear()
+        for chunk in chunks:
+            self.add(chunk)
+        return len(self.docs)
+
+    def __len__(self) -> int:
+        return len(self.docs)
 
     def score(self, query: str, chunk_id: str) -> float:
         if chunk_id not in self.docs:
@@ -239,7 +435,7 @@ class BM25Index:
         filters = filters or {}
         rows: list[tuple[KnowledgeChunk, float]] = []
         for cid, chunk in self.docs.items():
-            if chunk.tenant_id != tenant_id:
+            if chunk.tenant_id not in {tenant_id, GLOBAL_REFERENCE_TENANT}:
                 continue
             if any(
                 value is not None and chunk.metadata.get(key) != value
@@ -344,6 +540,50 @@ class QdrantHttpClient:
             raise ValueError("Qdrant named/invalid vector schema is not supported by this contract")
         return size
 
+    def collection_point_count(self) -> int:
+        data = self._request("GET", f"/collections/{self.collection}")
+        count = data.get("result", {}).get("points_count")
+        if not isinstance(count, int) or count < 0:
+            raise ValueError("Qdrant collection points_count missing/invalid")
+        return count
+
+    def scroll_payloads(
+        self, *, page_size: int = 256, max_pages: int = 10000
+    ) -> list[tuple[str, dict[str, Any]]]:
+        """Read stored payloads deterministically for sparse-index reconstruction.
+
+        BM25 is process memory; rebuilding it from the authoritative Qdrant payloads
+        on restart prevents a silent dense-only degradation.
+        """
+        if page_size <= 0:
+            raise ValueError("page_size must be positive")
+        rows: list[tuple[str, dict[str, Any]]] = []
+        offset: Any = None
+        for _ in range(max_pages):
+            body: dict[str, Any] = {
+                "limit": page_size,
+                "with_payload": True,
+                "with_vector": False,
+            }
+            if offset is not None:
+                body["offset"] = offset
+            data = self._request("POST", f"/collections/{self.collection}/points/scroll", body)
+            result = data.get("result", {})
+            points = result.get("points", [])
+            if not isinstance(points, list):
+                raise ValueError("Qdrant scroll points must be a list")
+            for point in points:
+                if not isinstance(point, dict) or "id" not in point:
+                    raise ValueError("Qdrant scroll returned invalid point")
+                payload = point.get("payload")
+                if not isinstance(payload, dict):
+                    raise ValueError("Qdrant scroll point missing payload")
+                rows.append((str(point["id"]), payload))
+            offset = result.get("next_page_offset")
+            if offset is None:
+                return rows
+        raise RuntimeError("Qdrant scroll exceeded max_pages")
+
     def ensure_collection(self, *, vector_size: int | None = None) -> None:
         """Create only on proven 404 and verify vector-size parity when known."""
         expected = int(vector_size or self.vector_size)
@@ -391,14 +631,23 @@ class QdrantHttpClient:
         filters: dict[str, Any] | None = None,
         limit: int = 12,
     ) -> list[tuple[str, float, dict[str, Any]]]:
-        must = [{"key": "metadata.tenant_id", "match": {"value": tenant_id}}]
+        must = []
         for key, value in (filters or {}).items():
             if value is not None:
                 must.append({"key": f"metadata.{key}", "match": {"value": value}})
+        tenant_scope = {
+            "key": "metadata.tenant_id",
+            "match": {"any": [tenant_id, GLOBAL_REFERENCE_TENANT]},
+        }
         response = self._request(
             "POST",
             f"/collections/{self.collection}/points/search",
-            {"vector": vector, "limit": limit, "with_payload": True, "filter": {"must": must}},
+            {
+                "vector": vector,
+                "limit": limit,
+                "with_payload": True,
+                "filter": {"must": [tenant_scope, *must]},
+            },
         )
         return [
             (str(row["id"]), float(row.get("score", 0.0)), row.get("payload", {}))
@@ -419,18 +668,44 @@ class HybridQdrantRetriever:
         self._chunks: dict[str, KnowledgeChunk] = {}
 
     def ingest(self, chunks: list[KnowledgeChunk]) -> int:
-        for chunk in chunks:
-            self.bm25.add(chunk)
-            self._chunks[chunk.chunk_id] = chunk
         vectors = [self.embeddings.embed(chunk.text) for chunk in chunks]
         if not vectors:
             return 0
         dimensions = {len(v) for v in vectors}
         if len(dimensions) != 1:
             raise ValueError(f"embedding dimension drift within ingest batch: {sorted(dimensions)}")
+        # Persist first. A failed Qdrant write must not leave a process-local BM25
+        # index claiming data exists when the authoritative vector store rejected it.
         self.qdrant.ensure_collection(vector_size=next(iter(dimensions)))
         self.qdrant.upsert(chunks, vectors)
+        for chunk in chunks:
+            self.bm25.add(chunk)
+            self._chunks[chunk.chunk_id] = chunk
         return len(chunks)
+
+    def rebuild_sparse_index(self) -> dict[str, int]:
+        """Reconstruct BM25 and the logical chunk cache from Qdrant payloads."""
+        payload_rows = self.qdrant.scroll_payloads()
+        chunks: list[KnowledgeChunk] = []
+        skipped = 0
+        seen: set[str] = set()
+        for point_id, payload in payload_rows:
+            try:
+                chunk = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
+            except (TypeError, ValueError):
+                skipped += 1
+                continue
+            if chunk.chunk_id in seen:
+                raise ValueError(f"duplicate canonical chunk_id in Qdrant: {chunk.chunk_id}")
+            seen.add(chunk.chunk_id)
+            chunks.append(chunk)
+        self._chunks = {chunk.chunk_id: chunk for chunk in chunks}
+        loaded = self.bm25.rebuild(chunks)
+        return {
+            "total_points": len(payload_rows),
+            "loaded_chunks": loaded,
+            "skipped_points": skipped,
+        }
 
     def retrieve(
         self,
@@ -445,7 +720,19 @@ class HybridQdrantRetriever:
         dense_rows = self.qdrant.search(
             query_vector, tenant_id=tenant_id, filters=filters, limit=top_k_initial
         )
-        dense_map: dict[str, float] = {cid: score for cid, score, _ in dense_rows}
+        # Qdrant returns storage UUIDs. Fusion MUST use the canonical logical
+        # ``metadata.chunk_id`` or dense and sparse scores for the same chunk split
+        # into two candidates.
+        dense_map: dict[str, float] = {}
+        for point_id, score, payload in dense_rows:
+            try:
+                chunk = KnowledgeChunk.from_payload(payload, fallback_id=point_id)
+            except (TypeError, ValueError):
+                continue
+            if chunk.tenant_id not in {tenant_id, GLOBAL_REFERENCE_TENANT}:
+                continue
+            self._chunks[chunk.chunk_id] = chunk
+            dense_map[chunk.chunk_id] = max(score, dense_map.get(chunk.chunk_id, float("-inf")))
         sparse_rows = self.bm25.search(
             query, tenant_id=tenant_id, filters=filters, limit=top_k_initial
         )
@@ -455,46 +742,7 @@ class HybridQdrantRetriever:
         for cid in candidates:
             chunk = self._chunks.get(cid)
             if chunk is None:
-                payload = next((p for qid, _, p in dense_rows if qid == cid), None)
-                if not payload:
-                    continue
-                # Shared LangChain-compatible payload contract.  During EXPAND we
-                # also accept the old canonical top-level payload so a partial rollout
-                # cannot make previously written points unreadable.
-                nested = (
-                    payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
-                )
-                meta = dict(nested)
-                text = payload.get("page_content", payload.get("text"))
-                chunk_id = meta.get("chunk_id", payload.get("chunk_id", cid))
-                tenant = meta.get("tenant_id", payload.get("tenant_id"))
-                source_file = meta.get("source_file")
-                source_type = meta.get("source_type", payload.get("source_type"))
-                if source_type is None and source_file:
-                    source_type = "uploaded_document"
-                document_id = meta.get("document_id", payload.get("document_id"))
-                if document_id is None and tenant and source_file:
-                    document_id = hashlib.sha256(f"{tenant}:{source_file}".encode()).hexdigest()
-                # Legacy LangChain points predate canonical chunk ordinal metadata.
-                # They remain readable during EXPAND, but are treated as isolated
-                # chunks (no invented neighbor relationship).
-                chunk_index = meta.get("chunk_index", payload.get("chunk_index", 0))
-                total_chunks = meta.get("total_chunks", payload.get("total_chunks", 1))
-                if not all(
-                    v is not None for v in (text, chunk_id, tenant, source_type, document_id)
-                ):
-                    continue
-                meta.setdefault("evidence_level", payload.get("evidence_level") or "document")
-                chunk = KnowledgeChunk(
-                    chunk_id=str(chunk_id),
-                    tenant_id=str(tenant),
-                    text=str(text),
-                    source_type=str(source_type),
-                    document_id=str(document_id),
-                    chunk_index=int(chunk_index),
-                    total_chunks=int(total_chunks),
-                    metadata=meta,
-                )
+                continue
             dense = dense_map.get(cid, 0.0)
             sparse = sparse_map.get(cid, 0.0)
             fused_score = 0.7 * dense + 0.3 * sparse

@@ -18,7 +18,7 @@
 | `sahool-nats` | 4222 (8222 مراقبة) | NATS JetStream (أحداث) | `nats:2-alpine` ([conf](../../nats/nats.conf)) | `nats.conf` | — |
 | `sahool-minio` | 9000/9001 | تخزين كائنات S3 | `minio/minio` | `MINIO_ROOT_USER/PASSWORD` | — |
 | `sahool-qdrant` | 6333 | متّجهات RAG (distroless، بلا healthcheck) | `qdrant/qdrant:v1.17.1` | `QDRANT__SERVICE__API_KEY` | — |
-| `sahool-ollama` | 11434 | استدلال LLM/embeddings محليّ | `ollama/ollama:0.3.14` | (GPU اختياريّ) | — |
+| `sahool-ollama` | 11434 | استدلال LLM/embeddings محليّ | `ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131` | (GPU اختياريّ) | — |
 | `sahool-migrate` | — (one-shot) | تطبيق الترحيلات + دور `sahool_app` المقيّد | `postgis/postgis:15-3.4` ([apply](../../migrations/apply_in_compose.sh)) | `APP_DB_ROLE`, `JOBS_DB_ROLE` | postgres (healthy) |
 
 ## التطبيق الأساسيّ (Core App)

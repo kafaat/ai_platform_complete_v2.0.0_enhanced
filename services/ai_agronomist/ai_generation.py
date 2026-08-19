@@ -37,7 +37,7 @@ except ImportError:  # direct spec import used by legacy unit guards
 logger = logging.getLogger("ai_agronomist.generation")
 
 ANTHROPIC_VERSION = "2023-06-01"
-DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
+DEFAULT_OLLAMA_BASE_URL = "http://sahool-ollama:11434"
 DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_VLLM_BASE_URL = "http://sahool-vllm-jais:8000/v1"
@@ -55,10 +55,7 @@ _DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
         ("anthropic/claude-sonnet-4.6", "Claude Sonnet"),
         ("google/gemini-3-pro", "Gemini 3 Pro"),
     ],
-    "local": [
-        ("qwen3", "Qwen3 (محلّيّ)"),
-        ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
-    ],
+    "local": [("llama3.2:3b", "Llama 3.2 3B (محلّيّ / Ollama)")],
     "vllm": [("jais-natural-farmer", "Jais Natural Farmer (Solshine / vLLM)")],
 }
 
@@ -187,7 +184,7 @@ def public_provider_snapshot(requested_model: str | None = None) -> dict[str, An
         "model": cfg.model if cfg else None,
         "wire_format": cfg.wire_format
         if cfg
-        else ("openai_chat" if provider == "openrouter" else "messages"),
+        else ("messages" if provider == "anthropic" else "openai_chat"),
         "models": public_model_catalog(provider),
         "data_sharing_modes": ["local_only", "redacted_external", "full_external"],
     }
@@ -210,7 +207,10 @@ def _resolve_model(provider: str, shared_model: str, requested: str | None) -> s
     req = (requested or "").strip()
     if req and req in allowed:
         return req
-    return shared_model
+    if shared_model and (not allowed or shared_model in allowed):
+        return shared_model
+    catalog = public_model_catalog(provider)
+    return catalog[0]["id"] if catalog else ""
 
 
 @dataclass(frozen=True)
@@ -290,20 +290,20 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
         }
         return GenConfig("anthropic", f"{base.rstrip('/')}/v1/messages", headers, model, "messages")
 
-    # المحلّيّ (Ollama، Anthropic-compatible) — لا مفتاح؛ يُولّد إن كان مُشغَّلاً.
+    # المحلّيّ (Ollama) عبر OpenAI-compatible Chat Completions.
     model = _resolve_model(
-        "local", shared_model or (os.getenv("LOCAL_LLM_MODEL") or "qwen3").strip(), requested_model
+        "local",
+        shared_model or (os.getenv("LOCAL_LLM_MODEL") or "llama3.2:3b").strip(),
+        requested_model,
     )
     if not model:
         return None
     base = (os.getenv("OLLAMA_BASE_URL") or DEFAULT_OLLAMA_BASE_URL).strip()
     token = (os.getenv("OLLAMA_API_KEY") or "ollama").strip()
-    headers = {
-        "content-type": "application/json",
-        "anthropic-version": ANTHROPIC_VERSION,
-        "authorization": f"Bearer {token}",
-    }
-    return GenConfig("local", f"{base.rstrip('/')}/v1/messages", headers, model, "messages")
+    headers = {"content-type": "application/json", "authorization": f"Bearer {token}"}
+    return GenConfig(
+        "local", f"{base.rstrip('/')}/v1/chat/completions", headers, model, "openai_chat"
+    )
 
 
 def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> list[dict[str, Any]]:

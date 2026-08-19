@@ -6,8 +6,12 @@ SAHOOL v9.0 — services/qdrant-seed/seed.py
 """
 
 import asyncio
+import hashlib
+import json
 import logging
 import os
+import uuid
+from pathlib import Path
 
 import httpx
 from qdrant_client import AsyncQdrantClient
@@ -35,6 +39,12 @@ OLLAMA_BASE_URL = (
     or "http://sahool-ollama:11434"
 ).rstrip("/")
 EMBED_MODEL = os.getenv("EMBED_MODEL") or os.getenv("EMBEDDING_MODEL") or "nomic-embed-text"
+SEED_TENANT_ID = (os.getenv("QDRANT_SEED_TENANT_ID") or "__seed_quarantine__").strip()
+SEED_REVISION = (os.getenv("QDRANT_SEED_REVISION") or "yemen-reference-v1").strip()
+SEED_PROVENANCE_FILE = (os.getenv("QDRANT_SEED_PROVENANCE_FILE") or "").strip()
+SEED_PROVENANCE_JSON = (os.getenv("QDRANT_SEED_PROVENANCE_JSON") or "").strip()
+if not SEED_TENANT_ID:
+    raise RuntimeError("QDRANT_SEED_TENANT_ID must not be empty")
 
 # قاعدة معرفية زراعية لليمن (يُستبدل بـ embedding حقيقي في الإنتاج)
 KNOWLEDGE_BASE = [
@@ -100,6 +110,47 @@ KNOWLEDGE_BASE = [
     },
 ]
 
+
+def _load_provenance_manifest() -> dict[str, dict[str, str]]:
+    """Load publisher/source/revision/license for every global seed source.
+
+    Built-in seed text is legacy sample content and is not allowed to acquire
+    global reference status from a short source label alone. Production/global
+    seeding therefore requires an operator-supplied provenance manifest.
+    """
+    if SEED_PROVENANCE_JSON:
+        try:
+            raw = json.loads(SEED_PROVENANCE_JSON)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"invalid QDRANT_SEED_PROVENANCE_JSON: {exc}") from exc
+    elif SEED_PROVENANCE_FILE:
+        path = Path(SEED_PROVENANCE_FILE)
+        if not path.is_file():
+            raise RuntimeError(f"Qdrant seed provenance manifest not found: {path}")
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"invalid Qdrant seed provenance manifest: {exc}") from exc
+    else:
+        if SEED_TENANT_ID == "__global__":
+            raise RuntimeError(
+                "global reference seed requires QDRANT_SEED_PROVENANCE_FILE or QDRANT_SEED_PROVENANCE_JSON"
+            )
+        return {}
+    if not isinstance(raw, dict):
+        raise RuntimeError("Qdrant seed provenance manifest must be an object")
+    required = ("publisher", "source_uri", "source_revision", "license")
+    normalized: dict[str, dict[str, str]] = {}
+    for source, entry in raw.items():
+        if not isinstance(entry, dict):
+            raise RuntimeError(f"seed provenance for {source!r} must be an object")
+        missing = [key for key in required if not str(entry.get(key) or "").strip()]
+        if missing:
+            raise RuntimeError(f"seed provenance for {source!r} missing: {', '.join(missing)}")
+        normalized[str(source)] = {key: str(entry[key]).strip() for key in required}
+    return normalized
+
+
 # ─── إضافة بيانات الجوف/السنيدار (52 قاعدة) ────────────────────
 # مع تصحيح S1 → SA1..SA13 (أسماء العيّنات vs تصنيف Sodium Hazard)
 try:
@@ -143,6 +194,16 @@ async def _embed(text: str, http: httpx.AsyncClient) -> list[float]:
 
 
 async def seed():
+    provenance = _load_provenance_manifest()
+    if SEED_TENANT_ID == "__global__":
+        missing_sources = sorted(
+            {str(doc.get("source") or "") for doc in KNOWLEDGE_BASE} - set(provenance)
+        )
+        if missing_sources:
+            raise RuntimeError(
+                "global reference seed provenance missing sources: " + ", ".join(missing_sources)
+            )
+
     # نولّد تضميناً حقيقيّاً للنصوص عبر Ollama أوّلاً. تدهور رشيق: لو تعذّر خادم
     # التضمين، نُحذّر بوضوح ونتخطّى البذر (لا نُلوّث الفهرس بمتجهات عشوائية تُفسد
     # البحث الدلاليّ — فهرس فارغ أصدق من نتائج عشوائية، وRAG يسقط على البحث الرمزيّ).
@@ -151,13 +212,12 @@ async def seed():
             vectors = [await _embed(doc["text"], http) for doc in KNOWLEDGE_BASE]
         except Exception as e:
             logger.error(
-                "⚠️ تعذّر توليد التضمين عبر Ollama (%s=%s): %s — تخطّي البذر. "
-                "شغّل Ollama واسحب النموذج ثمّ أعد التشغيل.",
+                "تعذّر توليد التضمين عبر Ollama (%s=%s): %s — البذر المطلوب يفشل صراحةً.",
                 EMBED_MODEL,
                 OLLAMA_BASE_URL,
                 e,
             )
-            return
+            raise RuntimeError("required Qdrant seed embedding failed") from e
 
     dim = len(vectors[0])
     logger.info(f"✅ وُلّد تضمين {len(vectors)} وثيقة (بُعد={dim}, نموذج={EMBED_MODEL})")
@@ -177,14 +237,45 @@ async def seed():
             raise
         logger.info(f"Collection '{COLLECTION}' already exists")
 
-    points = [
-        PointStruct(
-            id=doc["id"],
-            vector=vectors[i],
-            payload={k: v for k, v in doc.items() if k != "id"},
+    points = []
+    for i, doc in enumerate(KNOWLEDGE_BASE):
+        chunk_id = f"seed:{doc['id']}"
+        document_id = f"reference:{doc.get('source', 'unknown')}:{doc['id']}"
+        source = str(doc.get("source") or "")
+        source_provenance = provenance.get(source, {})
+        is_global = SEED_TENANT_ID == "__global__"
+        metadata = {
+            "chunk_id": chunk_id,
+            "tenant_id": SEED_TENANT_ID,
+            "source_type": "curated_reference" if is_global else "legacy_seed_quarantine",
+            "document_id": document_id,
+            "chunk_index": 0,
+            "total_chunks": 1,
+            "evidence_level": "document",
+            "topic": doc.get("topic"),
+            "publisher": source_provenance.get("publisher") if is_global else None,
+            "source_uri": source_provenance.get("source_uri")
+            if is_global
+            else f"sahool://seed-quarantine/{doc['id']}",
+            "source_revision": source_provenance.get("source_revision")
+            if is_global
+            else SEED_REVISION,
+            "license": source_provenance.get("license") if is_global else None,
+            "source_class": "curated_reference" if is_global else "internal_document",
+            "prescriptive_eligible": False,
+            "content_digest": hashlib.sha256(doc["text"].encode("utf-8")).hexdigest(),
+            "provenance_status": "verified_manifest"
+            if is_global
+            else "legacy_unverified_quarantine",
+        }
+        point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"sahool-rag:{chunk_id}"))
+        points.append(
+            PointStruct(
+                id=point_id,
+                vector=vectors[i],
+                payload={"page_content": doc["text"], "metadata": metadata},
+            )
         )
-        for i, doc in enumerate(KNOWLEDGE_BASE)
-    ]
 
     await client.upsert(collection_name=COLLECTION, points=points)
     logger.info(f"✅ Seeded {len(points)} documents into Qdrant")

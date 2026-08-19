@@ -387,7 +387,7 @@
       },
       "evidence_truncated": {
         "apis": 200,
-        "tests": 98
+        "tests": 99
       }
     },
     {
@@ -984,7 +984,7 @@
         "Farmonaut": null
       },
       "evidence_truncated": {
-        "tests": 8
+        "tests": 9
       }
     },
     {
@@ -1035,6 +1035,7 @@
         "tests_v9/test_a6_print_map.py",
         "tests_v9/test_evidence_map_shape.py",
         "tests_v9/test_layer_evict_v30_9.py",
+        "tests_v9/test_service_map_image_pin_parity.py",
         "tests_v9/test_soil_layer_v31_7.py",
         "tests_v9/test_terrain_layers_v31_6.py",
         "tests_v9/test_v215_yield_map_ingestion_static.py"
@@ -1071,7 +1072,7 @@
           "path": "migrations/v215_yield_map_ingestion.sql"
         }
       ],
-      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=16, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
+      "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=11, tests=17, ui=0, mobile=1. Runtime and production certification remain manual evidence gates.",
       "competitive": {
         "FieldView": null,
         "CropX": null,
@@ -1214,6 +1215,10 @@
         {
           "type": "repository",
           "path": "services/sahool-platform/api/spatial_sync.py"
+        },
+        {
+          "type": "repository",
+          "path": "services/raster-service/trial_zonal_outcomes.py"
         }
       ],
       "rationale": "Capability linkage generated conservatively from repository inventories: services=1, apis=2, tests=3, ui=0, mobile=0. Runtime and production certification remain manual evidence gates.",

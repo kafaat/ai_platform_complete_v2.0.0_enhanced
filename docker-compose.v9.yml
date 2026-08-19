@@ -413,7 +413,7 @@ services:
     # gate on service_started; a real readiness probe belongs in a sidecar or the RAG
     # service's own retry/backoff — not a self-healthcheck in the distroless image.
   sahool-ollama:
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.3.14}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131}
     mem_limit: 4g
     security_opt:
     - no-new-privileges:true
@@ -636,6 +636,7 @@ services:
       AI_PROVIDER: ${AI_PROVIDER:-local}
       AI_MODEL: ${AI_MODEL:-}
       AI_MODELS: ${AI_MODELS:-}
+      AI_GENERATION_ENABLED: ${AI_GENERATION_ENABLED:-false}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}
       VLLM_BASE_URL: ${VLLM_BASE_URL:-http://sahool-vllm-jais:8000/v1}
       VLLM_API_KEY: ${VLLM_API_KEY:-sahool-vllm-local}
@@ -1705,6 +1706,7 @@ services:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
       QDRANT_API_KEY: ${QDRANT_API_KEY}
+      COLLECTION_NAME: ${QDRANT_COLLECTION:-sahool_agri_kb}
       RAG_RETRIEVAL_URL: http://sahool-rag-retrieval:8000
       RAG_RETRIEVAL_SHADOW: ${RAG_RETRIEVAL_SHADOW:-false}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
@@ -1816,6 +1818,7 @@ services:
       AI_PROVIDER: ${AI_PROVIDER:-local}
       AI_MODEL: ${AI_MODEL:-}
       AI_MODELS: ${AI_MODELS:-}
+      AI_GENERATION_ENABLED: ${AI_GENERATION_ENABLED:-false}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}
       VLLM_BASE_URL: ${VLLM_BASE_URL:-http://sahool-vllm-jais:8000/v1}
       VLLM_API_KEY: ${VLLM_API_KEY:-sahool-vllm-local}
@@ -1870,6 +1873,10 @@ services:
       EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}
       EMBEDDING_URL: ${OLLAMA_BASE_URL:-http://sahool-ollama:11434}/api/embeddings
       EMBEDDING_MODEL: ${EMBED_MODEL:-nomic-embed-text}
+      QDRANT_SEED_TENANT_ID: ${QDRANT_SEED_TENANT_ID:-__seed_quarantine__}
+      QDRANT_SEED_REVISION: ${QDRANT_SEED_REVISION:-yemen-reference-v1}
+      QDRANT_SEED_PROVENANCE_FILE: ${QDRANT_SEED_PROVENANCE_FILE:-}
+      QDRANT_SEED_PROVENANCE_JSON: ${QDRANT_SEED_PROVENANCE_JSON:-}
     depends_on:
       sahool-qdrant:
         condition: service_started  # qdrant is distroless — no healthcheck; gate on start

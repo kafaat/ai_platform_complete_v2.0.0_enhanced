@@ -71,6 +71,7 @@ medium,odoo-bridge,class,OdooConfigResponse,services/odoo-bridge/main.py,185,0,r
 medium,raster-service,function,dem_quality_from_num,services/raster-service/dem_quality.py,34,0,review_before_delete,False
 medium,raster-service,function,stability_zones,services/raster-service/management_zones.py,70,0,review_before_delete,False
 medium,raster-service,class,RawDataProcessResponse,services/raster-service/raster_api_models.py,120,0,review_before_delete,False
+medium,raster-service,function,extract_trial_zonal_outcomes,services/raster-service/raster_processing_runtime.py,142,0,review_before_delete,False
 medium,raster-service,function,verify_provenance_match,services/raster-service/raster_provenance.py,126,0,review_before_delete,False
 medium,raster-service,function,dem_providers,services/raster-service/raster_scene_model.py,327,0,review_before_delete,False
 medium,raster-service,function,preferred_dem,services/raster-service/raster_scene_model.py,332,0,review_before_delete,False
@@ -210,7 +211,8 @@ medium,sahool-platform,function,detect_metric_drift,services/sahool-platform/cor
 medium,sahool-platform,function,multi_season_summary,services/sahool-platform/core/multi_season_analytics.py,275,0,review_before_delete,False
 medium,sahool-platform,class,ConnectivityState,services/sahool-platform/core/offline_first.py,334,0,review_before_delete,False
 medium,sahool-platform,function,propagate_add,services/sahool-platform/core/provenance.py,124,0,review_before_delete,False
-medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,171,0,review_before_delete,False
+medium,sahool-platform,class,ReferenceProvenance,services/sahool-platform/core/rag/production_qdrant.py,54,0,review_before_delete,False
+medium,sahool-platform,class,HttpEmbeddingProvider,services/sahool-platform/core/rag/production_qdrant.py,339,0,review_before_delete,False
 medium,sahool-platform,function,arbitrate_summary,services/sahool-platform/core/source_of_truth.py,273,0,review_before_delete,False
 medium,sahool-platform,function,detect_zones_of_interest,services/sahool-platform/core/spatial/indicators.py,90,0,review_before_delete,False
 medium,sahool-platform,function,link_farmer_knowledge,services/sahool-platform/core/spatial/indicators.py,202,0,review_before_delete,False
@@ -594,6 +596,7 @@ medium,shared,function,execute_with_tenant,shared/helpers.py,200,0,review_before
 medium,shared,function,validate_role,shared/helpers.py,210,0,review_before_delete,False
 medium,shared,function,wrapped_send,shared/helpers.py,342,0,review_before_delete,False
 medium,shared,function,get_data,shared/helpers.py,382,0,review_before_delete,False
+medium,shared,function,project_thing_model,shared/iot_execution_runtime.py,338,0,review_before_delete,False
 medium,shared,function,root_zone_provider,shared/knowledge/providers.py,92,0,review_before_delete,False
 medium,shared,function,sprinkler_provider,shared/knowledge/providers.py,103,0,review_before_delete,False
 medium,shared,function,source_of_truth_for,shared/knowledge/source_registry.py,105,0,review_before_delete,False
@@ -605,6 +608,13 @@ medium,shared,function,import_from_encrypted_tarball,shared/memory/import_engine
 medium,shared,function,import_from_qdrant_snapshot,shared/memory/import_engine.py,525,0,review_before_delete,False
 medium,shared,function,load_skill,shared/memory/skills.py,109,0,review_before_delete,False
 medium,shared,function,list_skills,shared/memory/skills.py,147,0,review_before_delete,False
+medium,shared,function,register_dataset_version,shared/mlops/runtime.py,213,0,review_before_delete,False
+medium,shared,function,agricultural_evaluation_profile,shared/mlops/runtime.py,281,0,review_before_delete,False
+medium,shared,function,export_field_boundary_bundle,shared/precision_agriculture/adapt_v2_edge.py,79,0,review_before_delete,False
+medium,shared,function,import_field_boundary_bundle,shared/precision_agriculture/adapt_v2_edge.py,191,0,review_before_delete,False
+medium,shared,function,project_observation,shared/precision_agriculture/pail_om_edge.py,31,0,review_before_delete,False
+medium,shared,function,import_observation_projection,shared/precision_agriculture/pail_om_edge.py,102,0,review_before_delete,False
+medium,shared,function,bind_plot_outcomes,shared/precision_agriculture/trial_spatial.py,264,0,review_before_delete,False
 medium,shared,function,wildcard_with_credentials,shared/security/cors_policy.py,78,0,review_before_delete,False
 medium,shared,function,require_attested_reviewer,shared/security/gateway_deps.py,71,0,review_before_delete,False
 medium,shared,function,logbook_size_ok,shared/security/season_logbook.py,68,0,review_before_delete,False

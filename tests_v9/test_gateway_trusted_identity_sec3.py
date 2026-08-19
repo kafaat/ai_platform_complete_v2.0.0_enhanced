@@ -338,6 +338,13 @@ def test_rag_search_matching_tenant_uses_trusted_value(monkeypatch):
         return []
 
     monkeypatch.setattr(M._retriever, "retrieve", _fake_retrieve)
+    # موضوع هذا التأكيد هو **هويّة المستأجر الموثوقة**، لا جاهزيّة الفهرس المتناثر.
+    # وقد أضافت دلتا AI/RAG تعليقاً على `_ensure_sparse_index()` قبل بلوغ منطق
+    # المستأجر: بلا Qdrant حيّ يرتفع الاستثناء فيعود 503 قبل أن يُستدعى المُسترجِع،
+    # فسقط هذا الاختبار على **تجهيزته** لا على ما يقيسه. والعلاج تعليمُ الجاهزيّة
+    # عبر مسار الوحدة نفسه (`_sparse_ready`) — لا تعطيلُ الفشل المغلق: سلوك 503
+    # حين يتعذّر ترطيب BM25 مقصودٌ ويبقى مفروضاً في كلّ مسارٍ آخر، ومُثبَتٌ بالزرع.
+    monkeypatch.setattr(M, "_sparse_ready", True, raising=False)
     r = client.post(
         "/v1/search", json=_rag_search_body("tenant-1"), headers={"X-Tenant-Id": "tenant-1"}
     )
