@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5104,
+    "files_scanned": 5112,
     "files_by_kind": {
       "backend": 1196,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1389,
-      "tests": 1678,
+      "other": 1396,
+      "tests": 1679,
       "web": 456
     },
-    "unmapped_artifacts": 2075,
+    "unmapped_artifacts": 2076,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -554,7 +554,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:500",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:517",
           "score": 12
         },
         {
@@ -2261,7 +2261,7 @@
           "score": 28
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:500",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:517",
           "score": 12
         },
         {
@@ -3156,6 +3156,14 @@
             "path:model promotion",
             "content:model promotion"
           ]
+        },
+        {
+          "path": "scripts/ci/c12_governed_learning_promotion_certification.py",
+          "score": 8,
+          "signals": [
+            "content:model activation",
+            "content:model promotion"
+          ]
         }
       ],
       "ambiguous": [],
@@ -3171,7 +3179,7 @@
         "mobile": 0,
         "tests": 5,
         "governance": 0,
-        "other_evidence": 7
+        "other_evidence": 8
       },
       "coverage_dimensions": 5,
       "mapped": true
@@ -14310,7 +14318,7 @@
           "score": 16
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:500",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:517",
           "score": 12
         }
       ],
@@ -27446,7 +27454,7 @@
           "score": 12
         },
         {
-          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:500",
+          "value": "docker-compose.soil-strict.yml @ .github/workflows/ci.yml:517",
           "score": 12
         },
         {
@@ -41456,6 +41464,10 @@
     },
     {
       "path": "tests_v9/test_c5_c6_parallel_contracts.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_c8_c13_certification_contracts.py",
       "kind": "tests"
     },
     {

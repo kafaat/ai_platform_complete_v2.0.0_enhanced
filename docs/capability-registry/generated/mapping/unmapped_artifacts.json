@@ -6840,6 +6840,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_c8_c13_certification_contracts.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_calendars_today.py",
     "kind": "tests"
   },
