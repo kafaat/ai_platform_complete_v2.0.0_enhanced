@@ -7780,6 +7780,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_provision_pg_client.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_qdrant_probe_classification.py",
     "kind": "tests"
   },

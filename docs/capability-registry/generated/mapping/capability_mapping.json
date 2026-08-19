@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5115,
+    "files_scanned": 5116,
     "files_by_kind": {
       "backend": 1196,
       "database": 274,
       "governance": 60,
       "mobile": 51,
       "other": 1397,
-      "tests": 1681,
+      "tests": 1682,
       "web": 456
     },
-    "unmapped_artifacts": 2078,
+    "unmapped_artifacts": 2079,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -42404,6 +42404,10 @@
     },
     {
       "path": "tests_v9/test_providers_status_endpoint_v63_4.py",
+      "kind": "tests"
+    },
+    {
+      "path": "tests_v9/test_provision_pg_client.py",
       "kind": "tests"
     },
     {
