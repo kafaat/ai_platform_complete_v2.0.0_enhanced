@@ -1,7 +1,7 @@
 {
   "schema": "sahool.preflight_required",
   "version": 1,
-  "adjudicated_on": "2026-08-18",
+  "adjudicated_on": "2026-08-19",
   "adjudicated_on_note_ar": "قرار إنسان لا قياس ماسح: لا شيء في الشجرة يُنتِج «أيّ اختبارات عقد يجب أن يراها الفحص المحلّيّ». ولأنّه قرار فهو لا يَبيت بحركة الشجرة — بخلاف الأساسات المقيسة التي يُبلِّغ `claim_base_guard` عن عمرها.",
   "note_ar": "عقد `scripts/ci/preflight.sh`: ما يجب أن يكون موجوداً قبل أن يُعتَدّ بأخضره. يُحرَّر هنا لا في السكربت — قائمة مدفونة في أداة تبيت بصمت، وهو الصنف الذي أسقط `capability_impact.py` و`SENSITIVE=`. وحذف عنصر من الشجرة بلا تحديث هذا الملفّ يُفشِل الفحص عمداً (fail-closed): تقلّص التغطية يُسمّى باسمه ولا يمرّ صامتاً.",
   "note_en": "Contract for scripts/ci/preflight.sh. Edited here, never inside the tool: a list buried in a script goes stale silently. Removing a listed path without updating this file fails the preflight on purpose — a coverage loss must be named, not absorbed.",
@@ -9,6 +9,7 @@
   "derivation_rule_ar": "اشتقّ إن أمكن، وصرّح إن تعذّر. هذا الملفّ يُصرّح لأنّه لا يوجد مصدر أعلى يُنتِج «أيّ اختبارات عقد يجب أن يراها الفحص المحلّيّ». في المقابل **لا** يُصرَّح بقائمة المولّدات: `verify_all_generated.py` يكتشفها من الـworkflows بقرار مقصود خلفه فشل مقيس (جولتا CI في 2026-07-28)، فقائمة يدويّة هناك تُعيد إنتاج العيب داخل الأداة التي تعالجه.",
   "required_tests": [
     "tests_v9/test_local_preflight_contract.py",
+    "tests_v9/test_non_ascii_fixture_path_guard.py",
     "tests_v9/test_capability_impact_parity.py",
     "tests_v9/test_db_ownership_source_integrity_guard.py",
     "tests_v9/test_platform_catalog_gate.py",
