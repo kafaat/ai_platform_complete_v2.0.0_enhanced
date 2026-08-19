@@ -57,9 +57,18 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github/workflows"
 
-# تجهيزٌ شبكيّ ⇒ الوظيفة يجب أن تحمل سقفاً. حاوية قاعدة، **أو** أداةٌ تجلب حِزَماً
-# من الشبكة — والثانية أُضيفت بعد أن مرّ العطل من بينهما (انظر ③ في الترويسة).
-_DB_JOB_MARKERS = ("docker run -d --name", "--with-deps")
+# تجهيزٌ شبكيّ ⇒ الوظيفة يجب أن تحمل سقفاً.
+#
+# والعلامة الثالثة (`scripts/ci/resilient_`) أُضيفت بعد أن **عمي الحارس بإصلاحٍ صحيح**
+# للمرّة الثالثة في هذه السلسلة: نقلُ `playwright install --with-deps` إلى سكربتٍ
+# صامد أخرج السلسلة من متن الوظيفة، فصارت ① لا ترى تجهيزاً شبكيّاً فيها ولا تطلب
+# سقفاً — والسقف كان قائماً فمرّ الحارس **أخضرَ لسببٍ خاطئ**. مقيس بالزرع: نزعُ
+# `timeout-minutes` من `frontend-e2e` لم يُدَن قبل هذه العلامة.
+#
+# وهي بالبادئة لا بالأسماء: سكربتات `resilient_*` موجودةٌ **لأنّها تجلب من الشبكة**
+# (`apt` · `docker pull` · متصفّحات Playwright)، فالبادئة تصف الصنف لا تعدّ أفراده،
+# ويرثها من يُضاف غداً بلا تعديل هنا.
+_DB_JOB_MARKERS = ("docker run -d --name", "--with-deps", "scripts/ci/resilient_")
 
 # `timeout` قد يسبق `sudo` أو يتلوه — كلاهما حدٌّ جداريّ صحيح.
 _BOUNDED_APT = re.compile(r"\btimeout\b[^|;&]*\bapt-get\b")
@@ -67,7 +76,19 @@ _BOUNDED_APT = re.compile(r"\btimeout\b[^|;&]*\bapt-get\b")
 # أدواتٌ تستدعي مدير حِزَم من جوفها. القائمة **مقيسة لا مُتخيَّلة**: يُضاف إليها ما
 # وقع هنا فعلاً. وتوسيعها بالتخمين يُنتِج إدانات لا يفهمها قارئها.
 _APT_INVOKING_TOOLS = ("playwright install --with-deps",)
-_BOUNDED_TOOL = re.compile(r"\btimeout\b[^|;&]*")
+
+
+def _bounded_tool(line: str, tool: str) -> bool:
+    """أيقع `timeout` على **هذا الأمر بعينه**؟
+
+    المعيار هو معيار القاعدة ② حرفيّاً: `timeout` ثمّ اسمُ الأداة بلا فاصل أمرٍ
+    بينهما (`| ; &`). وأوّل صياغةٍ استعملت `match` — أي «يبدأ السطر بـtimeout» —
+    فأدانت `if timeout … npx playwright install …; then` وهو **مسقوفٌ فعلاً**.
+    إيجابيّةٌ كاذبة تُسقِط الحارس بلا أن تُعطّله، فيتعلّم قارئ الأحمر تجاهله؛
+    وقعت على أوّل تشغيلٍ بعد كتابة `resilient_playwright_install.sh`.
+    """
+    return re.search(r"\btimeout\b[^|;&]*" + re.escape(tool), line) is not None
+
 
 # نصٌّ داخل اقتباس **ذِكرٌ لا استدعاء**: رسالةُ `echo "apt-get تعثّر…"` تصف العطل
 # ولا ترتكبه. وإدانتُها إيجابيّةٌ كاذبة تُسقِط الحارس بلا أن تُعطّله — قارئ الأحمر
@@ -108,9 +129,7 @@ def findings() -> list[str]:
             if line.strip().startswith("#"):
                 continue
             for tool in _APT_INVOKING_TOOLS:
-                if tool in stripped and not _BOUNDED_TOOL.match(
-                    stripped.lstrip("- ").removeprefix("run:").strip()
-                ):
+                if tool in stripped and not _bounded_tool(stripped, tool):
                     out.append(
                         f"{rel}:{i}: `{tool}` بلا `timeout` — يستدعي apt-get من جوفه "
                         "فلا تبلغه القاعدة ②"

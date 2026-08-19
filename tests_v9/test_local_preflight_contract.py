@@ -236,6 +236,43 @@ def test_the_mutation_guard_plants_locally_and_not_only_validates_its_spec():
     )
 
 
+def test_the_non_ascii_fixture_guard_runs_in_the_fast_tier_not_only_inside_the_suite():
+    """Measured a fourth time — and the fourth time cost a full CI round.
+
+    ``NON-ASCII-TEST-FIXTURE-PATH-BREAKS-C-LOCALE-01`` landed in #820, then #824, then in
+    the guard written to stop it, and then in ``test_resilient_apt_install.py`` — all four
+    with the same literal shape: an Arabic name for a file asserted to be *absent*, where
+    the Arabic is decoration and not a property under test.
+
+    The guard exists and blocks. But it is a pytest test, so it only runs inside step ٨أ —
+    a suite measured at 11m27s, outside ``--fast``. The tree was therefore pushed on the
+    green of a tool that never asked the question: a 53-minute CI round to learn something
+    a 1.6-second step answers locally. That is exactly the class ٢ج was added for, one line
+    above it — a cheap static guard locked inside an expensive tier.
+
+    Placement is anchored on the **invocation**, never the bare path: the path also occurs
+    in this rationale and in the contract, so ``index`` on the path could resolve to prose
+    above the step while the executed line sits below the early exit — an assertion that
+    stopped measuring what it claims. Uniqueness is asserted so a second invocation cannot
+    make ``index`` ambiguous again.
+    """
+    text = _text()
+    invocation = "python3 -m pytest -q tests_v9/test_non_ascii_fixture_path_guard.py"
+    assert invocation in text, (
+        "a guard that only runs inside the 11-minute suite cannot be what --fast measured"
+    )
+    assert text.count(invocation) == 1, (
+        "two invocations make the placement check read whichever comes first — pick one"
+    )
+    assert text.index(invocation) < text.index('if [ "$TIER" = fast ]'), (
+        "it must run in --fast: the tier developers actually run before pushing"
+    )
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert "tests_v9/test_non_ascii_fixture_path_guard.py" in contract["required_tests"], (
+        "deleting the guard must be named a coverage loss, not read as a passing gate"
+    )
+
+
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():
     """Measured: its green ran before the commit it was read as clearing.
 

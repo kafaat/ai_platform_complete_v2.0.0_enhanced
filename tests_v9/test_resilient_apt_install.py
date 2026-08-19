@@ -71,6 +71,7 @@ def _run(tmp_path: Path, **env_extra: str) -> tuple[subprocess.CompletedProcess,
     env = os.environ.copy()
     env["PATH"] = f"{tmp_path}:{env['PATH']}"
     env.setdefault("APT_BACKOFF", "0")  # لا ننفق وقتاً حقيقيّاً على النوم
+    env.setdefault("APT_SOURCE_FILES", _apt_sources(tmp_path))
     env.update(env_extra)
     proc = subprocess.run(
         ["bash", str(SCRIPT), "postgresql-client"],
@@ -82,6 +83,19 @@ def _run(tmp_path: Path, **env_extra: str) -> tuple[subprocess.CompletedProcess,
     )
     log = tmp_path / "calls.log"
     return proc, (log.read_text(encoding="utf-8") if log.exists() else "")
+
+
+def _apt_sources(tmp_path: Path) -> str:
+    """ملفّ مصادر APT **اصطناعيّ** يُحقَن، فلا يُقاس نظام ملفّات المُشغِّل.
+
+    كانت المسارات مُصلَّبة في `switch_apt_mirror`، فصار هذا الاختبار يمرّ أو يسقط
+    بحسب وجود `/etc/apt` على الآلة: يزيّف `sed` لكنّه لا يُستدعى أصلاً إن لم يوجد
+    الملفّ. أمسكها مراجعٌ خارجيّ على مُشغِّلٍ بلا `/etc/apt`، ومرّت هنا لأنّه موجود —
+    أي أنّ الاختبار كان **يقيس البيئة لا السكربت**.
+    """
+    src = tmp_path / "ubuntu.sources"
+    src.write_text("URIs: http://azure.archive.ubuntu.com/ubuntu/\n", encoding="utf-8")
+    return str(src)
 
 
 def _attempts(log: str) -> int:
@@ -177,3 +191,56 @@ def test_no_workflow_reintroduces_an_inline_apt_block():
     assert "apt-get install -y -qq postgresql-client && break" not in ci, (
         "الكتلة المكرّرة أُزيلت، وإلّا بقي مصدران للحقيقة"
     )
+
+
+def test_the_mirror_switch_is_driven_by_injection_not_by_the_runner_filesystem(tmp_path):
+    """العطل الذي أمسكه مراجعٌ خارجيّ: الاختبار كان يقيس البيئة لا السكربت.
+
+    المسارات كانت مُصلَّبة في `switch_apt_mirror`، فإن غاب `/etc/apt` عن المُشغِّل لم
+    يُستدعَ `sed` أصلاً وسقط تأكيدُ «تُبدَّل قبل النوم» — **بلا تغييرٍ في الشيفرة**.
+    مرّ هنا لأنّ الملفّين موجودان، وسقط عنده لأنّهما ليسا كذلك. وهذا أسوأ من أحمر:
+    أخضرٌ يعتمد على آلةٍ بعينها.
+
+    يُقاس هنا الطرفان معاً — أنّ المحقون **يُحرَّر**، وأنّ الغياب **لا يُفشِل** (فالتبديل
+    تحسينُ فرصةٍ لا شرطُ صحّة).
+    """
+    import os
+
+    helper = ROOT / "scripts/ci/apt_mirror_fallback.sh"
+    log = tmp_path / "calls.log"
+    sed = tmp_path / "sed"
+    sed.write_text(f'#!/usr/bin/env bash\necho "sed $*" >> "{log}"\nexit 0\n', encoding="utf-8")
+    sed.chmod(sed.stat().st_mode | stat.S_IEXEC)
+    sudo = tmp_path / "sudo"
+    sudo.write_text('#!/usr/bin/env bash\nexec "$@"\n', encoding="utf-8")
+    sudo.chmod(sudo.stat().st_mode | stat.S_IEXEC)
+
+    probe = tmp_path / "probe.sh"
+    probe.write_text(f'. "{helper}"\nswitch_apt_mirror\n', encoding="utf-8")
+    env = os.environ.copy()
+    env["PATH"] = f"{tmp_path}:{env['PATH']}"
+
+    # ① مسارٌ محقونٌ **موجود** ⇒ يُحرَّر هو، ولا يُمَسّ نظام ملفّات المُشغِّل.
+    injected = _apt_sources(tmp_path)
+    env["APT_SOURCE_FILES"] = injected
+    r = subprocess.run(
+        ["bash", str(probe)], capture_output=True, text=True, encoding="utf-8", env=env
+    )
+    assert r.returncode == 0, r.stderr
+    calls = log.read_text(encoding="utf-8")
+    assert injected in calls, calls
+    assert "/etc/apt" not in calls, "لا يُمَسّ نظام ملفّات المُشغِّل: المسار محقون"
+
+    # ② مسارٌ محقونٌ **غائب** ⇒ صفرُ استدعاء، ورمزُ خروجٍ صفر: الغياب ليس فشلاً.
+    #
+    # والاسم ASCII عمداً: `test_non_ascii_fixture_path_guard` يمنع بناء مسارٍ من حرفٍ
+    # غير ASCII داخل اختبار، لأنّ خطوة `LC_ALL=C PYTHONUTF8=0` تجعل ترميز نظام
+    # الملفّات ASCII فيرتفع `UnicodeEncodeError` **قبل** بلوغ المقيس. وما يقيسه هذا
+    # السطر هو **الغياب**، ولا علاقة له بحروف الاسم.
+    log.unlink()
+    env["APT_SOURCE_FILES"] = str(tmp_path / "absent-on-purpose.sources")
+    r = subprocess.run(
+        ["bash", str(probe)], capture_output=True, text=True, encoding="utf-8", env=env
+    )
+    assert r.returncode == 0, r.stderr
+    assert not log.exists(), "ملفٌّ غائب لا يُستدعى له sed"

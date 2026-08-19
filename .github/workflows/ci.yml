@@ -679,28 +679,11 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: frontend
       # `--with-deps` يستدعي `apt-get` **داخل الأداة**، فلا يبلغه تصلّب APT المكتوب
-      # في الـworkflow ولا يراه ماسحٌ يبحث عن `apt-get` نصّاً. مقيس: عَلِق هنا ٨٠+
-      # دقيقة على تشغيل 32160054946 بينما نجح على الرأس نفسه في 2م55ث.
-      # والمهلة تُحوّل التعليق إلى فشلٍ مقروء ولا تُنجح التثبيت — نفس حدّ
-      # `resilient_apt_install.sh` بنصّه. فتُعاد المحاولة ثلاثاً بمهلةٍ لكلٍّ: العابر
-      # يُعالَج، والعقد لا يُلَيَّن (استنفادُ الثلاث يبقى حاجباً باسمٍ يقول سببه).
-      # مقيس: 32294898446 سقطت بـ124 بعد 4.5د، ونجح الأمرُ نفسه في 2م55ث على رأسٍ
-      # آخر — أي أنّ المحاولة الواحدة تُسقِط وظيفةً على انقطاعةٍ لا على عطل.
-      - name: Install Playwright browser + OS deps (bounded, retried)
+      # في الـworkflow. أُضيف السقف بعد تعليقٍ ٨٠+ دقيقة (تشغيل 32160054946)، ثمّ
+      # **أطلق** بـ`exit 124` على `d5fd1ec3` (تشغيل 32269598189) — فثبت أنّ الحدّ
+      # يحوّل الحرق إلى فشل ولا يُنجِح التثبيت. فعُمِّم علاج APT: تراجعٌ ومرآةٌ بديلة.
+      - run: bash ../scripts/ci/resilient_playwright_install.sh chromium
         working-directory: frontend
-        run: |
-          set -uo pipefail
-          for attempt in 1 2 3; do
-            # الحدّ **أوّلُ ما يُنفَّذ في السطر**: `ci_unbounded_wait_guard` يُثبِّت
-            # نمطه على بداية الأمر (`_BOUNDED_TOOL.match`)، وخبْؤه داخل `if` يُخفيه
-            # عنه. وهو محقّ: حدٌّ لا يظهر في مقدّمة الأمر يسهل أن يزول بإعادة صياغة.
-            timeout -k 10 300 npx playwright install --with-deps chromium \
-              && { echo "playwright_deps_installed attempt=$attempt"; exit 0; }
-            echo "::warning::playwright install تعثّر/تجاوز مهلته (محاولة $attempt من 3)"
-            sleep $((attempt * 15))
-          done
-          echo "::error::PLAYWRIGHT_DEPS_INSTALL_FAILED — ثلاث محاولات مسقوفة"
-          exit 1
       - run: npx playwright test
         working-directory: frontend
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -162,25 +162,3 @@ def test_the_harness_verdict_derives_its_primary_error_instead_of_asserting_one(
     printed = [ln for ln in ci.splitlines() if "echo" in ln and "primary_error" in ln]
     assert printed, "لا سطر طباعةٍ للسبب"
     assert all("$primary" in ln for ln in printed), printed
-
-
-def test_playwright_dependency_install_is_retried_and_still_fails_closed():
-    """محاولةٌ واحدة تُسقِط وظيفةً على انقطاعةٍ لا على عطل.
-
-    مقيس في 32294898446: `exit code 124` بعد 4.5د على `apt-get update` داخل
-    `playwright install --with-deps`، والأمرُ نفسه نجح في 2م55ث على رأسٍ آخر.
-    والمهلة وحدها تُحوّل التعليق إلى فشلٍ مقروء ولا تُنجح التثبيت — فتُعاد ثلاثاً،
-    ويبقى استنفادُها حاجباً باسمٍ يقول سببه.
-    """
-    ci = CI.read_text(encoding="utf-8")
-    assert "for attempt in 1 2 3; do" in ci
-    assert "PLAYWRIGHT_DEPS_INSTALL_FAILED" in ci
-    # ولا يُلَيَّن العقد: لا `|| true` ولا `continue-on-error` على هذه الخطوة.
-    block = ci[ci.index("Install Playwright browser") : ci.index("npx playwright test")]
-    assert "continue-on-error" not in block
-    assert "exit 1" in block
-    # والحدّ **أوّلُ ما يُنفَّذ في سطره**: `ci_unbounded_wait_guard` يُثبِّت نمطه على
-    # بداية الأمر، وخبْؤه داخل `if` أخفاه عنه فاحمرّ في 32296898767. وهو محقّ:
-    # حدٌّ لا يظهر في المقدّمة يسهل أن يزول بإعادة صياغة.
-    invocation = next(ln for ln in block.splitlines() if "playwright install --with-deps" in ln)
-    assert invocation.strip().startswith("timeout "), invocation

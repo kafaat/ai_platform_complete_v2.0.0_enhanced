@@ -1298,9 +1298,9 @@
         },
         {
           "expect": "test_a_db_job_without_a_job_timeout_is_blocked",
-          "find": "            hit = next((m for m in _DB_JOB_MARKERS if m in body), None)\n            if hit and not job.get(\"timeout-minutes\"):",
-          "replace": "            hit = None  # mutated: any provisioning job may burn the default six hours\n            if hit and not job.get(\"timeout-minutes\"):",
-          "why": "وظيفةٌ تُجهّز اعتماداً شبكيّاً بلا سقف تحرق runner ستّ ساعات — والافتراضيّ 360 دقيقة لا صفر. وُسِّع المدى من «حاوية قاعدة» إلى «تجهيزٌ شبكيّ» بعد تعليق `--with-deps` ٨٠+ دقيقة (تشغيل 32160054946)."
+          "find": "_DB_JOB_MARKERS = (\"docker run -d --name\", \"--with-deps\", \"scripts/ci/resilient_\")",
+          "replace": "_DB_JOB_MARKERS = ()  # mutated: no job counts as network provisioning",
+          "why": "وظيفةٌ تُجهّز اعتماداً شبكيّاً بلا سقف تحرق runner ستّ ساعات. والعلامة الثالثة أُضيفت بعد أن عمي الحارس بإصلاحٍ صحيح: نقلُ `--with-deps` إلى سكربتٍ صامد أخرج السلسلة من متن الوظيفة، فمرّ أخضرَ لسببٍ خاطئ (مقيس بالزرع)."
         },
         {
           "expect": "test_an_unreadable_workflow_fails_closed_instead_of_being_skipped",
@@ -1316,8 +1316,8 @@
         },
         {
           "expect": "test_a_tool_that_calls_apt_from_inside_itself_must_be_bounded",
-          "find": "_APT_INVOKING_TOOLS = (\"playwright install --with-deps\",)",
-          "replace": "_APT_INVOKING_TOOLS = ()  # mutated: a tool that shells out to apt needs no bound",
+          "find": "    return re.search(r\"\\btimeout\\b[^|;&]*\" + re.escape(tool), line) is not None",
+          "replace": "    return True  # mutated: a tool that shells out to apt needs no bound",
           "why": "حدٌّ يُفرَض على **اسم الأمر** يفوته كلُّ من يستدعيه من جوفه: `playwright install --with-deps` عَلِق ٨٠+ دقيقة بينما نجح على الرأس نفسه بالبايت في تشغيلٍ شقيق في 2م55ث."
         }
       ]

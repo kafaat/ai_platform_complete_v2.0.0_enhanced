@@ -99,14 +99,14 @@ def test_a_tool_that_calls_apt_from_inside_itself_must_be_bounded(tmp_path, monk
     نفسه بالبايت** في التشغيل الشقيق 32160058172 في دقيقتين وخمس وخمسين ثانية. ولم
     تكن وظيفته تُقيم حاوية قاعدة، فلم تطلب ① سقفاً لها ⇒ **بلا حدَّين معاً**.
     """
-    wf = _sandbox(tmp_path, monkeypatch) / "ci.yml"
-    bounded = "timeout -k 10 300 npx playwright install --with-deps chromium"
-    text = wf.read_text(encoding="utf-8")
-    assert bounded in text, "المرساة انحرفت — أعد قراءة خطوة تثبيت Playwright"
-    wf.write_text(
-        text.replace(bounded, "npx playwright install --with-deps chromium", 1),
-        encoding="utf-8",
-    )
+    _sandbox(tmp_path, monkeypatch)
+    # المرساة تتبع الشيفرة: الاستدعاء انتقل من `ci.yml` إلى السكربت الصامد حين
+    # عُمِّم علاج APT عليه. وتركُها على الموضع القديم يجعل الاختبار يزرع حيث لا يُقاس.
+    sh = tmp_path / "scripts/ci/resilient_playwright_install.sh"
+    text = sh.read_text(encoding="utf-8")
+    bounded = 'timeout -k 10 "$PW_TIMEOUT" npx playwright install'
+    assert bounded in text, "المرساة انحرفت — أعد قراءة حلقة المحاولات"
+    sh.write_text(text.replace(bounded, "npx playwright install", 1), encoding="utf-8")
     assert any("يستدعي apt-get من جوفه" in x for x in mod.findings()), mod.findings()
 
 
@@ -127,8 +127,10 @@ def test_a_job_that_provisions_over_the_network_without_a_cap_is_blocked(tmp_pat
     f = mod.findings()
     assert any("frontend-e2e" in x and "timeout-minutes" in x for x in f), f
     # والرسالة تسمّي **ما وُجِد**: حارسٌ وسّع مداه وأبقى نصّه يُدين «حاوية قاعدة»
-    # في وظيفةٍ لا حاوية فيها يوجّه قارئه إلى إصلاحٍ خاطئ.
-    assert any("--with-deps" in x for x in f), f
+    # في وظيفةٍ لا حاوية فيها يوجّه قارئه إلى إصلاحٍ خاطئ. والعلامة المُسمّاة تتبع
+    # الشيفرة أيضاً — صارت `scripts/ci/resilient_` بعد أن انتقل `--with-deps` إلى
+    # السكربت، فيُقبَل أيٌّ منهما ما دامت الرسالة تسمّي علامةً حقيقيّة لا صنفاً افتراضاً.
+    assert any(("--with-deps" in x or "scripts/ci/resilient_" in x) for x in f), f
     assert not any("frontend-e2e" in x and "حاوية قاعدة" in x for x in f), f
 
 
