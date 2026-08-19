@@ -681,8 +681,24 @@ jobs:
       # `--with-deps` يستدعي `apt-get` **داخل الأداة**، فلا يبلغه تصلّب APT المكتوب
       # في الـworkflow ولا يراه ماسحٌ يبحث عن `apt-get` نصّاً. مقيس: عَلِق هنا ٨٠+
       # دقيقة على تشغيل 32160054946 بينما نجح على الرأس نفسه في 2م55ث.
-      - run: timeout -k 10 300 npx playwright install --with-deps chromium
+      # والمهلة تُحوّل التعليق إلى فشلٍ مقروء ولا تُنجح التثبيت — نفس حدّ
+      # `resilient_apt_install.sh` بنصّه. فتُعاد المحاولة ثلاثاً بمهلةٍ لكلٍّ: العابر
+      # يُعالَج، والعقد لا يُلَيَّن (استنفادُ الثلاث يبقى حاجباً باسمٍ يقول سببه).
+      # مقيس: 32294898446 سقطت بـ124 بعد 4.5د، ونجح الأمرُ نفسه في 2م55ث على رأسٍ
+      # آخر — أي أنّ المحاولة الواحدة تُسقِط وظيفةً على انقطاعةٍ لا على عطل.
+      - name: Install Playwright browser + OS deps (bounded, retried)
         working-directory: frontend
+        run: |
+          set -uo pipefail
+          for attempt in 1 2 3; do
+            if timeout -k 10 300 npx playwright install --with-deps chromium; then
+              echo "playwright_deps_installed attempt=$attempt"; exit 0
+            fi
+            echo "::warning::playwright install تعثّر/تجاوز مهلته (محاولة $attempt من 3)"
+            sleep $((attempt * 15))
+          done
+          echo "::error::PLAYWRIGHT_DEPS_INSTALL_FAILED — ثلاث محاولات مسقوفة"
+          exit 1
       - run: npx playwright test
         working-directory: frontend
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
