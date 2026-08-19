@@ -33,8 +33,11 @@ CI = ROOT / ".github/workflows/ci.yml"
 def _fake_docker(tmp_path: Path, *, image: str | None) -> Path:
     log = tmp_path / "calls.log"
     docker = tmp_path / "docker"
+    # `docker` المزيّف **يستنزف stdin عند `-i`** كما يفعل الحقيقيّ. بدون ذلك كانت
+    # حالةُ استنزاف المجرى تمرّ خضراء على الطفرة نفسها — تؤكّد خاصّيّةً لا تقيسها.
     body = f'#!/usr/bin/env bash\necho "$@" >> "{log}"\nif [ "$1" = "inspect" ]; then\n'
     body += "  exit 1\nfi\n" if image is None else f'  echo "{image}"\n  exit 0\nfi\n'
+    body += 'for a in "$@"; do [ "$a" = "-i" ] && cat >/dev/null; done\n'
     body += "exit 0\n"
     docker.write_text(body, encoding="utf-8")
     docker.chmod(0o755)
@@ -111,3 +114,66 @@ def test_every_call_site_exports_the_shim_directory_in_its_own_step():
         assert 'export PATH="${RUNNER_TEMP:-/tmp}/pg-client-shims:$PATH"' in lines[i + 1], (
             f"السطر {i + 1} لا يُصدِّر دليل الأغلفة في الخطوة نفسها"
         )
+
+
+def test_a_file_driven_call_does_not_drain_the_callers_stdin(tmp_path):
+    """أداةٌ تستنزف stdin تُنهي حلقةَ الهجرات بعد أوّل ملفّ **بنجاح**.
+
+    خطوة الهجرات تقرأ قائمتها من مجرى دخلها:
+        while read -r f; do psql ... -f "migrations/$f"; done < <(grep ... MANIFEST)
+    و`psql` الأصليّ مع `-f` لا يمسّ stdin. أمّا `docker run -i` فيستنزفه، فمرّت
+    الخطوة خضراء والمخطَّط فارغ ثمّ سقطت 57 حالة بـrelation does not exist
+    (تشغيل 32283081538). فالمقيس هنا: الحلقة تُكمِل أسطرها الثلاثة.
+    """
+    _fake_docker(tmp_path, image="postgres:15")
+    assert _run(tmp_path, "sahool-pg").returncode == 0
+    loop = tmp_path / "loop.sh"
+    loop.write_text(
+        "#!/usr/bin/env bash\nset -euo pipefail\n"
+        'while read -r f; do echo "APPLIED:$f"; psql -f "$f" >/dev/null 2>&1 || true; done '
+        '< <(printf "a.sql\\nb.sql\\nc.sql\\n")\n',
+        encoding="utf-8",
+    )
+    loop.chmod(0o755)
+    shim_dir = _shim(tmp_path, "psql").parent
+    result = subprocess.run(
+        ["bash", str(loop)],
+        capture_output=True,
+        text=True,
+        env={"PATH": f"{shim_dir}:{tmp_path}:/usr/bin:/bin"},
+        cwd=tmp_path,
+    )
+    applied = [x for x in result.stdout.splitlines() if x.startswith("APPLIED:")]
+    assert applied == ["APPLIED:a.sql", "APPLIED:b.sql", "APPLIED:c.sql"], (
+        f"الحلقة توقّفت بعد {len(applied)} ملفّاً — المجرى استُنزِف"
+    )
+
+
+def test_the_integration_job_fails_loudly_when_migrations_create_nothing():
+    """وحتّى لو عاد استنزافٌ بصيغةٍ أخرى، لا يمرّ الصمت: العدّ يحجب في موضعه."""
+    ci = CI.read_text(encoding="utf-8")
+    assert "MIGRATIONS_APPLIED_NOTHING" in ci
+    assert "information_schema.tables" in ci
+
+
+def test_the_harness_verdict_derives_its_primary_error_instead_of_asserting_one():
+    """سببٌ ثابتٌ في النصّ يُنتِج نسبةً كاذبة كالتي جاء ليُصلحها.
+
+    كُتِب أوّلاً `primary_error=POSTGRES_CLIENT_PROVISIONING_FAILED` ثابتاً، فطُبِع
+    في 32285597465 **والتوفير ناجح**: `psql` عمل وطبّق `init_v8.sql` كاملةً،
+    والعطل كان اقتطاع حلقة الهجرات باستنزاف stdin. فصار السبب يُقاس من حالة
+    العالم لا يُدَّعى.
+    """
+    ci = CI.read_text(encoding="utf-8")
+    assert "primary_error=$primary" in ci, "السبب ما زال مكتوباً بيد"
+    for branch in (
+        "POSTGRES_CLIENT_PROVISIONING_FAILED",
+        "POSTGRES_UNREACHABLE",
+        "PREREQUISITE_STEP_FAILED_SEE_EARLIER_ERROR",
+    ):
+        assert branch in ci, f"فرعُ التشخيص «{branch}» غائب"
+    # ولا يبقى الثابت القديم **مطبوعاً** بلا اشتقاق. والفحص على سطور الطباعة
+    # وحدها: ذكرُ الاسم في تعليقٍ يشرح العطل توثيقٌ لا ارتكاب.
+    printed = [ln for ln in ci.splitlines() if "echo" in ln and "primary_error" in ln]
+    assert printed, "لا سطر طباعةٍ للسبب"
+    assert all("$primary" in ln for ln in printed), printed

@@ -913,6 +913,20 @@ jobs:
             case "$f" in ''|\#*) continue;; esac
             psql -h localhost -p 5433 -U sahool_test -d sahool_test -v ON_ERROR_STOP=1 -f "migrations/$f"
           done < <(grep -vE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
+      - name: Migrations must have created a schema (a silent no-op is a failure)
+        # MIGRATIONS-PASSED-WITHOUT-CREATING-ANYTHING-01 — الحلقة أعلاه تقرأ قائمتها
+        # من stdin، فأيّ أداةٍ تستنزف المجرى تُنهيها بعد أوّل ملفّ **بنجاح**. وقع
+        # مقيساً في 32283081538: الخطوة خضراء ثمّ 57 حالةً بـ`relation ... does not
+        # exist`. فالعدّ هنا يحوّل الصمت إلى فشلٍ يسمّي نفسه في موضعه.
+        env: {PGPASSWORD: test_password}
+        run: |
+          set -euo pipefail
+          declared=$(grep -cvE '^[[:space:]]*#|^[[:space:]]*$' migrations/MANIFEST.txt)
+          tables=$(psql -h localhost -p 5433 -U sahool_test -d sahool_test -Atc \
+            "select count(*) from information_schema.tables where table_schema='public'")
+          echo "هجرات مُعلَنة=$declared . جداول مُنشأة=$tables"
+          [ "$tables" -gt 0 ] || {
+            echo "::error::MIGRATIONS_APPLIED_NOTHING - الخطوة مرّت والمخطَّط فارغ"; exit 1; }
       - env:
           TEST_DATABASE_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
           TEST_REDIS_URL: redis://localhost:6380/0
@@ -1483,8 +1497,22 @@ jobs:
           missing=()
           for f in "${subjects[@]}"; do [ -s "$f" ] || missing+=("$f"); done
           if [ "${#missing[@]}" -gt 0 ]; then
+            # ── السببُ يُشتقّ ولا يُكتَب بيد ────────────────────────────────────
+            # كُتِب هنا أوّلاً `primary_error=POSTGRES_CLIENT_PROVISIONING_FAILED`
+            # ثابتاً، فطُبِع في تشغيل 32285597465 **والتوفير ناجح**: `psql` عمل
+            # وطبّق `init_v8.sql` كاملةً، والعطل كان اقتطاع حلقة الهجرات. أي أنّ
+            # الإصلاح استبدل نسبةً كاذبة (`RESTRICTED_ROLE_NOT_FOUND`) بأخرى.
+            # فالسبب يُقاس من حالة العالم: أموجودٌ العميل؟ أقامت القاعدة؟
+            if ! command -v psql >/dev/null 2>&1; then
+              primary=POSTGRES_CLIENT_PROVISIONING_FAILED
+            elif ! psql -h localhost -p 5435 -U sahool_user \
+                   -d "${SAHOOL_TEST_PGDATABASE:-sahool}" -Atc 'select 1' >/dev/null 2>&1; then
+              primary=POSTGRES_UNREACHABLE
+            else
+              primary=PREREQUISITE_STEP_FAILED_SEE_EARLIER_ERROR
+            fi
             echo "::error::HARNESS_INVALID — مواضيع الأدلّة غائبة: ${missing[*]}"
-            echo "::error::primary_error=POSTGRES_CLIENT_PROVISIONING_FAILED (القاعدة لم تبلغ حالةً تُقاس)"
+            echo "::error::primary_error=$primary (القاعدة لم تبلغ حالةً تُقاس)"
             echo "subjects_ready=false" >>"$GITHUB_OUTPUT"
             exit 1
           fi
