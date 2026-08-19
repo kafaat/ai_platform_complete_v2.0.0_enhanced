@@ -9,7 +9,16 @@ contract for each frozen writer while the pre-cutover bridge remains physically 
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+# GUARD-DIES-PRINTING-ITS-OWN-SUCCESS-UNDER-C-LOCALE-01: سطرُ التأجيل الذي أضفتُه
+# عربيّ، و`print` يُرمّز بلغة الآلة. فتحت `LC_ALL=C` كان الحارس يحسب **صحيحاً** ثمّ
+# يموت وهو يطبع نجاحه (UnicodeEncodeError) ⇒ خروجٌ بـ1 يُقرَأ «الحارس يحجب» وقد مرّ.
+# **عند التحميل لا داخل `main()`** — فبعض الحرّاس بلا `main` أصلاً، تطبع من جسدها.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[2]
 FREEZE = ROOT / "docs/architecture/s5_exec_01_edge_freeze.json"
