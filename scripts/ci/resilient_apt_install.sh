@@ -38,21 +38,11 @@ APT_ATTEMPTS="${APT_ATTEMPTS:-3}"
 APT_BACKOFF="${APT_BACKOFF:-10}"
 APT_FALLBACK_MIRROR="${APT_FALLBACK_MIRROR:-archive.ubuntu.com}"
 
-# مصادر APT على ubuntu-24.04 بصيغة deb822 في `ubuntu.sources`؛ والأقدم في
-# `sources.list`. يُبدَّل ما وُجِد منهما، ولا يُعَدّ غيابُهما فشلاً — التبديل
-# **تحسينُ فرصة** لا شرطُ صحّة، وإفشالُ التثبيت لأنّ ملفّ مصادر ليس حيث توقّعناه
-# يُحوّل علاجاً إلى عطلٍ جديد.
-switch_mirror() {
-  local f changed=0
-  for f in /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list; do
-    [ -f "$f" ] || continue
-    if sudo sed -i "s|[a-z0-9.-]*\.archive\.ubuntu\.com|$APT_FALLBACK_MIRROR|g" "$f"; then
-      changed=1
-    fi
-  done
-  [ "$changed" = 1 ] && echo "المرآة بُدِّلت إلى $APT_FALLBACK_MIRROR"
-  return 0
-}
+# تبديلُ المرآة مُستخرَجٌ إلى `apt_mirror_fallback.sh` ويشترك فيه هذا السكربت
+# و`resilient_playwright_install.sh`: المرآة متّجهٌ واحد يصطدم به الاثنان — مباشرةً
+# هنا، ومن جوف الأداة هناك. ونسختان منه تنحرفان عند أوّل تعديل.
+# shellcheck source=scripts/ci/apt_mirror_fallback.sh
+. "$(dirname "$0")/apt_mirror_fallback.sh"
 
 attempt() {
   sudo timeout -k 10 "$APT_TIMEOUT" apt-get update -qq \
@@ -70,7 +60,7 @@ while [ "$i" -le "$APT_ATTEMPTS" ]; do
     # التبديل **قبل** التراجع لا بعده: النوم على مرآةٍ متعثّرة إنفاقُ وقتٍ على
     # نفس الشرط. ويُبدَّل من المحاولة الثانية فصاعداً — الأولى تُجرَّب على
     # الافتراضيّ لأنّه الأسرع حين يعمل.
-    switch_mirror
+    switch_apt_mirror
     sleep $((APT_BACKOFF * i))
   fi
   i=$((i + 1))

@@ -679,9 +679,10 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: frontend
       # `--with-deps` يستدعي `apt-get` **داخل الأداة**، فلا يبلغه تصلّب APT المكتوب
-      # في الـworkflow ولا يراه ماسحٌ يبحث عن `apt-get` نصّاً. مقيس: عَلِق هنا ٨٠+
-      # دقيقة على تشغيل 32160054946 بينما نجح على الرأس نفسه في 2م55ث.
-      - run: timeout -k 10 300 npx playwright install --with-deps chromium
+      # في الـworkflow. أُضيف السقف بعد تعليقٍ ٨٠+ دقيقة (تشغيل 32160054946)، ثمّ
+      # **أطلق** بـ`exit 124` على `d5fd1ec3` (تشغيل 32269598189) — فثبت أنّ الحدّ
+      # يحوّل الحرق إلى فشل ولا يُنجِح التثبيت. فعُمِّم علاج APT: تراجعٌ ومرآةٌ بديلة.
+      - run: bash ../scripts/ci/resilient_playwright_install.sh chromium
         working-directory: frontend
       - run: npx playwright test
         working-directory: frontend

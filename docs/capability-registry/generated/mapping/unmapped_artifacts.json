@@ -7900,6 +7900,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_resilient_playwright_install.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_resolve_merge_conflicts.py",
     "kind": "tests"
   },
