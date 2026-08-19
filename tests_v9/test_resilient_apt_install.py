@@ -153,15 +153,27 @@ def test_no_packages_requested_is_a_usage_error_not_a_silent_success(tmp_path):
     assert proc.returncode == 2, proc.stdout + proc.stderr
 
 
-def test_the_three_workflow_sites_delegate_instead_of_duplicating(tmp_path):
-    """ثلاث كتل متطابقة تنحرف عن بعضها عند أوّل تعديل — والانحراف صامت.
+def test_no_workflow_reintroduces_an_inline_apt_block():
+    """الدرسُ باقٍ والعقدُ تبدّل: التفويض يعالج التكرار، والإلغاء يعالج الرهان نفسه.
 
-    وهذا هو الدرس المُسجَّل في `resilient_docker_pull.sh` نفسه، مُطبَّقاً على APT.
+    كان هذا الاختبار يفرض **ثلاثة** مواضع تُفوّض إلى السكربت الواحد بدل ثلاث كتل
+    متطابقة تنحرف عند أوّل تعديل — وهو درس `resilient_docker_pull.sh` مُطبَّقاً على
+    APT. ثمّ أُغلِق العطل من جذره لا من تكراره: `provision_pg_client.sh` يشتقّ
+    `psql`/`pg_isready` من **الصورة المسحوبة أصلاً** فلا رهانَ شبكةٍ إطلاقاً، وخطوة
+    Playwright صارت إعادةً مسقوفة لأنّ `--with-deps` يستدعي `apt-get` **داخل الأداة**
+    فلا يبلغه تصلّبٌ مكتوب في الـworkflow.
+
+    فالمقيس اليوم صفرُ سطر apt مُنفَّذ في `ci.yml` — والعدد ٣ صار ادّعاءً عن عالمٍ
+    زال. ويُقاس بدله ما بقي صادقاً ودائماً: عودةُ أيّ كتلة apt سطريّة تُحمِرّ، فمَن
+    احتاج apt مستقبلاً وجب أن يمرّ بالسكربت المُختبَر لا أن يكتب كتلةً رابعة.
     """
     ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    assert ci.count("scripts/ci/resilient_apt_install.sh") == 3, (
-        "المواضع الثلاثة تستدعي السكربت الواحد"
-    )
+    executed = [
+        line.strip()
+        for line in ci.splitlines()
+        if "apt-get" in line and not line.lstrip().startswith("#")
+    ]
+    assert not executed, f"apt عاد إلى مسار التنفيذ بلا تفويض: {executed}"
     assert "apt-get install -y -qq postgresql-client && break" not in ci, (
         "الكتلة المكرّرة أُزيلت، وإلّا بقي مصدران للحقيقة"
     )

@@ -218,7 +218,11 @@ def test_evidence_authority_is_not_declared_none_while_kg_shapes_evidence():
     RAG فتُغيّر الوثائق المُسترجَعة ⇒ التوصيفات ⇒ معرّفات الأدلّة ⇒ الثقة.
     """
     assert '"evidence_authority": "indirect_unverified_evidence_influence"' in _RUNTIME_SRC
-    assert '"evidence_authority": "none"' not in _RUNTIME_SRC
+    assert '"evidence_authority": "none"' not in _RUNTIME_SRC, (
+        "«none» تنفي تأثيراً تُثبِته ثلاثة مسارات مقيسة (الحوافّ تدخل معرّفات الأدلّة · "
+        "تُسهم في الثقة بوزن 0.65 · عبارات التوسعة تُغيّر استرجاع RAG) — فالوسم يصير "
+        "طمأنةً تُقرأ ضماناً، وهو أسوأ من غياب الوسم"
+    )
     # ومسارات التأثير تُسمّى، فلا يُقرأ الوسم دعوىً بلا تفصيل.
     for path in (
         "expansion_terms_change_rag_query_selection",

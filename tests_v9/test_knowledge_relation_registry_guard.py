@@ -64,6 +64,33 @@ def _relation(**overrides) -> list[dict]:
     return [base]
 
 
+def _satisfy_retrieval_gate(root: Path) -> dict:
+    """يجعل بوّابة التوسعة **راضية**، فلا تُقنّع سبباً آخر داخل ``main``.
+
+    عطلٌ مقيس لا مُتخيَّل: `guard_mutation_guard` أسقط الطفرة السادسة في الجولة
+    96216401333 — زُرِع تعطيلُ ``if checked == 0:`` و**بقي الاختبار أخضر**. والسبب
+    أنّ الجذر المؤقّت لا يحوي ``services/ai_agronomist/ai_evidence_runtime.py``،
+    فتُرجِع ``retrieval_gate_violations`` «المصدر غير موجود» ويبقى ``SystemExit``
+    مرفوعاً **بسببها هي**. فمرّت الطفرة لأنّ الاختبار كان يسأل «هل فشل؟» لا «هل
+    فشل لهذا السبب؟».
+
+    ولا يكفي إنشاء الملفّ وحده: بلا علاقةٍ مرجعيّة في السجلّ تصير ``expected``
+    فارغةً فتُطلِق البوّابة «صفرُ علاقةٍ مرجعيّة» وتُقنّع من بابٍ ثانٍ. فيُعاد
+    الطرفان معاً — الملفّ والعلاقة — ويُطابَق الثابت بالسجلّ تماماً.
+    """
+    module = root / "services" / "ai_agronomist"
+    module.mkdir(parents=True, exist_ok=True)
+    (module / "ai_evidence_runtime.py").write_text(
+        'RETRIEVAL_CONTEXT_RELATIONS = frozenset({"historically_limits"})\n',
+        encoding="utf-8",
+    )
+    return {
+        "name": "historically_limits",
+        "graph_role": "reference",
+        "evidence_semantics": "retrieval_context_only",
+    }
+
+
 def test_a_relation_matching_its_executed_chain_passes(tmp_path):
     problems, checked = guard.violations(_relation(), _tree(tmp_path))
     assert problems == []
@@ -129,15 +156,29 @@ def test_a_missing_consumer_is_blocked(tmp_path):
     assert any("مُستهلِكٌ مُعلَنٌ غير موجود" in p for p in problems)
 
 
-def test_zero_relations_checked_fails_closed(tmp_path, monkeypatch):
+def test_zero_relations_checked_fails_closed(tmp_path, monkeypatch, capsys):
+    """«فشل» ليس قياساً — المقيس هو **أيّ** بوّابةٍ فشلت.
+
+    يُسمّي الاختبار سببه ويرفض أن يُقنَّع: بلا التأكيد الثاني كان يخضرّ على أيّ
+    انتهاكٍ آخر داخل ``main``، وهو بعينه ما وقع (انظر ``_satisfy_retrieval_gate``).
+    """
+    reference = _satisfy_retrieval_gate(tmp_path)
     registry = tmp_path / "reg.json"
     registry.write_text(
-        json.dumps({"schema": "sahool.knowledge_relation_registry", "relations": _relation()}),
+        json.dumps(
+            {
+                "schema": "sahool.knowledge_relation_registry",
+                "relations": [*_relation(), reference],
+            }
+        ),
         encoding="utf-8",
     )
     monkeypatch.setattr(guard, "violations", lambda relations, root: ([], 0))
     with pytest.raises(SystemExit):
         guard.main(["--registry", str(registry), "--root", str(tmp_path)])
+    printed = capsys.readouterr().out
+    assert "لم تُقابَل أيّ علاقةٍ بشيفرةٍ منفَّذة" in printed, printed
+    assert "بوّابة التوسعة" not in printed, f"سببٌ آخر يُقنّع المقيس: {printed}"
 
 
 def test_a_missing_registry_fails_closed(tmp_path):

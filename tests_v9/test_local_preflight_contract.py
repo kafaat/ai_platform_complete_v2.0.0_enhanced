@@ -184,6 +184,58 @@ def test_a_leaked_test_probe_fails_the_fast_tier_instead_of_warning():
     )
 
 
+def test_the_mutation_guard_plants_locally_and_not_only_validates_its_spec():
+    """Measured: the half that blocks in CI was the half never run locally.
+
+    ``guard_mutation_guard.py`` has two halves. Bare, it validates the *specification*
+    — every registered mutation names a real anchor and a real test. With ``--run`` it
+    **plants** each defect and asserts the named test turns red. Only the second half
+    measures anything; the first reads a document.
+
+    ``preflight.sh`` called the bare form and ``preflight_required.json`` listed the
+    script, so the contract was satisfied by name while nothing was ever planted. CI runs
+    ``--run`` (``ci.yml:743``), so the two disagreed — and the disagreement shipped: a
+    second check added to ``knowledge_relation_registry_guard.py`` fails in a temporary
+    root, so ``test_zero_relations_checked_fails_closed`` began passing on a ``SystemExit``
+    raised by *that* check instead of the gate it claims to guard. Mutation ``[6]``
+    survived, ``--fast`` said ``إخفاقات=0``, and *Unit Tests* failed on run 96216401333.
+
+    Planting all 265 mutations costs ~38 minutes and fits no tier, so the step is scoped
+    to guards the change actually touched — 11 seconds for one guard, nothing when none
+    were touched. That scoping is the reason it can live in ``--fast``, and ``--fast`` is
+    the tier this must live in: it is the one developers run before pushing.
+
+    The assertion is therefore placement *and* derivation. A hard-coded guard name would
+    measure one guard forever and read as coverage for all of them, so the invocation must
+    pass a variable — the same "green about a question never asked" this file rejects.
+    """
+    text = _text()
+    invocation = "python3 scripts/ci/guard_mutation_guard.py --run --only"
+    assert invocation in text, (
+        "the planting half blocks in CI; a preflight that only validates the spec reports "
+        "green on a tree CI rejects"
+    )
+    assert text.count(invocation) == 1, (
+        "two invocations make the placement check read whichever comes first — pick one"
+    )
+    fast_exit_at = text.index('if [ "$TIER" = fast ]')
+    assert text.index(invocation) < fast_exit_at, (
+        "planting must run in --fast: the tier that was green when the defect was pushed"
+    )
+    planted = text[text.index(invocation) : text.index(invocation) + 120]
+    assert '"$_g"' in planted, (
+        "a hard-coded guard name measures one guard and is read as covering all of them — "
+        "the target must be derived from what the change touched"
+    )
+    assert "python3 scripts/ci/guard_mutation_guard.py\n" in text, (
+        "the spec-validating half is cheap and still wanted — this replaces neither half"
+    )
+    contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    assert "scripts/ci/guard_mutation_guard.py" in contract["required_scripts"], (
+        "deleting the guard must be named a coverage loss, not read as a passing gate"
+    )
+
+
 def test_the_commit_claim_step_says_it_reads_committed_messages_only():
     """Measured: its green ran before the commit it was read as clearing.
 

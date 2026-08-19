@@ -54,6 +54,7 @@ def _run(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess[str]:
         ["bash", str(RUNNER), "--port", "5433", "--user", "u", "--db", "d", *extra],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         cwd=tmp_path,
         env={"PATH": f"{tmp_path}:/usr/bin:/bin"},
     )
@@ -144,6 +145,7 @@ def test_the_bounded_variant_stops_before_the_named_prefix(tmp_path):
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         cwd=tmp_path,
         env={"PATH": f"{tmp_path}:/usr/bin:/bin"},
     )
@@ -207,6 +209,7 @@ def test_the_bound_accepts_an_alternation_of_prefixes(tmp_path):
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         cwd=tmp_path,
         env={"PATH": f"{tmp_path}:/usr/bin:/bin"},
     )

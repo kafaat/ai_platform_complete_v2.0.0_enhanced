@@ -47,7 +47,12 @@ def _fake_docker(tmp_path: Path, *, image: str | None) -> Path:
 def _run(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
     env = {"PATH": f"{tmp_path}:/usr/bin:/bin", "RUNNER_TEMP": str(tmp_path / "runner")}
     return subprocess.run(
-        ["bash", str(SCRIPT), *args], capture_output=True, text=True, env=env, cwd=tmp_path
+        ["bash", str(SCRIPT), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=env,
+        cwd=tmp_path,
     )
 
 
@@ -89,6 +94,7 @@ def test_the_workspace_is_mounted_so_client_side_file_flags_resolve(tmp_path):
         [str(_shim(tmp_path, "psql")), "-h", "localhost", "-p", "5434", "-f", "migrations/x.sql"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         env={"PATH": f"{tmp_path}:/usr/bin:/bin"},
         cwd=tmp_path,
     )
@@ -106,7 +112,11 @@ def test_every_call_site_exports_the_shim_directory_in_its_own_step():
     سقوطُ `Integration Tests` في 32280469751 كان هذا بعينه — وكانت خضراء قبله.
     """
     ci = CI.read_text(encoding="utf-8")
-    assert "resilient_apt_install.sh postgresql-client" not in ci
+    assert "resilient_apt_install.sh postgresql-client" not in ci, (
+        "عودةُ طريق apt تُعيد رهان الشبكة الذي سقط خمس مرّات مقيسة، وتترك مصدرَي "
+        "حقيقةٍ لكيفيّة وصول `psql`: الصورة المسحوبة ومرآةُ Ubuntu — فيصير أيّ عطلٍ "
+        "لاحق قابلاً للنسبة إلى أيّهما بلا قياس"
+    )
     lines = ci.splitlines()
     sites = [i for i, line in enumerate(lines) if "provision_pg_client.sh" in line]
     assert len(sites) == 3, f"مواضع الاستدعاء = {len(sites)}"

@@ -225,6 +225,55 @@ require_file scripts/ci/bidi_control_char_guard.py "٢ج) bidi_control_char" && 
 require_file scripts/ci/claim_base_guard.py "٣أ) claim_base_guard" && run "٣أ) claim_base_guard"        python3 scripts/ci/claim_base_guard.py
 run "٣ب) guard_mutation (ساكن)"   python3 scripts/ci/guard_mutation_guard.py
 
+# ── ٣ج) نصفُ حارس الطفرات الذي **يزرع** — مقصوراً على ما مسّه تغييرك ────────
+# GUARD-MUTATION-PLANTING-HALF-WAS-NEVER-LOCAL-01: خطوة ٣ب أعلاه تفحص **المواصفة**،
+# و`preflight_required.json` يعدّ البوّابة مستوفاةً بالاسم — بينما الحاجب في *Unit
+# Tests* هو `--run` الذي يزرع العطل فعلاً (`ci.yml:743`). فالعقد يُستوفى والقياس
+# غائب، وهو صنف «موجودٌ ≠ يُقاس» بعينه.
+#
+# والعطل الذي كشفه مقيسٌ لا مُفترَض (96216401333): أضفتُ فحصاً ثانياً إلى
+# `knowledge_relation_registry_guard.py` يفشل في الجذر المؤقّت، فصار
+# `test_zero_relations_checked_fails_closed` يخضرّ على `SystemExit` **قادمٍ من فحصي**
+# لا من البوّابة التي يدّعي حراستها. اختبارٌ يسأل «هل فشل؟» لا «هل فشل لهذا السبب؟».
+#
+# والزرع الكامل ٢٦٥ طفرة (~٣٨د في CI) لا يسع أيّ طبقة، فيُقصَر على الحرّاس التي
+# مسّها التغيير — والمقيس ١١ث لحارسٍ واحد. لا شيء مَسَّه ⇒ لا شيء يُزرَع، بلا ادّعاء.
+_mut_targets="$(python3 - "$BASE" <<'MUTPY' 2>/dev/null || true
+import json, subprocess, sys
+
+base = sys.argv[1]
+registry = json.load(open("docs/architecture/guard_mutation_registry.json", encoding="utf-8"))
+spec = registry.get("mutated", {})
+# يُصعَّد من ملفّ الاختبار أيضاً: تعديلُ الشاهد وحده يكفي لتقنيع طفرة — وهو ما وقع.
+by_test = {v.get("test"): k for k, v in spec.items() if v.get("test")}
+touched = set()
+for cmd in (
+    ["git", "diff", "--name-only", f"{base}...HEAD"],
+    ["git", "diff", "--name-only", "HEAD"],
+    ["git", "ls-files", "--others", "--exclude-standard"],
+):
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=60).stdout
+    except Exception:
+        continue
+    for path in out.splitlines():
+        if path in by_test:
+            touched.add(by_test[path])
+        elif path.rsplit("/", 1)[-1] in spec:
+            touched.add(path.rsplit("/", 1)[-1])
+print(" ".join(sorted(touched)))
+MUTPY
+)"
+if [ -z "$_mut_targets" ]; then
+  echo "── ٣ج) guard_mutation (زرع مقصور)"
+  echo "   ✓ لا حارسَ مُواصَفاً مسّه التغيير — لا زرعَ مطلوب"
+else
+  for _g in $_mut_targets; do
+    run "٣ج) guard_mutation --run --only $_g" \
+      python3 scripts/ci/guard_mutation_guard.py --run --only "$_g"
+  done
+fi
+
 # ── ٤) عقود compose/البيئة — أيّ متغيّر جديد يُعلَن في .env.example ─────────
 run "٤أ) compose_env_contract"    python3 scripts/ci/compose_env_contract_gate.py
 run "٤ب) env_compose_drift"       python3 scripts/ci/env_compose_drift_guard.py --check
