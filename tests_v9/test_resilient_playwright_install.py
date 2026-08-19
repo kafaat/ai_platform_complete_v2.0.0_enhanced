@@ -55,6 +55,7 @@ def _run(tmp_path: Path, **env_extra: str) -> tuple[subprocess.CompletedProcess,
     env = os.environ.copy()
     env["PATH"] = f"{tmp_path}:{env['PATH']}"
     env.setdefault("PW_BACKOFF", "0")
+    env.setdefault("APT_SOURCE_FILES", _apt_sources(tmp_path))
     env.update(env_extra)
     proc = subprocess.run(
         ["bash", str(SCRIPT), "chromium"],
@@ -66,6 +67,19 @@ def _run(tmp_path: Path, **env_extra: str) -> tuple[subprocess.CompletedProcess,
     )
     log = tmp_path / "calls.log"
     return proc, (log.read_text(encoding="utf-8") if log.exists() else "")
+
+
+def _apt_sources(tmp_path: Path) -> str:
+    """ملفّ مصادر APT **اصطناعيّ** يُحقَن، فلا يُقاس نظام ملفّات المُشغِّل.
+
+    كانت المسارات مُصلَّبة في `switch_apt_mirror`، فصار هذا الاختبار يمرّ أو يسقط
+    بحسب وجود `/etc/apt` على الآلة: يزيّف `sed` لكنّه لا يُستدعى أصلاً إن لم يوجد
+    الملفّ. أمسكها مراجعٌ خارجيّ على مُشغِّلٍ بلا `/etc/apt`، ومرّت هنا لأنّه موجود —
+    أي أنّ الاختبار كان **يقيس البيئة لا السكربت**.
+    """
+    src = tmp_path / "ubuntu.sources"
+    src.write_text("URIs: http://azure.archive.ubuntu.com/ubuntu/\n", encoding="utf-8")
+    return str(src)
 
 
 def _attempts(log: str) -> int:

@@ -15,10 +15,19 @@
 APT_FALLBACK_MIRROR="${APT_FALLBACK_MIRROR:-archive.ubuntu.com}"
 
 # مصادر APT على ubuntu-24.04 بصيغة deb822 في `ubuntu.sources`؛ والأقدم في
-# `sources.list`. يُبدَّل ما وُجِد منهما.
+# `sources.list`. والمساران **يُحقَنان** لا يُصلَّبان:
+#
+# أوّل صياغة كتبتهما حرفيّاً داخل الدالّة، فصار اختبارُ «تُبدَّل المرآة قبل النوم»
+# يمرّ أو يسقط **بحسب نظام ملفّات المُشغِّل**: يزيّف `sed` لكنّه لا يُستدعى أصلاً إن
+# لم يوجد أيّ من الملفّين. أمسكها مراجعٌ خارجيّ على مُشغِّلٍ بلا `/etc/apt`، ومرّت
+# هنا لأنّ الملفّين موجودان — أي أنّ الاختبار كان **يقيس البيئة لا السكربت**، وهو
+# الصنف الذي يُسمّى أخضرَ ثمّ يحمرّ عند غيره بلا تغييرٍ في الشيفرة.
+APT_SOURCE_FILES="${APT_SOURCE_FILES:-/etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list}"
+
 switch_apt_mirror() {
   local f changed=0
-  for f in /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list; do
+  # shellcheck disable=SC2086 — قائمةُ مسارات مفصولة بفراغ عمداً، لا كلمةٌ واحدة.
+  for f in $APT_SOURCE_FILES; do
     [ -f "$f" ] || continue
     if sudo sed -i "s|[a-z0-9.-]*\.archive\.ubuntu\.com|$APT_FALLBACK_MIRROR|g" "$f"; then
       changed=1
