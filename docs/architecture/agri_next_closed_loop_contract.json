@@ -1,0 +1,22 @@
+{
+  "adjudicated_on": "2026-08-19",
+  "authority_invariants": {
+    "automatic_model_promotion_eligible": false,
+    "causal_claim_permitted": false,
+    "direct_execution_permitted": false,
+    "fertilizer_rate_authoritative": false,
+    "learning_auto_adjust_permitted": false
+  },
+  "no_new_database_authority": true,
+  "no_new_route": true,
+  "no_parallel_truth_layer": true,
+  "production_consumer": "services/sahool-platform/api/unified_decision.py",
+  "schema": "sahool.agri-next.closed-loop/v1",
+  "stages": {
+    "AGRI-NEXT-1": "capacity_energy_stress_constrained_irrigation_with_outcome_readiness",
+    "AGRI-NEXT-2": "point_in_time_canonical_agronomic_context_from_owner_products",
+    "AGRI-NEXT-3": "nutrient_mass_balance_and_salinity_evidence_ledger",
+    "AGRI-NEXT-4": "verified_spectral_stress_to_decision_candidate_not_direct_action",
+    "AGRI-NEXT-5": "planned_as_applied_yield_response_observation_without_causal_or_promotion_claim"
+  }
+}
