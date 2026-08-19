@@ -15,17 +15,17 @@
     "capabilities_mapped": 76,
     "capabilities_unmapped": 5,
     "capabilities_multidimensional": 49,
-    "files_scanned": 5112,
+    "files_scanned": 5114,
     "files_by_kind": {
       "backend": 1196,
       "database": 274,
       "governance": 60,
       "mobile": 51,
-      "other": 1396,
-      "tests": 1679,
+      "other": 1397,
+      "tests": 1680,
       "web": 456
     },
-    "unmapped_artifacts": 2076,
+    "unmapped_artifacts": 2077,
     "ambiguous_artifacts": 405
   },
   "capabilities": [
@@ -39628,6 +39628,10 @@
     },
     {
       "path": "services/sahool-platform/tests/test_agri_irrigation_volume.py",
+      "kind": "tests"
+    },
+    {
+      "path": "services/sahool-platform/tests/test_agri_next_decision_support.py",
       "kind": "tests"
     },
     {

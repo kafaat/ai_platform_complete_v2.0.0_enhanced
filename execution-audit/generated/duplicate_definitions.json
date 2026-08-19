@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope_semantics": "same_lexical_scope_only",
-  "python_files_parsed": 1861,
+  "python_files_parsed": 1862,
   "parse_errors": [],
   "duplicate_definitions": [],
   "finding_count": 0

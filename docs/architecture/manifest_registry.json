@@ -6,6 +6,10 @@
   "derivation_rule_ar": "كل ملف JSON مباشر تحت docs/architecture يحمل adjudicated_on يُسجَّل؛ مجلدات الأدلة المتداخلة خارج نطاق هذا السجل ولها عقودها الخاصة.",
   "entries": [
     {
+      "path": "docs/architecture/agri_next_closed_loop_contract.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/ai_vllm_jais_runtime_decision.json",
       "kind": "governed"
     },

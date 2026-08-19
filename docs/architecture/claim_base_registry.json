@@ -3,6 +3,7 @@
   "adjudicated_on": "2026-08-05",
   "decided": [
     "SERVICE_REGISTRY_HARDENING_CONTRACT.json",
+    "agri_next_closed_loop_contract.json",
     "ai_vllm_jais_runtime_decision.json",
     "authority_cutovers.json",
     "c8_c13_execution_contract.json",

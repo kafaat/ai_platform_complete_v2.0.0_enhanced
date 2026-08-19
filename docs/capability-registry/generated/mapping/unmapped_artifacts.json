@@ -5004,6 +5004,10 @@
     "kind": "tests"
   },
   {
+    "path": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+    "kind": "tests"
+  },
+  {
     "path": "services/sahool-platform/tests/test_agri_polygon_area.py",
     "kind": "tests"
   },
