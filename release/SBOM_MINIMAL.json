@@ -10075,7 +10075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a09208d8eeb5b0c01f3ced606a6992d3b2e46fc938a218eef745bebddd642ae"
+          "content": "7534dc047e110230c08afb9d53e99f6382e3cfd5cf48449830cfc14d94aff129"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -12555,7 +12555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "991000a28f630f2ad28613de49bd91a59e13d00bd98aa9197ec9d263e7703083"
+          "content": "07c2f7cdc35ab71749844b31eada7d60b13f000bfd502998036ab6de3469f458"
         }
       ],
       "name": "services/knowledge-graph/kg_store.py",
@@ -21075,7 +21075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c87a5e3ae192dd4b4a6c282aa564aceddec32cf2df3019676911fe87ff16ef3f"
+          "content": "3a8d796e82edf4d60374fe11991bb830feafaba32c0928fa3743b70d175046d7"
         }
       ],
       "name": "services/sahool-platform/core/evidence_graph.py",

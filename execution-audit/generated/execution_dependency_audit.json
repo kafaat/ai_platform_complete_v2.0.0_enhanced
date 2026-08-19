@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1862,
     "route_handlers": 1049,
-    "call_edges": 74221,
+    "call_edges": 74237,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -16858,1708 +16858,1694 @@
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "get",
-      "line": 81
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "isinstance",
-      "line": 82
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "append",
-      "line": 83
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "get",
-      "line": 83
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "get",
-      "line": 83
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "get",
-      "line": 83
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "str",
-      "line": 83
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "get",
-      "line": 84
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "isinstance",
-      "line": 85
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "append",
-      "line": 86
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "str",
-      "line": 87
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
+      "source": "_safe_graph_expansion_terms",
       "target": "get",
       "line": 88
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_extract_evidence_ids",
-      "target": "get",
+      "source": "_safe_graph_expansion_terms",
+      "target": "isinstance",
       "line": 89
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "get",
+      "line": 91
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "get",
+      "line": 91
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "get",
+      "line": 94
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "isinstance",
+      "line": 95
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "join",
+      "line": 97
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "replace",
+      "line": 97
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "split",
+      "line": 97
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "strip",
+      "line": 97
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "len",
+      "line": 98
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "append",
+      "line": 100
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_safe_graph_expansion_terms",
+      "target": "len",
+      "line": 102
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_graph_conditioned_retrieval_query",
+      "target": "_safe_graph_expansion_terms",
+      "line": 110
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_graph_conditioned_retrieval_query",
+      "target": "join",
+      "line": 114
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_extract_evidence_ids",
       "target": "get",
-      "line": 89
+      "line": 119
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "isinstance",
+      "line": 120
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "append",
+      "line": 121
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_extract_evidence_ids",
       "target": "get",
-      "line": 89
+      "line": 121
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "get",
+      "line": 121
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "get",
+      "line": 121
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "str",
+      "line": 121
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "get",
+      "line": 122
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "isinstance",
+      "line": 123
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "append",
+      "line": 124
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "str",
+      "line": 125
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "get",
+      "line": 126
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "get",
+      "line": 127
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "get",
+      "line": 127
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_extract_evidence_ids",
+      "target": "get",
+      "line": 127
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 99
+      "line": 137
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "isinstance",
-      "line": 100
+      "line": 138
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 101
+      "line": 139
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 101
+      "line": 139
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "EvidenceItem",
-      "line": 103
+      "line": 141
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "append",
-      "line": 103
+      "line": 141
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "float",
-      "line": 103
+      "line": 141
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "EvidenceItem",
-      "line": 105
+      "line": 143
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "append",
-      "line": 105
+      "line": 143
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 106
+      "line": 144
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "isinstance",
-      "line": 107
+      "line": 145
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "EvidenceItem",
-      "line": 108
+      "line": 146
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "append",
-      "line": 108
+      "line": 146
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 109
+      "line": 147
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "EvidenceItem",
-      "line": 111
+      "line": 149
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "append",
-      "line": 111
+      "line": 149
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "_extract_ai_context_pack",
-      "line": 112
+      "line": 150
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 114
+      "line": 152
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 115
+      "line": 153
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "_source_count",
-      "line": 116
+      "line": 154
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 116
+      "line": 154
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "isinstance",
-      "line": 116
+      "line": 154
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "EvidenceItem",
-      "line": 117
+      "line": 155
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "append",
-      "line": 117
+      "line": 155
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "get",
-      "line": 118
+      "line": 156
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "isinstance",
-      "line": 118
+      "line": 156
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "EvidenceItem",
-      "line": 119
+      "line": 157
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "append",
-      "line": 119
+      "line": 157
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_confidence_from_payloads",
       "target": "compose_confidence",
-      "line": 120
+      "line": 158
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_record_ai_advice_event",
       "target": "AsyncClient",
-      "line": 143
+      "line": 181
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_record_ai_advice_event",
       "target": "post",
-      "line": 144
+      "line": 182
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_record_ai_advice_event",
       "target": "rstrip",
-      "line": 145
+      "line": 183
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_record_ai_advice_event",
       "target": "json",
-      "line": 160
+      "line": 198
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_record_ai_advice_event",
       "target": "str",
-      "line": 163
+      "line": 201
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_generation_allowed",
       "target": "generation_enabled",
-      "line": 168
+      "line": 206
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_generation_allowed",
       "target": "get_policy",
-      "line": 170
+      "line": 208
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_generation_allowed",
       "target": "tenant_allows_generation",
-      "line": 170
+      "line": 208
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_utc_timestamp",
       "target": "isoformat",
-      "line": 175
+      "line": 213
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_utc_timestamp",
       "target": "now",
-      "line": 175
+      "line": 213
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_utc_timestamp",
       "target": "replace",
-      "line": 175
+      "line": 213
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_utc_timestamp",
       "target": "replace",
-      "line": 175
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "isinstance",
-      "line": 190
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "isinstance",
-      "line": 191
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 194
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 194
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 194
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 194
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 194
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 194
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 199
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 199
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 202
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 202
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 206
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 206
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 208
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 208
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 213
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
       "line": 213
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 214
+      "target": "isinstance",
+      "line": 228
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 214
+      "source": "_build_agent_tool_fetcher",
+      "target": "isinstance",
+      "line": 229
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "get",
-      "line": 215
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 215
+      "line": 232
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "get",
-      "line": 220
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 220
+      "line": 232
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "get",
-      "line": 221
+      "line": 232
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "get",
-      "line": 221
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 226
+      "line": 232
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "get",
-      "line": 226
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 227
+      "line": 232
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "get",
-      "line": 227
+      "line": 232
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "get",
-      "line": 231
+      "line": 237
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "get",
-      "line": 231
+      "line": 237
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "get",
-      "line": 233
+      "line": 240
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "get",
-      "line": 233
+      "line": 240
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "get",
-      "line": 238
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 238
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 239
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 239
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "propose_boundaries",
       "line": 244
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "propose_boundaries",
+      "target": "get",
       "line": 244
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "str",
+      "target": "get",
       "line": 246
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "str",
+      "target": "get",
       "line": 246
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "boundary_imagery_context",
-      "line": 247
+      "target": "get",
+      "line": 251
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "boundary_imagery_context",
-      "line": 247
+      "target": "get",
+      "line": 251
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "zoning_evidence_context",
+      "target": "get",
+      "line": 252
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 252
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
       "line": 253
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "zoning_evidence_context",
+      "target": "get",
       "line": 253
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "pack_ndvi_grid_evidence",
-      "line": 254
+      "target": "get",
+      "line": 258
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "pack_ndvi_grid_evidence",
-      "line": 254
+      "target": "get",
+      "line": 258
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "propose_productivity_zones",
-      "line": 257
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "propose_productivity_zones",
-      "line": 257
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "str",
+      "target": "get",
       "line": 259
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "str",
+      "target": "get",
       "line": 259
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "plan_soil_sampling",
-      "line": 263
+      "target": "get",
+      "line": 264
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "plan_soil_sampling",
-      "line": 263
+      "target": "get",
+      "line": 264
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "str",
+      "target": "get",
       "line": 265
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "str",
+      "target": "get",
       "line": 265
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "dict",
+      "target": "get",
+      "line": 269
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 269
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
       "line": 271
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "dict",
+      "target": "get",
       "line": 271
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "pack_ndvi_grid_evidence",
-      "line": 272
+      "target": "get",
+      "line": 276
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "pack_ndvi_grid_evidence",
-      "line": 272
+      "target": "get",
+      "line": 276
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "generate_vra_prescription",
-      "line": 275
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "generate_vra_prescription",
-      "line": 275
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "str",
+      "target": "get",
       "line": 277
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "str",
+      "target": "get",
       "line": 277
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 294
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "isinstance",
-      "line": 294
+      "target": "propose_boundaries",
+      "line": 282
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "get",
-      "line": 294
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "isinstance",
-      "line": 294
+      "target": "propose_boundaries",
+      "line": 282
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "get",
+      "target": "str",
+      "line": 284
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "str",
+      "line": 284
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "boundary_imagery_context",
+      "line": 285
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "boundary_imagery_context",
+      "line": 285
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "zoning_evidence_context",
+      "line": 291
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "zoning_evidence_context",
+      "line": 291
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "pack_ndvi_grid_evidence",
+      "line": 292
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "pack_ndvi_grid_evidence",
+      "line": 292
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "propose_productivity_zones",
       "line": 295
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "get",
+      "target": "propose_productivity_zones",
       "line": 295
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 299
+      "target": "str",
+      "line": 297
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "get",
-      "line": 299
+      "target": "str",
+      "line": 297
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "bool",
+      "target": "plan_soil_sampling",
       "line": 301
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "bool",
+      "target": "plan_soil_sampling",
       "line": 301
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 308
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "isinstance",
-      "line": 308
+      "target": "str",
+      "line": 303
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "get",
-      "line": 308
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "isinstance",
-      "line": 308
+      "target": "str",
+      "line": 303
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "isinstance",
+      "target": "dict",
       "line": 309
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "isinstance",
+      "target": "dict",
       "line": 309
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 312
+      "target": "pack_ndvi_grid_evidence",
+      "line": 310
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
-      "target": "get",
-      "line": 312
+      "target": "pack_ndvi_grid_evidence",
+      "line": 310
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "generate_vra_prescription",
+      "line": 313
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "generate_vra_prescription",
+      "line": 313
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "str",
+      "line": 315
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "str",
+      "line": 315
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "get",
-      "line": 316
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 316
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 317
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 317
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 318
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "fetcher",
-      "target": "get",
-      "line": 318
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_build_agent_tool_fetcher",
-      "target": "get",
-      "line": 319
+      "line": 332
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "isinstance",
-      "line": 319
+      "line": 332
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "get",
-      "line": 319
+      "line": 332
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "isinstance",
-      "line": 319
+      "line": 332
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "get",
-      "line": 321
+      "line": 333
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 333
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
+      "line": 337
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 337
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "bool",
+      "line": 339
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "bool",
+      "line": 339
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
+      "line": 346
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "isinstance",
+      "line": 346
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 346
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "isinstance",
+      "line": 346
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "isinstance",
+      "line": 347
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "isinstance",
+      "line": 347
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
+      "line": 350
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 350
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
+      "line": 354
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 354
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
+      "line": 355
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 355
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
+      "line": 356
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 356
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
+      "line": 357
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "isinstance",
+      "line": 357
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "get",
+      "line": 357
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "fetcher",
+      "target": "isinstance",
+      "line": 357
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_build_agent_tool_fetcher",
+      "target": "get",
+      "line": 359
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "sorted",
-      "line": 321
+      "line": 359
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "get",
-      "line": 321
+      "line": 359
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "sorted",
-      "line": 321
+      "line": 359
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "isinstance",
-      "line": 322
+      "line": 360
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "isinstance",
-      "line": 322
+      "line": 360
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_build_agent_tool_fetcher",
       "target": "ValueError",
-      "line": 327
+      "line": 365
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "fetcher",
       "target": "ValueError",
-      "line": 327
+      "line": 365
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_extract_ai_context_pack",
       "target": "isinstance",
-      "line": 340
+      "line": 378
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_extract_ai_context_pack",
       "target": "get",
-      "line": 342
+      "line": 380
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_extract_ai_context_pack",
       "target": "isinstance",
-      "line": 343
+      "line": 381
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_extract_ai_context_pack",
       "target": "any",
-      "line": 345
+      "line": 383
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_source_count",
       "target": "int",
-      "line": 354
+      "line": 392
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
       "target": "get",
-      "line": 365
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "append",
-      "line": 367
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "str",
-      "line": 367
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 369
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "isinstance",
-      "line": 370
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "append",
-      "line": 371
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "_source_count",
-      "line": 373
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 373
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 375
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "isinstance",
-      "line": 376
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "items",
-      "line": 378
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "sorted",
-      "line": 378
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "isinstance",
-      "line": 379
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "_source_count",
-      "line": 380
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "append",
-      "line": 380
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 380
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "append",
-      "line": 382
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "join",
-      "line": 382
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 384
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 385
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "isinstance",
-      "line": 385
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 386
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "isinstance",
-      "line": 387
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "append",
-      "line": 388
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 390
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 390
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 391
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 391
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "append",
-      "line": 394
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 402
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "isinstance",
       "line": 403
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
-      "target": "_source_count",
-      "line": 404
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
       "target": "append",
-      "line": 404
+      "line": 405
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "str",
+      "line": 405
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
       "target": "get",
-      "line": 404
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "get",
-      "line": 406
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_ai_context_memory_lines",
-      "target": "isinstance",
       "line": 407
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
-      "target": "get",
+      "target": "isinstance",
       "line": 408
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
-      "target": "get",
+      "target": "append",
       "line": 409
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
-      "target": "append",
-      "line": 410
+      "target": "_source_count",
+      "line": 411
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "get",
+      "line": 411
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "get",
+      "line": 413
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "isinstance",
+      "line": 414
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "items",
+      "line": 416
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "sorted",
+      "line": 416
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "isinstance",
+      "line": 417
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "_source_count",
+      "line": 418
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
       "target": "append",
-      "line": 412
+      "line": 418
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "get",
+      "line": 418
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "append",
+      "line": 420
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
       "target": "join",
-      "line": 412
+      "line": 420
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_ai_context_memory_lines",
-      "target": "str",
-      "line": 412
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "get",
-      "line": 419
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "str",
-      "line": 419
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "get",
-      "line": 421
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "_source_count",
-      "line": 422
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
       "target": "get",
       "line": 422
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
+      "source": "_ai_context_memory_lines",
+      "target": "get",
+      "line": 423
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
       "target": "isinstance",
-      "line": 422
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "_source_count",
       "line": 423
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "append",
-      "line": 423
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "get",
-      "line": 423
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
+      "source": "_ai_context_memory_lines",
       "target": "get",
       "line": 424
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "get",
-      "line": 425
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
+      "source": "_ai_context_memory_lines",
       "target": "isinstance",
       "line": 425
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "get",
+      "source": "_ai_context_memory_lines",
+      "target": "append",
       "line": 426
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "get",
-      "line": 427
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "isinstance",
-      "line": 427
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "append",
-      "line": 428
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
+      "source": "_ai_context_memory_lines",
       "target": "get",
       "line": 428
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
+      "source": "_ai_context_memory_lines",
       "target": "get",
-      "line": 435
+      "line": 428
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "_source_count",
-      "line": 436
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
+      "source": "_ai_context_memory_lines",
       "target": "get",
-      "line": 436
+      "line": 429
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "isinstance",
-      "line": 436
+      "source": "_ai_context_memory_lines",
+      "target": "get",
+      "line": 429
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
-      "target": "_source_count",
-      "line": 437
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
+      "source": "_ai_context_memory_lines",
       "target": "append",
-      "line": 437
+      "line": 432
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_field_memory_evidence_ids",
+      "source": "_ai_context_memory_lines",
       "target": "get",
-      "line": 437
+      "line": 440
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "_extract_ai_context_pack",
+      "source": "_ai_context_memory_lines",
+      "target": "isinstance",
+      "line": 441
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "_source_count",
+      "line": 442
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "append",
+      "line": 442
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "get",
+      "line": 442
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "get",
+      "line": 444
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "isinstance",
       "line": 445
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
+      "source": "_ai_context_memory_lines",
       "target": "get",
       "line": 446
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "len",
-      "line": 446
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
+      "source": "_ai_context_memory_lines",
       "target": "get",
       "line": 447
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "len",
-      "line": 447
+      "source": "_ai_context_memory_lines",
+      "target": "append",
+      "line": 448
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "isinstance",
+      "source": "_ai_context_memory_lines",
+      "target": "append",
+      "line": 450
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "join",
+      "line": 450
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_ai_context_memory_lines",
+      "target": "str",
+      "line": 450
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "get",
       "line": 457
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "append",
-      "line": 458
+      "source": "_field_memory_evidence_ids",
+      "target": "str",
+      "line": 457
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
+      "source": "_field_memory_evidence_ids",
+      "target": "get",
+      "line": 459
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "_source_count",
+      "line": 460
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "get",
+      "line": 460
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "isinstance",
+      "line": 460
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "_source_count",
+      "line": 461
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "append",
+      "line": 461
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "get",
+      "line": 461
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
       "target": "get",
       "line": 462
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
+      "source": "_field_memory_evidence_ids",
       "target": "get",
       "line": 463
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
+      "source": "_field_memory_evidence_ids",
+      "target": "isinstance",
+      "line": 463
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
       "target": "get",
       "line": 464
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
+      "source": "_field_memory_evidence_ids",
       "target": "get",
       "line": 465
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "extend",
+      "source": "_field_memory_evidence_ids",
+      "target": "isinstance",
+      "line": 465
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "append",
       "line": 466
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "_source_count",
-      "line": 471
+      "source": "_field_memory_evidence_ids",
+      "target": "get",
+      "line": 466
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "getattr",
-      "line": 471
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "isinstance",
+      "source": "_field_memory_evidence_ids",
+      "target": "get",
       "line": 473
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
+      "source": "_field_memory_evidence_ids",
+      "target": "_source_count",
+      "line": 474
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "get",
+      "line": 474
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
+      "target": "isinstance",
+      "line": 474
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
       "target": "_source_count",
       "line": 475
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
+      "source": "_field_memory_evidence_ids",
+      "target": "append",
+      "line": 475
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_field_memory_evidence_ids",
       "target": "get",
       "line": 475
     },
@@ -18567,36 +18553,22 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "isinstance",
-      "line": 476
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "bool",
-      "line": 482
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "get",
-      "line": 482
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "isinstance",
+      "target": "_extract_ai_context_pack",
       "line": 483
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "_source_count",
-      "line": 485
+      "target": "get",
+      "line": 484
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "len",
+      "line": 484
     },
     {
       "owner": "ai-agronomist",
@@ -18609,78 +18581,36 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "get",
+      "target": "len",
       "line": 485
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "get",
-      "line": 486
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
       "target": "isinstance",
-      "line": 486
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "isinstance",
-      "line": 486
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "_source_count",
-      "line": 492
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "get",
-      "line": 492
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "isinstance",
-      "line": 493
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "_source_count",
       "line": 495
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "get",
-      "line": 495
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_evidence_sources",
-      "target": "isinstance",
+      "target": "append",
       "line": 496
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "_source_count",
-      "line": 502
+      "target": "get",
+      "line": 500
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "get",
+      "line": 501
     },
     {
       "owner": "ai-agronomist",
@@ -18693,386 +18623,512 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "isinstance",
+      "target": "get",
       "line": 503
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "_source_count",
-      "line": 505
+      "target": "extend",
+      "line": 504
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
-      "target": "get",
-      "line": 505
+      "target": "_source_count",
+      "line": 509
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "getattr",
+      "line": 509
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_evidence_sources",
       "target": "isinstance",
-      "line": 506
+      "line": 511
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
+      "source": "_evidence_sources",
+      "target": "_source_count",
+      "line": 513
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "get",
+      "line": 513
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "isinstance",
+      "line": 514
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "bool",
+      "line": 520
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
       "target": "get",
       "line": 520
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "append",
-      "line": 522
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 525
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 525
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 525
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
+      "source": "_evidence_sources",
       "target": "isinstance",
-      "line": 526
+      "line": 521
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "str",
-      "line": 527
+      "source": "_evidence_sources",
+      "target": "_source_count",
+      "line": 523
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "append",
-      "line": 530
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "str",
-      "line": 530
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
+      "source": "_evidence_sources",
       "target": "get",
+      "line": 523
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "get",
+      "line": 523
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "get",
+      "line": 524
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "isinstance",
+      "line": 524
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "isinstance",
+      "line": 524
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "_source_count",
+      "line": 530
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "get",
+      "line": 530
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "isinstance",
       "line": 531
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "append",
+      "source": "_evidence_sources",
+      "target": "_source_count",
       "line": 533
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
+      "source": "_evidence_sources",
+      "target": "get",
+      "line": 533
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
       "target": "isinstance",
-      "line": 535
+      "line": 534
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 536
+      "source": "_evidence_sources",
+      "target": "_source_count",
+      "line": 540
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 536
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 537
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 537
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 538
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 538
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "append",
-      "line": 539
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
+      "source": "_evidence_sources",
       "target": "get",
       "line": 540
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
+      "source": "_evidence_sources",
       "target": "isinstance",
       "line": 541
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 542
+      "source": "_evidence_sources",
+      "target": "_source_count",
+      "line": 543
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
+      "source": "_evidence_sources",
       "target": "get",
+      "line": 543
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_evidence_sources",
+      "target": "isinstance",
       "line": 544
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
-      "target": "append",
-      "line": 545
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
       "target": "get",
-      "line": 545
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 545
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "get",
-      "line": 546
+      "line": 558
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "append",
-      "line": 547
+      "line": 560
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "get",
-      "line": 547
+      "line": 563
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "get",
-      "line": 548
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "_grounding_context_text",
-      "target": "append",
-      "line": 549
+      "line": 563
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "get",
-      "line": 549
+      "line": 563
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "isinstance",
+      "line": 564
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "str",
-      "line": 549
+      "line": 565
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "append",
-      "line": 551
+      "line": 568
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "str",
+      "line": 568
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 569
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "append",
+      "line": 571
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "isinstance",
+      "line": 573
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 574
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 574
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 575
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 575
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 576
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 576
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "append",
+      "line": 577
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 578
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "isinstance",
+      "line": 579
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 580
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 582
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "append",
+      "line": 583
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 583
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 583
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 584
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "append",
+      "line": 585
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 585
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 586
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "append",
+      "line": 587
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "get",
+      "line": 587
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "str",
+      "line": 587
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "_grounding_context_text",
+      "target": "append",
+      "line": 589
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "join",
-      "line": 551
+      "line": 589
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "_ai_context_memory_lines",
-      "line": 552
+      "line": 590
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "_extract_ai_context_pack",
-      "line": 552
+      "line": 590
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "extend",
-      "line": 552
+      "line": 590
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "_grounding_context_text",
       "target": "join",
-      "line": 553
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "resolve_trusted_tenant",
-      "line": 569
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "HTTPException",
-      "line": 571
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "AsyncClient",
-      "line": 573
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "getenv",
-      "line": 582
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "service_token_ok",
-      "line": 582
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "HTTPException",
-      "line": 583
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_fetch_canonical_field_state",
-      "line": 586
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "isinstance",
       "line": 591
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "get",
-      "line": 592
+      "target": "resolve_trusted_tenant",
+      "line": 607
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "HTTPException",
-      "line": 594
+      "line": 609
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "post",
-      "line": 604
+      "target": "AsyncClient",
+      "line": 611
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "rstrip",
-      "line": 605
+      "target": "getenv",
+      "line": 620
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "service_token_ok",
+      "line": 620
     },
     {
       "owner": "ai-agronomist",
@@ -19085,280 +19141,238 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "get",
-      "line": 622
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "rstrip",
-      "line": 623
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "HTTPException",
-      "line": 631
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "json",
-      "line": 633
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "json",
-      "line": 634
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 636
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 637
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "assert_no_decision_keys",
-      "line": 641
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_extract_ai_context_pack",
-      "line": 646
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "enforce_request",
-      "line": 650
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "allowed_tools_set",
-      "line": 651
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 655
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 656
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_extract_evidence_ids",
-      "line": 658
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_field_memory_evidence_ids",
-      "line": 658
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "fromkeys",
-      "line": 662
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "list",
-      "line": 662
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_evidence_sources",
-      "line": 663
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_confidence_from_payloads",
-      "line": 664
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_generation_allowed",
-      "line": 684
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_grounding_context_text",
-      "line": 685
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get_policy",
-      "line": 686
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "normalize_policy",
-      "line": 686
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "resolve_generation",
-      "line": 690
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "provider_is_external",
-      "line": 691
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "gate_generation",
-      "line": 692
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 701
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "dict",
-      "line": 702
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "generate",
-      "line": 704
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 709
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_build_agent_tool_fetcher",
-      "line": 710
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_utc_timestamp",
-      "line": 715
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "list",
-      "line": 728
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "list",
-      "line": 729
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "bool",
-      "line": 730
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "int",
-      "line": 731
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "_record_ai_advice_event",
-      "line": 733
+      "target": "_fetch_canonical_field_state",
+      "line": 624
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "isinstance",
+      "line": 629
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 630
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "HTTPException",
+      "line": 632
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 644
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "rstrip",
+      "line": 645
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "HTTPException",
+      "line": 653
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "json",
+      "line": 660
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_graph_conditioned_retrieval_query",
+      "line": 661
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "post",
+      "line": 663
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "rstrip",
+      "line": 664
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "HTTPException",
+      "line": 680
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "json",
+      "line": 682
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 684
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 685
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "assert_no_decision_keys",
+      "line": 697
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_extract_ai_context_pack",
+      "line": 702
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "enforce_request",
+      "line": 706
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "allowed_tools_set",
+      "line": 707
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 711
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 712
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_extract_evidence_ids",
+      "line": 714
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_field_memory_evidence_ids",
+      "line": 714
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "fromkeys",
+      "line": 718
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "list",
+      "line": 718
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_evidence_sources",
+      "line": 719
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_confidence_from_payloads",
+      "line": 720
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_generation_allowed",
+      "line": 740
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_grounding_context_text",
+      "line": 741
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get_policy",
+      "line": 742
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "normalize_policy",
+      "line": 742
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "resolve_generation",
       "line": 746
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "get",
+      "target": "provider_is_external",
       "line": 747
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "get",
+      "target": "gate_generation",
       "line": 748
     },
     {
@@ -19366,133 +19380,105 @@
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "get",
-      "line": 750
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 754
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get_policy",
-      "line": 755
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "isinstance",
-      "line": 756
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "normalize_policy",
-      "line": 756
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "build_observation",
       "line": 757
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "get",
-      "line": 761
+      "target": "dict",
+      "line": 758
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "generate",
+      "line": 760
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "get",
-      "line": 762
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "run_tool_calls",
-      "line": 769
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 771
+      "line": 765
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "_build_agent_tool_fetcher",
-      "line": 772
+      "line": 766
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "_utc_timestamp",
-      "line": 777
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
-      "line": 782
+      "line": 771
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "list",
-      "line": 782
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "list",
-      "line": 782
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "list",
-      "line": 783
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "list",
-      "line": 783
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "source": "build_evidence_response",
-      "target": "get",
       "line": 784
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "build_transparency",
+      "target": "list",
+      "line": 785
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "bool",
       "line": 786
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "int",
+      "line": 787
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_record_ai_advice_event",
+      "line": 789
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "isinstance",
+      "line": 802
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 803
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 804
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 806
     },
     {
       "owner": "ai-agronomist",
@@ -19505,29 +19491,155 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "isinstance",
+      "target": "get_policy",
       "line": 811
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
-      "target": "bool",
-      "line": 819
+      "target": "isinstance",
+      "line": 812
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "normalize_policy",
+      "line": 812
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "build_observation",
+      "line": 813
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "get",
-      "line": 819
+      "line": 817
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 818
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "run_tool_calls",
+      "line": 825
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 827
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_build_agent_tool_fetcher",
+      "line": 828
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "_utc_timestamp",
+      "line": 833
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 838
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "list",
+      "line": 838
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "list",
+      "line": 838
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "list",
+      "line": 839
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "list",
+      "line": 839
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 840
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "build_transparency",
+      "line": 842
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 866
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "isinstance",
+      "line": 867
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "bool",
+      "line": 875
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_evidence_runtime.py",
+      "source": "build_evidence_response",
+      "target": "get",
+      "line": 875
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
       "source": "build_evidence_response",
       "target": "build_advisory_envelope",
-      "line": 830
+      "line": 886
     },
     {
       "owner": "ai-agronomist",
@@ -92383,258 +92495,223 @@
       "file": "services/knowledge-graph/kg_store.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 36
+      "line": 43
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 38
+      "line": 45
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "__post_init__",
       "target": "ValueError",
-      "line": 40
+      "line": 47
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "__init__",
       "target": "Path",
-      "line": 45
+      "line": 52
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "__init__",
       "target": "mkdir",
-      "line": 46
+      "line": 53
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "__init__",
       "target": "_init_schema",
-      "line": 47
+      "line": 54
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "_connect",
       "target": "connect",
-      "line": 50
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "_init_schema",
-      "target": "_connect",
-      "line": 55
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "_init_schema",
-      "target": "execute",
-      "line": 56
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "_init_schema",
-      "target": "execute",
       "line": 57
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "_init_schema",
-      "target": "execute",
-      "line": 65
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "_init_schema",
-      "target": "execute",
-      "line": 76
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "_init_schema",
-      "target": "execute",
-      "line": 77
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "upsert_node",
       "target": "_connect",
-      "line": 82
+      "line": 62
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
-      "source": "upsert_node",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 63
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 64
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 72
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
       "target": "execute",
       "line": 83
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
+      "source": "_init_schema",
+      "target": "execute",
+      "line": 84
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
       "source": "upsert_node",
-      "target": "dumps",
+      "target": "_connect",
+      "line": 89
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "upsert_node",
+      "target": "execute",
       "line": 90
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
-      "source": "upsert_edge",
-      "target": "_connect",
+      "source": "upsert_node",
+      "target": "dumps",
       "line": 97
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "upsert_edge",
+      "target": "_connect",
+      "line": 104
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "upsert_edge",
       "target": "execute",
-      "line": 98
+      "line": 105
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "upsert_edge",
       "target": "dumps",
-      "line": 108
+      "line": 115
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "count_edges",
       "target": "_connect",
-      "line": 113
+      "line": 120
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "count_edges",
       "target": "execute",
-      "line": 114
+      "line": 121
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "count_edges",
       "target": "fetchone",
-      "line": 114
+      "line": 121
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "count_edges",
       "target": "int",
-      "line": 114
+      "line": 121
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "query_edges",
       "target": "append",
-      "line": 134
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "query_edges",
-      "target": "append",
-      "line": 137
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "query_edges",
-      "target": "append",
-      "line": 140
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "query_edges",
-      "target": "_connect",
       "line": 141
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "query_edges",
+      "target": "append",
+      "line": 144
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "append",
+      "line": 147
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
+      "target": "_connect",
+      "line": 148
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "query_edges",
       "target": "dict",
-      "line": 142
+      "line": 149
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "query_edges",
       "target": "execute",
-      "line": 142
+      "line": 149
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "query_edges",
       "target": "fetchall",
-      "line": 142
+      "line": 149
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "graph_context_for_crop",
       "target": "query_edges",
-      "line": 149
+      "line": 156
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "count_edges",
-      "line": 154
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 157
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 158
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 159
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
-      "line": 160
-    },
-    {
-      "owner": "knowledge-graph",
-      "file": "services/knowledge-graph/kg_store.py",
-      "source": "seed_reference_ontology",
-      "target": "GraphNode",
       "line": 161
     },
     {
@@ -92642,105 +92719,140 @@
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "GraphNode",
-      "line": 162
+      "line": 164
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 165
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 166
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 167
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 168
+    },
+    {
+      "owner": "knowledge-graph",
+      "file": "services/knowledge-graph/kg_store.py",
+      "source": "seed_reference_ontology",
+      "target": "GraphNode",
+      "line": 169
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "upsert_node",
-      "line": 170
+      "line": 177
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "GraphEdge",
-      "line": 172
+      "line": 179
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "GraphEdge",
-      "line": 173
+      "line": 180
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "GraphEdge",
-      "line": 174
+      "line": 181
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "GraphEdge",
-      "line": 175
+      "line": 182
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "upsert_edge",
-      "line": 184
+      "line": 191
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "seed_reference_ontology",
       "target": "len",
-      "line": 185
+      "line": 192
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "graphql_readonly",
       "target": "lower",
-      "line": 194
+      "line": 201
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "graphql_readonly",
       "target": "ValueError",
-      "line": 196
+      "line": 203
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "graphql_readonly",
       "target": "split",
-      "line": 200
+      "line": 207
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "graphql_readonly",
       "target": "split",
-      "line": 200
+      "line": 207
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "graphql_readonly",
       "target": "split",
-      "line": 202
+      "line": 209
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "graphql_readonly",
       "target": "split",
-      "line": 202
+      "line": 209
     },
     {
       "owner": "knowledge-graph",
       "file": "services/knowledge-graph/kg_store.py",
       "source": "graphql_readonly",
       "target": "query_edges",
-      "line": 203
+      "line": 210
     },
     {
       "owner": "knowledge-graph",
@@ -321248,61 +321360,40 @@
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "_attrs",
       "target": "items",
-      "line": 33
+      "line": 34
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "_source_of",
       "target": "get",
-      "line": 41
+      "line": 42
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "_source_of",
       "target": "str",
-      "line": 42
+      "line": 43
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "isinstance",
-      "line": 52
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
-      "target": "get",
       "line": 53
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
-      "target": "isinstance",
+      "target": "get",
       "line": 54
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
-      "target": "get",
-      "line": 55
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
-      "target": "get",
-      "line": 55
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
       "target": "isinstance",
       "line": 55
     },
@@ -321324,14 +321415,28 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
-      "target": "items",
-      "line": 64
+      "target": "isinstance",
+      "line": 56
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "get",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
+      "target": "get",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
+      "target": "items",
       "line": 65
     },
     {
@@ -321345,85 +321450,85 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
+      "target": "get",
+      "line": 67
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
       "target": "isinstance",
-      "line": 66
+      "line": 67
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "append",
-      "line": 68
+      "line": 69
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "_attrs",
-      "line": 73
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
-      "target": "_source_of",
       "line": 74
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
+      "target": "_source_of",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
       "target": "append",
-      "line": 77
+      "line": 78
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "get",
-      "line": 79
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
-      "target": "isinstance",
-      "line": 79
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
-      "target": "append",
       "line": 80
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
-      "target": "get",
-      "line": 83
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
       "target": "isinstance",
-      "line": 84
+      "line": 80
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "append",
-      "line": 86
+      "line": 81
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "get",
-      "line": 92
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
+      "target": "isinstance",
+      "line": 85
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
+      "target": "append",
+      "line": 87
     },
     {
       "owner": "sahool-platform",
@@ -321443,36 +321548,36 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
+      "target": "get",
+      "line": 95
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
       "target": "isinstance",
-      "line": 99
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
-      "target": "startswith",
-      "line": 99
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/core/evidence_graph.py",
-      "source": "build_evidence_graph",
-      "target": "append",
       "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
-      "target": "sum",
-      "line": 102
+      "target": "startswith",
+      "line": 100
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
-      "target": "len",
-      "line": 110
+      "target": "append",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
+      "target": "sum",
+      "line": 103
     },
     {
       "owner": "sahool-platform",
@@ -321486,14 +321591,21 @@
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "len",
-      "line": 113
+      "line": 112
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/core/evidence_graph.py",
+      "source": "build_evidence_graph",
+      "target": "len",
+      "line": 114
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/evidence_graph.py",
       "source": "build_evidence_graph",
       "target": "any",
-      "line": 114
+      "line": 115
     },
     {
       "owner": "sahool-platform",
@@ -528454,7 +528566,7 @@
       "symbol": "build_evidence_response",
       "kind": "function",
       "file": "services/ai_agronomist/ai_evidence_runtime.py",
-      "line": 556,
+      "line": 594,
       "owner": "ai-agronomist",
       "decorated_route": false,
       "reference_count": 0,

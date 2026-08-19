@@ -7992,6 +7992,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_semantic_convergence_01.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_sensor_confidence_shape.py",
     "kind": "tests"
   },
