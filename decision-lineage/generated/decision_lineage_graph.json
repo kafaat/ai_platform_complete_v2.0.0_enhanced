@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 549,
+      "evidence_count": 551,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -291,6 +291,7 @@
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py",
         "services/sahool-platform/api/trial_models.py",
+        "services/sahool-platform/api/unified_decision.py",
         "services/sahool-platform/api/weather_service_client.py",
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/agri_tools/tools/index_explorer.py",
@@ -370,6 +371,7 @@
         "services/sahool-platform/storage/lite_store.py",
         "services/sahool-platform/tests/test_adapt_apply_loop.py",
         "services/sahool-platform/tests/test_adapt_from_evidence.py",
+        "services/sahool-platform/tests/test_agri_next_decision_support.py",
         "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
         "services/sahool-platform/tests/test_agronomic_context_composer.py",
         "services/sahool-platform/tests/test_backend_registry_v50_static.py",
@@ -590,7 +592,7 @@
       "kind": "lineage_stage",
       "stage": "candidate",
       "order": 2,
-      "evidence_count": 478,
+      "evidence_count": 480,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -830,6 +832,7 @@
         "services/sahool-platform/api/soil_water.py",
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py",
+        "services/sahool-platform/api/unified_decision.py",
         "services/sahool-platform/api/water_decision_bridge.py",
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/actuator_command.py",
@@ -925,6 +928,7 @@
         "services/sahool-platform/tests/_public_read_taxonomy.json",
         "services/sahool-platform/tests/test_activity_log.py",
         "services/sahool-platform/tests/test_actuator_command.py",
+        "services/sahool-platform/tests/test_agri_next_decision_support.py",
         "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
         "services/sahool-platform/tests/test_authorization.py",
         "services/sahool-platform/tests/test_candidate_generator.py",
@@ -2322,13 +2326,13 @@
         "services/sahool-platform/api/routers/weather.py",
         "services/sahool-platform/api/temporal_arbitration.py",
         "services/sahool-platform/api/trial_engine.py",
+        "services/sahool-platform/api/unified_decision.py",
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/ai_artifacts.py",
-        "services/sahool-platform/core/authorization.py",
-        "services/sahool-platform/core/canonical_field_state_lock.py"
+        "services/sahool-platform/core/authorization.py"
       ],
-      "source_evidence_count": 549,
-      "target_evidence_count": 478,
+      "source_evidence_count": 551,
+      "target_evidence_count": 480,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2432,7 +2436,7 @@
         "shared/federated_agent_runtime.py",
         "shared/federated_agents_phase11.py"
       ],
-      "source_evidence_count": 478,
+      "source_evidence_count": 480,
       "target_evidence_count": 168,
       "static_supported": true,
       "runtime_verified": false
@@ -2688,5 +2692,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "57b40c9bc48bf10005723a6886f0529bfdfe3e6d6d153f2b620e0710d30edd52"
+  "content_sha256": "8feac025e3e79a40a3b689e2c9c5a426730de64228b81717aeb0eb5d60c768cc"
 }

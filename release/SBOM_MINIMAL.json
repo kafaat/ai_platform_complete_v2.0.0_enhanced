@@ -18925,7 +18925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd756b63462de1a9e0fd1c013aba74bae4638e4188e6fc0ab4c5f1e2255ef0e2"
+          "content": "dcff212fa8df677db2db1c95a0765e30d2fd936b29670191bab54f26bc3e2220"
         }
       ],
       "name": "services/sahool-platform/api/unified_decision.py",
@@ -23019,6 +23019,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_agri_irrigation_volume.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "064a92a9c2135511b28571c660ddfbc4d750430630675043fefe43c2e0a9589d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_agri_next_decision_support.py",
       "type": "file"
     },
     {

@@ -3,9 +3,9 @@
     "schema_version": 1,
     "evidence_scope": "static_repository_only",
     "runtime_verified": false,
-    "python_files_parsed": 1861,
+    "python_files_parsed": 1862,
     "route_handlers": 1049,
-    "call_edges": 74029,
+    "call_edges": 74211,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -294317,261 +294317,1423 @@
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 38
+      "source": "_digest",
+      "target": "hexdigest",
+      "line": 27
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
+      "source": "_digest",
+      "target": "sha256",
+      "line": 27
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "_digest",
+      "target": "dumps",
+      "line": 28
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "_digest",
+      "target": "encode",
+      "line": 28
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "_finite",
+      "target": "isinstance",
+      "line": 33
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "_finite",
+      "target": "float",
+      "line": 36
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "_finite",
+      "target": "isfinite",
       "line": 39
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
       "target": "get",
-      "line": 40
+      "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 44
+      "source": "irrigation_closed_loop_advisory",
+      "target": "list",
+      "line": 57
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 44
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_finite",
+      "line": 58
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 58
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
       "target": "next",
-      "line": 44
+      "line": 58
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_finite",
+      "line": 59
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
       "target": "get",
-      "line": 45
+      "line": 59
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "len",
-      "line": 45
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_finite",
+      "line": 64
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
       "target": "get",
-      "line": 47
+      "line": 64
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 48
+      "source": "irrigation_closed_loop_advisory",
+      "target": "append",
+      "line": 67
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 49
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 50
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 51
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "round",
-      "line": 51
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 61
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 62
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "max",
-      "line": 63
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 66
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "round",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "min",
       "line": 68
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_finite",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 70
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_finite",
+      "line": 71
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
       "target": "get",
       "line": 71
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "_water_risk",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "max",
+      "line": 73
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "append",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "min",
+      "line": 76
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "isinstance",
+      "line": 78
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
       "line": 79
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "isinstance",
+      "line": 79
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "isinstance",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 82
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "isinstance",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_finite",
+      "line": 86
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
       "target": "get",
       "line": 86
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "append",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_finite",
       "line": 87
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 87
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_finite",
+      "line": 88
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
       "target": "get",
       "line": 88
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 98
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "bool",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 99
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "list",
+      "line": 101
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
       "target": "append",
-      "line": 89
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "append",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 94
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 95
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
-      "line": 103
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
       "line": 104
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
+      "source": "irrigation_closed_loop_advisory",
       "target": "get",
       "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "append",
       "line": 106
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "list",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "get",
+      "line": 110
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "round",
+      "line": 111
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "round",
       "line": 112
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
-      "source": "unified_decision",
-      "target": "get",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "round",
       "line": 115
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "round",
+      "line": 116
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "fromkeys",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "list",
+      "line": 121
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "isinstance",
+      "line": 122
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "irrigation_closed_loop_advisory",
+      "target": "_digest",
+      "line": 125
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 139
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 140
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 141
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 142
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 143
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 144
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 145
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 146
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 147
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "get",
+      "line": 151
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "canonical_agronomic_context",
+      "target": "_digest",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "get",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "lower",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "str",
+      "line": 174
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "_finite",
+      "line": 175
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "get",
+      "line": 175
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "get",
+      "line": 179
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "items",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "sorted",
+      "line": 182
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "_finite",
+      "line": 183
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "get",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "lower",
+      "line": 186
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "lower",
+      "line": 187
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "round",
+      "line": 188
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "round",
+      "line": 189
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "max",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "round",
+      "line": 190
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "max",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "round",
+      "line": 191
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "_finite",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "get",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "get",
+      "line": 194
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "_finite",
+      "line": 195
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "get",
+      "line": 195
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "get",
+      "line": 195
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "items",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "round",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "sorted",
+      "line": 207
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "bool",
+      "line": 214
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "nutrient_salinity_ledger",
+      "target": "_digest",
+      "line": 216
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "get",
+      "line": 227
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "get",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "get",
+      "line": 228
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "get",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "get",
+      "line": 229
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "append",
+      "line": 232
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "lower",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "str",
+      "line": 233
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "append",
+      "line": 234
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "bool",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "get",
+      "line": 235
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "extend",
+      "line": 236
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "get",
+      "line": 236
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "fromkeys",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "list",
+      "line": 245
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "get",
+      "line": 246
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "spectral_action_candidate",
+      "target": "_digest",
+      "line": 248
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "by_zone",
+      "target": "get",
+      "line": 268
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "by_zone",
+      "target": "str",
+      "line": 268
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "get",
+      "line": 268
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "str",
+      "line": 268
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "by_zone",
+      "target": "_finite",
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "by_zone",
+      "target": "get",
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "_finite",
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "get",
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "by_zone",
+      "target": "append",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "by_zone",
+      "target": "setdefault",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "append",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "setdefault",
+      "line": 271
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "by_zone",
+      "line": 274
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "by_zone",
+      "line": 275
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "by_zone",
+      "line": 276
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "set",
+      "line": 277
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "set",
+      "line": 277
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "set",
+      "line": 277
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "sorted",
+      "line": 277
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "get",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "get",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "len",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "sum",
+      "line": 280
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "get",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "get",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "len",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "sum",
+      "line": 281
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "get",
+      "line": 282
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "get",
+      "line": 282
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "len",
+      "line": 282
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "sum",
+      "line": 282
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "append",
+      "line": 286
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "round",
+      "line": 289
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "round",
+      "line": 290
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "round",
+      "line": 291
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "round",
+      "line": 294
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "sum",
+      "line": 299
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "len",
+      "line": 304
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "precision_yield_response",
+      "target": "_digest",
+      "line": 310
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
       "source": "unified_decision",
       "target": "get",
-      "line": 115
+      "line": 344
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 345
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 346
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 350
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 350
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "next",
+      "line": 350
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 351
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "len",
+      "line": 351
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 353
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 354
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 355
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 356
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 357
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "round",
+      "line": 357
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 367
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 368
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "max",
+      "line": 369
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 372
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "round",
+      "line": 374
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 377
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "_water_risk",
+      "line": 385
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 392
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "append",
+      "line": 393
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 394
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "append",
+      "line": 395
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "append",
+      "line": 397
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "canonical_agronomic_context",
+      "line": 399
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "irrigation_closed_loop_advisory",
+      "line": 402
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 409
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "isinstance",
+      "line": 409
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "nutrient_salinity_ledger",
+      "line": 410
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "spectral_action_candidate",
+      "line": 416
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 418
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "isinstance",
+      "line": 418
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "precision_yield_response",
+      "line": 421
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 426
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 427
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 435
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 436
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 437
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 438
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
       "source": "unified_decision",
       "target": "list",
-      "line": 115
+      "line": 444
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 447
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "get",
+      "line": 447
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/unified_decision.py",
       "source": "unified_decision",
       "target": "list",
-      "line": 115
+      "line": 447
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/unified_decision.py",
+      "source": "unified_decision",
+      "target": "list",
+      "line": 447
     },
     {
       "owner": "sahool-platform",
@@ -354387,6 +355549,118 @@
       "source": "test_registered_tool_metadata",
       "target": "get_tool",
       "line": 47
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_1_irrigation_is_capacity_and_cost_constrained_without_execution",
+      "target": "irrigation_closed_loop_advisory",
+      "line": 32
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_1_irrigation_is_capacity_and_cost_constrained_without_execution",
+      "target": "_field_state",
+      "line": 33
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_2_context_is_point_in_time_and_owner_digest_bound",
+      "target": "canonical_agronomic_context",
+      "line": 51
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_2_context_is_point_in_time_and_owner_digest_bound",
+      "target": "_field_state",
+      "line": 52
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_2_context_is_point_in_time_and_owner_digest_bound",
+      "target": "len",
+      "line": 57
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_3_nutrient_salinity_ledger_never_invents_rate",
+      "target": "nutrient_salinity_ledger",
+      "line": 61
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_4_spectral_stress_nominates_candidate_never_executes",
+      "target": "_field_state",
+      "line": 73
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_4_spectral_stress_nominates_candidate_never_executes",
+      "target": "canonical_agronomic_context",
+      "line": 73
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_4_spectral_stress_nominates_candidate_never_executes",
+      "target": "spectral_action_candidate",
+      "line": 74
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_4_spectral_stress_nominates_candidate_never_executes",
+      "target": "_field_state",
+      "line": 75
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_4_degraded_spectral_is_fail_closed",
+      "target": "_field_state",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_4_degraded_spectral_is_fail_closed",
+      "target": "canonical_agronomic_context",
+      "line": 83
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_4_degraded_spectral_is_fail_closed",
+      "target": "spectral_action_candidate",
+      "line": 84
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_agri_next_5_response_is_observational_not_causal_or_promotional",
+      "target": "precision_yield_response",
+      "line": 93
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_unified_decision_exposes_all_five_closures_without_changing_existing_keys",
+      "target": "unified_decision",
+      "line": 105
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_agri_next_decision_support.py",
+      "source": "test_unified_decision_exposes_all_five_closures_without_changing_existing_keys",
+      "target": "_field_state",
+      "line": 115
     },
     {
       "owner": "sahool-platform",
