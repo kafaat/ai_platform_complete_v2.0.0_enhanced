@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import httpx
 from core.circuit_breaker import CircuitBreaker
@@ -413,7 +413,7 @@ async def fetch_bundle(
 
     historical = None
     if include_historical_30d:
-        end = datetime.utcnow().date()
+        end = datetime.now(UTC).date()
         start = end - timedelta(days=30)
         historical = await fetch_historical(
             lat,

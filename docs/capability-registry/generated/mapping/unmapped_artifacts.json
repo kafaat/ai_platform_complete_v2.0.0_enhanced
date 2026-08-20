@@ -7116,6 +7116,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_deprecated_utc_clock_cleanup.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_design_token_contrast_gate.py",
     "kind": "tests"
   },

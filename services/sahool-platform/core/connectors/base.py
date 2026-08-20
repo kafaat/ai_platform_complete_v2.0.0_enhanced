@@ -19,7 +19,7 @@ from __future__ import annotations
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -48,7 +48,7 @@ class ConnectorResult:
 
     def __post_init__(self):
         if not self.fetched_at:
-            self.fetched_at = datetime.utcnow().isoformat()
+            self.fetched_at = datetime.now(UTC).isoformat()
 
     @property
     def usable(self) -> bool:

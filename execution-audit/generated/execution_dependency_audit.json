@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1862,
     "route_handlers": 1049,
-    "call_edges": 74239,
+    "call_edges": 74241,
     "dead_code_candidates": 612,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -23333,9 +23333,23 @@
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/guardrail_events.py",
+      "source": "_now_iso",
+      "target": "isoformat",
+      "line": 8
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/guardrail_events.py",
+      "source": "_now_iso",
+      "target": "now",
+      "line": 8
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/guardrail_events.py",
       "source": "to_event",
       "target": "asdict",
-      "line": 16
+      "line": 26
     },
     {
       "owner": "ai-agronomist",
@@ -176991,7 +177005,7 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/connectors/openmeteo.py",
       "source": "fetch_bundle",
-      "target": "utcnow",
+      "target": "now",
       "line": 416
     },
     {
@@ -212320,21 +212334,21 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/main.py",
       "source": "create_token",
-      "target": "utcnow",
+      "target": "now",
       "line": 1127
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/main.py",
       "source": "create_token",
-      "target": "timedelta",
+      "target": "now",
       "line": 1128
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/main.py",
       "source": "create_token",
-      "target": "utcnow",
+      "target": "timedelta",
       "line": 1128
     },
     {
@@ -274389,7 +274403,7 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/routers/reports.py",
       "source": "operation_report_csv",
-      "target": "utcnow",
+      "target": "now",
       "line": 352
     },
     {
@@ -307968,7 +307982,7 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/core/connectors/base.py",
       "source": "__post_init__",
-      "target": "utcnow",
+      "target": "now",
       "line": 51
     },
     {
@@ -521630,21 +521644,21 @@
       "file": "shared/memory/models.py",
       "source": "_now_utc",
       "target": "now",
-      "line": 22
+      "line": 38
     },
     {
       "owner": "shared",
       "file": "shared/memory/models.py",
       "source": "_new_id",
       "target": "str",
-      "line": 27
+      "line": 43
     },
     {
       "owner": "shared",
       "file": "shared/memory/models.py",
       "source": "_new_id",
       "target": "uuid4",
-      "line": 27
+      "line": 43
     },
     {
       "owner": "shared",
