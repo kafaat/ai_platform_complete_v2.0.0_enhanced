@@ -239,3 +239,43 @@ def test_the_guard_agrees_with_pytests_own_selection():
         "ما يستبعده pytest ليس اتّحاد «بلا علامة» و«لا يجمع منه شيء»: "
         f"{sorted(deselected ^ (guard_says | uncollectable))}"
     )
+
+
+def test_a_wholly_unmarked_file_is_reported_once_not_once_per_function(tmp_path, monkeypatch):
+    """كلُّ عطلٍ سطرٌ واحد — رفعه Copilot على #878 وأصاب.
+
+    ``unmarked()`` يملك الملفّ الذي لا يحمل **أيّ** علامة مُسجَّلة، ويُبلِغ عنه
+    سطراً واحداً واضحاً. وأوّل صياغةٍ لـ``unmarked_tests()`` لم تستثنِ تلك الحالة،
+    فأضافت سطراً **لكلّ دالّة** فيه: ملفٌّ بثلاث دوالّ أعطى **أربعة** أسطر لعطلٍ
+    واحد.
+
+    والأسوأ من التكرار أنّ الرسالة كانت **تكذب**: «اختبارٌ يتيم داخل ملفٍّ **موسوم**»
+    والملفّ بلا علامة إطلاقاً. وحارسٌ يُخطئ وصف العطل يُضلّل الإصلاح — يدفع الكاتب
+    إلى وسم دوالّ منفردة بينما الصواب `pytestmark` واحدة على الوحدة.
+
+    فالمقيس هنا **قسمةُ الملكيّة**: الملفّ العاري لـ``unmarked()``، واليتيم بين
+    أشقّاء موسومين لـ``unmarked_tests()`` — ولا تداخل.
+    """
+    bare = tmp_path / "test_bare.py"
+    bare.write_text(
+        "def test_a():\n    assert True\n\n\ndef test_b():\n    assert True\n",
+        encoding="utf-8",
+    )
+    mixed = tmp_path / "test_mixed.py"
+    mixed.write_text(
+        "import pytest\n\n\n@pytest.mark.unit\ndef test_marked():\n    assert True\n\n\n"
+        "def test_orphan():\n    assert True\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(MOD, "ROOT", tmp_path)
+    monkeypatch.setattr(MOD, "tracked_test_files", lambda: ["test_bare.py", "test_mixed.py"])
+    monkeypatch.setattr(MOD, "BASELINE", tmp_path / "baseline.json")
+    (tmp_path / "baseline.json").write_text('{"unmarked": {}}', encoding="utf-8")
+
+    orphans = MOD.unmarked_tests()
+    assert not any(o.startswith("test_bare.py") for o in orphans), (
+        f"الملفّ العاري أُبلِغ عنه دالّةً دالّة: {orphans} — `unmarked()` يملكه بسطرٍ واحد"
+    )
+    assert "test_mixed.py::test_orphan" in orphans, (
+        "اليتيم بين أشقّاء موسومين لم يُرَ — وهو الحالة الوحيدة التي بُني لها الفحص"
+    )

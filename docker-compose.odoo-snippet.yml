@@ -8,7 +8,7 @@
     ports: ["8126:8000"]
     environment:
       # أمان RLS: دور مقيّد (NOBYPASSRLS) لا superuser postgres (يتجاوز عزل المستأجِرين).
-      DATABASE_URL: "postgresql+asyncpg://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgis:5432/sahool"
+      DATABASE_URL: "postgresql+asyncpg://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD مطلوب — لا سرّ افتراضيّ}@sahool-postgis:5432/sahool"
       SAHOOL_ENFORCE_RLS_ROLE: "1"  # fail-closed: ارفض الإقلاع إن تجاوز دور القاعدة RLS
       ERP_PROVIDER: "${ERP_PROVIDER:-erpnext}"
       ERPNEXT_URL: "${ERPNEXT_URL:-http://sahool-erpnext:8000}"

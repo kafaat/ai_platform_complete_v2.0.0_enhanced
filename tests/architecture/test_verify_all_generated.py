@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import ast
 import importlib.util
 import json
 import re
@@ -350,7 +351,7 @@ def test_the_source_scan_is_a_diagnostic_not_a_verdict():
 
 
 def test_a_generator_whose_only_write_flag_is_fix_is_not_invisible():
-    """‏``--fix`` ثغرة مقيسة في مسح المصدر، لا احتمال نظريّ.
+    """``--fix`` ثغرة مقيسة في مسح المصدر، لا احتمال نظريّ.
 
     نمط ``_WRITE_FLAG_DECL`` يطابق ``--write|--apply|--generate`` فقط. فمولّد علمه
     الوحيد ``--fix`` **لا يراه التشخيص إطلاقاً** — ولا حتّى بعد أن تفشل المكنسة في
@@ -382,7 +383,7 @@ def test_a_generator_whose_only_write_flag_is_fix_is_not_invisible():
 
 
 def test_write_flag_families_are_matched_not_enumerated():
-    """‏``GENERATED-SWEEP-WRITE-FLAG-FAMILY-BLIND-01`` — قائمة مغلقة تبيت بصمت.
+    """``GENERATED-SWEEP-WRITE-FLAG-FAMILY-BLIND-01`` — قائمة مغلقة تبيت بصمت.
 
     كانت أعلام الكتابة تُفحَص بعضويّة في سلسلة ثابتة، فغابت عنها عائلة ``--write-*``
     كاملةً: أربعة مولّدات تكتب بـ``--write-generated``/``--write-source`` بقيت **غير
@@ -401,7 +402,7 @@ def test_write_flag_families_are_matched_not_enumerated():
 
 
 def test_a_step_written_across_continuation_lines_is_discovered():
-    r"""‏``GENERATED-SWEEP-CONTINUATION-BLIND-01`` — ما لا يُكتشَف لا يُصنَّف.
+    r"""``GENERATED-SWEEP-CONTINUATION-BLIND-01`` — ما لا يُكتشَف لا يُصنَّف.
 
     ``_STEP`` مقصور على سطر واحد عمداً (``\s`` كان يبتلع كتلة YAML)، لكنّ القصر بلا
     طيّ متابعات السطر جعل كلّ استدعاء مكتوب بشرطة مائلة عكسيّة خارج المدى **تماماً**:
@@ -437,7 +438,7 @@ def test_the_attestation_runs_after_both_inventories_it_reads():
 
 
 def test_unindexed_files_are_reported_because_no_generator_can_see_them(tmp_path):
-    """‏`GENERATED-SWEEP-UNINDEXED-FILES-INVISIBLE-01` — قاعدة كانت نصّاً بلا إنفاذ.
+    """`GENERATED-SWEEP-UNINDEXED-FILES-INVISIBLE-01` — قاعدة كانت نصّاً بلا إنفاذ.
 
     المولّدات تمسح ``git ls-files`` (مثال حيّ: ``capability_mapping_engine.py:203``)،
     فملفّ لم يُضَف إلى الفهرس **لا يراه أيّ مولّد**. كانت القاعدة مكتوبة في docstring
@@ -484,7 +485,7 @@ def test_unindexed_files_are_reported_because_no_generator_can_see_them(tmp_path
 
 
 def test_the_completeness_question_is_not_the_change_question():
-    """‏``tree_state()`` لا يسدّ هذه الثغرة، والخلط بينهما هو سبب بقائها مفتوحة.
+    """``tree_state()`` لا يسدّ هذه الثغرة، والخلط بينهما هو سبب بقائها مفتوحة.
 
     ``tree_state`` يستعمل ``--untracked-files=no`` **عمداً**: يقيس *تغيّر* المتعقَّب
     أثناء الفحص. و``unindexed_files`` يقيس *اكتمال المُدخَل* قبله. سؤالان مختلفان،
@@ -581,4 +582,69 @@ def test_regenerate_orchestrator_delegates_to_the_fixed_point_engine() -> None:
     validate_at = code.index("python3 scripts/release/validate_release_package.py")
     assert fix_at < check_at < validate_at, (
         "ترتيب العقد مكسور: التوليد حتى الثبات، ثم الفحص النظيف، ثم تحقّق الحزمة"
+    )
+
+
+def test_an_unclassified_write_only_generator_blocks_instead_of_being_reported():
+    """`GENERATED-WRITE-ONLY-GENERATORS-UNCLASSIFIED-01` — شرط إغلاقه المكتوب.
+
+    سجلّ الفجوات يقول: «إمّا فرض تصنيف صريح على هذه المجموعة كما يُفرَض على معلني
+    ``--check``، وإمّا إثبات أنّ المجموعة لا يمكن أن تنمو» — والثاني لا يسنده شيء.
+
+    وكانت الكتلة **تطبع ثمّ تُرجِع صفراً**: عبارةٌ صادقة بلا فرض، تنتظر قارئاً
+    ينتبه إلى سطرٍ بين مئات. وهو صنف «الوجود ليس قياساً» واقعاً داخل الأداة
+    المبنيّة لمقاومته.
+
+    **ولمَ عقدٌ بنيويّ لا تشغيلٌ كامل:** حاولتُ التكذيب بزرع مولّد كتابةٍ مجهول
+    وتشغيل المكنسة، فأخفق **ثلاث مرّات** لأسبابٍ ليست حجبي — انحرافُ بصمة الحزمة
+    يعود بـ1 عند سطرٍ **قبل** هذه الكتلة، ثمّ حارسُ الملفّات غير المُفهرَسة، ثمّ
+    انحرافُ الجرد عند فهرسة المِسبار. أي أنّ حاجباً أسبق يسبقها دائماً، فلا يبلغها
+    مِسبارٌ عبر ``main()`` إطلاقاً. فالمقيس هنا ما **يمكن** قياسه صدقاً: أنّ الفرع
+    يحجب، لا أنّ المِسبار حجب.
+    """
+    tree = ast.parse(_SCRIPT.read_text(encoding="utf-8"))
+    main = next(
+        node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "main"
+    )
+    blocking = [
+        branch
+        for branch in ast.walk(main)
+        if isinstance(branch, ast.If)
+        and isinstance(branch.test, ast.Name)
+        and branch.test.id == "unknown"
+        and any(
+            isinstance(stmt, ast.Return)
+            and isinstance(stmt.value, ast.Constant)
+            and stmt.value.value == 1
+            for stmt in ast.walk(branch)
+        )
+    ]
+    assert blocking, (
+        "فرعُ `unknown` يطبع ولا يُرجِع 1 — مولّد كتابةٍ بلا تصنيف يمرّ. "
+        "والطباعة وحدها لا تحرس: مولّدٌ بلا `--check` لا يستطيع الإبلاغ عن "
+        "انحرافه أصلاً، فمصنوعته تنحرف بصمت ولا بوّابة تراها"
+    )
+
+
+def test_the_write_only_set_is_empty_so_the_new_block_costs_nothing_today():
+    """التحويل إلى حاجب قِيس آمناً **قبل** إجرائه، لا بعده.
+
+    فلو كانت المجموعة غير فارغة لكان الحجب يُحمِرّ الدمج فوراً — وهو قرارُ كلفةٍ
+    يخصّ المالك لا تنظيفٌ يُجرى بالمرور. وهذا الاختبار يُبقي القياس حيّاً: إن دخلت
+    الشجرةَ مولّداتُ كتابةٍ مجهولة يوماً، يحمرّ **هو** فيُقرأ السبب هنا بدل أن
+    يُقرأ فشلاً غامضاً في المكنسة.
+    """
+    spec = importlib.util.spec_from_file_location("_sweep_probe", _SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+    except SystemExit:
+        pass
+    blind = module.unreferenced_generators()
+    classified = set(module.load_known_drift())
+    unknown = sorted(s for s in blind if s not in classified)
+    assert not unknown, (
+        f"مولّدات كتابةٍ بلا تصنيف دخلت الشجرة: {unknown}. صنِّفها في "
+        "`generated_chain_known_drift.json` بسببٍ مكتوب، أو أعطِها `--check` "
+        "وأدخِلها الاكتشاف"
     )

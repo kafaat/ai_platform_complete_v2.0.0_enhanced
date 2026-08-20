@@ -5,7 +5,7 @@
     "runtime_verified": false,
     "python_files_parsed": 1866,
     "route_handlers": 1049,
-    "call_edges": 74844,
+    "call_edges": 74846,
     "dead_code_candidates": 620,
     "duplicate_function_groups": 58,
     "route_owners": 27,
@@ -20017,273 +20017,245 @@
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "getenv",
-      "line": 254
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "strip",
-      "line": 254
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "GenConfig",
       "line": 258
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
-      "target": "rstrip",
-      "line": 259
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "getenv",
-      "line": 263
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
       "target": "strip",
-      "line": 263
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "_resolve_model",
-      "line": 264
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "getenv",
-      "line": 267
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "strip",
-      "line": 267
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "getenv",
-      "line": 269
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "strip",
-      "line": 269
+      "line": 258
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "GenConfig",
-      "line": 272
+      "line": 262
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "rstrip",
+      "line": 263
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "getenv",
+      "line": 267
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "strip",
+      "line": 267
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "_resolve_model",
+      "line": 268
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "getenv",
+      "line": 271
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "strip",
+      "line": 271
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "getenv",
       "line": 273
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
-      "target": "getenv",
-      "line": 277
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
       "target": "strip",
-      "line": 277
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "_resolve_model",
-      "line": 278
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "getenv",
-      "line": 280
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "strip",
-      "line": 280
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "getenv",
-      "line": 285
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "strip",
-      "line": 285
+      "line": 273
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "GenConfig",
-      "line": 291
+      "line": 276
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "rstrip",
-      "line": 291
+      "line": 277
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "getenv",
+      "line": 281
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "strip",
+      "line": 281
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "_resolve_model",
-      "line": 294
+      "line": 282
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "getenv",
-      "line": 296
+      "line": 284
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "strip",
-      "line": 296
+      "line": 284
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "getenv",
-      "line": 301
+      "line": 289
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "strip",
-      "line": 301
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "getenv",
-      "line": 302
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "resolve_generation",
-      "target": "strip",
-      "line": 302
+      "line": 289
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "GenConfig",
-      "line": 304
+      "line": 295
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "resolve_generation",
       "target": "rstrip",
+      "line": 295
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "_resolve_model",
+      "line": 298
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "getenv",
+      "line": 300
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "strip",
+      "line": 300
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "getenv",
       "line": 305
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "strip",
+      "line": 305
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "getenv",
+      "line": 306
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "strip",
+      "line": 306
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "GenConfig",
+      "line": 308
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "resolve_generation",
+      "target": "rstrip",
+      "line": 309
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_provider_tools",
       "target": "lower",
-      "line": 312
+      "line": 316
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_provider_tools",
       "target": "strip",
-      "line": 312
+      "line": 316
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_provider_tools",
       "target": "getenv",
-      "line": 313
+      "line": 317
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_provider_tools",
       "target": "tool_definitions",
-      "line": 317
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_compact_tool_result",
-      "target": "get",
-      "line": 343
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_compact_tool_result",
-      "target": "get",
-      "line": 344
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_compact_tool_result",
-      "target": "get",
-      "line": 345
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_compact_tool_result",
-      "target": "get",
-      "line": 346
+      "line": 321
     },
     {
       "owner": "ai-agronomist",
@@ -20309,107 +20281,128 @@
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_compact_tool_result",
+      "target": "get",
+      "line": 350
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_compact_tool_result",
+      "target": "get",
+      "line": 351
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_compact_tool_result",
+      "target": "get",
+      "line": 352
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_compact_tool_result",
+      "target": "get",
+      "line": 353
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
       "source": "_tool_result_text",
       "target": "_compact_tool_result",
-      "line": 354
+      "line": 358
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_tool_result_text",
       "target": "isinstance",
-      "line": 354
+      "line": 358
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_tool_result_text",
       "target": "dumps",
-      "line": 355
+      "line": 359
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_payload",
       "target": "_tool_result_text",
-      "line": 377
+      "line": 381
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_arguments_for_tool_call",
       "target": "dumps",
-      "line": 404
+      "line": 408
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_arguments_for_tool_call",
       "target": "get",
-      "line": 405
+      "line": 409
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_arguments_for_tool_call",
       "target": "get",
-      "line": 405
+      "line": 409
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_arguments_for_tool_call",
       "target": "isinstance",
-      "line": 405
+      "line": 409
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "_base_user_text",
-      "line": 427
+      "line": 431
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "get",
-      "line": 435
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "get",
-      "line": 435
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "str",
-      "line": 435
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "get",
-      "line": 438
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "_arguments_for_tool_call",
       "line": 439
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
-      "target": "enumerate",
+      "target": "get",
+      "line": 439
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "str",
+      "line": 439
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "get",
       "line": 442
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "_arguments_for_tool_call",
+      "line": 443
     },
     {
       "owner": "ai-agronomist",
@@ -20422,56 +20415,28 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
-      "target": "append",
-      "line": 447
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "str",
+      "target": "enumerate",
       "line": 450
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
-      "target": "get",
+      "target": "append",
       "line": 451
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "get",
-      "line": 451
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "get",
-      "line": 453
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "str",
-      "line": 453
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "dumps",
       "line": 454
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
-      "target": "_compact_tool_result",
+      "target": "get",
       "line": 455
     },
     {
@@ -20479,62 +20444,41 @@
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "get",
-      "line": 475
+      "line": 455
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "get",
-      "line": 475
+      "line": 457
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "str",
-      "line": 475
+      "line": 457
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "dumps",
+      "line": 458
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "_compact_tool_result",
+      "line": 459
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "get",
-      "line": 476
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "str",
-      "line": 476
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "get",
-      "line": 477
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "get",
-      "line": 477
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "isinstance",
-      "line": 477
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "enumerate",
       "line": 479
     },
     {
@@ -20542,35 +20486,56 @@
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "get",
-      "line": 484
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_build_native_tool_result_payload",
-      "target": "get",
-      "line": 484
+      "line": 479
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
       "target": "str",
-      "line": 484
+      "line": 479
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
-      "target": "dumps",
-      "line": 485
+      "target": "get",
+      "line": 480
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
-      "target": "_compact_tool_result",
-      "line": 486
+      "target": "str",
+      "line": 480
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "get",
+      "line": 481
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "get",
+      "line": 481
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "isinstance",
+      "line": 481
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "enumerate",
+      "line": 483
     },
     {
       "owner": "ai-agronomist",
@@ -20583,50 +20548,64 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
-      "target": "enumerate",
+      "target": "get",
+      "line": 488
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "str",
+      "line": 488
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "dumps",
+      "line": 489
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "_compact_tool_result",
       "line": 490
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_build_native_tool_result_payload",
+      "target": "get",
+      "line": 492
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
+      "target": "enumerate",
+      "line": 494
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_build_native_tool_result_payload",
       "target": "_base_user_text",
-      "line": 497
+      "line": 501
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "get",
-      "line": 512
+      "line": 516
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "get",
-      "line": 512
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_extract_provider_tool_calls",
-      "target": "get",
-      "line": 514
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_extract_provider_tool_calls",
-      "target": "get",
-      "line": 515
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_extract_provider_tool_calls",
-      "target": "str",
-      "line": 515
+      "line": 516
     },
     {
       "owner": "ai-agronomist",
@@ -20639,35 +20618,42 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
-      "target": "isinstance",
+      "target": "get",
       "line": 519
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
-      "target": "loads",
-      "line": 521
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_extract_provider_tool_calls",
-      "target": "append",
-      "line": 524
+      "target": "str",
+      "line": 519
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "get",
-      "line": 526
+      "line": 522
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "isinstance",
+      "line": 523
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_extract_provider_tool_calls",
+      "target": "loads",
+      "line": 525
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_extract_provider_tool_calls",
+      "target": "append",
       "line": 528
     },
     {
@@ -20675,28 +20661,14 @@
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "get",
-      "line": 532
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_extract_provider_tool_calls",
-      "target": "get",
-      "line": 533
+      "line": 530
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "isinstance",
-      "line": 533
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "_extract_provider_tool_calls",
-      "target": "append",
-      "line": 534
+      "line": 532
     },
     {
       "owner": "ai-agronomist",
@@ -20716,14 +20688,14 @@
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
-      "target": "str",
+      "target": "isinstance",
       "line": 537
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
-      "target": "get",
+      "target": "append",
       "line": 538
     },
     {
@@ -20731,399 +20703,427 @@
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "get",
-      "line": 539
+      "line": 540
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_extract_provider_tool_calls",
+      "target": "get",
+      "line": 541
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_extract_provider_tool_calls",
+      "target": "str",
+      "line": 541
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_extract_provider_tool_calls",
+      "target": "get",
+      "line": 542
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "_extract_provider_tool_calls",
+      "target": "get",
+      "line": 543
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "isinstance",
-      "line": 539
+      "line": 543
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_provider_tool_calls",
       "target": "get",
-      "line": 545
+      "line": 549
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_text",
       "target": "strip",
-      "line": 552
+      "line": 556
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_text",
       "target": "get",
-      "line": 554
+      "line": 558
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_text",
       "target": "get",
-      "line": 555
+      "line": 559
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_text",
       "target": "get",
-      "line": 555
+      "line": 559
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_text",
       "target": "join",
-      "line": 555
+      "line": 559
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_text",
       "target": "strip",
-      "line": 555
+      "line": 559
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_stop_reason",
       "target": "get",
-      "line": 564
+      "line": 568
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_stop_reason",
       "target": "get",
-      "line": 565
+      "line": 569
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_stop_reason",
       "target": "get",
-      "line": 565
+      "line": 569
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_extract_stop_reason",
       "target": "get",
-      "line": 566
+      "line": 570
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_stop_reason_is_incomplete",
       "target": "lower",
-      "line": 572
+      "line": 576
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_stop_reason_is_incomplete",
       "target": "str",
-      "line": 572
+      "line": 576
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "_stop_reason_is_incomplete",
       "target": "strip",
-      "line": 572
+      "line": 576
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "generation_enabled",
-      "line": 604
+      "line": 608
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "resolve_generation",
-      "line": 606
+      "line": 610
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "prepare_context_for_provider",
-      "line": 609
+      "line": 613
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "info",
-      "line": 611
+      "line": 615
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "set",
-      "line": 622
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "int",
-      "line": 625
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "max",
-      "line": 625
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "min",
-      "line": 625
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "_provider_tools",
       "line": 626
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
-      "target": "_build_payload",
-      "line": 627
+      "target": "int",
+      "line": 629
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
-      "target": "AsyncClient",
+      "target": "max",
+      "line": 629
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "min",
+      "line": 629
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "_provider_tools",
+      "line": 630
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "_build_payload",
       "line": 631
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
+      "target": "AsyncClient",
+      "line": 635
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
       "target": "post",
-      "line": 632
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "warning",
-      "line": 634
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "json",
       "line": 636
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
-      "target": "_extract_stop_reason",
-      "line": 637
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "_extract_provider_tool_calls",
-      "line": 640
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "_extract_text",
-      "line": 647
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "run_tool_calls",
-      "line": 650
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "get",
-      "line": 667
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "list",
-      "line": 667
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "extend",
-      "line": 668
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "extend",
-      "line": 669
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "get",
-      "line": 669
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "list",
-      "line": 669
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "bool",
-      "line": 670
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "get",
-      "line": 670
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "get",
-      "line": 671
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "int",
-      "line": 671
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "_build_native_tool_result_payload",
-      "line": 681
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "post",
-      "line": 690
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
       "target": "warning",
-      "line": 692
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "_build_payload",
-      "line": 696
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "post",
-      "line": 704
-    },
-    {
-      "owner": "ai-agronomist",
-      "file": "services/ai_agronomist/ai_generation.py",
-      "source": "generate",
-      "target": "_extract_text",
-      "line": 708
+      "line": 638
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "json",
-      "line": 710
+      "line": 640
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "_extract_stop_reason",
-      "line": 711
+      "line": 641
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "_extract_provider_tool_calls",
+      "line": 644
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "_extract_text",
-      "line": 714
+      "line": 651
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
-      "target": "type",
-      "line": 716
+      "target": "run_tool_calls",
+      "line": 654
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "get",
+      "line": 671
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "list",
+      "line": 671
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "extend",
+      "line": 672
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "extend",
+      "line": 673
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "get",
+      "line": 673
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "list",
+      "line": 673
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "bool",
+      "line": 674
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "get",
+      "line": 674
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "get",
+      "line": 675
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "int",
+      "line": 675
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "_build_native_tool_result_payload",
+      "line": 685
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "post",
+      "line": 694
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
       "target": "warning",
-      "line": 716
+      "line": 696
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
-      "target": "_stop_reason_is_incomplete",
+      "target": "_build_payload",
+      "line": 700
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "post",
+      "line": 708
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "_extract_text",
+      "line": 712
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "json",
+      "line": 714
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "_extract_stop_reason",
+      "line": 715
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "_extract_text",
+      "line": 718
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "type",
       "line": 720
     },
     {
       "owner": "ai-agronomist",
       "file": "services/ai_agronomist/ai_generation.py",
       "source": "generate",
+      "target": "warning",
+      "line": 720
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
+      "target": "_stop_reason_is_incomplete",
+      "line": 724
+    },
+    {
+      "owner": "ai-agronomist",
+      "file": "services/ai_agronomist/ai_generation.py",
+      "source": "generate",
       "target": "GenResult",
-      "line": 726
+      "line": 730
     },
     {
       "owner": "ai-agronomist",
@@ -163510,224 +163510,224 @@
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 200
+      "line": 204
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "strip",
-      "line": 200
+      "line": 204
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 201
+      "line": 205
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "strip",
-      "line": 201
+      "line": 205
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "_resolve_model",
-      "line": 202
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "AIProviderConfig",
       "line": 206
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
+      "target": "AIProviderConfig",
+      "line": 210
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
       "target": "bool",
-      "line": 211
+      "line": 215
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 218
+      "line": 222
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "strip",
-      "line": 218
+      "line": 222
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 219
+      "line": 223
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "strip",
-      "line": 219
+      "line": 223
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "_resolve_model",
-      "line": 220
+      "line": 224
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 227
+      "line": 231
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "strip",
-      "line": 227
+      "line": 231
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 228
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "strip",
-      "line": 228
+      "line": 232
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "append",
-      "line": 235
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "append",
-      "line": 237
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "join",
       "line": 239
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
+      "target": "append",
+      "line": 241
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "join",
+      "line": 243
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
       "target": "AIProviderConfig",
-      "line": 240
+      "line": 244
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 257
+      "line": 261
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "rstrip",
-      "line": 257
+      "line": 261
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "strip",
-      "line": 257
+      "line": 261
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
       "target": "endswith",
-      "line": 258
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "len",
-      "line": 259
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "getenv",
-      "line": 261
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "strip",
-      "line": 261
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "_resolve_model",
       "line": 262
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
+      "target": "len",
+      "line": 263
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
       "target": "getenv",
-      "line": 263
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "strip",
-      "line": 263
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/api/ai_provider_config.py",
-      "source": "resolve_ai_provider",
-      "target": "AIProviderConfig",
       "line": 265
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/api/ai_provider_config.py",
       "source": "resolve_ai_provider",
+      "target": "strip",
+      "line": 265
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "_resolve_model",
+      "line": 266
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "getenv",
+      "line": 267
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "strip",
+      "line": 267
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
+      "target": "AIProviderConfig",
+      "line": 269
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/api/ai_provider_config.py",
+      "source": "resolve_ai_provider",
       "target": "bool",
-      "line": 270
+      "line": 274
     },
     {
       "owner": "sahool-platform",
@@ -360846,267 +360846,281 @@
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_vllm_is_opt_in_internal_openai_provider",
+      "target": "setenv",
+      "line": 80
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_vllm_is_opt_in_internal_openai_provider",
+      "target": "resolve_ai_provider",
+      "line": 81
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_vllm_is_opt_in_internal_openai_provider",
       "target": "public_snapshot",
-      "line": 72
+      "line": 83
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_vllm_is_opt_in_internal_openai_provider",
       "target": "str",
-      "line": 72
+      "line": 83
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_openrouter_requires_key",
       "target": "_clear",
-      "line": 76
+      "line": 87
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_openrouter_requires_key",
       "target": "setenv",
-      "line": 77
+      "line": 88
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_openrouter_requires_key",
       "target": "resolve_ai_provider",
-      "line": 78
+      "line": 89
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_openrouter_requires_key",
       "target": "endswith",
-      "line": 82
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_openrouter_available_with_key_and_catalog",
-      "target": "_clear",
-      "line": 91
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_openrouter_available_with_key_and_catalog",
-      "target": "setenv",
-      "line": 92
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_openrouter_available_with_key_and_catalog",
-      "target": "setenv",
       "line": 93
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_openrouter_available_with_key_and_catalog",
+      "target": "_clear",
+      "line": 102
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_openrouter_available_with_key_and_catalog",
       "target": "setenv",
-      "line": 94
+      "line": 103
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_openrouter_available_with_key_and_catalog",
+      "target": "setenv",
+      "line": 104
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_openrouter_available_with_key_and_catalog",
+      "target": "setenv",
+      "line": 105
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_openrouter_available_with_key_and_catalog",
       "target": "resolve_ai_provider",
-      "line": 98
+      "line": 109
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_openrouter_available_with_key_and_catalog",
       "target": "public_snapshot",
-      "line": 105
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_openrouter_available_with_key_and_catalog",
       "target": "str",
-      "line": 105
+      "line": 116
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_requested_model_allowlist",
       "target": "_clear",
-      "line": 109
+      "line": 120
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_requested_model_allowlist",
       "target": "setenv",
-      "line": 110
+      "line": 121
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_requested_model_allowlist",
       "target": "setenv",
-      "line": 111
+      "line": 122
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_requested_model_allowlist",
       "target": "setenv",
-      "line": 112
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_requested_model_allowlist",
-      "target": "resolve_ai_provider",
-      "line": 117
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_requested_model_allowlist",
-      "target": "resolve_ai_provider",
-      "line": 119
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_available_models_parses_env_catalog",
-      "target": "_clear",
       "line": 123
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_requested_model_allowlist",
+      "target": "resolve_ai_provider",
+      "line": 128
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_requested_model_allowlist",
+      "target": "resolve_ai_provider",
+      "line": 130
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_available_models_parses_env_catalog",
-      "target": "setenv",
-      "line": 124
+      "target": "_clear",
+      "line": 134
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_available_models_parses_env_catalog",
       "target": "setenv",
-      "line": 125
+      "line": 135
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_available_models_parses_env_catalog",
+      "target": "setenv",
+      "line": 136
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_available_models_parses_env_catalog",
       "target": "available_models",
-      "line": 126
+      "line": 137
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_anthropic_requires_key_and_model",
       "target": "_clear",
-      "line": 131
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_anthropic_requires_key_and_model",
-      "target": "setenv",
-      "line": 132
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_anthropic_requires_key_and_model",
-      "target": "resolve_ai_provider",
-      "line": 133
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_anthropic_available_with_key_and_model",
-      "target": "_clear",
-      "line": 141
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_anthropic_available_with_key_and_model",
-      "target": "setenv",
       "line": 142
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_anthropic_available_with_key_and_model",
+      "source": "test_anthropic_requires_key_and_model",
       "target": "setenv",
       "line": 143
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_anthropic_available_with_key_and_model",
-      "target": "setenv",
+      "source": "test_anthropic_requires_key_and_model",
+      "target": "resolve_ai_provider",
       "line": 144
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_anthropic_available_with_key_and_model",
-      "target": "resolve_ai_provider",
-      "line": 145
-    },
-    {
-      "owner": "sahool-platform",
-      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
-      "source": "test_anthropic_available_with_key_and_model",
-      "target": "public_snapshot",
+      "target": "_clear",
       "line": 152
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_anthropic_available_with_key_and_model",
-      "target": "str",
+      "target": "setenv",
       "line": 153
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_anthropic_available_with_key_and_model",
+      "target": "setenv",
+      "line": 154
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_anthropic_available_with_key_and_model",
+      "target": "setenv",
+      "line": 155
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_anthropic_available_with_key_and_model",
+      "target": "resolve_ai_provider",
+      "line": 156
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_anthropic_available_with_key_and_model",
+      "target": "public_snapshot",
+      "line": 163
+    },
+    {
+      "owner": "sahool-platform",
+      "file": "services/sahool-platform/tests/test_ai_provider_config.py",
+      "source": "test_anthropic_available_with_key_and_model",
+      "target": "str",
+      "line": 164
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_local_respects_overrides",
       "target": "_clear",
-      "line": 157
+      "line": 168
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_local_respects_overrides",
       "target": "setenv",
-      "line": 158
+      "line": 169
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_local_respects_overrides",
       "target": "setenv",
-      "line": 159
+      "line": 170
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_local_respects_overrides",
       "target": "setenv",
-      "line": 160
+      "line": 171
     },
     {
       "owner": "sahool-platform",
       "file": "services/sahool-platform/tests/test_ai_provider_config.py",
       "source": "test_local_respects_overrides",
       "target": "resolve_ai_provider",
-      "line": 161
+      "line": 172
     },
     {
       "owner": "sahool-platform",

@@ -2619,6 +2619,23 @@
           "why": "تعطيل فحص markers يجعل الكاتب القديم قابلاً للبقاء بلا strict cutover contract؛ زرع إزالة strict marker يجب أن يحمرّ."
         }
       ]
+    },
+    "compose_no_default_secrets_guard.py": {
+      "mutations": [
+        {
+          "expect": "test_the_live_tree_carries_no_default_secret",
+          "find": "                if _is_secret(name) and value and not value.startswith((\"$\", \"{\")):",
+          "replace": "                if False:",
+          "why": "القيمة الحرفيّة بلا استيفاء سرٌّ منشور لا يراه فحصُ الافتراضيّات — وإسقاطُ فحصها يدفع الكاتب إلى صيغةٍ لا يراها الحارس."
+        },
+        {
+          "expect": "test_a_stale_exception_is_reported_so_the_list_can_only_shrink",
+          "find": "    live = {key for key, _ in findings()}",
+          "replace": "    live = set(_exceptions())  # mutated",
+          "why": "استثناءٌ يُعَدّ حيّاً دائماً يصير إعفاءً أبديّاً بلا صاحب — والقائمة تتوقّف عن التقلّص."
+        }
+      ],
+      "test": "tests_v9/test_compose_no_default_secrets_guard.py"
     }
   },
   "schema_version": "sahool.guard-mutation-registry.v1",

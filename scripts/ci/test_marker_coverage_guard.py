@@ -106,6 +106,22 @@ def tracked_test_files() -> list[str]:
     )
 
 
+def _marker_names(node: ast.AST) -> set[str]:
+    """أسماءُ ``pytest.mark.<x>`` داخل تعبير — بالبنية لا بالنصّ."""
+    found: set[str] = set()
+    for sub in ast.walk(node):
+        if isinstance(sub, ast.Attribute):
+            owner = sub.value
+            if (
+                isinstance(owner, ast.Attribute)
+                and owner.attr == "mark"
+                and isinstance(owner.value, ast.Name)
+                and owner.value.id == "pytest"
+            ):
+                found.add(sub.attr)
+    return found
+
+
 def marker_names_in(path: Path) -> set[str]:
     """أسماء العلامات المُطبَّقة فعلاً في الملفّ — بالبنية لا بالنصّ.
 
@@ -119,20 +135,6 @@ def marker_names_in(path: Path) -> set[str]:
     except (SyntaxError, ValueError):
         return set()
 
-    def names(node: ast.AST) -> set[str]:
-        found = set()
-        for sub in ast.walk(node):
-            if isinstance(sub, ast.Attribute):
-                owner = sub.value
-                if (
-                    isinstance(owner, ast.Attribute)
-                    and owner.attr == "mark"
-                    and isinstance(owner.value, ast.Name)
-                    and owner.value.id == "pytest"
-                ):
-                    found.add(sub.attr)
-        return found
-
     applied: set[str] = set()
     for node in tree.body:
         targets: list[ast.expr] = []
@@ -143,13 +145,81 @@ def marker_names_in(path: Path) -> set[str]:
         if any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in targets):
             value = node.value  # type: ignore[union-attr]
             if value is not None:
-                applied |= names(value)
+                applied |= _marker_names(value)
 
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             for decorator in node.decorator_list:
-                applied |= names(decorator)
+                applied |= _marker_names(decorator)
     return applied
+
+
+def _module_pytestmark(tree: ast.Module) -> set[str]:
+    """علاماتُ ``pytestmark`` على مستوى الوحدة وحدها — لا مُزخرِفات الدوالّ."""
+    applied: set[str] = set()
+    for node in tree.body:
+        targets: list[ast.expr] = []
+        if isinstance(node, ast.Assign):
+            targets = list(node.targets)
+        elif isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+        if any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in targets):
+            value = node.value  # type: ignore[union-attr]
+            if value is not None:
+                applied |= _marker_names(value)
+    return applied
+
+
+def unmarked_tests() -> list[str]:
+    """اختبارٌ يتيمٌ بلا علامة **داخل ملفٍّ يحمل علامات** — ما لا يراه العدُّ على مستوى الملفّ.
+
+    ``MARKER-GUARD-COUNTS-FILES-WHILE-THE-DEFECT-LIVES-IN-A-FUNCTION-01``. العدُّ
+    على مستوى الملفّ يسأل «أفي هذا الملفّ علامة؟»، فدالّةٌ واحدة موسومة تُغطّي على
+    أخواتها. والمقيس على ``258a5835``:
+    ``test_decision_governance.py`` — خمس دوالّ ``unit`` وسادسةٌ عارية
+    (``test_approved_guardrails_alone_not_executable_by_default``): اختبارُ حوكمةٍ
+    على قابليّة تنفيذ القرار، مُستبعَدٌ من كلّ وظيفة، والحارس يقول عن ملفّه PASS.
+
+    والملفّات المُعلَنة في الأساس تُتخطّى هنا: هي محسوبةٌ سلفاً على مستوى الملفّ،
+    وإعادةُ عدّ دوالّها تُضاعف الدَّين الواحد وتُغرِق الرسالة.
+    """
+    known = registered_markers()
+    declared = set(json.loads(BASELINE.read_text(encoding="utf-8"))["unmarked"])
+    orphans: list[str] = []
+    for rel in tracked_test_files():
+        if rel in declared:
+            continue
+        try:
+            tree = ast.parse((ROOT / rel).read_text(encoding="utf-8"))
+        except (SyntaxError, ValueError):
+            continue
+        if _module_pytestmark(tree) & known:
+            continue
+        # **ملفٌّ بلا أيّ علامة مُسجَّلة ليس من شأن هذا الفحص.** يملكه `unmarked()`
+        # ويُبلِغ عنه **سطراً واحداً**؛ وإقحامُه هنا يُضيف سطراً لكلّ دالّة فيه —
+        # مقيس: ملفٌّ بثلاث دوالّ أعطى ٤ أسطر لعطلٍ واحد. والأسوأ أنّ الرسالة
+        # تكذب: تقول «داخل ملفٍّ موسوم» والملفّ بلا علامة إطلاقاً، فتُضلّل الإصلاح.
+        # رفعه Copilot على #878 وأصاب. والمقيس هنا وحده: **يتيمٌ بين أشقّاء موسومين**.
+        if not (marker_names_in(ROOT / rel) & known):
+            continue
+        scopes: list[tuple[ast.AST, set[str]]] = [(tree, set())]
+        while scopes:
+            scope, inherited = scopes.pop()
+            for node in getattr(scope, "body", []):
+                if isinstance(node, ast.ClassDef):
+                    own = set()
+                    for decorator in node.decorator_list:
+                        own |= _marker_names(decorator)
+                    scopes.append((node, inherited | own))
+                elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if not node.name.startswith("test_"):
+                        continue
+                    applied = set(inherited)
+                    for decorator in node.decorator_list:
+                        applied |= _marker_names(decorator)
+                    if not (applied & known):
+                        orphans.append(f"{rel}::{node.name}")
+    return sorted(orphans)
 
 
 def unmarked() -> list[str]:
@@ -172,6 +242,14 @@ def check() -> int:
         )
     for path in sorted(in_baseline - in_tree):
         problems.append(f"مدخل بائت في الأساس: {path} — وُسِم أو حُذِف. احذف المدخل (الأساس يتقلّص).")
+
+    # والقياس على مستوى الدالّة: ملفٌّ موسومٌ قد يُخبِّئ اختباراً عارياً.
+    for orphan in unmarked_tests():
+        problems.append(
+            f"اختبارٌ يتيمٌ بلا علامة داخل ملفٍّ موسوم: {orphan} — أشقّاؤه مُنتقَون "
+            "وهو مُستبعَدٌ من كلّ وظيفة. أضف مُزخرِف علامة مُسجَّلة إليه، أو "
+            "`pytestmark` على مستوى الوحدة إن كان الملفّ كلّه من صنفٍ واحد."
+        )
 
     # صدق الأساس نفسه: مدخل بلا سبب ودليل ليس معرفةً بل قائمة تجاهُل.
     for path, entry in sorted(baseline.items()):

@@ -68,8 +68,19 @@ def test_vllm_is_opt_in_internal_openai_provider(monkeypatch):
     assert cfg.wire_format == "openai_chat"
     assert cfg.model == "jais-natural-farmer"
     assert cfg.endpoint == "http://sahool-vllm-jais:8000/v1/chat/completions"
-    assert cfg.headers["authorization"] == "Bearer sahool-vllm-local"
-    assert "sahool-vllm-local" not in str(cfg.public_snapshot())
+    # لا بديلَ مُصلَّب بعد اليوم: كان `sahool-vllm-local` قيمةً في **الشيفرة**، فتنظيف
+    # `.env.example` وcompose منها كان تجميلاً — السرّ يبقى منشوراً في مصدرين
+    # إنتاجيّين. فالمقيس الآن أنّ غياب المفتاح **لا يُرسِل مصادقة** بدل أن يُرسِل
+    # مصادقةً يعرفها كلّ من قرأ المستودع.
+    assert "authorization" not in cfg.headers, (
+        "بلا `VLLM_API_KEY` تُرسَل ترويسة مصادقة — أي أنّ بديلاً مُصلَّباً عاد"
+    )
+
+    # والاتّجاه الآخر: المضبوط يُرسَل، ولا يتسرّب إلى اللقطة العامّة.
+    monkeypatch.setenv("VLLM_API_KEY", "k-from-operator")
+    configured = resolve_ai_provider()
+    assert configured.headers["authorization"] == "Bearer k-from-operator"
+    assert "k-from-operator" not in str(configured.public_snapshot())
 
 
 def test_openrouter_requires_key(monkeypatch):

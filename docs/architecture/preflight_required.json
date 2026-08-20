@@ -8,29 +8,31 @@
   "placement_rationale_ar": "موضعه `docs/architecture/` لأنّ هذا حيث تسكن العقود المكتوبة بيد (`platform_route_placement_contract.json` · `runtime_contract_nonsecret_keys.json` · `db_ownership.yml`). لا يُوضَع في `governance/` لأنّ ذاك المجلّد يحمل مصنوعات **مولَّدة** (`STATIC_GOVERNANCE_CLOSURE.json` وأخواتها)، وخلط المكتوب بالمولَّد يدفع أحدهم إلى تحرير ما يملكه مولّده.",
   "derivation_rule_ar": "اشتقّ إن أمكن، وصرّح إن تعذّر. هذا الملفّ يُصرّح لأنّه لا يوجد مصدر أعلى يُنتِج «أيّ اختبارات عقد يجب أن يراها الفحص المحلّيّ». في المقابل **لا** يُصرَّح بقائمة المولّدات: `verify_all_generated.py` يكتشفها من الـworkflows بقرار مقصود خلفه فشل مقيس (جولتا CI في 2026-07-28)، فقائمة يدويّة هناك تُعيد إنتاج العيب داخل الأداة التي تعالجه.",
   "required_tests": [
+    "tests/architecture/test_capability_mapping_engine.py",
+    "tests_v9/test_capability_impact_parity.py",
+    "tests_v9/test_compose_no_default_secrets_guard.py",
+    "tests_v9/test_db_ownership_source_integrity_guard.py",
     "tests_v9/test_local_preflight_contract.py",
     "tests_v9/test_non_ascii_fixture_path_guard.py",
-    "tests_v9/test_capability_impact_parity.py",
-    "tests_v9/test_db_ownership_source_integrity_guard.py",
-    "tests_v9/test_platform_catalog_gate.py",
-    "tests/architecture/test_capability_mapping_engine.py"
+    "tests_v9/test_platform_catalog_gate.py"
   ],
   "required_scripts": [
-    "scripts/ci/verify_all_generated.py",
-    "scripts/ci/pr_capability_impact_gate.py",
-    "scripts/ci/capability_impact.py",
-    "scripts/ci/claim_base_guard.py",
-    "scripts/ci/guard_mutation_guard.py",
-    "scripts/ci/no_merge_conflict_markers_guard.py",
-    "scripts/ci/probe_leak_guard.py",
-    "scripts/ci/compose_env_contract_gate.py",
-    "scripts/ci/env_compose_drift_guard.py",
-    "scripts/ci/compose_runtime_target_resolver.py",
     "scripts/ci/arch_test_ci_coverage_guard.py",
-    "scripts/ci/test_marker_coverage_guard.py",
+    "scripts/ci/brain_commit_claim_guard.py",
     "scripts/ci/brain_deferral_registry_guard.py",
     "scripts/ci/brain_state_transition_guard.py",
-    "scripts/ci/brain_commit_claim_guard.py"
+    "scripts/ci/capability_impact.py",
+    "scripts/ci/claim_base_guard.py",
+    "scripts/ci/compose_env_contract_gate.py",
+    "scripts/ci/compose_no_default_secrets_guard.py",
+    "scripts/ci/compose_runtime_target_resolver.py",
+    "scripts/ci/env_compose_drift_guard.py",
+    "scripts/ci/guard_mutation_guard.py",
+    "scripts/ci/no_merge_conflict_markers_guard.py",
+    "scripts/ci/pr_capability_impact_gate.py",
+    "scripts/ci/probe_leak_guard.py",
+    "scripts/ci/test_marker_coverage_guard.py",
+    "scripts/ci/verify_all_generated.py"
   ],
   "optional_tools": [
     {
