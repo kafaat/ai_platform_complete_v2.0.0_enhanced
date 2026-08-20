@@ -34,6 +34,10 @@
       "kind": "governed"
     },
     {
+      "path": "docs/architecture/compose_auth_sinks.json",
+      "kind": "governed"
+    },
+    {
       "path": "docs/architecture/compose_secret_exceptions.json",
       "kind": "governed"
     },
