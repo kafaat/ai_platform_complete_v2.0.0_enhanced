@@ -25,6 +25,18 @@ class METObservationInput(BaseModel):
     replicate: int | None = Field(default=None, ge=1)
 
 
+class SpatialTrialPlanInput(BaseModel):
+    field_geometry: dict
+    treatments: list[str] = Field(min_length=2)
+    n_blocks: int = Field(ge=3, le=20)
+    machine_heading_deg: float = Field(ge=0, lt=360)
+    implement_width_m: float = Field(gt=0)
+    randomization_seed: str = Field(min_length=1, max_length=240)
+    headland_m: float = Field(default=0.0, ge=0)
+    strip_gap_m: float = Field(default=0.0, ge=0)
+    min_plot_area_m2: float = Field(default=20.0, gt=0)
+
+
 class TrialAnalysisRequest(BaseModel):
     blocks: list[TrialBlockInput]
     confidence_level: float = 0.95
@@ -33,3 +45,4 @@ class TrialAnalysisRequest(BaseModel):
     study_id: str | None = None
     trial_id: str | None = None
     met_observations: list[METObservationInput] = Field(default_factory=list)
+    spatial_plan: SpatialTrialPlanInput | None = None

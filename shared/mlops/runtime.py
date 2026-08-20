@@ -188,3 +188,110 @@ def build_model_card(
         or {"fail_closed": True, "requires_human_approval_for_execution": True},
         "created_at": _now(),
     }
+
+
+@dataclass(frozen=True)
+class DatasetVersion:
+    dataset_version_id: str
+    dataset_name: str
+    version: str
+    source_uri: str
+    source_revision: str
+    content_digest: str
+    license: str
+    citation: str | None
+    capture_country: str | None
+    capture_region: str | None
+    crop_scope: tuple[str, ...]
+    sensor_modality: str | None
+    annotation_format: str | None
+    real_or_synthetic: str
+    parent_dataset: str | None
+    created_at: str = field(default_factory=_now)
+
+
+def register_dataset_version(
+    *,
+    dataset_name: str,
+    version: str,
+    source_uri: str,
+    source_revision: str,
+    content_digest: str,
+    license: str,
+    citation: str | None = None,
+    capture_country: str | None = None,
+    capture_region: str | None = None,
+    crop_scope: list[str] | tuple[str, ...] = (),
+    sensor_modality: str | None = None,
+    annotation_format: str | None = None,
+    real_or_synthetic: str = "real",
+    parent_dataset: str | None = None,
+) -> dict[str, Any]:
+    """Register dataset pedigree without creating a second model registry.
+
+    The manifest borrows the useful pedigree concepts from agricultural ML
+    catalogues while keeping SAHOOL's existing model promotion/rollback owner.
+    ``content_digest`` is required; a URL/version label alone is not reproducible.
+    """
+    required = {
+        "dataset_name": dataset_name,
+        "version": version,
+        "source_uri": source_uri,
+        "source_revision": source_revision,
+        "content_digest": content_digest,
+        "license": license,
+    }
+    missing = [k for k, v in required.items() if not str(v or "").strip()]
+    if missing:
+        raise ValueError(f"dataset pedigree missing required fields: {missing}")
+    mode = str(real_or_synthetic).strip().lower()
+    if mode not in {"real", "synthetic", "mixed"}:
+        raise ValueError("real_or_synthetic must be real, synthetic, or mixed")
+    digest = str(content_digest).strip().lower()
+    if len(digest) < 32 or any(ch not in "0123456789abcdef" for ch in digest):
+        raise ValueError("content_digest must be a hexadecimal content hash")
+    payload = DatasetVersion(
+        dataset_version_id=_stable_id(
+            {
+                "name": dataset_name,
+                "version": version,
+                "source_revision": source_revision,
+                "content_digest": digest,
+            },
+            "dataset",
+        ),
+        dataset_name=dataset_name,
+        version=version,
+        source_uri=source_uri,
+        source_revision=source_revision,
+        content_digest=digest,
+        license=license,
+        citation=citation,
+        capture_country=capture_country,
+        capture_region=capture_region,
+        crop_scope=tuple(dict.fromkeys(str(v) for v in crop_scope if str(v))),
+        sensor_modality=sensor_modality,
+        annotation_format=annotation_format,
+        real_or_synthetic=mode,
+        parent_dataset=parent_dataset,
+    )
+    return asdict(payload)
+
+
+def agricultural_evaluation_profile(
+    *,
+    dataset_version_ids: list[str],
+    required_slices: list[str] | None = None,
+) -> dict[str, Any]:
+    """Describe the minimum cross-domain evaluation slices before promotion."""
+    slices = required_slices or ["lab", "field", "regional", "low_label", "ood"]
+    unique = list(dict.fromkeys(str(v) for v in dataset_version_ids if str(v)))
+    if not unique:
+        raise ValueError("at least one dataset_version_id is required")
+    return {
+        "profile_id": _stable_id({"datasets": unique, "slices": slices}, "evalprof"),
+        "dataset_version_ids": unique,
+        "required_slices": list(dict.fromkeys(slices)),
+        "production_promotion_requires_all_slices": True,
+        "created_at": _now(),
+    }

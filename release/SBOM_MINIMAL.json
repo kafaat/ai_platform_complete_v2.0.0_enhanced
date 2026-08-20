@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17baa765f76956dde3a3c79eecd879545d31089f5f47c8cd385eed73291e24c1"
+          "content": "4541bba6fc111e8536a7bd3265526bc367ccae07fcc43b3058620a74a1241da2"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -10085,7 +10085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ca5986248b428691fa3a351198d1a327d280427fe7121fb02e11ff1dd0fd3bb"
+          "content": "59b4ebf96b85b209bb880f84a9353957466120482e051f9efc661b02dde8b1e7"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -12605,7 +12605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "384c33993de7c82cd46ca9362bc4878c7aba7dd3d9356a7a90b921e4052ad459"
+          "content": "4ebb52334afbd7ebf0db728365199e8d00d4c9537b8a88ad9d19891d7d971914"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -13035,7 +13035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3cc11ca52a869ee55eff4b5fe8daa9c7f0c6c5d28932ddce8a82ddef891ad113"
+          "content": "be2ad3eedf91bc1a18b94185152a50544dc120cf0c0500e3eed09c010452b5c9"
         }
       ],
       "name": "services/qdrant-seed/seed.py",
@@ -13065,7 +13065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03ffa13a6d09cd2dfd091e8b0e559f57b97aaddddf2c599b6c66707b47af3293"
+          "content": "862152d7864a27af9676af0d749104f35856933bf582198c04291558a191ef4f"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -13545,7 +13545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1fd20827310b9b1426ab22f0772cf996f124cd10ed24bb99188aba218d34ce91"
+          "content": "160e1955cdfcc5777910f222259fd0208a5e0a88a215e522d12544a1260fb865"
         }
       ],
       "name": "services/raster-service/raster_processing_runtime.py",
@@ -13619,6 +13619,16 @@
         }
       ],
       "name": "services/raster-service/raster_stac_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1aa32cbb9e0c919b87022e0a306d4f3e187147392dd78ee5d9521a110469816f"
+        }
+      ],
+      "name": "services/raster-service/raster_stage_receipt.py",
       "type": "file"
     },
     {
@@ -14715,6 +14725,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0a46fa10d110222c0ce0ef848b98391745b12dbe5a706920ea4cf0eae70ecc36"
+        }
+      ],
+      "name": "services/raster-service/trial_zonal_outcomes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "482f1ec8d057aefba617ef7f59612a2ef28077c5c1fa8b49aee4b389450f729f"
         }
       ],
@@ -14915,7 +14935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "26ffa75d02e578dce8b0af20176064a0d71567602700c1db7d7c7b861e8fb31b"
+          "content": "08b3b08fdf2bed7f446d7c97551fa699e7dbbfe1f8283bee4650b9603ce0491d"
         }
       ],
       "name": "services/sahool-platform/api/ai_provider_config.py",
@@ -16905,7 +16925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "820298fc8f5468447f1235c193ff9dbb3103a49ebffd074d9f00607b04fc0849"
+          "content": "aabe3d30930a7849593bf4992331d35679300c5b533b1b022ee40d9572620bfa"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
@@ -18485,7 +18505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f8ba387cd1b2cfadb18b8a86b613bdb1303a9d9f766c7b1a16c6837269df1f4a"
+          "content": "f75cfa8bea935e924e7f22a05138d7593c275756c7c4340eb76d8561b9705fc3"
         }
       ],
       "name": "services/sahool-platform/api/routers/trials.py",
@@ -18895,7 +18915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d1a53d50c9a0307b5280cbb4d10181179816997caeb40a4b08353b1f066797e"
+          "content": "02c761e8c782e2a716b633bb23831e1ac2e61fc5cc2199800f2243327f494b8a"
         }
       ],
       "name": "services/sahool-platform/api/trial_models.py",
@@ -21885,7 +21905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e679725929d2f08b44930a3df4f4b7a03e72b26bfacc8cc5e2b7a0a90458f095"
+          "content": "947ddac819d2fc96c9222b6be3dfb353f0437c43cce09e70e6bba14c14e9132d"
         }
       ],
       "name": "services/sahool-platform/core/rag/production_qdrant.py",
@@ -23105,7 +23125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ebb01df35050ff199b4352ac5575b10eed6148fd39643093e952970480295b2"
+          "content": "679c670d9a80744b2692434f52571acf08f278ba81ed1c53ef519c45c70f17d3"
         }
       ],
       "name": "services/sahool-platform/tests/test_ai_provider_config.py",
@@ -29625,7 +29645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c6dc3a43ea741edb68609fd7dd989e7a5036c7d2c6d8065aba2a7901c644161"
+          "content": "cbec173099ae5183d404f60df60b92c73c3fff4bc718f6350c47d9eb53dff792"
         }
       ],
       "name": "shared/ai/provider_contract.py",
@@ -30505,7 +30525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9cb58581348ed68dd513a5aa26217e61cdd5d91fd82bfefa656b6f9b60641349"
+          "content": "3ad525f5e64b86e58a894698a0c1d9fb92de900bdd37297050e7dee1fba866a1"
         }
       ],
       "name": "shared/iot_execution_runtime.py",
@@ -30705,7 +30725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c7f0b3fa33353805d123c7f723f0fa9bd1c22072434b24eb517679d3b156c46"
+          "content": "97049a19c13b48b3e8f05bf1c5e35b27ef71f6fed039df2ecf365d24711a3d2c"
         }
       ],
       "name": "shared/mlops/__init__.py",
@@ -30715,7 +30735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ed0360a33941642d79a00294a1a9b90b364baf04eb5cc52badd7fdbc16665d55"
+          "content": "a9a47528532c3ab52121c970351dffdb863415a99bf80e7404321205289c120d"
         }
       ],
       "name": "shared/mlops/runtime.py",
@@ -30725,10 +30745,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "606aff1aba952047943f2af1aa5615329ba240d8f960a7fbe9ee2322a58ccc0d"
+          "content": "c58687330fc59b3a2db64afe42c9bfe4658bf06333a45c0efa18f1a3a5bc600b"
         }
       ],
       "name": "shared/precision_agriculture/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3a49f48100132981709b4c250517447d088a1e41a8f96f1a20601f9345e3b4f6"
+        }
+      ],
+      "name": "shared/precision_agriculture/adapt_v2_edge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "73ea6683f7e8a3668e2fb8c6bb35d8171d02f767af9e84a8283f9ee89b65ee51"
+        }
+      ],
+      "name": "shared/precision_agriculture/pail_om_edge.py",
       "type": "file"
     },
     {
@@ -30749,6 +30789,16 @@
         }
       ],
       "name": "shared/precision_agriculture/test_phase6_intelligence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4393a9a3e23dd3f405efbe2825cedf94d45f054a60b08dfb099c70c1478fbbaa"
+        }
+      ],
+      "name": "shared/precision_agriculture/trial_spatial.py",
       "type": "file"
     },
     {

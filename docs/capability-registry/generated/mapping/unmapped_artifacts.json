@@ -2972,6 +2972,10 @@
     "kind": "backend"
   },
   {
+    "path": "services/raster-service/raster_stage_receipt.py",
+    "kind": "backend"
+  },
+  {
     "path": "services/raster-service/raster_validated_product.py",
     "kind": "backend"
   },
@@ -3109,6 +3113,10 @@
   },
   {
     "path": "services/raster-service/tile_observability.py",
+    "kind": "backend"
+  },
+  {
+    "path": "services/raster-service/trial_zonal_outcomes.py",
     "kind": "backend"
   },
   {
@@ -6728,6 +6736,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_ai_rag_delta_p0.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_ai_rag_live_certification.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_ai_tool_executor_v55.py",
     "kind": "tests"
   },
@@ -7017,6 +7033,10 @@
   },
   {
     "path": "tests_v9/test_cookbook.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_copilot_review_876_regressions.py",
     "kind": "tests"
   },
   {
@@ -7800,6 +7820,14 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_rag_cutover_admission_guard.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_rag_direct_qdrant_boundary_guard.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_rag_live_parity_probe.py",
     "kind": "tests"
   },
@@ -8029,6 +8057,10 @@
   },
   {
     "path": "tests_v9/test_service_main_container_path_safety.py",
+    "kind": "tests"
+  },
+  {
+    "path": "tests_v9/test_service_map_image_pin_parity.py",
     "kind": "tests"
   },
   {

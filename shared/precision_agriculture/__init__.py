@@ -17,3 +17,38 @@ __all__ = [
     "compute_profitability_map",
     "compose_digital_twin_snapshot",
 ]
+
+# Interchange/spatial-trial edge contracts (no new authority layer).
+from .adapt_v2_edge import (
+    AdaptExportBundle,
+    export_field_boundary_bundle,
+    geojson_polygon_to_wkt,
+    import_field_boundary_bundle,
+    wkt_to_geojson_polygon,
+)
+from .pail_om_edge import (
+    PailObservationProjection,
+    import_observation_projection,
+    project_observation,
+)
+from .trial_spatial import (
+    assign_rcbd_geometries,
+    bind_plot_outcomes,
+    design_spatial_rcbd,
+    generate_rcbd_plot_geometries,
+)
+
+__all__ += [
+    "AdaptExportBundle",
+    "export_field_boundary_bundle",
+    "geojson_polygon_to_wkt",
+    "wkt_to_geojson_polygon",
+    "import_field_boundary_bundle",
+    "PailObservationProjection",
+    "project_observation",
+    "import_observation_projection",
+    "assign_rcbd_geometries",
+    "generate_rcbd_plot_geometries",
+    "design_spatial_rcbd",
+    "bind_plot_outcomes",
+]

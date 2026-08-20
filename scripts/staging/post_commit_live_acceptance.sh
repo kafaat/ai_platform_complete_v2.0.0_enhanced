@@ -64,6 +64,7 @@ static_guards() {
   "$PYTHON" scripts/architecture/authority_cutover_guard.py
   "$PYTHON" scripts/ci/rag_operational_boundary_guard.py
   "$PYTHON" scripts/architecture/rag_authority_convergence_guard.py
+  "$PYTHON" scripts/architecture/rag_direct_qdrant_boundary_guard.py
 }
 
 preflight() {

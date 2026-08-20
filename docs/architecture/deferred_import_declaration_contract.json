@@ -28,15 +28,6 @@
         "services/sahool-platform/core/spatial/raster_export.py:93"
       ],
       "why": "`except ImportError ⇒ RuntimeError(\"Pillow مطلوب — pip install pillow\")`: الفشل صريح ويسمّي العلاج، ولا يُدّعى نجاح. تصدير PNG ميزة اختياريّة لا مسار إقلاع."
-    },
-    {
-      "service": "sahool-platform",
-      "module": "shapely",
-      "sites": [
-        "services/sahool-platform/api/gis_geometry_guard.py:124",
-        "services/sahool-platform/api/gis_geometry_guard.py:125"
-      ],
-      "why": "إصلاح هندسة أفضل-جهد: `except Exception ⇒ return geometry` (المُدخَل مُطبَّعاً). الغياب يُضعِف الإصلاح ولا يكسر المسار، والـdocstring يقولها صراحةً."
     }
   ],
   "undeclared_debt": [

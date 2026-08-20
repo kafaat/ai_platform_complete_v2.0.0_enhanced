@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 551,
+      "evidence_count": 557,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -20,6 +20,7 @@
         "knowledge-graph",
         "mcp_servers",
         "model-registry-adapter",
+        "qdrant-seed",
         "rag-retrieval",
         "raster-service",
         "remote-sensing-workspace-bff",
@@ -171,10 +172,12 @@
         "services/mcp_servers/sentinel_hub_server.py",
         "services/model-registry-adapter/runtime.py",
         "services/model-registry-adapter/tests/test_runtime_contract.py",
+        "services/qdrant-seed/seed.py",
         "services/rag-retrieval/main.py",
         "services/raster-service/dem_quality.py",
         "services/raster-service/imagery_source_gate.py",
         "services/raster-service/main.py",
+        "services/raster-service/raster_processing_runtime.py",
         "services/raster-service/routers/fields.py",
         "services/raster-service/routers/timeseries_routes.py",
         "services/raster-service/stac_search.py",
@@ -182,6 +185,7 @@
         "services/raster-service/test_imagery_source_gate.py",
         "services/raster-service/test_indicator_observation_bundle.py",
         "services/raster-service/test_raster_validated_product.py",
+        "services/raster-service/trial_zonal_outcomes.py",
         "services/remote-sensing-workspace-bff/main.py",
         "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
         "services/sahool-platform/api/adaptive_calibration.py",
@@ -580,6 +584,9 @@
         "shared/governance/chemical_lineage.py",
         "shared/knowledge/contracts.py",
         "shared/knowledge/providers.py",
+        "shared/precision_agriculture/__init__.py",
+        "shared/precision_agriculture/pail_om_edge.py",
+        "shared/precision_agriculture/trial_spatial.py",
         "shared/runtime_identity.py",
         "shared/test_autonomous_farm_os_phase9.py",
         "shared/test_federated_agent_runtime.py",
@@ -2331,7 +2338,7 @@
         "services/sahool-platform/core/ai_artifacts.py",
         "services/sahool-platform/core/authorization.py"
       ],
-      "source_evidence_count": 551,
+      "source_evidence_count": 557,
       "target_evidence_count": 480,
       "static_supported": true,
       "runtime_verified": false
@@ -2692,5 +2699,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "8feac025e3e79a40a3b689e2c9c5a426730de64228b81717aeb0eb5d60c768cc"
+  "content_sha256": "ee22da19eb9a9069bd5992494b5d75518ad84087470f845905cf58141d870cfc"
 }

@@ -9508,6 +9508,28 @@
     ]
   },
   {
+    "path": "tests_v9/test_gap_closure_v6.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "FM-003",
+        "score": 11,
+        "signals": [
+          "content:field boundary",
+          "content:field geometry"
+        ]
+      },
+      {
+        "capability_id": "SAT-003",
+        "score": 10,
+        "signals": [
+          "content:NDVI",
+          "content:ndvi"
+        ]
+      }
+    ]
+  },
+  {
     "path": "tests_v9/test_h5_api_salinity.py",
     "kind": "tests",
     "candidates": [

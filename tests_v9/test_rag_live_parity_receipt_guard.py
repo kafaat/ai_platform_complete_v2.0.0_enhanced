@@ -33,6 +33,7 @@ def receipt() -> dict:
         "collection": "sahool_agri_kb",
         "vector_size": 768,
         "query_count": 5,
+        "comparable_query_count": 5,
         "min_jaccard": 0.7,
         "mean_jaccard": 0.85,
         "read_only": True,
@@ -58,3 +59,9 @@ def test_receipt_never_accepts_promoting_probe():
     r = receipt()
     r["authority_promotion"] = True
     assert any("non-promoting" in x for x in mod().findings(r, "a" * 40))
+
+
+def test_receipt_rejects_empty_noncomparable_queries():
+    r = receipt()
+    r["comparable_query_count"] = 0
+    assert any("non-empty comparable" in x for x in mod().findings(r, "a" * 40))

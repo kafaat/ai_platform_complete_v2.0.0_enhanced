@@ -28,6 +28,7 @@ from api.trial_engine import (
     build_digital_trial_envelope,
 )
 from api.trial_models import TrialAnalysisRequest
+from shared.precision_agriculture.trial_spatial import design_spatial_rcbd
 
 router = APIRouter()
 
@@ -46,6 +47,23 @@ def analyze_trial(
             treatment_label_ar=req.treatment_label_ar,
         )
         out = verdict.to_dict()
+        if req.spatial_plan is not None:
+            spatial = req.spatial_plan
+            out["spatial_trial"] = {
+                "authority": "trial_design_only",
+                "plots": design_spatial_rcbd(
+                    trial_id=req.trial_id or "unbound-trial",
+                    treatments=spatial.treatments,
+                    n_blocks=spatial.n_blocks,
+                    field_geometry=spatial.field_geometry,
+                    machine_heading_deg=spatial.machine_heading_deg,
+                    implement_width_m=spatial.implement_width_m,
+                    randomization_seed=spatial.randomization_seed,
+                    headland_m=spatial.headland_m,
+                    strip_gap_m=spatial.strip_gap_m,
+                    min_plot_area_m2=spatial.min_plot_area_m2,
+                ),
+            }
         if req.met_observations:
             met = analyze_met(
                 [
