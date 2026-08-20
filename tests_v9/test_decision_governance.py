@@ -76,6 +76,7 @@ def test_approved_guardrails_makes_decision_executable(monkeypatch):
     assert result.policy_decision.get("executable") is True
 
 
+@pytest.mark.unit
 def test_approved_guardrails_alone_not_executable_by_default(monkeypatch):
     """DECISION-CENTER-UNIFY-01: بلا علم التجاوز، guardrails-approved لا يجعل القرار
     قابلاً للتنفيذ — يتطلّب مركز القرار (dispatch_block_reason=requires_decision_center)."""
