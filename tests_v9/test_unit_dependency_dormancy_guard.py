@@ -46,8 +46,6 @@ SUITE = ROOT / "tests_v9"
 # `tests_v9/` (`unit-tests` و`integration-tests` و`live-pg`، وثلاثتها تُثبّت
 # `tests_v9/requirements-test.txt` وحدها).
 DECLARED_DORMANT: dict[str, str] = {
-    "rasterio": "عجلاتٌ ثقيلة تحمل GDAL؛ إدخالها إلى طبقة الوحدة قرارُ كلفةٍ لا تنظيف",
-    "shapely": "GEOS خلفها — تُثبَّت في raster/sam2 لا في طبقة الوحدة الدنيا",
     "sklearn": "scikit-learn ~٣٠ ميغابايت لحالةٍ واحدة (`zones_kmeans`) — مُعلَنة في requirements_real",
     "pyarrow": "عجلةٌ ثقيلة لحالة parquet واحدة في `test_farm_memory`",
     "aiomqtt": "عميلُ وسيطٍ يستورده مدخل actuator/video عند التحميل — مُعلَن في requirements الخدمتين",
@@ -106,6 +104,38 @@ def test_no_unit_test_is_silently_dormant_on_a_missing_dependency():
         "`importorskip` على وحدةٍ غائبة وغير مُعلَنة — الاختبار يُقرأ أخضر وهو لم "
         f"يُنفَّذ: {undeclared}. إمّا تُضاف التبعيّة إلى `tests_v9/requirements-test.txt` "
         "(مثبَّتةً على إصدار الإنتاج)، وإمّا تُعلَن في `DECLARED_DORMANT` بكلفةٍ مكتوبة"
+    )
+
+
+def test_no_inventory_entry_contradicts_a_declared_dependency():
+    """المدخل يقول «غائبة بقرارِ كلفة»؛ وسطرٌ في ملفّ المتطلّبات يقول العكس.
+
+    عطلٌ مقيس في حارسي أنا: دمجُ #876 أضاف ``rasterio`` و``shapely`` إلى
+    ``requirements-test.txt`` — أي أنّ قرار الكلفة انعكس — وبقي مدخلاهما هنا يقولان
+    إنّهما خارج الطبقة. و``test_the_dormancy_inventory_has_no_stale_entry`` لم
+    يمسكهما لأنّه يسأل «أما زال أحدٌ يتخطّاها؟» لا «أما زالت غائبة؟».
+
+    فبقي في وثيقةٍ حاكمة **وصفٌ كاذب عن العالم**، وهو أسوأ من غياب الوثيقة: يُقرأ
+    قراراً قائماً وقد نُقِض. وهذا الفحص هو ما يجعل الجرد يتقلّص عند زوال سببه بدل أن
+    يُصان بيد أحد.
+    """
+    import re
+
+    text = (ROOT / "tests_v9/requirements-test.txt").read_text(encoding="utf-8")
+    declared = {
+        re.split(r"[<>=\[]", line.split("#")[0].strip())[0].strip().lower()
+        for line in text.splitlines()
+        if line.split("#")[0].strip()
+    }
+    distributions = {"sklearn": "scikit-learn", "shapefile": "pyshp"}
+    contradictions = sorted(
+        module
+        for module in DECLARED_DORMANT
+        if distributions.get(module, module).split(".")[0].lower() in declared
+    )
+    assert not contradictions, (
+        f"مُعلَنةٌ خامدة ومُعلَنةٌ تبعيّةً معاً: {contradictions}. انعكس قرار الكلفة — "
+        "احذف المدخل، فالجرد يتقلّص عند زوال سببه"
     )
 
 

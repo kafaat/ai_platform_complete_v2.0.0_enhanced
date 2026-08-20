@@ -65,6 +65,35 @@ GENERATED_MARKERS = (
     "service_inventory.csv",
     "route_inventory.csv",
     "api_versioning_inventory.csv",
+    # CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01 — مقيس على دمج #876:
+    # ثلاثة تحت `docs/architecture/` **يُعيد المكنسةُ توليدها فعلاً** (رُصِد تغيّرها
+    # بعد كلّ `regenerate_all_generated.sh` في الجلسة نفسها)، وأوّلان منها مُسجَّلان
+    # صراحةً بـ`--generate` في `verify_all_generated.py`. لكنّ اسمها لا يحمل `/generated/`
+    # ولا `.sha256`، فصنّفها المُصنِّف **مصدراً** وأوقف الأداة — والوقوف صحيح لكنّه
+    # كلّف حلّاً يدويّاً لِما للمكنسة قاعدةٌ فيه.
+    #
+    # **ولمَ ثلاثةٌ بأعيانها لا اشتقاقٌ عامّ:** جُرِّب الاشتقاق («أيّ مسار يُذكَر في
+    # مُولِّدٍ مُعلَم») فأعطى ١٩ مساراً، ومنها `guard_mutation_registry.json` —
+    # وثيقةُ سياسةٍ **بخطّ اليد** يقرؤها المحرّك ولا يكتبها. تصنيفُها «مولَّدة» يعني
+    # أخذَ جانب main ثمّ إعادة التوليد، أي **إتلاف طفراتٍ مكتوبة**. الذِّكرُ ليس
+    # كتابةً، والتوسيع على أساسه كان سيُنتِج عطلاً أسوأ من الوقوف.
+    "docs/architecture/fake_connection_debt.json",
+    "docs/architecture/source_text_assertion_inventory.json",
+    "docs/architecture/tenant_guc_scope_baseline.json",
+)
+
+# مُلّاكٌ مقيسون للثلاثة أعلاه — يُفرَض بقاؤهم مُسجَّلين في المكنسة، فلا يبقى
+# التصنيف ادّعاءً بعد أن يزول سببه.
+GENERATED_OWNERS = {
+    "docs/architecture/fake_connection_debt.json": "fake_connection_debt_guard.py",
+    "docs/architecture/tenant_guc_scope_baseline.json": "tenant_guc_scope_guard.py",
+}
+
+# وثائقُ سياسةٍ بخطّ اليد **يقرؤها** مولّدٌ ولا يكتبها. تُذكَر هنا لا لتُصنَّف، بل
+# ليبقى الفرق مقيساً: اختبارُ العقد يفرض أن تبقى `source` مهما اتّسعت العلامات.
+HAND_WRITTEN_POLICY = (
+    "docs/architecture/guard_mutation_registry.json",
+    "docs/architecture/platform_extraction_map.json",
 )
 
 # **العلامة علامةٌ في بداية السطر فقط** — CONFLICT-RE-MATCHES-PROSE-MENTIONS-01.

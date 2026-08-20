@@ -385,3 +385,55 @@ def test_dry_run_writes_nothing(tmp_path: Path) -> None:
 def test_clean_tree_is_not_an_error(tmp_path: Path) -> None:
     repo = _make_repo(tmp_path, {BRAIN_LOG: _LOG_BASE})
     assert rmc.resolve(root=repo) == 0
+
+
+def test_a_sweep_owned_artifact_outside_generated_dirs_is_not_read_as_source():
+    """`CLASSIFIER-BLIND-TO-GENERATORS-OUTSIDE-generated-DIRS-01` — مقيس على دمج #876.
+
+    قائمةُ العلامات تُصنّف بالاسم، فأيّ مصنوعةٍ لا يحمل مسارُها `/generated/` ولا
+    `.sha256` تُقرأ **مصدراً**. وثلاثةٌ تحت `docs/architecture/` تُعيد المكنسةُ
+    توليدها فعلاً وقعت في ذلك، فأوقفت الأداةُ الدمجَ طالبةً إنساناً — والوقوف صحيح
+    ومقصود، لكنّه كان عن سؤالٍ للمكنسة فيه جواب.
+
+    والمقيس هنا **ملكيّة** لا اسم: كلٌّ من الاثنين المُسمَّيين أدناه يجب أن يبقى
+    مُسجَّلاً بعلمِ توليدٍ في `verify_all_generated.py`. فإن زال التسجيل يوماً، سقط
+    مبرّرُ تصنيفه ووجب مراجعتُه — بدل أن يبقى تصنيفاً بلا سبب.
+    """
+    import importlib.util
+    import sys
+
+    path = ROOT / "scripts/ci/verify_all_generated.py"
+    spec = importlib.util.spec_from_file_location("_sweep", path)
+    sweep = importlib.util.module_from_spec(spec)
+    sys.modules["_sweep"] = sweep
+    try:
+        spec.loader.exec_module(sweep)
+    except SystemExit:
+        pass
+    flags = getattr(sweep, "_GENERATE_FLAG", {})
+
+    for artifact, owner in rmc.GENERATED_OWNERS.items():
+        assert rmc.classify(artifact) == "generated", (
+            f"{artifact} تُعيد المكنسة توليدها ويُقرأ مصدراً — الحلّ اليدويّ يُنتِج رقماً لم يحسبه أحد"
+        )
+        assert owner in flags, (
+            f"{owner} لم يعد مُسجَّلاً بعلم توليد في المكنسة — سقط مبرّر تصنيف "
+            f"{artifact}، فراجِعه بدل أن يبقى ادّعاءً"
+        )
+
+
+def test_a_hand_written_policy_document_is_never_widened_into_generated():
+    """الحدُّ الذي يمنع التوسيع من أن يصير إتلافاً.
+
+    جُرِّب اشتقاقٌ عامّ («أيّ مسار يُذكَر في مُولِّدٍ مُعلَم») فأعطى ١٩ مساراً، ومنها
+    `guard_mutation_registry.json` — وثيقةُ سياسةٍ بخطّ اليد **يقرؤها** المحرّك ولا
+    يكتبها. تصنيفُها «مولَّدة» يعني أخذَ جانب main ثمّ إعادة التوليد، أي إتلاف
+    طفراتٍ مكتوبة بلا أن يُبلِّغ شيء. **الذِّكرُ ليس كتابةً.**
+
+    فهذا الاختبار هو الوجه الآخر لأخيه: ذاك يمنع التصنيفَ الناقص، وهذا يمنع
+    التصنيفَ الزائد — ووحدَهما معاً يجعلان التوسيع أماناً.
+    """
+    for policy in rmc.HAND_WRITTEN_POLICY:
+        assert rmc.classify(policy) == "source", (
+            f"{policy} وثيقةُ سياسةٍ بخطّ اليد؛ تصنيفُها مولَّدةً يُتلِف محتواها عند أوّل دمجٍ متعارض"
+        )

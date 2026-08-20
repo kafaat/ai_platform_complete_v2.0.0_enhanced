@@ -4,7 +4,7 @@
 السبب: كان البديل الخارجيّ موثَّقاً كملفّ مرجعيّ فقط (chat_proxy_reference). هذا
 الملفّ يجعل التبديل فعليّاً عبر متغيّر `AI_PROVIDER`:
 
-    AI_PROVIDER=local       (الافتراضيّ) ⇒ Ollama، واجهة Messages متوافقة مع Anthropic،
+    AI_PROVIDER=local       (الافتراضيّ) ⇒ Ollama، واجهة OpenAI Chat Completions المتوافقة،
                              لا تسريب سحابيّ ولا مفاتيح. base_url من OLLAMA_BASE_URL.
     AI_PROVIDER=anthropic   ⇒ Anthropic Messages API (المفتاح من البيئة، خادميّاً فقط).
     AI_PROVIDER=openrouter  ⇒ OpenRouter (واجهة OpenAI chat/completions) — مُوجِّه يتيح
@@ -12,8 +12,8 @@
                              يُختار النموذج من كتالوج `AI_MODELS` وتختاره الواجهة.
     AI_PROVIDER=vllm       ⇒ خادم vLLM داخليّ OpenAI-compatible؛ opt-in وغير افتراضي.
 
-الطرفان local/anthropic يتكلّمان `POST /v1/messages` بنفس البنية؛ openrouter يتكلّم
-`POST /v1/chat/completions` (صيغة OpenAI). نُجرّد الفرق عبر `wire_format` و`endpoint`،
+المحلّيّ وOpenRouter/vLLM يتكلّمون صيغة OpenAI Chat Completions؛ Anthropic وحده
+يستخدم `POST /v1/messages`. نُجرّد الفرق عبر `wire_format` و`endpoint`،
 فمسار الدردشة يبقى محايداً: نحلّ هنا (base_url + headers + model + صيغة) ونرسل الحمولة
 المناسبة.
 
@@ -30,8 +30,8 @@ from dataclasses import dataclass, field
 # إصدار ترويسة Anthropic الثابت (عقد الـMessages API).
 ANTHROPIC_VERSION = "2023-06-01"
 # نموذج Ollama المحلّيّ الافتراضيّ (يُخدَم محلّيّاً؛ لا علاقة بالسحابة).
-DEFAULT_LOCAL_MODEL = "qwen3"
-DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
+DEFAULT_LOCAL_MODEL = "llama3.2:3b"
+DEFAULT_OLLAMA_BASE_URL = "http://sahool-ollama:11434"
 DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_VLLM_BASE_URL = "http://sahool-vllm-jais:8000/v1"
@@ -45,10 +45,7 @@ _DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
         ("anthropic/claude-sonnet-4.6", "Claude Sonnet"),
         ("google/gemini-3-pro", "Gemini 3 Pro"),
     ],
-    "local": [
-        ("qwen3", "Qwen3 (محلّيّ)"),
-        ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
-    ],
+    "local": [("llama3.2:3b", "Llama 3.2 3B (محلّيّ / Ollama)")],
     "vllm": [("jais-natural-farmer", "Jais Natural Farmer (Solshine / vLLM)")],
 }
 
@@ -111,26 +108,30 @@ def _resolve_model(provider: str, shared_model: str, requested: str | None) -> s
     req = (requested or "").strip()
     if req and req in allowed:
         return req
-    if shared_model:
+    # Fail closed for providers with a declared catalog: a stale global AI_MODEL
+    # must never cross provider boundaries (e.g. qwen3 -> vLLM/Jais). Providers
+    # without a default catalog (Anthropic) may still use an operator-supplied model.
+    if shared_model and (not allowed or shared_model in allowed):
         return shared_model
     return catalog[0]["id"] if catalog else ""
 
 
 @dataclass(frozen=True)
 class AIProviderConfig:
-    provider: str  # 'local' | 'anthropic' | 'openrouter'
+    provider: str  # 'local' | 'vllm' | 'anthropic' | 'openrouter'
     base_url: str  # بلا مسار النهاية
     model: str
     headers: dict[str, str] = field(default_factory=dict)
     available: bool = True
     reason_ar: str = ""
-    wire_format: str = "messages"  # 'messages' (Anthropic) | 'openai_chat' (OpenRouter)
+    wire_format: str = "messages"  # 'messages' (Anthropic) | 'openai_chat' (Ollama/vLLM/OpenRouter)
     models: list[dict[str, str]] = field(default_factory=list)
 
     @property
     def messages_endpoint(self) -> str:
-        """عقد Anthropic Messages (local/anthropic)."""
-        return f"{self.base_url.rstrip('/')}/v1/messages"
+        """عقد Anthropic Messages دون مضاعفة ``/v1`` في اللقطة الرصديّة."""
+        base = self.base_url.rstrip("/")
+        return f"{base}/messages" if base.endswith("/v1") else f"{base}/v1/messages"
 
     @property
     def endpoint(self) -> str:
@@ -247,24 +248,27 @@ def resolve_ai_provider(requested_model: str | None = None) -> AIProviderConfig:
             models=catalog,
         )
 
-    # المحلّيّ (Ollama، متوافق مع Anthropic Messages API).
-    base_url = (os.getenv("OLLAMA_BASE_URL") or DEFAULT_OLLAMA_BASE_URL).strip()
+    # المحلّيّ (Ollama) يستخدم واجهة OpenAI-compatible الموثّقة /v1/chat/completions.
+    # لا نعتمد Anthropic /v1/messages لأن الصورة التاريخية في هذا الخط لا تضمنها.
+    # `/v1` تُلحَق بالجذر — والجذر يُطبَّع أوّلاً بإسقاط لاحقة `/v1` إن حملها.
+    # `OLLAMA_BASE_URL` متغيّر بيئة، وضبطُه على نقطة OpenAI-compatible كاملة عادةٌ
+    # شائعة عند من يوجّهه إلى وسيطٍ آخر؛ وبلا تطبيع يصير `…/v1/v1/chat/completions`
+    # فيسقط الاستدعاء بـ404 بلا سببٍ ظاهر في الإعداد. (أمسكها مراجع Copilot على #876.)
+    root_url = (os.getenv("OLLAMA_BASE_URL") or DEFAULT_OLLAMA_BASE_URL).strip().rstrip("/")
+    if root_url.endswith("/v1"):
+        root_url = root_url[: -len("/v1")]
+    base_url = f"{root_url}/v1"
     local_default = shared_model or (os.getenv("LOCAL_LLM_MODEL") or DEFAULT_LOCAL_MODEL).strip()
     model = _resolve_model("local", local_default, requested_model)
-    # Ollama يقبل أيّ Bearer؛ نسمح بتجاوزه عبر OLLAMA_API_KEY عند الحاجة.
     token = (os.getenv("OLLAMA_API_KEY") or "ollama").strip()
-    headers = {
-        "content-type": "application/json",
-        "anthropic-version": ANTHROPIC_VERSION,
-        "authorization": f"Bearer {token}",
-    }
+    headers = {"content-type": "application/json", "authorization": f"Bearer {token}"}
     return AIProviderConfig(
         provider="local",
         base_url=base_url,
         model=model,
         headers=headers,
-        available=True,
-        reason_ar="",
-        wire_format="messages",
+        available=bool(model and root_url),
+        reason_ar="" if model and root_url else "المزوّد المحلي يحتاج نموذجاً ضمن الكتالوج.",
+        wire_format="openai_chat",
         models=catalog,
     )

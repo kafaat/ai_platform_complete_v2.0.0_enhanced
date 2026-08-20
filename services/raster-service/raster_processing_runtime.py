@@ -7,6 +7,7 @@ It assembles the small context object still required by the staged
 
 from __future__ import annotations
 
+import json
 import logging
 from types import SimpleNamespace
 
@@ -20,7 +21,9 @@ import raster_quality
 import raster_runtime_state
 import raster_security_context
 import raster_settings
+import raster_stage_receipt
 import raw_data_processing
+import trial_zonal_outcomes
 from fastapi import HTTPException
 
 logger = logging.getLogger("raster-service")
@@ -72,9 +75,28 @@ def make_processing_context(*, upload_dir: str | None = None) -> SimpleNamespace
 def run_processing(
     job_id: str, req: api_models.ProcessRequest, *, upload_dir: str | None = None
 ) -> None:
-    """Run a single raster processing job without depending on main.py."""
-    raster_job_orchestration.run_processing(
-        make_processing_context(upload_dir=upload_dir), job_id, req
+    """Run a single raster processing job and emit a structured stage receipt."""
+    req_payload = req.model_dump(mode="json") if hasattr(req, "model_dump") else vars(req)
+    receipt = raster_stage_receipt.begin_stage(
+        stage_id="raster.process",
+        stage_version="v1",
+        run_id=str(job_id),
+        config=req_payload,
+        input_refs=[str(req_payload.get("source") or req_payload.get("source_url") or "")],
+    )
+    try:
+        raster_job_orchestration.run_processing(
+            make_processing_context(upload_dir=upload_dir), job_id, req
+        )
+    except Exception as exc:
+        logger.info(
+            "raster_stage_receipt=%s",
+            json.dumps(raster_stage_receipt.fail_stage(receipt, exc), sort_keys=True),
+        )
+        raise
+    logger.info(
+        "raster_stage_receipt=%s",
+        json.dumps(raster_stage_receipt.finish_stage(receipt), sort_keys=True),
     )
 
 
@@ -114,4 +136,13 @@ def process_raw_raster(req: api_models.RawDataProcessRequest, *, upload_dir: str
     """Inspect raw raster data without computing agronomic indicators."""
     return raw_data_processing.process_raw_raster(
         make_processing_context(upload_dir=upload_dir), req
+    )
+
+
+def extract_trial_zonal_outcomes(
+    assignments: list[dict], raster_layers: list[dict], *, all_touched: bool = False
+):
+    """Existing raster-service façade for exact plot-wise trial evidence extraction."""
+    return trial_zonal_outcomes.extract_plot_zonal_outcomes(
+        assignments, raster_layers, all_touched=all_touched
     )

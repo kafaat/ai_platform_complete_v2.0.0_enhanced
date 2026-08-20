@@ -37,9 +37,10 @@ def test_defaults_to_local_ollama(monkeypatch):
     cfg = resolve_ai_provider()
     assert cfg.provider == "local"
     assert cfg.available is True  # المحلّيّ لا يحتاج مفاتيح سحابيّة
-    assert cfg.messages_endpoint.endswith("/v1/messages")
+    assert cfg.wire_format == "openai_chat"
+    assert cfg.endpoint.endswith("/v1/chat/completions")
     assert cfg.headers["authorization"].startswith("Bearer ")
-    assert cfg.headers["anthropic-version"] == ANTHROPIC_VERSION
+    assert "anthropic-version" not in cfg.headers
     # لا يُسرَّب مفتاح سحابيّ في الوضع المحلّيّ.
     assert "x-api-key" not in cfg.headers
 
@@ -156,7 +157,8 @@ def test_local_respects_overrides(monkeypatch):
     _clear(monkeypatch)
     monkeypatch.setenv("AI_PROVIDER", "local")
     monkeypatch.setenv("OLLAMA_BASE_URL", "http://my-ollama:11434")
-    monkeypatch.setenv("AI_MODEL", "qwen3:70b")
+    monkeypatch.setenv("LOCAL_LLM_MODEL", "llama3.2:3b")
     cfg = resolve_ai_provider()
-    assert cfg.base_url == "http://my-ollama:11434"
-    assert cfg.model == "qwen3:70b"
+    assert cfg.base_url == "http://my-ollama:11434/v1"
+    assert cfg.model == "llama3.2:3b"
+    assert cfg.endpoint == "http://my-ollama:11434/v1/chat/completions"

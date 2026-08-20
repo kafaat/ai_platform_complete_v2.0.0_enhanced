@@ -73,7 +73,13 @@ def _chunk(cid, tenant, text, idx=0, crop="wheat"):
         document_id="doc-1",
         chunk_index=idx,
         total_chunks=3,
-        metadata={"evidence_level": "manual", "crop": crop, "section": "test", "page": 1},
+        metadata={
+            "evidence_level": "manual",
+            "crop": crop,
+            "section": "test",
+            "page": 1,
+            "source_class": "internal_document",
+        },
     )
 
 

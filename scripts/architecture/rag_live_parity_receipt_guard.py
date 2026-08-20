@@ -38,6 +38,10 @@ def findings(receipt: dict, subject_sha: str) -> list[str]:
         out.append("receipt must be read-only/non-promoting")
     if int(receipt.get("query_count", 0)) < int(p.get("min_queries", 5)):
         out.append("insufficient parity queries")
+    if int(receipt.get("comparable_query_count", 0)) < int(
+        p.get("min_comparable_queries", p.get("min_queries", 5))
+    ):
+        out.append("insufficient non-empty comparable parity queries")
     if float(receipt.get("min_jaccard", 0)) < float(p.get("min_jaccard", 0.6)):
         out.append("minimum jaccard below threshold")
     if float(receipt.get("mean_jaccard", 0)) < float(p.get("min_mean_jaccard", 0.8)):
@@ -66,8 +70,8 @@ def main() -> int:
             print("rag_live_parity_receipt_fail", x)
         return 1
     print(
-        f"rag_live_parity_receipt_ok queries={r['query_count']} min={r['min_jaccard']} "
-        f"mean={r['mean_jaccard']} vector_size={r['vector_size']}"
+        f"rag_live_parity_receipt_ok queries={r['query_count']} comparable={r['comparable_query_count']} "
+        f"min={r['min_jaccard']} mean={r['mean_jaccard']} vector_size={r['vector_size']}"
     )
     return 0
 

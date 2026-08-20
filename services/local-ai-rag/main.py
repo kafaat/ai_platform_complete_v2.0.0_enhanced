@@ -60,10 +60,11 @@ except ImportError:
     logger = logging.getLogger("local-ai-rag")
 
 # ── Config ────────────────────────────────────────────────────
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
-LLM_MODEL = os.getenv("LLM_MODEL", "qwen3:32b")  # or qwen3:70b, qwen3:8b
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://sahool-ollama:11434")
+LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:3b")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY") or None
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "sahool_agri_kb")
 # ARCH-S3 Expand: rag-retrieval is the intended retrieval authority.  Direct Qdrant
 # remains primary only during measured shadow parity; SHADOW is OFF by default and
@@ -85,11 +86,14 @@ AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "25"))
 
 _TENANT_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
+_GLOBAL_REFERENCE_TENANT = "__global__"
 
 
 def _validate_tenant_id(tenant_id: str) -> str:
     if not tenant_id or not _TENANT_RE.match(str(tenant_id)):
         raise HTTPException(400, "Invalid tenant_id")
+    if str(tenant_id) == _GLOBAL_REFERENCE_TENANT:
+        raise HTTPException(403, "global reference tenant is reserved for curated seed ingestion")
     return str(tenant_id)
 
 
@@ -149,7 +153,7 @@ def init_vectorstore() -> QdrantVectorStore:
     # Qdrant ويُحوّلها زوراً إلى «إنشاء جديد»). أخطاء الاتصال الحقيقيّة تنتشر بصدق.
     from qdrant_client import QdrantClient
 
-    qclient = QdrantClient(url=QDRANT_URL, prefer_grpc=False)
+    qclient = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, prefer_grpc=False)
     if not qclient.collection_exists(COLLECTION_NAME):
         # ARCH-S3 writer convergence: this runtime is now read-only against Qdrant.
         # Collection creation/initialization belongs to qdrant-seed or the canonical
@@ -158,6 +162,7 @@ def init_vectorstore() -> QdrantVectorStore:
     _vectorstore = QdrantVectorStore.from_existing_collection(
         embedding=embeddings,
         url=QDRANT_URL,
+        api_key=QDRANT_API_KEY,
         prefer_grpc=False,
         collection_name=COLLECTION_NAME,
     )
@@ -205,7 +210,11 @@ def split_docs(docs: list[Document]) -> list[Document]:
     return splitter.split_documents(docs)
 
 
-async def ingest_documents(file_paths: list[Path], tenant_id: str = "default") -> dict:
+async def ingest_documents(
+    file_paths: list[Path],
+    tenant_id: str = "default",
+    source_names: dict[str, str] | None = None,
+) -> dict:
     """Parse locally, but write knowledge only through the canonical retrieval authority.
 
     ARCH-S3 writer convergence: local-ai-rag no longer writes Qdrant during ingest.
@@ -213,12 +222,18 @@ async def ingest_documents(file_paths: list[Path], tenant_id: str = "default") -
     Canonical-ingest failure is explicit and fail-closed; there is no direct-write fallback.
     """
     all_docs: list[Document] = []
+    source_names = source_names or {}
     for p in file_paths:
         try:
+            original_name = source_names.get(str(p), p.name)
+            file_digest = hashlib.sha256(p.read_bytes()).hexdigest()
             docs = load_document(p)
             for d in docs:
                 d.metadata["tenant_id"] = tenant_id
-                d.metadata["source_file"] = p.name
+                d.metadata["source_file"] = original_name
+                d.metadata["source_class"] = "tenant_document"
+                d.metadata["source_uri"] = f"tenant-upload://{tenant_id}/{original_name}"
+                d.metadata["source_revision"] = f"sha256:{file_digest}"
                 d.metadata["ingested_at"] = datetime.now(UTC).isoformat()
             all_docs.extend(docs)
         except Exception as e:
@@ -346,12 +361,17 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
     vs = init_vectorstore()
     llm = init_llm()
 
-    from qdrant_client.http.models import FieldCondition, Filter, MatchValue
+    from qdrant_client.http.models import FieldCondition, Filter, MatchAny
 
-    # فلتر العزل **دائماً** (لكلّ المستأجرين بمن فيهم "default"): لا يرى المستأجِر
-    # إلّا وثائقه. وثيقة init بلا tenant_id ⇒ مُستبعَدة تلقائيّاً.
+    # العزل يبقى fail-closed: يرى المستأجر وثائقه والمرجع المشترك المنظّم فقط،
+    # ولا يرى tenant آخر. ``__global__`` محجوز للـcurated reference غير prescriptive.
     tenant_filter = Filter(
-        must=[FieldCondition(key="metadata.tenant_id", match=MatchValue(value=tenant_id))]
+        must=[
+            FieldCondition(
+                key="metadata.tenant_id",
+                match=MatchAny(any=[tenant_id, _GLOBAL_REFERENCE_TENANT]),
+            )
+        ]
     )
     retriever = vs.as_retriever(search_kwargs={"k": k, "filter": tenant_filter})
 
@@ -538,6 +558,7 @@ async def ingest_endpoint(
     _require_ready()
     tenant_id = _validate_tenant_id(tenant_id)
     paths: list[Path] = []
+    source_names: dict[str, str] = {}
     for upload in files:
         suffix = Path(upload.filename).suffix.lower()
         if suffix not in (".pdf", ".txt", ".md", ".csv"):
@@ -565,9 +586,11 @@ async def ingest_endpoint(
         finally:
             if not tmp.closed:
                 tmp.close()
-        paths.append(Path(tmp.name))
+        tmp_path = Path(tmp.name)
+        paths.append(tmp_path)
+        source_names[str(tmp_path)] = Path(upload.filename).name
 
-    result = await ingest_documents(paths, tenant_id)
+    result = await ingest_documents(paths, tenant_id, source_names=source_names)
 
     # cleanup
     for p in paths:

@@ -333,3 +333,54 @@ def summarize_telemetry_frames(frames: list[dict[str, Any]]) -> dict[str, Any]:
         bool(acked or any(summary[k]["count"] for k in numeric_keys)) and not summary["faults"]
     )
     return summary
+
+
+def project_thing_model(
+    *,
+    device_model_id: str,
+    capabilities: dict[str, AdapterCapability] | None = None,
+) -> dict[str, Any]:
+    """Project SAHOOL's existing IoT contract into property/function/event vocabulary.
+
+    This is a compatibility projection only; it does not create another device
+    registry, broker, rule engine, or execution authority.
+    """
+    if not device_model_id:
+        raise ValueError("device_model_id is required")
+    # فحصُ `is None` لا صدقيّةَ القيمة: التوقيع يقول `dict | None`، فالقاموس الفارغ
+    # تمثيلٌ صريح لـ«لا قدرات» لا طلبٌ للافتراضيّ. و`or` تبتلعه فتُرجِع قدراتٍ لم
+    # يطلبها المُستدعي. (أمسكها مراجع Copilot على #876.)
+    caps = DEFAULT_CAPABILITIES if capabilities is None else capabilities
+    functions = []
+    for protocol, cap in sorted(caps.items()):
+        functions.append(
+            {
+                "id": f"dispatch:{protocol}",
+                "protocol": protocol,
+                "enabled": cap.enabled,
+                "mode": cap.mode,
+                "requires_ack": cap.supports_ack,
+                "max_commands_per_batch": cap.max_commands_per_batch,
+            }
+        )
+    return {
+        "schema": "sahool.thing-model-projection.v1",
+        "device_model_id": device_model_id,
+        "properties": [
+            {"id": "flow_rate", "type": "number", "read_only": True},
+            {"id": "pressure", "type": "number", "read_only": True},
+            {"id": "power_current", "type": "number", "read_only": True},
+            {"id": "soil_moisture_delta", "type": "number", "read_only": True},
+        ],
+        "functions": functions,
+        "events": [
+            {"id": "ack", "fields": ["acknowledged_command_ids"]},
+            {"id": "fault", "fields": ["fault"]},
+            {
+                "id": "telemetry",
+                "fields": ["flow_rate", "pressure", "power_current", "soil_moisture_delta"],
+            },
+        ],
+        "authority": "projection_only",
+        "physical_enable_required": True,
+    }

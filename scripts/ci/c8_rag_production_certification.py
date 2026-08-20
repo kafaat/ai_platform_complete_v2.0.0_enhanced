@@ -33,7 +33,12 @@ def emit(stage, status, findings=(), **extra):
         **extra,
     }
     print(json.dumps(o, indent=2, sort_keys=True))
-    return 0 if status in {"PASS", "EVIDENCE_REQUIRED", "CERTIFIED_CUTOVER_CAPABLE"} else 1
+    return (
+        0
+        if status
+        in {"PASS", "EVIDENCE_REQUIRED", "LIVE_PARITY_VERIFIED", "CERTIFIED_CUTOVER_CAPABLE"}
+        else 1
+    )
 
 
 def main(argv=None):
@@ -44,6 +49,7 @@ def main(argv=None):
     f = []
     for rel in (
         "scripts/architecture/rag_authority_convergence_guard.py",
+        "scripts/architecture/rag_direct_qdrant_boundary_guard.py",
         "scripts/ci/rag_operational_boundary_guard.py",
     ):
         rc, out = run(rel)
@@ -62,10 +68,37 @@ def main(argv=None):
         "--subject-sha",
         x.subject_sha,
     )
+    if rc != 0:
+        return emit(
+            "C8",
+            "FAILED",
+            ["canonical_live_receipt_guard_failed", out[-800:]],
+        )
+
+    # A valid live receipt proves live parity and live collection-schema parity for
+    # this observation. It does *not* mutate the adjudicated convergence state and
+    # cannot make direct-Qdrant revocation ready by itself. Report cutover-capable
+    # only when every remaining adjudicated requirement is already true.
+    state = json.loads(
+        (ROOT / "docs/architecture/rag_authority_convergence.json").read_text(encoding="utf-8")
+    )
+    effective = dict(state.get("cutover_requirements") or {})
+    effective["collection_schema_parity"] = True
+    effective["live_shadow_parity_receipt"] = True
+    blockers = sorted(key for key, value in effective.items() if not bool(value))
+    status = "CERTIFIED_CUTOVER_CAPABLE" if not blockers else "LIVE_PARITY_VERIFIED"
     return emit(
         "C8",
-        "CERTIFIED_CUTOVER_CAPABLE" if rc == 0 else "FAILED",
-        [] if rc == 0 else ["canonical_live_receipt_guard_failed", out[-800:]],
+        status,
+        [],
+        cutover_capable=not blockers,
+        blocking_requirements=blockers,
+        observed_requirements={
+            "collection_schema_parity": True,
+            "live_shadow_parity_receipt": True,
+        },
+        authority_state=state.get("authority_state"),
+        convergence_stage=state.get("stage"),
     )
 
 

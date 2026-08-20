@@ -44,7 +44,9 @@ def test_live_probe_is_read_only_and_dimension_bound(monkeypatch):
         subject_sha="a" * 40,
         contract_sha256="b" * 64,
     )
-    assert r["min_jaccard"] == 1.0 and r["read_only"] is True and r["authority_promotion"] is False
+    assert r["min_jaccard"] == 1.0
+    assert r["comparable_query_count"] == 1
+    assert r["read_only"] is True and r["authority_promotion"] is False
 
 
 def test_live_probe_rejects_vector_dimension_mismatch(monkeypatch):
@@ -66,3 +68,36 @@ def test_live_probe_rejects_vector_dimension_mismatch(monkeypatch):
             subject_sha="a" * 40,
             contract_sha256="b" * 64,
         )
+
+
+def test_live_probe_empty_vs_empty_is_not_false_parity(monkeypatch):
+    m = mod()
+    monkeypatch.setattr(
+        m, "_get", lambda *_a, **_k: {"result": {"config": {"params": {"vectors": {"size": 3}}}}}
+    )
+
+    def post(url, payload, headers=None):
+        if "/api/embeddings" in url:
+            return {"embedding": [1, 2, 3]}
+        if "/points/search" in url:
+            # Also assert direct parity uses the same tenant OR global scope as canonical retrieval.
+            scope = payload["filter"]["must"][0]
+            assert scope["match"]["any"] == ["t1", "__global__"]
+            return {"result": []}
+        return {"annotations": []}
+
+    monkeypatch.setattr(m, "_post", post)
+    r = m.run_probe(
+        tenant_id="t1",
+        queries=["water"],
+        final_k=5,
+        qdrant_url="http://q",
+        collection="c",
+        ollama_url="http://o",
+        model="m",
+        retrieval_url="http://r",
+        subject_sha="a" * 40,
+        contract_sha256="b" * 64,
+    )
+    assert r["min_jaccard"] == 0.0
+    assert r["comparable_query_count"] == 0

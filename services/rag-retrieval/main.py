@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from core.rag.production_qdrant import (
+    GLOBAL_REFERENCE_TENANT,
     HybridQdrantRetriever,
     KnowledgeChunk,
     OllamaEmbeddingProvider,
@@ -23,6 +24,32 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
 _embedding_provider = OllamaEmbeddingProvider(OLLAMA_BASE_URL, EMBEDDING_MODEL)
 _qdrant = QdrantHttpClient(QDRANT_URL, COLLECTION, 0, os.getenv("QDRANT_API_KEY") or None)
 _retriever = HybridQdrantRetriever(_qdrant, _embedding_provider)
+_sparse_ready = False
+_sparse_report: dict[str, int] = {"total_points": 0, "loaded_chunks": 0, "skipped_points": 0}
+
+
+def _ensure_sparse_index(*, force: bool = False) -> dict[str, int]:
+    """Hydrate deterministic BM25 from canonical Qdrant payloads exactly once per process.
+
+    Readiness fails closed if any stored point cannot be reconstructed; otherwise a
+    restart would silently advertise hybrid retrieval while serving dense-only.
+    """
+    global _sparse_ready, _sparse_report
+    if _sparse_ready and not force:
+        return _sparse_report
+    report = _retriever.rebuild_sparse_index()
+    live_count = _qdrant.collection_point_count()
+    if report["total_points"] != live_count:
+        raise ValueError(
+            f"Qdrant scroll/count mismatch: scroll={report['total_points']} count={live_count}"
+        )
+    if report["skipped_points"]:
+        raise ValueError(
+            f"canonical sparse rebuild skipped {report['skipped_points']} Qdrant points"
+        )
+    _sparse_report = report
+    _sparse_ready = True
+    return report
 
 
 class ChunkIn(BaseModel):
@@ -80,6 +107,7 @@ async def readyz():
             raise ValueError(
                 f"embedding/Qdrant dimension mismatch: embedding={len(vector)} collection={collection_dim}"
             )
+        sparse = _ensure_sparse_index()
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(503, f"rag retrieval not ready: {exc}") from exc
     return {
@@ -92,6 +120,8 @@ async def readyz():
         "vector_size": collection_dim,
         "embedding_contract_parity": True,
         "collection_schema_parity": True,
+        "sparse_index_hydrated": True,
+        "sparse_index_count": sparse["loaded_chunks"],
     }
 
 
@@ -111,6 +141,8 @@ async def ingest(
             tenant_id = resolve_trusted_tenant(x_tenant_id, c.tenant_id)
         except TrustedTenantError as exc:
             raise HTTPException(status_code=403, detail=exc.code) from exc
+        if tenant_id == GLOBAL_REFERENCE_TENANT:
+            raise HTTPException(status_code=403, detail="GLOBAL_REFERENCE_INGEST_RESERVED")
         payload = c.model_dump()
         payload["tenant_id"] = tenant_id
         # Canonical retrieval owns the storage metadata contract. Callers provide
@@ -118,9 +150,20 @@ async def ingest(
         # required by KnowledgeChunk instead of forcing every generation runtime
         # to duplicate storage-specific metadata.
         payload["metadata"].setdefault("evidence_level", "document")
-        chunks.append(KnowledgeChunk(**payload))
+        try:
+            chunks.append(KnowledgeChunk(**payload))
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "INVALID_RAG_PROVENANCE", "message": str(exc)},
+            ) from exc
     try:
-        return {"ingested": _retriever.ingest(chunks)}
+        ingested = _retriever.ingest(chunks)
+        # Qdrant has changed; force the next read/readiness to reconstruct the complete
+        # sparse corpus instead of assuming this process saw every historical ingest.
+        global _sparse_ready
+        _sparse_ready = False
+        return {"ingested": ingested}
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(502, str(exc)) from exc
 
@@ -136,6 +179,12 @@ async def search(
         tenant_id = resolve_trusted_tenant(x_tenant_id, req.tenant_id)
     except TrustedTenantError as exc:
         raise HTTPException(status_code=403, detail=exc.code) from exc
+    if tenant_id == GLOBAL_REFERENCE_TENANT:
+        raise HTTPException(status_code=403, detail="GLOBAL_REFERENCE_TENANT_RESERVED")
+    try:
+        _ensure_sparse_index()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(503, f"hybrid sparse index not ready: {exc}") from exc
     filters = {
         "crop": req.crop,
         "field_id": req.field_id,

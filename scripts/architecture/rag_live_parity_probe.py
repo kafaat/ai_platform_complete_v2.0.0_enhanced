@@ -18,6 +18,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+GLOBAL_REFERENCE_TENANT = "__global__"
+
 
 def _post(url: str, payload: dict[str, Any], headers: dict[str, str] | None = None) -> dict:
     req = urllib.request.Request(
@@ -81,7 +83,14 @@ def run_probe(
                 "vector": emb,
                 "limit": final_k,
                 "with_payload": True,
-                "filter": {"must": [{"key": "metadata.tenant_id", "match": {"value": tenant_id}}]},
+                "filter": {
+                    "must": [
+                        {
+                            "key": "metadata.tenant_id",
+                            "match": {"any": [tenant_id, GLOBAL_REFERENCE_TENANT]},
+                        }
+                    ]
+                },
             },
             qheaders,
         ).get("result", [])
@@ -97,15 +106,19 @@ def run_probe(
         }
         c = {_fp(str(r.get("text") or "")) for r in canonical if r.get("text")}
         union = d | c
-        overlap = (len(d & c) / len(union)) if union else 1.0
+        # Empty-vs-empty is *not* parity evidence. Treat it as zero overlap so a
+        # missing/empty production corpus cannot certify itself green.
+        overlap = (len(d & c) / len(union)) if union else 0.0
         rows.append(
             {
                 "query_sha256": _fp(query),
                 "direct_hits": len(d),
                 "canonical_hits": len(c),
+                "comparable": bool(d and c),
                 "jaccard": round(overlap, 6),
             }
         )
+    comparable = sum(1 for row in rows if row["comparable"])
     return {
         "schema": "sahool.rag-live-parity-receipt/v1",
         "observed_at": datetime.now(UTC).isoformat(),
@@ -118,6 +131,7 @@ def run_probe(
         "vector_size": collection_dim,
         "queries": rows,
         "query_count": len(rows),
+        "comparable_query_count": comparable,
         "min_jaccard": min(r["jaccard"] for r in rows),
         "mean_jaccard": round(sum(r["jaccard"] for r in rows) / len(rows), 6),
         "read_only": True,
@@ -130,15 +144,21 @@ def main() -> int:
     ap.add_argument("--tenant-id", required=True)
     ap.add_argument("--query", action="append", required=True)
     ap.add_argument("--final-k", type=int, default=5)
-    ap.add_argument("--out", required=True)
+    ap.add_argument("--out", required=True, help="receipt path, or '-' for JSON on stdout")
     ap.add_argument("--subject-sha", default=os.getenv("GITHUB_SHA", ""))
+    ap.add_argument("--contract-sha256", default="")
     a = ap.parse_args()
     if len(a.subject_sha) != 40 or any(c not in "0123456789abcdefABCDEF" for c in a.subject_sha):
         raise SystemExit("--subject-sha (or GITHUB_SHA) must be a 40-hex commit SHA")
-    contract_path = (
-        Path(__file__).resolve().parents[2] / "docs/architecture/rag_embedding_contract.json"
-    )
-    contract_sha = hashlib.sha256(contract_path.read_bytes()).hexdigest()
+    if a.contract_sha256:
+        contract_sha = a.contract_sha256.lower()
+        if len(contract_sha) != 64 or any(c not in "0123456789abcdef" for c in contract_sha):
+            raise SystemExit("--contract-sha256 must be a 64-hex SHA256")
+    else:
+        contract_path = (
+            Path(__file__).resolve().parents[2] / "docs/architecture/rag_embedding_contract.json"
+        )
+        contract_sha = hashlib.sha256(contract_path.read_bytes()).hexdigest()
     receipt = run_probe(
         tenant_id=a.tenant_id,
         queries=a.query,
@@ -152,12 +172,14 @@ def main() -> int:
         contract_sha256=contract_sha,
         qdrant_api_key=os.getenv("QDRANT_API_KEY") or None,
     )
-    Path(a.out).write_text(
-        json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    print(
-        f"rag_live_parity_receipt_written queries={receipt['query_count']} min={receipt['min_jaccard']} mean={receipt['mean_jaccard']}"
-    )
+    rendered = json.dumps(receipt, ensure_ascii=False, indent=2) + "\n"
+    if a.out == "-":
+        print(rendered, end="")
+    else:
+        Path(a.out).write_text(rendered, encoding="utf-8")
+        print(
+            f"rag_live_parity_receipt_written queries={receipt['query_count']} comparable={receipt['comparable_query_count']} min={receipt['min_jaccard']} mean={receipt['mean_jaccard']}"
+        )
     return 0
 
 

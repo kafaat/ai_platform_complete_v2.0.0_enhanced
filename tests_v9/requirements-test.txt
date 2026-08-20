@@ -52,6 +52,23 @@ scipy==1.13.1  # = api/requirements.txt:20 — api/trial_engine.py يستورد 
 # test_segmentation_frontend_contract_20260702::test_segment_request_accepts_frontend_field_names
 pillow>=10.0.0  # = services/field-segmentation/requirements.txt:10
 
+# V6-HARD-IMPORTS-REACH-THE-UNIT-TIER-01: دلتا «إغلاق الفجوات الستّ» أدخلت
+# استيرادين **علويّين غير مؤجَّلين** في سلسلة استيرادٍ يبلغها جناح الوحدة:
+#   shapely  ← shared/precision_agriculture/trial_spatial.py (هندسة قطع RCBD)
+#   rasterio ← services/raster-service/trial_zonal_outcomes.py، ويستوردها
+#              raster_processing_runtime.py الذي كان يُستورَد **بلا rasterio** قبلها
+# فسقط اختباران كانا يمرّان على `main`: `test_gap_closure_v6::…_spatial_rcbd_…`
+# و`test_raster_latest_not_stale_after_rehydrate_v2` — الأوّل بـ`shapely>=2` مطلوبة،
+# والثاني بـ`ModuleNotFoundError: rasterio` أثناء تسجيل الراوترات.
+#
+# كلتاهما مُعلَنة في requirements الخدمة (`api/requirements.txt:27` ·
+# `raster-service/requirements.txt:7`)، فالنقص في **بيئة الاختبار** لا في الإنتاج.
+# مثبَّتتان على إصدار الإنتاج نفسه — درس APP-ROUTES-EMPTY-01: نطاقٌ مفتوح يحلّ إلى
+# إصدارٍ لا تُختبَر عليه المنصّة. و`pip-audit` عليهما قبل الإضافة ⇒ `No known
+# vulnerabilities found` (بروتوكول التبعيّات في CLAUDE.md).
+shapely==2.0.6  # = services/sahool-platform/api/requirements.txt:27
+rasterio>=1.3.0  # = services/raster-service/requirements.txt:7
+
 # JSON-SCHEMAS-WITH-NO-VALIDATOR-01: خمسة عشر ملفّ `*.schema.json` في الشجرة كانت
 # بلا مُتحقِّق واحد — المكتبة غير مثبَّتة ولا مُعلَنة ولا مستورَدة في أيّ سطر. المُتحقِّق
 # الموحَّد (`scripts/ci/schema_validation_guard.py`) يفشل مُغلَقاً بدونها، لا يتخطّى صامتاً.
