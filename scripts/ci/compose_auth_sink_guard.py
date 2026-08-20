@@ -116,10 +116,20 @@ def _scan_surface() -> list[Path]:
     return list(compose_files())
 
 
-def findings() -> list[tuple[str, str]]:
-    """(مفتاح، رسالة) لكلّ مصرفٍ لا يُثبِت `required AND non-empty` — بلا ترشيح."""
+def _sink_assignments() -> list[tuple[str, str, int, str]]:
+    """(الملفّ، المصرف، السطر، القيمة) لكلّ **إسنادٍ فعليّ** لمصرفٍ مُسجَّل.
+
+    **اشتقاقٌ واحد يستهلكه سؤالان.** أوّل صياغةٍ عندي أجابت «أهذا المصرف حيّ؟»
+    بمطابقةِ اسمِه نصّاً داخل الملفّ (`name in text`)، بينما «أهو منتهِك؟» تمرّ
+    بـ`_ASSIGN` وتتخطّى التعليقات. فاختلف الجوابان: اسمٌ باقٍ في تعليقٍ — أو سطرُ
+    إسنادٍ مُعطَّلٌ بـ`#` — يُعَدّ حياةً فلا يُبلَّغ عن اختفائه. رفعتها مراجعةٌ
+    خارجيّة وأصابت، وقِستُ الحالتين فمرّتا صامتتين.
+
+    وهو **نفس صنف** ما حذفتُ لأجله `min_expansion`: اشتقاقان للسؤال الواحد
+    ينحرفان بلا أن يلاحظ أحد. فالمصدر هنا واحد.
+    """
     sinks = _sinks()
-    out: list[tuple[str, str]] = []
+    out: list[tuple[str, str, int, str]] = []
     for path in _scan_surface():
         rel = str(path.relative_to(ROOT))
         for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
@@ -127,24 +137,30 @@ def findings() -> list[tuple[str, str]]:
             if stripped.startswith("#"):
                 continue
             match = _ASSIGN.match(stripped)
-            if not match:
-                continue
-            name, value = match.group(1), match.group(2)
-            spec = sinks.get(name)
-            if spec is None:
+            if not match or match.group(1) not in sinks:
                 continue
             # التعليقُ اللاحق ليس من القيمة — `${V}  # ملاحظة` قيمتُها `${V}`.
-            value = re.sub(r"\s+#.*$", "", value)
-            if _ACCEPTED.match(_unquote(value)):
-                continue
-            out.append(
-                (
-                    f"{rel}::{name}",
-                    f"{rel}:{number}: {name} — {_why_rejected(value)}. "
-                    f"خدمة `{spec['service']}` تعتمد عليه في تفعيل الاستيثاق، "
-                    f"فالمقبول `{spec['allowed_form']}` وحدها",
-                )
+            value = re.sub(r"\s+#.*$", "", match.group(2))
+            out.append((rel, match.group(1), number, value))
+    return out
+
+
+def findings() -> list[tuple[str, str]]:
+    """(مفتاح، رسالة) لكلّ مصرفٍ لا يُثبِت `required AND non-empty` — بلا ترشيح."""
+    sinks = _sinks()
+    out: list[tuple[str, str]] = []
+    for rel, name, number, value in _sink_assignments():
+        if _ACCEPTED.match(_unquote(value)):
+            continue
+        spec = sinks[name]
+        out.append(
+            (
+                f"{rel}::{name}",
+                f"{rel}:{number}: {name} — {_why_rejected(value)}. "
+                f"خدمة `{spec['service']}` تعتمد عليه في تفعيل الاستيثاق، "
+                f"فالمقبول `{spec['allowed_form']}` وحدها",
             )
+        )
     return out
 
 
@@ -183,10 +199,7 @@ def unmeasured_sinks() -> list[str]:
     أخضر لأنّه لا يجد ما يفحص. فيُحجَب حتّى يُحسَم — أزيلت الخدمة؟ فأزِل المصرف
     صراحةً.
     """
-    live: set[str] = set()
-    for path in _scan_surface():
-        text = path.read_text(encoding="utf-8")
-        live |= {name for name in _sinks() if name in text}
+    live = {name for _, name, _, _ in _sink_assignments()}
     return sorted(set(_sinks()) - live)
 
 

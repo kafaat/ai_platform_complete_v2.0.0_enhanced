@@ -50,11 +50,24 @@ surface = _load("compose_surface")
 
 
 def _compose_available() -> bool:
+    """يُنفَّذ عند **جمع** الاختبارات — فيُحاط بمهلةٍ والتقاطِ خطأ.
+
+    عميلُ docker عالقاً أو بطيئاً كان سيُعلِّق الجمعَ كلَّه لا هذا الملفّ وحده،
+    وهو إخفاقٌ يقرؤه القارئ «الجناح معطَّل» لا «الأداة غائبة». رفعتها مراجعةٌ
+    خارجيّة وأصابت. والسلوك لا يتغيّر: `False` عند عدم التوفّر.
+    """
     if not shutil.which("docker"):
         return False
-    probe = subprocess.run(
-        ["docker", "compose", "version"], capture_output=True, text=True, encoding="utf-8"
-    )
+    try:
+        probe = subprocess.run(
+            ["docker", "compose", "version"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
     return probe.returncode == 0
 
 
@@ -264,6 +277,53 @@ def test_a_registered_sink_that_vanishes_from_the_surface_blocks(tmp_path, monke
     monkeypatch.setattr(guard, "compose_files", lambda: [empty])
     monkeypatch.setattr(guard, "ROOT", tmp_path)
     assert guard.unmeasured_sinks() == [SINK]
+
+
+@pytest.mark.parametrize(
+    ("body", "case"),
+    [
+        (
+            f"services:\n  s:\n    image: alpine\n    # كانت هنا {SINK} قبل حذف الخدمة\n",
+            "اسمٌ باقٍ في تعليقٍ حرّ",
+        ),
+        (
+            "services:\n  s:\n    image: alpine\n    environment:\n"
+            f"      # {SINK}: ${{QDRANT_API_KEY:?x}}\n",
+            "سطرُ إسنادٍ مُعطَّلٌ بـ`#`",
+        ),
+    ],
+)
+def test_a_sink_surviving_only_inside_a_comment_is_not_counted_as_live(
+    tmp_path, monkeypatch, body, case
+):
+    """«حيّ» يُشتقّ من إسنادٍ فعليّ لا من ورودِ الاسم نصّاً.
+
+    مطابقةُ substring على الملفّ كلِّه تعدّ التعليقَ حياةً، فتصمت عن اختفاءِ
+    مصرفٍ مُسجَّل — وهي الخاصّيّة التي أُعلِنت حاجبةً في هذه الشريحة نفسها.
+    وقِستُ الحالتين قبل الإصلاح فمرّتا **صامتتين**.
+    """
+    probe = tmp_path / "docker-compose.ghost.yml"
+    probe.write_text(body, encoding="utf-8")
+    monkeypatch.setattr(guard, "compose_files", lambda: [probe])
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    assert guard.unmeasured_sinks() == [SINK], f"{case}: عُدَّ حياةً فلم يُبلَّغ عن اختفائه"
+
+
+def test_liveness_and_violation_are_derived_from_one_source(tmp_path, monkeypatch):
+    """السؤالان — «أهو حيّ؟» و«أهو منتهِك؟» — يمرّان بالاشتقاق نفسه.
+
+    فلا يمكن أن يقول أحدُهما «موجود» والآخر «غير موجود» عن السطر ذاته، وهو
+    الانحرافُ الذي أوجد الثقب.
+    """
+    probe = tmp_path / "docker-compose.probe.yml"
+    probe.write_text(
+        f'services:\n  q:\n    image: alpine\n    environment:\n      {SINK}: "${{QDRANT_API_KEY}}"\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(guard, "compose_files", lambda: [probe])
+    monkeypatch.setattr(guard, "ROOT", tmp_path)
+    assert guard.unmeasured_sinks() == [], "إسنادٌ فعليّ ومع ذلك أُعلِن مختفياً"
+    assert [key for key, _ in guard.findings()] == [f"docker-compose.probe.yml::{SINK}"]
 
 
 # ── الاستثناء التجريبيّ: مقيَّدٌ لا مُعمَّم ───────────────────────────────────
