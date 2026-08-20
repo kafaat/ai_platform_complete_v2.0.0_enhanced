@@ -147,3 +147,31 @@ def test_the_memory_models_keep_their_serialized_shape_after_dropping_json_encod
     assert '"json_encoders"' not in src.replace("# `json_encoders`", ""), (
         "المفتاح المُهمَل عاد — والتحذير يُطلَق عند إنشاء كلّ صنف"
     )
+
+
+def test_a_tokens_lifetime_equals_its_declared_window_exactly():
+    """رفعه Copilot على #877 وأصاب: نداءان للساعة يُنتِجان صلاحيّةً لا تطابق عقدها.
+
+    ``jose`` يحوّل الطابع عبر ``utctimetuple()``، أي يقصّ إلى ثوانٍ كاملة. فنداءان
+    منفصلان يتخطّيان حدّ الثانية يُعطيان ``exp - iat`` أقصر بثانية من المدّة
+    المُعلَنة. سباقٌ نادر، لكنّ أثره صلاحيّةٌ تُخالف عقدها — ولا يُمسَك بتشغيلٍ
+    واحد لأنّ النافذة ميكروثانية.
+
+    فالمقيس هنا **بنيويّ لا زمنيّ**: هل تُقرأ الساعة مرّةً واحدة داخل الدالّة؟
+    اختبارٌ يستدعيها ويقارن الفرق كان سيخضرّ في ٩٩٫٩٩٪ من التشغيلات وهو بعينه
+    «أخضرُ عن سؤالٍ لم يُطرَح» الذي يرفضه هذا الملفّ.
+
+    والعيب سابقٌ للتحويل من الساعة المُهمَلة (كان النداءان ``utcnow()``): لم
+    يُدخِله التحويل، ولم يكن ليُصلحه — لولا مراجعةٌ خارجيّة نظرت إلى ما لم أنظر إليه.
+    """
+    source = (ROOT / "services/sahool-platform/api/main.py").read_text(encoding="utf-8")
+    start = source.index("def create_token(")
+    body = source[start : source.index("\n\n\n", start)]
+    executed = [
+        line for line in body.splitlines() if line.strip() and not line.strip().startswith("#")
+    ]
+    reads = sum(line.count("datetime.now(") for line in executed)
+    assert reads == 1, (
+        f"الساعة تُقرأ {reads} مرّة داخل `create_token` — الحقلان يجب أن يُشتقّا من "
+        "لحظةٍ واحدة، وإلّا صارت الصلاحيّة أقصر بثانية عند تخطّي حدّ الثانية"
+    )

@@ -3,7 +3,7 @@
 ## Summary
 
 - File: `services/sahool-platform/api/main.py`
-- Total lines: `2553`
+- Total lines: `2560`
 - Import lines: `133`
 - Top-level symbols: `46`
 - Direct route decorators: `0`
@@ -15,7 +15,7 @@
 |---|---|---:|---:|
 | `idempotency_outbox_events` | `embedded_business_logic` | 9 | 406 |
 | `field_task_alert_helpers` | `embedded_business_logic` | 3 | 268 |
-| `auth_jwt_permissions` | `security_runtime` | 8 | 165 |
+| `auth_jwt_permissions` | `security_runtime` | 8 | 172 |
 | `parsers_mappers_serializers` | `compatibility_runtime` | 8 | 161 |
 | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 8 | 117 |
 | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 7 | 103 |
@@ -33,25 +33,25 @@
 | Symbol | Category | Classification | LOC | Lines |
 |---|---|---|---:|---|
 | `_start_scheduler` | `idempotency_outbox_events` | `embedded_business_logic` | 231 | 298-528 |
-| `_evaluate_field_alerts_persist` | `field_task_alert_helpers` | `embedded_business_logic` | 182 | 1676-1857 |
-| `_log_alert_deliveries` | `field_task_alert_helpers` | `embedded_business_logic` | 60 | 1604-1663 |
+| `_evaluate_field_alerts_persist` | `field_task_alert_helpers` | `embedded_business_logic` | 182 | 1683-1864 |
+| `_log_alert_deliveries` | `field_task_alert_helpers` | `embedded_business_logic` | 60 | 1611-1670 |
 | `_emit_domain_event` | `idempotency_outbox_events` | `embedded_business_logic` | 42 | 691-732 |
 | `rate_limit_middleware` | `middleware_and_rate_limit` | `middleware_runtime` | 41 | 898-938 |
-| `get_current_user` | `auth_jwt_permissions` | `security_runtime` | 37 | 1175-1211 |
+| `get_current_user` | `auth_jwt_permissions` | `security_runtime` | 37 | 1182-1218 |
 | `_init_db_pool` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 36 | 225-260 |
 | `_start_outbox_worker` | `idempotency_outbox_events` | `embedded_business_logic` | 35 | 539-573 |
 | `_assert_db_role_rls_safe` | `auth_jwt_permissions` | `security_runtime` | 33 | 263-295 |
-| `require_permission` | `auth_jwt_permissions` | `security_runtime` | 31 | 1214-1244 |
+| `require_permission` | `auth_jwt_permissions` | `security_runtime` | 31 | 1221-1251 |
 | `_idempotent` | `idempotency_outbox_events` | `embedded_business_logic` | 30 | 761-790 |
-| `_reverse_geocode` | `parsers_mappers_serializers` | `compatibility_runtime` | 29 | 1292-1320 |
-| `_build_denylist` | `auth_jwt_permissions` | `security_runtime` | 27 | 1143-1169 |
-| `_row_to_activity` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1433-1458 |
-| `_row_to_soil_test` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1508-1533 |
-| `_build_walk_plan` | `field_task_alert_helpers` | `embedded_business_logic` | 26 | 2108-2133 |
+| `_reverse_geocode` | `parsers_mappers_serializers` | `compatibility_runtime` | 29 | 1299-1327 |
+| `_build_denylist` | `auth_jwt_permissions` | `security_runtime` | 27 | 1150-1176 |
+| `_row_to_activity` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1440-1465 |
+| `_row_to_soil_test` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1515-1540 |
+| `_build_walk_plan` | `field_task_alert_helpers` | `embedded_business_logic` | 26 | 2115-2140 |
 | `tenant_connection` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 24 | 619-642 |
 | `_build_versioned_update` | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 23 | 1061-1083 |
-| `_get_workflow_store` | `workflow_compatibility` | `compatibility_runtime` | 23 | 2485-2507 |
-| `_row_to_prefs` | `parsers_mappers_serializers` | `compatibility_runtime` | 22 | 1573-1594 |
+| `_get_workflow_store` | `workflow_compatibility` | `compatibility_runtime` | 23 | 2492-2514 |
+| `_row_to_prefs` | `parsers_mappers_serializers` | `compatibility_runtime` | 22 | 1580-1601 |
 
 ## Recommendations
 
