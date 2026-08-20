@@ -195,6 +195,13 @@ def unmarked_tests() -> list[str]:
             continue
         if _module_pytestmark(tree) & known:
             continue
+        # **ملفٌّ بلا أيّ علامة مُسجَّلة ليس من شأن هذا الفحص.** يملكه `unmarked()`
+        # ويُبلِغ عنه **سطراً واحداً**؛ وإقحامُه هنا يُضيف سطراً لكلّ دالّة فيه —
+        # مقيس: ملفٌّ بثلاث دوالّ أعطى ٤ أسطر لعطلٍ واحد. والأسوأ أنّ الرسالة
+        # تكذب: تقول «داخل ملفٍّ موسوم» والملفّ بلا علامة إطلاقاً، فتُضلّل الإصلاح.
+        # رفعه Copilot على #878 وأصاب. والمقيس هنا وحده: **يتيمٌ بين أشقّاء موسومين**.
+        if not (marker_names_in(ROOT / rel) & known):
+            continue
         scopes: list[tuple[ast.AST, set[str]]] = [(tree, set())]
         while scopes:
             scope, inherited = scopes.pop()
