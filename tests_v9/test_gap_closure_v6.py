@@ -209,24 +209,6 @@ def test_trial_raster_zonal_outcomes_bind_real_pixels(tmp_path):
     assert all(np.isfinite(row["measurements"]["yield_mean"]) for row in bound)
 
 
-def test_adapt_field_boundary_roundtrip_is_identity_preserving_and_bounded():
-    m = _load("shared/precision_agriculture/adapt_v2_edge.py", "v6_adapt")
-    source = _field_polygon()
-    bundle = m.export_field_boundary_bundle(
-        field_id="f-17", field_name="Pivot 17", geometry=source, boundary_revision="42"
-    )
-    restored = m.import_field_boundary_bundle(bundle.document)
-    assert restored["field_id"] == "f-17"
-    assert restored["field_name"] == "Pivot 17"
-    assert restored["boundary_revision"] == "42"
-    assert restored["geometry"] == source
-    assert restored["authority"] == "interchange_roundtrip_only"
-    tampered = json.loads(json.dumps(bundle.document))
-    tampered["catalog"]["fieldBoundaries"][0]["fieldId"] = "sahool:field:other"
-    with pytest.raises(ValueError, match="inconsistent"):
-        m.import_field_boundary_bundle(tampered)
-
-
 def test_pail_projection_roundtrip_rejects_digest_or_authority_tamper():
     m = _load("shared/precision_agriculture/pail_om_edge.py", "v6_pail")
     projected = m.project_observation(
@@ -347,10 +329,14 @@ def test_global_seed_requires_explicit_provenance_manifest():
     assert (
         'SEED_PROVENANCE_JSON = (os.getenv("QDRANT_SEED_PROVENANCE_JSON") or "").strip()' in source
     )
+    assert "QDRANT_SEED_PROVENANCE_JSON is forbidden in production" in source
     assert (
         "global reference seed requires QDRANT_SEED_PROVENANCE_FILE or QDRANT_SEED_PROVENANCE_JSON"
         in source
     )
+    compose = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
+    seed_section = compose.split("  sahool-qdrant-seed:", 1)[1].split("\n  sahool-", 1)[0]
+    assert "QDRANT_SEED_PROVENANCE_JSON:" not in seed_section
     assert "missing_sources = sorted(" in source
     # تأكيدُ نصٍّ مصدريّ يُقارَن **بعد تطبيع المسافات**: `ruff format` — وهو بوّابة
     # حاجبة على كامل الشجرة — يعيد لفّ هذا الشرط الثلاثيّ على ثلاثة أسطر، فيصير

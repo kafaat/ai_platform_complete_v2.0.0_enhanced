@@ -28,22 +28,22 @@ def _polygon(x0: float) -> dict:
     }
 
 
-def test_adapt_edge_exports_only_proven_field_boundary_subset():
-    m = _load("shared/precision_agriculture/adapt_v2_edge.py", "delta_adapt")
-    bundle = m.export_field_boundary_bundle(
-        field_id="f-1", field_name="North Pivot", geometry=_polygon(44.0), boundary_revision=7
+def test_adapt_edge_remains_deferred_until_real_b2b_trigger():
+    decision = (ROOT / "services/sahool-platform/docs/REFERENCE_DOCS_CRITIQUE.md").read_text(
+        encoding="utf-8"
     )
-    doc = bundle.document
-    assert doc["rootSchemaVersion"] == "2.0.2"
-    assert set(doc) == {"rootSchemaVersion", "catalog"}
-    assert "documents" not in doc  # no invented prescriptions/work orders
-    field = doc["catalog"]["fields"][0]
-    boundary = doc["catalog"]["fieldBoundaries"][0]
-    assert field["activeBoundaryId"] == boundary["id"]["referenceId"]
-    assert boundary["fieldId"] == field["id"]["referenceId"]
-    assert boundary["boundary"]["geometry"].startswith("POLYGON (")
-    assert bundle.conformance_scope == ("catalog.fields", "catalog.fieldBoundaries")
-    assert len(bundle.content_digest) == 64
+    assert "لا تبادل B2B لسهول" in decision
+    assert not (ROOT / "shared/precision_agriculture/adapt_v2_edge.py").exists(), (
+        "إسقاط ADAPT v2 مؤجَّلٌ عمداً حتّى يوجد مُحفِّز B2B حقيقيّ — كما يقرّر "
+        "REFERENCE_DOCS_CRITIQUE.md. ووجودُ الوحدة ليس كسراً بل عودةُ سطحٍ تبادليّ "
+        "قبل أوانه: شيفرةٌ قابلة للاستدعاء تُقرأ التزاماً بمعيارٍ لا نُطابقه ولا "
+        "نختبره على شريكٍ حقيقيّ. أعِدها حين يوجد المُحفِّز، لا قبله."
+    )
+    exported = (ROOT / "shared/precision_agriculture/__init__.py").read_text(encoding="utf-8")
+    assert "adapt_v2_edge" not in exported, (
+        "التصدير أخطر من الملفّ: اسمٌ في `__init__` يجعل الإسقاط المؤجَّل واجهةً "
+        "عامّةً يعتمد عليها مُستدعٍ، فيصير حذفُه لاحقاً كسراً لا تراجعاً."
+    )
 
 
 def test_spatial_rcbd_assignment_is_deterministic_and_balanced():
@@ -145,16 +145,6 @@ def test_raster_stage_receipt_is_deterministic_about_inputs_and_failures():
     failed = m.fail_stage(running, RuntimeError("boom"))
     assert failed["status"] == "failed"
     assert failed["error_class"] == "RuntimeError"
-
-
-def test_adapt_edge_rejects_invalid_wgs84_latitude():
-    m = _load("shared/precision_agriculture/adapt_v2_edge.py", "delta_adapt_bounds")
-    bad = {
-        "type": "Polygon",
-        "coordinates": [[[44.0, 95.0], [44.1, 95.0], [44.1, 95.1], [44.0, 95.0]]],
-    }
-    with pytest.raises(ValueError, match="latitude"):
-        m.geojson_polygon_to_wkt(bad)
 
 
 def test_pail_observation_projection_is_semantic_only_and_provenance_bound():

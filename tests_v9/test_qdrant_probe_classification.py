@@ -36,7 +36,7 @@ Status = pq.CollectionProbeStatus
 
 
 def _client_raising(exc: Exception) -> pq.QdrantHttpClient:
-    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool")
+    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=384)
 
     def _boom(*_a, **_k):
         raise exc
@@ -46,7 +46,7 @@ def _client_raising(exc: Exception) -> pq.QdrantHttpClient:
 
 
 def _client_ok() -> pq.QdrantHttpClient:
-    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool")
+    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=384)
     client._request = lambda *_a, **_k: {"result": {}}  # type: ignore[method-assign]
     return client
 
@@ -92,7 +92,7 @@ def test_network_failure_is_unavailable_not_absent():
 
 def test_ensure_collection_creates_only_on_proven_absence():
     created: list[str] = []
-    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool")
+    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=384)
     client.probe_collection = lambda: Status.NOT_FOUND  # type: ignore[method-assign]
     client._request = lambda method, *_a, **_k: created.append(method) or {}  # type: ignore[method-assign]
     client.ensure_collection()
@@ -105,7 +105,7 @@ def test_ensure_collection_creates_only_on_proven_absence():
 def test_ensure_collection_fails_closed_on_inconclusive_probe(status):
     """لا إنشاء على أساس فشل غير مُصنَّف — والرسالة تسمّي التصنيف لا «تعذّر الإنشاء»."""
     created: list[str] = []
-    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool")
+    client = pq.QdrantHttpClient("http://qdrant:6333", "sahool", vector_size=384)
     client.probe_collection = lambda: status  # type: ignore[method-assign]
     client._request = lambda method, *_a, **_k: created.append(method) or {}  # type: ignore[method-assign]
     with pytest.raises(RuntimeError) as exc:

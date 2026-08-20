@@ -22,7 +22,12 @@ COLLECTION = os.getenv("QDRANT_COLLECTION", "sahool_agri_kb")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://sahool-ollama:11434")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
 _embedding_provider = OllamaEmbeddingProvider(OLLAMA_BASE_URL, EMBEDDING_MODEL)
-_qdrant = QdrantHttpClient(QDRANT_URL, COLLECTION, 0, os.getenv("QDRANT_API_KEY") or None)
+_qdrant = QdrantHttpClient(
+    QDRANT_URL,
+    COLLECTION,
+    vector_size=0,  # learned from live Ollama embedding response before collection creation
+    api_key=os.getenv("QDRANT_API_KEY") or None,
+)
 _retriever = HybridQdrantRetriever(_qdrant, _embedding_provider)
 _sparse_ready = False
 _sparse_report: dict[str, int] = {"total_points": 0, "loaded_chunks": 0, "skipped_points": 0}
