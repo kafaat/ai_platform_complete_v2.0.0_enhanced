@@ -5,9 +5,9 @@
     "runtime_verified": false,
     "python_files_parsed": 1866,
     "route_handlers": 1049,
-    "call_edges": 74846,
+    "call_edges": 74870,
     "dead_code_candidates": 620,
-    "duplicate_function_groups": 58,
+    "duplicate_function_groups": 61,
     "route_owners": 27,
     "automatic_deletions": 0
   },
@@ -485009,6 +485009,90 @@
       "line": 193
     },
     {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "effective_max_age",
+      "target": "max",
+      "line": 49
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "time",
+      "line": 54
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "exists",
+      "line": 55
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "exists",
+      "line": 57
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "stat",
+      "line": 61
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "int",
+      "line": 63
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "effective_max_age",
+      "line": 64
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "int",
+      "line": 66
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "int",
+      "line": 67
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "check",
+      "target": "max",
+      "line": 67
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "main",
+      "target": "check",
+      "line": 71
+    },
+    {
+      "owner": "weather-polygon-worker",
+      "file": "services/weather-polygon-worker/worker_health_probe.py",
+      "source": "main",
+      "target": "print",
+      "line": 72
+    },
+    {
       "owner": "weather-service",
       "file": "services/weather-service/cache.py",
       "source": "_redis",
@@ -497558,6 +497642,90 @@
       "source": "run",
       "target": "close",
       "line": 121
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "effective_max_age",
+      "target": "max",
+      "line": 49
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "time",
+      "line": 54
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "exists",
+      "line": 55
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "exists",
+      "line": 57
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "stat",
+      "line": 61
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "int",
+      "line": 63
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "effective_max_age",
+      "line": 64
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "int",
+      "line": 66
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "int",
+      "line": 67
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "check",
+      "target": "max",
+      "line": 67
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "main",
+      "target": "check",
+      "line": 71
+    },
+    {
+      "owner": "weather-signal-engine",
+      "file": "services/weather-signal-engine/worker_health_probe.py",
+      "source": "main",
+      "target": "print",
+      "line": 72
     },
     {
       "owner": "shared",
@@ -539373,6 +539541,23 @@
       ]
     },
     {
+      "fingerprint": "309844684b13a7b1",
+      "occurrences": [
+        {
+          "file": "services/weather-polygon-worker/worker_health_probe.py",
+          "symbol": "effective_max_age",
+          "line": 41,
+          "owner": "weather-polygon-worker"
+        },
+        {
+          "file": "services/weather-signal-engine/worker_health_probe.py",
+          "symbol": "effective_max_age",
+          "line": 41,
+          "owner": "weather-signal-engine"
+        }
+      ]
+    },
+    {
       "fingerprint": "32d2f14c2fac8b6a",
       "occurrences": [
         {
@@ -539882,6 +540067,23 @@
           "symbol": "main",
           "line": 132,
           "owner": "sahool-platform"
+        }
+      ]
+    },
+    {
+      "fingerprint": "7544db0a7644e547",
+      "occurrences": [
+        {
+          "file": "services/weather-polygon-worker/worker_health_probe.py",
+          "symbol": "check",
+          "line": 52,
+          "owner": "weather-polygon-worker"
+        },
+        {
+          "file": "services/weather-signal-engine/worker_health_probe.py",
+          "symbol": "check",
+          "line": 52,
+          "owner": "weather-signal-engine"
         }
       ]
     },
@@ -540437,6 +540639,23 @@
           "symbol": "_scope",
           "line": 41,
           "owner": "soil-service"
+        }
+      ]
+    },
+    {
+      "fingerprint": "f3ffe4c2879fddb0",
+      "occurrences": [
+        {
+          "file": "services/weather-polygon-worker/worker_health_probe.py",
+          "symbol": "main",
+          "line": 70,
+          "owner": "weather-polygon-worker"
+        },
+        {
+          "file": "services/weather-signal-engine/worker_health_probe.py",
+          "symbol": "main",
+          "line": 70,
+          "owner": "weather-signal-engine"
         }
       ]
     },

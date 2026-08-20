@@ -8328,6 +8328,10 @@
     "kind": "tests"
   },
   {
+    "path": "tests_v9/test_weather_worker_health_probe.py",
+    "kind": "tests"
+  },
+  {
     "path": "tests_v9/test_wofost_runtime_closure.py",
     "kind": "tests"
   },

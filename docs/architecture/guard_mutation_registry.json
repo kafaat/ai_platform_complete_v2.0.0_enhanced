@@ -814,6 +814,29 @@
         }
       ],
       "test": "services/sahool-platform/tests/test_agri_next_decision_support.py"
+    },
+    "services/weather-signal-engine/worker_health_probe.py": {
+      "test": "tests_v9/test_weather_worker_health_probe.py",
+      "mutations": [
+        {
+          "expect": "test_a_missing_heartbeat_is_not_ready",
+          "find": "    if not HEARTBEAT_FILE.exists():\n",
+          "replace": "    if False:\n",
+          "why": "عودةُ الفشل مفتوحاً عند غياب النبضة ⇒ يبقى المطلوبُ الوحيد ملفَّ الجاهزيّة، وهو يُكتَب مرّةً عند الإقلاع ولا يُحدَّث. فيقيس الفحص «أقلعت مرّةً» ويُعلِنها «تعمل الآن» — وغيابُ الدليل يُقرأ دليلاً."
+        },
+        {
+          "expect": "test_a_future_dated_heartbeat_is_not_ready",
+          "find": "    if age < -FUTURE_TOLERANCE_SEC:\n",
+          "replace": "    if False:\n",
+          "why": "نبضةٌ مؤرَّخة في المستقبل: `now - mtime` تصير سالبةً فلا تتجاوز أيّ سقف، ويبقى الفحص أخضرَ حتّى يلحق الزمنُ الحقيقيّ بالختم. واختلافُ الساعات غيابُ دليلٍ لا دليلُ صحّة."
+        },
+        {
+          "expect": "test_the_bound_is_derived_from_the_declared_cadence",
+          "find": "    return max(max_age, 2 * cadence + 60)\n",
+          "replace": "    return max_age\n",
+          "why": "فكُّ ارتباط السقف بكادنس المنتِج ⇒ يعود رقماً مستقلّاً. مقيسٌ على المشحون: `.env.example` يضبط الدورة على ٣٦٠٠ ثانية والسقف الثابت ١٨٠ — فعاملٌ سليمٌ تماماً يُعلَن مريضاً ٩٥٪ من كلّ ساعة."
+        }
+      ]
     }
   },
   "gap": "GUARDS-WITHOUT-A-PLANTED-DEFECT-01",
