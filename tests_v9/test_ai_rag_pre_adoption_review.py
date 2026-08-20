@@ -16,8 +16,17 @@ def test_embedding_dimension_is_live_sourced_not_nominal_config():
     overlay = (ROOT / "docker-compose.rag-kg-mcp.yml").read_text(encoding="utf-8")
     retrieval = (ROOT / "services/rag-retrieval/main.py").read_text(encoding="utf-8")
     contract = (ROOT / "docs/architecture/rag_embedding_contract.json").read_text(encoding="utf-8")
-    assert "\nEMBEDDING_DIM=" not in "\n" + env
-    assert "EMBEDDING_DIM:" not in overlay
+    assert "\nEMBEDDING_DIM=" not in "\n" + env, (
+        "بُعد المتّجه يُشتقّ من ردّ التضمين الحيّ، فإعلانُه في `.env.example` رقمٌ "
+        "لا يقرؤه المسار القانونيّ — والدليل أنّه كان `768` بينما الـoverlay `384` "
+        "ولم يكسر ذلك شيئاً. وضرره أنّه يُقرأ عقداً: مشغّلٌ يضبطه فيظنّ أنّه غيّر "
+        "شيئاً، ومولّدٌ لاحق يبني عليه."
+    )
+    assert "EMBEDDING_DIM:" not in overlay, (
+        "والـoverlay أسوأ من `.env.example`: قيمةٌ تُمرَّر إلى الحاوية فتبدو "
+        "مؤثّرة، بينما `vector_size=0` أدناه يعني أنّ الخدمة تتعلّم البُعد حيّاً "
+        "وتفشل مغلقةً عند اختلافه عن مجموعة Qdrant."
+    )
     assert "vector_size=0" in retrieval
     assert '"dimension_source": "live_embedding_response"' in contract
     assert '"no_hardcoded_vector_dimension": true' in contract
