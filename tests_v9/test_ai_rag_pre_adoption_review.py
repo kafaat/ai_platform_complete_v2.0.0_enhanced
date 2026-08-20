@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,11 +58,25 @@ def test_vllm_image_is_tag_and_digest_pinned_consistently():
 
 
 def test_inline_seed_provenance_is_not_forwarded_by_canonical_compose():
-    compose = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
-    section = compose.split("  sahool-qdrant-seed:", 1)[1].split("\n  sahool-", 1)[0]
-    assert "QDRANT_SEED_PROVENANCE_FILE:" in section
-    assert "QDRANT_SEED_PROVENANCE_JSON:" not in section
-    assert "SAHOOL_ENV:" in section
+    """المقيس **مفاتيح البيئة** لا شكلُ الملفّ.
+
+    كانت الصياغة الأولى تقتطع القسم بـ`split` على مسافةٍ بادئة وترتيبٍ بعينه، فتصير
+    تُقاس تنسيقُ `docker-compose.v9.yml` لا عقدَه: نقلُ الخدمة أو تغييرُ ما يليها
+    يرفع `IndexError` أو يُمرّر القسم الخطأ. وهو صنف «تأكيدٌ يقيس التنسيق» الذي
+    عولج في `test_gap_closure_v6` بعد أن أسقطه `ruff format` فعلاً. فيُحلَّل الـYAML
+    ويُسأل عن المفاتيح مباشرةً.
+    """
+    compose = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    env = compose["services"]["sahool-qdrant-seed"].get("environment") or {}
+    keys = set(env) if isinstance(env, dict) else {x.split("=", 1)[0] for x in env}
+    assert "QDRANT_SEED_PROVENANCE_FILE" in keys
+    assert "QDRANT_SEED_PROVENANCE_JSON" not in keys, (
+        "compose القانونيّ يمرّر provenance سطريّاً — وهو ما تحظره هذه الشريحة: "
+        "بذرُ مرجعٍ عالميّ بلا مصدرٍ موثّق."
+    )
+    assert "SAHOOL_ENV" in keys, (
+        "بلا `SAHOOL_ENV` لا يعرف `seed.py` أنّه في الإنتاج، فيصير الحظر بلا مِقياس"
+    )
 
 
 def test_adapt_stays_deferred_by_repository_governance():

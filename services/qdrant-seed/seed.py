@@ -263,7 +263,21 @@ async def seed():
         except Exception as e:
             # Race-safe retry classification: if another initializer created it, verify below;
             # otherwise preserve the real create/connect/auth failure.
-            if not await client.collection_exists(COLLECTION):
+            #
+            # The re-probe is itself a network call and can fail for the same reason the
+            # create did (unreachable host, bad key). Letting it propagate raw would
+            # replace the real cause with a second-order symptom, and the operator would
+            # debug the probe instead of the connection. So it fails closed on a named
+            # error that keeps the original as `__cause__`.
+            try:
+                created_by_peer = await client.collection_exists(COLLECTION)
+            except Exception as probe_error:
+                logger.error("فشل إنشاء المجموعة '%s' وتعذّر التحقّق بعده: %s", COLLECTION, e)
+                raise RuntimeError(
+                    f"QDRANT_COLLECTION_CREATE_FAILED: collection={COLLECTION}; "
+                    f"post-failure existence probe also failed ({probe_error})"
+                ) from e
+            if not created_by_peer:
                 logger.error("فشل إنشاء/تهيئة المجموعة '%s': %s", COLLECTION, e)
                 raise
     info = await client.get_collection(COLLECTION)

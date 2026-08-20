@@ -13035,7 +13035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8bb051324089e976203839947824cb0e100f317869647dc0dd11bb3fe380a898"
+          "content": "945e8442804b7fce81d3c12f5d342f21aba07dd21cfce6ef534736f55d735882"
         }
       ],
       "name": "services/qdrant-seed/seed.py",

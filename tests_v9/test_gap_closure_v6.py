@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
@@ -334,9 +335,21 @@ def test_global_seed_requires_explicit_provenance_manifest():
         "global reference seed requires QDRANT_SEED_PROVENANCE_FILE or QDRANT_SEED_PROVENANCE_JSON"
         in source
     )
-    compose = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
-    seed_section = compose.split("  sahool-qdrant-seed:", 1)[1].split("\n  sahool-", 1)[0]
-    assert "QDRANT_SEED_PROVENANCE_JSON:" not in seed_section
+    # مفاتيحُ البيئة تُسأل من الـYAML المُحلَّل لا باقتطاعٍ نصّيّ: الاقتطاع على
+    # مسافةٍ بادئة وترتيبٍ بعينه يقيس **تنسيق** الملفّ، ويرفع `IndexError` عند أوّل
+    # نقلٍ للخدمة — وهو الدرس المكتوب أسفل هذا الاختبار نفسه بعد أن أسقط
+    # `ruff format` تأكيداً حرفيّاً فيه.
+    compose_doc = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
+    seed_env = compose_doc["services"]["sahool-qdrant-seed"].get("environment") or {}
+    seed_keys = (
+        set(seed_env)
+        if isinstance(seed_env, dict)
+        else {item.split("=", 1)[0] for item in seed_env}
+    )
+    assert "QDRANT_SEED_PROVENANCE_JSON" not in seed_keys, (
+        "compose القانونيّ يمرّر provenance سطريّاً — والحظر في الإنتاج يفقد معناه "
+        "إن كان الملفّ نفسه يُمرّره"
+    )
     assert "missing_sources = sorted(" in source
     # تأكيدُ نصٍّ مصدريّ يُقارَن **بعد تطبيع المسافات**: `ruff format` — وهو بوّابة
     # حاجبة على كامل الشجرة — يعيد لفّ هذا الشرط الثلاثيّ على ثلاثة أسطر، فيصير
